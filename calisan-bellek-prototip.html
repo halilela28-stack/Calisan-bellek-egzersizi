@@ -1993,16 +1993,16 @@
     }
   });
 
-  document.getElementById("addPlayerBtn").addEventListener("click", ()=>{
+  function commitNewPlayer(){
     const input = document.getElementById("newPlayerInput");
     const name = input.value.trim();
-    if(!name) return;
+    if(!name) return false;
     if(playersList.includes(name)){
       currentPlayerName = name;
       document.getElementById("playerSelect").value = name;
       document.getElementById("newPlayerRow").style.display = "none";
       input.value = "";
-      return;
+      return true;
     }
     if(firestoreReady && window.__fb){
       const { db, collection, addDoc } = window.__fb;
@@ -2021,6 +2021,11 @@
         sel.value = name;
       }
     }, 300);
+    return true;
+  }
+
+  document.getElementById("addPlayerBtn").addEventListener("click", ()=>{
+    commitNewPlayer();
   });
 
   function setHistoryTab(tab){
@@ -2083,7 +2088,23 @@
   });
 
   document.getElementById("timerBtn").addEventListener("click", ()=>{
-    if(timerRunning){ stopTimer(); } else { startTimer(); }
+    if(timerRunning){
+      stopTimer();
+      return;
+    }
+    if(!currentPlayerName){
+      const newRow = document.getElementById("newPlayerRow");
+      const newInput = document.getElementById("newPlayerInput");
+      if(newRow.style.display !== "none" && newInput.value.trim()){
+        commitNewPlayer();
+      }
+    }
+    if(!currentPlayerName){
+      document.getElementById("playerSelect").focus();
+      alert("Başlamadan önce lütfen bir kişi seç veya yeni bir isim ekle.");
+      return;
+    }
+    startTimer();
   });
 
   document.getElementById("timerResetBtn").addEventListener("click", ()=>{
