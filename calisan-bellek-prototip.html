@@ -1,0 +1,2144 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Çalışan Bellek Egzersizi</title>
+<style>
+  :root{
+    --bg:#EEF3F3;
+    --panel:#FFFFFF;
+    --ink:#1D2A35;
+    --ink-soft:#57707A;
+    --line:#D9E2E2;
+    --teal:#2E6F6E;
+    --teal-dark:#204E4D;
+    --amber:#F2A65A;
+    --amber-dark:#C97F32;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background:var(--bg);
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color:var(--ink);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .app{
+    max-width:520px;
+    margin:0 auto;
+    min-height:100%;
+    display:flex;
+    flex-direction:column;
+    padding:14px 14px 20px;
+  }
+  .onboard-screen{
+    position:fixed;
+    inset:0;
+    background:var(--bg);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    z-index:120;
+  }
+  .onboard-inner{
+    max-width:380px;
+    width:100%;
+    text-align:center;
+    min-height:220px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .onboard-slide{
+    display:none;
+  }
+  .onboard-slide.active{
+    display:block;
+  }
+  .onboard-emoji{
+    font-size:44px;
+    margin-bottom:12px;
+  }
+  .onboard-slide h2{
+    font-size:18px;
+    margin:0 0 10px;
+    color:var(--ink);
+  }
+  .onboard-slide p{
+    font-size:14px;
+    color:var(--ink-soft);
+    line-height:1.5;
+    margin:0;
+  }
+  .onboard-dots{
+    display:flex;
+    gap:6px;
+    margin:16px 0;
+  }
+  .onboard-dots .dot{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:var(--line);
+  }
+  .onboard-dots .dot.on{
+    background:var(--teal);
+  }
+  .onboard-next-btn{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    width:100%;
+    max-width:380px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:14px 16px;
+    cursor:pointer;
+  }
+  .onboard-next-btn:active{
+    border-color:var(--teal);
+  }
+  .mode-screen{
+    position:fixed;
+    inset:0;
+    background:var(--bg);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:100;
+  }
+  .mode-inner{
+    max-width:420px;
+    width:100%;
+    text-align:center;
+  }
+  .mode-inner h2{
+    font-size:19px;
+    margin:0 0 4px;
+    color:var(--ink);
+  }
+  .mode-sub{
+    font-size:14px;
+    color:var(--ink-soft);
+    margin:0 0 20px;
+  }
+  .mode-card{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    width:100%;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:18px 16px;
+    margin-bottom:12px;
+    cursor:pointer;
+  }
+  .mode-card:active{
+    border-color:var(--teal);
+  }
+  .mode-emoji{ font-size:32px; }
+  .mode-title{
+    font-size:16px;
+    font-weight:800;
+    color:var(--ink);
+  }
+  .mode-desc{
+    font-size:12px;
+    color:var(--ink-soft);
+    line-height:1.4;
+  }
+  .cloud-badge{
+    font-size:10px;
+    font-weight:800;
+    padding:5px 8px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  .cloud-badge.on{
+    background:#E4F3E6;
+    color:#2E7D42;
+  }
+  .cloud-badge.off{
+    background:#F2EAD8;
+    color:#8A6D1D;
+  }
+  .top-btns{
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .icon-btn{
+    border:1px solid var(--line);
+    background:var(--panel);
+    font-size:14px;
+    width:32px;
+    height:32px;
+    border-radius:10px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .settings-screen{
+    position:fixed;
+    inset:0;
+    background:var(--bg);
+    z-index:110;
+    overflow-y:auto;
+    padding:20px;
+  }
+  .settings-inner{
+    max-width:480px;
+    margin:0 auto;
+  }
+  .settings-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:16px;
+  }
+  .settings-header h2{
+    font-size:18px;
+    margin:0;
+  }
+  .settings-group{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px 14px;
+    margin-bottom:10px;
+  }
+  .settings-label{
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink);
+  }
+  .settings-divider{
+    height:1px;
+    background:var(--line);
+    margin:16px 0;
+  }
+  .settings-slider-row{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:10px 14px;
+    margin-bottom:10px;
+  }
+  .settings-slider-label{
+    display:block;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+    font-weight:600;
+  }
+  .settings-slider-row input[type=range]{
+    width:100%;
+  }
+  .settings-slider-value{
+    display:block;
+    font-size:12px;
+    font-weight:800;
+    color:var(--teal-dark);
+    text-align:right;
+    margin-top:2px;
+  }
+  .switch{
+    position:relative;
+    display:inline-block;
+    width:44px;
+    height:26px;
+  }
+  .switch input{
+    opacity:0;
+    width:0;
+    height:0;
+  }
+  .switch-track{
+    position:absolute;
+    inset:0;
+    background:var(--line);
+    border-radius:999px;
+    transition:.15s;
+  }
+  .switch-thumb{
+    position:absolute;
+    top:3px;
+    left:3px;
+    width:20px;
+    height:20px;
+    background:#fff;
+    border-radius:50%;
+    transition:.15s;
+  }
+  .switch input:checked + .switch-track{
+    background:var(--teal);
+  }
+  .switch input:checked + .switch-track .switch-thumb{
+    transform:translateX(18px);
+  }
+  .mode-switch{
+    border:1px solid var(--line);
+    background:var(--panel);
+    color:var(--ink-soft);
+    font-size:11px;
+    font-weight:700;
+    padding:6px 10px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .top{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:10px;
+  }
+  .top h1{
+    font-size:17px;
+    margin:0;
+    font-weight:700;
+    letter-spacing:.2px;
+  }
+  .page-indicator{
+    font-size:13px;
+    color:var(--ink-soft);
+    font-weight:600;
+    white-space:nowrap;
+  }
+  .tier-row{
+    display:flex;
+    gap:6px;
+    margin-bottom:8px;
+  }
+  .tier-btn{
+    flex:1;
+    border:1px solid var(--line);
+    background:var(--panel);
+    padding:11px 6px;
+    font-size:13px;
+    font-weight:800;
+    color:var(--ink-soft);
+    border-radius:12px;
+    cursor:pointer;
+  }
+  .tier-btn.active{
+    background:var(--amber);
+    color:#3A2200;
+    border-color:var(--amber);
+  }
+  .exercise-row{
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+    padding-bottom:2px;
+    margin-bottom:10px;
+  }
+  .exercise-btn{
+    flex:0 0 auto;
+    border:1px solid var(--line);
+    background:var(--panel);
+    padding:9px 14px;
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink-soft);
+    border-radius:999px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .exercise-btn.active{
+    background:var(--teal-dark);
+    color:#fff;
+    border-color:var(--teal-dark);
+  }
+  .stage-row{
+    display:flex;
+    gap:6px;
+    background:var(--panel);
+    padding:4px;
+    border-radius:12px;
+    border:1px solid var(--line);
+    margin-bottom:10px;
+  }
+  .stage-btn{
+    flex:1;
+    border:none;
+    background:transparent;
+    padding:9px 4px;
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink-soft);
+    border-radius:9px;
+    cursor:pointer;
+  }
+  .stage-btn.active{
+    background:var(--teal);
+    color:#fff;
+  }
+  .player-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .player-label{
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+  .player-input{
+    flex:1;
+    border:1px solid var(--line);
+    background:var(--panel);
+    border-radius:10px;
+    padding:9px 12px;
+    font-size:14px;
+    color:var(--ink);
+    font-weight:600;
+  }
+  .player-input:focus{
+    outline:none;
+    border-color:var(--teal);
+  }
+  .instruction{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:12px 14px;
+    margin-bottom:12px;
+    font-size:14px;
+    line-height:1.5;
+  }
+  .instruction b{color:var(--teal-dark);}
+  .instruction .example{
+    display:block;
+    margin-top:6px;
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+  .timer-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:8px 10px 8px 16px;
+    margin-bottom:12px;
+  }
+  .timer-display{
+    font-variant-numeric: tabular-nums;
+    font-size:22px;
+    font-weight:700;
+    color:var(--ink);
+    letter-spacing:.5px;
+  }
+  .timer-btns{
+    display:flex;
+    gap:8px;
+  }
+  .timer-btn{
+    border:none;
+    background:var(--teal);
+    color:#fff;
+    font-size:13px;
+    font-weight:700;
+    padding:10px 16px;
+    border-radius:10px;
+    cursor:pointer;
+  }
+  .timer-btn.running{
+    background:#B4433A;
+  }
+  .timer-btn.reset{
+    background:var(--bg);
+    color:var(--ink-soft);
+    border:1px solid var(--line);
+    padding:10px 14px;
+    font-size:16px;
+  }
+  .error-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:8px 12px;
+    margin-bottom:12px;
+  }
+  .error-label{
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink-soft);
+  }
+  .error-stepper{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .error-btn{
+    width:30px;
+    height:30px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--bg);
+    color:var(--ink);
+    font-size:16px;
+    font-weight:800;
+    cursor:pointer;
+  }
+  .error-count{
+    min-width:16px;
+    text-align:center;
+    font-size:15px;
+    font-weight:800;
+    color:var(--ink);
+  }
+  .save-hint{
+    font-size:12px;
+    color:var(--amber-dark);
+    text-align:center;
+    margin-bottom:8px;
+    font-weight:700;
+  }
+  .save-result-btn{
+    width:100%;
+    border:none;
+    background:var(--teal);
+    color:#fff;
+    font-size:14px;
+    font-weight:800;
+    padding:13px;
+    border-radius:12px;
+    cursor:pointer;
+    margin-bottom:12px;
+  }
+  .save-result-btn:active{ background:var(--teal-dark); }
+  .level-flash{
+    text-align:center;
+    font-size:13px;
+    font-weight:700;
+    padding:8px;
+    border-radius:10px;
+    margin-bottom:10px;
+  }
+  .level-flash.up{
+    background:#E4F3E6;
+    color:#2E7D42;
+  }
+  .level-flash.down{
+    background:#FBEAE8;
+    color:#B4433A;
+  }
+  .board{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:14px;
+    flex:1;
+    display:grid;
+    gap:8px;
+    align-content:center;
+    justify-items:center;
+  }
+  .cell{
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .cell svg{
+    width:100%;
+    height:100%;
+    display:block;
+  }
+  .number-cell, .name-cell{
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:800;
+    text-align:center;
+  }
+  .number-cell{ font-size:min(9vw, 34px); }
+  .name-cell{ font-size:min(4.5vw, 18px); color:var(--ink); line-height:1.15; }
+  .controls{
+    display:flex;
+    gap:8px;
+    margin-top:14px;
+  }
+  .controls button{
+    border:none;
+    border-radius:14px;
+    padding:14px 10px;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .btn-ghost{
+    background:var(--panel);
+    color:var(--teal-dark);
+    border:1px solid var(--line);
+    flex:1;
+  }
+  .btn-main{
+    background:var(--amber);
+    color:#3A2200;
+    flex:1.4;
+  }
+  .btn-main:active{background:var(--amber-dark);}
+  .btn-ghost:active{background:var(--bg);}
+  .dots{
+    display:flex;
+    justify-content:center;
+    gap:6px;
+    margin-top:12px;
+  }
+  .dot{
+    width:7px; height:7px; border-radius:50%;
+    background:var(--line);
+  }
+  .dot.on{background:var(--teal);}
+  .dot.group-end{margin-right:8px;}
+  .history-toggle{
+    margin-top:12px;
+    border:1px dashed var(--line);
+    background:transparent;
+    color:var(--ink-soft);
+    font-size:13px;
+    font-weight:700;
+    padding:10px;
+    border-radius:12px;
+    cursor:pointer;
+  }
+  .history-panel{
+    margin-top:10px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:12px 14px;
+  }
+  .history-tabs{
+    display:flex;
+    gap:6px;
+    margin-bottom:10px;
+  }
+  .history-tab{
+    flex:1;
+    border:1px solid var(--line);
+    background:var(--bg);
+    color:var(--ink-soft);
+    font-size:12px;
+    font-weight:700;
+    padding:8px 4px;
+    border-radius:9px;
+    cursor:pointer;
+  }
+  .history-tab.active{
+    background:var(--teal);
+    color:#fff;
+    border-color:var(--teal);
+  }
+  .history-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+  }
+  .history-header-btns{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .history-export{
+    border:1px solid var(--teal);
+    background:transparent;
+    color:var(--teal-dark);
+    font-size:11px;
+    font-weight:800;
+    padding:5px 9px;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  .history-clear{
+    border:none;
+    background:transparent;
+    color:#B4433A;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+    padding:2px;
+  }
+  .result-card{
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:10px 12px;
+    margin-bottom:8px;
+  }
+  .result-card .rc-top{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:3px;
+  }
+  .result-card .rc-rank{
+    flex:0 0 auto;
+    font-size:13px;
+    font-weight:800;
+    color:var(--ink-soft);
+    min-width:20px;
+  }
+  .result-card .rc-name{
+    flex:1;
+    font-weight:700;
+    font-size:13px;
+    color:var(--ink);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .result-card .rc-time{
+    flex:0 0 auto;
+    font-weight:800;
+    font-size:14px;
+    color:var(--teal-dark);
+    font-variant-numeric: tabular-nums;
+  }
+  .result-card .rc-meta{
+    font-size:11px;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .result-card .rc-bar-wrap{
+    background:var(--bg);
+    border-radius:6px;
+    overflow:hidden;
+    height:9px;
+  }
+  .result-card .rc-bar{
+    height:100%;
+    background:var(--teal);
+    border-radius:6px;
+  }
+  .report-filter-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .report-player-select{
+    flex:1;
+    border:1px solid var(--line);
+    background:var(--panel);
+    border-radius:8px;
+    padding:6px 8px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink);
+  }
+  .week-chart{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    height:110px;
+    padding:0 2px 6px;
+    margin-bottom:10px;
+    border-bottom:1px solid var(--line);
+  }
+  .week-col{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+  }
+  .week-bar-wrap{
+    height:80px;
+    display:flex;
+    align-items:flex-end;
+    width:100%;
+    justify-content:center;
+  }
+  .week-bar{
+    width:60%;
+    background:var(--teal);
+    border-radius:4px 4px 0 0;
+    min-height:2px;
+  }
+  .week-day{
+    font-size:11px;
+    font-weight:800;
+    color:var(--ink);
+  }
+  .week-meta{
+    font-size:9px;
+    color:var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .week-comments{
+    margin-bottom:10px;
+  }
+  .week-comment{
+    font-size:12px;
+    color:var(--ink);
+    background:var(--bg);
+    border-radius:8px;
+    padding:8px 10px;
+    margin-bottom:6px;
+    line-height:1.4;
+  }
+  .week-events-title{
+    font-size:12px;
+    font-weight:700;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .week-event{
+    font-size:12px;
+    padding:6px 8px;
+    border-radius:8px;
+    margin-bottom:4px;
+  }
+  .week-event.up{ background:#E4F3E6; color:#2E7D42; }
+  .week-event.down{ background:#FBEAE8; color:#B4433A; }
+  .player-group-header{
+    font-size:12px;
+    font-weight:800;
+    color:var(--teal-dark);
+    margin:10px 0 6px;
+    padding-bottom:4px;
+    border-bottom:1px solid var(--line);
+  }
+  .player-group-header:first-child{
+    margin-top:0;
+  }
+  .history-empty{
+    font-size:13px;
+    color:var(--ink-soft);
+    text-align:center;
+    padding:8px 0;
+  }
+  .saved-flash{
+    color:var(--teal-dark);
+    font-weight:700;
+    font-size:12px;
+    margin-left:8px;
+  }
+</style>
+</head>
+<body>
+<div class="onboard-screen" id="onboardScreen">
+  <div class="onboard-inner" id="onboardInner">
+    <div class="onboard-slide active" data-slide="0">
+      <div class="onboard-emoji">🧠</div>
+      <h2>Çalışan Bellek Egzersizi</h2>
+      <p>Çocukların anlık tepki verme ve hızlı isimlendirme becerisini geliştiren, kısa ve eğlenceli alıştırmalar.</p>
+    </div>
+    <div class="onboard-slide" data-slide="1">
+      <div class="onboard-emoji">🔤</div>
+      <h2>4 farklı çalışma türü</h2>
+      <p>Şekil-Renk, Sayı-Renk, İsim (uzun/kısa) ve Nesne Adı — her biri Başlangıç'tan Zor Düzey'e ilerliyor.</p>
+    </div>
+    <div class="onboard-slide" data-slide="2">
+      <div class="onboard-emoji">⏱️</div>
+      <h2>Süre ve hata takibi</h2>
+      <p>Her çalışma kronometreyle ölçülüyor, sonuçlar kaydediliyor ve zamanla ilerleme görülebiliyor.</p>
+    </div>
+  </div>
+  <div class="onboard-dots" id="onboardDots"></div>
+  <button class="onboard-next-btn" id="onboardNextBtn">
+    <span class="mode-title" id="onboardNextLabel">Devam →</span>
+  </button>
+</div>
+
+<div class="mode-screen" id="modeScreen" style="display:none;">
+  <div class="mode-inner">
+    <h2>Çalışan Bellek Egzersizi</h2>
+    <p class="mode-sub">Nasıl kullanacaksın?</p>
+    <button class="mode-card" data-mode="aile">
+      <span class="mode-emoji">👨‍👩‍👧</span>
+      <span class="mode-title">Aile Modu</span>
+      <span class="mode-desc">Basit akış — sırayla ilerlenir, çocuk sadece "Sonraki"ye basar</span>
+    </button>
+    <button class="mode-card" data-mode="uzman">
+      <span class="mode-emoji">🩺</span>
+      <span class="mode-title">Uzman Modu</span>
+      <span class="mode-desc">Tam kontrol — düzey, egzersiz ve aşamayı serbestçe seç</span>
+    </button>
+  </div>
+</div>
+
+<div class="settings-screen" id="settingsScreen" style="display:none;">
+  <div class="settings-inner">
+    <div class="settings-header">
+      <h2>Ayarlar</h2>
+      <button class="icon-btn" id="closeSettingsBtn">✕</button>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-label">Ses efektleri</div>
+      <label class="switch">
+        <input type="checkbox" id="soundToggle" checked>
+        <span class="switch-track"><span class="switch-thumb"></span></span>
+      </label>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-label">Titreşim (haptik)</div>
+      <label class="switch">
+        <input type="checkbox" id="hapticToggle" checked>
+        <span class="switch-track"><span class="switch-thumb"></span></span>
+      </label>
+    </div>
+
+    <div class="settings-divider"></div>
+
+    <div class="settings-label" style="margin-bottom:8px;">Adaptif zorluk eşikleri (Aile Modu)</div>
+
+    <div class="settings-slider-row">
+      <span class="settings-slider-label">Hızlı sayılma süresi (öğe başına sn)</span>
+      <input type="range" id="successThresholdInput" min="0.4" max="2.0" step="0.1" value="1.0">
+      <span class="settings-slider-value" id="successThresholdValue">1.0 sn</span>
+    </div>
+
+    <div class="settings-slider-row">
+      <span class="settings-slider-label">Yavaş sayılma süresi (öğe başına sn)</span>
+      <input type="range" id="failThresholdInput" min="1.0" max="4.0" step="0.1" value="2.0">
+      <span class="settings-slider-value" id="failThresholdValue">2.0 sn</span>
+    </div>
+
+    <div class="settings-group" style="margin-top:14px;">
+      <div class="settings-label">Uzman Modu'nda da otomatik zorluk çalışsın</div>
+      <label class="switch">
+        <input type="checkbox" id="expertAdaptiveToggle">
+        <span class="switch-track"><span class="switch-thumb"></span></span>
+      </label>
+    </div>
+
+    <button class="save-result-btn" id="closeSettingsBtn2" style="margin-top:16px;">Kapat</button>
+  </div>
+</div>
+
+<div class="app" id="mainApp" style="display:none;">
+  <div class="top">
+    <h1>Çalışan Bellek Egzersizi</h1>
+    <div class="top-btns">
+      <span class="cloud-badge off" id="cloudBadge">📴 Yerel</span>
+      <button class="icon-btn" id="settingsBtn" title="Ayarlar">⚙️</button>
+      <button class="mode-switch" id="modeSwitchBtn"><span id="modeLabel">-</span></button>
+    </div>
+  </div>
+  <div class="top" style="margin-top:-6px;">
+    <span></span>
+    <span class="page-indicator" id="pageIndicator">Sayfa 1 / 12</span>
+  </div>
+
+  <div class="tier-row" id="tierRow"></div>
+
+  <div class="exercise-row" id="exerciseRow"></div>
+
+  <div class="stage-row" id="stageRow"></div>
+
+  <div class="player-row">
+    <span class="player-label">Kim çalışıyor?</span>
+    <input type="text" id="playerNameInput" class="player-input" placeholder="Adını yaz (örn. Ali)" maxlength="20">
+  </div>
+
+  <div class="instruction" id="instructionBox"></div>
+
+  <div class="timer-row">
+    <span class="timer-display" id="timerDisplay">00:00.0</span>
+    <div class="timer-btns">
+      <button class="timer-btn" id="timerBtn">▶ Başlat</button>
+      <button class="timer-btn reset" id="timerResetBtn">↺</button>
+    </div>
+  </div>
+
+  <div class="error-row" id="errorRow">
+    <span class="error-label">Hata sayısı</span>
+    <div class="error-stepper">
+      <button class="error-btn" id="errorMinusBtn">−</button>
+      <span class="error-count" id="errorCount">0</span>
+      <button class="error-btn" id="errorPlusBtn">+</button>
+    </div>
+  </div>
+
+  <button class="save-result-btn" id="saveResultBtn" style="display:none;">✓ Sonucu Kaydet</button>
+  <div class="save-hint" id="saveHint" style="display:none;">Süreyi durdurdun — hata sayısını kontrol et ve kaydet.</div>
+
+  <div class="level-flash" id="levelFlash" style="display:none;"></div>
+
+  <div class="board" id="board"></div>
+
+  <div class="dots" id="dots"></div>
+
+  <div class="controls">
+    <button class="btn-main" id="prevBtn">◀ Önceki</button>
+    <button class="btn-ghost" id="reshuffleBtn">🔀 Karıştır</button>
+    <button class="btn-main" id="nextBtn">Sonraki ▶</button>
+  </div>
+
+  <button class="history-toggle" id="historyToggle">📊 Geçmiş sonuçları göster</button>
+
+  <div class="history-panel" id="historyPanel" style="display:none;">
+    <div class="history-tabs">
+      <button class="history-tab active" id="tabRecent" data-tab="recent">Son Sonuçlar</button>
+      <button class="history-tab" id="tabLeaderboard" data-tab="leaderboard">🏆 Liderlik</button>
+      <button class="history-tab" id="tabReport" data-tab="report">📅 Rapor</button>
+    </div>
+    <div class="history-header">
+      <span id="historyTitle">Son sonuçlar</span>
+      <div class="history-header-btns">
+        <button class="history-export" id="exportCsvBtn" style="display:none;">⬇️ CSV</button>
+        <button class="history-clear" id="historyClearBtn">Temizle</button>
+      </div>
+    </div>
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, onSnapshot, query, orderBy, getDocs, writeBatch
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBwwlyZsXC9tB2r5TYvQIqCqxCPr_-ITbk",
+    authDomain: "calisan-bellek-egzersiz.firebaseapp.com",
+    projectId: "calisan-bellek-egzersiz",
+    storageBucket: "calisan-bellek-egzersiz.firebasestorage.app",
+    messagingSenderId: "261598944722",
+    appId: "1:261598944722:web:4c1af75ba3ef1513e37c0b",
+    measurementId: "G-3YW5HN5JDH"
+  };
+
+  try{
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    window.__fb = { db, collection, addDoc, onSnapshot, query, orderBy, getDocs, writeBatch };
+  }catch(e){
+    console.error("Firebase modül başlatma hatası:", e);
+  }
+  window.dispatchEvent(new Event("firebase-ready"));
+</script>
+<script>
+  const COLORS = ["#D64545","#E8C547","#3A6EA5","#4F9D5A","#E8823A"];
+  const COLOR_NAMES = {"#D64545":"kırmızı","#E8C547":"sarı","#3A6EA5":"mavi","#4F9D5A":"yeşil","#E8823A":"turuncu"};
+
+  const TIERS = [
+    {label:"Başlangıç", rows:4, cols:4},
+    {label:"Orta Düzey", rows:5, cols:4},
+    {label:"Zor Düzey", rows:5, cols:5},
+  ];
+
+  function randomItem(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function randomInt(min, max){ return min + Math.floor(Math.random()*(max-min+1)); }
+
+  // ---------- Egzersiz 1: Şekil - Renk ----------
+  const SHAPES = ["star","heart","rect","triangle","circle"];
+  const SHAPE_NAMES = {star:"yıldız", heart:"kalp", rect:"dikdörtgen", triangle:"üçgen", circle:"daire"};
+
+  function shapeSVG(shape, color){
+    const c = color;
+    switch(shape){
+      case "star":
+        return `<svg viewBox="0 0 100 100"><polygon points="50,4 61,37 96,37 68,58 79,92 50,71 21,92 32,58 4,37 39,37" fill="${c}"/></svg>`;
+      case "heart":
+        return `<svg viewBox="0 0 100 100"><path d="M50 88 C20 65 5 45 5 28 C5 10 20 2 32 2 C42 2 48 8 50 14 C52 8 58 2 68 2 C80 2 95 10 95 28 C95 45 80 65 50 88 Z" fill="${c}"/></svg>`;
+      case "rect":
+        return `<svg viewBox="0 0 100 100"><rect x="10" y="24" width="80" height="52" rx="6" fill="${c}"/></svg>`;
+      case "triangle":
+        return `<svg viewBox="0 0 100 100"><polygon points="50,6 96,92 4,92" fill="${c}"/></svg>`;
+      case "circle":
+        return `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="${c}"/></svg>`;
+    }
+  }
+
+  // ---------- Egzersiz 2: Sayı - Renk ----------
+  function numberHTML(number, color){
+    return `<div class="number-cell" style="color:${color}">${number}</div>`;
+  }
+
+  // ---------- Egzersiz 3: İsim (Kız/Erkek - Uzun/Kısa) ----------
+  const NAME_POOL = {
+    "kız_kısa": ["Ece","Elif","Nur","Ela","Mira","İpek","Aslı","Ayşe"],
+    "kız_uzun": ["Zeynep","Selin","Defne","Yağmur","Melisa","Ceylin","Asude","Belinay"],
+    "erkek_kısa": ["Ali","Emir","Kaan","Efe","Arda","Umut","Onur","Ege"],
+    "erkek_uzun": ["Mehmet","Mustafa","Yusuf","Kerem","Bartu","Doruk","Emirhan","Berkay"]
+  };
+  function nameHTML(name){
+    return `<div class="name-cell">${name}</div>`;
+  }
+
+  // ---------- Egzersiz 4: Nesne Adı ----------
+  const OBJECTS = ["apple","car","house","fish","flower"];
+  const OBJECT_NAMES = {apple:"elma", car:"araba", house:"ev", fish:"balık", flower:"çiçek"};
+
+  function objectSVG(object, color){
+    const c = color;
+    switch(object){
+      case "apple":
+        return `<svg viewBox="0 0 100 100">
+          <path d="M50 30 C30 22 12 38 12 60 C12 80 28 94 46 94 C50 94 50 90 54 90 C58 90 58 94 62 94 C80 94 96 80 96 60 C96 38 78 22 58 30 C56 24 58 16 64 10 C56 8 50 16 50 30 Z" fill="${c}"/>
+          <path d="M50 28 C48 18 40 12 34 12 C36 20 42 26 50 28 Z" fill="#4F9D5A"/>
+        </svg>`;
+      case "car":
+        return `<svg viewBox="0 0 100 100">
+          <rect x="8" y="46" width="84" height="26" rx="8" fill="${c}"/>
+          <path d="M24 46 L34 26 L66 26 L76 46 Z" fill="${c}"/>
+          <circle cx="28" cy="76" r="11" fill="#2B2B2B"/>
+          <circle cx="72" cy="76" r="11" fill="#2B2B2B"/>
+        </svg>`;
+      case "house":
+        return `<svg viewBox="0 0 100 100">
+          <polygon points="50,10 92,44 8,44" fill="${c}"/>
+          <rect x="18" y="44" width="64" height="46" fill="${c}"/>
+          <rect x="42" y="62" width="16" height="28" fill="#FFFFFF"/>
+        </svg>`;
+      case "fish":
+        return `<svg viewBox="0 0 100 100">
+          <ellipse cx="42" cy="50" rx="34" ry="22" fill="${c}"/>
+          <polygon points="76,50 98,32 98,68" fill="${c}"/>
+          <circle cx="24" cy="44" r="4" fill="#1D2A35"/>
+        </svg>`;
+      case "flower":
+        return `<svg viewBox="0 0 100 100">
+          <circle cx="50" cy="26" r="16" fill="${c}"/>
+          <circle cx="74" cy="50" r="16" fill="${c}"/>
+          <circle cx="50" cy="74" r="16" fill="${c}"/>
+          <circle cx="26" cy="50" r="16" fill="${c}"/>
+          <circle cx="50" cy="50" r="14" fill="#E8C547"/>
+        </svg>`;
+    }
+  }
+
+  // ---------- Egzersiz tanımları ----------
+  const EXERCISES = [
+    {
+      id: "shape-color",
+      label: "Şekil - Renk",
+      attrs: ["shape","color"],
+      randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
+      renderItem: (item) => shapeSVG(item.shape, item.color),
+      stages: [
+        {
+          label: "Aşama 1 · Ad",
+          instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Ben başla dediğimde, gördüğün her şeklin sadece adını olabildiğince hızlı söyle"</b> deyin.`,
+          example: (item) => `${SHAPE_NAMES[item.shape]}`
+        },
+        {
+          label: "Aşama 2 · Ad + Renk",
+          instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Ben başla dediğimde, gördüğün her şeklin rengini ve adını olabildiğince hızlı söyle"</b> deyin.`,
+          example: (item) => `${COLOR_NAMES[item.color]} ${SHAPE_NAMES[item.shape]}`
+        }
+      ]
+    },
+    {
+      id: "number-color",
+      label: "Sayı - Renk",
+      attrs: ["number","color"],
+      randomItem: () => ({ number: randomInt(1,9), color: randomItem(COLORS) }),
+      renderItem: (item) => numberHTML(item.number, item.color),
+      stages: [
+        {
+          label: "Aşama 1 · Rakam",
+          instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Ben başla dediğimde, gördüğün her rakamı olabildiğince hızlı söyle"</b> deyin.`,
+          example: (item) => `${item.number}`
+        },
+        {
+          label: "Aşama 2 · Renk + Rakam",
+          instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Ben başla dediğimde, gördüğün her rakamın rengini ve rakamı olabildiğince hızlı söyle"</b> deyin.`,
+          example: (item) => `${COLOR_NAMES[item.color]} ${item.number}`
+        }
+      ]
+    },
+    {
+      id: "name-gender-length",
+      label: "İsim - Uzun/Kısa",
+      attrs: ["gender","length"],
+      randomItem: () => {
+        const gender = randomItem(["kız","erkek"]);
+        const length = randomItem(["kısa","uzun"]);
+        const name = randomItem(NAME_POOL[`${gender}_${length}`]);
+        return { gender, length, name };
+      },
+      renderItem: (item) => nameHTML(item.name),
+      stages: [
+        {
+          label: "Aşama 1 · Kız/Erkek",
+          instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Ben başla dediğimde, gördüğün ismin kıza mı erkeğe mi ait olduğunu olabildiğince hızlı söyle"</b> deyin.`,
+          example: (item) => `${item.gender}`
+        },
+        {
+          label: "Aşama 2 · + Uzun/Kısa",
+          instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Ben başla dediğimde, önce ismin kıza mı erkeğe mi ait olduğunu, sonra uzun mu kısa mı olduğunu olabildiğince hızlı söyle"</b> deyin.`,
+          example: (item) => `${item.gender} ${item.length}`
+        }
+      ]
+    },
+    {
+      id: "object-name",
+      label: "Nesne Adı",
+      attrs: ["object","color"],
+      randomItem: () => ({ object: randomItem(OBJECTS), color: randomItem(COLORS) }),
+      renderItem: (item) => objectSVG(item.object, item.color),
+      stages: [
+        {
+          label: "Aşama 1 · Ad",
+          instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Ben başla dediğimde, gördüğün her nesnenin sadece adını olabildiğince hızlı söyle"</b> deyin.`,
+          example: (item) => `${OBJECT_NAMES[item.object]}`
+        },
+        {
+          label: "Aşama 2 · Ad + Renk",
+          instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Ben başla dediğimde, gördüğün her nesnenin rengini ve adını olabildiğince hızlı söyle"</b> deyin.`,
+          example: (item) => `${COLOR_NAMES[item.color]} ${OBJECT_NAMES[item.object]}`
+        }
+      ]
+    }
+  ];
+
+  // Düzey-öncelikli sıralama: Başlangıç(Şekil-Renk,Sayı-Renk,İsim,Nesne), Orta(...), Zor(...)
+  const SEQUENCE = [];
+  TIERS.forEach((_, t)=>{
+    EXERCISES.forEach((_, e)=>{
+      SEQUENCE.push({t, e});
+    });
+  });
+
+  let currentIndex = 0;
+  let currentStageIndex = 0;
+  let currentGrid = [];
+  let currentPlayerName = "";
+  let currentHistoryTab = "recent";
+  let appMode = null;
+  let currentErrorCount = 0;
+  let successStreak = 0;
+  let currentReportPlayer = "Herkes";
+
+  let SUCCESS_SEC_PER_ITEM = 1.0;
+  let FAIL_SEC_PER_ITEM = 2.0;
+  let soundEnabled = true;
+  let hapticEnabled = true;
+  let expertAdaptiveEnabled = false;
+
+  function currentCombo(){ return SEQUENCE[currentIndex]; }
+  function currentTier(){ return TIERS[currentCombo().t]; }
+  function currentExercise(){ return EXERCISES[currentCombo().e]; }
+
+  let timerInterval = null;
+  let timerRunning = false;
+  let elapsedMs = 0;
+  let timerStartedAt = 0;
+
+  function generateGrid(exercise, rows, cols){
+    const grid = [];
+    for(let i=0;i<rows*cols;i++){
+      let item;
+      let tries = 0;
+      do{
+        item = exercise.randomItem();
+        tries++;
+      } while(
+        grid.length > 0 &&
+        exercise.attrs.some(a => item[a] === grid[grid.length-1][a]) &&
+        tries < 30
+      );
+      grid.push(item);
+    }
+    return grid;
+  }
+
+  function goToIndex(newIndex){
+    const prevExId = currentExercise().id;
+    currentIndex = ((newIndex % SEQUENCE.length) + SEQUENCE.length) % SEQUENCE.length;
+    if(currentExercise().id !== prevExId){
+      currentStageIndex = 0;
+    }
+    renderTierRow();
+    renderExerciseRow();
+    renderStageRow();
+    newPage();
+  }
+
+  function renderTierRow(){
+    const row = document.getElementById("tierRow");
+    row.innerHTML = "";
+    TIERS.forEach((tier, t)=>{
+      const btn = document.createElement("button");
+      btn.className = "tier-btn" + (t===currentCombo().t ? " active" : "");
+      btn.textContent = tier.label;
+      btn.addEventListener("click", ()=>{
+        goToIndex(t * EXERCISES.length + currentCombo().e);
+      });
+      row.appendChild(btn);
+    });
+  }
+
+  function renderExerciseRow(){
+    const row = document.getElementById("exerciseRow");
+    row.innerHTML = "";
+    EXERCISES.forEach((ex, e)=>{
+      const btn = document.createElement("button");
+      btn.className = "exercise-btn" + (e===currentCombo().e ? " active" : "");
+      btn.textContent = ex.label;
+      btn.addEventListener("click", ()=>{
+        goToIndex(currentCombo().t * EXERCISES.length + e);
+      });
+      row.appendChild(btn);
+    });
+  }
+  function formatTime(ms){
+    const totalMs = Math.max(0, ms);
+    const totalSec = Math.floor(totalMs/1000);
+    const m = String(Math.floor(totalSec/60)).padStart(2,"0");
+    const s = String(totalSec%60).padStart(2,"0");
+    const tenths = Math.floor((totalMs%1000)/100);
+    return `${m}:${s}.${tenths}`;
+  }
+
+  function tickTimer(){
+    elapsedMs = Date.now() - timerStartedAt;
+    document.getElementById("timerDisplay").textContent = formatTime(elapsedMs);
+  }
+
+  function startTimer(){
+    timerStartedAt = Date.now() - elapsedMs;
+    timerInterval = setInterval(tickTimer, 100);
+    timerRunning = true;
+    const btn = document.getElementById("timerBtn");
+    btn.textContent = "⏸ Durdur";
+    btn.classList.add("running");
+    document.getElementById("saveResultBtn").style.display = "none";
+    document.getElementById("saveHint").style.display = "none";
+  }
+
+  function stopTimer(){
+    clearInterval(timerInterval);
+    timerRunning = false;
+    const btn = document.getElementById("timerBtn");
+    btn.textContent = "▶ Başlat";
+    btn.classList.remove("running");
+    if(elapsedMs > 300){
+      document.getElementById("saveResultBtn").style.display = "block";
+      document.getElementById("saveHint").style.display = "block";
+    }
+  }
+
+  function resetTimer(){
+    clearInterval(timerInterval);
+    timerRunning = false;
+    elapsedMs = 0;
+    document.getElementById("timerDisplay").textContent = "00:00.0";
+    const btn = document.getElementById("timerBtn");
+    btn.textContent = "▶ Başlat";
+    btn.classList.remove("running");
+    currentErrorCount = 0;
+    const countEl = document.getElementById("errorCount");
+    if(countEl) countEl.textContent = "0";
+    document.getElementById("saveResultBtn").style.display = "none";
+    document.getElementById("saveHint").style.display = "none";
+  }
+
+  function confirmSaveResult(){
+    if(elapsedMs <= 300) return;
+    recordSession(elapsedMs, currentErrorCount);
+    playSound("save");
+    if(appMode === "aile" || (appMode === "uzman" && expertAdaptiveEnabled)){
+      applyAdaptiveDifficulty(elapsedMs, currentErrorCount);
+    }
+    resetTimer();
+  }
+
+  let audioCtx = null;
+  let audioUnlocked = false;
+
+  function getAudioCtx(){
+    if(!audioCtx){
+      try{
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }catch(e){
+        return null;
+      }
+    }
+    return audioCtx;
+  }
+
+  function unlockAudio(){
+    if(audioUnlocked) return;
+    const ctx = getAudioCtx();
+    if(!ctx) return;
+    if(ctx.state === "suspended"){
+      ctx.resume().catch(()=>{});
+    }
+    // Sessiz bir "ısınma" sesi çalarak iOS/Android kilidini aç
+    try{
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.05);
+    }catch(e){}
+    audioUnlocked = true;
+  }
+
+  document.addEventListener("touchend", unlockAudio, {once:true});
+  document.addEventListener("click", unlockAudio, {once:true});
+
+  function beep(freqStart, freqEnd, durationMs, volume){
+    if(!soundEnabled) return;
+    const ctx = getAudioCtx();
+    if(!ctx) return;
+    if(ctx.state === "suspended"){
+      ctx.resume().catch(()=>{});
+    }
+    try{
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freqStart, ctx.currentTime);
+      osc.frequency.linearRampToValueAtTime(freqEnd, ctx.currentTime + durationMs/1000);
+      gain.gain.setValueAtTime(volume, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + durationMs/1000);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + durationMs/1000);
+    }catch(e){}
+  }
+
+  function playSound(kind){
+    if(kind === "save"){ beep(650, 780, 130, 0.15); }
+    else if(kind === "up"){ beep(520, 940, 320, 0.18); }
+    else if(kind === "down"){ beep(420, 260, 380, 0.18); }
+  }
+
+  function vibrate(pattern){
+    if(!hapticEnabled) return;
+    try{
+      if(navigator.vibrate) navigator.vibrate(pattern);
+    }catch(e){}
+  }
+
+  function applyAdaptiveDifficulty(ms, errors){
+    const itemCount = currentTier().rows * currentTier().cols;
+    const secPerItem = (ms/1000) / itemCount;
+    const isGood = errors === 0 && secPerItem <= SUCCESS_SEC_PER_ITEM;
+    const isBad = errors > 0 || secPerItem >= FAIL_SEC_PER_ITEM;
+
+    if(isGood){
+      successStreak++;
+      if(successStreak >= 2){
+        successStreak = 0;
+        const combo = currentCombo();
+        if(combo.t < TIERS.length - 1){
+          const nextTierLabel = TIERS[combo.t+1].label;
+          goToIndex((combo.t+1) * EXERCISES.length + combo.e);
+          showLevelFlash(`🎉 Harika gidiyorsun! Zorluk artırıldı: ${nextTierLabel}`, "up");
+          playSound("up");
+          vibrate([40, 60, 40]);
+          logLevelEvent({t: Date.now(), dir:"up", toLabel: nextTierLabel, player: currentPlayerName.trim() || "Oyuncu"});
+        }
+      }
+    } else if(isBad){
+      successStreak = 0;
+      const combo = currentCombo();
+      if(combo.t > 0){
+        const prevTierLabel = TIERS[combo.t-1].label;
+        goToIndex((combo.t-1) * EXERCISES.length + combo.e);
+        showLevelFlash(`Biraz daha pratik edelim, zorluk azaltıldı: ${prevTierLabel}`, "down");
+        playSound("down");
+        vibrate(80);
+        logLevelEvent({t: Date.now(), dir:"down", toLabel: prevTierLabel, player: currentPlayerName.trim() || "Oyuncu"});
+      }
+    } else {
+      successStreak = 0;
+    }
+  }
+
+  function showLevelFlash(text, type){
+    const flash = document.getElementById("levelFlash");
+    if(!flash) return;
+    flash.textContent = text;
+    flash.className = "level-flash " + type;
+    flash.style.display = "block";
+    clearTimeout(flash._hideTimer);
+    flash._hideTimer = setTimeout(()=>{ flash.style.display = "none"; }, 4000);
+  }
+
+  function renderStageRow(){
+    const row = document.getElementById("stageRow");
+    row.innerHTML = "";
+    currentExercise().stages.forEach((stage, i)=>{
+      const btn = document.createElement("button");
+      btn.className = "stage-btn" + (i===currentStageIndex ? " active" : "");
+      btn.textContent = stage.label;
+      btn.addEventListener("click", ()=>{
+        currentStageIndex = i;
+        renderStageRow();
+        renderInstruction();
+        refreshHistoryIfVisible();
+      });
+      row.appendChild(btn);
+    });
+  }
+
+  function renderInstruction(){
+    const box = document.getElementById("instructionBox");
+    const stage = currentExercise().stages[currentStageIndex];
+    const sample = currentGrid[0] || currentExercise().randomItem();
+    box.innerHTML = `${stage.instruction()}
+      <span class="example">Örneğin: "${stage.example(sample)}" deyin.</span>`;
+  }
+
+  function renderBoard(){
+    const {rows, cols} = currentTier();
+    const board = document.getElementById("board");
+    board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    board.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+    board.innerHTML = "";
+    const ex = currentExercise();
+    currentGrid.forEach(item=>{
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.innerHTML = ex.renderItem(item);
+      board.appendChild(cell);
+    });
+  }
+
+  function renderDots(){
+    const dots = document.getElementById("dots");
+    dots.innerHTML = "";
+    SEQUENCE.forEach((combo, i)=>{
+      const d = document.createElement("div");
+      const isGroupEnd = (i % EXERCISES.length) === EXERCISES.length - 1 && i !== SEQUENCE.length - 1;
+      d.className = "dot" + (i === currentIndex ? " on" : "") + (isGroupEnd ? " group-end" : "");
+      dots.appendChild(d);
+    });
+  }
+
+  function renderAll(){
+    document.getElementById("pageIndicator").textContent = `${currentTier().label} · Sayfa ${currentIndex+1}/${SEQUENCE.length}`;
+    renderInstruction();
+    renderBoard();
+    renderDots();
+  }
+
+  function refreshHistoryIfVisible(){
+    const panel = document.getElementById("historyPanel");
+    if(panel && panel.style.display !== "none"){
+      renderHistory();
+    }
+  }
+
+  function newPage(){
+    const {rows, cols} = currentTier();
+    currentGrid = generateGrid(currentExercise(), rows, cols);
+    renderAll();
+    resetTimer();
+    const flash = document.getElementById("levelFlash");
+    if(flash){ clearTimeout(flash._hideTimer); flash.style.display = "none"; }
+    refreshHistoryIfVisible();
+  }
+
+  let firestoreReady = false;
+  let sessionHistory = [];
+  let levelEvents = [];
+
+  function updateCloudBadge(){
+    const badge = document.getElementById("cloudBadge");
+    if(!badge) return;
+    badge.textContent = firestoreReady ? "☁️ Bulut" : "📴 Yerel";
+    badge.className = "cloud-badge " + (firestoreReady ? "on" : "off");
+  }
+
+  function initFirestore(){
+    try{
+      if(!window.__fb){
+        console.warn("Firebase modülü hazır değil, yerel belleğe devam ediliyor.");
+        updateCloudBadge();
+        return;
+      }
+      const { db, collection, onSnapshot, query, orderBy } = window.__fb;
+
+      onSnapshot(query(collection(db, "sessions"), orderBy("t")), (snap)=>{
+        sessionHistory = snap.docs.map(d=>d.data());
+        firestoreReady = true;
+        updateCloudBadge();
+        refreshHistoryIfVisible();
+      }, (err)=>{
+        console.error("Firestore sessions okuma hatası:", err);
+        firestoreReady = false;
+        updateCloudBadge();
+      });
+
+      onSnapshot(query(collection(db, "levelEvents"), orderBy("t")), (snap)=>{
+        levelEvents = snap.docs.map(d=>d.data());
+        refreshHistoryIfVisible();
+      }, (err)=>{
+        console.error("Firestore levelEvents okuma hatası:", err);
+      });
+    }catch(e){
+      console.error("Firebase başlatılamadı, yerel belleğe devam ediliyor:", e);
+      firestoreReady = false;
+      updateCloudBadge();
+    }
+  }
+
+  window.addEventListener("firebase-ready", initFirestore);
+
+  function loadSessions(){
+    return sessionHistory.slice();
+  }
+
+  function clearAllSessions(){
+    if(firestoreReady && window.__fb){
+      const { db, collection, getDocs, writeBatch } = window.__fb;
+      getDocs(collection(db, "sessions")).then((snap)=>{
+        const batch = writeBatch(db);
+        snap.docs.forEach(d=> batch.delete(d.ref));
+        return batch.commit();
+      }).catch(e=> console.error("Temizleme hatası:", e));
+    } else {
+      sessionHistory = [];
+      renderHistory();
+    }
+  }
+
+  function logLevelEvent(record){
+    if(firestoreReady && window.__fb){
+      const { db, collection, addDoc } = window.__fb;
+      addDoc(collection(db, "levelEvents"), record).catch(e=> console.error("Düzey olayı kaydedilemedi:", e));
+    } else {
+      levelEvents.push(record);
+    }
+  }
+
+  function recordSession(ms, errors){
+    try{
+      const ex = currentExercise();
+      const stage = ex.stages[currentStageIndex];
+      const layout = currentTier();
+      const record = {
+        t: Date.now(),
+        player: currentPlayerName.trim() || "Oyuncu",
+        exerciseLabel: ex.label,
+        stageLabel: stage.label,
+        tier: layout.label,
+        itemCount: layout.rows * layout.cols,
+        errors: errors || 0,
+        ms: ms
+      };
+      if(firestoreReady && window.__fb){
+        const { db, collection, addDoc } = window.__fb;
+        addDoc(collection(db, "sessions"), record).catch(e=> console.error("Kayıt yazılamadı:", e));
+      } else {
+        sessionHistory.push(record);
+        while(sessionHistory.length > 50) sessionHistory.shift();
+      }
+      flashSaved();
+      const panel = document.getElementById("historyPanel");
+      if(panel && panel.style.display !== "none"){
+        renderHistory();
+      }
+    }catch(e){
+      // sessizce yok say
+    }
+  }
+
+  function flashSaved(){
+    const wrap = document.querySelector(".timer-btns");
+    const old = wrap.querySelector(".saved-flash");
+    if(old) old.remove();
+    const span = document.createElement("span");
+    span.className = "saved-flash";
+    span.textContent = "Kaydedildi ✓";
+    wrap.appendChild(span);
+    setTimeout(()=>{ span.remove(); }, 1800);
+  }
+
+  function formatDateShort(ts){
+    const d = new Date(ts);
+    return d.toLocaleDateString("tr-TR", {day:"2-digit", month:"2-digit"}) + " " +
+           d.toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"});
+  }
+
+  function renderHistory(){
+    if(currentHistoryTab === "leaderboard"){
+      renderLeaderboard();
+    } else if(currentHistoryTab === "report"){
+      renderWeeklyReport();
+    } else {
+      renderRecent();
+    }
+  }
+
+  function dayKey(ts){
+    return new Date(ts).toISOString().slice(0,10);
+  }
+
+  function buildLast7Days(){
+    const days = [];
+    const now = new Date();
+    for(let i=6;i>=0;i--){
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      days.push({
+        key: dayKey(d.getTime()),
+        label: d.toLocaleDateString("tr-TR", {weekday:"short"})
+      });
+    }
+    return days;
+  }
+
+  function buildPrevWeekKeys(){
+    const keys = [];
+    const now = new Date();
+    for(let i=13;i>=7;i--){
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      keys.push(dayKey(d.getTime()));
+    }
+    return keys;
+  }
+
+  function buildWeeklyComments(all, days){
+    const comments = [];
+    const thisWeekKeys = days.map(d=>d.key);
+    const thisWeek = all.filter(r => thisWeekKeys.includes(dayKey(r.t)));
+
+    if(thisWeek.length === 0){
+      comments.push("Henüz bu hafta kayıtlı bir çalışma yok. Birkaç sayfa çözüldükçe burada haftalık ilerleme görünecek.");
+      return comments;
+    }
+
+    comments.push(`Bu hafta toplam ${thisWeek.length} sayfa çalışıldı.`);
+
+    const prevKeys = buildPrevWeekKeys();
+    const prevWeek = all.filter(r => prevKeys.includes(dayKey(r.t)));
+    const avgThis = thisWeek.reduce((a,r)=>a+r.ms,0) / thisWeek.length;
+
+    if(prevWeek.length > 0){
+      const avgPrev = prevWeek.reduce((a,r)=>a+r.ms,0) / prevWeek.length;
+      const diffPct = Math.round(((avgPrev - avgThis) / avgPrev) * 100);
+      if(diffPct > 5){
+        comments.push(`Ortalama süre geçen haftaya göre %${diffPct} azaldı — hız artıyor! 🚀`);
+      } else if(diffPct < -5){
+        comments.push(`Ortalama süre geçen haftaya göre %${Math.abs(diffPct)} arttı — muhtemelen daha zor sayfalar deneniyor, bu normal.`);
+      } else {
+        comments.push("Ortalama süre geçen haftaya göre stabil görünüyor.");
+      }
+    } else {
+      comments.push("Geçen haftayla karşılaştırmak için henüz yeterli veri yok.");
+    }
+
+    const totalErrors = thisWeek.reduce((a,r)=>a + (r.errors||0), 0);
+    if(totalErrors === 0){
+      comments.push("Bu hafta hiç hata kaydedilmedi. 👏");
+    } else {
+      comments.push(`Bu hafta toplam ${totalErrors} hata kaydedildi.`);
+    }
+
+    const upThisWeek = levelEvents.filter(ev =>
+      ev.dir === "up" &&
+      thisWeekKeys.includes(dayKey(ev.t)) &&
+      (currentReportPlayer === "Herkes" || ev.player === currentReportPlayer)
+    );
+    if(upThisWeek.length > 0){
+      comments.push(`Bu hafta ${upThisWeek.length} kez zorluk seviyesi otomatik yükseltildi.`);
+    }
+
+    return comments;
+  }
+
+  function renderWeeklyReport(){
+    const container = document.getElementById("historyList");
+    document.getElementById("historyTitle").textContent = "📅 Haftalık İlerleme";
+    const allRaw = loadSessions();
+    const players = Array.from(new Set(allRaw.map(r=>r.player)));
+    if(currentReportPlayer !== "Herkes" && !players.includes(currentReportPlayer)){
+      currentReportPlayer = "Herkes";
+    }
+    const all = currentReportPlayer === "Herkes"
+      ? allRaw
+      : allRaw.filter(r => r.player === currentReportPlayer);
+
+    const days = buildLast7Days();
+
+    const perDay = days.map(d=>{
+      const sessions = all.filter(r => dayKey(r.t) === d.key);
+      const avgMs = sessions.length ? sessions.reduce((a,r)=>a+r.ms,0)/sessions.length : 0;
+      return {...d, count: sessions.length, avgMs};
+    });
+
+    const maxAvg = Math.max(...perDay.map(d=>d.avgMs), 1);
+
+    container.innerHTML = "";
+
+    const filterRow = document.createElement("div");
+    filterRow.className = "report-filter-row";
+    const options = ["Herkes", ...players].map(p =>
+      `<option value="${p}" ${p===currentReportPlayer ? "selected" : ""}>${p}</option>`
+    ).join("");
+    filterRow.innerHTML = `
+      <span class="error-label">Kişi</span>
+      <select id="reportPlayerSelect" class="report-player-select">${options}</select>
+    `;
+    container.appendChild(filterRow);
+    document.getElementById("reportPlayerSelect").addEventListener("change", (e)=>{
+      currentReportPlayer = e.target.value;
+      renderWeeklyReport();
+    });
+
+    const chart = document.createElement("div");
+    chart.className = "week-chart";
+    perDay.forEach(d=>{
+      const col = document.createElement("div");
+      col.className = "week-col";
+      const barH = d.avgMs ? Math.max(6, Math.round((d.avgMs/maxAvg)*80)) : 0;
+      col.innerHTML = `
+        <div class="week-bar-wrap"><div class="week-bar" style="height:${barH}px"></div></div>
+        <div class="week-day">${d.label}</div>
+        <div class="week-meta">${d.count ? formatTime(d.avgMs) : "-"}</div>
+      `;
+      chart.appendChild(col);
+    });
+    container.appendChild(chart);
+
+    const comments = buildWeeklyComments(all, days);
+    const commentBox = document.createElement("div");
+    commentBox.className = "week-comments";
+    commentBox.innerHTML = comments.map(c=>`<div class="week-comment">${c}</div>`).join("");
+    container.appendChild(commentBox);
+
+    const thisWeekKeys = days.map(d=>d.key);
+    const recentEvents = levelEvents.filter(ev =>
+      thisWeekKeys.includes(dayKey(ev.t)) &&
+      (currentReportPlayer === "Herkes" || ev.player === currentReportPlayer)
+    );
+    if(recentEvents.length > 0){
+      const evBox = document.createElement("div");
+      evBox.innerHTML = `<div class="week-events-title">Düzey değişiklikleri</div>` +
+        recentEvents.map(ev => `<div class="week-event ${ev.dir}">${ev.dir==="up" ? "⬆️" : "⬇️"} ${ev.player} · ${formatDateShort(ev.t)} · ${ev.toLabel}</div>`).join("");
+      container.appendChild(evBox);
+    }
+  }
+
+  function renderRecent(){
+    const container = document.getElementById("historyList");
+    const list = loadSessions();
+    container.innerHTML = "";
+    if(list.length === 0){
+      document.getElementById("historyTitle").textContent = "Son sonuçlar";
+      container.innerHTML = `<div class="history-empty">Henüz kayıtlı sonuç yok. Kronometreyi durdurup "Kaydet"e bastığında burada görünür.</div>`;
+      return;
+    }
+
+    const byPlayer = {};
+    list.forEach(r=>{
+      if(!byPlayer[r.player]) byPlayer[r.player] = [];
+      byPlayer[r.player].push(r);
+    });
+    const players = Object.keys(byPlayer);
+    document.getElementById("historyTitle").textContent = `Son sonuçlar · ${players.length} kişi`;
+
+    const maxMs = Math.max(...list.map(r=>r.ms), 1);
+
+    players.forEach(player=>{
+      const sessions = byPlayer[player].slice(-5).reverse();
+      const header = document.createElement("div");
+      header.className = "player-group-header";
+      header.textContent = `${player} · ${byPlayer[player].length} çalışma`;
+      container.appendChild(header);
+
+      sessions.forEach(r=>{
+        const card = document.createElement("div");
+        card.className = "result-card";
+        const pct = Math.max(6, Math.round((r.ms / maxMs) * 100));
+        card.innerHTML = `
+          <div class="rc-top">
+            <span class="rc-name">${r.exerciseLabel} · ${r.stageLabel}</span>
+            <span class="rc-time">${formatTime(r.ms)}</span>
+          </div>
+          <div class="rc-meta">${r.tier}${r.errors ? " · " + r.errors + " hata" : " · Hatasız"} · ${formatDateShort(r.t)}</div>
+          <div class="rc-bar-wrap"><div class="rc-bar" style="width:${pct}%"></div></div>
+        `;
+        container.appendChild(card);
+      });
+    });
+  }
+
+  function renderLeaderboard(){
+    const container = document.getElementById("historyList");
+    const ex = currentExercise();
+    const stage = ex.stages[currentStageIndex];
+    const layout = currentTier();
+
+    const list = loadSessions().filter(r =>
+      r.exerciseLabel === ex.label &&
+      r.stageLabel === stage.label &&
+      r.tier === layout.label
+    );
+
+    container.innerHTML = "";
+
+    if(list.length === 0){
+      document.getElementById("historyTitle").textContent = `🏆 ${ex.label} · ${stage.label} · ${layout.label}`;
+      container.innerHTML = `<div class="history-empty">Bu egzersiz, aşama ve zorlukta henüz sonuç yok. Aynı kombinasyonda birkaç kişi denesin, burada karşılaştırılsın.</div>`;
+      return;
+    }
+
+    const bestByPlayer = {};
+    list.forEach(r=>{
+      const cur = bestByPlayer[r.player];
+      const rErrors = r.errors || 0;
+      if(!cur || rErrors < cur.errors || (rErrors === cur.errors && r.ms < cur.ms)){
+        bestByPlayer[r.player] = { player: r.player, ms: r.ms, errors: rErrors };
+      }
+    });
+    const totalPlayers = Object.keys(bestByPlayer).length;
+    document.getElementById("historyTitle").textContent = `🏆 ${ex.label} · ${stage.label} · ${layout.label} · ${totalPlayers} kişi`;
+
+    const ranked = Object.values(bestByPlayer)
+      .sort((a,b) => (a.errors - b.errors) || (a.ms - b.ms))
+      .slice(0, 10);
+
+    const maxMs = Math.max(...ranked.map(r=>r.ms), 1);
+    const medals = ["🥇","🥈","🥉"];
+    ranked.forEach((r, i)=>{
+      const card = document.createElement("div");
+      card.className = "result-card";
+      const pct = Math.max(6, Math.round((r.ms / maxMs) * 100));
+      const rankLabel = medals[i] ? `${medals[i]}` : `${i+1}.`;
+      card.innerHTML = `
+        <div class="rc-top">
+          <span class="rc-rank">${rankLabel}</span>
+          <span class="rc-name">${r.player}</span>
+          <span class="rc-time">${formatTime(r.ms)}</span>
+        </div>
+        <div class="rc-meta">${r.errors ? r.errors + " hata" : "Hatasız 👏"}</div>
+        <div class="rc-bar-wrap"><div class="rc-bar" style="width:${pct}%"></div></div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  document.getElementById("playerNameInput").addEventListener("input", (e)=>{
+    currentPlayerName = e.target.value;
+  });
+
+  function setHistoryTab(tab){
+    currentHistoryTab = tab;
+    document.getElementById("tabRecent").classList.toggle("active", tab==="recent");
+    document.getElementById("tabLeaderboard").classList.toggle("active", tab==="leaderboard");
+    document.getElementById("tabReport").classList.toggle("active", tab==="report");
+    renderHistory();
+  }
+
+  document.getElementById("tabRecent").addEventListener("click", ()=> setHistoryTab("recent"));
+  document.getElementById("tabLeaderboard").addEventListener("click", ()=> setHistoryTab("leaderboard"));
+  document.getElementById("tabReport").addEventListener("click", ()=> setHistoryTab("report"));
+
+  document.getElementById("historyToggle").addEventListener("click", ()=>{
+    const panel = document.getElementById("historyPanel");
+    const isHidden = panel.style.display === "none";
+    panel.style.display = isHidden ? "block" : "none";
+    document.getElementById("historyToggle").textContent = isHidden ? "📊 Geçmişi gizle" : "📊 Geçmiş sonuçları göster";
+    if(isHidden) renderHistory();
+  });
+
+  function exportSessionsToCSV(){
+    const list = loadSessions();
+    if(list.length === 0){
+      alert("Henüz dışa aktarılacak kayıt yok.");
+      return;
+    }
+    const headers = ["Tarih","Kişi","Egzersiz","Aşama","Düzey","Süre (sn)","Hata Sayısı"];
+    const rows = list.map(r => [
+      new Date(r.t).toLocaleString("tr-TR"),
+      r.player,
+      r.exerciseLabel,
+      r.stageLabel,
+      r.tier,
+      (r.ms/1000).toFixed(1),
+      r.errors || 0
+    ]);
+    const csvLines = [headers, ...rows].map(row =>
+      row.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(",")
+    );
+    const csvContent = "\uFEFF" + csvLines.join("\r\n");
+    const blob = new Blob([csvContent], {type: "text/csv;charset=utf-8;"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `calisan-bellek-sonuclari-${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  document.getElementById("exportCsvBtn").addEventListener("click", exportSessionsToCSV);
+
+  document.getElementById("historyClearBtn").addEventListener("click", ()=>{
+    try{
+      clearAllSessions();
+    }catch(e){}
+  });
+
+  document.getElementById("timerBtn").addEventListener("click", ()=>{
+    if(timerRunning){ stopTimer(); } else { startTimer(); }
+  });
+
+  document.getElementById("timerResetBtn").addEventListener("click", ()=>{
+    resetTimer();
+  });
+
+  document.getElementById("errorMinusBtn").addEventListener("click", ()=>{
+    currentErrorCount = Math.max(0, currentErrorCount - 1);
+    document.getElementById("errorCount").textContent = currentErrorCount;
+  });
+
+  document.getElementById("errorPlusBtn").addEventListener("click", ()=>{
+    currentErrorCount = currentErrorCount + 1;
+    document.getElementById("errorCount").textContent = currentErrorCount;
+  });
+
+  document.getElementById("saveResultBtn").addEventListener("click", ()=>{
+    confirmSaveResult();
+  });
+
+  document.getElementById("reshuffleBtn").addEventListener("click", ()=>{
+    const {rows, cols} = currentTier();
+    currentGrid = generateGrid(currentExercise(), rows, cols);
+    renderBoard();
+    renderInstruction();
+    resetTimer();
+    refreshHistoryIfVisible();
+  });
+
+  document.getElementById("prevBtn").addEventListener("click", ()=>{
+    goToIndex(currentIndex - 1);
+  });
+
+  document.getElementById("nextBtn").addEventListener("click", ()=>{
+    goToIndex(currentIndex + 1);
+  });
+
+  function applyModeVisibility(){
+    const isAile = appMode === "aile";
+    document.getElementById("tierRow").style.display = isAile ? "none" : "flex";
+    document.getElementById("exerciseRow").style.display = isAile ? "none" : "flex";
+    document.getElementById("modeLabel").textContent = isAile ? "Aile" : "Uzman";
+    document.getElementById("exportCsvBtn").style.display = isAile ? "none" : "inline-block";
+  }
+
+  function startApp(mode){
+    appMode = mode;
+    document.getElementById("modeScreen").style.display = "none";
+    document.getElementById("mainApp").style.display = "flex";
+    applyModeVisibility();
+    renderTierRow();
+    renderExerciseRow();
+    renderStageRow();
+    newPage();
+  }
+
+  let onboardStep = 0;
+  const ONBOARD_SLIDES = 3;
+
+  function renderOnboardDots(){
+    const dots = document.getElementById("onboardDots");
+    dots.innerHTML = "";
+    for(let i=0;i<ONBOARD_SLIDES;i++){
+      const d = document.createElement("div");
+      d.className = "dot" + (i===onboardStep ? " on" : "");
+      dots.appendChild(d);
+    }
+  }
+
+  function showOnboardStep(i){
+    onboardStep = i;
+    document.querySelectorAll(".onboard-slide").forEach(s=>{
+      s.classList.toggle("active", parseInt(s.dataset.slide,10) === i);
+    });
+    renderOnboardDots();
+    document.getElementById("onboardNextLabel").textContent = i === ONBOARD_SLIDES-1 ? "Başlayalım →" : "Devam →";
+  }
+
+  document.getElementById("onboardNextBtn").addEventListener("click", ()=>{
+    if(onboardStep < ONBOARD_SLIDES - 1){
+      showOnboardStep(onboardStep + 1);
+    } else {
+      document.getElementById("onboardScreen").style.display = "none";
+      document.getElementById("modeScreen").style.display = "flex";
+    }
+  });
+
+  showOnboardStep(0);
+  // initFirestore artık "firebase-ready" olayıyla tetikleniyor
+
+  document.querySelectorAll(".mode-card").forEach(card=>{
+    card.addEventListener("click", ()=>{
+      startApp(card.dataset.mode);
+    });
+  });
+
+  document.getElementById("modeSwitchBtn").addEventListener("click", ()=>{
+    document.getElementById("mainApp").style.display = "none";
+    document.getElementById("modeScreen").style.display = "flex";
+  });
+
+  function openSettings(){
+    document.getElementById("settingsScreen").style.display = "block";
+  }
+  function closeSettings(){
+    document.getElementById("settingsScreen").style.display = "none";
+  }
+
+  document.getElementById("settingsBtn").addEventListener("click", openSettings);
+  document.getElementById("closeSettingsBtn").addEventListener("click", closeSettings);
+  document.getElementById("closeSettingsBtn2").addEventListener("click", closeSettings);
+
+  document.getElementById("soundToggle").addEventListener("change", (e)=>{
+    soundEnabled = e.target.checked;
+  });
+
+  document.getElementById("hapticToggle").addEventListener("change", (e)=>{
+    hapticEnabled = e.target.checked;
+  });
+
+  document.getElementById("expertAdaptiveToggle").addEventListener("change", (e)=>{
+    expertAdaptiveEnabled = e.target.checked;
+  });
+
+  document.getElementById("successThresholdInput").addEventListener("input", (e)=>{
+    SUCCESS_SEC_PER_ITEM = parseFloat(e.target.value);
+    document.getElementById("successThresholdValue").textContent = SUCCESS_SEC_PER_ITEM.toFixed(1) + " sn";
+  });
+
+  document.getElementById("failThresholdInput").addEventListener("input", (e)=>{
+    FAIL_SEC_PER_ITEM = parseFloat(e.target.value);
+    document.getElementById("failThresholdValue").textContent = FAIL_SEC_PER_ITEM.toFixed(1) + " sn";
+  });
+</script>
+</body>
+</html>
