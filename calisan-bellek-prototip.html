@@ -410,6 +410,17 @@
     outline:none;
     border-color:var(--teal);
   }
+  .add-player-btn{
+    flex:0 0 auto;
+    border:none;
+    background:var(--teal);
+    color:#fff;
+    font-size:13px;
+    font-weight:700;
+    padding:9px 16px;
+    border-radius:10px;
+    cursor:pointer;
+  }
   .instruction{
     background:var(--panel);
     border:1px solid var(--line);
@@ -957,7 +968,15 @@
 
   <div class="player-row">
     <span class="player-label">Kim çalışıyor?</span>
-    <input type="text" id="playerNameInput" class="player-input" placeholder="Adını yaz (örn. Ali)" maxlength="20">
+    <select id="playerSelect" class="player-input">
+      <option value="">Seç...</option>
+      <option value="__new__">+ Yeni kişi ekle</option>
+    </select>
+  </div>
+
+  <div class="player-row" id="newPlayerRow" style="display:none;">
+    <input type="text" id="newPlayerInput" class="player-input" placeholder="Yeni isim yaz" maxlength="20">
+    <button class="add-player-btn" id="addPlayerBtn">Ekle</button>
   </div>
 
   <div class="instruction" id="instructionBox"></div>
@@ -1226,6 +1245,7 @@
   let currentStageIndex = 0;
   let currentGrid = [];
   let currentPlayerName = "";
+  let playersList = [];
   let currentHistoryTab = "recent";
   let appMode = null;
   let currentErrorCount = 0;
@@ -1596,6 +1616,13 @@
       }, (err)=>{
         console.error("Firestore levelEvents okuma hatası:", err);
       });
+
+      onSnapshot(query(collection(db, "players"), orderBy("name")), (snap)=>{
+        playersList = snap.docs.map(d=>d.data().name);
+        renderPlayerOptions();
+      }, (err)=>{
+        console.error("Firestore players okuma hatası:", err);
+      });
     }catch(e){
       console.error("Firebase başlatılamadı, yerel belleğe devam ediliyor:", e);
       firestoreReady = false;
@@ -1941,8 +1968,59 @@
     });
   }
 
-  document.getElementById("playerNameInput").addEventListener("input", (e)=>{
-    currentPlayerName = e.target.value;
+  function renderPlayerOptions(){
+    const sel = document.getElementById("playerSelect");
+    const prevValue = sel.value;
+    sel.innerHTML = `<option value="">Seç...</option>` +
+      playersList.map(name => `<option value="${name}">${name}</option>`).join("") +
+      `<option value="__new__">+ Yeni kişi ekle</option>`;
+    if(playersList.includes(prevValue)){
+      sel.value = prevValue;
+    } else if(playersList.includes(currentPlayerName)){
+      sel.value = currentPlayerName;
+    }
+  }
+
+  document.getElementById("playerSelect").addEventListener("change", (e)=>{
+    const val = e.target.value;
+    const newRow = document.getElementById("newPlayerRow");
+    if(val === "__new__"){
+      newRow.style.display = "flex";
+      document.getElementById("newPlayerInput").focus();
+    } else {
+      newRow.style.display = "none";
+      currentPlayerName = val;
+    }
+  });
+
+  document.getElementById("addPlayerBtn").addEventListener("click", ()=>{
+    const input = document.getElementById("newPlayerInput");
+    const name = input.value.trim();
+    if(!name) return;
+    if(playersList.includes(name)){
+      currentPlayerName = name;
+      document.getElementById("playerSelect").value = name;
+      document.getElementById("newPlayerRow").style.display = "none";
+      input.value = "";
+      return;
+    }
+    if(firestoreReady && window.__fb){
+      const { db, collection, addDoc } = window.__fb;
+      addDoc(collection(db, "players"), { name, createdAt: Date.now() })
+        .catch(e=> console.error("Profil eklenemedi:", e));
+    } else {
+      playersList.push(name);
+      renderPlayerOptions();
+    }
+    currentPlayerName = name;
+    document.getElementById("newPlayerRow").style.display = "none";
+    input.value = "";
+    setTimeout(()=>{
+      const sel = document.getElementById("playerSelect");
+      if([...sel.options].some(o=>o.value===name)){
+        sel.value = name;
+      }
+    }, 300);
   });
 
   function setHistoryTab(tab){
