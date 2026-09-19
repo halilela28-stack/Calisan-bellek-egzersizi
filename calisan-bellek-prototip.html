@@ -32,6 +32,60 @@
     flex-direction:column;
     padding:14px 14px 20px;
   }
+  .consent-screen{
+    position:fixed;
+    inset:0;
+    background:var(--bg);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    z-index:130;
+  }
+  .consent-inner{
+    max-width:400px;
+    width:100%;
+  }
+  .consent-inner h2{
+    font-size:18px;
+    margin:0 0 10px;
+    color:var(--ink);
+    text-align:center;
+  }
+  .consent-text{
+    font-size:13px;
+    color:var(--ink-soft);
+    line-height:1.5;
+    margin:0 0 16px;
+  }
+  .consent-text a{
+    color:var(--teal-dark);
+    font-weight:700;
+  }
+  .consent-checkbox-row{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px 14px;
+    margin-bottom:16px;
+    font-size:12px;
+    color:var(--ink);
+    line-height:1.5;
+  }
+  .consent-checkbox-row input{
+    margin-top:2px;
+    flex:0 0 auto;
+    width:18px;
+    height:18px;
+  }
+  .onboard-next-btn:disabled{
+    opacity:0.45;
+    cursor:not-allowed;
+  }
   .onboard-screen{
     position:fixed;
     inset:0;
@@ -878,6 +932,21 @@
   </button>
 </div>
 
+<div class="consent-screen" id="consentScreen" style="display:none;">
+  <div class="consent-inner">
+    <h2>Gizlilik ve Onay</h2>
+    <p class="consent-text">
+      Bu uygulama; çalışma sonuçlarını (isim, süre, hata sayısı, düzey) kalıcı olarak buluta kaydeder.
+      Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener">Gizlilik Politikası</a>'nı inceleyebilirsin.
+    </p>
+    <label class="consent-checkbox-row">
+      <input type="checkbox" id="consentCheckbox">
+      <span>Bu uygulamayı çocuğum adına ve onun yararına kullandığımı, Gizlilik Politikası'nı okuduğumu ve verilerin bu kapsamda işlenmesini kabul ettiğimi onaylıyorum.</span>
+    </label>
+    <button class="onboard-next-btn" id="consentAcceptBtn" disabled>Kabul Ediyorum ve Devam Et</button>
+  </div>
+</div>
+
 <div class="mode-screen" id="modeScreen" style="display:none;">
   <div class="mode-inner">
     <h2>Çalışan Bellek Egzersizi</h2>
@@ -1037,6 +1106,9 @@
   import {
     getFirestore, collection, addDoc, onSnapshot, query, orderBy, getDocs, writeBatch
   } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import {
+    getAuth, signInAnonymously, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBwwlyZsXC9tB2r5TYvQIqCqxCPr_-ITbk",
@@ -1048,14 +1120,33 @@
     measurementId: "G-3YW5HN5JDH"
   };
 
+  let fbReadyDispatched = false;
+  function dispatchFbReady(){
+    if(fbReadyDispatched) return;
+    fbReadyDispatched = true;
+    window.dispatchEvent(new Event("firebase-ready"));
+  }
+
   try{
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    window.__fb = { db, collection, addDoc, onSnapshot, query, orderBy, getDocs, writeBatch };
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, (user)=>{
+      if(user){
+        window.__fb = { db, collection, addDoc, onSnapshot, query, orderBy, getDocs, writeBatch, auth, uid: user.uid };
+        dispatchFbReady();
+      }
+    });
+
+    signInAnonymously(auth).catch((e)=>{
+      console.error("Anonim giriş başarısız:", e);
+      dispatchFbReady();
+    });
   }catch(e){
     console.error("Firebase modül başlatma hatası:", e);
+    dispatchFbReady();
   }
-  window.dispatchEvent(new Event("firebase-ready"));
 </script>
 <script>
   const COLORS = ["#D64545","#E8C547","#3A6EA5","#4F9D5A","#E8823A"];
@@ -2183,13 +2274,39 @@
     document.getElementById("onboardNextLabel").textContent = i === ONBOARD_SLIDES-1 ? "Başlayalım →" : "Devam →";
   }
 
+  const CONSENT_KEY = "wm_consent_accepted_v1";
+
+  function proceedAfterOnboarding(){
+    document.getElementById("onboardScreen").style.display = "none";
+    if(localStorage.getItem(CONSENT_KEY) === "true"){
+      document.getElementById("modeScreen").style.display = "flex";
+    } else {
+      document.getElementById("consentScreen").style.display = "flex";
+    }
+  }
+
   document.getElementById("onboardNextBtn").addEventListener("click", ()=>{
     if(onboardStep < ONBOARD_SLIDES - 1){
       showOnboardStep(onboardStep + 1);
     } else {
-      document.getElementById("onboardScreen").style.display = "none";
-      document.getElementById("modeScreen").style.display = "flex";
+      proceedAfterOnboarding();
     }
+  });
+
+  document.getElementById("consentCheckbox").addEventListener("change", (e)=>{
+    document.getElementById("consentAcceptBtn").disabled = !e.target.checked;
+  });
+
+  document.getElementById("consentAcceptBtn").addEventListener("click", ()=>{
+    if(!document.getElementById("consentCheckbox").checked) return;
+    try{ localStorage.setItem(CONSENT_KEY, "true"); }catch(e){}
+    if(firestoreReady && window.__fb){
+      const { db, collection, addDoc, uid } = window.__fb;
+      addDoc(collection(db, "consents"), { uid: uid || "bilinmiyor", acceptedAt: Date.now() })
+        .catch(e=> console.error("Onay kaydedilemedi:", e));
+    }
+    document.getElementById("consentScreen").style.display = "none";
+    document.getElementById("modeScreen").style.display = "flex";
   });
 
   showOnboardStep(0);
