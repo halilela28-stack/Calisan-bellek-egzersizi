@@ -1,0 +1,4045 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Zihin Atölyesi</title>
+<style>
+  :root{
+    --bg:#EEF3F3;
+    --panel:#FFFFFF;
+    --ink:#1D2A35;
+    --ink-soft:#57707A;
+    --line:#D9E2E2;
+    --teal:#2E6F6E;
+    --teal-dark:#204E4D;
+    --amber:#F2A65A;
+    --amber-dark:#C97F32;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background:var(--bg);
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color:var(--ink);
+    -webkit-tap-highlight-color: transparent;
+    overflow-x:hidden;
+  }
+  .app{
+    max-width:520px;
+    margin:0 auto;
+    min-height:100%;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    padding:14px 14px calc(90px + env(safe-area-inset-bottom, 0px));
+    overflow-x:hidden;
+  }
+  .consent-screen{
+    position:fixed;
+    inset:0;
+    background:var(--bg);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    z-index:130;
+  }
+  .consent-inner{
+    max-width:400px;
+    width:100%;
+  }
+  .consent-inner h2{
+    font-size:18px;
+    margin:0 0 10px;
+    color:var(--ink);
+    text-align:center;
+  }
+  .consent-text{
+    font-size:13px;
+    color:var(--ink-soft);
+    line-height:1.5;
+    margin:0 0 16px;
+  }
+  .consent-text a{
+    color:var(--teal-dark);
+    font-weight:700;
+  }
+  .consent-checkbox-row{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px 14px;
+    margin-bottom:16px;
+    font-size:12px;
+    color:var(--ink);
+    line-height:1.5;
+  }
+  .consent-checkbox-row input{
+    margin-top:2px;
+    flex:0 0 auto;
+    width:18px;
+    height:18px;
+  }
+  .onboard-next-btn:disabled{
+    opacity:0.45;
+    cursor:not-allowed;
+  }
+  .onboard-screen{
+    position:fixed;
+    inset:0;
+    background:var(--bg);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    z-index:120;
+  }
+  .onboard-inner{
+    max-width:380px;
+    width:100%;
+    text-align:center;
+    min-height:220px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .onboard-slide{
+    display:none;
+  }
+  .onboard-slide.active{
+    display:block;
+  }
+  .onboard-emoji{
+    width:52px;
+    height:52px;
+    margin:0 auto 12px;
+    color:var(--teal);
+  }
+  .onboard-emoji svg{
+    width:100%;
+    height:100%;
+  }
+  .onboard-slide h2{
+    font-size:18px;
+    margin:0 0 10px;
+    color:var(--ink);
+  }
+  .onboard-slide p{
+    font-size:14px;
+    color:var(--ink-soft);
+    line-height:1.5;
+    margin:0;
+  }
+  .onboard-dots{
+    display:flex;
+    gap:6px;
+    margin:16px 0;
+  }
+  .onboard-dots .dot{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:var(--line);
+  }
+  .onboard-dots .dot.on{
+    background:var(--teal);
+  }
+  .onboard-next-btn{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    width:100%;
+    max-width:380px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:14px 16px;
+    cursor:pointer;
+  }
+  .onboard-next-btn:active{
+    border-color:var(--teal);
+  }
+  .mode-screen{
+    position:fixed;
+    inset:0;
+    background:var(--bg);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:100;
+  }
+  .mode-inner{
+    max-width:420px;
+    width:100%;
+    text-align:center;
+  }
+  .mode-inner h2{
+    font-size:19px;
+    margin:0 0 4px;
+    color:var(--ink);
+  }
+  .mode-sub{
+    font-size:14px;
+    color:var(--ink-soft);
+    margin:0 0 20px;
+  }
+  .mode-card{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    width:100%;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:18px 16px;
+    margin-bottom:12px;
+    cursor:pointer;
+  }
+  .mode-card:active{
+    border-color:var(--teal);
+  }
+  .mode-emoji{ font-size:32px; }
+  .mode-title{
+    font-size:16px;
+    font-weight:800;
+    color:var(--ink);
+  }
+  .mode-desc{
+    font-size:12px;
+    color:var(--ink-soft);
+    line-height:1.4;
+  }
+  .cloud-badge{
+    font-size:10px;
+    font-weight:800;
+    padding:5px 8px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  .cloud-badge.on{
+    background:#E4F3E6;
+    color:#2E7D42;
+  }
+  .cloud-badge.off{
+    background:#F2EAD8;
+    color:#8A6D1D;
+  }
+  .top-btns{
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .icon-btn{
+    border:1px solid var(--line);
+    background:var(--panel);
+    font-size:14px;
+    width:32px;
+    height:32px;
+    border-radius:10px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .category-screen{
+    position:fixed;
+    inset:0;
+    background:var(--bg);
+    z-index:105;
+    overflow-y:auto;
+    padding:24px 20px;
+  }
+  .category-inner{
+    max-width:480px;
+    margin:0 auto;
+  }
+  .category-inner h2{
+    font-size:19px;
+    margin:0 0 4px;
+    text-align:center;
+  }
+  .category-sub{
+    font-size:13px;
+    color:var(--ink-soft);
+    text-align:center;
+    margin:0 0 18px;
+  }
+  .category-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .ui-icon-slot{
+    display:inline-flex;
+    width:15px;
+    height:15px;
+    vertical-align:-2px;
+  }
+  .ui-icon-slot svg{
+    width:100%;
+    height:100%;
+  }
+  .category-switch-icon{
+    display:inline-flex;
+    width:16px;
+    height:16px;
+    vertical-align:-3px;
+  }
+  .category-switch-icon svg{
+    width:100%;
+    height:100%;
+  }
+  .category-group-header{
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin:18px 2px 8px;
+  }
+  .category-group-header:first-child{
+    margin-top:2px;
+  }
+  .category-card{
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    gap:14px;
+    text-align:left;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:12px 16px;
+    cursor:pointer;
+  }
+  .category-card:active{ border-color:var(--teal); }
+  .category-icon-badge{
+    flex:none;
+    width:48px;
+    height:48px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .category-icon-badge svg{
+    width:28px;
+    height:28px;
+  }
+  .category-card-text{
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+  }
+  .category-card-title{
+    font-size:15px;
+    font-weight:800;
+    color:var(--ink);
+  }
+  .category-card-sub{
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
+  .category-badge{
+    display:inline-block;
+    font-size:10px;
+    font-weight:800;
+    color:var(--amber-dark);
+    background:#FCEFDC;
+    padding:2px 8px;
+    border-radius:999px;
+    margin-top:6px;
+    width:fit-content;
+  }
+  /* Metin boyutu erişilebilirlik ölçeklemesi */
+  html.text-lg .instruction{ font-size:17px; }
+  html.text-lg .instruction .example{ font-size:15px; }
+  html.text-lg .timer-display{ font-size:26px; }
+  html.text-lg .error-label{ font-size:15px; }
+  html.text-lg .player-label{ font-size:15px; }
+  html.text-lg .mode-title{ font-size:19px; }
+  html.text-lg .mode-desc{ font-size:14px; }
+  html.text-lg .category-card-title{ font-size:18px; }
+  html.text-lg .category-card-sub{ font-size:14px; }
+  html.text-lg .top h1{ font-size:19px; }
+
+  html.text-xl .instruction{ font-size:20px; }
+  html.text-xl .instruction .example{ font-size:17px; }
+  html.text-xl .timer-display{ font-size:30px; }
+  html.text-xl .error-label{ font-size:17px; }
+  html.text-xl .player-label{ font-size:17px; }
+  html.text-xl .mode-title{ font-size:22px; }
+  html.text-xl .mode-desc{ font-size:16px; }
+  html.text-xl .category-card-title{ font-size:21px; }
+  html.text-xl .category-card-sub{ font-size:16px; }
+  html.text-xl .top h1{ font-size:21px; }
+
+  .text-size-row{
+    display:flex;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .text-size-btn{
+    flex:1;
+    border:1px solid var(--line);
+    background:var(--panel);
+    color:var(--ink);
+    padding:9px 6px;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .text-size-btn.active{
+    background:var(--teal);
+    border-color:var(--teal);
+    color:#fff;
+  }
+  .settings-note{
+    font-size:12px;
+    color:var(--ink-soft);
+    line-height:1.4;
+    margin:0 0 4px;
+  }
+  html.text-lg .text-size-btn, html.text-xl .text-size-btn{ font-size:14px; }
+  .category-intro{
+    display:flex;
+    align-items:flex-start;
+    gap:8px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-left:4px solid var(--teal);
+    border-radius:10px;
+    padding:10px 12px;
+    margin-bottom:10px;
+    font-size:13px;
+    line-height:1.4;
+    color:var(--ink-soft);
+  }
+  .category-intro-close{
+    flex:none;
+    border:none;
+    background:none;
+    color:var(--ink-soft);
+    font-size:13px;
+    cursor:pointer;
+    padding:0 0 0 4px;
+  }
+  .avatar-chip{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    color:#fff;
+    font-weight:800;
+    flex:none;
+    line-height:1;
+  }
+  .avatar-slot{
+    flex:none;
+  }
+  .consent-icon{
+    display:block;
+    width:44px;
+    height:44px;
+    margin:0 auto 12px;
+    color:var(--teal);
+  }
+  .consent-icon svg{
+    width:100%;
+    height:100%;
+  }
+  .settings-screen{
+    position:fixed;
+    inset:0;
+    background:var(--bg);
+    z-index:110;
+    overflow-y:auto;
+    padding:20px;
+  }
+  .settings-inner{
+    max-width:480px;
+    margin:0 auto;
+  }
+  .settings-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:16px;
+  }
+  .settings-header h2{
+    font-size:18px;
+    margin:0;
+  }
+  .settings-group{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px 14px;
+    margin-bottom:10px;
+  }
+  .settings-label{
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink);
+  }
+  .settings-divider{
+    height:1px;
+    background:var(--line);
+    margin:16px 0;
+  }
+  .settings-slider-row{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:10px 14px;
+    margin-bottom:10px;
+  }
+  .settings-slider-label{
+    display:block;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+    font-weight:600;
+  }
+  .settings-slider-row input[type=range]{
+    width:100%;
+  }
+  .settings-slider-value{
+    display:block;
+    font-size:12px;
+    font-weight:800;
+    color:var(--teal-dark);
+    text-align:right;
+    margin-top:2px;
+  }
+  .switch{
+    position:relative;
+    display:inline-block;
+    width:44px;
+    height:26px;
+  }
+  .switch input{
+    opacity:0;
+    width:0;
+    height:0;
+  }
+  .switch-track{
+    position:absolute;
+    inset:0;
+    background:var(--line);
+    border-radius:999px;
+    transition:.15s;
+  }
+  .switch-thumb{
+    position:absolute;
+    top:3px;
+    left:3px;
+    width:20px;
+    height:20px;
+    background:#fff;
+    border-radius:50%;
+    transition:.15s;
+  }
+  .switch input:checked + .switch-track{
+    background:var(--teal);
+  }
+  .switch input:checked + .switch-track .switch-thumb{
+    transform:translateX(18px);
+  }
+  .mode-switch{
+    border:1px solid var(--line);
+    background:var(--panel);
+    color:var(--ink-soft);
+    font-size:11px;
+    font-weight:700;
+    padding:6px 10px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .top{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:10px;
+  }
+  .top h1{
+    font-size:17px;
+    margin:0;
+    font-weight:700;
+    letter-spacing:.2px;
+  }
+  .page-indicator{
+    font-size:13px;
+    color:var(--ink-soft);
+    font-weight:600;
+    white-space:nowrap;
+  }
+  .tier-row{
+    display:flex;
+    gap:6px;
+    margin-bottom:8px;
+  }
+  .tier-btn{
+    flex:1;
+    border:1px solid var(--line);
+    background:var(--panel);
+    padding:11px 6px;
+    font-size:13px;
+    font-weight:800;
+    color:var(--ink-soft);
+    border-radius:12px;
+    cursor:pointer;
+  }
+  .tier-btn.active{
+    background:var(--amber);
+    color:#3A2200;
+    border-color:var(--amber);
+  }
+  .exercise-row{
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+    padding-bottom:2px;
+    margin-bottom:10px;
+  }
+  .exercise-btn{
+    flex:0 0 auto;
+    border:1px solid var(--line);
+    background:var(--panel);
+    padding:9px 14px;
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink-soft);
+    border-radius:999px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .exercise-btn.active{
+    background:var(--teal-dark);
+    color:#fff;
+    border-color:var(--teal-dark);
+  }
+  .stage-row{
+    display:flex;
+    gap:6px;
+    background:var(--panel);
+    padding:4px;
+    border-radius:12px;
+    border:1px solid var(--line);
+    margin-bottom:10px;
+  }
+  .stage-btn{
+    flex:1;
+    border:none;
+    background:transparent;
+    padding:9px 4px;
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink-soft);
+    border-radius:9px;
+    cursor:pointer;
+  }
+  .stage-btn.active{
+    background:var(--teal);
+    color:#fff;
+  }
+  .player-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .player-label{
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+  .player-input{
+    flex:1;
+    border:1px solid var(--line);
+    background:var(--panel);
+    border-radius:10px;
+    padding:9px 12px;
+    font-size:14px;
+    color:var(--ink);
+    font-weight:600;
+  }
+  .player-input:focus{
+    outline:none;
+    border-color:var(--teal);
+  }
+  .add-player-btn{
+    flex:0 0 auto;
+    border:none;
+    background:var(--teal);
+    color:#fff;
+    font-size:13px;
+    font-weight:700;
+    padding:9px 16px;
+    border-radius:10px;
+    cursor:pointer;
+  }
+  .instruction{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:12px 14px;
+    margin-bottom:12px;
+    font-size:14px;
+    line-height:1.5;
+  }
+  .instruction b{color:var(--teal-dark);}
+  .instruction .example{
+    display:block;
+    margin-top:6px;
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+  .timer-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:8px 10px 8px 16px;
+    margin-bottom:12px;
+  }
+  .timer-display{
+    font-variant-numeric: tabular-nums;
+    font-size:22px;
+    font-weight:700;
+    color:var(--ink);
+    letter-spacing:.5px;
+  }
+  .timer-btns{
+    display:flex;
+    gap:8px;
+  }
+  .timer-btn{
+    border:none;
+    background:var(--teal);
+    color:#fff;
+    font-size:13px;
+    font-weight:700;
+    padding:10px 16px;
+    border-radius:10px;
+    cursor:pointer;
+  }
+  .timer-btn.running{
+    background:#B4433A;
+  }
+  .timer-btn.reset{
+    background:var(--bg);
+    color:var(--ink-soft);
+    border:1px solid var(--line);
+    padding:10px 14px;
+    font-size:16px;
+  }
+  .error-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:8px 12px;
+    margin-bottom:12px;
+  }
+  .error-label{
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink-soft);
+  }
+  .error-stepper{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .error-btn{
+    width:30px;
+    height:30px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--bg);
+    color:var(--ink);
+    font-size:16px;
+    font-weight:800;
+    cursor:pointer;
+  }
+  .error-count{
+    min-width:16px;
+    text-align:center;
+    font-size:15px;
+    font-weight:800;
+    color:var(--ink);
+  }
+  .save-hint{
+    font-size:12px;
+    color:var(--amber-dark);
+    text-align:center;
+    margin-bottom:8px;
+    font-weight:700;
+  }
+  .save-result-btn{
+    width:100%;
+    border:none;
+    background:var(--teal);
+    color:#fff;
+    font-size:14px;
+    font-weight:800;
+    padding:13px;
+    border-radius:12px;
+    cursor:pointer;
+    margin-bottom:12px;
+  }
+  .save-result-btn:active{ background:var(--teal-dark); }
+  .level-flash{
+    text-align:center;
+    font-size:13px;
+    font-weight:700;
+    padding:8px;
+    border-radius:10px;
+    margin-bottom:10px;
+    position:relative;
+    overflow:visible;
+  }
+  .level-flash.up, .level-flash.levelup{
+    background:#E4F3E6;
+    color:#2E7D42;
+  }
+  .level-flash.down{
+    background:#FBEAE8;
+    color:#B4433A;
+  }
+  .confetti-piece{
+    position:absolute;
+    top:2px;
+    width:6px;
+    height:10px;
+    border-radius:2px;
+    opacity:0.9;
+    animation: confetti-fall 900ms ease-out forwards;
+    pointer-events:none;
+  }
+  @keyframes confetti-fall{
+    0%{ transform:translateY(0) rotate(0deg); opacity:1; }
+    100%{ transform:translateY(48px) rotate(340deg); opacity:0; }
+  }
+  .board{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:14px;
+    flex:1;
+    min-width:0;
+    min-height:0;
+    display:grid;
+    row-gap:26px;
+    column-gap:10px;
+    align-content:center;
+    justify-items:center;
+  }
+  .motion-board{
+    position:relative;
+    width:100%;
+    height:100%;
+    min-height:280px;
+    overflow:hidden;
+    background:#1B2430;
+    border-radius:12px;
+  }
+  .motion-shape{
+    position:absolute;
+    width:48px;
+    height:48px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 35%, #FFE9A8, #F2A65A);
+    box-shadow:0 0 18px 4px rgba(242,166,90,0.65);
+    transform:translate(-50%, -50%);
+    will-change:left, top;
+  }
+  .motion-progress{
+    position:absolute;
+    bottom:10px;
+    left:10px;
+    right:10px;
+    height:6px;
+    background:rgba(255,255,255,0.18);
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .motion-progress-fill{
+    height:100%;
+    background:#F2A65A;
+    width:0%;
+  }
+  .recall-hidden{
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:min(6vw, 24px);
+    background:var(--bg);
+    border-radius:8px;
+    opacity:0.6;
+  }
+  .cell{
+    width:100%;
+    height:100%;
+    min-width:0;
+    min-height:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+  }
+  .cell svg{
+    width:100%;
+    height:100%;
+    display:block;
+  }
+  .number-cell, .name-cell{
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:800;
+    text-align:center;
+  }
+  .number-cell{ font-size:min(9vw, 34px); }
+  .name-cell{
+    font-size:min(4.5vw, 18px);
+    color:var(--ink);
+    line-height:1.15;
+    white-space:nowrap;
+    overflow-wrap:normal;
+    word-break:keep-all;
+    hyphens:none;
+    padding:0 4px;
+    text-align:center;
+    min-width:0;
+    max-width:100%;
+    overflow:hidden;
+  }
+  html.text-lg .number-cell{ font-size:min(10vw, 40px); }
+  html.text-lg .name-cell{ font-size:min(5.2vw, 21px); }
+  html.text-xl .number-cell{ font-size:min(11vw, 46px); }
+  html.text-xl .name-cell{ font-size:min(6vw, 24px); }
+  .stroop-cell{
+    font-size:min(3.6vw, 15px);
+    white-space:nowrap;
+    overflow-wrap:normal;
+    word-break:keep-all;
+    hyphens:none;
+  }
+  .phrase-cell{ font-size:min(3.8vw, 15px); }
+  .wide-grid .name-cell{ font-size:min(3.9vw, 15px); }
+  .wide-grid .stroop-cell{ font-size:min(3.1vw, 13px); }
+  .wide-grid .phrase-cell{ font-size:min(3.2vw, 12px); }
+  html.text-lg .wide-grid .name-cell{ font-size:min(4.3vw, 17px); }
+  html.text-lg .stroop-cell{ font-size:min(4vw, 16px); }
+  html.text-lg .wide-grid .stroop-cell{ font-size:min(3.4vw, 14px); }
+  html.text-lg .wide-grid .phrase-cell{ font-size:min(3.6vw, 14px); }
+  html.text-xl .wide-grid .name-cell{ font-size:min(4.8vw, 19px); }
+  html.text-xl .stroop-cell{ font-size:min(4.4vw, 17px); }
+  html.text-xl .wide-grid .stroop-cell{ font-size:min(3.8vw, 15px); }
+  html.text-xl .wide-grid .phrase-cell{ font-size:min(4vw, 16px); }
+  .controls{
+    position:fixed;
+    bottom:0;
+    left:50%;
+    transform:translateX(-50%);
+    width:100%;
+    max-width:520px;
+    box-sizing:border-box;
+    display:flex;
+    gap:8px;
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+    background:var(--bg);
+    border-top:1px solid var(--line);
+    z-index:50;
+  }
+  .controls button{
+    border:none;
+    border-radius:14px;
+    padding:14px 10px;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .btn-ghost{
+    background:var(--panel);
+    color:var(--teal-dark);
+    border:1px solid var(--line);
+    flex:1;
+  }
+  .btn-main{
+    background:var(--amber);
+    color:#3A2200;
+    flex:1.4;
+  }
+  .btn-main:active{background:var(--amber-dark);}
+  .btn-ghost:active{background:var(--bg);}
+  .dots{
+    display:flex;
+    justify-content:center;
+    gap:6px;
+    margin-top:12px;
+  }
+  .dot{
+    width:7px; height:7px; border-radius:50%;
+    background:var(--line);
+  }
+  .dot.on{background:var(--teal);}
+  .dot.group-end{margin-right:8px;}
+  .history-toggle{
+    margin-top:12px;
+    border:1px dashed var(--line);
+    background:transparent;
+    color:var(--ink-soft);
+    font-size:13px;
+    font-weight:700;
+    padding:10px;
+    border-radius:12px;
+    cursor:pointer;
+  }
+  .history-panel{
+    margin-top:10px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:12px 14px;
+  }
+  .history-tabs{
+    display:flex;
+    gap:6px;
+    margin-bottom:10px;
+  }
+  .history-tab{
+    flex:1;
+    border:1px solid var(--line);
+    background:var(--bg);
+    color:var(--ink-soft);
+    font-size:12px;
+    font-weight:700;
+    padding:8px 4px;
+    border-radius:9px;
+    cursor:pointer;
+  }
+  .history-tab.active{
+    background:var(--teal);
+    color:#fff;
+    border-color:var(--teal);
+  }
+  .history-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+  }
+  .history-header-btns{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .history-export{
+    border:1px solid var(--teal);
+    background:transparent;
+    color:var(--teal-dark);
+    font-size:11px;
+    font-weight:800;
+    padding:5px 9px;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  .history-clear{
+    border:none;
+    background:transparent;
+    color:#B4433A;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+    padding:2px;
+  }
+  .result-card{
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:10px 12px;
+    margin-bottom:8px;
+  }
+  .result-card .rc-top{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:3px;
+  }
+  .result-card .rc-rank{
+    flex:0 0 auto;
+    font-size:13px;
+    font-weight:800;
+    color:var(--ink-soft);
+    min-width:20px;
+  }
+  .result-card .rc-name{
+    flex:1;
+    font-weight:700;
+    font-size:13px;
+    color:var(--ink);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .result-card .rc-time{
+    flex:0 0 auto;
+    font-weight:800;
+    font-size:14px;
+    color:var(--teal-dark);
+    font-variant-numeric: tabular-nums;
+  }
+  .result-card .rc-meta{
+    font-size:11px;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .result-card .rc-bar-wrap{
+    background:var(--bg);
+    border-radius:6px;
+    overflow:hidden;
+    height:9px;
+  }
+  .result-card .rc-bar{
+    height:100%;
+    background:var(--teal);
+    border-radius:6px;
+  }
+  .report-filter-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .report-player-select{
+    flex:1;
+    border:1px solid var(--line);
+    background:var(--panel);
+    border-radius:8px;
+    padding:6px 8px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink);
+  }
+  .week-chart{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    height:110px;
+    padding:0 2px 6px;
+    margin-bottom:10px;
+    border-bottom:1px solid var(--line);
+  }
+  .week-col{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+  }
+  .week-bar-wrap{
+    height:80px;
+    display:flex;
+    align-items:flex-end;
+    width:100%;
+    justify-content:center;
+  }
+  .week-bar{
+    width:60%;
+    background:var(--teal);
+    border-radius:4px 4px 0 0;
+    min-height:2px;
+  }
+  .week-day{
+    font-size:11px;
+    font-weight:800;
+    color:var(--ink);
+  }
+  .week-meta{
+    font-size:9px;
+    color:var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .week-comments{
+    margin-bottom:10px;
+  }
+  .week-comment{
+    font-size:12px;
+    color:var(--ink);
+    background:var(--bg);
+    border-radius:8px;
+    padding:8px 10px;
+    margin-bottom:6px;
+    line-height:1.4;
+  }
+  .week-events-title{
+    font-size:12px;
+    font-weight:700;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .week-event{
+    font-size:12px;
+    padding:6px 8px;
+    border-radius:8px;
+    margin-bottom:4px;
+  }
+  .week-event.up{ background:#E4F3E6; color:#2E7D42; }
+  .week-event.down{ background:#FBEAE8; color:#B4433A; }
+  .player-group-header{
+    font-size:12px;
+    font-weight:800;
+    color:var(--teal-dark);
+    margin:10px 0 6px;
+    padding-bottom:4px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .player-group-header:first-child{
+    margin-top:0;
+  }
+  .history-empty{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+    color:var(--ink-soft);
+    text-align:center;
+    padding:20px 10px;
+  }
+  .history-empty-icon{
+    width:40px;
+    height:40px;
+    opacity:0.35;
+  }
+  .history-empty-icon svg{
+    width:100%;
+    height:100%;
+  }
+  .saved-flash{
+    color:var(--teal-dark);
+    font-weight:700;
+    font-size:12px;
+    margin-left:8px;
+  }
+</style>
+</head>
+<body>
+<div class="onboard-screen" id="onboardScreen">
+  <div class="onboard-inner" id="onboardInner">
+    <div class="onboard-slide active" data-slide="0">
+      <div class="onboard-emoji" id="onboardIcon0"></div>
+      <h2>Zihin Atölyesi</h2>
+      <p>Zihin, çalıştıkça keskinleşir.</p>
+    </div>
+    <div class="onboard-slide" data-slide="1">
+      <div class="onboard-emoji" id="onboardIcon1"></div>
+      <h2>Neden?</h2>
+      <p>Beyin bir kastır — kullanıldıkça güçlenir. Hız, dikkat ve bellek, günlük hayatın her anında sessizce devrede. Kısa ama düzenli pratik, kalıcı fark yaratır. Bu atölye, o farkı büyütmek için var.</p>
+    </div>
+    <div class="onboard-slide" data-slide="2">
+      <div class="onboard-emoji" id="onboardIcon2"></div>
+      <h2>8 farklı kategori</h2>
+      <p>İşlemleme Hızı, Göz Takip, Yürütücü İşlev, Çalışan Bellek, Sözel/Görsel Organizasyon, Sözel/Görsel Bellek — her biri Başlangıç'tan Zor Düzey'e ilerliyor.</p>
+    </div>
+    <div class="onboard-slide" data-slide="3">
+      <div class="onboard-emoji" id="onboardIcon3"></div>
+      <h2>Süre ve sonuç takibi</h2>
+      <p>Her çalışma kronometreyle ölçülüp kişi bazında kaydediliyor. Liderlik tablosu, haftalık rapor ve otomatik zorluk ayarıyla ilerleme kolayca takip edilebiliyor.</p>
+    </div>
+  </div>
+  <div class="onboard-dots" id="onboardDots"></div>
+  <button class="onboard-next-btn" id="onboardNextBtn">
+    <span class="mode-title" id="onboardNextLabel">Devam →</span>
+  </button>
+</div>
+
+<div class="consent-screen" id="consentScreen" style="display:none;">
+  <div class="consent-inner">
+    <span class="consent-icon" id="consentIconSlot"></span>
+    <h2>Gizlilik ve Onay</h2>
+    <p class="consent-text">
+      Bu uygulama; çalışma sonuçlarını (isim, süre, hata sayısı, düzey) kalıcı olarak buluta kaydeder.
+      Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener">Gizlilik Politikası</a>'nı inceleyebilirsin.
+    </p>
+    <label class="consent-checkbox-row">
+      <input type="checkbox" id="consentCheckbox">
+      <span>Bu uygulamayı çocuğum adına ve onun yararına kullandığımı, Gizlilik Politikası'nı okuduğumu ve verilerin bu kapsamda işlenmesini kabul ettiğimi onaylıyorum.</span>
+    </label>
+    <button class="onboard-next-btn" id="consentAcceptBtn" disabled>Kabul Ediyorum ve Devam Et</button>
+  </div>
+</div>
+
+<div class="mode-screen" id="modeScreen" style="display:none;">
+  <div class="mode-inner">
+    <h2>Zihin Atölyesi</h2>
+    <p class="mode-sub">Nasıl kullanacaksın?</p>
+    <button class="mode-card" data-mode="aile">
+      <span class="mode-emoji" style="color:#2E6F6E;"><svg viewBox="0 0 100 100" style="width:34px;height:34px;"><circle cx="30" cy="28" r="12" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="66" cy="28" r="12" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="48" cy="56" r="10" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 82c2-16 12-24 18-24s10 4 10 4M88 82c-2-16-12-24-18-24s-10 4-10 4M30 82c1-12 8-18 18-18s17 6 18 18" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span class="mode-title">Aile Modu</span>
+      <span class="mode-desc">Basit akış — sırayla ilerlenir, çocuk sadece "Sonraki"ye basar</span>
+    </button>
+    <button class="mode-card" data-mode="uzman">
+      <span class="mode-emoji" style="color:#3A6EA5;"><svg viewBox="0 0 100 100" style="width:34px;height:34px;"><path d="M32 14v24a18 18 0 0 0 36 0V14" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="32" cy="10" r="6" fill="currentColor"/><circle cx="68" cy="10" r="6" fill="currentColor"/><path d="M50 56v14" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="50" cy="78" r="12" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span class="mode-title">Uzman Modu</span>
+      <span class="mode-desc">Tam kontrol — düzey, egzersiz ve aşamayı serbestçe seç</span>
+    </button>
+  </div>
+</div>
+
+<div class="settings-screen" id="settingsScreen" style="display:none;">
+  <div class="settings-inner">
+    <div class="settings-header">
+      <h2>Ayarlar</h2>
+      <button class="icon-btn" id="closeSettingsBtn">✕</button>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-label">Ses efektleri</div>
+      <label class="switch">
+        <input type="checkbox" id="soundToggle" checked>
+        <span class="switch-track"><span class="switch-thumb"></span></span>
+      </label>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-label">Titreşim (haptik)</div>
+      <label class="switch">
+        <input type="checkbox" id="hapticToggle" checked>
+        <span class="switch-track"><span class="switch-thumb"></span></span>
+      </label>
+    </div>
+
+    <div class="settings-divider"></div>
+
+    <div class="settings-label" style="margin-bottom:8px;">Erişilebilirlik</div>
+    <div class="settings-label" style="margin-bottom:8px; font-weight:400; color:var(--ink-soft);">Yazı boyutu</div>
+    <div class="text-size-row" id="textSizeRow">
+      <button class="text-size-btn active" data-size="normal">Normal</button>
+      <button class="text-size-btn" data-size="lg">Büyük</button>
+      <button class="text-size-btn" data-size="xl">Çok Büyük</button>
+    </div>
+    <p class="settings-note">Renk kullanan egzersizler (Stroop, Renk N-Geri, Renk Hatırlama) renk körü dostu bir paletle çiziliyor; Stroop yine de renk görüşü gerektirir.</p>
+
+    <div class="settings-divider"></div>
+
+    <div class="settings-label" style="margin-bottom:8px;">Adaptif zorluk eşikleri (Aile Modu)</div>
+
+    <div class="settings-slider-row">
+      <span class="settings-slider-label">Hızlı sayılma süresi (öğe başına sn)</span>
+      <input type="range" id="successThresholdInput" min="0.4" max="2.0" step="0.1" value="1.0">
+      <span class="settings-slider-value" id="successThresholdValue">1.0 sn</span>
+    </div>
+
+    <div class="settings-slider-row">
+      <span class="settings-slider-label">Yavaş sayılma süresi (öğe başına sn)</span>
+      <input type="range" id="failThresholdInput" min="1.0" max="4.0" step="0.1" value="2.0">
+      <span class="settings-slider-value" id="failThresholdValue">2.0 sn</span>
+    </div>
+
+    <div class="settings-group" style="margin-top:14px;">
+      <div class="settings-label">Uzman Modu'nda da otomatik zorluk çalışsın</div>
+      <label class="switch">
+        <input type="checkbox" id="expertAdaptiveToggle">
+        <span class="switch-track"><span class="switch-thumb"></span></span>
+      </label>
+    </div>
+
+    <button class="save-result-btn" id="closeSettingsBtn2" style="margin-top:16px;">Kapat</button>
+  </div>
+</div>
+
+<div class="category-screen" id="categoryScreen" style="display:none;">
+  <div class="category-inner">
+    <h2>Ne üzerinde çalışalım?</h2>
+    <p class="category-sub">Bir kategori seç, istersen sonra değiştirebilirsin.</p>
+    <div class="category-list" id="categoryList"></div>
+  </div>
+</div>
+
+<div class="app" id="mainApp" style="display:none;">
+  <div class="top">
+    <h1>Zihin Atölyesi</h1>
+    <div class="top-btns">
+      <span class="cloud-badge off" id="cloudBadge"><span class="ui-icon-slot" id="cloudBadgeIcon"></span> Yerel</span>
+      <button class="icon-btn" id="settingsBtn" title="Ayarlar"><span class="ui-icon-slot" id="settingsIconSlot" style="width:18px;height:18px;"></span></button>
+      <button class="mode-switch" id="modeSwitchBtn"><span id="modeLabel">-</span></button>
+    </div>
+  </div>
+  <div class="top" style="margin-top:-6px;">
+    <button class="mode-switch" id="categorySwitchBtn"><span id="categoryIconSlot" class="category-switch-icon"></span> <span id="categoryLabel">Kategori</span></button>
+    <span class="page-indicator" id="pageIndicator">Sayfa 1 / 12</span>
+  </div>
+
+  <div class="category-intro" id="categoryIntro" style="display:none;">
+    <span id="categoryIntroText"></span>
+    <button class="category-intro-close" id="categoryIntroClose">✕</button>
+  </div>
+
+  <div class="tier-row" id="tierRow"></div>
+
+  <div class="exercise-row" id="exerciseRow"></div>
+
+  <div class="stage-row" id="stageRow"></div>
+
+  <div class="player-row">
+    <span class="player-label">Kim çalışıyor?</span>
+    <span class="avatar-slot" id="playerAvatarSlot" style="display:none;"></span>
+    <select id="playerSelect" class="player-input">
+      <option value="">Seç...</option>
+      <option value="__new__">+ Yeni kişi ekle</option>
+    </select>
+  </div>
+
+  <div class="player-row" id="newPlayerRow" style="display:none;">
+    <input type="text" id="newPlayerInput" class="player-input" placeholder="Yeni isim yaz" maxlength="20">
+    <button class="add-player-btn" id="addPlayerBtn">Ekle</button>
+  </div>
+
+  <div class="instruction" id="instructionBox"></div>
+
+  <div class="timer-row">
+    <span class="timer-display" id="timerDisplay">00:00.0</span>
+    <div class="timer-btns">
+      <button class="timer-btn" id="timerBtn">▶ Başlat</button>
+      <button class="timer-btn reset" id="timerResetBtn">↺</button>
+    </div>
+  </div>
+
+  <div class="error-row" id="errorRow">
+    <span class="error-label" id="errorRowLabel">Hata sayısı</span>
+    <div class="error-stepper">
+      <button class="error-btn" id="errorMinusBtn">−</button>
+      <span class="error-count" id="errorCount">0</span>
+      <button class="error-btn" id="errorPlusBtn">+</button>
+    </div>
+  </div>
+
+  <button class="save-result-btn" id="saveResultBtn" style="display:none;">✓ Sonucu Kaydet</button>
+  <div class="save-hint" id="saveHint" style="display:none;">Süreyi durdurdun — hata sayısını kontrol et ve kaydet.</div>
+
+  <div class="level-flash" id="levelFlash" style="display:none;"></div>
+
+  <div class="board" id="board"></div>
+
+  <div class="dots" id="dots"></div>
+
+  <div class="controls">
+    <button class="btn-main" id="prevBtn">◀ Önceki</button>
+    <button class="btn-ghost" id="reshuffleBtn"><span class="ui-icon-slot" id="reshuffleIconSlot"></span> Karıştır</button>
+    <button class="btn-main" id="nextBtn">Sonraki ▶</button>
+  </div>
+
+  <button class="history-toggle" id="historyToggle"><span class="ui-icon-slot" id="historyToggleIconSlot"></span> Geçmiş sonuçları göster</button>
+
+  <div class="history-panel" id="historyPanel" style="display:none;">
+    <div class="history-tabs">
+      <button class="history-tab active" id="tabRecent" data-tab="recent">Son Sonuçlar</button>
+      <button class="history-tab" id="tabLeaderboard" data-tab="leaderboard"><span class="ui-icon-slot" id="tabLeaderboardIconSlot"></span> Liderlik</button>
+      <button class="history-tab" id="tabReport" data-tab="report"><span class="ui-icon-slot" id="tabReportIconSlot"></span> Rapor</button>
+    </div>
+    <div class="history-header">
+      <span id="historyTitle">Son sonuçlar</span>
+      <div class="history-header-btns">
+        <button class="history-export" id="exportCsvBtn" style="display:none;"><span class="ui-icon-slot" id="exportCsvIconSlot"></span> CSV</button>
+        <button class="history-clear" id="historyClearBtn">Temizle</button>
+      </div>
+    </div>
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, onSnapshot, query, orderBy, getDocs, writeBatch
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import {
+    getAuth, signInAnonymously, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBwwlyZsXC9tB2r5TYvQIqCqxCPr_-ITbk",
+    authDomain: "calisan-bellek-egzersiz.firebaseapp.com",
+    projectId: "calisan-bellek-egzersiz",
+    storageBucket: "calisan-bellek-egzersiz.firebasestorage.app",
+    messagingSenderId: "261598944722",
+    appId: "1:261598944722:web:4c1af75ba3ef1513e37c0b",
+    measurementId: "G-3YW5HN5JDH"
+  };
+
+  let fbReadyDispatched = false;
+  function dispatchFbReady(){
+    if(fbReadyDispatched) return;
+    fbReadyDispatched = true;
+    window.dispatchEvent(new Event("firebase-ready"));
+  }
+
+  try{
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, (user)=>{
+      if(user){
+        window.__fb = { db, collection, addDoc, onSnapshot, query, orderBy, getDocs, writeBatch, auth, uid: user.uid };
+        dispatchFbReady();
+      }
+    });
+
+    signInAnonymously(auth).catch((e)=>{
+      console.error("Anonim giriş başarısız:", e);
+      dispatchFbReady();
+    });
+  }catch(e){
+    console.error("Firebase modül başlatma hatası:", e);
+    dispatchFbReady();
+  }
+</script>
+<script>
+  const COLORS = ["#D55E00","#CC79A7","#0072B2","#009E73","#E69F00"];
+  const COLOR_NAMES = {"#D55E00":"kırmızı","#CC79A7":"mor","#0072B2":"mavi","#009E73":"yeşil","#E69F00":"turuncu"};
+
+  const TIERS = [
+    {label:"Başlangıç", rows:4, cols:4, eyeDurationMs:15000, studyDurationMs:8000},
+    {label:"Orta Düzey", rows:5, cols:4, eyeDurationMs:20000, studyDurationMs:12000},
+    {label:"Zor Düzey", rows:5, cols:5, eyeDurationMs:25000, studyDurationMs:16000},
+  ];
+
+  function randomItem(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function randomInt(min, max){ return min + Math.floor(Math.random()*(max-min+1)); }
+
+  // ---------- Egzersiz 1: Şekil - Renk ----------
+  const SHAPES = ["star","heart","rect","triangle","circle"];
+  const SHAPE_NAMES = {star:"yıldız", heart:"kalp", rect:"dikdörtgen", triangle:"üçgen", circle:"daire"};
+
+  function shapeSVG(shape, color){
+    const c = color;
+    switch(shape){
+      case "star":
+        return `<svg viewBox="0 0 100 100"><polygon points="50,4 61,37 96,37 68,58 79,92 50,71 21,92 32,58 4,37 39,37" fill="${c}"/></svg>`;
+      case "heart":
+        return `<svg viewBox="0 0 100 100"><path d="M50 88 C20 65 5 45 5 28 C5 10 20 2 32 2 C42 2 48 8 50 14 C52 8 58 2 68 2 C80 2 95 10 95 28 C95 45 80 65 50 88 Z" fill="${c}"/></svg>`;
+      case "rect":
+        return `<svg viewBox="0 0 100 100"><rect x="10" y="24" width="80" height="52" rx="6" fill="${c}"/></svg>`;
+      case "triangle":
+        return `<svg viewBox="0 0 100 100"><polygon points="50,6 96,92 4,92" fill="${c}"/></svg>`;
+      case "circle":
+        return `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="${c}"/></svg>`;
+    }
+  }
+
+  // ---------- Egzersiz 2: Sayı - Renk ----------
+  function numberHTML(number, color){
+    return `<div class="number-cell" style="color:${color}">${number}</div>`;
+  }
+
+  // ---------- Egzersiz 3: İsim (Kız/Erkek - Uzun/Kısa) ----------
+  const NAME_POOL = {
+    "kız_kısa": ["Ece","Elif","Nur","Ela","Mira","İpek","Aslı","Ayşe"],
+    "kız_uzun": ["Zeynep","Selin","Defne","Yağmur","Melisa","Ceylin","Asude","Belinay"],
+    "erkek_kısa": ["Ali","Emir","Kaan","Efe","Arda","Umut","Onur","Ege"],
+    "erkek_uzun": ["Mehmet","Mustafa","Yusuf","Kerem","Bartu","Doruk","Emirhan","Berkay"]
+  };
+  function nameHTML(name){
+    return `<div class="name-cell">${name}</div>`;
+  }
+
+  // ---------- Egzersiz 4: Nesne Adı ----------
+  const OBJECTS = ["apple","car","house","fish","flower"];
+  const OBJECT_NAMES = {apple:"elma", car:"araba", house:"ev", fish:"balık", flower:"çiçek"};
+
+  function objectSVG(object, color){
+    const c = color;
+    switch(object){
+      case "apple":
+        return `<svg viewBox="0 0 100 100">
+          <path d="M50 30 C30 22 12 38 12 60 C12 80 28 94 46 94 C50 94 50 90 54 90 C58 90 58 94 62 94 C80 94 96 80 96 60 C96 38 78 22 58 30 C56 24 58 16 64 10 C56 8 50 16 50 30 Z" fill="${c}"/>
+          <path d="M50 28 C48 18 40 12 34 12 C36 20 42 26 50 28 Z" fill="#4F9D5A"/>
+        </svg>`;
+      case "car":
+        return `<svg viewBox="0 0 100 100">
+          <rect x="8" y="46" width="84" height="26" rx="8" fill="${c}"/>
+          <path d="M24 46 L34 26 L66 26 L76 46 Z" fill="${c}"/>
+          <circle cx="28" cy="76" r="11" fill="#2B2B2B"/>
+          <circle cx="72" cy="76" r="11" fill="#2B2B2B"/>
+        </svg>`;
+      case "house":
+        return `<svg viewBox="0 0 100 100">
+          <polygon points="50,10 92,44 8,44" fill="${c}"/>
+          <rect x="18" y="44" width="64" height="46" fill="${c}"/>
+          <rect x="42" y="62" width="16" height="28" fill="#FFFFFF"/>
+        </svg>`;
+      case "fish":
+        return `<svg viewBox="0 0 100 100">
+          <ellipse cx="42" cy="50" rx="34" ry="22" fill="${c}"/>
+          <polygon points="76,50 98,32 98,68" fill="${c}"/>
+          <circle cx="24" cy="44" r="4" fill="#1D2A35"/>
+        </svg>`;
+      case "flower":
+        return `<svg viewBox="0 0 100 100">
+          <circle cx="50" cy="26" r="16" fill="${c}"/>
+          <circle cx="74" cy="50" r="16" fill="${c}"/>
+          <circle cx="50" cy="74" r="16" fill="${c}"/>
+          <circle cx="26" cy="50" r="16" fill="${c}"/>
+          <circle cx="50" cy="50" r="14" fill="#E8C547"/>
+        </svg>`;
+    }
+  }
+
+  // ---------- Yürütücü İşlev / Çalışan Bellek / Organizasyon için ek yardımcılar ----------
+  function colorSwatchHTML(color){
+    return `<svg viewBox="0 0 100 100"><rect x="8" y="8" width="84" height="84" rx="16" fill="${color}"/></svg>`;
+  }
+
+  function arrowSVG(direction, color){
+    const rot = {up:0, right:90, down:180, left:270}[direction] || 0;
+    return `<svg viewBox="0 0 100 100" style="transform:rotate(${rot}deg)"><polygon points="50,6 90,55 65,55 65,94 35,94 35,55 10,55" fill="${color}"/></svg>`;
+  }
+
+  function polygonSVG(sides, color){
+    const pts = [];
+    for(let i=0;i<sides;i++){
+      const angle = (Math.PI*2*i/sides) - Math.PI/2;
+      pts.push((50+44*Math.cos(angle)).toFixed(1) + "," + (50+44*Math.sin(angle)).toFixed(1));
+    }
+    return `<svg viewBox="0 0 100 100"><polygon points="${pts.join(' ')}" fill="${color}"/></svg>`;
+  }
+
+  function litCircleHTML(lit, color){
+    return lit
+      ? `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="${color}"/></svg>`
+      : `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="#D9E2E2" stroke-width="4"/></svg>`;
+  }
+
+  const SIZE_LABELS = {small:"küçük", medium:"orta", large:"büyük"};
+  const SIZE_SCALE = {small:0.5, medium:0.75, large:1.0};
+  function sizedCircleHTML(size, color){
+    const scale = SIZE_SCALE[size];
+    return `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="${42*scale}" fill="${color}"/></svg>`;
+  }
+
+  const WORD_POOL = ["elma","kitap","güneş","masa","bulut","kalem","ağaç","balık","anahtar","pencere","köprü","yıldız","deniz","kapı","bardak"];
+  const CATEGORY_WORDS = {
+    "meyve": ["elma","muz","çilek","karpuz","armut"],
+    "hayvan": ["kedi","köpek","kuş","balık","aslan"],
+    "taşıt": ["araba","uçak","gemi","tren","bisiklet"],
+  };
+  const SYLLABLE_WORDS = [
+    {word:"el", syl:1}, {word:"kalem", syl:2}, {word:"kitaplık", syl:3}, {word:"bilgisayar", syl:4},
+    {word:"top", syl:1}, {word:"masa", syl:2}, {word:"pencere", syl:3}, {word:"televizyon", syl:4},
+    {word:"su", syl:1}, {word:"kapı", syl:2}, {word:"araba", syl:3}, {word:"otomobil", syl:4},
+  ];
+  const ANTONYM_PAIRS = [
+    {word:"büyük", opp:"küçük"}, {word:"sıcak", opp:"soğuk"}, {word:"hızlı", opp:"yavaş"},
+    {word:"açık", opp:"kapalı"}, {word:"uzun", opp:"kısa"}, {word:"temiz", opp:"kirli"},
+    {word:"mutlu", opp:"üzgün"}, {word:"ağır", opp:"hafif"}, {word:"içinde", opp:"dışında"},
+    {word:"dolu", opp:"boş"}, {word:"üstünde", opp:"altında"}
+  ];
+
+  // ---------- Egzersiz tanımları ----------
+  const EXERCISES = [
+    {
+      id: "shape-color",
+      label: "Şekil - Renk",
+      attrs: ["shape","color"],
+      randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
+      renderItem: (item) => shapeSVG(item.shape, item.color),
+      stages: [
+        {
+          label: "Aşama 1 · Ad",
+          instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Ben başla dediğimde, gördüğün her şeklin sadece adını olabildiğince hızlı söyle"</b> deyin.`,
+          example: (item) => `${SHAPE_NAMES[item.shape]}`
+        },
+        {
+          label: "Aşama 2 · Ad + Renk",
+          instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Ben başla dediğimde, gördüğün her şeklin rengini ve adını olabildiğince hızlı söyle"</b> deyin.`,
+          example: (item) => `${COLOR_NAMES[item.color]} ${SHAPE_NAMES[item.shape]}`
+        }
+      ]
+    },
+    {
+      id: "number-color",
+      label: "Sayı - Renk",
+      attrs: ["number","color"],
+      randomItem: () => ({ number: randomInt(1,9), color: randomItem(COLORS) }),
+      renderItem: (item) => numberHTML(item.number, item.color),
+      stages: [
+        {
+          label: "Aşama 1 · Rakam",
+          instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Ben başla dediğimde, gördüğün her rakamı olabildiğince hızlı söyle"</b> deyin.`,
+          example: (item) => `${item.number}`
+        },
+        {
+          label: "Aşama 2 · Renk + Rakam",
+          instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Ben başla dediğimde, gördüğün her rakamın rengini ve rakamı olabildiğince hızlı söyle"</b> deyin.`,
+          example: (item) => `${COLOR_NAMES[item.color]} ${item.number}`
+        }
+      ]
+    },
+    {
+      id: "name-gender-length",
+      label: "İsim - Uzun/Kısa",
+      attrs: ["gender","length"],
+      randomItem: () => {
+        const gender = randomItem(["kız","erkek"]);
+        const length = randomItem(["kısa","uzun"]);
+        const name = randomItem(NAME_POOL[`${gender}_${length}`]);
+        return { gender, length, name };
+      },
+      renderItem: (item) => nameHTML(item.name),
+      stages: [
+        {
+          label: "Aşama 1 · Kız/Erkek",
+          instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Ben başla dediğimde, gördüğün ismin kıza mı erkeğe mi ait olduğunu olabildiğince hızlı söyle"</b> deyin.`,
+          example: (item) => `${item.gender}`
+        },
+        {
+          label: "Aşama 2 · + Uzun/Kısa",
+          instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Ben başla dediğimde, önce ismin kıza mı erkeğe mi ait olduğunu, sonra uzun mu kısa mı olduğunu olabildiğince hızlı söyle"</b> deyin.`,
+          example: (item) => `${item.gender} ${item.length}`
+        }
+      ]
+    },
+    {
+      id: "object-name",
+      label: "Nesne Adı",
+      attrs: ["object","color"],
+      randomItem: () => ({ object: randomItem(OBJECTS), color: randomItem(COLORS) }),
+      renderItem: (item) => objectSVG(item.object, item.color),
+      stages: [
+        {
+          label: "Aşama 1 · Ad",
+          instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Ben başla dediğimde, gördüğün her nesnenin sadece adını olabildiğince hızlı söyle"</b> deyin.`,
+          example: (item) => `${OBJECT_NAMES[item.object]}`
+        },
+        {
+          label: "Aşama 2 · Ad + Renk",
+          instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Ben başla dediğimde, gördüğün her nesnenin rengini ve adını olabildiğince hızlı söyle"</b> deyin.`,
+          example: (item) => `${COLOR_NAMES[item.color]} ${OBJECT_NAMES[item.object]}`
+        }
+      ]
+    },
+    {
+      id: "eye-tracking",
+      label: "Göz Takip",
+      isMotion: true,
+      attrs: [],
+      stages: [
+        {
+          label: "Aşama 1 · Düzenli",
+          pattern: "regular",
+          instruction: () => `Çocuğa <b>"Kafanı sabit tut, sadece gözünle hareket eden şekli takip et"</b> deyin. Şekil düzenli bir yörüngede hareket edecek.`,
+          example: () => ``
+        },
+        {
+          label: "Aşama 2 · Karışık",
+          pattern: "random",
+          instruction: () => `Çocuğa <b>"Kafanı sabit tut, sadece gözünle hareket eden şekli takip et"</b> deyin. Bu sefer şekil beklenmedik anlarda yön değiştirecek — dikkat gerektirir.`,
+          example: () => ``
+        }
+      ]
+    },
+
+    // ---------- Yürütücü İşlev ----------
+    {
+      id: "stroop",
+      label: "Renk-Kelime Uyumsuzluğu",
+      attrs: ["word","inkColor"],
+      randomItem: () => {
+        const word = randomItem(Object.values(COLOR_NAMES));
+        let inkColor;
+        do{ inkColor = randomItem(COLORS); } while(COLOR_NAMES[inkColor] === word);
+        return { word, inkColor };
+      },
+      renderItem: (item) => `<div class="name-cell stroop-cell" style="color:${item.inkColor}; font-weight:900;">${item.word.toUpperCase()}</div>`,
+      stages: [
+        {
+          label: "Aşama 1 · Yazı Rengi",
+          instruction: () => `Öğrenciye görselleri tanıtın. <b>"Kelimeyi değil, yazının RENGİNİ söyle"</b> deyin. Örneğin "KIRMIZI" yazısı mavi renkteyse "mavi" denmeli.`,
+          example: (item) => `${COLOR_NAMES[item.inkColor]}`
+        },
+        {
+          label: "Aşama 2 · Hızlı Yazı Rengi",
+          instruction: () => `Aynı kuralla, <b>olabildiğince hızlı</b> şekilde yazının rengini söylemesini isteyin.`,
+          example: (item) => `${COLOR_NAMES[item.inkColor]}`
+        }
+      ]
+    },
+    {
+      id: "task-switch",
+      label: "Kural Değişimi",
+      attrs: ["shape","color"],
+      randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
+      renderItem: (item) => shapeSVG(item.shape, item.color),
+      stages: [
+        {
+          label: "Aşama 1 · Şekil Söyle",
+          instruction: () => `Öğrenciye görselleri tanıtın. <b>"Her şeklin sadece adını söyle"</b> deyin (temel kural).`,
+          example: (item) => `${SHAPE_NAMES[item.shape]}`
+        },
+        {
+          label: "Aşama 2 · Kural Değişti",
+          instruction: () => `Şimdi kuralı değiştirin: <b>"Eğer şekil YEŞİLSE rengini söyle, değilse şeklin adını söyle"</b> deyin. Bu, dikkat kaydırma gerektirir.`,
+          example: (item) => item.color === "#009E73" ? `${COLOR_NAMES[item.color]}` : `${SHAPE_NAMES[item.shape]}`
+        }
+      ]
+    },
+    {
+      id: "go-no-go",
+      label: "Ket Vurma",
+      attrs: ["shape","color"],
+      randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
+      renderItem: (item) => shapeSVG(item.shape, item.color),
+      stages: [
+        {
+          label: "Aşama 1 · Kırmızı Yıldızda Dur",
+          instruction: () => `Öğrenciye görselleri tanıtın. <b>"Her şeklin adını söyle, AMA kırmızı yıldız gelirse hiçbir şey söyleme, sessiz kal"</b> deyin.`,
+          example: (item) => (item.shape==="star" && item.color==="#D55E00") ? `(sessiz kal)` : `${SHAPE_NAMES[item.shape]}`
+        },
+        {
+          label: "Aşama 2 · Mavi Kalpte Dur",
+          instruction: () => `Kuralı değiştirin: <b>"Her şeklin adını söyle, AMA mavi kalp gelirse sessiz kal"</b> deyin.`,
+          example: (item) => (item.shape==="heart" && item.color==="#0072B2") ? `(sessiz kal)` : `${SHAPE_NAMES[item.shape]}`
+        }
+      ]
+    },
+
+    // ---------- Çalışan Bellek (N-Geri) ----------
+    {
+      id: "nback-shape",
+      label: "Şekil N-Geri",
+      attrs: ["shape"],
+      randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
+      renderItem: (item) => shapeSVG(item.shape, item.color),
+      stages: [
+        {
+          label: "Aşama 1 · 1-Geri",
+          instruction: () => `Öğrenciye görselleri tanıtın. <b>"Her şekli gördüğünde, BİR ÖNCEKİ gördüğün şeklin adını söyle"</b> deyin (ilk şekilde geçebilir).`,
+          example: (item) => `(bir önceki: ${SHAPE_NAMES[item.shape]})`
+        },
+        {
+          label: "Aşama 2 · 2-Geri",
+          instruction: () => `Zorlaştırın: <b>"İKİ ÖNCEKİ gördüğün şeklin adını söyle"</b> deyin.`,
+          example: (item) => `(iki önceki: ${SHAPE_NAMES[item.shape]})`
+        }
+      ]
+    },
+    {
+      id: "nback-color",
+      label: "Renk N-Geri",
+      attrs: ["color"],
+      randomItem: () => ({ color: randomItem(COLORS) }),
+      renderItem: (item) => colorSwatchHTML(item.color),
+      stages: [
+        {
+          label: "Aşama 1 · 1-Geri",
+          instruction: () => `Öğrenciye görselleri tanıtın. <b>"Her renk karesinde, BİR ÖNCEKİ karenin rengini söyle"</b> deyin.`,
+          example: (item) => `(bir önceki: ${COLOR_NAMES[item.color]})`
+        },
+        {
+          label: "Aşama 2 · 2-Geri",
+          instruction: () => `Zorlaştırın: <b>"İKİ ÖNCEKİ karenin rengini söyle"</b> deyin.`,
+          example: (item) => `(iki önceki: ${COLOR_NAMES[item.color]})`
+        }
+      ]
+    },
+    {
+      id: "nback-number",
+      label: "Sayı N-Geri",
+      attrs: ["number"],
+      randomItem: () => ({ number: randomInt(1,9), color: randomItem(COLORS) }),
+      renderItem: (item) => numberHTML(item.number, item.color),
+      stages: [
+        {
+          label: "Aşama 1 · 1-Geri",
+          instruction: () => `Öğrenciye görselleri tanıtın. <b>"Her sayıda, BİR ÖNCEKİ gördüğün sayıyı söyle"</b> deyin.`,
+          example: (item) => `(bir önceki: ${item.number})`
+        },
+        {
+          label: "Aşama 2 · 2-Geri",
+          instruction: () => `Zorlaştırın: <b>"İKİ ÖNCEKİ gördüğün sayıyı söyle"</b> deyin.`,
+          example: (item) => `(iki önceki: ${item.number})`
+        }
+      ]
+    },
+
+    // ---------- İleriye Dönük Bellek (Prospective Memory) ----------
+    {
+      id: "prospective-event",
+      label: "İleriye Dönük Bellek (Olay)",
+      attrs: ["shape","color"],
+      randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
+      renderItem: (item) => shapeSVG(item.shape, item.color),
+      stages: [
+        {
+          label: "Aşama 1 · Tek Tetikleyici",
+          instruction: () => `<b>Oyunu başlatmadan önce</b> çocuğa şu kuralı verin: "MAVİ ÜÇGEN görünce önce masaya vur, sonra ismini söyle. Diğer şekillerde sadece ismini söyle." Sonra normal şekilde ilerleyin — bu, bir NİYETİ hatırlamayı test eder.`,
+          example: (item) => (item.shape==="triangle" && item.color==="#0072B2") ? `(önce masaya vur) üçgen` : `${SHAPE_NAMES[item.shape]}`
+        },
+        {
+          label: "Aşama 2 · Çift Tetikleyici",
+          instruction: () => `Kuralı zorlaştırın: <b>"MAVİ ÜÇGEN'de masaya vur, YEŞİL KALP'te alkış yap"</b> deyin. İki farklı niyeti aynı anda akılda tutmasını test eder.`,
+          example: (item) => {
+            if(item.shape==="triangle" && item.color==="#0072B2") return `(masaya vur) üçgen`;
+            if(item.shape==="heart" && item.color==="#009E73") return `(alkış yap) kalp`;
+            return `${SHAPE_NAMES[item.shape]}`;
+          }
+        }
+      ]
+    },
+    {
+      id: "prospective-time",
+      label: "İleriye Dönük Bellek (Zaman)",
+      attrs: ["shape","color"],
+      randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
+      renderItem: (item) => shapeSVG(item.shape, item.color),
+      stages: [
+        {
+          label: "Aşama 1 · Tek Zaman Noktası",
+          instruction: () => `<b>Oyunu başlatmadan önce</b> çocuğa şunu söyleyin: "Kronometre 15 saniyeye gelince DUR, o anki şekli söyle, sonra devam et." Kronometreyi birlikte izleyin — bu, zamana dayalı bir niyeti hatırlamayı test eder.`,
+          example: () => ``
+        },
+        {
+          label: "Aşama 2 · İki Zaman Noktası",
+          instruction: () => `Zorlaştırın: <b>"Hem 15. HEM 30. saniyede dur, o anki şekli söyle"</b> deyin.`,
+          example: () => ``
+        }
+      ]
+    },
+    {
+      id: "prospective-delayed",
+      label: "Ertelenmiş Görev Hatırlama",
+      attrs: ["shape","color"],
+      randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
+      renderItem: (item) => shapeSVG(item.shape, item.color),
+      stages: [
+        {
+          label: "Aşama 1 · Basit Görev",
+          instruction: () => `<b>Oyunu başlatmadan önce</b> çocuğa şunu söyleyin: "Bu oyun bitince bana 3 tane hayvan ismi söyleyeceksin, unutma." Sonra normal şekilde şekillerin adını söylemesine devam edin. <b>Oyun bitince</b> talimatı hatırlayıp hatırlamadığını kontrol edin, kaç tanesini hatırladığını hata sayısına girin.`,
+          example: () => ``
+        },
+        {
+          label: "Aşama 2 · Farklı Görev",
+          instruction: () => `Aynı akışı tekrarlayın, ama bu sefer farklı bir görev verin: "Oyun bitince bana bugünün hangi gün olduğunu söyleyeceksin."`,
+          example: () => ``
+        }
+      ]
+    },
+
+    // ---------- Görsel Zıt Kavramlar ----------
+    {
+      id: "visual-opposites",
+      label: "Görsel Zıt Kavramlar",
+      attrs: ["type","state"],
+      randomItem: () => {
+        const type = randomItem(["length","position","fill","vertical"]);
+        const state = randomItem(OPPOSITE_STATES[type]);
+        return { type, state, color: randomItem(COLORS) };
+      },
+      renderItem: (item) => oppositeSVG(item.type, item.state, item.color),
+      stages: [
+        {
+          label: "Aşama 1 · Durumu Söyle",
+          instruction: () => `Öğrenciye görselleri tanıtın. <b>"Gördüğün durumu söyle"</b> deyin (uzun/kısa, içinde/dışında, dolu/boş, üstünde/altında gibi).`,
+          example: (item) => `${OPPOSITE_LABELS[item.state]}`
+        },
+        {
+          label: "Aşama 2 · Durum + Zıttı",
+          instruction: () => `Aynı kuralla, çocuktan hem durumu hem de <b>ZITTINI</b> söylemesini isteyin (örn. "uzun — kısa değil").`,
+          example: (item) => `${OPPOSITE_LABELS[item.state]} — ${OPPOSITE_OF[item.state]} değil`
+        }
+      ]
+    },
+
+    // ---------- Sözel Organizasyon ----------
+    {
+      id: "word-group",
+      label: "Kelime Gruplama",
+      attrs: ["word"],
+      randomItem: () => {
+        const cats = Object.keys(CATEGORY_WORDS);
+        const cat = randomItem(cats);
+        const word = randomItem(CATEGORY_WORDS[cat]);
+        return { word, cat };
+      },
+      renderItem: (item) => `<div class="name-cell">${item.word}</div>`,
+      stages: [
+        {
+          label: "Aşama 1 · Kategori",
+          instruction: () => `Öğrenciye görselleri tanıtın. <b>"Her kelimenin hangi kategoriye ait olduğunu söyle (meyve mi, hayvan mı, taşıt mı)"</b> deyin.`,
+          example: (item) => `${item.cat}`
+        },
+        {
+          label: "Aşama 2 · Kategori + Örnek",
+          instruction: () => `Kategoriyi söyledikten sonra o kategoriden <b>BAŞKA bir örnek</b> daha versin (örneğin "meyve... çilek" gibi).`,
+          example: (item) => `${item.cat}`
+        }
+      ]
+    },
+    {
+      id: "syllable-count",
+      label: "Hece Sayma",
+      attrs: ["word"],
+      randomItem: () => randomItem(SYLLABLE_WORDS),
+      renderItem: (item) => `<div class="name-cell">${item.word}</div>`,
+      stages: [
+        {
+          label: "Aşama 1 · Hece Sayısı",
+          instruction: () => `Öğrenciye görselleri tanıtın. <b>"Kelimenin kaç heceli olduğunu söyle"</b> deyin.`,
+          example: (item) => `${item.syl} hece`
+        },
+        {
+          label: "Aşama 2 · Heceleyerek Söyle",
+          instruction: () => `Kelimeyi hecelerine ayırarak (el-ma gibi) <b>yüksek sesle söylesin</b>, sonra kaç hece olduğunu belirtsin.`,
+          example: (item) => `${item.syl} hece`
+        }
+      ]
+    },
+    {
+      id: "opposite-match",
+      label: "Zıt Anlam",
+      attrs: ["word"],
+      randomItem: () => randomItem(ANTONYM_PAIRS),
+      renderItem: (item) => `<div class="name-cell">${item.word}</div>`,
+      stages: [
+        {
+          label: "Aşama 1 · Zıt Anlamı",
+          instruction: () => `Öğrenciye görselleri tanıtın. <b>"Kelimenin zıt anlamını söyle"</b> deyin.`,
+          example: (item) => `${item.opp}`
+        },
+        {
+          label: "Aşama 2 · Zıt Anlam + Cümle",
+          instruction: () => `Zıt anlamını söyledikten sonra o kelimeyi <b>kısa bir cümlede</b> kullansın.`,
+          example: (item) => `${item.opp}`
+        }
+      ]
+    },
+
+    // ---------- Sözel Kavrama ----------
+    {
+      id: "similarities",
+      label: "Benzerlik Bulma",
+      attrs: ["a"],
+      randomItem: () => randomItem(SIMILARITY_PAIRS),
+      renderItem: (item) => `<div class="name-cell phrase-cell">${item.a} - ${item.b}</div>`,
+      stages: [
+        {
+          label: "Aşama 1 · Ortak Yön",
+          instruction: () => `Öğrenciye görselleri tanıtın. <b>"İki kelimenin ORTAK yönünü söyle"</b> deyin.`,
+          example: (item) => `${item.hint}`
+        },
+        {
+          label: "Aşama 2 · Örnek Ekle",
+          instruction: () => `Ortak yönü söyledikten sonra, <b>aynı gruba bir örnek daha</b> eklesin.`,
+          example: (item) => `${item.hint}`
+        }
+      ]
+    },
+    {
+      id: "vocabulary",
+      label: "Kelime Tanımlama",
+      attrs: ["word"],
+      randomItem: () => randomItem(VOCAB_WORDS),
+      renderItem: (item) => `<div class="name-cell">${item.word}</div>`,
+      stages: [
+        {
+          label: "Aşama 1 · Tanımla",
+          instruction: () => `Öğrenciye görselleri tanıtın. <b>"Kelimenin ne anlama geldiğini kendi cümlelerinle anlat"</b> deyin.`,
+          example: (item) => `${item.def}`
+        },
+        {
+          label: "Aşama 2 · Cümlede Kullan",
+          instruction: () => `Tanımladıktan sonra kelimeyi <b>bir cümlede</b> kullansın.`,
+          example: (item) => `${item.def}`
+        }
+      ]
+    },
+    {
+      id: "practical-reasoning",
+      label: "Genel Kavrama",
+      attrs: ["q"],
+      randomItem: () => randomItem(COMPREHENSION_QS),
+      renderItem: (item) => `<div class="name-cell phrase-cell">${item.q}</div>`,
+      stages: [
+        {
+          label: "Aşama 1 · Yanıtla",
+          instruction: () => `Soruyu öğrenciye okuyun, <b>kendi cümleleriyle</b> yanıtlamasını isteyin.`,
+          example: (item) => `${item.hint}`
+        },
+        {
+          label: "Aşama 2 · Nedenini Ekle",
+          instruction: () => `Yanıtladıktan sonra <b>NEDEN</b> öyle düşündüğünü de eklesin.`,
+          example: (item) => `${item.hint}`
+        }
+      ]
+    },
+
+    // ---------- Algısal Akıl Yürütme ----------
+    {
+      id: "odd-one-out",
+      label: "Farklı Olanı Bul",
+      attrs: ["dimension"],
+      randomItem: () => {
+        const dimension = randomItem(["shape","color"]);
+        const oddIndex = randomInt(0,2);
+        let items;
+        if(dimension === "shape"){
+          const sameShape = randomItem(SHAPES);
+          let oddShape; do{ oddShape = randomItem(SHAPES); } while(oddShape === sameShape);
+          items = [0,1,2].map(i => ({ shape: i===oddIndex ? oddShape : sameShape, color: randomItem(COLORS) }));
+        } else {
+          const sameColor = randomItem(COLORS);
+          let oddColor; do{ oddColor = randomItem(COLORS); } while(oddColor === sameColor);
+          items = [0,1,2].map(i => ({ shape: randomItem(SHAPES), color: i===oddIndex ? oddColor : sameColor }));
+        }
+        return { items, dimension, oddIndex };
+      },
+      renderItem: (item) => tripleShapeHTML(item.items),
+      stages: [
+        {
+          label: "Aşama 1 · Farklıyı Bul",
+          instruction: () => `Öğrenciye görselleri tanıtın. <b>3 şekilden hangisinin FARKLI olduğunu (1, 2 veya 3.)</b> söylesin.`,
+          example: (item) => `${item.oddIndex+1}. şekil farklı`
+        },
+        {
+          label: "Aşama 2 · Nedenini Söyle",
+          instruction: () => `Farklı olanı söyledikten sonra <b>NEDEN farklı olduğunu</b> da eklesin (rengi mi, şekli mi?).`,
+          example: (item) => `${item.oddIndex+1}. şekil farklı (${item.dimension === "shape" ? "şekli" : "rengi"} farklı)`
+        }
+      ]
+    },
+    {
+      id: "sequence-pattern",
+      label: "Örüntü Tamamlama",
+      attrs: ["answer"],
+      randomItem: () => {
+        const colorA = randomItem(COLORS);
+        let colorB; do{ colorB = randomItem(COLORS); } while(colorB === colorA);
+        if(currentStageIndex === 0){
+          return { sequence:[colorA,colorB,colorA,colorB], answer: colorA };
+        }
+        let colorC; do{ colorC = randomItem(COLORS); } while(colorC === colorA || colorC === colorB);
+        return { sequence:[colorA,colorB,colorC,colorA,colorB], answer: colorC };
+      },
+      renderItem: (item) => sequenceHTML(item.sequence),
+      stages: [
+        {
+          label: "Aşama 1 · İkili Örüntü",
+          instruction: () => `Öğrenciye görselleri tanıtın. <b>"? yerine hangi renk gelir, söyle"</b> deyin.`,
+          example: (item) => `${COLOR_NAMES[item.answer]}`
+        },
+        {
+          label: "Aşama 2 · Üçlü Örüntü",
+          instruction: () => `Zorlaştırın: örüntü artık <b>3 renkten</b> oluşuyor.`,
+          example: (item) => `${COLOR_NAMES[item.answer]}`
+        }
+      ]
+    },
+    {
+      id: "visual-analogy",
+      label: "Görsel Analoji",
+      attrs: ["shape1"],
+      randomItem: () => {
+        const shape1 = randomItem(SHAPES);
+        let shape2; do{ shape2 = randomItem(SHAPES); } while(shape2 === shape1);
+        const colorA = randomItem(COLORS);
+        let colorB; do{ colorB = randomItem(COLORS); } while(colorB === colorA);
+        return { shape1, shape2, colorA, colorB };
+      },
+      renderItem: (item) => analogyHTML({shape:item.shape1,color:item.colorA}, {shape:item.shape1,color:item.colorB}, {shape:item.shape2,color:item.colorA}),
+      stages: [
+        {
+          label: "Aşama 1 · Rengi Bul",
+          instruction: () => `Öğrenciye görselleri tanıtın. <b>Örüntüye göre SORU İŞARETİ yerine hangi rengin geleceğini</b> söylesin.`,
+          example: (item) => `${COLOR_NAMES[item.colorB]}`
+        },
+        {
+          label: "Aşama 2 · Tam Tarif Et",
+          instruction: () => `Bu sefer sadece rengi değil, <b>tam olarak ne göreceğini</b> tarif etsin (şekil + renk).`,
+          example: (item) => `${SHAPE_NAMES[item.shape2]} - ${COLOR_NAMES[item.colorB]}`
+        }
+      ]
+    },
+
+    // ---------- Görsel Organizasyon ----------
+    {
+      id: "size-sort",
+      label: "Boyut Sıralama",
+      attrs: ["size"],
+      randomItem: () => ({ size: randomItem(["small","medium","large"]), color: randomItem(COLORS) }),
+      renderItem: (item) => sizedCircleHTML(item.size, item.color),
+      stages: [
+        {
+          label: "Aşama 1 · Boyut",
+          instruction: () => `Öğrenciye görselleri tanıtın. <b>"Her dairenin küçük mü, orta mı, büyük mü olduğunu söyle"</b> deyin.`,
+          example: (item) => `${SIZE_LABELS[item.size]}`
+        },
+        {
+          label: "Aşama 2 · Boyut + Örnek Nesne",
+          instruction: () => `Boyutunu söyledikten sonra, aynı boyutta günlük hayattan <b>bir nesne örneği</b> versin (örneğin küçük — "düğme gibi").`,
+          example: (item) => `${SIZE_LABELS[item.size]}`
+        }
+      ]
+    },
+    {
+      id: "arrow-direction",
+      label: "Yön Bulma",
+      attrs: ["direction"],
+      randomItem: () => {
+        const pools = [
+          ["up","down"],
+          ["up","down","right"],
+          ["up","down","right","left"]
+        ];
+        const pool = pools[currentStageIndex] || pools[pools.length-1];
+        return { direction: randomItem(pool), color: randomItem(COLORS) };
+      },
+      renderItem: (item) => arrowSVG(item.direction, item.color),
+      stages: [
+        {
+          label: "Aşama 1 · Yukarı-Aşağı",
+          instruction: () => `Öğrenciye görselleri tanıtın. <b>"Okun yukarı mı aşağı mı baktığını söyle"</b> deyin.`,
+          example: (item) => ({up:"yukarı",down:"aşağı",left:"sol",right:"sağ"})[item.direction]
+        },
+        {
+          label: "Aşama 2 · +Sağ",
+          instruction: () => `Sağ yön de eklendi. <b>"Okun yukarı, aşağı veya sağa mı baktığını söyle"</b> deyin.`,
+          example: (item) => ({up:"yukarı",down:"aşağı",left:"sol",right:"sağ"})[item.direction]
+        },
+        {
+          label: "Aşama 3 · +Sol",
+          instruction: () => `Sol yön de eklendi. <b>"Okun hangi yöne baktığını söyle (yukarı, aşağı, sağ, sol)"</b> deyin.`,
+          example: (item) => ({up:"yukarı",down:"aşağı",left:"sol",right:"sağ"})[item.direction]
+        }
+      ]
+    },
+    {
+      id: "edge-count",
+      label: "Kenar Sayma",
+      attrs: ["sides"],
+      randomItem: () => ({ sides: randomItem([3,4,5,6]), color: randomItem(COLORS) }),
+      renderItem: (item) => polygonSVG(item.sides, item.color),
+      stages: [
+        {
+          label: "Aşama 1 · Kenar Sayısı",
+          instruction: () => `Öğrenciye görselleri tanıtın. <b>"Şeklin kaç kenarı olduğunu söyle"</b> deyin.`,
+          example: (item) => `${item.sides} kenar`
+        },
+        {
+          label: "Aşama 2 · Kenar + Şekil Adı",
+          instruction: () => `Kenar sayısını söyledikten sonra <b>şeklin adını</b> da eklesin (üçgen, kare, beşgen, altıgen).`,
+          example: (item) => `${item.sides} kenar — ${({3:"üçgen",4:"kare",5:"beşgen",6:"altıgen"})[item.sides]}`
+        }
+      ]
+    },
+
+    // ---------- Sözel Bellek (çalış-hatırla) ----------
+    {
+      id: "word-list-recall",
+      label: "Kelime Listesi Hatırlama",
+      isRecall: true,
+      attrs: ["word"],
+      randomItem: () => ({ word: randomItem(WORD_POOL) }),
+      renderItem: (item) => `<div class="name-cell">${item.word}</div>`,
+      stages: [
+        {
+          label: "Aşama 1 · Kelimeleri İncele",
+          instruction: () => `Bu kelimeleri birlikte okuyun. Süre dolunca kelimeler kapanacak — çocuktan <b>hatırladığı kadarını söylemesini</b> isteyin, doğru sayısını girin.`,
+          example: () => ``
+        },
+        {
+          label: "Aşama 2 · Sırayla Hatırlama",
+          instruction: () => `Aynı şekilde inceleyin, ama bu sefer çocuktan kelimeleri <b>gördüğü sırayla</b> hatırlamasını isteyin.`,
+          example: () => ``
+        },
+        {
+          label: "Aşama 3 · Tersten Hatırlama",
+          instruction: () => `Aynı şekilde inceleyin, çocuktan kelimeleri <b>tersten</b> (son gördüğünden ilkine doğru) hatırlamasını isteyin.`,
+          example: () => ``
+        }
+      ]
+    },
+    {
+      id: "digit-span",
+      label: "Rakam Dizisi (Digit Span)",
+      isRecall: true,
+      attrs: ["number"],
+      randomItem: () => ({ number: randomInt(0,9), color: randomItem(COLORS) }),
+      renderItem: (item) => numberHTML(item.number, item.color),
+      stages: [
+        {
+          label: "Aşama 1 · Rakamları İncele",
+          instruction: () => `Bu rakamları birlikte okuyun. Süre dolunca kapanacaklar — çocuktan <b>gördüğü sırayla</b> tekrar etmesini isteyin, doğru sayısını girin.`,
+          example: () => ``
+        },
+        {
+          label: "Aşama 2 · Ters Sırayla",
+          instruction: () => `Aynı şekilde inceleyin, ama bu sefer çocuktan rakamları <b>tersten</b> söylemesini isteyin (klasik "geriye digit span").`,
+          example: () => ``
+        }
+      ]
+    },
+    {
+      id: "sentence-repeat",
+      label: "Cümle/Öbek Tekrarı",
+      isRecall: true,
+      attrs: ["phrase"],
+      randomItem: () => ({ phrase: randomItem(["kırmızı top","büyük ev","hızlı araba","yeşil ağaç","tatlı elma","küçük kedi","uzun yol","soğuk su"]) }),
+      renderItem: (item) => `<div class="name-cell phrase-cell">${item.phrase}</div>`,
+      stages: [
+        {
+          label: "Aşama 1 · Öbekleri İncele",
+          instruction: () => `Bu kelime öbeklerini birlikte okuyun. Süre dolunca kapanacaklar — çocuktan <b>hatırladığı kadarını</b> tekrar etmesini isteyin, doğru sayısını girin.`,
+          example: () => ``
+        },
+        {
+          label: "Aşama 2 · Sırayla Tekrar",
+          instruction: () => `Aynı şekilde inceleyin, çocuktan öbekleri <b>gördüğü sırayla</b> tekrar etmesini isteyin.`,
+          example: () => ``
+        },
+        {
+          label: "Aşama 3 · Tersten Tekrar",
+          instruction: () => `Aynı şekilde inceleyin, çocuktan öbekleri <b>tersten</b> (son gördüğünden ilkine doğru) tekrar etmesini isteyin.`,
+          example: () => ``
+        }
+      ]
+    },
+
+    // ---------- Görsel Bellek (çalış-hatırla) ----------
+    {
+      id: "shape-recall",
+      label: "Şekil Hatırlama",
+      isRecall: true,
+      attrs: ["shape","color"],
+      randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
+      renderItem: (item) => shapeSVG(item.shape, item.color),
+      stages: [
+        {
+          label: "Aşama 1 · Şekilleri İncele",
+          instruction: () => `Bu şekilleri birlikte inceleyin. Süre dolunca kapanacaklar — çocuktan <b>hangi şekilleri gördüğünü</b> hatırlamasını isteyin, doğru sayısını girin.`,
+          example: () => ``
+        },
+        {
+          label: "Aşama 2 · Şekil + Renk",
+          instruction: () => `Aynı şekilde inceleyin, çocuktan hem <b>şekli hem rengini</b> hatırlamasını isteyin.`,
+          example: () => ``
+        },
+        {
+          label: "Aşama 3 · Tersten Sırala",
+          instruction: () => `Aynı şekilde inceleyin, çocuktan şekilleri <b>tersten</b> (son gördüğünden ilkine doğru) sıralamasını isteyin.`,
+          example: () => ``
+        }
+      ]
+    },
+    {
+      id: "position-recall",
+      label: "Konum Hatırlama",
+      isRecall: true,
+      attrs: ["lit"],
+      randomItem: () => ({ lit: Math.random() < 0.4, color: randomItem(COLORS) }),
+      renderItem: (item) => litCircleHTML(item.lit, item.color),
+      stages: [
+        {
+          label: "Aşama 1 · Dolu Kareleri İncele",
+          instruction: () => `Hangi karelerin <b>dolu</b> olduğunu birlikte inceleyin. Süre dolunca kapanacak — çocuktan hangi konumların dolu olduğunu hatırlamasını isteyin, doğru sayısını girin.`,
+          example: () => ``
+        },
+        {
+          label: "Aşama 2 · Sırayla Hatırlama",
+          instruction: () => `Aynı şekilde inceleyin, çocuktan dolu kareleri <b>soldan sağa sırayla</b> saymasını isteyin.`,
+          example: () => ``
+        },
+        {
+          label: "Aşama 3 · Tersten Say",
+          instruction: () => `Aynı şekilde inceleyin, çocuktan dolu kareleri <b>sağdan sola</b> (tersten) saymasını isteyin.`,
+          example: () => ``
+        }
+      ]
+    },
+    {
+      id: "color-recall",
+      label: "Renk Hatırlama",
+      isRecall: true,
+      attrs: ["color"],
+      randomItem: () => ({ color: randomItem(COLORS) }),
+      renderItem: (item) => colorSwatchHTML(item.color),
+      stages: [
+        {
+          label: "Aşama 1 · Renkleri İncele",
+          instruction: () => `Bu renkleri birlikte inceleyin. Süre dolunca kapanacaklar — çocuktan <b>hangi renkleri gördüğünü</b> hatırlamasını isteyin, doğru sayısını girin.`,
+          example: () => ``
+        },
+        {
+          label: "Aşama 2 · Sırayla Hatırlama",
+          instruction: () => `Aynı şekilde inceleyin, çocuktan renkleri <b>gördüğü sırayla</b> söylemesini isteyin.`,
+          example: () => ``
+        },
+        {
+          label: "Aşama 3 · Tersten Hatırlama",
+          instruction: () => `Aynı şekilde inceleyin, çocuktan renkleri <b>tersten</b> (son gördüğünden ilkine doğru) söylemesini isteyin.`,
+          example: () => ``
+        }
+      ]
+    }
+  ];
+
+  const CATEGORIES = [
+    {
+      id:"islemleme-hizi",
+      label:"İşlemleme Hızı",
+      sub:"Hızlı İsimlendirme — Şekil-Renk, Sayı-Renk, İsim, Nesne Adı, Hece",
+      purpose:"Görsel bir uyaranı ne kadar hızlı tanıyıp isimlendirebildiğini ölçer — okuma akıcılığıyla güçlü bağlantısı olduğu bilinir.",
+      color:"#2E6F6E",
+      group:"Hız & Dikkat",
+      exerciseIds:["shape-color","number-color","name-gender-length","object-name","syllable-count"]
+    },
+    {
+      id:"goz-takip",
+      label:"Göz Takip",
+      sub:"Görsel takip / pursuit egzersizi",
+      purpose:"Gözlerin hareketli bir hedefi ne kadar akıcı takip edebildiğini, baş hareketi kullanmadan değerlendirir.",
+      color:"#C97F32",
+      group:"Hız & Dikkat",
+      exerciseIds:["eye-tracking"]
+    },
+    {
+      id:"yurutucu-islev",
+      label:"Yürütücü İşlev",
+      sub:"Stroop, kural değişimi, ket vurma",
+      purpose:"Dikkati yönetme, kural değiştirme ve dürtüsel tepkiyi durdurma becerisini çalıştırır.",
+      color:"#3A6EA5",
+      group:"Hız & Dikkat",
+      exerciseIds:["stroop","task-switch","go-no-go"]
+    },
+    {
+      id:"calisan-bellek",
+      label:"Çalışan Bellek",
+      sub:"N-geri, digit span, ileriye dönük bellek",
+      purpose:"Birden fazla bilgiyi aynı anda zihinde tutup güncelleme (n-geri) veya bir niyeti geleceğe taşıma (ileriye dönük bellek) becerisini test eder.",
+      color:"#4F9D5A",
+      group:"Bellek",
+      exerciseIds:["nback-shape","nback-color","nback-number","digit-span","prospective-event","prospective-time","prospective-delayed"]
+    },
+    {
+      id:"sozel-bellek",
+      label:"Sözel Bellek",
+      sub:"Kelime listesi, öbek tekrarı",
+      purpose:"Duyduğu bilgiyi kısa süre zihninde tutup doğru sırayla geri getirme becerisini ölçer.",
+      color:"#2E5F8A",
+      group:"Bellek",
+      exerciseIds:["word-list-recall","sentence-repeat"]
+    },
+    {
+      id:"gorsel-bellek",
+      label:"Görsel Bellek",
+      sub:"Şekil, konum, renk hatırlama",
+      purpose:"Gördüğü görsel bilgiyi kısa süre sonra hatırlama becerisini değerlendirir.",
+      color:"#D64545",
+      group:"Bellek",
+      exerciseIds:["shape-recall","position-recall","color-recall"]
+    },
+    {
+      id:"sozel-organizasyon",
+      label:"Sözel Organizasyon",
+      sub:"Kategori, zıt anlam",
+      purpose:"Kelimeleri anlamına, sesine veya kategorisine göre hızlıca sınıflandırma becerisini geliştirir.",
+      color:"#8A5A8C",
+      group:"Dil & Görsel Analiz",
+      exerciseIds:["word-group","opposite-match"]
+    },
+    {
+      id:"sozel-kavrama",
+      label:"Sözel Kavrama",
+      sub:"Benzerlik bulma, kelime tanımlama, genel kavrama",
+      purpose:"Kelimeler arası soyut ilişkiler kurma ve sözel akıl yürütme becerisini test eder (WISC-IV Sözel Kavrama indeksine kavramsal olarak yakındır).",
+      color:"#6B4C9A",
+      group:"Dil & Görsel Analiz",
+      exerciseIds:["similarities","vocabulary","practical-reasoning"]
+    },
+    {
+      id:"gorsel-organizasyon",
+      label:"Görsel Organizasyon",
+      sub:"Boyut, yön, kenar sayısı",
+      purpose:"Görsel öğeleri boyut, yön veya yapı gibi özelliklerine göre analiz etme becerisini çalıştırır.",
+      color:"#E8823A",
+      group:"Dil & Görsel Analiz",
+      exerciseIds:["size-sort","arrow-direction","edge-count","visual-opposites"]
+    },
+    {
+      id:"algisal-akil-yurutme",
+      label:"Algısal Akıl Yürütme",
+      sub:"Farklı olanı bulma, örüntü tamamlama, görsel analoji",
+      purpose:"Görsel örüntüleri analiz edip mantıksal ilişki kurma becerisini test eder (WISC-IV Algısal Akıl Yürütme indeksine kavramsal olarak yakındır).",
+      color:"#B08900",
+      group:"Dil & Görsel Analiz",
+      exerciseIds:["odd-one-out","sequence-pattern","visual-analogy"]
+    },
+  ];
+
+  function exerciseById(id){ return EXERCISES.find(e => e.id === id); }
+  function currentCategory(){ return CATEGORIES[currentCategoryIndex]; }
+  function currentCategoryExercises(){ return currentCategory().exerciseIds.map(exerciseById); }
+
+  function buildSequenceForCategory(){
+    const seq = [];
+    const exCount = currentCategoryExercises().length;
+    TIERS.forEach((_, t)=>{
+      for(let e=0; e<exCount; e++){
+        seq.push({t, e});
+      }
+    });
+    return seq;
+  }
+
+  let currentCategoryIndex = 0;
+  let SEQUENCE = buildSequenceForCategory();
+
+  let currentIndex = 0;
+  let currentStageIndex = 0;
+  let currentGrid = [];
+  let currentPlayerName = "";
+  let playersList = [];
+  let currentHistoryTab = "recent";
+  let appMode = null;
+  let currentErrorCount = 0;
+  let successStreak = 0;
+  let currentReportPlayer = "Herkes";
+
+  let SUCCESS_SEC_PER_ITEM = 1.0;
+  let FAIL_SEC_PER_ITEM = 2.0;
+  let soundEnabled = true;
+  let hapticEnabled = true;
+  let expertAdaptiveEnabled = false;
+
+  function currentCombo(){ return SEQUENCE[currentIndex]; }
+  function currentTier(){ return TIERS[currentCombo().t]; }
+  function currentExercise(){ return currentCategoryExercises()[currentCombo().e]; }
+
+  let timerInterval = null;
+  let timerRunning = false;
+  let elapsedMs = 0;
+  let timerStartedAt = 0;
+
+  function generateGrid(exercise, rows, cols){
+    const grid = [];
+    for(let i=0;i<rows*cols;i++){
+      let item;
+      let tries = 0;
+      do{
+        item = exercise.randomItem();
+        tries++;
+      } while(
+        grid.length > 0 &&
+        exercise.attrs.some(a => item[a] === grid[grid.length-1][a]) &&
+        tries < 30
+      );
+      grid.push(item);
+    }
+    return grid;
+  }
+
+  function goToIndex(newIndex){
+    const prevExId = currentExercise().id;
+    currentIndex = ((newIndex % SEQUENCE.length) + SEQUENCE.length) % SEQUENCE.length;
+    if(currentExercise().id !== prevExId){
+      currentStageIndex = 0;
+    }
+    renderTierRow();
+    renderExerciseRow();
+    renderStageRow();
+    newPage();
+  }
+
+  function renderTierRow(){
+    const row = document.getElementById("tierRow");
+    row.innerHTML = "";
+    const exCount = currentCategoryExercises().length;
+    TIERS.forEach((tier, t)=>{
+      const btn = document.createElement("button");
+      btn.className = "tier-btn" + (t===currentCombo().t ? " active" : "");
+      btn.textContent = tier.label;
+      btn.addEventListener("click", ()=>{
+        goToIndex(t * exCount + currentCombo().e);
+      });
+      row.appendChild(btn);
+    });
+  }
+
+  function renderExerciseRow(){
+    const row = document.getElementById("exerciseRow");
+    row.innerHTML = "";
+    const exs = currentCategoryExercises();
+    const exCount = exs.length;
+    exs.forEach((ex, e)=>{
+      const btn = document.createElement("button");
+      btn.className = "exercise-btn" + (e===currentCombo().e ? " active" : "");
+      btn.textContent = ex.label;
+      btn.addEventListener("click", ()=>{
+        goToIndex(currentCombo().t * exCount + e);
+      });
+      row.appendChild(btn);
+    });
+  }
+  function formatTime(ms){
+    const totalMs = Math.max(0, ms);
+    const totalSec = Math.floor(totalMs/1000);
+    const m = String(Math.floor(totalSec/60)).padStart(2,"0");
+    const s = String(totalSec%60).padStart(2,"0");
+    const tenths = Math.floor((totalMs%1000)/100);
+    return `${m}:${s}.${tenths}`;
+  }
+
+  function tickTimer(){
+    elapsedMs = Date.now() - timerStartedAt;
+    document.getElementById("timerDisplay").textContent = formatTime(elapsedMs);
+  }
+
+  let recallHideTimeout = null;
+
+  function hideRecallItems(){
+    const board = document.getElementById("board");
+    if(!board) return;
+    board.querySelectorAll(".cell").forEach(cell=>{
+      cell.innerHTML = `<div class="recall-hidden">🙈</div>`;
+    });
+    showLevelFlash("Şimdi hatırlamaya çalışın!", "up");
+  }
+
+  function startTimer(){
+    timerStartedAt = Date.now() - elapsedMs;
+    timerInterval = setInterval(tickTimer, 100);
+    timerRunning = true;
+    const btn = document.getElementById("timerBtn");
+    btn.textContent = "⏸ Durdur";
+    btn.classList.add("running");
+    document.getElementById("saveResultBtn").style.display = "none";
+    document.getElementById("saveHint").style.display = "none";
+    if(currentExercise().isMotion){
+      startEyeMotion();
+    }
+    if(currentExercise().isRecall){
+      clearTimeout(recallHideTimeout);
+      recallHideTimeout = setTimeout(hideRecallItems, currentTier().studyDurationMs);
+    }
+  }
+
+  function stopTimer(){
+    clearInterval(timerInterval);
+    timerRunning = false;
+    stopEyeMotion();
+    clearTimeout(recallHideTimeout);
+    const btn = document.getElementById("timerBtn");
+    btn.textContent = "▶ Başlat";
+    btn.classList.remove("running");
+    if(elapsedMs > 300){
+      document.getElementById("saveResultBtn").style.display = "block";
+      document.getElementById("saveHint").style.display = "block";
+    }
+  }
+
+  function resetTimer(){
+    clearInterval(timerInterval);
+    timerRunning = false;
+    stopEyeMotion();
+    clearTimeout(recallHideTimeout);
+    if(currentExercise().isMotion){
+      positionMotionShape(0);
+      const fill = document.getElementById("motionProgressFill");
+      if(fill) fill.style.width = "0%";
+    }
+    if(currentExercise().isRecall){
+      renderBoard();
+    }
+    elapsedMs = 0;
+    document.getElementById("timerDisplay").textContent = "00:00.0";
+    const btn = document.getElementById("timerBtn");
+    btn.textContent = "▶ Başlat";
+    btn.classList.remove("running");
+    currentErrorCount = 0;
+    const countEl = document.getElementById("errorCount");
+    if(countEl) countEl.textContent = "0";
+    document.getElementById("saveResultBtn").style.display = "none";
+    document.getElementById("saveHint").style.display = "none";
+  }
+
+  function confirmSaveResult(){
+    if(elapsedMs <= 300) return;
+    recordSession(elapsedMs, currentErrorCount);
+    playSound("save");
+    if(!currentExercise().isMotion && !currentExercise().isRecall && (appMode === "aile" || (appMode === "uzman" && expertAdaptiveEnabled))){
+      applyAdaptiveDifficulty(elapsedMs, currentErrorCount);
+    }
+    resetTimer();
+  }
+
+  let audioCtx = null;
+  let audioUnlocked = false;
+
+  function getAudioCtx(){
+    if(!audioCtx){
+      try{
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }catch(e){
+        return null;
+      }
+    }
+    return audioCtx;
+  }
+
+  function unlockAudio(){
+    if(audioUnlocked) return;
+    const ctx = getAudioCtx();
+    if(!ctx) return;
+    if(ctx.state === "suspended"){
+      ctx.resume().catch(()=>{});
+    }
+    // Sessiz bir "ısınma" sesi çalarak iOS/Android kilidini aç
+    try{
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.05);
+    }catch(e){}
+    audioUnlocked = true;
+  }
+
+  document.addEventListener("touchend", unlockAudio, {once:true});
+  document.addEventListener("click", unlockAudio, {once:true});
+
+  function beep(freqStart, freqEnd, durationMs, volume){
+    if(!soundEnabled) return;
+    const ctx = getAudioCtx();
+    if(!ctx) return;
+    if(ctx.state === "suspended"){
+      ctx.resume().catch(()=>{});
+    }
+    try{
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freqStart, ctx.currentTime);
+      osc.frequency.linearRampToValueAtTime(freqEnd, ctx.currentTime + durationMs/1000);
+      gain.gain.setValueAtTime(volume, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + durationMs/1000);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + durationMs/1000);
+    }catch(e){}
+  }
+
+  function playSound(kind){
+    if(kind === "save"){ beep(650, 780, 130, 0.15); }
+    else if(kind === "up"){ beep(520, 940, 320, 0.18); }
+    else if(kind === "down"){ beep(420, 260, 380, 0.18); }
+  }
+
+  function vibrate(pattern){
+    if(!hapticEnabled) return;
+    try{
+      if(navigator.vibrate) navigator.vibrate(pattern);
+    }catch(e){}
+  }
+
+  function applyAdaptiveDifficulty(ms, errors){
+    const itemCount = currentTier().rows * currentTier().cols;
+    const secPerItem = (ms/1000) / itemCount;
+    const isGood = errors === 0 && secPerItem <= SUCCESS_SEC_PER_ITEM;
+    const isBad = errors > 0 || secPerItem >= FAIL_SEC_PER_ITEM;
+
+    if(isGood){
+      successStreak++;
+      if(successStreak >= 2){
+        successStreak = 0;
+        const combo = currentCombo();
+        if(combo.t < TIERS.length - 1){
+          const nextTierLabel = TIERS[combo.t+1].label;
+          goToIndex((combo.t+1) * currentCategoryExercises().length + combo.e);
+          showLevelFlash(`🎉 Harika gidiyorsun! Zorluk artırıldı: ${nextTierLabel}`, "levelup");
+          playSound("up");
+          vibrate([40, 60, 40]);
+          logLevelEvent({t: Date.now(), dir:"up", toLabel: nextTierLabel, player: currentPlayerName.trim() || "Oyuncu"});
+        }
+      }
+    } else if(isBad){
+      successStreak = 0;
+      const combo = currentCombo();
+      if(combo.t > 0){
+        const prevTierLabel = TIERS[combo.t-1].label;
+        goToIndex((combo.t-1) * currentCategoryExercises().length + combo.e);
+        showLevelFlash(`Biraz daha pratik edelim, zorluk azaltıldı: ${prevTierLabel}`, "down");
+        playSound("down");
+        vibrate(80);
+        logLevelEvent({t: Date.now(), dir:"down", toLabel: prevTierLabel, player: currentPlayerName.trim() || "Oyuncu"});
+      }
+    } else {
+      successStreak = 0;
+    }
+  }
+
+  function spawnConfetti(container){
+    const colors = ["#2E6F6E","#F2A65A","#3A6EA5","#4F9D5A","#CC79A7"];
+    for(let i=0;i<14;i++){
+      const piece = document.createElement("span");
+      piece.className = "confetti-piece";
+      piece.style.left = Math.round(Math.random()*100) + "%";
+      piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+      piece.style.animationDelay = Math.round(Math.random()*150) + "ms";
+      container.appendChild(piece);
+      setTimeout(()=>{ piece.remove(); }, 1100);
+    }
+  }
+
+  function showLevelFlash(text, type){
+    const flash = document.getElementById("levelFlash");
+    if(!flash) return;
+    flash.textContent = text;
+    flash.className = "level-flash " + type;
+    flash.style.display = "block";
+    clearTimeout(flash._hideTimer);
+    if(type === "levelup"){
+      spawnConfetti(flash);
+    }
+    flash._hideTimer = setTimeout(()=>{ flash.style.display = "none"; }, 4000);
+  }
+
+  function renderStageRow(){
+    const row = document.getElementById("stageRow");
+    row.innerHTML = "";
+    currentExercise().stages.forEach((stage, i)=>{
+      const btn = document.createElement("button");
+      btn.className = "stage-btn" + (i===currentStageIndex ? " active" : "");
+      btn.textContent = stage.label;
+      btn.addEventListener("click", ()=>{
+        currentStageIndex = i;
+        renderStageRow();
+        newPage();
+      });
+      row.appendChild(btn);
+    });
+  }
+
+  function renderInstruction(){
+    const box = document.getElementById("instructionBox");
+    const stage = currentExercise().stages[currentStageIndex];
+    const sample = currentGrid[0] || (currentExercise().randomItem ? currentExercise().randomItem() : {});
+    const exampleText = stage.example(sample);
+    box.innerHTML = exampleText
+      ? `${stage.instruction()}<span class="example">Örneğin: "${exampleText}" deyin.</span>`
+      : `${stage.instruction()}`;
+  }
+
+  let motionAnimFrame = null;
+  let motionStartTs = 0;
+  let motionDurationMs = 15000;
+
+  function renderMotionBoard(){
+    const board = document.getElementById("board");
+    board.style.display = "flex";
+    board.style.padding = "0";
+    board.style.minHeight = "280px";
+    board.style.gridTemplateColumns = "";
+    board.style.gridTemplateRows = "";
+    board.innerHTML = `
+      <div class="motion-board" id="motionBoard">
+        <div class="motion-shape" id="motionShape"></div>
+        <div class="motion-progress"><div class="motion-progress-fill" id="motionProgressFill"></div></div>
+      </div>
+    `;
+    positionMotionShape(0);
+  }
+
+  function motionPathPosition(t, pattern, tierLabel){
+    // t: 0..1 ilerleme oranı
+    let x = 0.5, y = 0.5;
+    if(tierLabel === "Başlangıç"){
+      x = 0.15 + 0.7 * (0.5 - 0.5*Math.cos(t*Math.PI*2));
+      y = 0.5;
+    } else if(tierLabel === "Orta Düzey"){
+      x = 0.5 + 0.35*Math.sin(t*Math.PI*2);
+      y = 0.5 + 0.3*Math.sin(t*Math.PI*4);
+    } else {
+      x = 0.5 + 0.35*Math.cos(t*Math.PI*4);
+      y = 0.5 + 0.35*Math.sin(t*Math.PI*6);
+    }
+    if(pattern === "random"){
+      const jitterSeed = Math.floor(t*9) * 12.9898;
+      const jitter = (Math.sin(jitterSeed)*43758.5453) % 1;
+      x += (jitter - 0.5) * 0.18;
+      y += (Math.cos(jitterSeed)*0.5) * 0.14;
+    }
+    x = Math.min(0.92, Math.max(0.08, x));
+    y = Math.min(0.88, Math.max(0.12, y));
+    return {x, y};
+  }
+
+  function positionMotionShape(t){
+    const shape = document.getElementById("motionShape");
+    if(!shape) return;
+    const stage = currentExercise().stages[currentStageIndex];
+    const pos = motionPathPosition(t, stage.pattern, currentTier().label);
+    shape.style.left = (pos.x*100) + "%";
+    shape.style.top = (pos.y*100) + "%";
+  }
+
+  function motionAnimStep(ts){
+    if(!motionStartTs) motionStartTs = ts;
+    const elapsed = ts - motionStartTs;
+    const t = Math.min(1, elapsed / motionDurationMs);
+    positionMotionShape(t);
+    const fill = document.getElementById("motionProgressFill");
+    if(fill) fill.style.width = (t*100) + "%";
+    if(t < 1 && timerRunning){
+      motionAnimFrame = requestAnimationFrame(motionAnimStep);
+    } else if(t >= 1){
+      stopTimer();
+    }
+  }
+
+  function startEyeMotion(){
+    motionDurationMs = currentTier().eyeDurationMs || 15000;
+    motionStartTs = 0;
+    if(motionAnimFrame) cancelAnimationFrame(motionAnimFrame);
+    motionAnimFrame = requestAnimationFrame(motionAnimStep);
+  }
+
+  function stopEyeMotion(){
+    if(motionAnimFrame){
+      cancelAnimationFrame(motionAnimFrame);
+      motionAnimFrame = null;
+    }
+    motionStartTs = 0;
+  }
+
+  function renderBoard(){
+    const ex = currentExercise();
+    const board = document.getElementById("board");
+    if(ex.isMotion){
+      renderMotionBoard();
+      return;
+    }
+    const {rows, cols} = currentTier();
+    board.style.display = "grid";
+    board.style.minHeight = "";
+    board.style.padding = "14px";
+    board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    board.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+    board.classList.toggle("wide-grid", cols >= 5 || rows >= 5);
+    board.innerHTML = "";
+    currentGrid.forEach(item=>{
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.innerHTML = ex.renderItem(item);
+      board.appendChild(cell);
+    });
+    fitTextCells(board);
+  }
+
+  function fitTextCells(board){
+    const textEls = Array.from(board.querySelectorAll(".name-cell"));
+    if(textEls.length === 0) return;
+    textEls.forEach(el=>{ el.style.fontSize = ""; });
+    let size = Math.min(...textEls.map(el => parseFloat(getComputedStyle(el).fontSize)));
+    const floor = 8;
+    function fitsAll(testSize){
+      return textEls.every(el=>{
+        el.style.fontSize = testSize + "px";
+        return el.scrollWidth <= el.clientWidth + 1;
+      });
+    }
+    let guard = 0;
+    while(!fitsAll(size) && size > floor && guard < 30){
+      size -= 1;
+      guard++;
+    }
+    textEls.forEach(el=>{ el.style.fontSize = size + "px"; });
+  }
+
+  function renderDots(){
+    const dots = document.getElementById("dots");
+    dots.innerHTML = "";
+    const exCount = currentCategoryExercises().length;
+    SEQUENCE.forEach((combo, i)=>{
+      const d = document.createElement("div");
+      const isGroupEnd = (i % exCount) === exCount - 1 && i !== SEQUENCE.length - 1;
+      d.className = "dot" + (i === currentIndex ? " on" : "") + (isGroupEnd ? " group-end" : "");
+      dots.appendChild(d);
+    });
+  }
+
+  function renderAll(){
+    document.getElementById("pageIndicator").textContent = `${currentTier().label} · Sayfa ${currentIndex+1}/${SEQUENCE.length}`;
+    renderInstruction();
+    renderBoard();
+    renderDots();
+  }
+
+  function refreshHistoryIfVisible(){
+    const panel = document.getElementById("historyPanel");
+    if(panel && panel.style.display !== "none"){
+      renderHistory();
+    }
+  }
+
+  function newPage(){
+    const ex = currentExercise();
+    const {rows, cols} = currentTier();
+    stopEyeMotion();
+    if(ex.isMotion){
+      currentGrid = [];
+    } else {
+      currentGrid = generateGrid(ex, rows, cols);
+    }
+    const label = document.getElementById("errorRowLabel");
+    if(label){
+      if(ex.isMotion) label.textContent = "Gözden kaçırma / baş çevirme sayısı";
+      else if(ex.isRecall) label.textContent = "Doğru hatırlanan sayısı";
+      else label.textContent = "Hata sayısı";
+    }
+    renderAll();
+    resetTimer();
+    const flash = document.getElementById("levelFlash");
+    if(flash){ clearTimeout(flash._hideTimer); flash.style.display = "none"; }
+    refreshHistoryIfVisible();
+  }
+
+  let firestoreReady = false;
+  let sessionHistory = [];
+  let levelEvents = [];
+
+  function updateCloudBadge(){
+    const badge = document.getElementById("cloudBadge");
+    if(!badge) return;
+    badge.innerHTML = firestoreReady
+      ? `<span class="ui-icon-slot">${uiIconSVG("cloud")}</span> Bulut`
+      : `<span class="ui-icon-slot">${uiIconSVG("cloud-off")}</span> Yerel`;
+    badge.className = "cloud-badge " + (firestoreReady ? "on" : "off");
+  }
+
+  function initFirestore(){
+    try{
+      if(!window.__fb){
+        console.warn("Firebase modülü hazır değil, yerel belleğe devam ediliyor.");
+        updateCloudBadge();
+        return;
+      }
+      const { db, collection, onSnapshot, query, orderBy } = window.__fb;
+
+      onSnapshot(query(collection(db, "sessions"), orderBy("t")), (snap)=>{
+        sessionHistory = snap.docs.map(d=>d.data());
+        firestoreReady = true;
+        updateCloudBadge();
+        refreshHistoryIfVisible();
+      }, (err)=>{
+        console.error("Firestore sessions okuma hatası:", err);
+        firestoreReady = false;
+        updateCloudBadge();
+      });
+
+      onSnapshot(query(collection(db, "levelEvents"), orderBy("t")), (snap)=>{
+        levelEvents = snap.docs.map(d=>d.data());
+        refreshHistoryIfVisible();
+      }, (err)=>{
+        console.error("Firestore levelEvents okuma hatası:", err);
+      });
+
+      onSnapshot(query(collection(db, "players"), orderBy("name")), (snap)=>{
+        playersList = snap.docs.map(d=>d.data().name);
+        renderPlayerOptions();
+      }, (err)=>{
+        console.error("Firestore players okuma hatası:", err);
+      });
+    }catch(e){
+      console.error("Firebase başlatılamadı, yerel belleğe devam ediliyor:", e);
+      firestoreReady = false;
+      updateCloudBadge();
+    }
+  }
+
+  window.addEventListener("firebase-ready", initFirestore);
+
+  function loadSessions(){
+    return sessionHistory.slice();
+  }
+
+  function clearAllSessions(){
+    if(firestoreReady && window.__fb){
+      const { db, collection, getDocs, writeBatch } = window.__fb;
+      getDocs(collection(db, "sessions")).then((snap)=>{
+        const batch = writeBatch(db);
+        snap.docs.forEach(d=> batch.delete(d.ref));
+        return batch.commit();
+      }).catch(e=> console.error("Temizleme hatası:", e));
+    } else {
+      sessionHistory = [];
+      renderHistory();
+    }
+  }
+
+  function logLevelEvent(record){
+    if(firestoreReady && window.__fb){
+      const { db, collection, addDoc } = window.__fb;
+      addDoc(collection(db, "levelEvents"), record).catch(e=> console.error("Düzey olayı kaydedilemedi:", e));
+    } else {
+      levelEvents.push(record);
+    }
+  }
+
+  function recordSession(ms, errors){
+    try{
+      const ex = currentExercise();
+      const stage = ex.stages[currentStageIndex];
+      const layout = currentTier();
+      const record = {
+        t: Date.now(),
+        player: currentPlayerName.trim() || "Oyuncu",
+        exerciseLabel: ex.label,
+        stageLabel: stage.label,
+        tier: layout.label,
+        itemCount: layout.rows * layout.cols,
+        errors: errors || 0,
+        ms: ms
+      };
+      if(firestoreReady && window.__fb){
+        const { db, collection, addDoc } = window.__fb;
+        addDoc(collection(db, "sessions"), record).catch(e=> console.error("Kayıt yazılamadı:", e));
+      } else {
+        sessionHistory.push(record);
+        while(sessionHistory.length > 50) sessionHistory.shift();
+      }
+      flashSaved();
+      const panel = document.getElementById("historyPanel");
+      if(panel && panel.style.display !== "none"){
+        renderHistory();
+      }
+    }catch(e){
+      // sessizce yok say
+    }
+  }
+
+  function flashSaved(){
+    const wrap = document.querySelector(".timer-btns");
+    const old = wrap.querySelector(".saved-flash");
+    if(old) old.remove();
+    const span = document.createElement("span");
+    span.className = "saved-flash";
+    span.textContent = "Kaydedildi ✓";
+    wrap.appendChild(span);
+    setTimeout(()=>{ span.remove(); }, 1800);
+  }
+
+  function formatDateShort(ts){
+    const d = new Date(ts);
+    return d.toLocaleDateString("tr-TR", {day:"2-digit", month:"2-digit"}) + " " +
+           d.toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"});
+  }
+
+  function renderHistory(){
+    if(currentHistoryTab === "leaderboard"){
+      renderLeaderboard();
+    } else if(currentHistoryTab === "report"){
+      renderWeeklyReport();
+    } else {
+      renderRecent();
+    }
+  }
+
+  function dayKey(ts){
+    return new Date(ts).toISOString().slice(0,10);
+  }
+
+  function buildLast7Days(){
+    const days = [];
+    const now = new Date();
+    for(let i=6;i>=0;i--){
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      days.push({
+        key: dayKey(d.getTime()),
+        label: d.toLocaleDateString("tr-TR", {weekday:"short"})
+      });
+    }
+    return days;
+  }
+
+  function buildPrevWeekKeys(){
+    const keys = [];
+    const now = new Date();
+    for(let i=13;i>=7;i--){
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      keys.push(dayKey(d.getTime()));
+    }
+    return keys;
+  }
+
+  function buildWeeklyComments(all, days){
+    const comments = [];
+    const thisWeekKeys = days.map(d=>d.key);
+    const thisWeek = all.filter(r => thisWeekKeys.includes(dayKey(r.t)));
+
+    if(thisWeek.length === 0){
+      comments.push("Henüz bu hafta kayıtlı bir çalışma yok. Birkaç sayfa çözüldükçe burada haftalık ilerleme görünecek.");
+      return comments;
+    }
+
+    comments.push(`Bu hafta toplam ${thisWeek.length} sayfa çalışıldı.`);
+
+    const prevKeys = buildPrevWeekKeys();
+    const prevWeek = all.filter(r => prevKeys.includes(dayKey(r.t)));
+    const avgThis = thisWeek.reduce((a,r)=>a+r.ms,0) / thisWeek.length;
+
+    if(prevWeek.length > 0){
+      const avgPrev = prevWeek.reduce((a,r)=>a+r.ms,0) / prevWeek.length;
+      const diffPct = Math.round(((avgPrev - avgThis) / avgPrev) * 100);
+      if(diffPct > 5){
+        comments.push(`Ortalama süre geçen haftaya göre %${diffPct} azaldı — hız artıyor! 🚀`);
+      } else if(diffPct < -5){
+        comments.push(`Ortalama süre geçen haftaya göre %${Math.abs(diffPct)} arttı — muhtemelen daha zor sayfalar deneniyor, bu normal.`);
+      } else {
+        comments.push("Ortalama süre geçen haftaya göre stabil görünüyor.");
+      }
+    } else {
+      comments.push("Geçen haftayla karşılaştırmak için henüz yeterli veri yok.");
+    }
+
+    const totalErrors = thisWeek.reduce((a,r)=>a + (r.errors||0), 0);
+    if(totalErrors === 0){
+      comments.push("Bu hafta hiç hata kaydedilmedi. 👏");
+    } else {
+      comments.push(`Bu hafta toplam ${totalErrors} hata kaydedildi.`);
+    }
+
+    const upThisWeek = levelEvents.filter(ev =>
+      ev.dir === "up" &&
+      thisWeekKeys.includes(dayKey(ev.t)) &&
+      (currentReportPlayer === "Herkes" || ev.player === currentReportPlayer)
+    );
+    if(upThisWeek.length > 0){
+      comments.push(`Bu hafta ${upThisWeek.length} kez zorluk seviyesi otomatik yükseltildi.`);
+    }
+
+    return comments;
+  }
+
+  function renderWeeklyReport(){
+    const container = document.getElementById("historyList");
+    document.getElementById("historyTitle").innerHTML = `<span class="ui-icon-slot">${uiIconSVG("calendar")}</span> Haftalık İlerleme`;
+    const allRaw = loadSessions();
+    const players = Array.from(new Set(allRaw.map(r=>r.player)));
+    if(currentReportPlayer !== "Herkes" && !players.includes(currentReportPlayer)){
+      currentReportPlayer = "Herkes";
+    }
+    const all = currentReportPlayer === "Herkes"
+      ? allRaw
+      : allRaw.filter(r => r.player === currentReportPlayer);
+
+    const days = buildLast7Days();
+
+    const perDay = days.map(d=>{
+      const sessions = all.filter(r => dayKey(r.t) === d.key);
+      const avgMs = sessions.length ? sessions.reduce((a,r)=>a+r.ms,0)/sessions.length : 0;
+      return {...d, count: sessions.length, avgMs};
+    });
+
+    const maxAvg = Math.max(...perDay.map(d=>d.avgMs), 1);
+
+    container.innerHTML = "";
+
+    const filterRow = document.createElement("div");
+    filterRow.className = "report-filter-row";
+    const options = ["Herkes", ...players].map(p =>
+      `<option value="${p}" ${p===currentReportPlayer ? "selected" : ""}>${p}</option>`
+    ).join("");
+    filterRow.innerHTML = `
+      <span class="error-label">Kişi</span>
+      <select id="reportPlayerSelect" class="report-player-select">${options}</select>
+    `;
+    container.appendChild(filterRow);
+    document.getElementById("reportPlayerSelect").addEventListener("change", (e)=>{
+      currentReportPlayer = e.target.value;
+      renderWeeklyReport();
+    });
+
+    const chart = document.createElement("div");
+    chart.className = "week-chart";
+    perDay.forEach(d=>{
+      const col = document.createElement("div");
+      col.className = "week-col";
+      const barH = d.avgMs ? Math.max(6, Math.round((d.avgMs/maxAvg)*80)) : 0;
+      col.innerHTML = `
+        <div class="week-bar-wrap"><div class="week-bar" style="height:${barH}px"></div></div>
+        <div class="week-day">${d.label}</div>
+        <div class="week-meta">${d.count ? formatTime(d.avgMs) : "-"}</div>
+      `;
+      chart.appendChild(col);
+    });
+    container.appendChild(chart);
+
+    const comments = buildWeeklyComments(all, days);
+    const commentBox = document.createElement("div");
+    commentBox.className = "week-comments";
+    commentBox.innerHTML = comments.map(c=>`<div class="week-comment">${c}</div>`).join("");
+    container.appendChild(commentBox);
+
+    const thisWeekKeys = days.map(d=>d.key);
+    const recentEvents = levelEvents.filter(ev =>
+      thisWeekKeys.includes(dayKey(ev.t)) &&
+      (currentReportPlayer === "Herkes" || ev.player === currentReportPlayer)
+    );
+    if(recentEvents.length > 0){
+      const evBox = document.createElement("div");
+      evBox.innerHTML = `<div class="week-events-title">Düzey değişiklikleri</div>` +
+        recentEvents.map(ev => `<div class="week-event ${ev.dir}"><span class="ui-icon-slot">${uiIconSVG(ev.dir==="up" ? "arrow-up" : "arrow-down")}</span> ${ev.player} · ${formatDateShort(ev.t)} · ${ev.toLabel}</div>`).join("");
+      container.appendChild(evBox);
+    }
+  }
+
+  function renderRecent(){
+    const container = document.getElementById("historyList");
+    const list = loadSessions();
+    container.innerHTML = "";
+    if(list.length === 0){
+      document.getElementById("historyTitle").textContent = "Son sonuçlar";
+      container.innerHTML = `<div class="history-empty"><span class="history-empty-icon">${uiIconSVG("chart")}</span>Henüz kayıtlı sonuç yok. Kronometreyi durdurup "Kaydet"e bastığında burada görünür.</div>`;
+      return;
+    }
+
+    const byPlayer = {};
+    list.forEach(r=>{
+      if(!byPlayer[r.player]) byPlayer[r.player] = [];
+      byPlayer[r.player].push(r);
+    });
+    const players = Object.keys(byPlayer);
+    document.getElementById("historyTitle").textContent = `Son sonuçlar · ${players.length} kişi`;
+
+    const maxMs = Math.max(...list.map(r=>r.ms), 1);
+
+    players.forEach(player=>{
+      const sessions = byPlayer[player].slice(-5).reverse();
+      const header = document.createElement("div");
+      header.className = "player-group-header";
+      header.innerHTML = `${avatarHTML(player,20)} <span>${player} · ${byPlayer[player].length} çalışma</span>`;
+      container.appendChild(header);
+
+      sessions.forEach(r=>{
+        const card = document.createElement("div");
+        card.className = "result-card";
+        const pct = Math.max(6, Math.round((r.ms / maxMs) * 100));
+        card.innerHTML = `
+          <div class="rc-top">
+            <span class="rc-name">${r.exerciseLabel} · ${r.stageLabel}</span>
+            <span class="rc-time">${formatTime(r.ms)}</span>
+          </div>
+          <div class="rc-meta">${r.tier}${r.errors ? " · " + r.errors + " hata" : " · Hatasız"} · ${formatDateShort(r.t)}</div>
+          <div class="rc-bar-wrap"><div class="rc-bar" style="width:${pct}%"></div></div>
+        `;
+        container.appendChild(card);
+      });
+    });
+  }
+
+  function renderLeaderboard(){
+    const container = document.getElementById("historyList");
+    const ex = currentExercise();
+    const stage = ex.stages[currentStageIndex];
+    const layout = currentTier();
+
+    const list = loadSessions().filter(r =>
+      r.exerciseLabel === ex.label &&
+      r.stageLabel === stage.label &&
+      r.tier === layout.label
+    );
+
+    container.innerHTML = "";
+
+    if(list.length === 0){
+      document.getElementById("historyTitle").innerHTML = `<span class="ui-icon-slot">${uiIconSVG("trophy")}</span> ${ex.label} · ${stage.label} · ${layout.label}`;
+      container.innerHTML = `<div class="history-empty"><span class="history-empty-icon">${uiIconSVG("trophy")}</span>Bu egzersiz, aşama ve zorlukta henüz sonuç yok. Aynı kombinasyonda birkaç kişi denesin, burada karşılaştırılsın.</div>`;
+      return;
+    }
+
+    const bestByPlayer = {};
+    list.forEach(r=>{
+      const cur = bestByPlayer[r.player];
+      const rErrors = r.errors || 0;
+      if(!cur || rErrors < cur.errors || (rErrors === cur.errors && r.ms < cur.ms)){
+        bestByPlayer[r.player] = { player: r.player, ms: r.ms, errors: rErrors };
+      }
+    });
+    const totalPlayers = Object.keys(bestByPlayer).length;
+    document.getElementById("historyTitle").innerHTML = `<span class="ui-icon-slot">${uiIconSVG("trophy")}</span> ${ex.label} · ${stage.label} · ${layout.label} · ${totalPlayers} kişi`;
+
+    const ranked = Object.values(bestByPlayer)
+      .sort((a,b) => (a.errors - b.errors) || (a.ms - b.ms))
+      .slice(0, 10);
+
+    const maxMs = Math.max(...ranked.map(r=>r.ms), 1);
+    const medals = ["🥇","🥈","🥉"];
+    ranked.forEach((r, i)=>{
+      const card = document.createElement("div");
+      card.className = "result-card";
+      const pct = Math.max(6, Math.round((r.ms / maxMs) * 100));
+      const rankLabel = medals[i] ? `${medals[i]}` : `${i+1}.`;
+      card.innerHTML = `
+        <div class="rc-top">
+          <span class="rc-rank">${rankLabel}</span>
+          ${avatarHTML(r.player,18)}
+          <span class="rc-name">${r.player}</span>
+          <span class="rc-time">${formatTime(r.ms)}</span>
+        </div>
+        <div class="rc-meta">${r.errors ? r.errors + " hata" : "Hatasız 👏"}</div>
+        <div class="rc-bar-wrap"><div class="rc-bar" style="width:${pct}%"></div></div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  function renderPlayerOptions(){
+    const sel = document.getElementById("playerSelect");
+    const prevValue = sel.value;
+    sel.innerHTML = `<option value="">Seç...</option>` +
+      playersList.map(name => `<option value="${name}">${name}</option>`).join("") +
+      `<option value="__new__">+ Yeni kişi ekle</option>`;
+    if(playersList.includes(prevValue)){
+      sel.value = prevValue;
+      updatePlayerAvatar(prevValue);
+    } else if(playersList.includes(currentPlayerName)){
+      sel.value = currentPlayerName;
+      updatePlayerAvatar(currentPlayerName);
+    }
+  }
+
+  function updatePlayerAvatar(name){
+    const slot = document.getElementById("playerAvatarSlot");
+    if(!slot) return;
+    if(name){
+      slot.innerHTML = avatarHTML(name, 24);
+      slot.style.display = "inline-flex";
+    } else {
+      slot.style.display = "none";
+    }
+  }
+
+  document.getElementById("playerSelect").addEventListener("change", (e)=>{
+    const val = e.target.value;
+    const newRow = document.getElementById("newPlayerRow");
+    if(val === "__new__"){
+      newRow.style.display = "flex";
+      document.getElementById("newPlayerInput").focus();
+      updatePlayerAvatar(null);
+    } else {
+      newRow.style.display = "none";
+      currentPlayerName = val;
+      updatePlayerAvatar(val);
+    }
+  });
+
+  function commitNewPlayer(){
+    const input = document.getElementById("newPlayerInput");
+    const name = input.value.trim();
+    if(!name) return false;
+    if(playersList.includes(name)){
+      currentPlayerName = name;
+      document.getElementById("playerSelect").value = name;
+      document.getElementById("newPlayerRow").style.display = "none";
+      input.value = "";
+      updatePlayerAvatar(name);
+      return true;
+    }
+    if(firestoreReady && window.__fb){
+      const { db, collection, addDoc } = window.__fb;
+      addDoc(collection(db, "players"), { name, createdAt: Date.now() })
+        .catch(e=> console.error("Profil eklenemedi:", e));
+    } else {
+      playersList.push(name);
+      renderPlayerOptions();
+    }
+    currentPlayerName = name;
+    document.getElementById("newPlayerRow").style.display = "none";
+    input.value = "";
+    updatePlayerAvatar(name);
+    setTimeout(()=>{
+      const sel = document.getElementById("playerSelect");
+      if([...sel.options].some(o=>o.value===name)){
+        sel.value = name;
+      }
+    }, 300);
+    return true;
+  }
+
+  document.getElementById("addPlayerBtn").addEventListener("click", ()=>{
+    commitNewPlayer();
+  });
+
+  function setHistoryTab(tab){
+    currentHistoryTab = tab;
+    document.getElementById("tabRecent").classList.toggle("active", tab==="recent");
+    document.getElementById("tabLeaderboard").classList.toggle("active", tab==="leaderboard");
+    document.getElementById("tabReport").classList.toggle("active", tab==="report");
+    renderHistory();
+  }
+
+  document.getElementById("tabRecent").addEventListener("click", ()=> setHistoryTab("recent"));
+  document.getElementById("tabLeaderboard").addEventListener("click", ()=> setHistoryTab("leaderboard"));
+  document.getElementById("tabReport").addEventListener("click", ()=> setHistoryTab("report"));
+
+  document.getElementById("historyToggle").addEventListener("click", ()=>{
+    const panel = document.getElementById("historyPanel");
+    const isHidden = panel.style.display === "none";
+    panel.style.display = isHidden ? "block" : "none";
+    document.getElementById("historyToggle").innerHTML = `<span class="ui-icon-slot">${uiIconSVG("chart")}</span> ${isHidden ? "Geçmişi gizle" : "Geçmiş sonuçları göster"}`;
+    if(isHidden) renderHistory();
+  });
+
+  function exportSessionsToCSV(){
+    const list = loadSessions();
+    if(list.length === 0){
+      alert("Henüz dışa aktarılacak kayıt yok.");
+      return;
+    }
+    const headers = ["Tarih","Kişi","Egzersiz","Aşama","Düzey","Süre (sn)","Hata Sayısı"];
+    const rows = list.map(r => [
+      new Date(r.t).toLocaleString("tr-TR"),
+      r.player,
+      r.exerciseLabel,
+      r.stageLabel,
+      r.tier,
+      (r.ms/1000).toFixed(1),
+      r.errors || 0
+    ]);
+    const csvLines = [headers, ...rows].map(row =>
+      row.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(",")
+    );
+    const csvContent = "\uFEFF" + csvLines.join("\r\n");
+    const blob = new Blob([csvContent], {type: "text/csv;charset=utf-8;"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `calisan-bellek-sonuclari-${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  document.getElementById("exportCsvBtn").addEventListener("click", exportSessionsToCSV);
+
+  document.getElementById("historyClearBtn").addEventListener("click", ()=>{
+    try{
+      clearAllSessions();
+    }catch(e){}
+  });
+
+  document.getElementById("timerBtn").addEventListener("click", ()=>{
+    if(timerRunning){
+      stopTimer();
+      return;
+    }
+    if(!currentPlayerName){
+      const newRow = document.getElementById("newPlayerRow");
+      const newInput = document.getElementById("newPlayerInput");
+      if(newRow.style.display !== "none" && newInput.value.trim()){
+        commitNewPlayer();
+      }
+    }
+    if(!currentPlayerName){
+      document.getElementById("playerSelect").focus();
+      alert("Başlamadan önce lütfen bir kişi seç veya yeni bir isim ekle.");
+      return;
+    }
+    startTimer();
+  });
+
+  document.getElementById("timerResetBtn").addEventListener("click", ()=>{
+    resetTimer();
+  });
+
+  document.getElementById("errorMinusBtn").addEventListener("click", ()=>{
+    currentErrorCount = Math.max(0, currentErrorCount - 1);
+    document.getElementById("errorCount").textContent = currentErrorCount;
+  });
+
+  document.getElementById("errorPlusBtn").addEventListener("click", ()=>{
+    currentErrorCount = currentErrorCount + 1;
+    document.getElementById("errorCount").textContent = currentErrorCount;
+  });
+
+  document.getElementById("saveResultBtn").addEventListener("click", ()=>{
+    confirmSaveResult();
+  });
+
+  document.getElementById("reshuffleBtn").addEventListener("click", ()=>{
+    const ex = currentExercise();
+    if(!ex.isMotion){
+      const {rows, cols} = currentTier();
+      currentGrid = generateGrid(ex, rows, cols);
+    }
+    renderBoard();
+    renderInstruction();
+    resetTimer();
+    refreshHistoryIfVisible();
+  });
+
+  document.getElementById("prevBtn").addEventListener("click", ()=>{
+    goToIndex(currentIndex - 1);
+  });
+
+  document.getElementById("nextBtn").addEventListener("click", ()=>{
+    goToIndex(currentIndex + 1);
+  });
+
+  function applyModeVisibility(){
+    const isAile = appMode === "aile";
+    document.getElementById("tierRow").style.display = isAile ? "none" : "flex";
+    document.getElementById("exerciseRow").style.display = isAile ? "none" : "flex";
+    document.getElementById("modeLabel").textContent = isAile ? "Aile" : "Uzman";
+    document.getElementById("exportCsvBtn").style.display = isAile ? "none" : "inline-block";
+  }
+
+  function startApp(mode){
+    appMode = mode;
+    document.getElementById("modeScreen").style.display = "none";
+    renderCategoryList();
+    document.getElementById("categoryScreen").style.display = "block";
+  }
+
+  const AVATAR_COLORS = ["#2E6F6E","#C97F32","#3A6EA5","#4F9D5A","#8A5A8C","#2E5F8A","#D55E00","#0072B2"];
+  function avatarColor(name){
+    let hash = 0;
+    for(let i=0;i<name.length;i++) hash = name.charCodeAt(i) + ((hash<<5)-hash);
+    return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+  }
+  function avatarHTML(name, size){
+    const initial = (name||"?").trim().charAt(0).toUpperCase() || "?";
+    const s = size || 26;
+    return `<span class="avatar-chip" style="width:${s}px;height:${s}px;background:${avatarColor(name||"")};font-size:${Math.round(s*0.46)}px;">${initial}</span>`;
+  }
+
+  function uiIconSVG(name){
+    const s = `stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"`;
+    switch(name){
+      case "brain":
+        return `<svg viewBox="0 0 100 100"><path d="M40 16a14 14 0 0 0-14 14 12 12 0 0 0-8 20 13 13 0 0 0 6 22 13 13 0 0 0 16 10V16Z" ${s}/><path d="M60 16a14 14 0 0 1 14 14 12 12 0 0 1 8 20 13 13 0 0 1-6 22 13 13 0 0 1-16 10V16Z" ${s}/><path d="M50 24v58" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>`;
+      case "bulb":
+        return `<svg viewBox="0 0 100 100"><path d="M50 12a26 26 0 0 0-14 48c3 2 4 5 4 8v4h20v-4c0-3 1-6 4-8a26 26 0 0 0-14-48Z" ${s}/><path d="M42 84h16M45 92h10" ${s}/></svg>`;
+      case "grid":
+        return `<svg viewBox="0 0 100 100"><rect x="12" y="12" width="30" height="30" rx="6" ${s}/><rect x="58" y="12" width="30" height="30" rx="6" ${s}/><rect x="12" y="58" width="30" height="30" rx="6" ${s}/><rect x="58" y="58" width="30" height="30" rx="6" ${s}/></svg>`;
+      case "stopwatch":
+        return `<svg viewBox="0 0 100 100"><circle cx="50" cy="56" r="34" ${s}/><path d="M50 56V36M38 10h24" ${s}/><path d="M78 26l8 8" ${s}/></svg>`;
+      case "shield":
+        return `<svg viewBox="0 0 100 100"><path d="M50 10 L84 24v24c0 24-15 38-34 42-19-4-34-18-34-42V24Z" ${s}/><path d="M36 50l10 10 18-20" ${s}/></svg>`;
+      case "gear":
+        return `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="14" ${s}/><path d="M50 20v10M50 70v10M20 50h10M70 50h10M28 28l7 7M65 65l7 7M72 28l-7 7M35 65l-7 7" ${s}/></svg>`;
+      case "cloud":
+        return `<svg viewBox="0 0 100 100"><path d="M30 66a16 16 0 0 1-2-32 22 22 0 0 1 42-8 18 18 0 0 1-4 40H30Z" ${s}/></svg>`;
+      case "cloud-off":
+        return `<svg viewBox="0 0 100 100"><path d="M30 66a16 16 0 0 1-2-32 22 22 0 0 1 42-8 18 18 0 0 1-4 40H30Z" ${s}/><path d="M18 18l64 64" ${s}/></svg>`;
+      case "shuffle":
+        return `<svg viewBox="0 0 100 100"><path d="M14 30h18l40 40h14M14 70h18l14-14M66 30h20M78 22l8 8-8 8M78 62l8 8-8 8" ${s}/></svg>`;
+      case "chart":
+        return `<svg viewBox="0 0 100 100"><path d="M18 82V18M18 82h64" ${s}/><path d="M32 82V56M52 82V38M72 82V50" stroke="currentColor" stroke-width="8" stroke-linecap="round"/></svg>`;
+      case "trophy":
+        return `<svg viewBox="0 0 100 100"><path d="M32 20h36v20a18 18 0 0 1-36 0V20Z" ${s}/><path d="M32 26H18v6a14 14 0 0 0 14 14M68 26h14v6a14 14 0 0 1-14 14" ${s}/><path d="M50 58v14M36 82h28M40 72h20l2 10H38l2-10Z" ${s}/></svg>`;
+      case "calendar":
+        return `<svg viewBox="0 0 100 100"><rect x="16" y="24" width="68" height="58" rx="8" ${s}/><path d="M16 42h68M34 16v14M66 16v14" ${s}/></svg>`;
+      case "arrow-up":
+        return `<svg viewBox="0 0 100 100"><path d="M50 78V26M28 46l22-22 22 22" ${s}/></svg>`;
+      case "arrow-down":
+        return `<svg viewBox="0 0 100 100"><path d="M50 22v52M28 54l22 22 22-22" ${s}/></svg>`;
+      case "family":
+        return `<svg viewBox="0 0 100 100"><circle cx="30" cy="28" r="12" ${s}/><circle cx="66" cy="28" r="12" ${s}/><circle cx="48" cy="56" r="10" ${s}/><path d="M12 82c2-16 12-24 18-24s10 4 10 4M88 82c-2-16-12-24-18-24s-10 4-10 4M30 82c1-12 8-18 18-18s17 6 18 18" ${s}/></svg>`;
+      case "expert":
+        return `<svg viewBox="0 0 100 100"><path d="M32 14v24a18 18 0 0 0 36 0V14" ${s}/><circle cx="32" cy="10" r="6" fill="currentColor"/><circle cx="68" cy="10" r="6" fill="currentColor"/><path d="M50 56v14" ${s}/><circle cx="50" cy="78" r="12" ${s}/></svg>`;
+      default:
+        return "";
+    }
+  }
+
+  function oppositeSVG(type, state, color){
+    switch(type){
+      case "length":
+        return state === "long"
+          ? `<svg viewBox="0 0 100 100"><rect x="8" y="42" width="84" height="16" rx="8" fill="${color}"/></svg>`
+          : `<svg viewBox="0 0 100 100"><rect x="35" y="42" width="30" height="16" rx="8" fill="${color}"/></svg>`;
+      case "position":
+        return state === "inside"
+          ? `<svg viewBox="0 0 100 100"><rect x="20" y="20" width="60" height="60" rx="10" fill="none" stroke="#888" stroke-width="5"/><circle cx="50" cy="50" r="10" fill="${color}"/></svg>`
+          : `<svg viewBox="0 0 100 100"><rect x="20" y="20" width="60" height="60" rx="10" fill="none" stroke="#888" stroke-width="5"/><circle cx="88" cy="88" r="10" fill="${color}"/></svg>`;
+      case "fill":
+        return state === "filled"
+          ? `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="36" fill="${color}"/></svg>`
+          : `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="36" fill="none" stroke="${color}" stroke-width="6"/></svg>`;
+      case "vertical":
+        return state === "above"
+          ? `<svg viewBox="0 0 100 100"><line x1="8" y1="60" x2="92" y2="60" stroke="#888" stroke-width="5"/><circle cx="50" cy="28" r="11" fill="${color}"/></svg>`
+          : `<svg viewBox="0 0 100 100"><line x1="8" y1="40" x2="92" y2="40" stroke="#888" stroke-width="5"/><circle cx="50" cy="72" r="11" fill="${color}"/></svg>`;
+      default:
+        return "";
+    }
+  }
+  const OPPOSITE_LABELS = {
+    long:"uzun", short:"kısa",
+    inside:"içinde", outside:"dışında",
+    filled:"dolu", empty:"boş",
+    above:"üstünde", below:"altında"
+  };
+  const OPPOSITE_OF = {
+    long:"kısa", short:"uzun",
+    inside:"dışında", outside:"içinde",
+    filled:"boş", empty:"dolu",
+    above:"altında", below:"üstünde"
+  };
+  const OPPOSITE_STATES = {
+    length:["long","short"], position:["inside","outside"], fill:["filled","empty"], vertical:["above","below"]
+  };
+
+  const SIMILARITY_PAIRS = [
+    {a:"elma", b:"armut", hint:"meyve"}, {a:"köpek", b:"kedi", hint:"hayvan"},
+    {a:"masa", b:"sandalye", hint:"mobilya"}, {a:"kırmızı", b:"mavi", hint:"renk"},
+    {a:"otobüs", b:"tren", hint:"taşıt"}, {a:"kalem", b:"silgi", hint:"kırtasiye malzemesi"},
+    {a:"anne", b:"baba", hint:"ebeveyn"}, {a:"yaz", b:"kış", hint:"mevsim"}
+  ];
+  const VOCAB_WORDS = [
+    {word:"cesur", def:"korkusuz, gözü pek"}, {word:"nazik", def:"kibar, ince düşünceli"},
+    {word:"meraklı", def:"öğrenmek isteyen"}, {word:"sabırlı", def:"beklemeyi bilen"},
+    {word:"dürüst", def:"doğru sözlü"}, {word:"cömert", def:"paylaşmayı seven"},
+    {word:"tembel", def:"çalışmaktan kaçınan"}, {word:"yardımsever", def:"başkalarına yardım eden"}
+  ];
+  const COMPREHENSION_QS = [
+    {q:"Üşürsen ne yaparsın?", hint:"kalın giysi giyerim / ısınırım"},
+    {q:"Neden dişlerimizi fırçalarız?", hint:"sağlıklı kalması için"},
+    {q:"Sokakta para bulursan ne yaparsın?", hint:"sahibini bulmaya çalışırım"},
+    {q:"Neden kırmızı ışıkta dururuz?", hint:"güvenlik için"},
+    {q:"Arkadaşın üzgünse ne yaparsın?", hint:"onunla konuşurum, yardım ederim"},
+    {q:"Neden kitap okuruz?", hint:"öğrenmek / eğlenmek için"}
+  ];
+
+  function tripleShapeHTML(items){
+    return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;gap:4%;">${
+      items.map(it => `<div style="width:30%;height:75%;">${shapeSVG(it.shape, it.color)}</div>`).join('')
+    }</div>`;
+  }
+
+  function sequenceHTML(sequence){
+    const dot = c => `<span style="display:inline-block;width:15%;height:55%;border-radius:50%;background:${c};margin:0 2%;"></span>`;
+    const q = `<span style="display:inline-flex;align-items:center;justify-content:center;width:15%;height:55%;border-radius:50%;border:3px dashed #999;margin:0 2%;font-weight:800;color:#999;font-size:14px;">?</span>`;
+    return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;">${sequence.map(dot).join('')}${q}</div>`;
+  }
+
+  function analogyHTML(a, b, c){
+    const box = it => `<div style="width:22%;height:70%;">${shapeSVG(it.shape, it.color)}</div>`;
+    const sep = t => `<div style="width:8%;text-align:center;font-weight:800;color:var(--ink-soft);">${t}</div>`;
+    return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;">
+      ${box(a)}${sep("→")}${box(b)}${sep("::")}${box(c)}${sep("→")}
+      <div style="width:16%;height:60%;display:flex;align-items:center;justify-content:center;font-weight:800;color:#999;border:2px dashed #999;border-radius:8px;">?</div>
+    </div>`;
+  }
+
+  function categoryIconSVG(id, color){
+    const s = `stroke="${color}" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"`;
+    switch(id){
+      case "sozel-kavrama":
+        return `<svg viewBox="0 0 100 100"><path d="M16 24h68v42H46l-16 16V66H16Z" ${s}/><path d="M42 38a8 8 0 0 1 16 0c0 6-8 6-8 14" stroke="${color}" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="50" cy="60" r="2.5" fill="${color}"/></svg>`;
+      case "algisal-akil-yurutme":
+        return `<svg viewBox="0 0 100 100"><path d="M22 22h20a7 7 0 0 1 14 0h20v20a7 7 0 0 1 0 14v22H56a7 7 0 0 1-14 0H22V58a7 7 0 0 1 0-14Z" ${s}/></svg>`;
+      case "islemleme-hizi":
+        return `<svg viewBox="0 0 100 100"><path d="M20 68a34 34 0 1 1 60 0" ${s}/><path d="M50 68 L66 46" ${s}/><circle cx="50" cy="68" r="5" fill="${color}"/></svg>`;
+      case "goz-takip":
+        return `<svg viewBox="0 0 100 100"><path d="M12 50c10-18 26-27 38-27s28 9 38 27c-10 18-26 27-38 27S22 68 12 50Z" ${s}/><circle cx="50" cy="50" r="11" fill="${color}"/></svg>`;
+      case "yurutucu-islev":
+        return `<svg viewBox="0 0 100 100">
+          <path d="M22 30h56M22 50h56M22 70h56" ${s}/>
+          <circle cx="38" cy="30" r="7" fill="${color}"/>
+          <circle cx="64" cy="50" r="7" fill="${color}"/>
+          <circle cx="46" cy="70" r="7" fill="${color}"/>
+        </svg>`;
+      case "calisan-bellek":
+        return `<svg viewBox="0 0 100 100">
+          <rect x="14" y="38" width="40" height="40" rx="7" ${s}/>
+          <rect x="34" y="18" width="40" height="40" rx="7" fill="var(--bg)" ${s}/>
+        </svg>`;
+      case "sozel-organizasyon":
+        return `<svg viewBox="0 0 100 100">
+          <path d="M16 24h68v42H46l-16 16V66H16Z" ${s}/>
+          <path d="M30 40h40M30 52h26" ${s}/>
+        </svg>`;
+      case "gorsel-organizasyon":
+        return `<svg viewBox="0 0 100 100">
+          <circle cx="28" cy="72" r="10" fill="${color}"/>
+          <circle cx="54" cy="72" r="15" fill="${color}"/>
+          <circle cx="82" cy="72" r="20" fill="${color}"/>
+        </svg>`;
+      case "sozel-bellek":
+        return `<svg viewBox="0 0 100 100">
+          <path d="M22 16h56v68l-28-16-28 16Z" ${s}/>
+          <path d="M34 36h32M34 48h32" ${s}/>
+        </svg>`;
+      case "gorsel-bellek":
+        return `<svg viewBox="0 0 100 100">
+          <rect x="14" y="18" width="72" height="64" rx="8" ${s}/>
+          <circle cx="34" cy="42" r="8" fill="${color}"/>
+          <path d="M14 66l22-18 18 14 14-10 18 16" ${s}/>
+        </svg>`;
+      default:
+        return `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" ${s}/></svg>`;
+    }
+  }
+
+  function renderCategoryList(){
+    const list = document.getElementById("categoryList");
+    list.innerHTML = "";
+    let lastGroup = null;
+    CATEGORIES.forEach((cat, i)=>{
+      if(cat.group !== lastGroup){
+        const header = document.createElement("div");
+        header.className = "category-group-header";
+        header.textContent = cat.group;
+        list.appendChild(header);
+        lastGroup = cat.group;
+      }
+      const card = document.createElement("button");
+      card.className = "category-card";
+      const isDraft = !["islemleme-hizi","goz-takip"].includes(cat.id);
+      card.innerHTML = `
+        <span class="category-icon-badge" style="background:${cat.color}22;">${categoryIconSVG(cat.id, cat.color)}</span>
+        <span class="category-card-text">
+          <span class="category-card-title">${cat.label}</span>
+          <span class="category-card-sub">${cat.sub}</span>
+          ${isDraft ? `<span class="category-badge">Taslak · örnek çalışmalar</span>` : ``}
+        </span>
+      `;
+      card.addEventListener("click", ()=> selectCategory(i));
+      list.appendChild(card);
+    });
+  }
+
+  const seenCategoryIntros = new Set();
+
+  function selectCategory(i){
+    currentCategoryIndex = i;
+    SEQUENCE = buildSequenceForCategory();
+    currentIndex = 0;
+    currentStageIndex = 0;
+    document.getElementById("categoryScreen").style.display = "none";
+    document.getElementById("mainApp").style.display = "flex";
+    const catLabelEl = document.getElementById("categoryLabel");
+    if(catLabelEl) catLabelEl.textContent = currentCategory().label;
+    const catIconEl = document.getElementById("categoryIconSlot");
+    if(catIconEl){
+      catIconEl.innerHTML = categoryIconSVG(currentCategory().id, currentCategory().color);
+      catIconEl.style.color = currentCategory().color;
+    }
+    const introBox = document.getElementById("categoryIntro");
+    if(introBox){
+      if(!seenCategoryIntros.has(currentCategory().id)){
+        document.getElementById("categoryIntroText").textContent = currentCategory().purpose;
+        introBox.style.borderLeftColor = currentCategory().color;
+        introBox.style.display = "flex";
+        seenCategoryIntros.add(currentCategory().id);
+      } else {
+        introBox.style.display = "none";
+      }
+    }
+    applyModeVisibility();
+    renderTierRow();
+    renderExerciseRow();
+    renderStageRow();
+    newPage();
+  }
+
+  function openCategoryScreen(){
+    document.getElementById("mainApp").style.display = "none";
+    renderCategoryList();
+    document.getElementById("categoryScreen").style.display = "block";
+  }
+
+  let onboardStep = 0;
+  const ONBOARD_SLIDES = 4;
+
+  function renderOnboardDots(){
+    const dots = document.getElementById("onboardDots");
+    dots.innerHTML = "";
+    for(let i=0;i<ONBOARD_SLIDES;i++){
+      const d = document.createElement("div");
+      d.className = "dot" + (i===onboardStep ? " on" : "");
+      dots.appendChild(d);
+    }
+  }
+
+  function showOnboardStep(i){
+    onboardStep = i;
+    document.querySelectorAll(".onboard-slide").forEach(s=>{
+      s.classList.toggle("active", parseInt(s.dataset.slide,10) === i);
+    });
+    renderOnboardDots();
+    document.getElementById("onboardNextLabel").textContent = i === ONBOARD_SLIDES-1 ? "Başlayalım →" : "Devam →";
+  }
+
+  const TEXT_SIZE_KEY = "wm_text_size_v1";
+
+  function applyTextSize(size){
+    document.documentElement.classList.remove("text-lg","text-xl");
+    if(size === "lg") document.documentElement.classList.add("text-lg");
+    if(size === "xl") document.documentElement.classList.add("text-xl");
+    document.querySelectorAll(".text-size-btn").forEach(btn=>{
+      btn.classList.toggle("active", btn.dataset.size === size);
+    });
+    const mainAppEl = document.getElementById("mainApp");
+    if(mainAppEl && mainAppEl.style.display !== "none"){
+      renderBoard();
+    }
+  }
+
+  const savedTextSize = localStorage.getItem(TEXT_SIZE_KEY) || "normal";
+  applyTextSize(savedTextSize);
+
+  document.querySelectorAll(".text-size-btn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      localStorage.setItem(TEXT_SIZE_KEY, btn.dataset.size);
+      applyTextSize(btn.dataset.size);
+    });
+  });
+
+  const CONSENT_KEY = "wm_consent_accepted_v1";
+
+  function proceedAfterOnboarding(){
+    document.getElementById("onboardScreen").style.display = "none";
+    if(localStorage.getItem(CONSENT_KEY) === "true"){
+      document.getElementById("modeScreen").style.display = "flex";
+    } else {
+      document.getElementById("consentScreen").style.display = "flex";
+    }
+  }
+
+  document.getElementById("onboardNextBtn").addEventListener("click", ()=>{
+    if(onboardStep < ONBOARD_SLIDES - 1){
+      showOnboardStep(onboardStep + 1);
+    } else {
+      proceedAfterOnboarding();
+    }
+  });
+
+  document.getElementById("consentCheckbox").addEventListener("change", (e)=>{
+    document.getElementById("consentAcceptBtn").disabled = !e.target.checked;
+  });
+
+  document.getElementById("consentAcceptBtn").addEventListener("click", ()=>{
+    if(!document.getElementById("consentCheckbox").checked) return;
+    try{ localStorage.setItem(CONSENT_KEY, "true"); }catch(e){}
+    if(firestoreReady && window.__fb){
+      const { db, collection, addDoc, uid } = window.__fb;
+      addDoc(collection(db, "consents"), { uid: uid || "bilinmiyor", acceptedAt: Date.now() })
+        .catch(e=> console.error("Onay kaydedilemedi:", e));
+    }
+    document.getElementById("consentScreen").style.display = "none";
+    document.getElementById("modeScreen").style.display = "flex";
+  });
+
+  showOnboardStep(0);
+  // initFirestore artık "firebase-ready" olayıyla tetikleniyor
+
+  document.querySelectorAll(".mode-card").forEach(card=>{
+    card.addEventListener("click", ()=>{
+      startApp(card.dataset.mode);
+    });
+  });
+
+  document.getElementById("modeSwitchBtn").addEventListener("click", ()=>{
+    document.getElementById("mainApp").style.display = "none";
+    document.getElementById("modeScreen").style.display = "flex";
+  });
+
+  document.getElementById("onboardIcon0").innerHTML = uiIconSVG("brain");
+  document.getElementById("onboardIcon1").innerHTML = uiIconSVG("bulb");
+  document.getElementById("onboardIcon2").innerHTML = uiIconSVG("grid");
+  document.getElementById("onboardIcon3").innerHTML = uiIconSVG("stopwatch");
+  document.getElementById("settingsIconSlot").innerHTML = uiIconSVG("gear");
+  document.getElementById("consentIconSlot").innerHTML = uiIconSVG("shield");
+  document.getElementById("cloudBadgeIcon").innerHTML = uiIconSVG("cloud-off");
+  document.getElementById("reshuffleIconSlot").innerHTML = uiIconSVG("shuffle");
+  document.getElementById("historyToggleIconSlot").innerHTML = uiIconSVG("chart");
+  document.getElementById("tabLeaderboardIconSlot").innerHTML = uiIconSVG("trophy");
+  document.getElementById("tabReportIconSlot").innerHTML = uiIconSVG("calendar");
+  document.getElementById("exportCsvIconSlot").innerHTML = uiIconSVG("arrow-down");
+
+  document.getElementById("categoryIntroClose").addEventListener("click", ()=>{
+    document.getElementById("categoryIntro").style.display = "none";
+  });
+
+  document.getElementById("categorySwitchBtn").addEventListener("click", ()=>{
+    openCategoryScreen();
+  });
+
+  function openSettings(){
+    document.getElementById("settingsScreen").style.display = "block";
+  }
+  function closeSettings(){
+    document.getElementById("settingsScreen").style.display = "none";
+  }
+
+  document.getElementById("settingsBtn").addEventListener("click", openSettings);
+  document.getElementById("closeSettingsBtn").addEventListener("click", closeSettings);
+  document.getElementById("closeSettingsBtn2").addEventListener("click", closeSettings);
+
+  document.getElementById("soundToggle").addEventListener("change", (e)=>{
+    soundEnabled = e.target.checked;
+  });
+
+  document.getElementById("hapticToggle").addEventListener("change", (e)=>{
+    hapticEnabled = e.target.checked;
+  });
+
+  document.getElementById("expertAdaptiveToggle").addEventListener("change", (e)=>{
+    expertAdaptiveEnabled = e.target.checked;
+  });
+
+  document.getElementById("successThresholdInput").addEventListener("input", (e)=>{
+    SUCCESS_SEC_PER_ITEM = parseFloat(e.target.value);
+    document.getElementById("successThresholdValue").textContent = SUCCESS_SEC_PER_ITEM.toFixed(1) + " sn";
+  });
+
+  document.getElementById("failThresholdInput").addEventListener("input", (e)=>{
+    FAIL_SEC_PER_ITEM = parseFloat(e.target.value);
+    document.getElementById("failThresholdValue").textContent = FAIL_SEC_PER_ITEM.toFixed(1) + " sn";
+  });
+</script>
+</body>
+</html>
