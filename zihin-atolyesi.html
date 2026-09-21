@@ -129,16 +129,20 @@
     height:100%;
   }
   .onboard-slide h2{
-    font-size:18px;
-    margin:0 0 10px;
+    font-size:27px;
+    font-weight:800;
+    letter-spacing:-0.02em;
+    line-height:1.15;
+    margin:0 0 12px;
     color:var(--ink);
   }
   .onboard-slide p{
-    font-size:14px;
-    color:var(--ink-soft);
+    font-size:16px;
+    color:var(--ink);
     line-height:1.5;
     margin:0;
   }
+  .onboard-slide p b{ color:var(--teal-dark); }
   .onboard-dots{
     display:flex;
     gap:6px;
@@ -1382,6 +1386,17 @@
     border:1px solid #E3B8B3; background:#fff; color:#B4433A;
     font-size:13px; font-weight:700;
   }
+
+  /* Uyarı metinleri */
+  .disclaimer-note{ font-size:12px; color:var(--ink-soft); line-height:1.45; }
+  .onboard-slide p.disclaimer-note{ margin-top:12px; font-size:12.5px; color:var(--ink-soft); line-height:1.45; }
+  .report-disclaimer{ font-size:11.5px; color:var(--ink-soft); line-height:1.45; margin-top:12px; }
+  .settings-note a{ color:var(--teal-dark); font-weight:700; }
+
+  @media (orientation: landscape) and (max-height: 520px){
+    .onboard-slide h2{ font-size:22px; margin-bottom:8px; }
+    .onboard-slide p{ font-size:14.5px; }
+  }
 </style>
 </head>
 <body>
@@ -1390,22 +1405,23 @@
     <div class="onboard-slide active" data-slide="0">
       <div class="onboard-emoji" id="onboardIcon0"></div>
       <h2>Zihin Atölyesi</h2>
-      <p>Zihin, çalıştıkça keskinleşir.</p>
+      <p>Zihnin için <b>hızlı, oyunsu mini antrenmanlar.</b><br>Isınmaya hazır mısın?</p>
     </div>
     <div class="onboard-slide" data-slide="1">
       <div class="onboard-emoji" id="onboardIcon1"></div>
-      <h2>Neden?</h2>
-      <p>Beyin bir kastır — kullanıldıkça güçlenir. Hız, dikkat ve bellek, günlük hayatın her anında sessizce devrede. Kısa ama düzenli pratik, kalıcı fark yaratır. Bu atölye, o farkı büyütmek için var.</p>
+      <h2>Hız. Dikkat. Bellek.</h2>
+      <p>Gün boyu hep devredeler. Burada onlarla <b>oynar, onları çalıştırırsın.</b> Kısa turlar, net hedefler, her sayfada yeni bir meydan okuma.</p>
     </div>
     <div class="onboard-slide" data-slide="2">
       <div class="onboard-emoji" id="onboardIcon2"></div>
-      <h2>8 farklı kategori</h2>
-      <p>İşlemleme Hızı, Göz Takip, Yürütücü İşlev, Çalışan Bellek, Sözel/Görsel Organizasyon, Sözel/Görsel Bellek — her biri Başlangıç'tan Zor Düzey'e ilerliyor.</p>
+      <h2>10 kategori, 3 düzey</h2>
+      <p>İşlemleme hızından göz takibine, çalışan bellekten akıl yürütmeye. <b>Başlangıç'tan Zor Düzey'e</b> basamak basamak ilerle, tempoyu sen seç.</p>
     </div>
     <div class="onboard-slide" data-slide="3">
       <div class="onboard-emoji" id="onboardIcon3"></div>
-      <h2>Süre ve sonuç takibi</h2>
-      <p>Her çalışma kronometreyle ölçülüp kişi bazında kaydediliyor. Liderlik tablosu, haftalık rapor ve otomatik zorluk ayarıyla ilerleme kolayca takip edilebiliyor.</p>
+      <h2>Kronometre başlasın!</h2>
+      <p>Her çalışma <b>saniye saniye</b> ölçülür. Süreni kaydet, haftalık raporunda gidişatını gör, liderlik tablosunda yerini al.</p>
+      <p class="disclaimer-note">Zihin Atölyesi bir eğitim ve egzersiz uygulamasıdır. Tanı koymaz, tedavi veya klinik değerlendirme yerine geçmez.</p>
     </div>
   </div>
   <div class="onboard-dots" id="onboardDots"></div>
@@ -1422,6 +1438,7 @@
       Bu uygulama; çalışma sonuçlarını (isim, süre, hata sayısı, düzey) kalıcı olarak buluta kaydeder.
       Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener">Gizlilik Politikası</a>'nı inceleyebilirsin.
     </p>
+    <p class="consent-text disclaimer-note"><b>Önemli:</b> Zihin Atölyesi bir eğitim ve egzersiz uygulamasıdır. Tanı koymaz, tedavi veya klinik değerlendirme yerine geçmez. Süreler standart bir test değildir ve yaş veya sınıf normlarıyla karşılaştırılmaz. Gelişimsel, öğrenmeyle ilgili ya da sağlıkla ilgili bir kaygın varsa bir uzmana (hekim, psikolog, uzman eğitimci) başvurmanı öneririz.</p>
     <label class="consent-checkbox-row">
       <input type="checkbox" id="consentCheckbox">
       <span>Bu uygulamayı çocuğum adına ve onun yararına kullandığımı, Gizlilik Politikası'nı okuduğumu ve verilerin bu kapsamda işlenmesini kabul ettiğimi onaylıyorum.</span>
@@ -1511,6 +1528,7 @@
     <p class="settings-note" style="margin-bottom:10px;">Bir kişiyi sildiğinde o kişiye ait tüm çalışma sonuçları, düzey değişiklikleri ve kişi kaydı kalıcı olarak silinir. Bu işlem geri alınamaz.</p>
     <div id="personDataList" class="person-data-list"></div>
     <p class="settings-note" style="margin-top:8px;"><a href="gizlilik-politikasi.html" target="_blank" rel="noopener">Gizlilik Politikası</a></p>
+    <p class="settings-note disclaimer-note" style="margin-top:10px;"><b>Önemli:</b> Zihin Atölyesi bir eğitim ve egzersiz uygulamasıdır. Tanı koymaz, tedavi veya klinik değerlendirme yerine geçmez. Süreler standart bir test değildir ve yaş veya sınıf normlarıyla karşılaştırılmaz.</p>
 
     <button class="save-result-btn" id="closeSettingsBtn2" style="margin-top:16px;">Kapat</button>
   </div>
@@ -2051,7 +2069,7 @@
       stages: [
         {
           label: "Aşama 1 · Tek Tetikleyici",
-          instruction: () => `<b>Oyunu başlatmadan önce</b> çocuğa şu kuralı verin: "MAVİ ÜÇGEN görünce önce masaya vur, sonra ismini söyle. Diğer şekillerde sadece ismini söyle." Sonra normal şekilde ilerleyin — bu, bir NİYETİ hatırlamayı test eder.`,
+          instruction: () => `<b>Oyunu başlatmadan önce</b> çocuğa şu kuralı verin: "MAVİ ÜÇGEN görünce önce masaya vur, sonra ismini söyle. Diğer şekillerde sadece ismini söyle." Sonra normal şekilde ilerleyin — bu, bir niyeti hatırlama becerisini çalıştırır.`,
           example: (item) => (item.shape==="triangle" && item.color==="#0072B2") ? `(önce masaya vur) üçgen` : `${SHAPE_NAMES[item.shape]}`
         },
         {
@@ -2566,7 +2584,7 @@
       id:"islemleme-hizi",
       label:"İşlemleme Hızı",
       sub:"Hızlı İsimlendirme — Şekil-Renk, Sayı-Renk, İsim, Nesne Adı, Hece",
-      purpose:"Görsel bir uyaranı ne kadar hızlı tanıyıp isimlendirebildiğini ölçer — okuma akıcılığıyla güçlü bağlantısı olduğu bilinir.",
+      purpose:"Görsel bir uyaranı hızlıca tanıyıp isimlendirme alıştırması yapar; bu beceri okuma akıcılığıyla ilişkilendirilir.",
       color:"#2E6F6E",
       group:"Hız & Dikkat",
       exerciseIds:["shape-color","number-color","name-gender-length","object-name","syllable-count"]
@@ -2575,7 +2593,7 @@
       id:"goz-takip",
       label:"Göz Takip",
       sub:"Görsel takip / pursuit egzersizi",
-      purpose:"Gözlerin hareketli bir hedefi ne kadar akıcı takip edebildiğini, baş hareketi kullanmadan değerlendirir.",
+      purpose:"Gözlerin hareketli bir hedefi baş hareketi kullanmadan takip etme alıştırması yapar.",
       color:"#C97F32",
       group:"Hız & Dikkat",
       exerciseIds:["eye-tracking"]
@@ -2593,7 +2611,7 @@
       id:"calisan-bellek",
       label:"Çalışan Bellek",
       sub:"N-geri, digit span, ileriye dönük bellek",
-      purpose:"Birden fazla bilgiyi aynı anda zihinde tutup güncelleme (n-geri) veya bir niyeti geleceğe taşıma (ileriye dönük bellek) becerisini test eder.",
+      purpose:"Birden fazla bilgiyi aynı anda zihinde tutup güncelleme (n-geri) veya bir niyeti geleceğe taşıma (ileriye dönük bellek) becerilerini çalıştırır.",
       color:"#4F9D5A",
       group:"Bellek",
       exerciseIds:["nback-shape","nback-color","nback-number","digit-span","prospective-event","prospective-time","prospective-delayed"]
@@ -2602,7 +2620,7 @@
       id:"sozel-bellek",
       label:"Sözel Bellek",
       sub:"Kelime listesi, öbek tekrarı",
-      purpose:"Duyduğu bilgiyi kısa süre zihninde tutup doğru sırayla geri getirme becerisini ölçer.",
+      purpose:"Duyduğu bilgiyi kısa süre zihninde tutup doğru sırayla geri getirme becerisini çalıştırır.",
       color:"#2E5F8A",
       group:"Bellek",
       exerciseIds:["word-list-recall","sentence-repeat"]
@@ -2611,7 +2629,7 @@
       id:"gorsel-bellek",
       label:"Görsel Bellek",
       sub:"Şekil, konum, renk hatırlama",
-      purpose:"Gördüğü görsel bilgiyi kısa süre sonra hatırlama becerisini değerlendirir.",
+      purpose:"Gördüğü görsel bilgiyi kısa süre sonra hatırlama becerisini çalıştırır.",
       color:"#D64545",
       group:"Bellek",
       exerciseIds:["shape-recall","position-recall","color-recall"]
@@ -2620,7 +2638,7 @@
       id:"sozel-organizasyon",
       label:"Sözel Organizasyon",
       sub:"Kategori, zıt anlam",
-      purpose:"Kelimeleri anlamına, sesine veya kategorisine göre hızlıca sınıflandırma becerisini geliştirir.",
+      purpose:"Kelimeleri anlamına, sesine veya kategorisine göre hızlıca sınıflandırma becerisini çalıştırır.",
       color:"#8A5A8C",
       group:"Dil & Görsel Analiz",
       exerciseIds:["word-group","opposite-match"]
@@ -2629,7 +2647,7 @@
       id:"sozel-kavrama",
       label:"Sözel Kavrama",
       sub:"Benzerlik bulma, kelime tanımlama, genel kavrama",
-      purpose:"Kelimeler arası soyut ilişkiler kurma ve sözel akıl yürütme becerisini test eder (WISC-IV Sözel Kavrama indeksine kavramsal olarak yakındır).",
+      purpose:"Kelimeler arası soyut ilişkiler kurma ve sözel akıl yürütme becerisini çalıştırır.",
       color:"#6B4C9A",
       group:"Dil & Görsel Analiz",
       exerciseIds:["similarities","vocabulary","practical-reasoning"]
@@ -2647,7 +2665,7 @@
       id:"algisal-akil-yurutme",
       label:"Algısal Akıl Yürütme",
       sub:"Farklı olanı bulma, örüntü tamamlama, görsel analoji",
-      purpose:"Görsel örüntüleri analiz edip mantıksal ilişki kurma becerisini test eder (WISC-IV Algısal Akıl Yürütme indeksine kavramsal olarak yakındır).",
+      purpose:"Görsel örüntüleri analiz edip mantıksal ilişki kurma becerisini çalıştırır.",
       color:"#B08900",
       group:"Dil & Görsel Analiz",
       exerciseIds:["odd-one-out","sequence-pattern","visual-analogy"]
@@ -3538,9 +3556,9 @@
       const avgPrev = prevWeek.reduce((a,r)=>a+r.ms,0) / prevWeek.length;
       const diffPct = Math.round(((avgPrev - avgThis) / avgPrev) * 100);
       if(diffPct > 5){
-        comments.push(`Ortalama süre geçen haftaya göre %${diffPct} azaldı — hız artıyor! 🚀`);
+        comments.push(`Ortalama süre geçen haftaya göre %${diffPct} kısaldı. 👏`);
       } else if(diffPct < -5){
-        comments.push(`Ortalama süre geçen haftaya göre %${Math.abs(diffPct)} arttı — muhtemelen daha zor sayfalar deneniyor, bu normal.`);
+        comments.push(`Ortalama süre geçen haftaya göre %${Math.abs(diffPct)} uzadı. Süreler sayfa zorluğuna ve o günkü koşullara göre değişebilir.`);
       } else {
         comments.push("Ortalama süre geçen haftaya göre stabil görünüyor.");
       }
@@ -3626,6 +3644,11 @@
     commentBox.className = "week-comments";
     commentBox.innerHTML = comments.map(c=>`<div class="week-comment">${c}</div>`).join("");
     container.appendChild(commentBox);
+
+    const disclaimer = document.createElement("div");
+    disclaimer.className = "report-disclaimer";
+    disclaimer.textContent = "Bu özet yalnızca kayıtlı çalışma sürelerine ve hata sayılarına dayanır; tanı veya klinik değerlendirme yerine geçmez.";
+    container.appendChild(disclaimer);
 
     const thisWeekKeys = days.map(d=>d.key);
     const recentEvents = levelEvents.filter(ev =>
@@ -4220,7 +4243,7 @@
       s.classList.toggle("active", parseInt(s.dataset.slide,10) === i);
     });
     renderOnboardDots();
-    document.getElementById("onboardNextLabel").textContent = i === ONBOARD_SLIDES-1 ? "Başlayalım →" : "Devam →";
+    document.getElementById("onboardNextLabel").textContent = i === ONBOARD_SLIDES-1 ? "Hadi başlayalım →" : "Devam →";
   }
 
   const TEXT_SIZE_KEY = "wm_text_size_v1";
