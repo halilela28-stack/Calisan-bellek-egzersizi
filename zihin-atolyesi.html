@@ -1255,6 +1255,108 @@
     font-size:12px;
     margin-left:8px;
   }
+
+  /* ===== Yatay (landscape) mod ===== */
+  #lsMore, .ls-bar{ display:contents; }
+  .ls-toggle, .ls-page{ display:none; }
+  #lsMore .history-toggle, #lsMore .history-panel{ order:100; }
+
+  @media (orientation: landscape) and (max-height: 520px){
+    :root{ --ls-bar:56px; }
+    .app{
+      max-width:none;
+      height:100vh; height:100dvh;
+      min-height:0;
+      padding:6px 12px;
+      overflow:hidden;
+    }
+    .ls-bar{
+      display:flex; align-items:center; gap:8px;
+      flex:0 0 auto;
+      height:44px;
+      margin-bottom:6px;
+    }
+    .ls-toggle{
+      display:flex; align-items:center; justify-content:center;
+      flex:0 0 auto; width:40px; height:40px; padding:0;
+      border:1px solid var(--line); background:var(--panel); color:var(--ink);
+      border-radius:12px; cursor:pointer;
+    }
+    .ls-toggle svg{ width:20px; height:20px; transition:transform .15s; }
+    html.ls-open .ls-toggle{ background:var(--teal-dark); border-color:var(--teal-dark); color:#fff; }
+    html.ls-open .ls-toggle svg{ transform:rotate(180deg); }
+    .ls-page{
+      display:block; flex:1 1 0; min-width:0;
+      font-size:11px; font-weight:700; color:var(--ink-soft);
+      text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .ls-bar .timer-row{ margin:0; padding:3px 4px 3px 12px; gap:8px; flex:0 1 auto; min-width:0; border-radius:12px; }
+    html .ls-bar .timer-display{ font-size:18px; }
+    html.text-lg .ls-bar .timer-display{ font-size:20px; }
+    html.text-xl .ls-bar .timer-display{ font-size:22px; }
+    .ls-bar .timer-btns{ gap:6px; }
+    .ls-bar .timer-btn{ padding:8px 12px; font-size:12px; }
+    .ls-bar .timer-btn.reset{ padding:8px 10px; font-size:14px; }
+    .ls-bar .error-row{ margin:0; padding:3px 8px; gap:8px; flex:0 1 auto; min-width:0; border-radius:12px; }
+    html .ls-bar .error-label{ font-size:10.5px; line-height:1.15; max-width:96px; }
+    .ls-bar .error-stepper{ gap:8px; }
+    .ls-bar .error-btn{ width:28px; height:28px; }
+    .ls-bar .save-result-btn{
+      width:auto; margin:0; padding:9px 12px; font-size:12px;
+      flex:0 0 auto; white-space:nowrap; border-radius:10px;
+    }
+    .ls-bar .save-hint{ display:none !important; }
+    .ls-bar .level-flash{
+      position:fixed; top:calc(var(--ls-bar) + 4px); left:50%; transform:translateX(-50%);
+      z-index:90; margin:0; padding:8px 16px; max-width:80vw;
+      box-shadow:0 4px 14px rgba(0,0,0,.18);
+    }
+    .ls-bar .controls{
+      position:static; transform:none; width:auto; max-width:none;
+      margin-left:auto; padding:0; gap:6px; flex:0 0 auto;
+      background:transparent; border:none;
+    }
+    .ls-bar .controls button{ padding:9px 11px; font-size:12px; border-radius:10px; flex:none; }
+    .ls-bar #reshuffleBtn{ font-size:0; padding:9px 10px; }
+    .ls-bar #reshuffleBtn .ui-icon-slot{ width:18px; height:18px; }
+
+    .dots{ display:none; }
+    .board{
+      flex:1 1 auto;
+      min-height:0 !important;
+      padding:6px 8px !important;
+      row-gap:6px; column-gap:8px;
+      align-content:stretch;
+      border-radius:14px;
+    }
+    .motion-board{ min-height:0; flex:1; }
+
+    /* Ayarlar paneli (üst bilgi, kademe, egzersiz, oyuncu, talimat, geçmiş) */
+    #lsMore{ display:none; }
+    html.ls-open #lsMore{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      column-gap:12px; align-content:start; grid-auto-rows:max-content;
+      position:fixed; left:0; right:0; top:var(--ls-bar); bottom:0;
+      z-index:60; overflow-y:auto; -webkit-overflow-scrolling:touch;
+      padding:8px 14px 16px;
+      background:var(--bg);
+      border-top:1px solid var(--line);
+      box-shadow:0 8px 24px rgba(0,0,0,.12);
+    }
+    #lsMore > *{ min-width:0; grid-column:1 / -1; }
+    #lsMore > .top{ grid-column:auto; margin:0 0 8px !important; align-items:center; }
+
+    /* Tam ekran karşılama / seçim ekranları kısa ekranda taşmasın */
+    .mode-screen, .onboard-screen, .consent-screen{ overflow-y:auto; padding:12px 20px; }
+    .mode-screen{ align-items:flex-start; }
+    .mode-inner{ margin:auto; }
+    .mode-card{ padding:12px 16px; margin-bottom:8px; }
+    .onboard-screen, .consent-screen{ justify-content:flex-start; }
+    .onboard-screen > :first-child, .consent-screen > :first-child{ margin-top:auto; }
+    .onboard-screen > :last-child, .consent-screen > :last-child{ margin-bottom:auto; }
+    .onboard-inner{ min-height:0; }
+  }
 </style>
 </head>
 <body>
@@ -1391,6 +1493,7 @@
 </div>
 
 <div class="app" id="mainApp" style="display:none;">
+  <div id="lsMore">
   <div class="top">
     <h1>Zihin Atölyesi</h1>
     <div class="top-btns">
@@ -1431,38 +1534,6 @@
 
   <div class="instruction" id="instructionBox"></div>
 
-  <div class="timer-row">
-    <span class="timer-display" id="timerDisplay">00:00.0</span>
-    <div class="timer-btns">
-      <button class="timer-btn" id="timerBtn">▶ Başlat</button>
-      <button class="timer-btn reset" id="timerResetBtn">↺</button>
-    </div>
-  </div>
-
-  <div class="error-row" id="errorRow">
-    <span class="error-label" id="errorRowLabel">Hata sayısı</span>
-    <div class="error-stepper">
-      <button class="error-btn" id="errorMinusBtn">−</button>
-      <span class="error-count" id="errorCount">0</span>
-      <button class="error-btn" id="errorPlusBtn">+</button>
-    </div>
-  </div>
-
-  <button class="save-result-btn" id="saveResultBtn" style="display:none;">✓ Sonucu Kaydet</button>
-  <div class="save-hint" id="saveHint" style="display:none;">Süreyi durdurdun — hata sayısını kontrol et ve kaydet.</div>
-
-  <div class="level-flash" id="levelFlash" style="display:none;"></div>
-
-  <div class="board" id="board"></div>
-
-  <div class="dots" id="dots"></div>
-
-  <div class="controls">
-    <button class="btn-main" id="prevBtn">◀ Önceki</button>
-    <button class="btn-ghost" id="reshuffleBtn"><span class="ui-icon-slot" id="reshuffleIconSlot"></span> Karıştır</button>
-    <button class="btn-main" id="nextBtn">Sonraki ▶</button>
-  </div>
-
   <button class="history-toggle" id="historyToggle"><span class="ui-icon-slot" id="historyToggleIconSlot"></span> Geçmiş sonuçları göster</button>
 
   <div class="history-panel" id="historyPanel" style="display:none;">
@@ -1480,6 +1551,47 @@
     </div>
     <div id="historyList"></div>
   </div>
+  </div>
+
+  <div class="ls-bar">
+  <button class="ls-toggle" id="lsToggleBtn" type="button" aria-label="Menü" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+
+  <div class="timer-row">
+    <span class="timer-display" id="timerDisplay">00:00.0</span>
+    <div class="timer-btns">
+      <button class="timer-btn" id="timerBtn">▶ Başlat</button>
+      <button class="timer-btn reset" id="timerResetBtn">↺</button>
+    </div>
+  </div>
+
+  <div class="error-row" id="errorRow">
+    <span class="error-label" id="errorRowLabel">Hata sayısı</span>
+    <div class="error-stepper">
+      <button class="error-btn" id="errorMinusBtn">−</button>
+      <span class="error-count" id="errorCount">0</span>
+      <button class="error-btn" id="errorPlusBtn">+</button>
+    </div>
+  </div>
+
+  <span class="ls-page" id="lsPage"></span>
+
+  <button class="save-result-btn" id="saveResultBtn" style="display:none;">✓ Sonucu Kaydet</button>
+  <div class="save-hint" id="saveHint" style="display:none;">Süreyi durdurdun — hata sayısını kontrol et ve kaydet.</div>
+
+  <div class="level-flash" id="levelFlash" style="display:none;"></div>
+
+  <div class="controls">
+    <button class="btn-main" id="prevBtn">◀ Önceki</button>
+    <button class="btn-ghost" id="reshuffleBtn" title="Karıştır" aria-label="Karıştır"><span class="ui-icon-slot" id="reshuffleIconSlot"></span> Karıştır</button>
+    <button class="btn-main" id="nextBtn">Sonraki ▶</button>
+  </div>
+
+  </div>
+
+  <div class="board" id="board"></div>
+
+  <div class="dots" id="dots"></div>
+
 </div>
 
 <script type="module">
@@ -2640,6 +2752,7 @@
   }
 
   function startTimer(){
+    setLsOpen(false);
     timerStartedAt = Date.now() - elapsedMs;
     timerInterval = setInterval(tickTimer, 100);
     timerRunning = true;
@@ -2955,13 +3068,9 @@
       renderMotionBoard();
       return;
     }
-    const {rows, cols} = currentTier();
     board.style.display = "grid";
     board.style.minHeight = "";
     board.style.padding = "14px";
-    board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-    board.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-    board.classList.toggle("wide-grid", cols >= 5 || rows >= 5);
     board.innerHTML = "";
     currentGrid.forEach(item=>{
       const cell = document.createElement("div");
@@ -2969,7 +3078,61 @@
       cell.innerHTML = ex.renderItem(item);
       board.appendChild(cell);
     });
-    fitTextCells(board);
+    applyBoardLayout();
+  }
+
+  // ---------- Yatay mod: ızgarayı ekrana sığdır ----------
+  const landscapeMQ = window.matchMedia("(orientation: landscape) and (max-height: 520px)");
+  let applyingBoardLayout = false;
+
+  // n hücreyi, mevcut board alanına en büyük hücre boyutuyla sığdıran sütun/satır sayısını seçer
+  function pickLandscapeDims(n, board){
+    const cs = getComputedStyle(board);
+    const w = board.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const h = board.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    if(!(w > 0 && h > 0)) return null;
+    const gx = parseFloat(cs.columnGap) || 8;
+    const gy = parseFloat(cs.rowGap) || 6;
+    const hasText = !!board.querySelector(".name-cell, .stroop-cell, .phrase-cell");
+    const aspect = hasText ? 1.7 : 1;   // yazılı hücreler daha geniş olmalı
+    let best = null;
+    for(let c = 1; c <= n; c++){
+      const r = Math.ceil(n / c);
+      const cw = (w - (c-1)*gx) / c;
+      const ch = (h - (r-1)*gy) / r;
+      if(cw <= 0 || ch <= 0) continue;
+      const score = Math.min(cw / aspect, ch) - (c*r - n) * 0.5;   // boş hücre az olsun
+      if(!best || score > best.score) best = {cols:c, rows:r, score};
+    }
+    return best;
+  }
+
+  function applyBoardLayout(){
+    if(applyingBoardLayout) return;
+    const board = document.getElementById("board");
+    if(!board || !currentGrid.length) return;
+    if(currentExercise().isMotion) return;
+    applyingBoardLayout = true;
+    try{
+      let {rows, cols} = currentTier();
+      let track = "1fr";
+      if(landscapeMQ.matches){
+        const best = pickLandscapeDims(currentGrid.length, board);
+        if(best){ rows = best.rows; cols = best.cols; track = "minmax(0, 1fr)"; }
+      }
+      board.style.gridTemplateColumns = `repeat(${cols}, ${track})`;
+      board.style.gridTemplateRows = `repeat(${rows}, ${track})`;
+      board.classList.toggle("wide-grid", cols >= 5 || rows >= 5);
+      fitTextCells(board);
+    } finally {
+      applyingBoardLayout = false;
+    }
+  }
+
+  function setLsOpen(open){
+    document.documentElement.classList.toggle("ls-open", !!open);
+    const btn = document.getElementById("lsToggleBtn");
+    if(btn) btn.setAttribute("aria-expanded", open ? "true" : "false");
   }
 
   function fitTextCells(board){
@@ -3006,6 +3169,8 @@
 
   function renderAll(){
     document.getElementById("pageIndicator").textContent = `${currentTier().label} · Sayfa ${currentIndex+1}/${SEQUENCE.length}`;
+    const lsPageEl = document.getElementById("lsPage");
+    if(lsPageEl) lsPageEl.textContent = `${currentExercise().label} · ${currentTier().label} · ${currentIndex+1}/${SEQUENCE.length}`;
     renderInstruction();
     renderBoard();
     renderDots();
@@ -3019,6 +3184,7 @@
   }
 
   function newPage(){
+    setLsOpen(false);
     const ex = currentExercise();
     const {rows, cols} = currentTier();
     stopEyeMotion();
@@ -3581,6 +3747,7 @@
       }
     }
     if(!currentPlayerName){
+      if(landscapeMQ.matches) setLsOpen(true);
       document.getElementById("playerSelect").focus();
       alert("Başlamadan önce lütfen bir kişi seç veya yeni bir isim ekle.");
       return;
@@ -4007,6 +4174,21 @@
   document.getElementById("categorySwitchBtn").addEventListener("click", ()=>{
     openCategoryScreen();
   });
+
+  // Yatay mod: menü düğmesi + yeniden yerleşim
+  document.getElementById("lsToggleBtn").addEventListener("click", ()=>{
+    setLsOpen(!document.documentElement.classList.contains("ls-open"));
+  });
+  (function(){
+    const relayout = ()=>{ try{ applyBoardLayout(); }catch(e){} };
+    const onMQ = ()=>{ if(!landscapeMQ.matches) setLsOpen(false); relayout(); };
+    if(landscapeMQ.addEventListener) landscapeMQ.addEventListener("change", onMQ);
+    else if(landscapeMQ.addListener) landscapeMQ.addListener(onMQ);
+    window.addEventListener("resize", relayout);
+    if("ResizeObserver" in window){
+      new ResizeObserver(relayout).observe(document.getElementById("board"));
+    }
+  })();
 
   function openSettings(){
     document.getElementById("settingsScreen").style.display = "block";
