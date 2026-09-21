@@ -1397,9 +1397,21 @@
     .onboard-slide h2{ font-size:22px; margin-bottom:8px; }
     .onboard-slide p{ font-size:14.5px; }
   }
+
+  /* Sayfa sürüklenmesi / yakınlaşması (iOS Safari) */
+  html{ touch-action:manipulation; overscroll-behavior-x:none; }
+  body{ touch-action:manipulation; }
+  .settings-screen, .category-screen, .mode-screen, .onboard-screen, .consent-screen, #lsMore{ overscroll-behavior:contain; }
+  #diagBox{
+    display:none; position:fixed; left:6px; top:6px; z-index:99999; margin:0;
+    padding:6px 8px; background:rgba(0,0,0,.8); color:#7CFC98;
+    font:10px/1.35 ui-monospace, Menlo, monospace; border-radius:8px;
+    pointer-events:none; max-width:calc(100vw - 12px); white-space:pre-wrap;
+  }
 </style>
 </head>
 <body>
+<pre id="diagBox"></pre>
 <div class="onboard-screen" id="onboardScreen">
   <div class="onboard-inner" id="onboardInner">
     <div class="onboard-slide active" data-slide="0">
@@ -1529,6 +1541,11 @@
     <div id="personDataList" class="person-data-list"></div>
     <p class="settings-note" style="margin-top:8px;"><a href="gizlilik-politikasi.html" target="_blank" rel="noopener">Gizlilik Politikası</a></p>
     <p class="settings-note disclaimer-note" style="margin-top:10px;"><b>Önemli:</b> Zihin Atölyesi bir eğitim ve egzersiz uygulamasıdır. Tanı koymaz, tedavi veya klinik değerlendirme yerine geçmez. Süreler standart bir test değildir ve yaş veya sınıf normlarıyla karşılaştırılmaz.</p>
+
+    <div class="settings-divider"></div>
+    <div class="settings-label" style="margin-bottom:8px;">Sorun giderme</div>
+    <p class="settings-note" style="margin-bottom:10px;">Ekranda kayma veya yakınlaşma sorunu yaşarsan bunu aç. Ekranın üstünde teknik bilgiler görünür; sorun olduğu anda ekran görüntüsü alıp gönderebilirsin.</p>
+    <button type="button" class="person-delete-btn" id="diagToggleBtn" style="color:var(--ink-soft); border-color:var(--line);">Ekran tanısını aç</button>
 
     <button class="save-result-btn" id="closeSettingsBtn2" style="margin-top:16px;">Kapat</button>
   </div>
@@ -4354,6 +4371,63 @@
     if("ResizeObserver" in window){
       new ResizeObserver(relayout).observe(document.getElementById("board"));
     }
+  })();
+
+  // ---------- iOS Safari: sayfanın sürüklenmesini ve yakınlaşmasını engelle ----------
+  (function(){
+    ["gesturestart", "gesturechange", "gestureend"].forEach(t=>{
+      document.addEventListener(t, e=> e.preventDefault(), {passive:false});   // iki parmakla yakınlaştırma
+    });
+    const FREE_SCROLL = ".exercise-row, input[type='range'], select, textarea";
+    const LS_SCROLL = "#lsMore, .settings-screen, .category-screen, .mode-screen, .onboard-screen, .consent-screen";
+    let sx = 0, sy = 0;
+    document.addEventListener("touchstart", e=>{
+      if(e.touches.length === 1){ sx = e.touches[0].clientX; sy = e.touches[0].clientY; }
+    }, {passive:true});
+    document.addEventListener("touchmove", e=>{
+      if(e.touches.length > 1){ e.preventDefault(); return; }
+      const t = e.target;
+      if(!(t instanceof Element)) return;
+      if(t.closest(FREE_SCROLL)) return;
+      const dx = Math.abs(e.touches[0].clientX - sx), dy = Math.abs(e.touches[0].clientY - sy);
+      if(dx > dy){ e.preventDefault(); return; }                                 // yatay sürükleme: sayfa kaymasın
+      if(landscapeMQ.matches && !t.closest(LS_SCROLL)) e.preventDefault();       // yatay modda sayfa sabit
+    }, {passive:false});
+  })();
+
+  // ---------- Ekran tanısı (Ayarlar > Sorun giderme) ----------
+  (function(){
+    const box = document.getElementById("diagBox");
+    const btn = document.getElementById("diagToggleBtn");
+    let timer = null;
+    function text(){
+      const de = document.documentElement, vv = window.visualViewport;
+      const lines = [];
+      lines.push(`inner ${innerWidth}x${innerHeight}  client ${de.clientWidth}x${de.clientHeight}`);
+      lines.push(`scroll ${de.scrollWidth}x${de.scrollHeight}  konum ${Math.round(scrollX)},${Math.round(scrollY)}`);
+      if(vv) lines.push(`vv ${vv.width.toFixed(1)}x${vv.height.toFixed(1)}  olcek ${vv.scale.toFixed(3)}  kayma ${vv.offsetLeft.toFixed(1)},${vv.offsetTop.toFixed(1)}`);
+      lines.push(`yon ${landscapeMQ.matches ? "yatay-kisa" : "diger"}  dpr ${devicePixelRatio}`);
+      const wide = [];
+      document.querySelectorAll("body *").forEach(el=>{
+        if(wide.length >= 4 || el.id === "diagBox") return;
+        const cs = getComputedStyle(el);
+        if(cs.display === "none" || cs.position === "fixed") return;
+        if(el.closest(".exercise-row")) return;
+        const r = el.getBoundingClientRect();
+        if(r.width === 0) return;
+        if(r.right > de.clientWidth + 1) wide.push(el.tagName.toLowerCase() + "." + String(el.className).split(" ")[0] + " " + Math.round(r.right));
+      });
+      if(wide.length) lines.push("tasan: " + wide.join(" | "));
+      return lines.join("\n");
+    }
+    function refresh(){ box.textContent = text(); }
+    function setOn(on){
+      box.style.display = on ? "block" : "none";
+      btn.textContent = on ? "Ekran tanısını kapat" : "Ekran tanısını aç";
+      if(timer){ clearInterval(timer); timer = null; }
+      if(on){ refresh(); timer = setInterval(refresh, 700); }
+    }
+    btn.addEventListener("click", ()=> setOn(box.style.display !== "block"));
   })();
 
   function openSettings(){
