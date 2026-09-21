@@ -1264,12 +1264,8 @@
   @media (orientation: landscape) and (max-height: 520px){
     :root{ --ls-bar:56px; }
     /* Sayfa kaymasın / iOS Safari'de esneyip araç çubuğunu üstte kırpmasın */
-    html{ height:100%; overflow:hidden; overscroll-behavior:none; }
-    body{
-      position:fixed; top:0; left:0; right:0; bottom:0;
-      width:100%; height:100%;
-      overflow:hidden; overscroll-behavior:none;
-    }
+    html, body{ overflow:hidden; overscroll-behavior:none; }
+    .ls-bar, .board{ touch-action:none; }
     .app{
       max-width:none;
       height:100vh; height:100dvh;
