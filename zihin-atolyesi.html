@@ -1366,6 +1366,22 @@
     .onboard-screen > :last-child, .consent-screen > :last-child{ margin-bottom:auto; }
     .onboard-inner{ min-height:0; }
   }
+
+  /* Kişi bazlı veri silme (Ayarlar) */
+  .person-data-list{ display:flex; flex-direction:column; gap:8px; }
+  .person-data-row{
+    display:flex; align-items:center; gap:10px;
+    padding:10px 12px; background:var(--panel);
+    border:1px solid var(--line); border-radius:12px;
+  }
+  .person-data-info{ flex:1; min-width:0; }
+  .person-data-name{ font-weight:700; font-size:15px; overflow-wrap:anywhere; }
+  .person-data-meta{ font-size:12px; color:var(--ink-soft); }
+  .person-delete-btn{
+    flex:0 0 auto; padding:8px 12px; border-radius:10px; cursor:pointer;
+    border:1px solid #E3B8B3; background:#fff; color:#B4433A;
+    font-size:13px; font-weight:700;
+  }
 </style>
 </head>
 <body>
@@ -1488,6 +1504,13 @@
         <span class="switch-track"><span class="switch-thumb"></span></span>
       </label>
     </div>
+
+    <div class="settings-divider"></div>
+
+    <div class="settings-label" style="margin-bottom:8px;">Kişiler ve veriler</div>
+    <p class="settings-note" style="margin-bottom:10px;">Bir kişiyi sildiğinde o kişiye ait tüm çalışma sonuçları, düzey değişiklikleri ve kişi kaydı kalıcı olarak silinir. Bu işlem geri alınamaz.</p>
+    <div id="personDataList" class="person-data-list"></div>
+    <p class="settings-note" style="margin-top:8px;"><a href="gizlilik-politikasi.html" target="_blank" rel="noopener">Gizlilik Politikası</a></p>
 
     <button class="save-result-btn" id="closeSettingsBtn2" style="margin-top:16px;">Kapat</button>
   </div>
@@ -3252,6 +3275,7 @@
         firestoreReady = true;
         updateCloudBadge();
         refreshHistoryIfVisible();
+        renderPersonDataList();
       }, (err)=>{
         console.error("Firestore sessions okuma hatası:", err);
         firestoreReady = false;
@@ -3261,6 +3285,7 @@
       onSnapshot(mine("levelEvents"), (snap)=>{
         levelEvents = snap.docs.map(d=>d.data()).sort(byT);
         refreshHistoryIfVisible();
+        renderPersonDataList();
       }, (err)=>{
         console.error("Firestore levelEvents okuma hatası:", err);
       });
@@ -3268,6 +3293,7 @@
       onSnapshot(mine("players"), (snap)=>{
         playersList = snap.docs.map(d=>d.data().name).sort((a, b)=> String(a).localeCompare(String(b), "tr"));
         renderPlayerOptions();
+        renderPersonDataList();
       }, (err)=>{
         console.error("Firestore players okuma hatası:", err);
       });
@@ -3282,6 +3308,82 @@
 
   function loadSessions(){
     return sessionHistory.slice();
+  }
+
+  // ---------- Kişi bazlı veri silme ----------
+  function renderPersonDataList(){
+    const box = document.getElementById("personDataList");
+    if(!box) return;
+    box.innerHTML = "";
+    const names = Array.from(new Set(
+      playersList.concat(sessionHistory.map(r=>r.player), levelEvents.map(e=>e.player)).filter(Boolean)
+    )).sort((a, b)=> String(a).localeCompare(String(b), "tr"));
+    if(names.length === 0){
+      const empty = document.createElement("div");
+      empty.className = "settings-note";
+      empty.textContent = "Henüz kayıtlı kişi yok.";
+      box.appendChild(empty);
+      return;
+    }
+    names.forEach(name=>{
+      const count = sessionHistory.filter(r=>r.player === name).length;
+      const row = document.createElement("div");
+      row.className = "person-data-row";
+      const info = document.createElement("div");
+      info.className = "person-data-info";
+      const nm = document.createElement("div");
+      nm.className = "person-data-name";
+      nm.textContent = name;
+      const meta = document.createElement("div");
+      meta.className = "person-data-meta";
+      meta.textContent = count + " çalışma kaydı";
+      info.appendChild(nm);
+      info.appendChild(meta);
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "person-delete-btn";
+      btn.textContent = "Verilerini sil";
+      btn.addEventListener("click", ()=> deletePersonData(name));
+      row.appendChild(info);
+      row.appendChild(btn);
+      box.appendChild(row);
+    });
+  }
+
+  async function deletePersonData(name){
+    if(!confirm(`"${name}" kişisine ait tüm çalışma sonuçları, düzey değişiklikleri ve kişi kaydı kalıcı olarak silinecek. Bu işlem geri alınamaz. Emin misin?`)) return;
+    try{
+      if(firestoreReady && window.__fb && window.__fb.uid){
+        const { db, collection, getDocs, writeBatch, query, where, uid } = window.__fb;
+        const targets = [];
+        for(const [coll, field] of [["sessions", "player"], ["levelEvents", "player"], ["players", "name"]]){
+          const snap = await getDocs(query(collection(db, coll), where("uid", "==", uid)));
+          snap.docs.forEach(d=>{ if(d.data()[field] === name) targets.push(d.ref); });
+        }
+        for(let i = 0; i < targets.length; i += 400){   // Firestore toplu işlem sınırı 500
+          const batch = writeBatch(db);
+          targets.slice(i, i + 400).forEach(ref=> batch.delete(ref));
+          await batch.commit();
+        }
+      } else {
+        sessionHistory = sessionHistory.filter(r=> r.player !== name);
+        levelEvents = levelEvents.filter(e=> e.player !== name);
+        playersList = playersList.filter(p=> p !== name);
+      }
+    }catch(e){
+      console.error("Kişi verileri silinemedi:", e);
+      alert("Silme sırasında bir sorun oluştu. Lütfen tekrar dene.");
+      return;
+    }
+    if(currentPlayerName === name){
+      currentPlayerName = "";
+      document.getElementById("playerSelect").value = "";
+      updatePlayerAvatar(null);
+    }
+    if(currentReportPlayer === name) currentReportPlayer = "Herkes";
+    renderPlayerOptions();
+    refreshHistoryIfVisible();
+    renderPersonDataList();
   }
 
   function clearAllSessions(){
@@ -4232,6 +4334,7 @@
   })();
 
   function openSettings(){
+    renderPersonDataList();
     document.getElementById("settingsScreen").style.display = "block";
   }
   function closeSettings(){
