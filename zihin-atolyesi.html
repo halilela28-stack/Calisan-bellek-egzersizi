@@ -1271,7 +1271,7 @@
       overflow:hidden;
     }
     .ls-bar{
-      display:flex; align-items:center; gap:8px;
+      display:flex; align-items:center; gap:6px;
       flex:0 0 auto;
       height:44px;
       margin-bottom:6px;
@@ -1286,20 +1286,26 @@
     html.ls-open .ls-toggle{ background:var(--teal-dark); border-color:var(--teal-dark); color:#fff; }
     html.ls-open .ls-toggle svg{ transform:rotate(180deg); }
     .ls-page{
-      display:block; flex:1 1 0; min-width:0;
-      font-size:11px; font-weight:700; color:var(--ink-soft);
-      text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      display:flex; flex-direction:column; justify-content:center;
+      flex:1 1 0; min-width:0; max-height:44px;
+      font-size:10.5px; line-height:1.2; font-weight:700; color:var(--ink-soft);
+      text-align:center; overflow:hidden;
     }
-    .ls-bar .timer-row{ margin:0; padding:3px 4px 3px 12px; gap:8px; flex:0 1 auto; min-width:0; border-radius:12px; }
-    html .ls-bar .timer-display{ font-size:18px; }
+    .ls-page-ex{
+      display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2;
+      overflow:hidden; overflow-wrap:anywhere;
+    }
+    .ls-page-info{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:.85; }
+    .ls-bar .timer-row{ margin:0; padding:3px 3px 3px 10px; gap:6px; flex:0 1 auto; min-width:0; border-radius:12px; }
+    html .ls-bar .timer-display{ font-size:17px; }
     html.text-lg .ls-bar .timer-display{ font-size:20px; }
     html.text-xl .ls-bar .timer-display{ font-size:22px; }
-    .ls-bar .timer-btns{ gap:6px; }
-    .ls-bar .timer-btn{ padding:8px 12px; font-size:12px; }
-    .ls-bar .timer-btn.reset{ padding:8px 10px; font-size:14px; }
-    .ls-bar .error-row{ margin:0; padding:3px 8px; gap:8px; flex:0 1 auto; min-width:0; border-radius:12px; }
+    .ls-bar .timer-btns{ gap:5px; }
+    .ls-bar .timer-btn{ padding:8px 10px; font-size:12px; }
+    .ls-bar .timer-btn.reset{ padding:8px 9px; font-size:14px; }
+    .ls-bar .error-row{ margin:0; padding:3px 6px; gap:6px; flex:0 1 auto; min-width:0; border-radius:12px; }
     html .ls-bar .error-label{ font-size:10.5px; line-height:1.15; max-width:96px; }
-    .ls-bar .error-stepper{ gap:8px; }
+    .ls-bar .error-stepper{ gap:6px; }
     .ls-bar .error-btn{ width:28px; height:28px; }
     .ls-bar .save-result-btn{
       width:auto; margin:0; padding:9px 12px; font-size:12px;
@@ -1313,11 +1319,11 @@
     }
     .ls-bar .controls{
       position:static; transform:none; width:auto; max-width:none;
-      margin-left:auto; padding:0; gap:6px; flex:0 0 auto;
+      margin-left:auto; padding:0; gap:5px; flex:0 0 auto;
       background:transparent; border:none;
     }
-    .ls-bar .controls button{ padding:9px 11px; font-size:12px; border-radius:10px; flex:none; }
-    .ls-bar #reshuffleBtn{ font-size:0; padding:9px 10px; }
+    .ls-bar .controls button{ padding:9px 9px; font-size:12px; border-radius:10px; flex:none; }
+    .ls-bar #reshuffleBtn{ font-size:0; padding:9px 8px; }
     .ls-bar #reshuffleBtn .ui-icon-slot{ width:18px; height:18px; }
 
     .dots{ display:none; }
@@ -1573,7 +1579,7 @@
     </div>
   </div>
 
-  <span class="ls-page" id="lsPage"></span>
+  <span class="ls-page" id="lsPage"><span class="ls-page-ex" id="lsPageEx"></span><span class="ls-page-info" id="lsPageInfo"></span></span>
 
   <button class="save-result-btn" id="saveResultBtn" style="display:none;">✓ Sonucu Kaydet</button>
   <div class="save-hint" id="saveHint" style="display:none;">Süreyi durdurdun — hata sayısını kontrol et ve kaydet.</div>
@@ -3169,8 +3175,10 @@
 
   function renderAll(){
     document.getElementById("pageIndicator").textContent = `${currentTier().label} · Sayfa ${currentIndex+1}/${SEQUENCE.length}`;
-    const lsPageEl = document.getElementById("lsPage");
-    if(lsPageEl) lsPageEl.textContent = `${currentExercise().label} · ${currentTier().label} · ${currentIndex+1}/${SEQUENCE.length}`;
+    const lsPageEx = document.getElementById("lsPageEx");
+    const lsPageInfo = document.getElementById("lsPageInfo");
+    if(lsPageEx) lsPageEx.textContent = currentExercise().label;
+    if(lsPageInfo) lsPageInfo.textContent = `${currentTier().label} · ${currentIndex+1}/${SEQUENCE.length}`;
     renderInstruction();
     renderBoard();
     renderDots();
