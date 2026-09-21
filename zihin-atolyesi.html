@@ -3375,30 +3375,42 @@
     }
   }
 
+  // Yerel takvim gününe göre anahtar (UTC değil; gece yarısından sonraki kayıtlar doğru güne düşer)
   function dayKey(ts){
-    return new Date(ts).toISOString().slice(0,10);
+    const d = new Date(ts);
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${d.getFullYear()}-${m}-${day}`;
   }
 
-  function buildLast7Days(){
-    const days = [];
-    const now = new Date();
-    for(let i=6;i>=0;i--){
-      const d = new Date(now);
-      d.setDate(d.getDate() - i);
-      days.push({
-        key: dayKey(d.getTime()),
-        label: d.toLocaleDateString("tr-TR", {weekday:"short"})
-      });
-    }
-    return days;
+  const WEEKDAY_SHORT = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
+
+  // Verilen günün ait olduğu haftanın Pazartesi 00:00 (yerel saat)
+  function startOfWeekMonday(base){
+    const d = new Date(base);
+    d.setHours(0, 0, 0, 0);
+    const offset = (d.getDay() + 6) % 7;   // Pazartesi=0 ... Pazar=6
+    d.setDate(d.getDate() - offset);
+    return d;
   }
 
+  // Bu haftanın günleri: her zaman Pazartesi'den Pazar'a sabit sıra
+  function buildWeekDays(){
+    const start = startOfWeekMonday(new Date());
+    return WEEKDAY_SHORT.map((label, i)=>{
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      return { key: dayKey(d.getTime()), label };
+    });
+  }
+
+  // Geçen haftanın (Pazartesi–Pazar) gün anahtarları
   function buildPrevWeekKeys(){
+    const start = startOfWeekMonday(new Date());
     const keys = [];
-    const now = new Date();
-    for(let i=13;i>=7;i--){
-      const d = new Date(now);
-      d.setDate(d.getDate() - i);
+    for(let i = 7; i >= 1; i--){
+      const d = new Date(start);
+      d.setDate(start.getDate() - i);
       keys.push(dayKey(d.getTime()));
     }
     return keys;
@@ -3465,7 +3477,7 @@
       ? allRaw
       : allRaw.filter(r => r.player === currentReportPlayer);
 
-    const days = buildLast7Days();
+    const days = buildWeekDays();
 
     const perDay = days.map(d=>{
       const sessions = all.filter(r => dayKey(r.t) === d.key);
