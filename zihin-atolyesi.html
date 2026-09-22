@@ -1710,7 +1710,7 @@
 </script>
 <script>
   const COLORS = ["#D55E00","#CC79A7","#0072B2","#009E73","#E69F00"];
-  const COLOR_NAMES = {"#D55E00":"kırmızı","#CC79A7":"mor","#0072B2":"mavi","#009E73":"yeşil","#E69F00":"turuncu"};
+  const COLOR_NAMES = {"#D55E00":"kiremit","#CC79A7":"mor","#0072B2":"mavi","#009E73":"yeşil","#E69F00":"turuncu"};
 
   const TIERS = [
     {label:"Başlangıç", rows:4, cols:4, eyeDurationMs:15000, studyDurationMs:8000},
@@ -1744,17 +1744,6 @@
   // ---------- Egzersiz 2: Sayı - Renk ----------
   function numberHTML(number, color){
     return `<div class="number-cell" style="color:${color}">${number}</div>`;
-  }
-
-  // ---------- Egzersiz 3: İsim (Kız/Erkek - Uzun/Kısa) ----------
-  const NAME_POOL = {
-    "kız_kısa": ["Ece","Elif","Nur","Ela","Mira","İpek","Aslı","Ayşe"],
-    "kız_uzun": ["Zeynep","Selin","Defne","Yağmur","Melisa","Ceylin","Asude","Belinay"],
-    "erkek_kısa": ["Ali","Emir","Kaan","Efe","Arda","Umut","Onur","Ege"],
-    "erkek_uzun": ["Mehmet","Mustafa","Yusuf","Kerem","Bartu","Doruk","Emirhan","Berkay"]
-  };
-  function nameHTML(name){
-    return `<div class="name-cell">${name}</div>`;
   }
 
   // ---------- Egzersiz 4: Nesne Adı ----------
@@ -1890,30 +1879,6 @@
       ]
     },
     {
-      id: "name-gender-length",
-      label: "İsim - Uzun/Kısa",
-      attrs: ["gender","length"],
-      randomItem: () => {
-        const gender = randomItem(["kız","erkek"]);
-        const length = randomItem(["kısa","uzun"]);
-        const name = randomItem(NAME_POOL[`${gender}_${length}`]);
-        return { gender, length, name };
-      },
-      renderItem: (item) => nameHTML(item.name),
-      stages: [
-        {
-          label: "Aşama 1 · Kız/Erkek",
-          instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Ben başla dediğimde, gördüğün ismin kıza mı erkeğe mi ait olduğunu olabildiğince hızlı söyle"</b> deyin.`,
-          example: (item) => `${item.gender}`
-        },
-        {
-          label: "Aşama 2 · + Uzun/Kısa",
-          instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Ben başla dediğimde, önce ismin kıza mı erkeğe mi ait olduğunu, sonra uzun mu kısa mı olduğunu olabildiğince hızlı söyle"</b> deyin.`,
-          example: (item) => `${item.gender} ${item.length}`
-        }
-      ]
-    },
-    {
       id: "object-name",
       label: "Nesne Adı",
       attrs: ["object","color"],
@@ -1968,7 +1933,7 @@
       stages: [
         {
           label: "Aşama 1 · Yazı Rengi",
-          instruction: () => `Öğrenciye görselleri tanıtın. <b>"Kelimeyi değil, yazının RENGİNİ söyle"</b> deyin. Örneğin "KIRMIZI" yazısı mavi renkteyse "mavi" denmeli.`,
+          instruction: () => `Öğrenciye görselleri tanıtın. <b>"Kelimeyi değil, yazının RENGİNİ söyle"</b> deyin. Örneğin "YEŞİL" yazısı mavi renkteyse "mavi" denmeli.`,
           example: (item) => `${COLOR_NAMES[item.inkColor]}`
         },
         {
@@ -2006,7 +1971,7 @@
       stages: [
         {
           label: "Aşama 1 · Kırmızı Yıldızda Dur",
-          instruction: () => `Öğrenciye görselleri tanıtın. <b>"Her şeklin adını söyle, AMA kırmızı yıldız gelirse hiçbir şey söyleme, sessiz kal"</b> deyin.`,
+          instruction: () => `Öğrenciye görselleri tanıtın. <b>"Her şeklin adını söyle, AMA kiremit renkli yıldız gelirse hiçbir şey söyleme, sessiz kal"</b> deyin.`,
           example: (item) => (item.shape==="star" && item.color==="#D55E00") ? `(sessiz kal)` : `${SHAPE_NAMES[item.shape]}`
         },
         {
@@ -2600,11 +2565,11 @@
     {
       id:"islemleme-hizi",
       label:"İşlemleme Hızı",
-      sub:"Hızlı İsimlendirme — Şekil-Renk, Sayı-Renk, İsim, Nesne Adı, Hece",
+      sub:"Hızlı İsimlendirme — Şekil-Renk, Sayı-Renk, Nesne Adı, Hece",
       purpose:"Görsel bir uyaranı hızlıca tanıyıp isimlendirme alıştırması yapar; bu beceri okuma akıcılığıyla ilişkilendirilir.",
       color:"#2E6F6E",
       group:"Hız & Dikkat",
-      exerciseIds:["shape-color","number-color","name-gender-length","object-name","syllable-count"]
+      exerciseIds:["shape-color","number-color","object-name","syllable-count"]
     },
     {
       id:"goz-takip",
