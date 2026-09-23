@@ -681,7 +681,7 @@
     background:var(--panel);
     border-radius:10px;
     padding:9px 12px;
-    font-size:14px;
+    font-size:16px; /* iOS Safari'de odaklanınca otomatik yakınlaştırmayı önler (16px altı tetikler) */
     color:var(--ink);
     font-weight:600;
   }
@@ -977,8 +977,8 @@
     max-width:520px;
     box-sizing:border-box;
     display:flex;
-    gap:8px;
-    padding:10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+    gap:6px;
+    padding:10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
     background:var(--bg);
     border-top:1px solid var(--line);
     z-index:50;
@@ -986,21 +986,22 @@
   .controls button{
     border:none;
     border-radius:14px;
-    padding:14px 10px;
-    font-size:14px;
+    padding:14px 6px;
+    font-size:16px;
     font-weight:700;
     cursor:pointer;
+    white-space:nowrap;
   }
   .btn-ghost{
     background:var(--panel);
     color:var(--teal-dark);
     border:1px solid var(--line);
-    flex:1;
+    flex:1.1;
   }
   .btn-main{
     background:var(--amber);
     color:#3A2200;
-    flex:1.4;
+    flex:1.3;
   }
   .btn-main:active{background:var(--amber-dark);}
   .btn-ghost:active{background:var(--bg);}
@@ -1020,10 +1021,10 @@
     margin-top:12px;
     border:1px dashed var(--line);
     background:transparent;
-    color:var(--ink-soft);
-    font-size:13px;
+    color:var(--ink);
+    font-size:16px;
     font-weight:700;
-    padding:10px;
+    padding:12px;
     border-radius:12px;
     cursor:pointer;
   }
@@ -1151,7 +1152,7 @@
     background:var(--panel);
     border-radius:8px;
     padding:6px 8px;
-    font-size:13px;
+    font-size:16px; /* iOS Safari'de odaklanınca otomatik yakınlaştırmayı önler (16px altı tetikler) */
     font-weight:600;
     color:var(--ink);
   }
@@ -1408,6 +1409,85 @@
     font:10px/1.35 ui-monospace, Menlo, monospace; border-radius:8px;
     pointer-events:none; max-width:calc(100vw - 12px); white-space:pre-wrap;
   }
+
+  /* ===== Özet sekmesi ===== */
+  .summary-toolbar{
+    display:flex; gap:8px; margin-bottom:12px;
+  }
+  .summary-action-btn{
+    flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+    padding:9px 10px; border-radius:10px; cursor:pointer;
+    border:1px solid var(--line); background:var(--panel); color:var(--teal-dark);
+    font-size:13px; font-weight:700;
+  }
+  .summary-action-btn .ui-icon-slot{ width:15px; height:15px; }
+  .summary-overview{
+    display:flex; flex-wrap:wrap; gap:8px;
+    margin-bottom:14px;
+  }
+  .summary-overview-item{
+    flex:1 1 40%; min-width:120px;
+    background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:10px 12px;
+  }
+  .summary-overview-value{ font-size:19px; font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums; }
+  .summary-overview-label{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; }
+  .summary-lede{
+    font-size:13px; color:var(--ink); line-height:1.5; margin-bottom:14px;
+  }
+  .summary-card{
+    border:1px solid var(--line); border-radius:14px;
+    padding:12px 14px; margin-bottom:10px;
+  }
+  .summary-card-head{
+    display:flex; align-items:center; gap:8px; margin-bottom:8px;
+  }
+  .summary-dot{ width:11px; height:11px; border-radius:50%; flex:0 0 auto; }
+  .summary-card-title{ font-size:14px; font-weight:800; color:var(--ink); flex:1; }
+  .summary-card-meta{ font-size:11.5px; color:var(--ink-soft); }
+  .summary-metric{ margin-bottom:7px; }
+  .summary-metric:last-child{ margin-bottom:0; }
+  .summary-metric-row{
+    display:flex; align-items:baseline; justify-content:space-between;
+    font-size:12px; margin-bottom:3px;
+  }
+  .summary-metric-label{ color:var(--ink-soft); }
+  .summary-metric-value{ font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums; }
+  .summary-metric-trend{ font-size:11px; font-weight:700; margin-left:5px; }
+  .summary-metric-trend.up{ color:#B4433A; }
+  .summary-metric-trend.down{ color:#2E7D42; }
+  .summary-bar-track{
+    height:8px; border-radius:5px; background:var(--bg); overflow:hidden;
+    border:1px solid var(--line);
+  }
+  .summary-bar-fill{ height:100%; border-radius:5px; }
+  .summary-untried{
+    font-size:12px; color:var(--ink-soft); line-height:1.5;
+    padding:10px 12px; background:var(--panel); border:1px dashed var(--line); border-radius:12px;
+    margin-top:4px;
+  }
+  /* Yazdır / PDF: yalnızca yazdırma anında yerleşik alan görünür, geri kalan her şey gizlenir */
+  #printArea{ display:none; }
+  html.is-printing body > *:not(#printArea){ display:none !important; }
+  html.is-printing #printArea{
+    display:block !important; position:static; padding:16px; max-width:680px; margin:0 auto;
+    color:#1B2426; font-family:inherit;
+  }
+  html.is-printing #printArea .summary-toolbar{ display:none !important; }
+  html.is-printing #printArea h2{ font-size:20px; margin:0 0 4px; }
+  html.is-printing #printArea .summary-print-meta{ font-size:12px; color:#5B6B6C; margin-bottom:14px; }
+
+  #confettiLayer{
+    position:fixed; inset:0; z-index:200; pointer-events:none; overflow:hidden;
+  }
+  .confetti-piece{
+    position:absolute; width:9px; height:14px; opacity:0.95;
+    animation-name: confetti-fall; animation-timing-function: ease-in; animation-fill-mode: forwards;
+  }
+  @keyframes confetti-fall{
+    0%{ transform: translateY(0) rotate(0deg); opacity:1; }
+    100%{ transform: translateY(var(--fall-distance, 700px)) rotate(var(--spin, 540deg)); opacity:0; }
+  }
 </style>
 </head>
 <body>
@@ -1499,6 +1579,14 @@
       </label>
     </div>
 
+    <div class="settings-group">
+      <div class="settings-label">Kutlama animasyonu</div>
+      <label class="switch">
+        <input type="checkbox" id="confettiToggle" checked>
+        <span class="switch-track"><span class="switch-thumb"></span></span>
+      </label>
+    </div>
+
     <div class="settings-divider"></div>
 
     <div class="settings-label" style="margin-bottom:8px;">Erişilebilirlik</div>
@@ -1548,6 +1636,33 @@
     <button type="button" class="person-delete-btn" id="diagToggleBtn" style="color:var(--ink-soft); border-color:var(--line);">Ekran tanısını aç</button>
 
     <button class="save-result-btn" id="closeSettingsBtn2" style="margin-top:16px;">Kapat</button>
+  </div>
+</div>
+
+<div class="settings-screen" id="historyScreen" style="display:none;">
+  <div class="settings-inner">
+    <div class="settings-header">
+      <h2>Geçmiş Sonuçlar</h2>
+      <button class="icon-btn" id="closeHistoryBtn">✕</button>
+    </div>
+    <p class="settings-note" style="margin-bottom:12px;">Aile, uzman veya çalışan kişinin kendisi buradan ilerlemeyi inceleyebilir.</p>
+
+    <div class="history-panel" style="margin-top:0;">
+      <div class="history-tabs">
+        <button class="history-tab active" id="tabRecent" data-tab="recent">Son Sonuçlar</button>
+        <button class="history-tab" id="tabLeaderboard" data-tab="leaderboard"><span class="ui-icon-slot" id="tabLeaderboardIconSlot"></span> Liderlik</button>
+        <button class="history-tab" id="tabReport" data-tab="report"><span class="ui-icon-slot" id="tabReportIconSlot"></span> Rapor</button>
+        <button class="history-tab" id="tabSummary" data-tab="summary"><span class="ui-icon-slot" id="tabSummaryIconSlot"></span> Özet</button>
+      </div>
+      <div class="history-header">
+        <span id="historyTitle">Son sonuçlar</span>
+        <div class="history-header-btns">
+          <button class="history-export" id="exportCsvBtn" style="display:none;"><span class="ui-icon-slot" id="exportCsvIconSlot"></span> CSV</button>
+          <button class="history-clear" id="historyClearBtn">Temizle</button>
+        </div>
+      </div>
+      <div id="historyList"></div>
+    </div>
   </div>
 </div>
 
@@ -1601,23 +1716,7 @@
 
   <div class="instruction" id="instructionBox"></div>
 
-  <button class="history-toggle" id="historyToggle"><span class="ui-icon-slot" id="historyToggleIconSlot"></span> Geçmiş sonuçları göster</button>
-
-  <div class="history-panel" id="historyPanel" style="display:none;">
-    <div class="history-tabs">
-      <button class="history-tab active" id="tabRecent" data-tab="recent">Son Sonuçlar</button>
-      <button class="history-tab" id="tabLeaderboard" data-tab="leaderboard"><span class="ui-icon-slot" id="tabLeaderboardIconSlot"></span> Liderlik</button>
-      <button class="history-tab" id="tabReport" data-tab="report"><span class="ui-icon-slot" id="tabReportIconSlot"></span> Rapor</button>
-    </div>
-    <div class="history-header">
-      <span id="historyTitle">Son sonuçlar</span>
-      <div class="history-header-btns">
-        <button class="history-export" id="exportCsvBtn" style="display:none;"><span class="ui-icon-slot" id="exportCsvIconSlot"></span> CSV</button>
-        <button class="history-clear" id="historyClearBtn">Temizle</button>
-      </div>
-    </div>
-    <div id="historyList"></div>
-  </div>
+  <button class="history-toggle" id="historyToggle"><span class="ui-icon-slot" id="historyToggleIconSlot"></span> Geçmiş Sonuçları Gör</button>
   </div>
 
   <div class="ls-bar">
@@ -1643,7 +1742,7 @@
   <span class="ls-page" id="lsPage"><span class="ls-page-ex" id="lsPageEx"></span><span class="ls-page-info" id="lsPageInfo"></span></span>
 
   <button class="save-result-btn" id="saveResultBtn" style="display:none;">✓ Sonucu Kaydet</button>
-  <div class="save-hint" id="saveHint" style="display:none;">Süreyi durdurdun — hata sayısını kontrol et ve kaydet.</div>
+  <div class="save-hint" id="saveHint" style="display:none;">Çalışmayı bitirdin — hata sayısını kontrol et ve kaydet.</div>
 
   <div class="level-flash" id="levelFlash" style="display:none;"></div>
 
@@ -2682,10 +2781,12 @@
   let currentErrorCount = 0;
   let successStreak = 0;
   let currentReportPlayer = "Herkes";
+  let currentSummaryPlayer = "Herkes";
 
   let SUCCESS_SEC_PER_ITEM = 1.0;
   let FAIL_SEC_PER_ITEM = 2.0;
   let soundEnabled = true;
+  let confettiEnabled = true;
   let hapticEnabled = true;
   let expertAdaptiveEnabled = false;
 
@@ -2789,7 +2890,7 @@
     timerInterval = setInterval(tickTimer, 100);
     timerRunning = true;
     const btn = document.getElementById("timerBtn");
-    btn.textContent = "⏸ Durdur";
+    btn.textContent = "⏹ Bitir";
     btn.classList.add("running");
     document.getElementById("saveResultBtn").style.display = "none";
     document.getElementById("saveHint").style.display = "none";
@@ -3211,8 +3312,8 @@
   }
 
   function refreshHistoryIfVisible(){
-    const panel = document.getElementById("historyPanel");
-    if(panel && panel.style.display !== "none"){
+    const screen = document.getElementById("historyScreen");
+    if(screen && screen.style.display !== "none"){
       renderHistory();
     }
   }
@@ -3441,12 +3542,42 @@
         while(sessionHistory.length > 50) sessionHistory.shift();
       }
       flashSaved();
-      const panel = document.getElementById("historyPanel");
-      if(panel && panel.style.display !== "none"){
+      celebrateSave();
+      const screen = document.getElementById("historyScreen");
+      if(screen && screen.style.display !== "none"){
         renderHistory();
       }
     }catch(e){
       // sessizce yok say
+    }
+  }
+
+  function celebrateSave(){
+    if(!confettiEnabled) return;
+    let layer = document.getElementById("confettiLayer");
+    if(!layer){
+      layer = document.createElement("div");
+      layer.id = "confettiLayer";
+      document.body.appendChild(layer);
+    }
+    const n = 26;
+    const w = innerWidth;
+    const h = innerHeight;
+    for(let i = 0; i < n; i++){
+      const el = document.createElement("div");
+      el.className = "confetti-piece";
+      const duration = 900 + Math.random() * 700;
+      const fall = h * 0.55 + Math.random() * h * 0.5;
+      const spin = (Math.random() < 0.5 ? -1 : 1) * (360 + Math.random() * 540);
+      el.style.left = (Math.random() * w) + "px";
+      el.style.top = (-20 - Math.random() * 40) + "px";
+      el.style.background = COLORS[Math.floor(Math.random() * COLORS.length)];
+      el.style.borderRadius = Math.random() < 0.5 ? "50%" : "2px";
+      el.style.setProperty("--fall-distance", fall + "px");
+      el.style.setProperty("--spin", spin + "deg");
+      el.style.animationDuration = duration + "ms";
+      layer.appendChild(el);
+      setTimeout(()=> el.remove(), duration + 60);
     }
   }
 
@@ -3472,6 +3603,8 @@
       renderLeaderboard();
     } else if(currentHistoryTab === "report"){
       renderWeeklyReport();
+    } else if(currentHistoryTab === "summary"){
+      renderSummary();
     } else {
       renderRecent();
     }
@@ -3644,6 +3777,266 @@
       container.appendChild(evBox);
     }
   }
+
+
+  // ---------- Özet sekmesi ----------
+  let _exLabelToCategoryCache = null;
+  function exerciseLabelToCategory(label){
+    if(!_exLabelToCategoryCache){
+      _exLabelToCategoryCache = {};
+      CATEGORIES.forEach(cat=>{
+        cat.exerciseIds.forEach(id=>{
+          const ex = EXERCISES.find(e=>e.id===id);
+          if(ex) _exLabelToCategoryCache[ex.label] = cat;
+        });
+      });
+    }
+    return _exLabelToCategoryCache[label] || null;
+  }
+
+  function computeCategorySummaries(records){
+    const byCat = {};
+    records.forEach(r=>{
+      const cat = exerciseLabelToCategory(r.exerciseLabel);
+      if(!cat) return;
+      if(!byCat[cat.id]) byCat[cat.id] = { category: cat, sessions: [] };
+      byCat[cat.id].sessions.push(r);
+    });
+    return Object.values(byCat).map(entry=>{
+      const sessions = entry.sessions.slice().sort((a,b)=> a.t - b.t);
+      const n = sessions.length;
+      const avgMs = sessions.reduce((a,r)=> a + r.ms, 0) / n;
+      const successRate = Math.round((sessions.filter(r=> !r.errors).length / n) * 100);
+      const lastTs = sessions[n-1].t;
+      let trendPct = null;
+      if(n >= 4){
+        const half = Math.floor(n/2);
+        const olderAvg = sessions.slice(0, half).reduce((a,r)=> a + r.ms, 0) / half;
+        const newerAvg = sessions.slice(n-half).reduce((a,r)=> a + r.ms, 0) / half;
+        if(olderAvg > 0) trendPct = Math.round(((newerAvg - olderAvg) / olderAvg) * 100);
+      }
+      return { category: entry.category, count: n, avgMs, successRate, lastTs, trendPct };
+    }).sort((a, b)=> b.count - a.count);
+  }
+
+  function summarySuccessColor(rate){
+    if(rate >= 80) return "#2E7D42";
+    if(rate >= 50) return "#B08900";
+    return "#B4433A";
+  }
+
+  function summaryTrendHTML(trendPct){
+    if(trendPct === null) return "";
+    if(Math.abs(trendPct) < 5) return `<span class="summary-metric-trend">· stabil</span>`;
+    return trendPct < 0
+      ? `<span class="summary-metric-trend down">İyileşiyor · %${Math.abs(trendPct)}</span>`
+      : `<span class="summary-metric-trend up">Yavaşlıyor · %${trendPct}</span>`;
+  }
+
+  function summaryLede(name, stats){
+    const who = name === "Herkes" ? "" : name;
+    if(appMode === "uzman"){
+      return who
+        ? `${who} için kayıtlı ${stats.totalSessions} çalışma oturumu bulunuyor (${stats.distinctDays} farklı gün, ${stats.catCount}/${stats.totalCatCount} kategori).`
+        : `Kayıtlı ${stats.totalSessions} çalışma oturumu bulunuyor (${stats.distinctDays} farklı gün, ${stats.catCount}/${stats.totalCatCount} kategori).`;
+    }
+    return who
+      ? `${who}, şimdiye kadar ${stats.totalSessions} kez çalıştı (${stats.distinctDays} farklı gün). ${stats.catCount}/${stats.totalCatCount} kategoriden alıştırma denendi.`
+      : `Şimdiye kadar toplam ${stats.totalSessions} çalışma yapıldı (${stats.distinctDays} farklı gün). ${stats.catCount}/${stats.totalCatCount} kategoriden alıştırma denendi.`;
+  }
+
+  function summaryDateOnly(ts){
+    return new Date(ts).toLocaleDateString("tr-TR", {day:"2-digit", month:"2-digit", year:"numeric"});
+  }
+
+  function buildSummaryPlainText(name, stats, catSummaries, untried){
+    const lines = [];
+    lines.push("ZİHİN ATÖLYESİ — ÇALIŞMA ÖZETİ");
+    lines.push(`Kişi: ${name === "Herkes" ? "Tüm kişiler" : name}`);
+    lines.push(`Tarih: ${summaryDateOnly(Date.now())}`);
+    lines.push("");
+    lines.push(`Toplam çalışma: ${stats.totalSessions}`);
+    lines.push(`Farklı gün: ${stats.distinctDays}`);
+    lines.push(`Denenen kategori: ${stats.catCount}/${stats.totalCatCount}`);
+    lines.push(`Genel hatasız tamamlama oranı: %${stats.overallRate}`);
+    lines.push("");
+    lines.push("KATEGORİ BAZLI:");
+    catSummaries.forEach(cs=>{
+      const trend = cs.trendPct === null ? "" : (cs.trendPct < 0 ? ` · süre %${Math.abs(cs.trendPct)} kısaldı` : (cs.trendPct > 5 ? ` · süre %${cs.trendPct} uzadı` : ""));
+      lines.push(`- ${cs.category.label}: ${cs.count} çalışma · ortalama ${formatTime(cs.avgMs)} · %${cs.successRate} hatasız${trend}`);
+    });
+    if(untried.length){
+      lines.push("");
+      lines.push(`Henüz denenmemiş: ${untried.map(c=>c.label).join(", ")}`);
+    }
+    lines.push("");
+    lines.push("Not: Bu özet yalnızca kayıtlı çalışma sürelerine ve hata sayılarına dayanır; tanı veya klinik değerlendirme yerine geçmez.");
+    return lines.join("\n");
+  }
+
+  function summaryCardHTML(cs, maxCount, maxAvg){
+    const c = cs.category.color;
+    const countPct = Math.max(4, Math.round((cs.count / maxCount) * 100));
+    const timePct = Math.max(4, Math.round((cs.avgMs / maxAvg) * 100));
+    return `
+      <div class="summary-card">
+        <div class="summary-card-head">
+          <span class="summary-dot" style="background:${c}"></span>
+          <span class="summary-card-title">${cs.category.label}</span>
+          <span class="summary-card-meta">Son: ${summaryDateOnly(cs.lastTs)}</span>
+        </div>
+        <div class="summary-metric">
+          <div class="summary-metric-row"><span class="summary-metric-label">Çalışma sayısı</span><span class="summary-metric-value">${cs.count}</span></div>
+          <div class="summary-bar-track"><div class="summary-bar-fill" style="width:${countPct}%; background:${c}"></div></div>
+        </div>
+        <div class="summary-metric">
+          <div class="summary-metric-row"><span class="summary-metric-label">Ortalama süre</span><span class="summary-metric-value">${formatTime(cs.avgMs)} ${summaryTrendHTML(cs.trendPct)}</span></div>
+          <div class="summary-bar-track"><div class="summary-bar-fill" style="width:${timePct}%; background:${c}"></div></div>
+        </div>
+        <div class="summary-metric">
+          <div class="summary-metric-row"><span class="summary-metric-label">Hatasız tamamlama</span><span class="summary-metric-value">%${cs.successRate}</span></div>
+          <div class="summary-bar-track"><div class="summary-bar-fill" style="width:${Math.max(4,cs.successRate)}%; background:${summarySuccessColor(cs.successRate)}"></div></div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderSummary(){
+    const container = document.getElementById("historyList");
+    document.getElementById("historyTitle").innerHTML = `<span class="ui-icon-slot">${uiIconSVG("grid")}</span> Özet`;
+    const allRaw = loadSessions();
+    container.innerHTML = "";
+
+    if(allRaw.length === 0){
+      container.innerHTML = `<div class="history-empty"><span class="history-empty-icon">${uiIconSVG("grid")}</span>Henüz kayıtlı sonuç yok. Birkaç çalışma tamamlandığında burada kategori bazlı özet görünecek.</div>`;
+      return;
+    }
+
+    const players = Array.from(new Set(allRaw.map(r=> r.player)));
+    if(currentSummaryPlayer !== "Herkes" && !players.includes(currentSummaryPlayer)){
+      currentSummaryPlayer = "Herkes";
+    }
+    const all = currentSummaryPlayer === "Herkes" ? allRaw : allRaw.filter(r=> r.player === currentSummaryPlayer);
+
+    const filterRow = document.createElement("div");
+    filterRow.className = "report-filter-row";
+    const options = ["Herkes", ...players].map(p=>
+      `<option value="${p}" ${p === currentSummaryPlayer ? "selected" : ""}>${p}</option>`
+    ).join("");
+    filterRow.innerHTML = `<span class="error-label">Kişi</span><select id="summaryPlayerSelect" class="report-player-select">${options}</select>`;
+    container.appendChild(filterRow);
+    document.getElementById("summaryPlayerSelect").addEventListener("change", (e)=>{
+      currentSummaryPlayer = e.target.value;
+      renderSummary();
+    });
+
+    const toolbar = document.createElement("div");
+    toolbar.className = "summary-toolbar";
+    toolbar.innerHTML = `
+      <button type="button" class="summary-action-btn" id="summaryCopyBtn"><span class="ui-icon-slot">${uiIconSVG("copy")}</span> Kopyala</button>
+      <button type="button" class="summary-action-btn" id="summaryPrintBtn"><span class="ui-icon-slot">${uiIconSVG("printer")}</span> Yazdır / PDF</button>
+    `;
+    container.appendChild(toolbar);
+
+    const wrap = document.createElement("div");
+    wrap.id = "summaryContentWrap";
+    container.appendChild(wrap);
+
+    const catSummaries = computeCategorySummaries(all);
+    const untried = CATEGORIES.filter(c=> !catSummaries.find(cs=> cs.category.id === c.id));
+    const distinctDays = new Set(all.map(r=> dayKey(r.t))).size;
+    const overallRate = all.length ? Math.round((all.filter(r=> !r.errors).length / all.length) * 100) : 0;
+    const stats = {
+      totalSessions: all.length,
+      distinctDays,
+      catCount: catSummaries.length,
+      totalCatCount: CATEGORIES.length,
+      overallRate
+    };
+
+    const overview = document.createElement("div");
+    overview.className = "summary-overview";
+    overview.innerHTML = `
+      <div class="summary-overview-item"><div class="summary-overview-value">${stats.totalSessions}</div><div class="summary-overview-label">Toplam çalışma</div></div>
+      <div class="summary-overview-item"><div class="summary-overview-value">${stats.distinctDays}</div><div class="summary-overview-label">Farklı gün</div></div>
+      <div class="summary-overview-item"><div class="summary-overview-value">${stats.catCount}/${stats.totalCatCount}</div><div class="summary-overview-label">Denenen kategori</div></div>
+      <div class="summary-overview-item"><div class="summary-overview-value">%${stats.overallRate}</div><div class="summary-overview-label">Genel hatasız oranı</div></div>
+    `;
+    wrap.appendChild(overview);
+
+    const lede = document.createElement("div");
+    lede.className = "summary-lede";
+    lede.textContent = summaryLede(currentSummaryPlayer, stats);
+    wrap.appendChild(lede);
+
+    const maxCount = Math.max(...catSummaries.map(c=> c.count), 1);
+    const maxAvg = Math.max(...catSummaries.map(c=> c.avgMs), 1);
+    catSummaries.forEach(cs=>{
+      wrap.insertAdjacentHTML("beforeend", summaryCardHTML(cs, maxCount, maxAvg));
+    });
+
+    if(untried.length){
+      const u = document.createElement("div");
+      u.className = "summary-untried";
+      u.textContent = `Henüz denenmemiş: ${untried.map(c=> c.label).join(", ")}`;
+      wrap.appendChild(u);
+    }
+
+    const disclaimer = document.createElement("div");
+    disclaimer.className = "report-disclaimer";
+    disclaimer.textContent = "Bu özet yalnızca kayıtlı çalışma sürelerine ve hata sayılarına dayanır; tanı veya klinik değerlendirme yerine geçmez.";
+    wrap.appendChild(disclaimer);
+
+    document.getElementById("summaryCopyBtn").addEventListener("click", (e)=>{
+      const btn = e.currentTarget;
+      const text = buildSummaryPlainText(currentSummaryPlayer, stats, catSummaries, untried);
+      const flash = (ok)=>{
+        const original = btn.innerHTML;
+        btn.innerHTML = ok ? "Kopyalandı ✓" : "Kopyalanamadı";
+        setTimeout(()=>{ btn.innerHTML = original; }, 1600);
+      };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(()=> flash(true)).catch(()=> flash(fallbackCopyText(text)));
+      } else {
+        flash(fallbackCopyText(text));
+      }
+    });
+
+    document.getElementById("summaryPrintBtn").addEventListener("click", ()=>{
+      const area = document.getElementById("printArea");
+      const title = currentSummaryPlayer === "Herkes" ? "Tüm kişiler" : currentSummaryPlayer;
+      area.innerHTML = `
+        <h2>Zihin Atölyesi — Çalışma Özeti</h2>
+        <div class="summary-print-meta">Kişi: ${title} · Tarih: ${summaryDateOnly(Date.now())}</div>
+        ${wrap.innerHTML}
+      `;
+      document.documentElement.classList.add("is-printing");
+      window.print();
+    });
+  }
+
+  function fallbackCopyText(text){
+    try{
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return ok;
+    }catch(e){
+      return false;
+    }
+  }
+
+  window.addEventListener("afterprint", ()=>{
+    document.documentElement.classList.remove("is-printing");
+    const area = document.getElementById("printArea");
+    if(area) area.innerHTML = "";
+  });
 
   function renderRecent(){
     const container = document.getElementById("historyList");
@@ -3827,20 +4220,24 @@
     document.getElementById("tabRecent").classList.toggle("active", tab==="recent");
     document.getElementById("tabLeaderboard").classList.toggle("active", tab==="leaderboard");
     document.getElementById("tabReport").classList.toggle("active", tab==="report");
+    document.getElementById("tabSummary").classList.toggle("active", tab==="summary");
     renderHistory();
   }
 
   document.getElementById("tabRecent").addEventListener("click", ()=> setHistoryTab("recent"));
   document.getElementById("tabLeaderboard").addEventListener("click", ()=> setHistoryTab("leaderboard"));
   document.getElementById("tabReport").addEventListener("click", ()=> setHistoryTab("report"));
+  document.getElementById("tabSummary").addEventListener("click", ()=> setHistoryTab("summary"));
 
-  document.getElementById("historyToggle").addEventListener("click", ()=>{
-    const panel = document.getElementById("historyPanel");
-    const isHidden = panel.style.display === "none";
-    panel.style.display = isHidden ? "block" : "none";
-    document.getElementById("historyToggle").innerHTML = `<span class="ui-icon-slot">${uiIconSVG("chart")}</span> ${isHidden ? "Geçmişi gizle" : "Geçmiş sonuçları göster"}`;
-    if(isHidden) renderHistory();
-  });
+  function openHistoryScreen(){
+    document.getElementById("historyScreen").style.display = "block";
+    renderHistory();
+  }
+  function closeHistoryScreen(){
+    document.getElementById("historyScreen").style.display = "none";
+  }
+  document.getElementById("historyToggle").addEventListener("click", openHistoryScreen);
+  document.getElementById("closeHistoryBtn").addEventListener("click", closeHistoryScreen);
 
   function exportSessionsToCSV(){
     const list = loadSessions();
@@ -4003,6 +4400,10 @@
         return `<svg viewBox="0 0 100 100"><circle cx="30" cy="28" r="12" ${s}/><circle cx="66" cy="28" r="12" ${s}/><circle cx="48" cy="56" r="10" ${s}/><path d="M12 82c2-16 12-24 18-24s10 4 10 4M88 82c-2-16-12-24-18-24s-10 4-10 4M30 82c1-12 8-18 18-18s17 6 18 18" ${s}/></svg>`;
       case "expert":
         return `<svg viewBox="0 0 100 100"><path d="M32 14v24a18 18 0 0 0 36 0V14" ${s}/><circle cx="32" cy="10" r="6" fill="currentColor"/><circle cx="68" cy="10" r="6" fill="currentColor"/><path d="M50 56v14" ${s}/><circle cx="50" cy="78" r="12" ${s}/></svg>`;
+      case "copy":
+        return `<svg viewBox="0 0 100 100"><rect x="34" y="34" width="52" height="52" rx="8" ${s}/><path d="M66 34V22a6 6 0 0 0-6-6H20a6 6 0 0 0-6 6v46a6 6 0 0 0 6 6h12" ${s}/></svg>`;
+      case "printer":
+        return `<svg viewBox="0 0 100 100"><rect x="20" y="38" width="60" height="30" rx="5" ${s}/><path d="M30 38V20a4 4 0 0 1 4-4h32a4 4 0 0 1 4 4v18M30 68v12a2 2 0 0 0 2 2h36a2 2 0 0 0 2-2V68" ${s}/><circle cx="66" cy="48" r="3" fill="currentColor"/></svg>`;
       default:
         return "";
     }
@@ -4313,6 +4714,7 @@
   document.getElementById("historyToggleIconSlot").innerHTML = uiIconSVG("chart");
   document.getElementById("tabLeaderboardIconSlot").innerHTML = uiIconSVG("trophy");
   document.getElementById("tabReportIconSlot").innerHTML = uiIconSVG("calendar");
+  document.getElementById("tabSummaryIconSlot").innerHTML = uiIconSVG("grid");
   document.getElementById("exportCsvIconSlot").innerHTML = uiIconSVG("arrow-down");
 
   document.getElementById("categoryIntroClose").addEventListener("click", ()=>{
@@ -4411,6 +4813,10 @@
     soundEnabled = e.target.checked;
   });
 
+  document.getElementById("confettiToggle").addEventListener("change", (e)=>{
+    confettiEnabled = e.target.checked;
+  });
+
   document.getElementById("hapticToggle").addEventListener("change", (e)=>{
     hapticEnabled = e.target.checked;
   });
@@ -4429,5 +4835,6 @@
     document.getElementById("failThresholdValue").textContent = FAIL_SEC_PER_ITEM.toFixed(1) + " sn";
   });
 </script>
+<div id="printArea"></div>
 </body>
 </html>
