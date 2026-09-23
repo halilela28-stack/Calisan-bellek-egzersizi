@@ -5149,12 +5149,17 @@
     });
     const FREE_SCROLL = ".exercise-row, input[type='range'], select, textarea";
     const LS_SCROLL = "#lsMore, .settings-screen, .category-screen, .mode-screen, .onboard-screen, .consent-screen";
-    let sx = 0, sy = 0;
+    const INTERACTIVE = "button, a, input, select, textarea, label";   // düğme vb. — dokunuşa asla müdahale edilmesin
+    let sx = 0, sy = 0, startedOnInteractive = false;
     document.addEventListener("touchstart", e=>{
-      if(e.touches.length === 1){ sx = e.touches[0].clientX; sy = e.touches[0].clientY; }
+      if(e.touches.length === 1){
+        sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+        startedOnInteractive = e.target instanceof Element && !!e.target.closest(INTERACTIVE);
+      }
     }, {passive:true});
     document.addEventListener("touchmove", e=>{
       if(e.touches.length > 1){ e.preventDefault(); return; }
+      if(startedOnInteractive) return;   // parmak biraz kıpırdasa bile düğme dokunuşu bozulmasın
       const t = e.target;
       if(!(t instanceof Element)) return;
       if(t.closest(FREE_SCROLL)) return;
