@@ -262,7 +262,7 @@
     background:var(--bg);
     z-index:105;
     overflow-y:auto;
-    padding:24px 20px;
+    padding:64px 20px 24px;
   }
   .category-inner{
     max-width:480px;
@@ -1488,11 +1488,36 @@
     0%{ transform: translateY(0) rotate(0deg); opacity:1; }
     100%{ transform: translateY(var(--fall-distance, 700px)) rotate(var(--spin, 540deg)); opacity:0; }
   }
+
+  .category-badge-soon{ background:#FDECC8; color:#8A5A00; }
+
+  .flow-back-btn{
+    position:absolute;
+    top:calc(14px + env(safe-area-inset-top, 0px));
+    left:14px;
+    width:36px; height:36px;
+    border:1px solid var(--line);
+    background:var(--panel);
+    border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    color:var(--ink);
+    z-index:5;
+  }
+  .flow-back-btn svg{ width:20px; height:20px; }
+
+  .category-switch-back{
+    display:inline-flex; width:17px; height:17px;
+    vertical-align:-4px; margin-right:3px;
+    color:var(--teal-dark);
+  }
+  .category-switch-back svg{ width:100%; height:100%; stroke-width:3.2; }
 </style>
 </head>
 <body>
 <pre id="diagBox"></pre>
 <div class="onboard-screen" id="onboardScreen">
+  <button class="flow-back-btn" id="onboardBackBtn" style="display:none;" aria-label="Geri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg></button>
   <div class="onboard-inner" id="onboardInner">
     <div class="onboard-slide active" data-slide="0">
       <div class="onboard-emoji" id="onboardIcon0"></div>
@@ -1523,6 +1548,7 @@
 </div>
 
 <div class="consent-screen" id="consentScreen" style="display:none;">
+  <button class="flow-back-btn" id="consentBackBtn" aria-label="Geri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg></button>
   <div class="consent-inner">
     <span class="consent-icon" id="consentIconSlot"></span>
     <h2>Gizlilik ve Onay</h2>
@@ -1540,6 +1566,7 @@
 </div>
 
 <div class="mode-screen" id="modeScreen" style="display:none;">
+  <button class="flow-back-btn" id="modeBackBtn" aria-label="Geri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg></button>
   <div class="mode-inner">
     <h2>Zihin Atölyesi</h2>
     <p class="mode-sub">Nasıl kullanacaksın?</p>
@@ -1552,6 +1579,23 @@
       <span class="mode-emoji" style="color:#3A6EA5;"><svg viewBox="0 0 100 100" style="width:34px;height:34px;"><path d="M32 14v24a18 18 0 0 0 36 0V14" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="32" cy="10" r="6" fill="currentColor"/><circle cx="68" cy="10" r="6" fill="currentColor"/><path d="M50 56v14" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="50" cy="78" r="12" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       <span class="mode-title">Uzman Modu</span>
       <span class="mode-desc">Tam kontrol — düzey, egzersiz ve aşamayı serbestçe seç</span>
+    </button>
+  </div>
+</div>
+
+<div class="mode-screen" id="readingLevelScreen" style="display:none;">
+  <button class="flow-back-btn" id="readingLevelBackBtn" aria-label="Geri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg></button>
+  <div class="mode-inner">
+    <h2>Düzey</h2>
+    <button class="mode-card" data-level="pre">
+      <span class="mode-emoji" style="color:#C97F32;"><svg viewBox="0 0 100 100" style="width:34px;height:34px;"><rect x="18" y="46" width="30" height="30" rx="5" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><rect x="52" y="28" width="30" height="30" rx="5" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span class="mode-title">Okuma Öncesi</span>
+      <span class="mode-desc">Henüz okuma yazma bilmeyen çocuklar için — okuma gerektirmeyen çalışmalar</span>
+    </button>
+    <button class="mode-card" data-level="post">
+      <span class="mode-emoji" style="color:#2E5F8A;"><svg viewBox="0 0 100 100" style="width:34px;height:34px;"><path d="M50 26c-9-8-25-10-37-6v50c12-4 28-2 37 6 9-8 25-10 37-6V20c-12-4-28-2-37 6Z" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M50 26v50" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round"/></svg></span>
+      <span class="mode-title">Okuma Sonrası</span>
+      <span class="mode-desc">Okuma yazma bilen çocuklar ve bireyler için — mevcut tüm çalışmalar</span>
     </button>
   </div>
 </div>
@@ -1639,6 +1683,16 @@
   </div>
 </div>
 
+<div class="settings-screen" id="emptyCategoryScreen" style="display:none;">
+  <div class="settings-inner">
+    <div class="settings-header">
+      <h2 id="emptyCategoryTitle">Kategori</h2>
+      <button class="icon-btn" id="closeEmptyCategoryBtn">✕</button>
+    </div>
+    <p class="settings-note">Bu kategoride okuma öncesi çalışma henüz yok. Çalışmalar hazırlandıkça burada görünecek.</p>
+  </div>
+</div>
+
 <div class="settings-screen" id="historyScreen" style="display:none;">
   <div class="settings-inner">
     <div class="settings-header">
@@ -1667,6 +1721,7 @@
 </div>
 
 <div class="category-screen" id="categoryScreen" style="display:none;">
+  <button class="flow-back-btn" id="categoryBackBtn" aria-label="Geri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg></button>
   <div class="category-inner">
     <h2>Ne üzerinde çalışalım?</h2>
     <p class="category-sub">Bir kategori seç, istersen sonra değiştirebilirsin.</p>
@@ -1685,7 +1740,7 @@
     </div>
   </div>
   <div class="top" style="margin-top:-6px;">
-    <button class="mode-switch" id="categorySwitchBtn"><span id="categoryIconSlot" class="category-switch-icon"></span> <span id="categoryLabel">Kategori</span></button>
+    <button class="mode-switch" id="categorySwitchBtn" aria-label="Geri: Kategori"><span class="category-switch-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg></span><span id="categoryIconSlot" class="category-switch-icon"></span> <span id="categoryLabel">Kategori</span></button>
     <span class="page-indicator" id="pageIndicator">Sayfa 1 / 12</span>
   </div>
 
@@ -1941,6 +1996,7 @@
   const EXERCISES = [
     {
       id: "shape-color",
+      readingLevel: ["pre","post"],
       label: "Şekil - Renk",
       attrs: ["shape","color"],
       randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
@@ -1960,6 +2016,7 @@
     },
     {
       id: "number-color",
+      readingLevel: ["pre","post"],
       label: "Sayı - Renk",
       attrs: ["number","color"],
       randomItem: () => ({ number: randomInt(1,9), color: randomItem(COLORS) }),
@@ -1979,6 +2036,7 @@
     },
     {
       id: "object-name",
+      readingLevel: ["pre","post"],
       label: "Nesne Adı",
       attrs: ["object","color"],
       randomItem: () => ({ object: randomItem(OBJECTS), color: randomItem(COLORS) }),
@@ -1998,6 +2056,7 @@
     },
     {
       id: "eye-tracking",
+      readingLevel: ["pre","post"],
       label: "Göz Takip",
       isMotion: true,
       attrs: [],
@@ -2020,6 +2079,7 @@
     // ---------- Yürütücü İşlev ----------
     {
       id: "stroop",
+      readingLevel: ["post"],
       label: "Renk-Kelime Uyumsuzluğu",
       attrs: ["word","inkColor"],
       randomItem: () => {
@@ -2044,6 +2104,7 @@
     },
     {
       id: "task-switch",
+      readingLevel: ["pre","post"],
       label: "Kural Değişimi",
       attrs: ["shape","color"],
       randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
@@ -2063,6 +2124,7 @@
     },
     {
       id: "go-no-go",
+      readingLevel: ["pre","post"],
       label: "Ket Vurma",
       attrs: ["shape","color"],
       randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
@@ -2084,6 +2146,7 @@
     // ---------- Çalışan Bellek (N-Geri) ----------
     {
       id: "nback-shape",
+      readingLevel: ["pre","post"],
       label: "Şekil N-Geri",
       attrs: ["shape"],
       randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
@@ -2103,6 +2166,7 @@
     },
     {
       id: "nback-color",
+      readingLevel: ["pre","post"],
       label: "Renk N-Geri",
       attrs: ["color"],
       randomItem: () => ({ color: randomItem(COLORS) }),
@@ -2122,6 +2186,7 @@
     },
     {
       id: "nback-number",
+      readingLevel: ["pre","post"],
       label: "Sayı N-Geri",
       attrs: ["number"],
       randomItem: () => ({ number: randomInt(1,9), color: randomItem(COLORS) }),
@@ -2143,6 +2208,7 @@
     // ---------- İleriye Dönük Bellek (Prospective Memory) ----------
     {
       id: "prospective-event",
+      readingLevel: ["pre","post"],
       label: "İleriye Dönük Bellek (Olay)",
       attrs: ["shape","color"],
       randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
@@ -2166,6 +2232,7 @@
     },
     {
       id: "prospective-time",
+      readingLevel: ["pre","post"],
       label: "İleriye Dönük Bellek (Zaman)",
       attrs: ["shape","color"],
       randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
@@ -2185,6 +2252,7 @@
     },
     {
       id: "prospective-delayed",
+      readingLevel: ["pre","post"],
       label: "Ertelenmiş Görev Hatırlama",
       attrs: ["shape","color"],
       randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
@@ -2206,6 +2274,7 @@
     // ---------- Görsel Zıt Kavramlar ----------
     {
       id: "visual-opposites",
+      readingLevel: ["pre","post"],
       label: "Görsel Zıt Kavramlar",
       attrs: ["type","state"],
       randomItem: () => {
@@ -2231,6 +2300,7 @@
     // ---------- Sözel Organizasyon ----------
     {
       id: "word-group",
+      readingLevel: ["post"],
       label: "Kelime Gruplama",
       attrs: ["word"],
       randomItem: () => {
@@ -2255,6 +2325,7 @@
     },
     {
       id: "syllable-count",
+      readingLevel: ["post"],
       label: "Hece Sayma",
       attrs: ["word"],
       randomItem: () => randomItem(SYLLABLE_WORDS),
@@ -2274,6 +2345,7 @@
     },
     {
       id: "opposite-match",
+      readingLevel: ["post"],
       label: "Zıt Anlam",
       attrs: ["word"],
       randomItem: () => randomItem(ANTONYM_PAIRS),
@@ -2295,6 +2367,7 @@
     // ---------- Sözel Kavrama ----------
     {
       id: "similarities",
+      readingLevel: ["post"],
       label: "Benzerlik Bulma",
       attrs: ["a"],
       randomItem: () => randomItem(SIMILARITY_PAIRS),
@@ -2314,6 +2387,7 @@
     },
     {
       id: "vocabulary",
+      readingLevel: ["post"],
       label: "Kelime Tanımlama",
       attrs: ["word"],
       randomItem: () => randomItem(VOCAB_WORDS),
@@ -2333,6 +2407,7 @@
     },
     {
       id: "practical-reasoning",
+      readingLevel: ["post"],
       label: "Genel Kavrama",
       attrs: ["q"],
       randomItem: () => randomItem(COMPREHENSION_QS),
@@ -2354,6 +2429,7 @@
     // ---------- Algısal Akıl Yürütme ----------
     {
       id: "odd-one-out",
+      readingLevel: ["pre","post"],
       label: "Farklı Olanı Bul",
       attrs: ["dimension"],
       randomItem: () => {
@@ -2387,6 +2463,7 @@
     },
     {
       id: "sequence-pattern",
+      readingLevel: ["pre","post"],
       label: "Örüntü Tamamlama",
       attrs: ["answer"],
       randomItem: () => {
@@ -2414,6 +2491,7 @@
     },
     {
       id: "visual-analogy",
+      readingLevel: ["pre","post"],
       label: "Görsel Analoji",
       attrs: ["shape1"],
       randomItem: () => {
@@ -2441,6 +2519,7 @@
     // ---------- Görsel Organizasyon ----------
     {
       id: "size-sort",
+      readingLevel: ["pre","post"],
       label: "Boyut Sıralama",
       attrs: ["size"],
       randomItem: () => ({ size: randomItem(["small","medium","large"]), color: randomItem(COLORS) }),
@@ -2460,6 +2539,7 @@
     },
     {
       id: "arrow-direction",
+      readingLevel: ["pre","post"],
       label: "Yön Bulma",
       attrs: ["direction"],
       randomItem: () => {
@@ -2492,6 +2572,7 @@
     },
     {
       id: "edge-count",
+      readingLevel: ["pre","post"],
       label: "Kenar Sayma",
       attrs: ["sides"],
       randomItem: () => ({ sides: randomItem([3,4,5,6]), color: randomItem(COLORS) }),
@@ -2513,6 +2594,7 @@
     // ---------- Sözel Bellek (çalış-hatırla) ----------
     {
       id: "word-list-recall",
+      readingLevel: ["post"],
       label: "Kelime Listesi Hatırlama",
       isRecall: true,
       attrs: ["word"],
@@ -2538,6 +2620,7 @@
     },
     {
       id: "digit-span",
+      readingLevel: ["pre","post"],
       label: "Rakam Dizisi (Digit Span)",
       isRecall: true,
       attrs: ["number"],
@@ -2558,6 +2641,7 @@
     },
     {
       id: "sentence-repeat",
+      readingLevel: ["post"],
       label: "Cümle/Öbek Tekrarı",
       isRecall: true,
       attrs: ["phrase"],
@@ -2585,6 +2669,7 @@
     // ---------- Görsel Bellek (çalış-hatırla) ----------
     {
       id: "shape-recall",
+      readingLevel: ["pre","post"],
       label: "Şekil Hatırlama",
       isRecall: true,
       attrs: ["shape","color"],
@@ -2610,6 +2695,7 @@
     },
     {
       id: "position-recall",
+      readingLevel: ["pre","post"],
       label: "Konum Hatırlama",
       isRecall: true,
       attrs: ["lit"],
@@ -2635,6 +2721,7 @@
     },
     {
       id: "color-recall",
+      readingLevel: ["pre","post"],
       label: "Renk Hatırlama",
       isRecall: true,
       attrs: ["color"],
@@ -2663,6 +2750,7 @@
   const CATEGORIES = [
     {
       id:"islemleme-hizi",
+      readingLevel:["post"],
       label:"İşlemleme Hızı",
       sub:"Hızlı İsimlendirme — Şekil-Renk, Sayı-Renk, Nesne Adı, Hece",
       purpose:"Görsel bir uyaranı hızlıca tanıyıp isimlendirme alıştırması yapar; bu beceri okuma akıcılığıyla ilişkilendirilir.",
@@ -2672,6 +2760,7 @@
     },
     {
       id:"goz-takip",
+      readingLevel:["pre","post"],
       label:"Göz Takip",
       sub:"Görsel takip / pursuit egzersizi",
       purpose:"Gözlerin hareketli bir hedefi baş hareketi kullanmadan takip etme alıştırması yapar.",
@@ -2681,6 +2770,7 @@
     },
     {
       id:"yurutucu-islev",
+      readingLevel:["post"],
       label:"Yürütücü İşlev",
       sub:"Stroop, kural değişimi, ket vurma",
       purpose:"Dikkati yönetme, kural değiştirme ve dürtüsel tepkiyi durdurma becerisini çalıştırır.",
@@ -2690,6 +2780,7 @@
     },
     {
       id:"calisan-bellek",
+      readingLevel:["pre","post"],
       label:"Çalışan Bellek",
       sub:"N-geri, digit span, ileriye dönük bellek",
       purpose:"Birden fazla bilgiyi aynı anda zihinde tutup güncelleme (n-geri) veya bir niyeti geleceğe taşıma (ileriye dönük bellek) becerilerini çalıştırır.",
@@ -2699,6 +2790,7 @@
     },
     {
       id:"sozel-bellek",
+      readingLevel:["post"],
       label:"Sözel Bellek",
       sub:"Kelime listesi, öbek tekrarı",
       purpose:"Duyduğu bilgiyi kısa süre zihninde tutup doğru sırayla geri getirme becerisini çalıştırır.",
@@ -2708,6 +2800,7 @@
     },
     {
       id:"gorsel-bellek",
+      readingLevel:["pre","post"],
       label:"Görsel Bellek",
       sub:"Şekil, konum, renk hatırlama",
       purpose:"Gördüğü görsel bilgiyi kısa süre sonra hatırlama becerisini çalıştırır.",
@@ -2717,6 +2810,7 @@
     },
     {
       id:"sozel-organizasyon",
+      readingLevel:["post"],
       label:"Sözel Organizasyon",
       sub:"Kategori, zıt anlam",
       purpose:"Kelimeleri anlamına, sesine veya kategorisine göre hızlıca sınıflandırma becerisini çalıştırır.",
@@ -2726,6 +2820,7 @@
     },
     {
       id:"sozel-kavrama",
+      readingLevel:["post"],
       label:"Sözel Kavrama",
       sub:"Benzerlik bulma, kelime tanımlama, genel kavrama",
       purpose:"Kelimeler arası soyut ilişkiler kurma ve sözel akıl yürütme becerisini çalıştırır.",
@@ -2735,6 +2830,7 @@
     },
     {
       id:"gorsel-organizasyon",
+      readingLevel:["pre","post"],
       label:"Görsel Organizasyon",
       sub:"Boyut, yön, kenar sayısı",
       purpose:"Görsel öğeleri boyut, yön veya yapı gibi özelliklerine göre analiz etme becerisini çalıştırır.",
@@ -2744,6 +2840,7 @@
     },
     {
       id:"algisal-akil-yurutme",
+      readingLevel:["pre","post"],
       label:"Algısal Akıl Yürütme",
       sub:"Farklı olanı bulma, örüntü tamamlama, görsel analoji",
       purpose:"Görsel örüntüleri analiz edip mantıksal ilişki kurma becerisini çalıştırır.",
@@ -2755,7 +2852,10 @@
 
   function exerciseById(id){ return EXERCISES.find(e => e.id === id); }
   function currentCategory(){ return CATEGORIES[currentCategoryIndex]; }
-  function currentCategoryExercises(){ return currentCategory().exerciseIds.map(exerciseById); }
+  function currentCategoryExercises(){
+    const all = currentCategory().exerciseIds.map(exerciseById);
+    return readingLevel === "pre" ? all.filter(ex => ex.readingLevel.includes("pre")) : all;
+  }
 
   function buildSequenceForCategory(){
     const seq = [];
@@ -2769,6 +2869,8 @@
   }
 
   let currentCategoryIndex = 0;
+  let appMode = null;
+  let readingLevel = null;
   let SEQUENCE = buildSequenceForCategory();
 
   let currentIndex = 0;
@@ -2777,7 +2879,6 @@
   let currentPlayerName = "";
   let playersList = [];
   let currentHistoryTab = "recent";
-  let appMode = null;
   let currentErrorCount = 0;
   let successStreak = 0;
   let currentReportPlayer = "Herkes";
@@ -4238,6 +4339,44 @@
   }
   document.getElementById("historyToggle").addEventListener("click", openHistoryScreen);
   document.getElementById("closeHistoryBtn").addEventListener("click", closeHistoryScreen);
+  document.getElementById("closeEmptyCategoryBtn").addEventListener("click", ()=>{
+    document.getElementById("emptyCategoryScreen").style.display = "none";
+    openCategoryScreen();
+  });
+
+  document.getElementById("onboardBackBtn").addEventListener("click", ()=>{
+    if(onboardStep > 0) showOnboardStep(onboardStep - 1);
+  });
+
+  document.getElementById("consentBackBtn").addEventListener("click", ()=>{
+    document.getElementById("consentScreen").style.display = "none";
+    document.getElementById("onboardScreen").style.display = "flex";
+    showOnboardStep(ONBOARD_SLIDES - 1);
+  });
+
+  document.getElementById("modeBackBtn").addEventListener("click", ()=>{
+    document.getElementById("modeScreen").style.display = "none";
+    if(modeScreenBackTarget === "consentScreen"){
+      document.getElementById("consentScreen").style.display = "flex";
+    } else {
+      document.getElementById("onboardScreen").style.display = "flex";
+      showOnboardStep(ONBOARD_SLIDES - 1);
+    }
+  });
+
+  document.getElementById("readingLevelBackBtn").addEventListener("click", ()=>{
+    document.getElementById("readingLevelScreen").style.display = "none";
+    document.getElementById("modeScreen").style.display = "flex";
+  });
+
+  document.getElementById("categoryBackBtn").addEventListener("click", ()=>{
+    document.getElementById("categoryScreen").style.display = "none";
+    if(categoryBackTarget === "mainApp"){
+      document.getElementById("mainApp").style.display = "flex";
+    } else {
+      document.getElementById("readingLevelScreen").style.display = "flex";
+    }
+  });
 
   function exportSessionsToCSV(){
     const list = loadSessions();
@@ -4349,6 +4488,13 @@
   function startApp(mode){
     appMode = mode;
     document.getElementById("modeScreen").style.display = "none";
+    document.getElementById("readingLevelScreen").style.display = "flex";
+  }
+
+  function chooseReadingLevel(level){
+    readingLevel = level;
+    categoryBackTarget = "readingLevelScreen";
+    document.getElementById("readingLevelScreen").style.display = "none";
     renderCategoryList();
     document.getElementById("categoryScreen").style.display = "block";
   }
@@ -4491,6 +4637,26 @@
 
   function categoryIconSVG(id, color){
     const s = `stroke="${color}" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"`;
+    if(readingLevel === "pre"){
+      switch(id){
+        case "islemleme-hizi":
+          return `<svg viewBox="0 0 100 100"><path d="M58 10 24 58h20l-9 32 37-46H54Z" ${s} fill="${color}22"/></svg>`;
+        case "goz-takip":
+          return `<svg viewBox="0 0 100 100"><path d="M50 12l11 24 27 3-20 18 6 27-24-14-24 14 6-27-20-18 27-3Z" ${s} fill="${color}22"/></svg>`;
+        case "yurutucu-islev":
+          return `<svg viewBox="0 0 100 100"><rect x="34" y="12" width="32" height="76" rx="15" ${s}/><circle cx="50" cy="34" r="8.5" fill="${color}"/><circle cx="50" cy="50" r="8.5" fill="${color}66"/><circle cx="50" cy="66" r="8.5" fill="${color}2A"/></svg>`;
+        case "calisan-bellek":
+          return `<svg viewBox="0 0 100 100"><rect x="14" y="46" width="36" height="36" rx="9" fill="${color}"/><rect x="50" y="18" width="36" height="36" rx="9" fill="${color}77"/></svg>`;
+        case "sozel-bellek":
+          return `<svg viewBox="0 0 100 100"><path d="M50 14a30 30 0 0 0-13 57l-3 14 16-9a30 30 0 1 0 0-62Z" ${s} fill="${color}22"/><circle cx="42" cy="48" r="5.5" fill="${color}"/><circle cx="60" cy="42" r="5.5" fill="${color}"/><path d="M47.5 48V32l17-4v14" ${s}/></svg>`;
+        case "gorsel-bellek":
+          return `<svg viewBox="0 0 100 100"><rect x="12" y="30" width="76" height="54" rx="13" ${s}/><rect x="36" y="17" width="28" height="15" rx="6" ${s}/><circle cx="50" cy="57" r="17" ${s}/><circle cx="50" cy="57" r="7" fill="${color}"/></svg>`;
+        case "sozel-organizasyon":
+          return `<svg viewBox="0 0 100 100"><path d="M20 42h60l-6 38a9 9 0 0 1-9 8H35a9 9 0 0 1-9-8Z" ${s} fill="${color}22"/><path d="M32 42 41 20h18l9 22" ${s}/></svg>`;
+        case "sozel-kavrama":
+          return `<svg viewBox="0 0 100 100"><path d="M50 13a25 25 0 0 0-14 46c3 2 5 6 5 10h18c0-4 2-8 5-10a25 25 0 0 0-14-46Z" ${s} fill="${color}22"/><path d="M42 78h16M45 87h10" ${s}/></svg>`;
+      }
+    }
     switch(id){
       case "sozel-kavrama":
         return `<svg viewBox="0 0 100 100"><path d="M16 24h68v42H46l-16 16V66H16Z" ${s}/><path d="M42 38a8 8 0 0 1 16 0c0 6-8 6-8 14" stroke="${color}" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="50" cy="60" r="2.5" fill="${color}"/></svg>`;
@@ -4539,11 +4705,16 @@
     }
   }
 
+  function categoryHasPreExercises(cat){
+    return cat.exerciseIds.some(id => exerciseById(id).readingLevel.includes("pre"));
+  }
+
   function renderCategoryList(){
     const list = document.getElementById("categoryList");
     list.innerHTML = "";
     let lastGroup = null;
-    CATEGORIES.forEach((cat, i)=>{
+    CATEGORIES.forEach((cat)=>{
+      const realIndex = CATEGORIES.indexOf(cat);
       if(cat.group !== lastGroup){
         const header = document.createElement("div");
         header.className = "category-group-header";
@@ -4554,15 +4725,19 @@
       const card = document.createElement("button");
       card.className = "category-card";
       const isDraft = !["islemleme-hizi","goz-takip"].includes(cat.id);
+      const isComingSoon = readingLevel === "pre" && !categoryHasPreExercises(cat);
+      let badge = "";
+      if(isComingSoon) badge = `<span class="category-badge category-badge-soon">Yakında eklenecek</span>`;
+      else if(isDraft) badge = `<span class="category-badge">Taslak · örnek çalışmalar</span>`;
       card.innerHTML = `
         <span class="category-icon-badge" style="background:${cat.color}22;">${categoryIconSVG(cat.id, cat.color)}</span>
         <span class="category-card-text">
           <span class="category-card-title">${cat.label}</span>
           <span class="category-card-sub">${cat.sub}</span>
-          ${isDraft ? `<span class="category-badge">Taslak · örnek çalışmalar</span>` : ``}
+          ${badge}
         </span>
       `;
-      card.addEventListener("click", ()=> selectCategory(i));
+      card.addEventListener("click", ()=> selectCategory(realIndex));
       list.appendChild(card);
     });
   }
@@ -4571,6 +4746,12 @@
 
   function selectCategory(i){
     currentCategoryIndex = i;
+    if(currentCategoryExercises().length === 0){
+      document.getElementById("categoryScreen").style.display = "none";
+      document.getElementById("emptyCategoryTitle").textContent = currentCategory().label;
+      document.getElementById("emptyCategoryScreen").style.display = "block";
+      return;
+    }
     SEQUENCE = buildSequenceForCategory();
     currentIndex = 0;
     currentStageIndex = 0;
@@ -4602,6 +4783,7 @@
   }
 
   function openCategoryScreen(){
+    categoryBackTarget = "mainApp";
     document.getElementById("mainApp").style.display = "none";
     renderCategoryList();
     document.getElementById("categoryScreen").style.display = "block";
@@ -4627,6 +4809,7 @@
     });
     renderOnboardDots();
     document.getElementById("onboardNextLabel").textContent = i === ONBOARD_SLIDES-1 ? "Hadi başlayalım →" : "Devam →";
+    document.getElementById("onboardBackBtn").style.display = i > 0 ? "flex" : "none";
   }
 
   const TEXT_SIZE_KEY = "wm_text_size_v1";
@@ -4656,9 +4839,13 @@
 
   const CONSENT_KEY = "wm_consent_accepted_v1";
 
+  let modeScreenBackTarget = "onboardScreen";
+  let categoryBackTarget = "readingLevelScreen";
+
   function proceedAfterOnboarding(){
     document.getElementById("onboardScreen").style.display = "none";
     if(localStorage.getItem(CONSENT_KEY) === "true"){
+      modeScreenBackTarget = "onboardScreen";
       document.getElementById("modeScreen").style.display = "flex";
     } else {
       document.getElementById("consentScreen").style.display = "flex";
@@ -4679,6 +4866,7 @@
 
   document.getElementById("consentAcceptBtn").addEventListener("click", ()=>{
     if(!document.getElementById("consentCheckbox").checked) return;
+    modeScreenBackTarget = "consentScreen";
     try{ localStorage.setItem(CONSENT_KEY, "true"); }catch(e){}
     if(firestoreReady && window.__fb){
       const { db, collection, addDoc, uid } = window.__fb;
@@ -4692,9 +4880,14 @@
   showOnboardStep(0);
   // initFirestore artık "firebase-ready" olayıyla tetikleniyor
 
-  document.querySelectorAll(".mode-card").forEach(card=>{
+  document.querySelectorAll(".mode-card[data-mode]").forEach(card=>{
     card.addEventListener("click", ()=>{
       startApp(card.dataset.mode);
+    });
+  });
+  document.querySelectorAll(".mode-card[data-level]").forEach(card=>{
+    card.addEventListener("click", ()=>{
+      chooseReadingLevel(card.dataset.level);
     });
   });
 
