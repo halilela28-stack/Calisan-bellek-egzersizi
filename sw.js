@@ -3,7 +3,7 @@
 // yalnızca ağ başarısız olursa (çevrimdışıysa) son önbelleğe alınan sürümü göster.
 // Firebase/harici istekler hiç dokunulmadan doğrudan ağa gider.
 const CACHE_NAME = "zihin-atolyesi-v1";
-const APP_SHELL = ["./", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+const APP_SHELL = ["./zihin-atolyesi.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
