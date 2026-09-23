@@ -6,6 +6,14 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="theme-color" content="#EEF3F3">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Zihin Atölyesi">
 <title>Zihin Atölyesi</title>
 <style>
   :root{
@@ -4138,6 +4146,13 @@
     const area = document.getElementById("printArea");
     if(area) area.innerHTML = "";
   });
+
+  // Çevrimdışı destek: uygulama kabuğunu önbelleğe alan basit bir servis işçisi.
+  if("serviceWorker" in navigator){
+    window.addEventListener("load", ()=>{
+      navigator.serviceWorker.register("sw.js").catch(()=>{});
+    });
+  }
 
   function renderRecent(){
     const container = document.getElementById("historyList");
