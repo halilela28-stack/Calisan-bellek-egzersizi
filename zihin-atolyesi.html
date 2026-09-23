@@ -3457,9 +3457,14 @@
   function updateCloudBadge(){
     const badge = document.getElementById("cloudBadge");
     if(!badge) return;
-    badge.innerHTML = firestoreReady
-      ? `<span class="ui-icon-slot">${uiIconSVG("cloud")}</span> Bulut`
-      : `<span class="ui-icon-slot">${uiIconSVG("cloud-off")}</span> Yerel`;
+    const pending = firestoreReady ? 0 : pendingWriteCount();
+    if(firestoreReady){
+      badge.innerHTML = `<span class="ui-icon-slot">${uiIconSVG("cloud")}</span> Bulut`;
+    } else if(pending > 0){
+      badge.innerHTML = `<span class="ui-icon-slot">${uiIconSVG("cloud-off")}</span> Yerel · ${pending} bekliyor`;
+    } else {
+      badge.innerHTML = `<span class="ui-icon-slot">${uiIconSVG("cloud-off")}</span> Yerel`;
+    }
     badge.className = "cloud-badge " + (firestoreReady ? "on" : "off");
   }
 
@@ -3486,6 +3491,7 @@
         updateCloudBadge();
         refreshHistoryIfVisible();
         renderPersonDataList();
+        flushPendingWrites();
       }, (err)=>{
         console.error("Firestore sessions okuma hatası:", err);
         firestoreReady = false;
@@ -3519,6 +3525,49 @@
   function loadSessions(){
     return sessionHistory.slice();
   }
+
+  // ---------- Çevrimdışı bekleyen yazma kuyruğu ----------
+  const PENDING_KEY = "wm_pending_writes_v1";
+
+  function loadPendingWrites(){
+    try{
+      const raw = localStorage.getItem(PENDING_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }catch(e){ return []; }
+  }
+  function savePendingWrites(list){
+    try{ localStorage.setItem(PENDING_KEY, JSON.stringify(list)); }catch(e){}
+  }
+  function queuePendingWrite(coll, data){
+    const list = loadPendingWrites();
+    list.push({coll, data});
+    while(list.length > 500) list.shift();   // sınırsız büyümeyi önle
+    savePendingWrites(list);
+    updateCloudBadge();
+  }
+  function pendingWriteCount(){
+    return loadPendingWrites().length;
+  }
+  function flushPendingWrites(){
+    if(!(firestoreReady && window.__fb)) return;
+    const list = loadPendingWrites();
+    if(list.length === 0) return;
+    const { db, collection, addDoc } = window.__fb;
+    const remaining = [];
+    let left = list.length;
+    list.forEach((item)=>{
+      addDoc(collection(db, item.coll), withUid(item.data))
+        .catch(()=> remaining.push(item))
+        .finally(()=>{
+          left--;
+          if(left === 0){
+            savePendingWrites(remaining);
+            updateCloudBadge();
+          }
+        });
+    });
+  }
+  window.addEventListener("online", flushPendingWrites);
 
   // ---------- Kişi bazlı veri silme ----------
   function renderPersonDataList(){
@@ -3625,6 +3674,7 @@
       addDoc(collection(db, "levelEvents"), withUid(record)).catch(e=> console.error("Düzey olayı kaydedilemedi:", e));
     } else {
       levelEvents.push(record);
+      queuePendingWrite("levelEvents", record);
     }
   }
 
@@ -3649,6 +3699,7 @@
       } else {
         sessionHistory.push(record);
         while(sessionHistory.length > 50) sessionHistory.shift();
+        queuePendingWrite("sessions", record);
       }
       flashSaved();
       celebrateSave();
@@ -4313,6 +4364,7 @@
     } else {
       playersList.push(name);
       renderPlayerOptions();
+      queuePendingWrite("players", { name, createdAt: Date.now() });
     }
     currentPlayerName = name;
     document.getElementById("newPlayerRow").style.display = "none";
