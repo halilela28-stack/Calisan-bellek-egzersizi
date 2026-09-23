@@ -1520,6 +1520,11 @@
     color:var(--teal-dark);
   }
   .category-switch-back svg{ width:100%; height:100%; stroke-width:3.2; }
+
+  .mode-card.suggested{
+    border-color:var(--teal-dark);
+    box-shadow:0 0 0 2px var(--teal-dark) inset;
+  }
 </style>
 </head>
 <body>
@@ -1595,6 +1600,18 @@
   <button class="flow-back-btn" id="readingLevelBackBtn" aria-label="Geri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg></button>
   <div class="mode-inner">
     <h2>Düzey</h2>
+    <div class="player-row" style="margin-bottom:10px;">
+      <span class="player-label">Kim çalışıyor?</span>
+      <select id="levelPlayerSelect" class="player-input">
+        <option value="">Seç...</option>
+        <option value="__new__">+ Yeni kişi ekle</option>
+      </select>
+    </div>
+    <div class="player-row" id="levelNewPlayerRow" style="display:none;">
+      <input type="text" id="levelNewPlayerInput" class="player-input" placeholder="Yeni isim yaz" maxlength="20">
+      <button class="add-player-btn" id="levelAddPlayerBtn">Ekle</button>
+    </div>
+    <div class="settings-note" id="levelPlayerStatus" style="min-height:16px; margin:2px 0 12px;"></div>
     <button class="mode-card" data-level="pre">
       <span class="mode-emoji" style="color:#C97F32;"><svg viewBox="0 0 100 100" style="width:34px;height:34px;"><rect x="18" y="46" width="30" height="30" rx="5" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><rect x="52" y="28" width="30" height="30" rx="5" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       <span class="mode-title">Okuma Öncesi</span>
@@ -1653,6 +1670,7 @@
     <div class="settings-divider"></div>
 
     <div class="settings-label" style="margin-bottom:8px;">Adaptif zorluk eşikleri (Aile Modu)</div>
+    <p class="settings-note" style="margin-bottom:10px;">Varsayılanlar, Düzey ekranında seçilen okuma öncesi/sonrası düzeyine göre otomatik ayarlanır; buradan istediğin an değiştirebilirsin.</p>
 
     <div class="settings-slider-row">
       <span class="settings-slider-label">Hızlı sayılma süresi (öğe başına sn)</span>
@@ -2879,6 +2897,72 @@
   let currentCategoryIndex = 0;
   let appMode = null;
   let readingLevel = null;
+
+  // ---------- Kişi başına okuma düzeyi hafızası ----------
+  const PLAYER_LEVELS_KEY = "wm_player_levels_v1";
+  let playerReadingLevels = {};
+  try{
+    playerReadingLevels = JSON.parse(localStorage.getItem(PLAYER_LEVELS_KEY) || "{}");
+  }catch(e){ playerReadingLevels = {}; }
+
+  function getPlayerLevel(name){
+    return playerReadingLevels[name] || null;
+  }
+  function rememberPlayerLevel(name, level){
+    playerReadingLevels[name] = level;
+    try{ localStorage.setItem(PLAYER_LEVELS_KEY, JSON.stringify(playerReadingLevels)); }catch(e){}
+  }
+
+  // Düzeye göre varsayılan adaptif zorluk eşikleri (okuma öncesi çocuklar için daha toleranslı)
+  function applyLevelDefaultThresholds(level){
+    if(level === "pre"){
+      SUCCESS_SEC_PER_ITEM = 1.6;
+      FAIL_SEC_PER_ITEM = 3.0;
+    } else {
+      SUCCESS_SEC_PER_ITEM = 1.0;
+      FAIL_SEC_PER_ITEM = 2.0;
+    }
+    const si = document.getElementById("successThresholdInput");
+    const fi = document.getElementById("failThresholdInput");
+    if(si){
+      si.value = SUCCESS_SEC_PER_ITEM;
+      document.getElementById("successThresholdValue").textContent = SUCCESS_SEC_PER_ITEM.toFixed(1) + " sn";
+    }
+    if(fi){
+      fi.value = FAIL_SEC_PER_ITEM;
+      document.getElementById("failThresholdValue").textContent = FAIL_SEC_PER_ITEM.toFixed(1) + " sn";
+    }
+  }
+
+  // Düzey ekranındaki "Kim çalışıyor?" seçimi, henüz oluşturulmamış/kaydedilmemiş durumu tutar
+  let pendingLevelPlayerName = null;
+  let pendingLevelPlayerIsNew = false;
+
+  function renderLevelPlayerOptions(){
+    const sel = document.getElementById("levelPlayerSelect");
+    if(!sel) return;
+    const prevValue = sel.value;
+    sel.innerHTML = `<option value="">Seç...</option>` +
+      playersList.map(name => `<option value="${name}">${name}</option>`).join("") +
+      `<option value="__new__">+ Yeni kişi ekle</option>`;
+    if(playersList.includes(prevValue)) sel.value = prevValue;
+  }
+
+  function updateLevelPlayerStatus(){
+    document.querySelectorAll('#readingLevelScreen .mode-card[data-level]').forEach(c=> c.classList.remove("suggested"));
+    const status = document.getElementById("levelPlayerStatus");
+    if(!status) return;
+    if(!pendingLevelPlayerName){ status.textContent = ""; return; }
+    const known = getPlayerLevel(pendingLevelPlayerName);
+    if(known){
+      const label = known === "pre" ? "Okuma Öncesi" : "Okuma Sonrası";
+      status.textContent = `${pendingLevelPlayerName} için önerilen: ${label}`;
+      const card = document.querySelector(`#readingLevelScreen .mode-card[data-level="${known}"]`);
+      if(card) card.classList.add("suggested");
+    } else {
+      status.textContent = `${pendingLevelPlayerName} için düzey seç:`;
+    }
+  }
   let SEQUENCE = buildSequenceForCategory();
 
   let currentIndex = 0;
@@ -3508,8 +3592,13 @@
 
       onSnapshot(mine("players"), (snap)=>{
         playersList = snap.docs.map(d=>d.data().name).sort((a, b)=> String(a).localeCompare(String(b), "tr"));
+        snap.docs.forEach(d=>{
+          const data = d.data();
+          if(data.readingLevel) rememberPlayerLevel(data.name, data.readingLevel);
+        });
         renderPlayerOptions();
         renderPersonDataList();
+        renderLevelPlayerOptions();
       }, (err)=>{
         console.error("Firestore players okuma hatası:", err);
       });
@@ -4555,11 +4644,37 @@
   function startApp(mode){
     appMode = mode;
     document.getElementById("modeScreen").style.display = "none";
+    pendingLevelPlayerName = null;
+    pendingLevelPlayerIsNew = false;
+    const levelSel = document.getElementById("levelPlayerSelect");
+    if(levelSel) levelSel.value = "";
+    document.getElementById("levelNewPlayerRow").style.display = "none";
+    renderLevelPlayerOptions();
+    updateLevelPlayerStatus();
     document.getElementById("readingLevelScreen").style.display = "flex";
   }
 
   function chooseReadingLevel(level){
     readingLevel = level;
+    applyLevelDefaultThresholds(level);
+    if(pendingLevelPlayerName){
+      const name = pendingLevelPlayerName;
+      if(pendingLevelPlayerIsNew && !playersList.includes(name)){
+        if(firestoreReady && window.__fb){
+          const { db, collection, addDoc } = window.__fb;
+          addDoc(collection(db, "players"), withUid({ name, createdAt: Date.now(), readingLevel: level }))
+            .catch(e=> console.error("Profil eklenemedi:", e));
+        } else {
+          playersList.push(name);
+          queuePendingWrite("players", { name, createdAt: Date.now(), readingLevel: level });
+        }
+      }
+      rememberPlayerLevel(name, level);
+      currentPlayerName = name;
+      pendingLevelPlayerName = null;
+      pendingLevelPlayerIsNew = false;
+      renderPlayerOptions();
+    }
     categoryBackTarget = "readingLevelScreen";
     document.getElementById("readingLevelScreen").style.display = "none";
     renderCategoryList();
@@ -4956,6 +5071,33 @@
     card.addEventListener("click", ()=>{
       chooseReadingLevel(card.dataset.level);
     });
+  });
+
+  document.getElementById("levelPlayerSelect").addEventListener("change", (e)=>{
+    const val = e.target.value;
+    const newRow = document.getElementById("levelNewPlayerRow");
+    if(val === "__new__"){
+      newRow.style.display = "flex";
+      document.getElementById("levelNewPlayerInput").focus();
+      pendingLevelPlayerName = null;
+      pendingLevelPlayerIsNew = false;
+    } else {
+      newRow.style.display = "none";
+      pendingLevelPlayerName = val || null;
+      pendingLevelPlayerIsNew = false;
+    }
+    updateLevelPlayerStatus();
+  });
+
+  document.getElementById("levelAddPlayerBtn").addEventListener("click", ()=>{
+    const input = document.getElementById("levelNewPlayerInput");
+    const name = input.value.trim();
+    if(!name) return;
+    pendingLevelPlayerName = name;
+    pendingLevelPlayerIsNew = true;
+    document.getElementById("levelNewPlayerRow").style.display = "none";
+    input.value = "";
+    updateLevelPlayerStatus();
   });
 
   document.getElementById("modeSwitchBtn").addEventListener("click", ()=>{
