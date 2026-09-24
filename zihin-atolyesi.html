@@ -5127,6 +5127,7 @@
   }
 
   function openCategoryScreen(){
+    resetTimer();   // egzersiz ekranından çıkılıyor, çalışan zamanlayıcı arkada tıklamaya devam etmesin
     categoryBackTarget = "mainApp";
     document.getElementById("mainApp").style.display = "none";
     renderCategoryList();
@@ -5263,6 +5264,7 @@
   });
 
   document.getElementById("modeSwitchBtn").addEventListener("click", ()=>{
+    resetTimer();   // egzersiz ekranından çıkılıyor, çalışan zamanlayıcı arkada tıklamaya devam etmesin
     document.getElementById("mainApp").style.display = "none";
     document.getElementById("modeScreen").style.display = "flex";
   });
