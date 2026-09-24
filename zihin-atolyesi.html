@@ -3081,7 +3081,8 @@
     const prevExId = currentExercise().id;
     currentIndex = ((newIndex % SEQUENCE.length) + SEQUENCE.length) % SEQUENCE.length;
     if(currentExercise().id !== prevExId){
-      currentStageIndex = 0;
+      // Egzersiz değişse bile, yeni egzersizde varsa aynı aşamada kalınır (mümkün değilse en yüksek aşamaya sabitlenir)
+      currentStageIndex = Math.min(currentStageIndex, currentExercise().stages.length - 1);
     }
     renderTierRow();
     renderExerciseRow();
