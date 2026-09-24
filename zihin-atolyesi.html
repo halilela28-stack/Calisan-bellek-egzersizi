@@ -1273,12 +1273,24 @@
   #lsMore, .ls-bar{ display:contents; }
   .ls-toggle, .ls-page{ display:none; }
   #lsMore .history-toggle, #lsMore .history-panel{ order:100; }
+  .ls-instruction{ display:none; }
 
   @media (orientation: landscape) and (max-height: 520px){
     :root{ --ls-bar:56px; }
     /* Sayfa kaymasın / iOS Safari'de esneyip araç çubuğunu üstte kırpmasın */
     html, body{ overflow:hidden; overscroll-behavior:none; }
     .ls-bar, .board{ touch-action:none; }
+    .ls-instruction{
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient:vertical;
+      overflow:hidden;
+      background:var(--panel); border:1px solid var(--line); border-radius:10px;
+      padding:5px 10px; margin-bottom:6px; flex:0 0 auto;
+      font-size:11.5px; line-height:1.35; color:var(--ink);
+    }
+    .ls-instruction b{ color:var(--teal-dark); }
+    .ls-instruction .example{ display:none; }   /* dar şeritte örnek cümle gizlenir, yer kazanılır */
     .app{
       max-width:none;
       height:100vh; height:100dvh;
@@ -1887,6 +1899,8 @@
   </div>
 
   </div>
+
+  <div class="ls-instruction" id="lsInstructionBox"></div>
 
   <div class="board" id="board"></div>
 
@@ -3350,12 +3364,15 @@
 
   function renderInstruction(){
     const box = document.getElementById("instructionBox");
+    const lsBox = document.getElementById("lsInstructionBox");
     const stage = currentExercise().stages[currentStageIndex];
     const sample = currentGrid[0] || (currentExercise().randomItem ? currentExercise().randomItem() : {});
     const exampleText = stage.example(sample);
-    box.innerHTML = exampleText
+    const html = exampleText
       ? `${stage.instruction()}<span class="example">Örneğin: "${exampleText}" deyin.</span>`
       : `${stage.instruction()}`;
+    box.innerHTML = html;
+    if(lsBox) lsBox.innerHTML = html;
   }
 
   let motionAnimFrame = null;
