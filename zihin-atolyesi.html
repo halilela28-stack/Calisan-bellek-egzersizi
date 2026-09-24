@@ -1525,6 +1525,43 @@
     border-color:var(--teal-dark);
     box-shadow:0 0 0 2px var(--teal-dark) inset;
   }
+
+  .flow-info-btn{
+    position:absolute;
+    top:calc(14px + env(safe-area-inset-top, 0px));
+    right:14px;
+    width:36px; height:36px;
+    border:2px solid var(--teal-dark);
+    background:var(--panel);
+    border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    color:var(--teal-dark);
+    z-index:5;
+  }
+  .flow-info-btn svg{ width:22px; height:22px; }
+  .about-group-header{
+    font-size:12px; font-weight:800; letter-spacing:0.04em; text-transform:uppercase;
+    color:var(--ink-soft); margin:18px 0 8px;
+  }
+  .about-group-header:first-of-type{ margin-top:4px; }
+  .about-cat-row{
+    display:flex; gap:12px; align-items:flex-start;
+    padding:12px 0; border-bottom:1px solid var(--line);
+  }
+  .about-cat-row:last-child{ border-bottom:none; }
+  .about-cat-icon{
+    flex:0 0 auto; width:38px; height:38px; border-radius:11px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .about-cat-icon svg{ width:20px; height:20px; }
+  .about-cat-title{ font-weight:800; color:var(--ink); font-size:14.5px; margin-bottom:2px; }
+  .about-cat-purpose{ font-size:13px; color:var(--ink-soft); line-height:1.4; }
+  .about-cat-impact{ margin-top:8px; display:flex; flex-direction:column; gap:5px; }
+  .about-impact-line{ font-size:12.5px; line-height:1.45; color:var(--ink); }
+  .about-impact-line b{ font-weight:800; }
+  .about-impact-line.good b{ color:#2E7D42; }
+  .about-impact-line.watch b{ color:#8A5A00; }
 </style>
 </head>
 <body>
@@ -1698,6 +1735,7 @@
     <p class="settings-note" style="margin-bottom:10px;">Bir kişiyi sildiğinde o kişiye ait tüm çalışma sonuçları, düzey değişiklikleri ve kişi kaydı kalıcı olarak silinir. Bu işlem geri alınamaz.</p>
     <div id="personDataList" class="person-data-list"></div>
     <p class="settings-note" style="margin-top:8px;"><a href="gizlilik-politikasi.html" target="_blank" rel="noopener">Gizlilik Politikası</a></p>
+    <p class="settings-note" style="margin-top:4px;"><a href="#" id="settingsAboutLink">Hakkında ve kategoriler</a></p>
     <p class="settings-note disclaimer-note" style="margin-top:10px;"><b>Önemli:</b> Zihin Atölyesi bir eğitim ve egzersiz uygulamasıdır. Tanı koymaz, tedavi veya klinik değerlendirme yerine geçmez. Süreler standart bir test değildir ve yaş veya sınıf normlarıyla karşılaştırılmaz.</p>
 
     <div class="settings-divider"></div>
@@ -1748,10 +1786,25 @@
 
 <div class="category-screen" id="categoryScreen" style="display:none;">
   <button class="flow-back-btn" id="categoryBackBtn" aria-label="Geri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg></button>
+  <button class="flow-info-btn" id="aboutBtn" aria-label="Kategoriler hakkında"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="10.5" x2="12" y2="16"/><circle cx="12" cy="7.3" r="1" fill="currentColor" stroke="none"/></svg></button>
   <div class="category-inner">
     <h2>Ne üzerinde çalışalım?</h2>
     <p class="category-sub">Bir kategori seç, istersen sonra değiştirebilirsin.</p>
     <div class="category-list" id="categoryList"></div>
+  </div>
+</div>
+
+<div class="settings-screen" id="aboutScreen" style="display:none;">
+  <div class="settings-inner">
+    <div class="settings-header">
+      <h2>Hakkında</h2>
+      <button class="icon-btn" id="closeAboutBtn">✕</button>
+    </div>
+    <p class="settings-note" style="margin-bottom:16px;">Zihnin için hızlı, oyunsu mini antrenmanlar. Hız, dikkat ve bellek gün boyu hep devrede — bu atölye onlara yönelik kısa alıştırmalar sunar.</p>
+    <p class="settings-note" style="margin-bottom:16px;">Her kategorinin altındaki "güçlü olduğunda / zorlandığında" örnekleri genel eğilimleri anlatır; bir tanı veya değerlendirme değildir.</p>
+    <div id="aboutCategoryList"></div>
+    <p class="settings-note" style="margin-top:16px;">Zihin Atölyesi bir eğitim ve egzersiz uygulamasıdır. Tanı koymaz, tedavi veya klinik değerlendirme yerine geçmez.</p>
+    <button class="save-result-btn" id="closeAboutBtn2" style="margin-top:16px;">Kapat</button>
   </div>
 </div>
 
@@ -4886,6 +4939,97 @@
         return `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" ${s}/></svg>`;
     }
   }
+
+  const CATEGORY_IMPACT = {
+    "islemleme-hizi": {
+      good: "Okuma akıcı ilerler, günlük görevler ve ödevler daha çabuk biter, sınavda zaman sıkıntısı daha az yaşanır.",
+      watch: "Okurken/yazarken yavaş kalabilir, arkadaşlarına yetişmek için daha çok çaba harcayabilir, aynı sürede daha çabuk yorulabilir."
+    },
+    "goz-takip": {
+      good: "Satır takibi rahat ilerler, top oyunları ve el-göz koordinasyonu gerektiren etkinliklerde rahat hareket eder.",
+      watch: "Okurken satır veya kelime atlayabilir, yerini kaybedip aynı satırı tekrar okuyabilir."
+    },
+    "yurutucu-islev": {
+      good: "Kuralları takip eder, dürtüsünü kontrol edip düşünerek tepki verir, bir işten diğerine kolayca geçiş yapar.",
+      watch: "Kuralı unutup eski alışkanlığa dönebilir, düşünmeden hızlı tepki verebilir, ani değişikliklere uyum sağlamakta zorlanabilir."
+    },
+    "calisan-bellek": {
+      good: "Çok adımlı yönergeleri sırasıyla uygular, aynı anda birden fazla bilgiyi aklında tutabilir, yaptığı işin neresinde olduğunu bilir.",
+      watch: "Yönergenin ortasında ne yapacağını unutabilir, işlem sırasında bir adımı atlayabilir, \u201cbir şey getirmesi söylenip başka bir şeyle dönebilir\u201d."
+    },
+    "sozel-bellek": {
+      good: "Sözlü anlatılanı hatırlar, derste veya evde verilen yönergeleri takip edebilir, dinlediği bir hikayeyi aktarabilir.",
+      watch: "Az önce söyleneni çabuk unutabilir, \u201cne demiştin?\u201d diye sık sorabilir, sözlü derslerde bilgi kaybı yaşayabilir."
+    },
+    "gorsel-bellek": {
+      good: "Gördüğü yer, yüz veya nesneyi hatırlar, görsel materyalle (resim, şema) öğrenmesi güçlenir.",
+      watch: "Eşyasını nereye koyduğunu hatırlamakta zorlanabilir, az önce gördüğü bir şekli veya sırayı unutabilir."
+    },
+    "sozel-organizasyon": {
+      good: "Kelimeleri anlamına göre hızlı gruplayabilir, konuşmasını ve yazısını düzenli kurabilir.",
+      watch: "Konuşurken veya yazarken düşüncelerini toparlamakta zorlanabilir, anlatımı dağınık kalabilir."
+    },
+    "sozel-kavrama": {
+      good: "Soyut ilişkileri ve mecazları kolay kavrar, okuduğunu derinlemesine anlayıp yorumlayabilir.",
+      watch: "Mecazi veya soyut anlatımı harfi harfine algılayabilir, okuduğunu anlama düzeyi yüzeysel kalabilir."
+    },
+    "gorsel-organizasyon": {
+      good: "Şekil, boyut ve yön ilişkilerini hızlı kurar; geometri ve uzamsal görevlerde rahat çalışır.",
+      watch: "Şekilleri veya boyutları karşılaştırmakta yavaş kalabilir, sağ-sol veya yukarı-aşağı gibi yön kavramlarında karışıklık yaşayabilir."
+    },
+    "algisal-akil-yurutme": {
+      good: "Örüntüleri ve mantıksal ilişkileri fark eder, yeni ve alışılmadık durumlara hızlı uyum sağlar.",
+      watch: "Bir örüntüyü veya kuralı bulmakta zaman alabilir, alışılmadık görevlerde başlangıçta zorlanabilir."
+    }
+  };
+
+  function renderAboutCategoryList(){
+    const list = document.getElementById("aboutCategoryList");
+    if(!list) return;
+    list.innerHTML = "";
+    let lastGroup = null;
+    CATEGORIES.forEach(cat=>{
+      if(cat.group !== lastGroup){
+        const header = document.createElement("div");
+        header.className = "about-group-header";
+        header.textContent = cat.group;
+        list.appendChild(header);
+        lastGroup = cat.group;
+      }
+      const row = document.createElement("div");
+      row.className = "about-cat-row";
+      const impact = CATEGORY_IMPACT[cat.id];
+      const impactHTML = impact ? `
+        <div class="about-cat-impact">
+          <div class="about-impact-line good"><b>Güçlü olduğunda:</b> ${impact.good}</div>
+          <div class="about-impact-line watch"><b>Zorlandığında:</b> ${impact.watch}</div>
+        </div>
+      ` : "";
+      row.innerHTML = `
+        <span class="about-cat-icon" style="background:${cat.color}22;">${categoryIconSVG(cat.id, cat.color)}</span>
+        <span>
+          <div class="about-cat-title">${cat.label}</div>
+          <div class="about-cat-purpose">${cat.purpose}</div>
+          ${impactHTML}
+        </span>
+      `;
+      list.appendChild(row);
+    });
+  }
+  function openAboutScreen(){
+    renderAboutCategoryList();
+    document.getElementById("aboutScreen").style.display = "block";
+  }
+  function closeAboutScreen(){
+    document.getElementById("aboutScreen").style.display = "none";
+  }
+  document.getElementById("aboutBtn").addEventListener("click", openAboutScreen);
+  document.getElementById("closeAboutBtn").addEventListener("click", closeAboutScreen);
+  document.getElementById("closeAboutBtn2").addEventListener("click", closeAboutScreen);
+  document.getElementById("settingsAboutLink").addEventListener("click", (e)=>{
+    e.preventDefault();
+    openAboutScreen();
+  });
 
   function categoryHasPreExercises(cat){
     return cat.exerciseIds.some(id => exerciseById(id).readingLevel.includes("pre"));
