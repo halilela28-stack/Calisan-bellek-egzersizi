@@ -108,6 +108,7 @@
     flex-direction:column;
     align-items:center;
     justify-content:center;
+    gap:24px;
     padding:24px;
     z-index:120;
   }
@@ -185,8 +186,8 @@
     inset:0;
     background:var(--bg);
     display:flex;
+    flex-direction:column;
     align-items:center;
-    justify-content:center;
     padding:20px;
     z-index:100;
   }
@@ -194,11 +195,20 @@
     max-width:420px;
     width:100%;
     text-align:center;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:22px;
+    min-height:0;
   }
   .mode-inner h2{
     font-size:19px;
     margin:0 0 4px;
     color:var(--ink);
+  }
+  #readingLevelScreen .mode-inner{
+    padding-top:56px;
   }
   .mode-sub{
     font-size:14px;
@@ -215,7 +225,6 @@
     border:1px solid var(--line);
     border-radius:16px;
     padding:18px 16px;
-    margin-bottom:12px;
     cursor:pointer;
   }
   .mode-card:active{
@@ -426,29 +435,6 @@
     margin:0 0 4px;
   }
   html.text-lg .text-size-btn, html.text-xl .text-size-btn{ font-size:14px; }
-  .category-intro{
-    display:flex;
-    align-items:flex-start;
-    gap:8px;
-    background:var(--panel);
-    border:1px solid var(--line);
-    border-left:4px solid var(--teal);
-    border-radius:10px;
-    padding:10px 12px;
-    margin-bottom:10px;
-    font-size:13px;
-    line-height:1.4;
-    color:var(--ink-soft);
-  }
-  .category-intro-close{
-    flex:none;
-    border:none;
-    background:none;
-    color:var(--ink-soft);
-    font-size:13px;
-    cursor:pointer;
-    padding:0 0 0 4px;
-  }
   .avatar-chip{
     display:inline-flex;
     align-items:center;
@@ -676,6 +662,15 @@
     align-items:center;
     gap:8px;
     margin-bottom:10px;
+    border-radius:12px;
+  }
+  .player-row.attn{
+    animation: playerRowAttn 1.1s ease;
+  }
+  @keyframes playerRowAttn{
+    0%, 100% { box-shadow: none; }
+    15%, 45%, 75% { box-shadow: 0 0 0 3px rgba(196,57,43,0.55); }
+    30%, 60%, 90% { box-shadow: 0 0 0 3px rgba(196,57,43,0.15); }
   }
   .player-label{
     font-size:13px;
@@ -1395,7 +1390,7 @@
     /* Tam ekran karşılama / seçim ekranları kısa ekranda taşmasın */
     .mode-screen, .onboard-screen, .consent-screen{ overflow-y:auto; padding:12px 20px; }
     .mode-screen{ align-items:flex-start; }
-    .mode-inner{ margin:auto; }
+    .mode-inner{ margin:auto; flex:none; display:block; }
     .mode-card{ padding:12px 16px; margin-bottom:8px; }
     .onboard-screen, .consent-screen{ justify-content:flex-start; }
     .onboard-screen > :first-child, .consent-screen > :first-child{ margin-top:auto; }
@@ -1660,7 +1655,18 @@
   <button class="flow-back-btn" id="readingLevelBackBtn" aria-label="Geri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg></button>
   <div class="mode-inner">
     <h2>Düzey</h2>
-    <div class="player-row" style="margin-bottom:10px;">
+    <button class="mode-card" data-level="pre">
+      <span class="mode-emoji" style="color:#C97F32;"><svg viewBox="0 0 100 100" style="width:34px;height:34px;"><rect x="18" y="46" width="30" height="30" rx="5" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><rect x="52" y="28" width="30" height="30" rx="5" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span class="mode-title">Okuma Öncesi</span>
+      <span class="mode-desc">Henüz okuma yazma bilmeyen çocuklar için — okuma gerektirmeyen çalışmalar</span>
+    </button>
+    <button class="mode-card" data-level="post">
+      <span class="mode-emoji" style="color:#2E5F8A;"><svg viewBox="0 0 100 100" style="width:34px;height:34px;"><path d="M50 26c-9-8-25-10-37-6v50c12-4 28-2 37 6 9-8 25-10 37-6V20c-12-4-28-2-37 6Z" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M50 26v50" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round"/></svg></span>
+      <span class="mode-title">Okuma Sonrası</span>
+      <span class="mode-desc">Okuma yazma bilen çocuklar ve bireyler için — mevcut tüm çalışmalar</span>
+    </button>
+    <div class="about-group-header" style="margin:0;">Geçmiş Çalışmalar</div>
+    <div class="player-row" style="margin-top:6px; margin-bottom:10px;">
       <span class="player-label">Kim çalışıyor?</span>
       <select id="levelPlayerSelect" class="player-input">
         <option value="">Seç...</option>
@@ -1672,16 +1678,6 @@
       <button class="add-player-btn" id="levelAddPlayerBtn">Ekle</button>
     </div>
     <div class="settings-note" id="levelPlayerStatus" style="min-height:16px; margin:2px 0 12px;"></div>
-    <button class="mode-card" data-level="pre">
-      <span class="mode-emoji" style="color:#C97F32;"><svg viewBox="0 0 100 100" style="width:34px;height:34px;"><rect x="18" y="46" width="30" height="30" rx="5" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><rect x="52" y="28" width="30" height="30" rx="5" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-      <span class="mode-title">Okuma Öncesi</span>
-      <span class="mode-desc">Henüz okuma yazma bilmeyen çocuklar için — okuma gerektirmeyen çalışmalar</span>
-    </button>
-    <button class="mode-card" data-level="post">
-      <span class="mode-emoji" style="color:#2E5F8A;"><svg viewBox="0 0 100 100" style="width:34px;height:34px;"><path d="M50 26c-9-8-25-10-37-6v50c12-4 28-2 37 6 9-8 25-10 37-6V20c-12-4-28-2-37 6Z" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M50 26v50" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round"/></svg></span>
-      <span class="mode-title">Okuma Sonrası</span>
-      <span class="mode-desc">Okuma yazma bilen çocuklar ve bireyler için — mevcut tüm çalışmalar</span>
-    </button>
   </div>
 </div>
 
@@ -1846,18 +1842,13 @@
     <span class="page-indicator" id="pageIndicator">Sayfa 1 / 12</span>
   </div>
 
-  <div class="category-intro" id="categoryIntro" style="display:none;">
-    <span id="categoryIntroText"></span>
-    <button class="category-intro-close" id="categoryIntroClose">✕</button>
-  </div>
-
   <div class="tier-row" id="tierRow"></div>
 
   <div class="exercise-row" id="exerciseRow"></div>
 
   <div class="stage-row" id="stageRow"></div>
 
-  <div class="player-row">
+  <div class="player-row" id="playerRow">
     <span class="player-label">Kim çalışıyor?</span>
     <span class="avatar-slot" id="playerAvatarSlot" style="display:none;"></span>
     <select id="playerSelect" class="player-input">
@@ -1971,9 +1962,9 @@
   const COLOR_NAMES = {"#D55E00":"kiremit","#CC79A7":"mor","#0072B2":"mavi","#009E73":"yeşil","#E69F00":"turuncu"};
 
   const TIERS = [
-    {label:"Başlangıç", rows:4, cols:4, eyeDurationMs:15000, studyDurationMs:8000},
-    {label:"Orta Düzey", rows:5, cols:4, eyeDurationMs:20000, studyDurationMs:12000},
-    {label:"Zor Düzey", rows:5, cols:5, eyeDurationMs:25000, studyDurationMs:16000},
+    {label:"Başlangıç", rows:4, cols:4, eyeDurationMs:60000, eyeSpeedMs:4500, studyDurationMs:8000},
+    {label:"Orta Düzey", rows:5, cols:4, eyeDurationMs:80000, eyeSpeedMs:2500, studyDurationMs:12000},
+    {label:"Zor Düzey", rows:5, cols:5, eyeDurationMs:100000, eyeSpeedMs:1200, studyDurationMs:16000},
   ];
 
   function randomItem(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
@@ -2318,22 +2309,91 @@ const FRUIT_VEG_IMAGES = {
       ]
     },
     {
-      id: "eye-tracking",
+      id: "eye-horizontal",
       readingLevel: ["pre","post"],
-      label: "Göz Takip",
+      label: "Yatay",
       isMotion: true,
+      motionPattern: "horizontal",
       attrs: [],
       stages: [
         {
-          label: "Aşama 1 · Düzenli",
-          pattern: "regular",
-          instruction: () => `Çocuğa <b>"Kafanı sabit tut, sadece gözünle hareket eden şekli takip et"</b> deyin. Şekil düzenli bir yörüngede hareket edecek.`,
+          label: "Takip Et",
+          instruction: () => `Çocuğa <b>"Kafanı sabit tut, sadece gözünle hareket eden şekli takip et"</b> deyin. Şekil yatay eksende sağa ve sola hareket edecek.`,
           example: () => ``
-        },
+        }
+      ]
+    },
+    {
+      id: "eye-vertical",
+      readingLevel: ["pre","post"],
+      label: "Dikey",
+      isMotion: true,
+      motionPattern: "vertical",
+      attrs: [],
+      stages: [
         {
-          label: "Aşama 2 · Karışık",
-          pattern: "random",
-          instruction: () => `Çocuğa <b>"Kafanı sabit tut, sadece gözünle hareket eden şekli takip et"</b> deyin. Bu sefer şekil beklenmedik anlarda yön değiştirecek — dikkat gerektirir.`,
+          label: "Takip Et",
+          instruction: () => `Çocuğa <b>"Kafanı sabit tut, sadece gözünle hareket eden şekli takip et"</b> deyin. Şekil dikey eksende yukarı ve aşağı hareket edecek.`,
+          example: () => ``
+        }
+      ]
+    },
+    {
+      id: "eye-diagonal",
+      readingLevel: ["pre","post"],
+      label: "Çapraz 1",
+      isMotion: true,
+      motionPattern: "diagonal",
+      attrs: [],
+      stages: [
+        {
+          label: "Takip Et",
+          instruction: () => `Çocuğa <b>"Kafanı sabit tut, sadece gözünle hareket eden şekli takip et"</b> deyin. Şekil çapraz olarak sol üst köşeden sağ alt köşeye doğru hareket edecek.`,
+          example: () => ``
+        }
+      ]
+    },
+    {
+      id: "eye-diagonal2",
+      readingLevel: ["pre","post"],
+      label: "Çapraz 2",
+      isMotion: true,
+      motionPattern: "diagonal2",
+      attrs: [],
+      stages: [
+        {
+          label: "Takip Et",
+          instruction: () => `Çocuğa <b>"Kafanı sabit tut, sadece gözünle hareket eden şekli takip et"</b> deyin. Şekil çapraz olarak sağ üst köşeden sol alt köşeye doğru hareket edecek.`,
+          example: () => ``
+        }
+      ]
+    },
+    {
+      id: "eye-square",
+      readingLevel: ["pre","post"],
+      label: "Kare",
+      isMotion: true,
+      motionPattern: "square",
+      attrs: [],
+      stages: [
+        {
+          label: "Takip Et",
+          instruction: () => `Çocuğa <b>"Kafanı sabit tut, sadece gözünle hareket eden şekli takip et"</b> deyin. Şekil kare bir yörünge çizerek hareket edecek.`,
+          example: () => ``
+        }
+      ]
+    },
+    {
+      id: "eye-triangle",
+      readingLevel: ["pre","post"],
+      label: "Üçgen",
+      isMotion: true,
+      motionPattern: "triangle",
+      attrs: [],
+      stages: [
+        {
+          label: "Takip Et",
+          instruction: () => `Çocuğa <b>"Kafanı sabit tut, sadece gözünle hareket eden şekli takip et"</b> deyin. Şekil üçgen bir yörünge çizerek hareket edecek.`,
           example: () => ``
         }
       ]
@@ -3025,11 +3085,11 @@ const FRUIT_VEG_IMAGES = {
       id:"goz-takip",
       readingLevel:["pre","post"],
       label:"Göz Takip",
-      sub:"Görsel takip / pursuit egzersizi",
+      sub:"Görsel takip / pursuit — Yatay, Dikey, Çapraz, Kare, Üçgen",
       purpose:"Gözlerin hareketli bir hedefi baş hareketi kullanmadan takip etme alıştırması yapar.",
       color:"#C97F32",
       group:"Hız & Dikkat",
-      exerciseIds:["eye-tracking"]
+      exerciseIds:["eye-horizontal","eye-vertical","eye-diagonal","eye-diagonal2","eye-square","eye-triangle"]
     },
     {
       id:"yurutucu-islev",
@@ -3527,6 +3587,11 @@ const FRUIT_VEG_IMAGES = {
   function renderStageRow(){
     const row = document.getElementById("stageRow");
     row.innerHTML = "";
+    if(currentExercise().stages.length <= 1){
+      row.style.display = "none";
+      return;
+    }
+    row.style.display = "";
     currentExercise().stages.forEach((stage, i)=>{
       const btn = document.createElement("button");
       btn.className = "stage-btn" + (i===currentStageIndex ? " active" : "");
@@ -3555,7 +3620,7 @@ const FRUIT_VEG_IMAGES = {
 
   let motionAnimFrame = null;
   let motionStartTs = 0;
-  let motionDurationMs = 15000;
+  let motionDurationMs = 60000;
 
   function renderMotionBoard(){
     const board = document.getElementById("board");
@@ -3573,35 +3638,44 @@ const FRUIT_VEG_IMAGES = {
     positionMotionShape(0);
   }
 
-  function motionPathPosition(t, pattern, tierLabel){
-    // t: 0..1 ilerleme oranı
-    let x = 0.5, y = 0.5;
-    if(tierLabel === "Başlangıç"){
-      x = 0.15 + 0.7 * (0.5 - 0.5*Math.cos(t*Math.PI*2));
-      y = 0.5;
-    } else if(tierLabel === "Orta Düzey"){
-      x = 0.5 + 0.35*Math.sin(t*Math.PI*2);
-      y = 0.5 + 0.3*Math.sin(t*Math.PI*4);
-    } else {
-      x = 0.5 + 0.35*Math.cos(t*Math.PI*4);
-      y = 0.5 + 0.35*Math.sin(t*Math.PI*6);
+  // Göz takip yörüngeleri: t, 0..1 arasında TEK BİR turun ilerleme oranıdır (toplam süreden bağımsız, hız = düzeyin eyeSpeedMs'i ile kontrol edilir)
+  const EYE_PATTERNS = {
+    horizontal: (t) => ({ x: 0.5 + 0.42*Math.sin(t*2*Math.PI), y: 0.5 }),
+    vertical:   (t) => ({ x: 0.5, y: 0.5 + 0.38*Math.sin(t*2*Math.PI) }),
+    diagonal:   (t) => {
+      const s = (Math.sin(t*2*Math.PI) + 1) / 2;   // sol üst <-> sağ alt arası gidip gelir
+      return { x: 0.08 + 0.84*s, y: 0.12 + 0.76*s };
+    },
+    diagonal2:  (t) => {
+      const s = (Math.sin(t*2*Math.PI) + 1) / 2;   // sağ üst <-> sol alt arası gidip gelir
+      return { x: 0.92 - 0.84*s, y: 0.12 + 0.76*s };
+    },
+    square: (t) => {
+      const corners = [{x:0.12,y:0.15},{x:0.88,y:0.15},{x:0.88,y:0.85},{x:0.12,y:0.85}];
+      const p = (((t % 1) + 1) % 1) * 4;
+      const seg = Math.floor(p) % 4;
+      const f = p - Math.floor(p);
+      const a = corners[seg], b = corners[(seg+1) % 4];
+      return { x: a.x + (b.x-a.x)*f, y: a.y + (b.y-a.y)*f };
+    },
+    triangle: (t) => {
+      const corners = [{x:0.5,y:0.12},{x:0.88,y:0.85},{x:0.12,y:0.85}];
+      const p = (((t % 1) + 1) % 1) * 3;
+      const seg = Math.floor(p) % 3;
+      const f = p - Math.floor(p);
+      const a = corners[seg], b = corners[(seg+1) % 3];
+      return { x: a.x + (b.x-a.x)*f, y: a.y + (b.y-a.y)*f };
     }
-    if(pattern === "random"){
-      const jitterSeed = Math.floor(t*9) * 12.9898;
-      const jitter = (Math.sin(jitterSeed)*43758.5453) % 1;
-      x += (jitter - 0.5) * 0.18;
-      y += (Math.cos(jitterSeed)*0.5) * 0.14;
-    }
-    x = Math.min(0.92, Math.max(0.08, x));
-    y = Math.min(0.88, Math.max(0.12, y));
-    return {x, y};
-  }
+  };
 
-  function positionMotionShape(t){
+  function positionMotionShape(elapsedMs){
     const shape = document.getElementById("motionShape");
     if(!shape) return;
-    const stage = currentExercise().stages[currentStageIndex];
-    const pos = motionPathPosition(t, stage.pattern, currentTier().label);
+    const ex = currentExercise();
+    const period = currentTier().eyeSpeedMs || 3000;
+    const cycleT = (elapsedMs % period) / period;
+    const fn = EYE_PATTERNS[ex.motionPattern] || EYE_PATTERNS.horizontal;
+    const pos = fn(cycleT);
     shape.style.left = (pos.x*100) + "%";
     shape.style.top = (pos.y*100) + "%";
   }
@@ -3609,19 +3683,19 @@ const FRUIT_VEG_IMAGES = {
   function motionAnimStep(ts){
     if(!motionStartTs) motionStartTs = ts;
     const elapsed = ts - motionStartTs;
-    const t = Math.min(1, elapsed / motionDurationMs);
-    positionMotionShape(t);
+    const overallT = Math.min(1, elapsed / motionDurationMs);
+    positionMotionShape(elapsed);
     const fill = document.getElementById("motionProgressFill");
-    if(fill) fill.style.width = (t*100) + "%";
-    if(t < 1 && timerRunning){
+    if(fill) fill.style.width = (overallT*100) + "%";
+    if(overallT < 1 && timerRunning){
       motionAnimFrame = requestAnimationFrame(motionAnimStep);
-    } else if(t >= 1){
+    } else if(overallT >= 1){
       stopTimer();
     }
   }
 
   function startEyeMotion(){
-    motionDurationMs = currentTier().eyeDurationMs || 15000;
+    motionDurationMs = currentTier().eyeDurationMs || 60000;
     motionStartTs = 0;
     if(motionAnimFrame) cancelAnimationFrame(motionAnimFrame);
     motionAnimFrame = requestAnimationFrame(motionAnimStep);
@@ -4868,8 +4942,12 @@ const FRUIT_VEG_IMAGES = {
       }
     }
     if(!currentPlayerName){
+      const row = document.getElementById("playerRow");
+      row.scrollIntoView({behavior:"smooth", block:"center"});
+      row.classList.remove("attn");
+      void row.offsetWidth;
+      row.classList.add("attn");
       if(landscapeMQ.matches) setLsOpen(true);
-      document.getElementById("playerSelect").focus();
       alert("Başlamadan önce lütfen bir kişi seç veya yeni bir isim ekle.");
       return;
     }
@@ -5296,7 +5374,6 @@ const FRUIT_VEG_IMAGES = {
     });
   }
 
-  const seenCategoryIntros = new Set();
 
   function selectCategory(i){
     currentCategoryIndex = i;
@@ -5317,17 +5394,6 @@ const FRUIT_VEG_IMAGES = {
     if(catIconEl){
       catIconEl.innerHTML = categoryIconSVG(currentCategory().id, currentCategory().color);
       catIconEl.style.color = currentCategory().color;
-    }
-    const introBox = document.getElementById("categoryIntro");
-    if(introBox){
-      if(!seenCategoryIntros.has(currentCategory().id)){
-        document.getElementById("categoryIntroText").textContent = currentCategory().purpose;
-        introBox.style.borderLeftColor = currentCategory().color;
-        introBox.style.display = "flex";
-        seenCategoryIntros.add(currentCategory().id);
-      } else {
-        introBox.style.display = "none";
-      }
     }
     applyModeVisibility();
     renderTierRow();
@@ -5492,10 +5558,6 @@ const FRUIT_VEG_IMAGES = {
   document.getElementById("tabReportIconSlot").innerHTML = uiIconSVG("calendar");
   document.getElementById("tabSummaryIconSlot").innerHTML = uiIconSVG("grid");
   document.getElementById("exportCsvIconSlot").innerHTML = uiIconSVG("arrow-down");
-
-  document.getElementById("categoryIntroClose").addEventListener("click", ()=>{
-    document.getElementById("categoryIntro").style.display = "none";
-  });
 
   document.getElementById("categorySwitchBtn").addEventListener("click", ()=>{
     openCategoryScreen();
