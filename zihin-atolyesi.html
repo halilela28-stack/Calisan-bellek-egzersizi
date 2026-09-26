@@ -209,6 +209,10 @@
   }
   #readingLevelScreen .mode-inner{
     padding-top:56px;
+    gap:10px;
+  }
+  #readingLevelScreen .mode-card[data-level="pre"]{
+    margin-bottom:14px;
   }
   .mode-sub{
     font-size:14px;
@@ -923,7 +927,7 @@
   .row-divider{
     position:absolute;
     height:2px;
-    background:#000;
+    background:rgba(29,42,53,0.45);
     pointer-events:none;
     z-index:1;
   }
@@ -1665,14 +1669,14 @@
       <span class="mode-title">Okuma Sonrası</span>
       <span class="mode-desc">Okuma yazma bilen çocuklar ve bireyler için — mevcut tüm çalışmalar</span>
     </button>
-    <div class="about-group-header" style="margin:0;">Geçmiş Çalışmalar</div>
-    <div class="player-row" style="margin-top:6px; margin-bottom:10px;">
+    <div class="player-row" style="margin-top:14px; margin-bottom:4px;">
       <span class="player-label">Kim çalışıyor?</span>
       <select id="levelPlayerSelect" class="player-input">
         <option value="">Seç...</option>
         <option value="__new__">+ Yeni kişi ekle</option>
       </select>
     </div>
+    <div class="settings-note" style="text-align:center; margin-bottom:6px;">(Geçmiş çalışmalar için)</div>
     <div class="player-row" id="levelNewPlayerRow" style="display:none;">
       <input type="text" id="levelNewPlayerInput" class="player-input" placeholder="Yeni isim yaz" maxlength="20">
       <button class="add-player-btn" id="levelAddPlayerBtn">Ekle</button>
