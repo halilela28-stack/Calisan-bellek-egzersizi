@@ -234,6 +234,79 @@
   .mode-card:active{
     border-color:var(--teal);
   }
+  .kid-card{ border-width:2px; }
+  .kid-game-screen{
+    position:fixed; inset:0; background:var(--bg);
+    display:flex; flex-direction:column;
+    padding:70px 16px 20px;
+    z-index:105;
+  }
+  .kid-game-progress{
+    text-align:center; font-weight:800; color:var(--ink-soft);
+    font-size:15px; margin-bottom:14px;
+  }
+  .kid-game-board{
+    flex:1;
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:14px;
+    align-content:center;
+  }
+  .kid-shape-btn{
+    background:var(--panel);
+    border:2px solid var(--line);
+    border-radius:18px;
+    aspect-ratio:1;
+    padding:14px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  .kid-shape-btn svg{ width:100%; height:100%; }
+  .kid-shape-btn.kid-correct{ border-color:#2E9E5B; background:#E7F7EE; }
+  .kid-shape-btn.kid-wrong{ animation:kidShake 0.35s; border-color:#C94F4F; }
+  @keyframes kidShake{
+    0%,100%{ transform:translateX(0); }
+    25%{ transform:translateX(-6px); }
+    75%{ transform:translateX(6px); }
+  }
+  .kid-memory-board{
+    grid-template-columns:repeat(4, 1fr);
+    gap:10px;
+  }
+  .kid-memory-card{
+    background:var(--teal-dark);
+    border:none; border-radius:14px; aspect-ratio:1;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    padding:10px;
+  }
+  .kid-memory-card svg{ width:100%; height:100%; opacity:0; transition:opacity 0.15s; }
+  .kid-memory-card.flipped{ background:var(--panel); border:2px solid var(--line); }
+  .kid-memory-card.flipped svg{ opacity:1; }
+  .kid-memory-card.matched{ background:#E7F7EE; border:2px solid #2E9E5B; }
+  .kid-memory-card.matched svg{ opacity:1; }
+  .kid-quicktap-board{
+    position:relative;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    display:block;
+  }
+  .kid-quicktap-target{
+    position:absolute;
+    width:64px; height:64px;
+    transform:translate(-50%,-50%);
+    cursor:pointer;
+    animation:kidPop 0.18s;
+    border:none;
+    background:none;
+    padding:0;
+  }
+  .kid-quicktap-target svg{ width:100%; height:100%; }
+  @keyframes kidPop{
+    0%{ transform:translate(-50%,-50%) scale(0.4); }
+    100%{ transform:translate(-50%,-50%) scale(1); }
+  }
   .mode-emoji{ font-size:32px; }
   .mode-title{
     font-size:16px;
@@ -1665,7 +1738,62 @@
       <span class="mode-title">Uzman Modu</span>
       <span class="mode-desc">Tam kontrol — düzey, egzersiz ve aşamayı serbestçe seç</span>
     </button>
+    <button class="mode-card" data-mode="cocuk">
+      <span class="mode-emoji" style="color:#E0932B;"><svg viewBox="0 0 100 100" style="width:34px;height:34px;"><circle cx="50" cy="50" r="38" stroke="currentColor" stroke-width="6" fill="none"/><circle cx="36" cy="42" r="5" fill="currentColor"/><circle cx="64" cy="42" r="5" fill="currentColor"/><path d="M32 62c6 10 30 10 36 0" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round"/></svg></span>
+      <span class="mode-title">Çocuk Modu</span>
+      <span class="mode-desc">Çocuk tek başına oynar — dokunarak cevap verir, uygulama otomatik puanlar</span>
+    </button>
   </div>
+</div>
+
+<div class="mode-screen" id="childModeScreen" style="display:none;">
+  <button class="flow-back-btn" id="childModeBackBtn" aria-label="Geri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg></button>
+  <div class="mode-inner">
+    <h2>Hangi oyunu oynamak istersin?</h2>
+    <button class="mode-card kid-card" id="kidGameOddOneOutBtn" style="border-color:#E0932B;">
+      <span class="mode-emoji" style="color:#E0932B;">🔎</span>
+      <span class="mode-title">Farklı Olanı Bul</span>
+      <span class="mode-desc">Aralarından farklı olanı bul, ona dokun!</span>
+    </button>
+    <button class="mode-card kid-card" id="kidGameMemoryBtn" style="border-color:#2E6F6E;">
+      <span class="mode-emoji" style="color:#2E6F6E;">🃏</span>
+      <span class="mode-title">Hafıza Kartları</span>
+      <span class="mode-desc">Kartları çevir, eşlerini bul!</span>
+    </button>
+    <button class="mode-card kid-card" id="kidGameQuickTapBtn" style="border-color:#C94F4F;">
+      <span class="mode-emoji" style="color:#C94F4F;">⚡️</span>
+      <span class="mode-title">Hızlı Dokun</span>
+      <span class="mode-desc">Beliren şekle olabildiğince hızlı dokun!</span>
+    </button>
+  </div>
+</div>
+
+<div class="mode-screen" id="kidResultScreen" style="display:none;">
+  <div class="mode-inner" style="text-align:center;">
+    <div id="kidResultStars" style="font-size:48px; letter-spacing:6px;"></div>
+    <h2 id="kidResultTitle">Harika iş!</h2>
+    <p class="mode-sub" id="kidResultDetail"></p>
+    <button class="onboard-next-btn" id="kidPlayAgainBtn">Tekrar Oyna</button>
+    <button class="onboard-next-btn" id="kidBackToGamesBtn" style="background:var(--panel); color:var(--ink); border:1px solid var(--line); margin-top:10px;">Oyunlara Dön</button>
+  </div>
+</div>
+
+<div class="kid-game-screen" id="kidOddOneOutScreen" style="display:none;">
+  <button class="flow-back-btn" id="kidOddBackBtn" aria-label="Geri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg></button>
+  <div class="kid-game-progress" id="kidOddProgress"></div>
+  <div class="kid-game-board" id="kidOddBoard"></div>
+</div>
+
+<div class="kid-game-screen" id="kidMemoryScreen" style="display:none;">
+  <button class="flow-back-btn" id="kidMemoryBackBtn" aria-label="Geri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg></button>
+  <div class="kid-game-progress" id="kidMemoryProgress"></div>
+  <div class="kid-game-board kid-memory-board" id="kidMemoryBoard"></div>
+</div>
+
+<div class="kid-game-screen" id="kidQuickTapScreen" style="display:none;">
+  <button class="flow-back-btn" id="kidQuickTapBackBtn" aria-label="Geri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg></button>
+  <div class="kid-game-progress" id="kidQuickTapProgress"></div>
+  <div class="kid-game-board kid-quicktap-board" id="kidQuickTapBoard"></div>
 </div>
 
 <div class="mode-screen" id="readingLevelScreen" style="display:none;">
@@ -5281,6 +5409,10 @@ const FRUIT_VEG_IMAGES = {
   function startApp(mode){
     appMode = mode;
     document.getElementById("modeScreen").style.display = "none";
+    if(mode === "cocuk"){
+      document.getElementById("childModeScreen").style.display = "flex";
+      return;
+    }
     pendingLevelPlayerName = null;
     pendingLevelPlayerIsNew = false;
     const levelSel = document.getElementById("levelPlayerSelect");
@@ -5316,6 +5448,250 @@ const FRUIT_VEG_IMAGES = {
     document.getElementById("readingLevelScreen").style.display = "none";
     renderCategoryList();
     document.getElementById("categoryScreen").style.display = "block";
+  }
+
+  // ================= ÇOCUK MODU (tek başına, dokunmalı, otomatik puanlı oyunlar) =================
+
+  function hideAllKidScreens(){
+    ["childModeScreen","kidResultScreen","kidOddOneOutScreen","kidMemoryScreen","kidQuickTapScreen"]
+      .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = "none"; });
+  }
+
+  function showChildModeScreen(){
+    hideAllKidScreens();
+    document.getElementById("childModeScreen").style.display = "flex";
+  }
+
+  let kidResultReplayFn = null;
+  function showKidResult({stars, title, detail, replay}){
+    hideAllKidScreens();
+    document.getElementById("kidResultStars").textContent = "⭐️".repeat(stars) + "☆".repeat(3-stars);
+    document.getElementById("kidResultTitle").textContent = title;
+    document.getElementById("kidResultDetail").textContent = detail;
+    kidResultReplayFn = replay;
+    document.getElementById("kidResultScreen").style.display = "flex";
+    playSound("save");
+    vibrate([40]);
+  }
+
+  document.getElementById("childModeBackBtn").addEventListener("click", ()=>{
+    document.getElementById("childModeScreen").style.display = "none";
+    document.getElementById("modeScreen").style.display = "flex";
+  });
+  document.getElementById("kidGameOddOneOutBtn").addEventListener("click", startOddOneOut);
+  document.getElementById("kidGameMemoryBtn").addEventListener("click", startMemoryGame);
+  document.getElementById("kidGameQuickTapBtn").addEventListener("click", startQuickTap);
+  document.getElementById("kidOddBackBtn").addEventListener("click", showChildModeScreen);
+  document.getElementById("kidMemoryBackBtn").addEventListener("click", ()=>{ clearInterval(kidMemoryTimerId); showChildModeScreen(); });
+  document.getElementById("kidQuickTapBackBtn").addEventListener("click", ()=>{ kidQuickTapActive = false; showChildModeScreen(); });
+  document.getElementById("kidPlayAgainBtn").addEventListener("click", ()=>{ if(kidResultReplayFn) kidResultReplayFn(); });
+  document.getElementById("kidBackToGamesBtn").addEventListener("click", showChildModeScreen);
+
+  // ---------- Oyun 1: Farklı Olanı Bul ----------
+  let kidOddState = {};
+  const KID_ODD_ROUNDS = [4,4,6,6,9,9,12,12];
+
+  function startOddOneOut(){
+    hideAllKidScreens();
+    document.getElementById("kidOddOneOutScreen").style.display = "flex";
+    kidOddState = { round: 0, mistakes: 0, startTime: Date.now() };
+    renderOddRound();
+  }
+
+  function renderOddRound(){
+    const board = document.getElementById("kidOddBoard");
+    board.innerHTML = "";
+    const n = KID_ODD_ROUNDS[kidOddState.round] || 12;
+    const baseShape = randomItem(SHAPES);
+    const baseColor = randomItem(COLORS);
+    let oddColor = baseColor, oddShape = baseShape;
+    if(Math.random() < 0.5){
+      do { oddColor = randomItem(COLORS); } while(oddColor === baseColor);
+    } else {
+      do { oddShape = randomItem(SHAPES); } while(oddShape === baseShape);
+    }
+    const oddIndex = Math.floor(Math.random()*n);
+    for(let i=0;i<n;i++){
+      const btn = document.createElement("button");
+      btn.className = "kid-shape-btn";
+      const isOdd = (i === oddIndex);
+      btn.innerHTML = shapeSVG(isOdd?oddShape:baseShape, isOdd?oddColor:baseColor);
+      btn.addEventListener("click", ()=> handleOddTap(isOdd, btn));
+      board.appendChild(btn);
+    }
+    document.getElementById("kidOddProgress").textContent = `${kidOddState.round+1} / ${KID_ODD_ROUNDS.length}`;
+  }
+
+  function handleOddTap(correct, btn){
+    if(correct){
+      btn.classList.add("kid-correct");
+      playSound("up");
+      vibrate([25]);
+      setTimeout(()=>{
+        kidOddState.round++;
+        if(kidOddState.round >= KID_ODD_ROUNDS.length){
+          finishOddOneOut();
+        } else {
+          renderOddRound();
+        }
+      }, 450);
+    } else {
+      kidOddState.mistakes++;
+      btn.classList.add("kid-wrong");
+      setTimeout(()=> btn.classList.remove("kid-wrong"), 350);
+    }
+  }
+
+  function finishOddOneOut(){
+    const seconds = ((Date.now() - kidOddState.startTime)/1000).toFixed(1);
+    const m = kidOddState.mistakes;
+    const stars = m === 0 ? 3 : m <= 2 ? 2 : 1;
+    showKidResult({
+      stars,
+      title: "Harika iş!",
+      detail: `${seconds} saniyede, ${m} yanlışla tamamladın.`,
+      replay: startOddOneOut
+    });
+  }
+
+  // ---------- Oyun 2: Hafıza Kartları ----------
+  let kidMemoryState = {};
+  let kidMemoryTimerId = null;
+
+  function startMemoryGame(){
+    hideAllKidScreens();
+    document.getElementById("kidMemoryScreen").style.display = "flex";
+    const icons = SHAPES.map((s,i)=>({shape:s, color:COLORS[i]}));
+    icons.push({shape: SHAPES[0], color: COLORS[4]});
+    const deck = [...icons, ...icons].map((icon,i)=>({...icon, id:i}));
+    for(let i=deck.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [deck[i],deck[j]]=[deck[j],deck[i]]; }
+    kidMemoryState = { deck, flipped: [], matched: new Set(), moves: 0, startTime: Date.now(), locked:false };
+    clearInterval(kidMemoryTimerId);
+    kidMemoryTimerId = setInterval(updateMemoryProgress, 500);
+    renderMemoryBoard();
+    updateMemoryProgress();
+  }
+
+  function updateMemoryProgress(){
+    const seconds = ((Date.now() - kidMemoryState.startTime)/1000).toFixed(0);
+    document.getElementById("kidMemoryProgress").textContent = `${kidMemoryState.moves} hamle · ${seconds} sn`;
+  }
+
+  function renderMemoryBoard(){
+    const board = document.getElementById("kidMemoryBoard");
+    board.innerHTML = "";
+    kidMemoryState.deck.forEach((card, idx)=>{
+      const btn = document.createElement("button");
+      btn.className = "kid-memory-card";
+      btn.innerHTML = shapeSVG(card.shape, card.color);
+      btn.addEventListener("click", ()=> handleMemoryTap(idx, btn));
+      board.appendChild(btn);
+    });
+  }
+
+  function handleMemoryTap(idx, btn){
+    if(kidMemoryState.locked) return;
+    if(kidMemoryState.matched.has(idx)) return;
+    if(kidMemoryState.flipped.some(f=>f.idx===idx)) return;
+    btn.classList.add("flipped");
+    kidMemoryState.flipped.push({idx, btn});
+    if(kidMemoryState.flipped.length === 2){
+      kidMemoryState.moves++;
+      const [a,b] = kidMemoryState.flipped;
+      const cardA = kidMemoryState.deck[a.idx], cardB = kidMemoryState.deck[b.idx];
+      if(cardA.shape === cardB.shape && cardA.color === cardB.color){
+        kidMemoryState.matched.add(a.idx);
+        kidMemoryState.matched.add(b.idx);
+        a.btn.classList.add("matched");
+        b.btn.classList.add("matched");
+        kidMemoryState.flipped = [];
+        playSound("up");
+        if(kidMemoryState.matched.size === kidMemoryState.deck.length){
+          setTimeout(finishMemoryGame, 400);
+        }
+      } else {
+        kidMemoryState.locked = true;
+        setTimeout(()=>{
+          a.btn.classList.remove("flipped");
+          b.btn.classList.remove("flipped");
+          kidMemoryState.flipped = [];
+          kidMemoryState.locked = false;
+        }, 700);
+      }
+    }
+  }
+
+  function finishMemoryGame(){
+    clearInterval(kidMemoryTimerId);
+    const seconds = ((Date.now() - kidMemoryState.startTime)/1000).toFixed(1);
+    const moves = kidMemoryState.moves;
+    const stars = moves <= 16 ? 3 : moves <= 22 ? 2 : 1;
+    showKidResult({
+      stars,
+      title: "Tüm eşleri buldun!",
+      detail: `${moves} hamlede, ${seconds} saniyede tamamladın.`,
+      replay: startMemoryGame
+    });
+  }
+
+  // ---------- Oyun 3: Hızlı Dokun ----------
+  let kidQuickTapState = {};
+  let kidQuickTapActive = false;
+  const KID_QUICKTAP_ROUNDS = 8;
+
+  function startQuickTap(){
+    hideAllKidScreens();
+    document.getElementById("kidQuickTapScreen").style.display = "flex";
+    kidQuickTapState = { round: 0, times: [] };
+    kidQuickTapActive = true;
+    document.getElementById("kidQuickTapProgress").textContent = `0 / ${KID_QUICKTAP_ROUNDS}`;
+    document.getElementById("kidQuickTapBoard").innerHTML = "";
+    setTimeout(spawnQuickTapTarget, 500);
+  }
+
+  function spawnQuickTapTarget(){
+    if(!kidQuickTapActive) return;
+    const board = document.getElementById("kidQuickTapBoard");
+    board.innerHTML = "";
+    const rect = board.getBoundingClientRect();
+    const margin = 40;
+    const x = margin + Math.random() * Math.max(1, rect.width - margin*2);
+    const y = margin + Math.random() * Math.max(1, rect.height - margin*2);
+    const target = document.createElement("button");
+    target.className = "kid-quicktap-target";
+    target.style.left = x + "px";
+    target.style.top = y + "px";
+    target.innerHTML = shapeSVG(randomItem(SHAPES), randomItem(COLORS));
+    const spawnTime = Date.now();
+    target.addEventListener("click", ()=>{
+      if(!kidQuickTapActive) return;
+      kidQuickTapState.times.push(Date.now() - spawnTime);
+      kidQuickTapState.round++;
+      playSound("up");
+      vibrate([20]);
+      document.getElementById("kidQuickTapProgress").textContent = `${kidQuickTapState.round} / ${KID_QUICKTAP_ROUNDS}`;
+      board.innerHTML = "";
+      if(kidQuickTapState.round >= KID_QUICKTAP_ROUNDS){
+        kidQuickTapActive = false;
+        setTimeout(finishQuickTap, 300);
+      } else {
+        setTimeout(spawnQuickTapTarget, 400 + Math.random()*500);
+      }
+    });
+    board.appendChild(target);
+  }
+
+  function finishQuickTap(){
+    const times = kidQuickTapState.times;
+    const avg = times.reduce((a,b)=>a+b,0) / times.length;
+    const best = Math.min(...times);
+    const stars = avg <= 700 ? 3 : avg <= 1100 ? 2 : 1;
+    showKidResult({
+      stars,
+      title: "Tüm turları tamamladın!",
+      detail: `Ortalama tepki süren ${(avg/1000).toFixed(2)} sn, en hızlın ${(best/1000).toFixed(2)} sn.`,
+      replay: startQuickTap
+    });
   }
 
   const AVATAR_COLORS = ["#2E6F6E","#C97F32","#3A6EA5","#4F9D5A","#8A5A8C","#2E5F8A","#D55E00","#0072B2"];
