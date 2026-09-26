@@ -2104,6 +2104,16 @@
 </script>
 <script>
   const COLORS = ["#D55E00","#CC79A7","#0072B2","#009E73","#E69F00"];
+  const COLORS_BY_TIER = [
+    [COLORS[0], COLORS[2]],
+    [COLORS[0], COLORS[2], COLORS[4]],
+    COLORS
+  ];
+  const NUMBERS_BY_TIER = [
+    [1,2,3],
+    [1,2,3,4,5,6],
+    [1,2,3,4,5,6,7,8,9]
+  ];
   const COLOR_NAMES = {"#D55E00":"kiremit","#CC79A7":"mor","#0072B2":"mavi","#009E73":"yeşil","#E69F00":"turuncu"};
 
   const TIERS = [
@@ -2117,6 +2127,16 @@
 
   // ---------- Egzersiz 1: Şekil - Renk ----------
   const SHAPES = ["star","heart","rect","triangle","circle"];
+  const SHAPES_BY_TIER = [
+    ["circle","triangle","rect"],
+    ["circle","triangle","rect","star"],
+    SHAPES
+  ];
+  const SHAPE_COLORS_BY_TIER = [
+    [COLORS[0], COLORS[2], COLORS[4]],
+    [COLORS[0], COLORS[2], COLORS[4], COLORS[1]],
+    COLORS
+  ];
   const SHAPE_NAMES = {star:"yıldız", heart:"kalp", rect:"dikdörtgen", triangle:"üçgen", circle:"daire"};
 
   function shapeSVG(shape, color){
@@ -2411,7 +2431,10 @@ const FRUIT_VEG_IMAGES = {
       readingLevel: ["pre","post"],
       label: "Şekil - Renk",
       attrs: ["shape","color"],
-      randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
+      randomItem: () => {
+        const t = currentCombo().t;
+        return { shape: randomItem(SHAPES_BY_TIER[t]), color: randomItem(SHAPE_COLORS_BY_TIER[t]) };
+      },
       renderItem: (item) => shapeSVG(item.shape, item.color),
       stages: [
         {
@@ -2431,7 +2454,10 @@ const FRUIT_VEG_IMAGES = {
       readingLevel: ["pre","post"],
       label: "Sayı - Renk",
       attrs: ["number","color"],
-      randomItem: () => ({ number: randomInt(1,9), color: randomItem(COLORS) }),
+      randomItem: () => {
+        const t = currentCombo().t;
+        return { number: randomItem(NUMBERS_BY_TIER[t]), color: randomItem(COLORS_BY_TIER[t]) };
+      },
       renderItem: (item) => numberHTML(item.number, item.color),
       stages: [
         {
