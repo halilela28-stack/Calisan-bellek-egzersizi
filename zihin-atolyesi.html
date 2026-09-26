@@ -2485,6 +2485,40 @@ const FRUIT_VEG_IMAGES = {
         }
       ]
     },
+    {
+      id: "eye-junction",
+      readingLevel: ["pre","post"],
+      label: "Çapraz Kavşak",
+      isMotion: true,
+      statefulFn: makeJunctionWalker(),
+      minTier: 2,
+      pulseByTier: [0, 0, 0.3],
+      attrs: [],
+      stages: [
+        {
+          label: "Takip Et",
+          instruction: () => `Çocuğa <b>"Kafanı sabit tut, sadece gözünle hareket eden şekli takip et"</b> deyin. Şekil çapraz kavşaklardan geçerken beklenmedik şekilde yön değiştirecek — bu sayfa kestirilemez.`,
+          example: () => ``
+        }
+      ]
+    },
+    {
+      id: "eye-crossbox",
+      readingLevel: ["pre","post"],
+      label: "Çarpılı Kutu",
+      isMotion: true,
+      statefulFn: makeCrossBoxWalker(),
+      minTier: 2,
+      pulseByTier: [0, 0, 0.3],
+      attrs: [],
+      stages: [
+        {
+          label: "Takip Et",
+          instruction: () => `Çocuğa <b>"Kafanı sabit tut, sadece gözünle hareket eden şekli takip et"</b> deyin. Şekil, kenarları hafif içe basık bir kutunun kenarları ile içindeki çapraz çizgiler arasında beklenmedik şekilde hareket edecek — bu sayfa kestirilemez.`,
+          example: () => ``
+        }
+      ]
+    },
 
     // ---------- Yürütücü İşlev ----------
     {
@@ -3176,7 +3210,7 @@ const FRUIT_VEG_IMAGES = {
       purpose:"Gözlerin hareketli bir hedefi baş hareketi kullanmadan takip etme alıştırması yapar.",
       color:"#C97F32",
       group:"Hız & Dikkat",
-      exerciseIds:["eye-horizontal","eye-vertical","eye-diagonal","eye-diagonal2","eye-wave","eye-steep-wave","eye-depth","eye-square","eye-triangle","eye-star"]
+      exerciseIds:["eye-horizontal","eye-vertical","eye-diagonal","eye-diagonal2","eye-wave","eye-steep-wave","eye-depth","eye-square","eye-triangle","eye-star","eye-junction","eye-crossbox"]
     },
     {
       id:"yurutucu-islev",
@@ -3791,16 +3825,101 @@ const FRUIT_VEG_IMAGES = {
     depth: (t) => ({ x: 0.5, y: 0.5 })
   };
 
+  // ---------- Kestirilemez (rastgele yön değiştiren) yörüngeler ----------
+  // Bunlar t (0..1 döngü oranı) yerine ham elapsedMs alır ve kendi iç durumunu tutar.
+  function makeJunctionWalker(){
+    const center = {x:0.5, y:0.5};
+    const corners = [{x:0.08,y:0.14},{x:0.92,y:0.14},{x:0.92,y:0.86},{x:0.08,y:0.86}];
+    let from = center;
+    let to = corners[Math.floor(Math.random()*4)];
+    let legStartMs = 0;
+    let lastSeen = -1;
+    return function(elapsedMs, legMs){
+      if(lastSeen < 0 || elapsedMs < lastSeen - 50){
+        from = center;
+        to = corners[Math.floor(Math.random()*4)];
+        legStartMs = elapsedMs;
+      }
+      lastSeen = elapsedMs;
+      let f = (elapsedMs - legStartMs) / legMs;
+      while(f >= 1){
+        legStartMs += legMs;
+        const arrivedAtCenter = (to === center);
+        from = to;
+        to = arrivedAtCenter ? corners[Math.floor(Math.random()*4)] : center;
+        f = (elapsedMs - legStartMs) / legMs;
+      }
+      return { x: from.x + (to.x-from.x)*f, y: from.y + (to.y-from.y)*f };
+    };
+  }
+
+  function makeCrossBoxWalker(){
+    const corners = [{x:0.1,y:0.16},{x:0.9,y:0.16},{x:0.9,y:0.84},{x:0.1,y:0.84}];
+    const center = {x:0.5,y:0.5};
+    const pinch = 0.07;
+    function pinchMid(a, b){
+      const m = {x:(a.x+b.x)/2, y:(a.y+b.y)/2};
+      const dx = center.x - m.x, dy = center.y - m.y;
+      const len = Math.hypot(dx,dy) || 1;
+      return { x: m.x + dx/len*pinch, y: m.y + dy/len*pinch };
+    }
+    function pathsFromCorner(i){
+      const next = (i+1)%4, prev = (i+3)%4, opp = (i+2)%4;
+      return [
+        [pinchMid(corners[i],corners[next]), corners[next]],
+        [pinchMid(corners[prev],corners[i]), corners[prev]],
+        [center, corners[opp]]
+      ];
+    }
+    let cur = corners[0];
+    let cornerIdx = 0;
+    let queue = [];
+    let legStartMs = 0;
+    let lastSeen = -1;
+    function pickNewQueue(ms){
+      const options = pathsFromCorner(cornerIdx);
+      queue = options[Math.floor(Math.random()*options.length)].slice();
+      legStartMs = ms;
+    }
+    return function(elapsedMs, legMs){
+      if(lastSeen < 0 || elapsedMs < lastSeen - 50){
+        cur = corners[0]; cornerIdx = 0; pickNewQueue(elapsedMs);
+      }
+      lastSeen = elapsedMs;
+      let f = (elapsedMs - legStartMs) / legMs;
+      while(f >= 1 && queue.length){
+        cur = queue.shift();
+        legStartMs += legMs;
+        f = (elapsedMs - legStartMs) / legMs;
+        if(queue.length === 0){
+          let idx = -1;
+          for(let i=0;i<corners.length;i++){ if(corners[i].x===cur.x && corners[i].y===cur.y){ idx=i; break; } }
+          cornerIdx = idx !== -1 ? idx : 0;
+          pickNewQueue(legStartMs);
+        }
+      }
+      const target = queue[0];
+      const ff = Math.min(1, Math.max(0, f));
+      return { x: cur.x + (target.x-cur.x)*ff, y: cur.y + (target.y-cur.y)*ff };
+    };
+  }
+
+
   function positionMotionShape(elapsedMs){
     const shape = document.getElementById("motionShape");
     if(!shape) return;
     const ex = currentExercise();
     const t = currentCombo().t;
     const period = currentTier().eyeSpeedMs || 3000;
-    const cycleT = (elapsedMs % period) / period;
-    const fn = EYE_PATTERNS[ex.motionPattern] || EYE_PATTERNS.horizontal;
-    const waveAmp = ex.waveAmpByTier ? ex.waveAmpByTier[t] : undefined;
-    const pos = fn(cycleT, waveAmp);
+    let pos;
+    if(ex.statefulFn){
+      pos = ex.statefulFn(elapsedMs, period);
+    } else {
+      const cycleT = (elapsedMs % period) / period;
+      const fn = EYE_PATTERNS[ex.motionPattern] || EYE_PATTERNS.horizontal;
+      const waveAmp = ex.waveAmpByTier ? ex.waveAmpByTier[t] : undefined;
+      pos = fn(cycleT, waveAmp);
+    }
     shape.style.left = (pos.x*100) + "%";
     shape.style.top = (pos.y*100) + "%";
 
