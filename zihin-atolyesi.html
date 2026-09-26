@@ -2386,11 +2386,63 @@ const FRUIT_VEG_IMAGES = {
       ]
     },
     {
+      id: "eye-wave",
+      readingLevel: ["pre","post"],
+      label: "Dalga",
+      isMotion: true,
+      motionPattern: "wave",
+      minTier: 1,
+      waveAmpByTier: [0, 0.06, 0.14],
+      attrs: [],
+      stages: [
+        {
+          label: "Takip Et",
+          instruction: () => `Çocuğa <b>"Kafanı sabit tut, sadece gözünle hareket eden şekli takip et"</b> deyin. Şekil yatayda gidip gelirken hafifçe yukarı aşağı dalgalanacak.`,
+          example: () => ``
+        }
+      ]
+    },
+    {
+      id: "eye-steep-wave",
+      readingLevel: ["pre","post"],
+      label: "Dik Dalga",
+      isMotion: true,
+      motionPattern: "steepWave",
+      minTier: 1,
+      waveAmpByTier: [0, 0.06, 0.14],
+      attrs: [],
+      stages: [
+        {
+          label: "Takip Et",
+          instruction: () => `Çocuğa <b>"Kafanı sabit tut, sadece gözünle hareket eden şekli takip et"</b> deyin. Şekil dikeyde gidip gelirken hafifçe sağa sola dalgalanacak.`,
+          example: () => ``
+        }
+      ]
+    },
+    {
+      id: "eye-depth",
+      readingLevel: ["pre","post"],
+      label: "Derinlik",
+      isMotion: true,
+      motionPattern: "depth",
+      minTier: 1,
+      pulseByTier: [0, 0.15, 0.35],
+      attrs: [],
+      stages: [
+        {
+          label: "Takip Et",
+          instruction: () => `Çocuğa <b>"Kafanı sabit tut, gözünle şekli takip et"</b> deyin. Şekil yerinde büyüyüp küçülecek — sana yaklaşıp uzaklaşıyormuş gibi.`,
+          example: () => ``
+        }
+      ]
+    },
+    {
       id: "eye-square",
       readingLevel: ["pre","post"],
       label: "Kare",
       isMotion: true,
       motionPattern: "square",
+      pulseByTier: [0, 0.12, 0.28],
       attrs: [],
       stages: [
         {
@@ -2406,11 +2458,29 @@ const FRUIT_VEG_IMAGES = {
       label: "Üçgen",
       isMotion: true,
       motionPattern: "triangle",
+      pulseByTier: [0, 0.12, 0.28],
       attrs: [],
       stages: [
         {
           label: "Takip Et",
           instruction: () => `Çocuğa <b>"Kafanı sabit tut, sadece gözünle hareket eden şekli takip et"</b> deyin. Şekil üçgen bir yörünge çizerek hareket edecek.`,
+          example: () => ``
+        }
+      ]
+    },
+    {
+      id: "eye-star",
+      readingLevel: ["pre","post"],
+      label: "Yıldız",
+      isMotion: true,
+      motionPattern: "star",
+      minTier: 2,
+      pulseByTier: [0, 0.12, 0.28],
+      attrs: [],
+      stages: [
+        {
+          label: "Takip Et",
+          instruction: () => `Çocuğa <b>"Kafanı sabit tut, sadece gözünle hareket eden şekli takip et"</b> deyin. Şekil yıldız bir yörünge çizerek hareket edecek.`,
           example: () => ``
         }
       ]
@@ -3106,7 +3176,7 @@ const FRUIT_VEG_IMAGES = {
       purpose:"Gözlerin hareketli bir hedefi baş hareketi kullanmadan takip etme alıştırması yapar.",
       color:"#C97F32",
       group:"Hız & Dikkat",
-      exerciseIds:["eye-horizontal","eye-vertical","eye-diagonal","eye-diagonal2","eye-square","eye-triangle"]
+      exerciseIds:["eye-horizontal","eye-vertical","eye-diagonal","eye-diagonal2","eye-wave","eye-steep-wave","eye-depth","eye-square","eye-triangle","eye-star"]
     },
     {
       id:"yurutucu-islev",
@@ -3199,13 +3269,28 @@ const FRUIT_VEG_IMAGES = {
 
   function buildSequenceForCategory(){
     const seq = [];
-    const exCount = currentCategoryExercises().length;
+    const exs = currentCategoryExercises();
     TIERS.forEach((_, t)=>{
-      for(let e=0; e<exCount; e++){
-        seq.push({t, e});
-      }
+      exs.forEach((ex, e)=>{
+        if((ex.minTier || 0) <= t){
+          seq.push({t, e});
+        }
+      });
     });
     return seq;
+  }
+
+  // Bir (düzey, egzersiz) ikilisinin SEQUENCE içindeki gerçek konumunu bulur;
+  // egzersiz o düzeyde yoksa aynı düzeyde en yakın (daha düşük indeksli) egzersize düşer.
+  function findSeqIndex(t, e){
+    let idx = SEQUENCE.findIndex(p => p.t === t && p.e === e);
+    if(idx !== -1) return idx;
+    for(let ee = e - 1; ee >= 0; ee--){
+      idx = SEQUENCE.findIndex(p => p.t === t && p.e === ee);
+      if(idx !== -1) return idx;
+    }
+    idx = SEQUENCE.findIndex(p => p.t === t);
+    return idx !== -1 ? idx : 0;
   }
 
   let currentCategoryIndex = 0;
@@ -3347,13 +3432,12 @@ const FRUIT_VEG_IMAGES = {
   function renderTierRow(){
     const row = document.getElementById("tierRow");
     row.innerHTML = "";
-    const exCount = currentCategoryExercises().length;
     TIERS.forEach((tier, t)=>{
       const btn = document.createElement("button");
       btn.className = "tier-btn" + (t===currentCombo().t ? " active" : "");
       btn.textContent = tier.label;
       btn.addEventListener("click", ()=>{
-        goToIndex(t * exCount + currentCombo().e);
+        goToIndex(findSeqIndex(t, currentCombo().e));
       });
       row.appendChild(btn);
     });
@@ -3363,13 +3447,14 @@ const FRUIT_VEG_IMAGES = {
     const row = document.getElementById("exerciseRow");
     row.innerHTML = "";
     const exs = currentCategoryExercises();
-    const exCount = exs.length;
+    const t = currentCombo().t;
     exs.forEach((ex, e)=>{
+      if((ex.minTier || 0) > t) return;
       const btn = document.createElement("button");
       btn.className = "exercise-btn" + (e===currentCombo().e ? " active" : "");
       btn.textContent = ex.label;
       btn.addEventListener("click", ()=>{
-        goToIndex(currentCombo().t * exCount + e);
+        goToIndex(findSeqIndex(currentCombo().t, e));
       });
       row.appendChild(btn);
     });
@@ -3552,7 +3637,7 @@ const FRUIT_VEG_IMAGES = {
         const combo = currentCombo();
         if(combo.t < TIERS.length - 1){
           const nextTierLabel = TIERS[combo.t+1].label;
-          goToIndex((combo.t+1) * currentCategoryExercises().length + combo.e);
+          goToIndex(findSeqIndex(combo.t+1, combo.e));
           showLevelFlash(`🎉 Harika gidiyorsun! Zorluk artırıldı: ${nextTierLabel}`, "levelup");
           playSound("up");
           vibrate([40, 60, 40]);
@@ -3564,7 +3649,7 @@ const FRUIT_VEG_IMAGES = {
       const combo = currentCombo();
       if(combo.t > 0){
         const prevTierLabel = TIERS[combo.t-1].label;
-        goToIndex((combo.t-1) * currentCategoryExercises().length + combo.e);
+        goToIndex(findSeqIndex(combo.t-1, combo.e));
         showLevelFlash(`Biraz daha pratik edelim, zorluk azaltıldı: ${prevTierLabel}`, "down");
         playSound("down");
         vibrate(80);
@@ -3682,19 +3767,52 @@ const FRUIT_VEG_IMAGES = {
       const f = p - Math.floor(p);
       const a = corners[seg], b = corners[(seg+1) % 3];
       return { x: a.x + (b.x-a.x)*f, y: a.y + (b.y-a.y)*f };
-    }
+    },
+    star: (t) => {
+      const corners = [
+        {x:0.5,y:0.08},{x:0.6,y:0.362},{x:0.899,y:0.37},{x:0.662,y:0.553},{x:0.747,y:0.84},
+        {x:0.5,y:0.67},{x:0.253,y:0.84},{x:0.338,y:0.553},{x:0.101,y:0.37},{x:0.4,y:0.362}
+      ];
+      const n = corners.length;
+      const p = (((t % 1) + 1) % 1) * n;
+      const seg = Math.floor(p) % n;
+      const f = p - Math.floor(p);
+      const a = corners[seg], b = corners[(seg+1) % n];
+      return { x: a.x + (b.x-a.x)*f, y: a.y + (b.y-a.y)*f };
+    },
+    wave: (t, amp) => ({
+      x: 0.5 + 0.42*Math.sin(t*2*Math.PI),
+      y: 0.5 + (amp || 0.06)*Math.sin(t*2*Math.PI*3)
+    }),
+    steepWave: (t, amp) => ({
+      x: 0.5 + (amp || 0.06)*Math.sin(t*2*Math.PI*3),
+      y: 0.5 + 0.38*Math.sin(t*2*Math.PI)
+    }),
+    depth: (t) => ({ x: 0.5, y: 0.5 })
   };
 
   function positionMotionShape(elapsedMs){
     const shape = document.getElementById("motionShape");
     if(!shape) return;
     const ex = currentExercise();
+    const t = currentCombo().t;
     const period = currentTier().eyeSpeedMs || 3000;
     const cycleT = (elapsedMs % period) / period;
     const fn = EYE_PATTERNS[ex.motionPattern] || EYE_PATTERNS.horizontal;
-    const pos = fn(cycleT);
+    const waveAmp = ex.waveAmpByTier ? ex.waveAmpByTier[t] : undefined;
+    const pos = fn(cycleT, waveAmp);
     shape.style.left = (pos.x*100) + "%";
     shape.style.top = (pos.y*100) + "%";
+
+    const pulseAmp = ex.pulseByTier ? (ex.pulseByTier[t] || 0) : 0;
+    if(pulseAmp > 0){
+      const pulsePeriod = ex.pulsePeriodMs || 1400;
+      const pulseT = (elapsedMs % pulsePeriod) / pulsePeriod;
+      const scale = 1 + pulseAmp * Math.sin(pulseT * 2 * Math.PI);
+      shape.style.transform = `translate(-50%, -50%) scale(${scale.toFixed(3)})`;
+    } else {
+      shape.style.transform = "translate(-50%, -50%)";
+    }
   }
 
   function motionAnimStep(ts){
