@@ -4803,6 +4803,10 @@ const FRUIT_VEG_IMAGES = {
       newRow.style.display = "none";
       currentPlayerName = val;
       updatePlayerAvatar(val);
+      if(awaitingPlayerChoice){
+        awaitingPlayerChoice = false;
+        playerPromptResolvedAt = Date.now();
+      }
     }
   });
 
@@ -4841,7 +4845,11 @@ const FRUIT_VEG_IMAGES = {
   }
 
   document.getElementById("addPlayerBtn").addEventListener("click", ()=>{
-    commitNewPlayer();
+    const wasAwaiting = awaitingPlayerChoice;
+    if(commitNewPlayer() && wasAwaiting){
+      awaitingPlayerChoice = false;
+      playerPromptResolvedAt = Date.now();
+    }
   });
 
   function setHistoryTab(tab){
@@ -4952,6 +4960,9 @@ const FRUIT_VEG_IMAGES = {
     }catch(e){}
   });
 
+  let playerPromptResolvedAt = 0;
+  let awaitingPlayerChoice = false;
+
   document.getElementById("timerBtn").addEventListener("click", ()=>{
     if(timerRunning){
       stopTimer();
@@ -4971,7 +4982,14 @@ const FRUIT_VEG_IMAGES = {
       void row.offsetWidth;
       row.classList.add("attn");
       if(landscapeMQ.matches) setLsOpen(true);
+      awaitingPlayerChoice = true;
       alert("Başlamadan önce lütfen bir kişi seç veya yeni bir isim ekle.");
+      return;
+    }
+    // Kişi, uyarı sonrası seçildiyse (ör. seçim çarkı kapanırken kayan bir dokunuş), kısa bir süre
+    // için bu tıklamayı yanlışlık sayıp yok say — kullanıcı Başlat'a BİLEREK tekrar basmalı.
+    if(playerPromptResolvedAt && Date.now() - playerPromptResolvedAt < 700){
+      playerPromptResolvedAt = 0;
       return;
     }
     startTimer();
