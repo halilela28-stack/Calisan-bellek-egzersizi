@@ -1588,7 +1588,7 @@
 </head>
 <body>
 <pre id="diagBox"></pre>
-<div class="onboard-screen" id="onboardScreen">
+<div class="onboard-screen" id="onboardScreen" style="display:none;">
   <button class="flow-back-btn" id="onboardBackBtn" style="display:none;" aria-label="Geri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg></button>
   <div class="onboard-inner" id="onboardInner">
     <div class="onboard-slide active" data-slide="0">
@@ -1616,6 +1616,19 @@
   <div class="onboard-dots" id="onboardDots"></div>
   <button class="onboard-next-btn" id="onboardNextBtn">
     <span class="mode-title" id="onboardNextLabel">Devam →</span>
+  </button>
+</div>
+
+<div class="onboard-screen" id="returnSplashScreen" style="display:none;">
+  <div class="onboard-inner">
+    <div class="onboard-slide active" data-slide="0">
+      <div class="onboard-emoji" id="returnSplashIcon"></div>
+      <h2>Zihin Atölyesi</h2>
+      <p id="returnSloganText"></p>
+    </div>
+  </div>
+  <button class="onboard-next-btn" id="returnSplashBtn">
+    <span class="mode-title">Başla →</span>
   </button>
 </div>
 
@@ -1968,7 +1981,7 @@
   const TIERS = [
     {label:"Başlangıç", rows:4, cols:4, eyeDurationMs:60000, eyeSpeedMs:4500, studyDurationMs:8000},
     {label:"Orta Düzey", rows:5, cols:4, eyeDurationMs:80000, eyeSpeedMs:2500, studyDurationMs:12000},
-    {label:"Zor Düzey", rows:5, cols:5, eyeDurationMs:100000, eyeSpeedMs:1200, studyDurationMs:16000},
+    {label:"Zor Düzey", rows:5, cols:5, eyeDurationMs:100000, eyeSpeedMs:1500, studyDurationMs:16000},
   ];
 
   function randomItem(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
@@ -4865,14 +4878,20 @@ const FRUIT_VEG_IMAGES = {
 
   document.getElementById("consentBackBtn").addEventListener("click", ()=>{
     document.getElementById("consentScreen").style.display = "none";
-    document.getElementById("onboardScreen").style.display = "flex";
-    showOnboardStep(ONBOARD_SLIDES - 1);
+    if(onboardEntryScreen === "returnSplashScreen"){
+      document.getElementById("returnSplashScreen").style.display = "flex";
+    } else {
+      document.getElementById("onboardScreen").style.display = "flex";
+      showOnboardStep(ONBOARD_SLIDES - 1);
+    }
   });
 
   document.getElementById("modeBackBtn").addEventListener("click", ()=>{
     document.getElementById("modeScreen").style.display = "none";
     if(modeScreenBackTarget === "consentScreen"){
       document.getElementById("consentScreen").style.display = "flex";
+    } else if(onboardEntryScreen === "returnSplashScreen"){
+      document.getElementById("returnSplashScreen").style.display = "flex";
     } else {
       document.getElementById("onboardScreen").style.display = "flex";
       showOnboardStep(ONBOARD_SLIDES - 1);
@@ -5463,18 +5482,50 @@ const FRUIT_VEG_IMAGES = {
   });
 
   const CONSENT_KEY = "wm_consent_accepted_v1";
-
+  const SEEN_ONBOARDING_KEY = "wm_seen_onboarding_v1";
+  const RETURN_SLOGANS = [
+    "Bugün zihnini ısıt, yarın fark et.",
+    "Küçük turlar, büyük kazanımlar.",
+    "Odaklan. Hızlan. Şaşırt kendini.",
+    "Her gün birkaç dakika, kalıcı bir fark.",
+    "Zihnin de antrenman ister.",
+    "Bugünkü rekorun hazır mı?",
+    "Dikkat de bir kastır, onu da çalıştır.",
+    "Hız kazan, zamana hakim ol.",
+    "Beynin için en keyifli birkaç dakika.",
+    "Bugün hangi rekoru kıracaksın?",
+    "Küçük adımlar, keskin zihinler.",
+    "Az ve sık çalış, alışkanlık gücünü kullan.",
+    "Zihnini oyun gibi çalıştır.",
+    "Bugün senin antrenman günün.",
+    "Hazır ol, zihnin seni bekliyor."
+  ];
+  let onboardEntryScreen = "onboardScreen";
   let modeScreenBackTarget = "onboardScreen";
   let categoryBackTarget = "readingLevelScreen";
 
   function proceedAfterOnboarding(){
+    localStorage.setItem(SEEN_ONBOARDING_KEY, "true");
     document.getElementById("onboardScreen").style.display = "none";
+    document.getElementById("returnSplashScreen").style.display = "none";
     if(localStorage.getItem(CONSENT_KEY) === "true"){
       modeScreenBackTarget = "onboardScreen";
       document.getElementById("modeScreen").style.display = "flex";
     } else {
       document.getElementById("consentScreen").style.display = "flex";
     }
+  }
+
+  document.getElementById("returnSplashIcon").innerHTML = uiIconSVG("brain");
+  document.getElementById("returnSloganText").textContent = randomItem(RETURN_SLOGANS);
+  document.getElementById("returnSplashBtn").addEventListener("click", proceedAfterOnboarding);
+
+  if(localStorage.getItem(SEEN_ONBOARDING_KEY) === "true"){
+    onboardEntryScreen = "returnSplashScreen";
+    document.getElementById("returnSplashScreen").style.display = "flex";
+  } else {
+    onboardEntryScreen = "onboardScreen";
+    document.getElementById("onboardScreen").style.display = "flex";
   }
 
   document.getElementById("onboardNextBtn").addEventListener("click", ()=>{
