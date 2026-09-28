@@ -1657,6 +1657,69 @@
   .about-impact-line b{ font-weight:800; }
   .about-impact-line.good b{ color:#2E7D42; }
   .about-impact-line.watch b{ color:#8A5A00; }
+  /* ---------- İlk kullanım turu (ok + konuşma balonu) ---------- */
+  .tour-overlay{
+    position:fixed; inset:0; z-index:900; display:none;
+    touch-action:none; overscroll-behavior:contain; cursor:pointer;
+    -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none;
+  }
+  .tour-overlay.final{ background:rgba(12,22,28,.8); }
+  .tour-spot{
+    position:fixed; border-radius:14px; pointer-events:none;
+    box-shadow:0 0 0 100vmax rgba(12,22,28,.68);
+    outline:3px solid #F2A65A; outline-offset:2px;
+    transition:left .18s ease, top .18s ease, width .18s ease, height .18s ease;
+  }
+  .tour-bubble{
+    position:fixed; pointer-events:none; box-sizing:border-box;
+    background:var(--panel); color:var(--ink);
+    border:2px solid var(--line); border-radius:22px;
+    padding:14px 16px 14px; box-shadow:0 10px 30px rgba(0,0,0,.3);
+    animation:tourPop .16s ease-out;
+  }
+  .tour-step{ font-size:12px; font-weight:800; color:var(--ink-soft); letter-spacing:.03em; margin-bottom:2px; }
+  .tour-title{ font-size:17px; font-weight:800; margin-bottom:4px; }
+  .tour-text{ font-size:15px; line-height:1.45; }
+  .tour-cta{
+    margin-top:10px; padding-top:10px; border-top:1px solid var(--line);
+    text-align:center; font-size:15px; font-weight:800; color:var(--teal);
+  }
+  .tour-final-cta{ margin-top:14px; text-align:center; font-size:18px; font-weight:700; color:#fff; opacity:.95; }
+  .tour-arrow{ position:fixed; width:30px; height:38px; pointer-events:none; filter:drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
+  .tour-arrow svg{ display:block; width:100%; height:100%; }
+  .tour-arrow.up{ animation:tourBounceUp .8s ease-in-out infinite; }
+  .tour-arrow.down{ animation:tourBounceDown .8s ease-in-out infinite; }
+  .tour-arrow.down svg{ transform:rotate(180deg); }
+  .tour-skip{
+    pointer-events:auto; display:block; margin:10px auto -4px; background:none; border:none;
+    color:var(--ink-soft); font-size:13px; font-weight:700; padding:8px 14px; cursor:pointer; text-decoration:underline;
+  }
+  .tour-final{
+    position:absolute; inset:0; display:none; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center; padding:24px; color:#fff; pointer-events:none;
+  }
+  .tour-final-title{ font-size:34px; font-weight:800; }
+  @keyframes tourPop{ from{ opacity:0; transform:scale(.94); } to{ opacity:1; transform:scale(1); } }
+  @keyframes tourBounceUp{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-7px); } }
+  @keyframes tourBounceDown{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(7px); } }
+  @media (orientation: landscape) and (max-height: 520px){
+    .tour-bubble{
+      display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:14px; align-items:center;
+      padding:9px 14px; border-radius:18px;
+    }
+    .tour-step{ grid-column:1; grid-row:1; font-size:11px; margin:0; }
+    .tour-title{ grid-column:1; grid-row:2; font-size:16px; margin:0 0 2px; }
+    .tour-text{ grid-column:1; grid-row:3; font-size:14px; line-height:1.35; }
+    .tour-cta{ grid-column:2; grid-row:1 / span 3; margin:0; padding:4px 0 4px 14px; border-top:none; border-left:2px solid var(--line); font-size:15px; max-width:140px; }
+    .tour-skip{ grid-column:1 / -1; margin:4px auto -2px; padding:4px 12px; }
+    .tour-arrow{ width:24px; height:30px; }
+    .tour-final-title{ font-size:28px; }
+    .tour-final-cta{ margin-top:10px; font-size:16px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .tour-arrow.up, .tour-arrow.down, .tour-bubble{ animation:none; }
+    .tour-spot{ transition:none; }
+  }
 </style>
 </head>
 <body>
@@ -1851,6 +1914,22 @@
   </div>
 </div>
 
+<div class="tour-overlay" id="tourOverlay" role="dialog" aria-modal="true" aria-label="Kullanım turu">
+  <div class="tour-spot" id="tourSpot"></div>
+  <div class="tour-arrow up" id="tourArrow"><svg viewBox="0 0 30 38" aria-hidden="true"><path d="M15 2 L28 17 H19 V36 H11 V17 H2 Z" fill="#F2A65A" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg></div>
+  <div class="tour-bubble" id="tourBubble" aria-live="polite">
+    <div class="tour-step" id="tourStep"></div>
+    <div class="tour-title" id="tourTitle"></div>
+    <div class="tour-text" id="tourText"></div>
+    <div class="tour-cta" id="tourCta">Devam etmek için dokun</div>
+    <button class="tour-skip" id="tourSkipBtn" type="button" style="display:none;">Turu kapat</button>
+  </div>
+  <div class="tour-final" id="tourFinal">
+    <div class="tour-final-title">Hadi başlayalım!</div>
+    <div class="tour-final-cta">Başlamak için dokun</div>
+  </div>
+</div>
+
 <div class="settings-screen" id="settingsScreen" style="display:none;">
   <div class="settings-inner">
     <div class="settings-header">
@@ -1925,6 +2004,7 @@
     <div id="personDataList" class="person-data-list"></div>
     <p class="settings-note" style="margin-top:8px;"><a href="gizlilik-politikasi.html" target="_blank" rel="noopener">Gizlilik Politikası</a></p>
     <p class="settings-note" style="margin-top:4px;"><a href="#" id="settingsAboutLink">Hakkında ve kategoriler</a></p>
+    <p class="settings-note" style="margin-top:4px;">Tanıtımı tekrar göster: <a href="#" id="settingsModeTourLink">Mod seçimi</a> · <a href="#" id="settingsLevelTourLink">Düzey</a> · <a href="#" id="settingsCategoryTourLink">Kategori</a> · <a href="#" id="settingsTourLink">Çalışma ekranı</a></p>
     <p class="settings-note disclaimer-note" style="margin-top:10px;"><b>Önemli:</b> Zihin Atölyesi bir eğitim ve egzersiz uygulamasıdır. Tanı koymaz, tedavi veya klinik değerlendirme yerine geçmez. Süreler standart bir test değildir ve yaş veya sınıf normlarıyla karşılaştırılmaz.</p>
 
     <div class="settings-divider"></div>
@@ -2215,17 +2295,30 @@
   };
   const TASTE_NAMES = {watermelon:"karpuz", lemon:"limon", chili:"biber", pasta:"makarna"};
   const TASTE_OF = {watermelon:"tatlı", lemon:"ekşi", chili:"acı", pasta:"tuzlu"};
-  // Düzeye göre çeşit: 2 / 3 / 4 tat. Okul öncesi (x3/5): 2 / 2 / 3 tat.
-  const TASTES_BY_TIER = [
-    ["watermelon","lemon"],
-    ["watermelon","lemon","chili"],
-    ["watermelon","lemon","chili","pasta"]
-  ];
-  const PRE_TASTES_BY_TIER = [
-    ["watermelon","lemon"],
-    ["watermelon","lemon"],
-    ["watermelon","lemon","chili"]
-  ];
+  // Düzey yalnızca KAÇ farklı tat çıkacağını belirler: 2 / 3 / 4. Okul öncesi (x3/5): 2 / 2 / 3.
+  // HANGİ tatların çıkacağı her sayfa yenilenişinde / Karıştır'da dört tat arasından rastgele seçilir.
+  const TASTE_ALL = ["watermelon","lemon","chili","pasta"];
+  const TASTE_COUNT_BY_TIER = [2, 3, 4];
+  const PRE_TASTE_COUNT_BY_TIER = [2, 2, 3];
+  let tasteActivePool = null;
+  let tasteLastKey = "";
+  function tasteWantedCount(){
+    const table = isPre() ? PRE_TASTE_COUNT_BY_TIER : TASTE_COUNT_BY_TIER;
+    return table[currentCombo().t] || table[table.length-1];
+  }
+  function pickTastePool(){
+    const n = tasteWantedCount();
+    let pool, key, tries = 0;
+    do{
+      pool = TASTE_ALL.slice();
+      for(let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
+      pool = pool.slice(0, n);
+      key = pool.slice().sort().join("|");
+      tries++;
+    } while(n < TASTE_ALL.length && key === tasteLastKey && tries < 8);   // Karıştır'da mümkünse aynı takımı tekrar seçme
+    tasteLastKey = key;
+    tasteActivePool = pool;
+  }
 
   const PRE_OBJECTS_BY_TIER = [
     ["dog","jacket","bread"],
@@ -2593,10 +2686,10 @@ const FRUIT_VEG_IMAGES = {
       readingLevel: ["pre","post"],
       label: "Tatlar",
       attrs: ["item"],
+      beginGrid: () => { pickTastePool(); },
       randomItem: () => {
-        const tables = isPre() ? PRE_TASTES_BY_TIER : TASTES_BY_TIER;
-        const pool = tables[currentCombo().t] || tables[tables.length-1];
-        return { item: randomItem(pool) };
+        if(!tasteActivePool || tasteActivePool.length !== tasteWantedCount()) pickTastePool();
+        return { item: randomItem(tasteActivePool) };
       },
       renderItem: (item) => `<img src="${TASTE_IMAGES[item.item]}" alt="" style="width:88%;height:88%;object-fit:contain;display:block;">`,
       stages: [
@@ -3724,6 +3817,7 @@ const FRUIT_VEG_IMAGES = {
   }
 
   function generateGrid(exercise, rows, cols){
+    if(typeof exercise.beginGrid === "function") exercise.beginGrid();   // tahta başına bir kez (ör. Tatlar: hangi tatlar çıkacak)
     // Havuz büyüklüğünü ölç: küçük havuzlarda (<=2 değer) "öncekinden farklı olsun" kuralı zorunlu AB-AB
     // nöbetleşmesine yol açar; bu yüzden orada sadece art arda en fazla 2 aynı değere izin verilir.
     const probe = [];
@@ -6227,6 +6321,277 @@ const FRUIT_VEG_IMAGES = {
   }
 
 
+  // ================= İLK KULLANIM TURU =================
+  // Dört tur: modes (mod seçimi) -> level (düzey) -> category (kategori) -> main (çalışma ekranı).
+  // İlk kullanımda zorunlu: atlanamaz, son adıma kadar dokunarak ilerlenir; bitince bayrak kaydedilir.
+  // "Hadi başlayalım!" ekranı sadece en sondaki turdan (main) sonra çıkar; diğer turlar son adımdan sonra kapanır.
+  // Adımlarda menu:true, "yatay modda menünün içinde olan" öğeyi işaretler (tur menüyü kendisi açar).
+  const TOURS = {
+    modes: {
+      key: "wm_tour_modes_seen_v1",
+      steps: [
+        {sel:'#modeScreen .mode-card[data-mode="aile"]',  title:"Aile Modu",          text:"Basit akış: çalışmalar sırayla ilerler. Süreyi ve hataları yetişkin tutar; zorluk, kaydedilen sonuçlara göre kendiliğinden ayarlanır."},
+        {sel:'#modeScreen .mode-card[data-mode="uzman"]', title:"Uzman Modu",         text:"Tam kontrol: düzeyi, çalışmayı ve aşamayı kendin seçersin; otomatik zorluk istersen Ayarlar'dan açılır. Sonuçları dışa aktarabilirsin."},
+        {sel:'#modeScreen .mode-card[data-mode="cocuk"]', title:"Bilişsel Oyun Modu", text:"Çocuk tek başına oynar: dokunarak cevap verir, uygulama otomatik puanlar."}
+      ]
+    },
+    level: {
+      key: "wm_tour_level_seen_v1",
+      steps: [
+        {sel:'#readingLevelScreen .mode-card[data-level="pre"]',  title:"Okul Öncesi",  text:"Henüz okuma yazma bilmeyen çocuklar için (3-6 yaş). Okuma gerektirmeyen çalışmalar gelir; ekranda daha az öge ve çeşit olur."},
+        {sel:'#readingLevelScreen .mode-card[data-level="post"]', title:"Okul Sonrası", text:"Okuma yazma bilen çocuklar ve yetişkinler için: okuma gerektirenler dahil tüm çalışmalar."},
+        {sel:"#readingLevelScreen .player-row", title:"Kim çalışıyor?", text:"İstersen çalışacak kişiyi şimdi seç ya da yeni kişi ekle. Seçtiğin düzey o kişiye kaydedilir, sonraki sefer aynı düzey önerilir. Seçmezsen çalışma ekranında da seçebilirsin."}
+      ]
+    },
+    category: {
+      key: "wm_tour_category_seen_v1",
+      steps: [
+        {sel:"#aboutBtn", title:"Bilgi", text:"Uygulamayı ve her kategorinin neyi çalıştırdığını anlatan Hakkında sayfasını açar."},
+        {sel:"#categoryList .category-card", title:"Kategoriler", text:"Çalışmak istediğin kategoriye dokun. Her kategori farklı bir bilişsel beceriyi çalıştırır; istediğin an kategori ekranından değiştirebilirsin."}
+      ]
+    },
+    main: {
+      key: "wm_tour_seen_v1",
+      steps: [
+        {sel:"#lsToggleBtn",       title:"Menü",            text:"Ekran kısa olduğu için bazı düğmeler bu menünün içinde. Dokununca açılır; şimdi içindekileri sırayla anlatıyorum."},
+        {sel:"#cloudBadge",        title:"Kayıt durumu",    text:"Bulut: sonuçlar çevrimiçi kaydediliyor. Yerel: bağlantı yok, sonuçlar bu cihazda bekliyor ve bağlantı gelince otomatik yüklenir.", menu:true},
+        {sel:"#settingsBtn",       title:"Ayarlar",         text:"Ses, titreşim, kutlama animasyonu, yazı boyutu, otomatik zorluk eşikleri ve kayıtlı kişilerin verileri burada.", menu:true},
+        {sel:"#modeSwitchBtn",     title:"Mod",             text:"Şu anki modu gösterir (Aile ya da Uzman). Dokununca mod seçimine dönersin.", menu:true},
+        {sel:"#categorySwitchBtn", title:"Kategori",        text:"Şu an çalıştığın kategoriyi gösterir. Dokununca başka bir kategori seçebilirsin.", menu:true},
+        {sel:"#pageIndicator",     title:"Sayfa",           text:"Hangi düzeyde olduğunu ve bu kategoride kaçıncı sayfada olduğunu gösterir.", menu:true},
+        {sel:"#tierRow",           title:"Düzey",           text:"Başlangıç, Orta ya da Zor düzeyi buradan seç. Düzey yükseldikçe çalışma zorlaşır: daha çok öge, daha çok çeşit, daha hızlı hareket gibi.", menu:true},
+        {sel:"#exerciseRow",       title:"Çalışmalar",      text:"Bu kategorideki çalışmalar burada; yana kaydırarak diğerlerini görebilirsin. Bazı çalışmaların aşamaları da olur.", menu:true},
+        {sel:"#stageRow",          title:"Aşamalar",        text:"Aynı çalışmanın aşamaları; genelde giderek zorlaşır (ör. önce ad, sonra ad + renk).", menu:true},
+        {sel:"#playerRow",         title:"Kim çalışıyor?",  text:"Çalışan kişiyi seç ya da yeni kişi ekle. Başlamadan önce kişi seçmek gerekir; sonuçlar bu kişinin adına kaydedilir.", menu:true},
+        {sel:"#instructionBox",    title:"Yönerge",         text:"Çocuğa ne söyleyeceğin ve varsa örnek cevap burada yazıyor.", menu:true},
+        {sel:"#timerBtn",          title:"Başlat",          text:"Süreyi başlatır, düğme 'Bitir'e döner. Çocuk bitirince tekrar dokun; çıkan 'Sonucu Kaydet' düğmesiyle kaydet. Göz takibinde süre dolunca kendiliğinden biter."},
+        {sel:"#timerResetBtn",     title:"Sıfırla",         text:"Süreyi ve hata sayısını sıfırlar; çalışmayı baştan başlatabilirsin."},
+        {sel:"#errorRow",          title:"Hata sayısı",     text:"Çocuğun hatalarını + ile say, yanlış saydıysan − ile düzelt. Göz takibinde bu sayaç gözden kaçırma / baş çevirme sayısını tutar."},
+        {sel:"#board",             title:"Çalışma alanı",   text:"Çocuğun bakacağı ya da adlandıracağı görseller burada.", skipCompact:true},
+        {sel:"#prevBtn",           title:"Önceki",          text:"Bir önceki çalışma sayfasına döner."},
+        {sel:"#reshuffleBtn",      title:"Karıştır",        text:"Aynı sayfayı yeni bir sıralamayla yeniler."},
+        {sel:"#nextBtn",           title:"Sonraki",         text:"Sıradaki çalışma sayfasına geçer. Sayfalar düzeylere ve çalışmalara göre ilerler."},
+        {sel:"#historyToggle",     title:"Geçmiş sonuçlar", text:"Kaydedilen çalışmaları, liderlik tablosunu ve gelişim raporunu burada görürsün.", menu:true}
+      ]
+    }
+  };
+  let tourState = null;
+
+  function tourSeen(kind){ try{ return localStorage.getItem(TOURS[kind].key) === "1"; }catch(e){ return true; } }
+  function tourMarkSeen(kind){ try{ localStorage.setItem(TOURS[kind].key, "1"); }catch(e){} }
+
+  function tourVisible(el){
+    if(!el) return false;
+    const r = el.getBoundingClientRect();
+    if(r.width < 4 || r.height < 4) return false;
+    const cs = getComputedStyle(el);
+    return cs.display !== "none" && cs.visibility !== "hidden";
+  }
+
+  function scheduleTour(kind, screenId){
+    if(tourSeen(kind)) return;
+    setTimeout(()=>{
+      if(document.getElementById(screenId).style.display !== "none") startTour(kind, false);
+    }, 500);
+  }
+
+  // Adım listesini hesapla: görünmeyenleri ele; yatay modda menü içi öğeleri menüyü açarak ölç ve grupla
+  function computeTourSteps(kind){
+    const ls = kind === "main" && landscapeMQ.matches;
+    let steps = TOURS[kind].steps.filter(st => !(ls && st.skipCompact));
+    if(ls) setLsOpen(true);
+    steps = steps.filter(st => tourVisible(document.querySelector(st.sel)));
+    if(ls){
+      setLsOpen(false);
+      const toggle = steps.filter(s => s.sel === "#lsToggleBtn");
+      const inMenu = steps.filter(s => s.menu);
+      const rest   = steps.filter(s => !s.menu && s.sel !== "#lsToggleBtn");
+      steps = [...toggle, ...inMenu, ...rest];
+    } else {
+      steps = steps.filter(s => s.sel !== "#lsToggleBtn");
+    }
+    return steps;
+  }
+
+  function startTour(kind, force){
+    if(tourState) return;
+    if(!force && tourSeen(kind)) return;
+    const steps = computeTourSteps(kind);
+    if(!steps.length){ tourMarkSeen(kind); return; }
+    const scroller = document.scrollingElement || document.documentElement;
+    const mainEl = document.getElementById("mainApp");
+    tourState = { kind, steps, i:0, final:false, mandatory: !force, placement:"", saved:{ doc: scroller.scrollTop, app: mainEl.scrollTop } };
+    // Kapat düğmesi yalnızca kullanıcının kendi istediği tekrar turunda; ilk kullanımda tur zorunlu
+    document.getElementById("tourSkipBtn").style.display = force ? "block" : "none";
+    document.getElementById("tourOverlay").style.display = "block";
+    showTourStep();
+  }
+
+  function showTourStep(){
+    const t = tourState; if(!t) return;
+    if(t.i >= t.steps.length){
+      if(t.kind === "main") showTourFinal();   // "Hadi başlayalım!" yalnızca en sondaki turun sonunda
+      else endTour();
+      return;
+    }
+    const st = t.steps[t.i];
+    if(t.kind === "main" && landscapeMQ.matches) setLsOpen(!!st.menu);   // menü içi adımlarda menü açık, diğerlerinde kapalı
+    const el = document.querySelector(st.sel);
+    if(!tourVisible(el)){ t.i++; showTourStep(); return; }
+    try{ el.scrollIntoView({block:"center", inline:"nearest"}); }catch(e){}
+    requestAnimationFrame(()=>requestAnimationFrame(positionTourStep));
+  }
+
+  function positionTourStep(){
+    const t = tourState; if(!t || t.final) return;
+    const st = t.steps[t.i];
+    const el = document.querySelector(st.sel);
+    if(!tourVisible(el)){ t.i++; showTourStep(); return; }
+    const spot = document.getElementById("tourSpot");
+    const bubble = document.getElementById("tourBubble");
+    const arrow = document.getElementById("tourArrow");
+    const W = window.innerWidth, H = window.innerHeight;
+    const compact = landscapeMQ.matches;
+    const pad = 6, arrowH = compact ? 30 : 38, gap = 6;
+
+    document.getElementById("tourStep").textContent = `${t.i+1} / ${t.steps.length}`;
+    document.getElementById("tourTitle").textContent = st.title;
+    document.getElementById("tourText").textContent = st.text;
+    const bw = Math.min(W - 24, compact ? 600 : (W >= 600 ? 440 : 330));
+    bubble.style.display = "";          // görünürlüğü CSS belirlesin (dikeyde blok, kısa yatayda iki sütunlu ızgara)
+    bubble.style.width = bw + "px";
+    bubble.style.left = "0px"; bubble.style.top = "0px";
+    const bh = bubble.offsetHeight;
+    const need = bh + arrowH + gap;
+
+    let R = el.getBoundingClientRect();
+    const roomBelow = () => H - (R.bottom + pad) - 12;
+    const roomAbove = () => (R.top - pad) - 12;
+    if(roomBelow() < need && roomAbove() < need){
+      // Kısa ekranda büyük hedef: hedefi üste (balon altta) ya da alta (balon üstte) yaslayıp yer aç
+      const prevMargin = el.style.scrollMargin;
+      el.style.scrollMargin = "16px";
+      for(const align of ["start","end"]){
+        try{ el.scrollIntoView({block:align, inline:"nearest"}); }catch(e){}
+        R = el.getBoundingClientRect();
+        if(roomBelow() >= need || roomAbove() >= need) break;
+      }
+      el.style.scrollMargin = prevMargin;
+    }
+
+    spot.style.display = "block";
+    spot.style.left = (R.left - pad) + "px";
+    spot.style.top = (R.top - pad) + "px";
+    spot.style.width = (R.width + pad*2) + "px";
+    spot.style.height = (R.height + pad*2) + "px";
+
+    const fits = roomBelow() >= need || roomAbove() >= need;
+    const below = roomBelow() >= need || (roomAbove() < need && roomBelow() >= roomAbove());
+    let top;
+    if(fits){
+      top = below ? (R.bottom + pad + arrowH + gap) : (R.top - pad - arrowH - gap - bh);
+      t.placement = below ? "below" : "above";
+    } else {
+      // Hiçbir yana sığmıyor (çok büyük hedef ya da çok küçük ekran): balonu hedefin ortasına koy, ok gizli
+      top = R.top + R.height/2 - bh/2;
+      t.placement = "overlay";
+    }
+    top = Math.max(8, Math.min(H - bh - 8, top));
+    const left = Math.max(12, Math.min(W - bw - 12, R.left + R.width/2 - bw/2));
+    bubble.style.left = left + "px";
+    bubble.style.top = top + "px";
+
+    if(fits){
+      arrow.style.display = "block";
+      arrow.className = "tour-arrow " + (below ? "up" : "down");
+      arrow.style.left = Math.max(8, Math.min(W - 38, R.left + R.width/2 - 15)) + "px";
+      arrow.style.top = (below ? (R.bottom + pad + 2) : (R.top - pad - 2 - arrowH)) + "px";
+    } else {
+      arrow.style.display = "none";
+    }
+  }
+
+  function showTourFinal(){
+    const t = tourState; if(!t) return;
+    t.final = true;
+    if(t.kind === "main" && landscapeMQ.matches) setLsOpen(false);
+    document.getElementById("tourOverlay").classList.add("final");
+    ["tourSpot","tourBubble","tourArrow"].forEach(id => document.getElementById(id).style.display = "none");
+    document.getElementById("tourFinal").style.display = "flex";
+  }
+
+  function endTour(){
+    const t = tourState;
+    const ov = document.getElementById("tourOverlay");
+    ov.style.display = "none";
+    ov.classList.remove("final");
+    document.getElementById("tourFinal").style.display = "none";
+    if(t){
+      tourMarkSeen(t.kind);
+      if(t.kind === "main" && landscapeMQ.matches) setLsOpen(false);
+      const scroller = document.scrollingElement || document.documentElement;
+      scroller.scrollTop = t.saved.doc;
+      document.getElementById("mainApp").scrollTop = t.saved.app;
+      if(t.kind === "modes") document.getElementById("modeScreen").scrollTop = 0;
+      if(t.kind === "level") document.getElementById("readingLevelScreen").scrollTop = 0;
+      if(t.kind === "category") document.getElementById("categoryScreen").scrollTop = 0;
+    }
+    tourState = null;
+  }
+
+  function tourAdvance(){
+    if(!tourState) return;
+    if(tourState.final){ endTour(); return; }
+    tourState.i++;
+    showTourStep();
+  }
+
+  document.getElementById("tourOverlay").addEventListener("click", tourAdvance);
+  document.getElementById("tourSkipBtn").addEventListener("click", (e)=>{ e.stopPropagation(); endTour(); });
+  document.addEventListener("keydown", (e)=>{
+    if(!tourState) return;
+    if(e.key === "Escape"){ if(!tourState.mandatory) endTour(); }
+    else if(e.key === "Enter" || e.key === " " || e.key === "ArrowRight"){ e.preventDefault(); tourAdvance(); }
+  });
+  window.addEventListener("resize", ()=>{ if(tourState && !tourState.final) positionTourStep(); });
+
+  // Bir ekran ilk kez görününce (ve o tur daha önce tamamlanmadıysa) turu başlat
+  function watchTourScreen(screenId, kind){
+    new MutationObserver(()=>{
+      const el = document.getElementById(screenId);
+      if(el.style.display !== "none" && !tourState && !tourSeen(kind)) scheduleTour(kind, screenId);
+    }).observe(document.getElementById(screenId), {attributes:true, attributeFilter:["style"]});
+  }
+  watchTourScreen("modeScreen", "modes");
+  watchTourScreen("readingLevelScreen", "level");
+  watchTourScreen("categoryScreen", "category");
+
+  // Ayarlar: tanıtımları tekrar göster (kullanıcının kendi isteğiyle; "Turu kapat" düğmesi var)
+  document.getElementById("settingsTourLink").addEventListener("click", (e)=>{
+    e.preventDefault();
+    closeSettings();
+    setTimeout(()=>startTour("main", true), 250);
+  });
+  document.getElementById("settingsModeTourLink").addEventListener("click", (e)=>{
+    e.preventDefault();
+    closeSettings();
+    document.getElementById("modeSwitchBtn").click();      // mod seçim ekranına git
+    setTimeout(()=>startTour("modes", true), 450);
+  });
+  document.getElementById("settingsLevelTourLink").addEventListener("click", (e)=>{
+    e.preventDefault();
+    closeSettings();
+    document.getElementById("modeSwitchBtn").click();      // önce mod ekranı (çalışan süreyi de sıfırlar), sonra düzey ekranı
+    setTimeout(()=>{ startApp(appMode === "aile" ? "aile" : "uzman"); }, 250);
+    setTimeout(()=>startTour("level", true), 750);
+  });
+  document.getElementById("settingsCategoryTourLink").addEventListener("click", (e)=>{
+    e.preventDefault();
+    closeSettings();
+    document.getElementById("categorySwitchBtn").click();  // kategori ekranına git
+    setTimeout(()=>startTour("category", true), 450);
+  });
+
   function selectCategory(i){
     currentCategoryIndex = i;
     if(currentCategoryExercises().length === 0){
@@ -6252,6 +6617,7 @@ const FRUIT_VEG_IMAGES = {
     renderExerciseRow();
     renderStageRow();
     newPage();
+    scheduleTour("main", "mainApp");
   }
 
   function openCategoryScreen(){
