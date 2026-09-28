@@ -1740,9 +1740,34 @@
     </button>
     <button class="mode-card" data-mode="cocuk">
       <span class="mode-emoji" style="color:#E0932B;"><svg viewBox="0 0 100 100" style="width:34px;height:34px;"><circle cx="50" cy="50" r="38" stroke="currentColor" stroke-width="6" fill="none"/><circle cx="36" cy="42" r="5" fill="currentColor"/><circle cx="64" cy="42" r="5" fill="currentColor"/><path d="M32 62c6 10 30 10 36 0" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round"/></svg></span>
-      <span class="mode-title">Çocuk Modu</span>
+      <span class="mode-title">Bilişsel Oyun Modu</span>
       <span class="mode-desc">Çocuk tek başına oynar — dokunarak cevap verir, uygulama otomatik puanlar</span>
     </button>
+  </div>
+</div>
+
+<div class="mode-screen" id="childLevelScreen" style="display:none;">
+  <button class="flow-back-btn" id="childLevelBackBtn" aria-label="Geri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg></button>
+  <div class="mode-inner">
+    <h2>Bilişsel Oyun Modu</h2>
+    <button class="mode-card" data-kidgroup="pre">
+      <span class="mode-emoji" style="color:#C97F32;"><svg viewBox="0 0 100 100" style="width:34px;height:34px;"><rect x="18" y="46" width="30" height="30" rx="5" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><rect x="52" y="28" width="30" height="30" rx="5" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span class="mode-title">Okul Öncesi</span>
+      <span class="mode-desc">Henüz okuma yazma bilmeyen çocuklar için — okuma gerektirmeyen oyunlar</span>
+    </button>
+    <button class="mode-card" data-kidgroup="post">
+      <span class="mode-emoji" style="color:#2E5F8A;"><svg viewBox="0 0 100 100" style="width:34px;height:34px;"><path d="M50 26c-9-8-25-10-37-6v50c12-4 28-2 37 6 9-8 25-10 37-6V20c-12-4-28-2-37 6Z" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M50 26v50" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round"/></svg></span>
+      <span class="mode-title">Okul Sonrası</span>
+      <span class="mode-desc">Okuma yazma bilen çocuklar için</span>
+    </button>
+  </div>
+</div>
+
+<div class="mode-screen" id="childSoonScreen" style="display:none;">
+  <button class="flow-back-btn" id="childSoonBackBtn" aria-label="Geri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg></button>
+  <div class="mode-inner" style="text-align:center;">
+    <h2>Okul Sonrası</h2>
+    <p class="mode-sub">Bu grup için oyunlar hazırlanıyor. Yakında eklenecek.</p>
   </div>
 </div>
 
@@ -1802,12 +1827,12 @@
     <h2>Düzey</h2>
     <button class="mode-card" data-level="pre">
       <span class="mode-emoji" style="color:#C97F32;"><svg viewBox="0 0 100 100" style="width:34px;height:34px;"><rect x="18" y="46" width="30" height="30" rx="5" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><rect x="52" y="28" width="30" height="30" rx="5" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-      <span class="mode-title">Okuma Öncesi</span>
+      <span class="mode-title">Okul Öncesi</span>
       <span class="mode-desc">Henüz okuma yazma bilmeyen çocuklar için — okuma gerektirmeyen çalışmalar</span>
     </button>
     <button class="mode-card" data-level="post">
       <span class="mode-emoji" style="color:#2E5F8A;"><svg viewBox="0 0 100 100" style="width:34px;height:34px;"><path d="M50 26c-9-8-25-10-37-6v50c12-4 28-2 37 6 9-8 25-10 37-6V20c-12-4-28-2-37 6Z" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M50 26v50" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round"/></svg></span>
-      <span class="mode-title">Okuma Sonrası</span>
+      <span class="mode-title">Okul Sonrası</span>
       <span class="mode-desc">Okuma yazma bilen çocuklar ve bireyler için — mevcut tüm çalışmalar</span>
     </button>
     <div class="player-row" style="margin-top:14px; margin-bottom:4px;">
@@ -1871,7 +1896,7 @@
     <div class="settings-divider"></div>
 
     <div class="settings-label" style="margin-bottom:8px;">Adaptif zorluk eşikleri (Aile Modu)</div>
-    <p class="settings-note" style="margin-bottom:10px;">Varsayılanlar, Düzey ekranında seçilen okuma öncesi/sonrası düzeyine göre otomatik ayarlanır; buradan istediğin an değiştirebilirsin.</p>
+    <p class="settings-note" style="margin-bottom:10px;">Varsayılanlar, Düzey ekranında seçilen okul öncesi/sonrası düzeyine göre otomatik ayarlanır; buradan istediğin an değiştirebilirsin.</p>
 
     <div class="settings-slider-row">
       <span class="settings-slider-label">Hızlı sayılma süresi (öğe başına sn)</span>
@@ -1917,7 +1942,7 @@
       <h2 id="emptyCategoryTitle">Kategori</h2>
       <button class="icon-btn" id="closeEmptyCategoryBtn">✕</button>
     </div>
-    <p class="settings-note">Bu kategoride okuma öncesi çalışma henüz yok. Çalışmalar hazırlandıkça burada görünecek.</p>
+    <p class="settings-note">Bu kategoride okul öncesi çalışma henüz yok. Çalışmalar hazırlandıkça burada görünecek.</p>
   </div>
 </div>
 
@@ -2122,7 +2147,13 @@
     {label:"Zor Düzey", rows:5, cols:5, eyeDurationMs:100000, eyeSpeedMs:1800, studyDurationMs:16000},
   ];
 
-  function randomItem(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function randomItem(arr){
+    if(isPre()){
+      if(arr === SHAPES) arr = PRE_SHAPES;
+      else if(arr === COLORS) arr = PRE_COLORS;
+    }
+    return arr[Math.floor(Math.random()*arr.length)];
+  }
   function randomInt(min, max){ return min + Math.floor(Math.random()*(max-min+1)); }
 
   // ---------- Egzersiz 1: Şekil - Renk ----------
@@ -2137,6 +2168,19 @@
     [COLORS[0], COLORS[2], COLORS[4], COLORS[1]],
     COLORS
   ];
+
+  // ---------- OKUL ÖNCESİ (3-6 yaş) ölçeği ----------
+  // Kural: öge (ekrandaki nesne) ve özellik (şekil/renk/rakam çeşidi) sayıları 2/5 azaltılır (x3/5).
+  // Yeni egzersizler de global SHAPES/COLORS havuzlarını kullandığında bu kurala otomatik uyar (bkz. randomItem).
+  const PRE_RATIO = 3/5;
+  const PRE_GRID_DIMS = [ {rows:3, cols:3}, {rows:3, cols:4}, {rows:3, cols:5} ];   // 16/20/25 -> 9/12/15 öge
+  const PRE_SHAPES = ["circle","triangle","rect"];                                   // 5 -> 3
+  const PRE_COLORS = [COLORS[0], COLORS[2], COLORS[3]];                              // 5 -> 3 (kiremit, mavi, yeşil)
+  const PRE_SHAPES_BY_TIER = [ ["circle","triangle"], PRE_SHAPES, PRE_SHAPES ];      // 3/4/5 -> 2/3/3
+  const PRE_SHAPE_COLORS_BY_TIER = [ [COLORS[0], COLORS[2]], PRE_COLORS, PRE_COLORS ];
+  const PRE_NUMBERS_BY_TIER = [ [1,2], [1,2,3,4], [1,2,3,4,5] ];                     // 3/6/9 -> 2/4/5
+  const PRE_NUMBER_COLORS_BY_TIER = [ [COLORS[0], COLORS[2]], PRE_COLORS, PRE_COLORS ];
+  function isPre(){ try{ return appMode === "cocuk" || readingLevel === "pre"; }catch(e){ return false; } }
   const SHAPE_NAMES = {star:"yıldız", heart:"kalp", rect:"dikdörtgen", triangle:"üçgen", circle:"daire"};
 
   function shapeSVG(shape, color){
@@ -2161,6 +2205,11 @@
   }
 
   // ---------- Egzersiz 4: Nesne Adı ----------
+  const PRE_OBJECTS_BY_TIER = [
+    ["dog","jacket","bread"],
+    ["dog","cat","jacket","bread"],
+    ["dog","cat","jacket","tshirt","bread","orange"]
+  ];
   const OBJECTS_BY_TIER = [
     ["dog","jacket","bread"],
     ["dog","cat","jacket","tshirt","bread","orange"],
@@ -2239,6 +2288,7 @@ const OBJECT_IMAGES = {
   const FRUITS = ["apple","banana","grapes","strawberry","orange"];
   const VEGETABLES = ["carrot","tomato","cucumber","pepper","broccoli"];
   const FRUITS_AND_VEGGIES = [...FRUITS, ...VEGETABLES];
+  const PRE_FRUITS_AND_VEGGIES = [...FRUITS.slice(0,3), ...VEGETABLES.slice(0,3)];
   const FRUIT_VEG_NAMES = {
     apple:"elma", banana:"muz", grapes:"üzüm", strawberry:"çilek", orange:"portakal",
     carrot:"havuç", tomato:"domates", cucumber:"salatalık", pepper:"biber", broccoli:"brokoli"
@@ -2433,7 +2483,7 @@ const FRUIT_VEG_IMAGES = {
       attrs: ["shape","color"],
       randomItem: () => {
         const t = currentCombo().t;
-        return { shape: randomItem(SHAPES_BY_TIER[t]), color: randomItem(SHAPE_COLORS_BY_TIER[t]) };
+        return { shape: randomItem((isPre() ? PRE_SHAPES_BY_TIER : SHAPES_BY_TIER)[t]), color: randomItem((isPre() ? PRE_SHAPE_COLORS_BY_TIER : SHAPE_COLORS_BY_TIER)[t]) };
       },
       renderItem: (item) => shapeSVG(item.shape, item.color),
       stages: [
@@ -2456,7 +2506,7 @@ const FRUIT_VEG_IMAGES = {
       attrs: ["number","color"],
       randomItem: () => {
         const t = currentCombo().t;
-        return { number: randomItem(NUMBERS_BY_TIER[t]), color: randomItem(COLORS_BY_TIER[t]) };
+        return { number: randomItem((isPre() ? PRE_NUMBERS_BY_TIER : NUMBERS_BY_TIER)[t]), color: randomItem((isPre() ? PRE_NUMBER_COLORS_BY_TIER : COLORS_BY_TIER)[t]) };
       },
       renderItem: (item) => numberHTML(item.number, item.color),
       stages: [
@@ -2478,7 +2528,8 @@ const FRUIT_VEG_IMAGES = {
       label: "Nesne Adı",
       attrs: ["object"],
       randomItem: () => {
-        const pool = OBJECTS_BY_TIER[currentCombo().t] || OBJECTS_BY_TIER[OBJECTS_BY_TIER.length-1];
+        const tables = isPre() ? PRE_OBJECTS_BY_TIER : OBJECTS_BY_TIER;
+        const pool = tables[currentCombo().t] || tables[tables.length-1];
         return { object: randomItem(pool) };
       },
       renderItem: (item) => `<img src="${OBJECT_IMAGES[item.object]}" alt="" style="width:88%;height:88%;object-fit:contain;display:block;">`,
@@ -2500,7 +2551,7 @@ const FRUIT_VEG_IMAGES = {
       readingLevel: ["pre","post"],
       label: "Meyve - Sebze",
       attrs: ["name","size"],
-      randomItem: () => ({ name: randomItem(FRUITS_AND_VEGGIES), size: randomItem(["large","small"]) }),
+      randomItem: () => ({ name: randomItem(isPre() ? PRE_FRUITS_AND_VEGGIES : FRUITS_AND_VEGGIES), size: randomItem(["large","small"]) }),
       renderItem: (item) => fruitVegSVG(item.name, item.size),
       stages: [
         {
@@ -2823,7 +2874,7 @@ const FRUIT_VEG_IMAGES = {
       readingLevel: ["pre","post"],
       label: "Sayı N-Geri",
       attrs: ["number"],
-      randomItem: () => ({ number: randomInt(1,9), color: randomItem(COLORS) }),
+      randomItem: () => ({ number: randomInt(1, isPre() ? 5 : 9), color: randomItem(COLORS) }),
       renderItem: (item) => numberHTML(item.number, item.color),
       stages: [
         {
@@ -2912,7 +2963,7 @@ const FRUIT_VEG_IMAGES = {
       label: "Görsel Zıt Kavramlar",
       attrs: ["type","state"],
       randomItem: () => {
-        const type = randomItem(["length","position","fill","vertical"]);
+        const type = randomItem(isPre() ? ["length","fill"] : ["length","position","fill","vertical"]);
         const state = randomItem(OPPOSITE_STATES[type]);
         return { type, state, color: randomItem(COLORS) };
       },
@@ -3156,7 +3207,7 @@ const FRUIT_VEG_IMAGES = {
       readingLevel: ["pre","post"],
       label: "Boyut Sıralama",
       attrs: ["size"],
-      randomItem: () => ({ size: randomItem(["small","medium","large"]), color: randomItem(COLORS) }),
+      randomItem: () => ({ size: randomItem(isPre() ? ["small","large"] : ["small","medium","large"]), color: randomItem(COLORS) }),
       renderItem: (item) => sizedCircleHTML(item.size, item.color),
       stages: [
         {
@@ -3209,7 +3260,7 @@ const FRUIT_VEG_IMAGES = {
       readingLevel: ["pre","post"],
       label: "Kenar Sayma",
       attrs: ["sides"],
-      randomItem: () => ({ sides: randomItem([3,4,5,6]), color: randomItem(COLORS) }),
+      randomItem: () => ({ sides: randomItem(isPre() ? [3,4] : [3,4,5,6]), color: randomItem(COLORS) }),
       renderItem: (item) => polygonSVG(item.sides, item.color),
       stages: [
         {
@@ -3258,7 +3309,7 @@ const FRUIT_VEG_IMAGES = {
       label: "Rakam Dizisi (Digit Span)",
       isRecall: true,
       attrs: ["number"],
-      randomItem: () => ({ number: randomInt(0,9), color: randomItem(COLORS) }),
+      randomItem: () => ({ number: isPre() ? randomInt(1,6) : randomInt(0,9), color: randomItem(COLORS) }),
       renderItem: (item) => numberHTML(item.number, item.color),
       stages: [
         {
@@ -3578,7 +3629,7 @@ const FRUIT_VEG_IMAGES = {
     if(!pendingLevelPlayerName){ status.textContent = ""; return; }
     const known = getPlayerLevel(pendingLevelPlayerName);
     if(known){
-      const label = known === "pre" ? "Okuma Öncesi" : "Okuma Sonrası";
+      const label = known === "pre" ? "Okul Öncesi" : "Okul Sonrası";
       status.textContent = `${pendingLevelPlayerName} için önerilen: ${label}`;
       const card = document.querySelector(`#readingLevelScreen .mode-card[data-level="${known}"]`);
       if(card) card.classList.add("suggested");
@@ -3607,7 +3658,14 @@ const FRUIT_VEG_IMAGES = {
   let expertAdaptiveEnabled = false;
 
   function currentCombo(){ return SEQUENCE[currentIndex]; }
-  function currentTier(){ return TIERS[currentCombo().t]; }
+  function currentTier(){
+    const base = TIERS[currentCombo().t];
+    if(isPre()){
+      const d = PRE_GRID_DIMS[currentCombo().t] || PRE_GRID_DIMS[PRE_GRID_DIMS.length-1];
+      return Object.assign({}, base, {rows:d.rows, cols:d.cols});
+    }
+    return base;
+  }
   function currentExercise(){ return currentCategoryExercises()[currentCombo().e]; }
 
   let timerInterval = null;
@@ -3620,6 +3678,13 @@ const FRUIT_VEG_IMAGES = {
   }
 
   function generateGrid(exercise, rows, cols){
+    // Havuz büyüklüğünü ölç: küçük havuzlarda (<=2 değer) "öncekinden farklı olsun" kuralı zorunlu AB-AB
+    // nöbetleşmesine yol açar; bu yüzden orada sadece art arda en fazla 2 aynı değere izin verilir.
+    const probe = [];
+    for(let k=0;k<60;k++) probe.push(exercise.randomItem());
+    const rich = exercise.attrs.filter(a => new Set(probe.map(p => p[a])).size >= 3);
+    const poor = exercise.attrs.filter(a => !rich.includes(a));
+    const distinctItems = new Set(probe.map(p => exercise.attrs.map(a => p[a]).join("|"))).size;
     const grid = [];
     for(let i=0;i<rows*cols;i++){
       let item;
@@ -3630,9 +3695,11 @@ const FRUIT_VEG_IMAGES = {
       } while(
         tries < 30 &&
         (
-          (grid.length > 0 && exercise.attrs.some(a => item[a] === grid[grid.length-1][a])) ||
-          (grid.length > 1 && itemsFullyEqual(item, grid[grid.length-2], exercise.attrs)) ||
-          (i >= cols && itemsFullyEqual(item, grid[i-cols], exercise.attrs))
+          (grid.length > 0 && rich.some(a => item[a] === grid[grid.length-1][a])) ||
+          (grid.length > 0 && distinctItems >= 3 && itemsFullyEqual(item, grid[grid.length-1], exercise.attrs)) ||
+          (grid.length > 1 && poor.some(a => item[a] === grid[grid.length-1][a] && item[a] === grid[grid.length-2][a])) ||
+          (grid.length > 1 && distinctItems >= 6 && itemsFullyEqual(item, grid[grid.length-2], exercise.attrs)) ||
+          (i >= cols && distinctItems >= 6 && itemsFullyEqual(item, grid[i-cols], exercise.attrs))
         )
       );
       grid.push(item);
@@ -5472,7 +5539,7 @@ const FRUIT_VEG_IMAGES = {
     appMode = mode;
     document.getElementById("modeScreen").style.display = "none";
     if(mode === "cocuk"){
-      document.getElementById("childModeScreen").style.display = "flex";
+      document.getElementById("childLevelScreen").style.display = "flex";
       return;
     }
     pendingLevelPlayerName = null;
@@ -5515,7 +5582,7 @@ const FRUIT_VEG_IMAGES = {
   // ================= ÇOCUK MODU (tek başına, dokunmalı, otomatik puanlı oyunlar) =================
 
   function hideAllKidScreens(){
-    ["childModeScreen","kidResultScreen","kidOddOneOutScreen","kidMemoryScreen","kidQuickTapScreen"]
+    ["childLevelScreen","childSoonScreen","childModeScreen","kidResultScreen","kidOddOneOutScreen","kidMemoryScreen","kidQuickTapScreen"]
       .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = "none"; });
   }
 
@@ -5536,9 +5603,23 @@ const FRUIT_VEG_IMAGES = {
     vibrate([40]);
   }
 
-  document.getElementById("childModeBackBtn").addEventListener("click", ()=>{
-    document.getElementById("childModeScreen").style.display = "none";
+  document.getElementById("childLevelBackBtn").addEventListener("click", ()=>{
+    document.getElementById("childLevelScreen").style.display = "none";
     document.getElementById("modeScreen").style.display = "flex";
+  });
+  document.querySelectorAll(".mode-card[data-kidgroup]").forEach(card=>{
+    card.addEventListener("click", ()=>{
+      hideAllKidScreens();
+      document.getElementById(card.dataset.kidgroup === "pre" ? "childModeScreen" : "childSoonScreen").style.display = "flex";
+    });
+  });
+  document.getElementById("childSoonBackBtn").addEventListener("click", ()=>{
+    hideAllKidScreens();
+    document.getElementById("childLevelScreen").style.display = "flex";
+  });
+  document.getElementById("childModeBackBtn").addEventListener("click", ()=>{
+    hideAllKidScreens();
+    document.getElementById("childLevelScreen").style.display = "flex";
   });
   document.getElementById("kidGameOddOneOutBtn").addEventListener("click", startOddOneOut);
   document.getElementById("kidGameMemoryBtn").addEventListener("click", startMemoryGame);
@@ -5551,7 +5632,9 @@ const FRUIT_VEG_IMAGES = {
 
   // ---------- Oyun 1: Farklı Olanı Bul ----------
   let kidOddState = {};
-  const KID_ODD_ROUNDS = [4,4,6,6,9,9,12,12];
+  const KID_ODD_ROUNDS_FULL = [4,4,6,6,9,9,12,12];
+  const KID_ODD_ROUNDS_PRE = [3,3,4,5,7];                 // okul öncesi: 8 tur -> 5, ekrandaki öge sayıları ~3/5
+  function kidOddRounds(){ return isPre() ? KID_ODD_ROUNDS_PRE : KID_ODD_ROUNDS_FULL; }
 
   function startOddOneOut(){
     hideAllKidScreens();
@@ -5563,7 +5646,7 @@ const FRUIT_VEG_IMAGES = {
   function renderOddRound(){
     const board = document.getElementById("kidOddBoard");
     board.innerHTML = "";
-    const n = KID_ODD_ROUNDS[kidOddState.round] || 12;
+    const n = kidOddRounds()[kidOddState.round] || 12;
     const baseShape = randomItem(SHAPES);
     const baseColor = randomItem(COLORS);
     let oddColor = baseColor, oddShape = baseShape;
@@ -5581,7 +5664,7 @@ const FRUIT_VEG_IMAGES = {
       btn.addEventListener("click", ()=> handleOddTap(isOdd, btn));
       board.appendChild(btn);
     }
-    document.getElementById("kidOddProgress").textContent = `${kidOddState.round+1} / ${KID_ODD_ROUNDS.length}`;
+    document.getElementById("kidOddProgress").textContent = `${kidOddState.round+1} / ${kidOddRounds().length}`;
   }
 
   function handleOddTap(correct, btn){
@@ -5591,7 +5674,7 @@ const FRUIT_VEG_IMAGES = {
       vibrate([25]);
       setTimeout(()=>{
         kidOddState.round++;
-        if(kidOddState.round >= KID_ODD_ROUNDS.length){
+        if(kidOddState.round >= kidOddRounds().length){
           finishOddOneOut();
         } else {
           renderOddRound();
@@ -5623,8 +5706,14 @@ const FRUIT_VEG_IMAGES = {
   function startMemoryGame(){
     hideAllKidScreens();
     document.getElementById("kidMemoryScreen").style.display = "flex";
-    const icons = SHAPES.map((s,i)=>({shape:s, color:COLORS[i]}));
-    icons.push({shape: SHAPES[0], color: COLORS[4]});
+    let icons;
+    if(isPre()){
+      icons = PRE_SHAPES.map((s,i)=>({shape:s, color:PRE_COLORS[i]}));
+      icons.push({shape: PRE_SHAPES[0], color: COLORS[4]});      // 4 çift = 8 kart
+    } else {
+      icons = SHAPES.map((s,i)=>({shape:s, color:COLORS[i]}));
+      icons.push({shape: SHAPES[0], color: COLORS[4]});          // 6 çift = 12 kart
+    }
     const deck = [...icons, ...icons].map((icon,i)=>({...icon, id:i}));
     for(let i=deck.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [deck[i],deck[j]]=[deck[j],deck[i]]; }
     kidMemoryState = { deck, flipped: [], matched: new Set(), moves: 0, startTime: Date.now(), locked:false };
@@ -5687,7 +5776,8 @@ const FRUIT_VEG_IMAGES = {
     clearInterval(kidMemoryTimerId);
     const seconds = ((Date.now() - kidMemoryState.startTime)/1000).toFixed(1);
     const moves = kidMemoryState.moves;
-    const stars = moves <= 16 ? 3 : moves <= 22 ? 2 : 1;
+    const pairs = kidMemoryState.deck.length / 2;
+    const stars = moves <= Math.round(16*pairs/6) ? 3 : moves <= Math.round(22*pairs/6) ? 2 : 1;
     showKidResult({
       stars,
       title: "Tüm eşleri buldun!",
@@ -5699,14 +5789,14 @@ const FRUIT_VEG_IMAGES = {
   // ---------- Oyun 3: Hızlı Dokun ----------
   let kidQuickTapState = {};
   let kidQuickTapActive = false;
-  const KID_QUICKTAP_ROUNDS = 8;
+  function kidQuickTapRounds(){ return isPre() ? 5 : 8; }
 
   function startQuickTap(){
     hideAllKidScreens();
     document.getElementById("kidQuickTapScreen").style.display = "flex";
     kidQuickTapState = { round: 0, times: [] };
     kidQuickTapActive = true;
-    document.getElementById("kidQuickTapProgress").textContent = `0 / ${KID_QUICKTAP_ROUNDS}`;
+    document.getElementById("kidQuickTapProgress").textContent = `0 / ${kidQuickTapRounds()}`;
     document.getElementById("kidQuickTapBoard").innerHTML = "";
     setTimeout(spawnQuickTapTarget, 500);
   }
@@ -5731,9 +5821,9 @@ const FRUIT_VEG_IMAGES = {
       kidQuickTapState.round++;
       playSound("up");
       vibrate([20]);
-      document.getElementById("kidQuickTapProgress").textContent = `${kidQuickTapState.round} / ${KID_QUICKTAP_ROUNDS}`;
+      document.getElementById("kidQuickTapProgress").textContent = `${kidQuickTapState.round} / ${kidQuickTapRounds()}`;
       board.innerHTML = "";
-      if(kidQuickTapState.round >= KID_QUICKTAP_ROUNDS){
+      if(kidQuickTapState.round >= kidQuickTapRounds()){
         kidQuickTapActive = false;
         setTimeout(finishQuickTap, 300);
       } else {
