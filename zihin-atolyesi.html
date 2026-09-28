@@ -942,6 +942,27 @@
     align-content:center;
     justify-items:center;
   }
+  /* Sıralı arama çalışmaları (Sayı Bulma · Karışık Sayı Bulma · Sayı-Harf Bulma): satırlı ızgara */
+  .seq-cell{ color:var(--ink); }
+  .seq-cell .seq-glyph{ display:inline-block; line-height:1; white-space:nowrap; }
+  .seq-mixed{ font-size:0.82em; }
+  /* Karışık Sayı Bulma biçimleri */
+  .gs-rotate .seq-glyph{ transform:rotate(var(--rot, 25deg)); }
+  .gs-wide .seq-glyph{ transform:scale(1.55, 0.78); }
+  .gs-tall .seq-glyph{ transform:scale(0.66, 1.5); }
+  .gs-outline .seq-glyph{
+    color:transparent !important;
+    -webkit-text-stroke:2px var(--gc, var(--ink));
+    paint-order:stroke;
+  }
+  .gs-depth .seq-glyph{
+    transform:perspective(90px) rotateY(24deg);
+    text-shadow:1px 1px 0 var(--gd), 2px 2px 0 var(--gd), 3px 3px 0 var(--gd), 4px 4px 0 var(--gd), 5px 5px 3px rgba(0,0,0,0.25);
+  }
+  .gs-wave .seq-glyph span{ display:inline-block; }
+  .gs-wave .seq-glyph span:nth-child(odd){ transform:translateY(-0.14em) rotate(-14deg); }
+  .gs-wave .seq-glyph span:nth-child(even){ transform:translateY(0.14em) rotate(14deg); }
+  .gs-wave .seq-glyph.single span{ transform:skew(-14deg, 10deg) !important; }
   .motion-board{
     position:relative;
     width:100%;
@@ -2261,6 +2282,71 @@
   const PRE_NUMBERS_BY_TIER = [ [1,2], [1,2,3,4], [1,2,3,4,5] ];                     // 3/6/9 -> 2/4/5
   const PRE_NUMBER_COLORS_BY_TIER = [ [COLORS[0], COLORS[2]], PRE_COLORS, PRE_COLORS ];
   function isPre(){ try{ return appMode === "cocuk" || readingLevel === "pre"; }catch(e){ return false; } }
+  // ---------- Sıralı arama çalışmaları (satırlı ızgara) ----------
+  // Sayı Bulma (İşlemleme Hızı) · Karışık Sayı Bulma (Görsel Organizasyon) · Sayı-Harf Bulma (Yürütücü İşlev)
+  // Ögeler karışık sırayla, diğer çalışmalar gibi satırlara dizilir: 16/20/25 (okul öncesi x3/5: 9/12/15).
+  const SCATTER_FONTS = [
+    '"Trebuchet MS", Verdana, sans-serif',
+    'Georgia, "Times New Roman", serif',
+    '"Courier New", Courier, monospace',
+    '"Comic Sans MS", "Marker Felt", "Chalkboard SE", cursive',
+    'Impact, "Arial Narrow", "Helvetica Neue", sans-serif'
+  ];
+  const PRE_SCATTER_FONTS = [SCATTER_FONTS[0], SCATTER_FONTS[1], SCATTER_FONTS[3]];   // 5 -> 3
+  const TURKISH_LETTERS = ["A","B","C","Ç","D","E","F","G","Ğ","H","I","İ","J"];          // Türk alfabesi sırası
+  function scatterCount(){ const t = currentTier(); return t.rows * t.cols; }
+  // Karışık Sayı Bulma görsel biçimleri: yön (döndürülmüş), dalga, derinlik, yana yayılmış, yukarı çekilmiş, içi boş
+  const GLYPH_STYLES = ["rotate","wave","depth","wide","tall","outline"];
+  const PRE_GLYPH_STYLES = ["rotate","wide","tall","outline"];                       // 6 -> 4 (okul öncesi x3/5)
+  function darkerColor(hex, k){
+    const m = /^#([0-9a-f]{6})$/i.exec(hex || ""); if(!m) return "rgba(0,0,0,0.45)";
+    const n = parseInt(m[1],16), f = c => Math.round(c*k);
+    return `rgb(${f(n>>16&255)},${f(n>>8&255)},${f(n&255)})`;
+  }
+  function assignGlyphStyles(items){
+    const pool = isPre() ? PRE_GLYPH_STYLES : GLYPH_STYLES;
+    let prev = null;
+    items.forEach(it => {
+      let st, g = 0;
+      do{ st = randomItem(pool); g++; } while(st === prev && g < 10);   // art arda aynı biçim olmasın
+      it.style = st; prev = st;
+      if(st === "rotate"){ const a = 20 + Math.round(Math.random()*25); it.rot = (Math.random() < 0.5 ? -a : a); }
+    });
+    return items;
+  }
+  function seqItemHTML(item){
+    const esc = String(item.text);
+    if(!item.style){
+      return `<div class="number-cell seq-cell"><span class="seq-glyph">${esc}</span></div>`;
+    }
+    const chars = Array.from(esc);
+    const inner = item.style === "wave" ? chars.map(c => `<span>${c}</span>`).join("") : esc;
+    const vars = [`--gc:${item.color}`, `--gd:${darkerColor(item.color, 0.55)}`];
+    if(item.rot) vars.push(`--rot:${item.rot}deg`);
+    const font = item.font ? `font-family:${item.font.replace(/"/g,"&quot;")};` : "";
+    return `<div class="number-cell seq-cell seq-mixed gs-${item.style}" style="color:${item.color};${vars.join(";")};${font}">`
+         + `<span class="seq-glyph${chars.length === 1 ? " single" : ""}">${inner}</span></div>`;
+  }
+  function shuffleArray(a){ const b = a.slice(); for(let i=b.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [b[i],b[j]] = [b[j],b[i]]; } return b; }
+  // 1-A-2-B-3-C ... (n öge: ceil(n/2) sayı + floor(n/2) harf)
+  // letterFirst: A-1-B-2-C-3 ... (n öge: ceil(n/2) harf + floor(n/2) sayı)
+  function numberLetterSequence(n, letterFirst){
+    const firstCount = Math.ceil(n/2), secondCount = Math.floor(n/2), seq = [];
+    for(let i=0;i<firstCount;i++){
+      const num = String(i+1), let_ = TURKISH_LETTERS[i];
+      seq.push(letterFirst ? let_ : num);
+      if(i < secondCount) seq.push(letterFirst ? num : let_);
+    }
+    return seq;
+  }
+  // Türkçe yönelme/ayrılma eki: 16'ya, 25'e, 25'ten, 16'dan ...
+  function trNumSuffix(n, kind){
+    const last = {1:["e","den"],2:["ye","den"],3:["e","ten"],4:["e","ten"],5:["e","ten"],6:["ya","dan"],7:["ye","den"],8:["e","den"],9:["a","dan"]};
+    const tens = {10:["a","dan"],20:["ye","den"],30:["a","dan"],40:["a","tan"],50:["ye","den"],60:["a","tan"],70:["e","ten"],80:["e","den"],90:["a","dan"]};
+    const pair = (n % 10 === 0) ? (tens[n] || ["a","dan"]) : (last[n % 10] || ["e","den"]);
+    return `${n}'${kind === "dat" ? pair[0] : pair[1]}`;
+  }
+
   const SHAPE_NAMES = {star:"yıldız", heart:"kalp", rect:"dikdörtgen", triangle:"üçgen", circle:"daire"};
 
   function shapeSVG(shape, color){
@@ -2702,6 +2788,76 @@ const FRUIT_VEG_IMAGES = {
           label: "Aşama 2 · Tat + Ad",
           instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Ben başla dediğimde, gördüğün her yiyeceğin önce tadını, sonra adını olabildiğince hızlı söyle"</b> deyin.`,
           example: (item) => `${TASTE_OF[item.item]} ${TASTE_NAMES[item.item]}`
+        }
+      ]
+    },
+    {
+      id: "number-find",
+      readingLevel: ["pre","post"],
+      label: "Sayı Bulma",
+      isScatter: true,
+      attrs: [],
+      scatterItems: () => {
+        const n = scatterCount();
+        return shuffleArray(Array.from({length:n}, (_,i)=>({ text:String(i+1) })));
+      },
+      renderItem: seqItemHTML,
+      stages: [
+        {
+          label: "Aşama 1 · Küçükten büyüğe",
+          instruction: () => `Öğrenciye sayfayı gösterin. Ardından <b>"Ben başla dediğimde, 1'den ${trNumSuffix(scatterCount(),"dat")} kadar sayıları sırayla parmağınla göster"</b> deyin.`,
+          example: () => ``
+        },
+        {
+          label: "Aşama 2 · Büyükten küçüğe",
+          instruction: () => `Öğrenciye sayfayı gösterin. Ardından <b>"Ben başla dediğimde, ${trNumSuffix(scatterCount(),"abl")} başlayarak 1'e kadar sayıları sırayla parmağınla göster"</b> deyin.`,
+          example: () => ``
+        }
+      ]
+    },
+    {
+      id: "number-find-mixed",
+      readingLevel: ["pre","post"],
+      label: "Karışık Sayı Bulma",
+      isScatter: true,
+      attrs: [],
+      scatterItems: () => {
+        const n = scatterCount();
+        const fonts = isPre() ? PRE_SCATTER_FONTS : SCATTER_FONTS;
+        return assignGlyphStyles(shuffleArray(Array.from({length:n}, (_,i)=>({ text:String(i+1), font:randomItem(fonts), color:randomItem(COLORS) }))));
+      },
+      renderItem: seqItemHTML,
+      stages: [
+        {
+          label: "Aşama 1 · Küçükten büyüğe",
+          instruction: () => `Sayılar farklı yazı tipi, renk ve biçimlerle (döndürülmüş, dalgalı, derinlikli, yana yayılmış, yukarı çekilmiş, içi boş) verilmiştir. Öğrenciye sayfayı gösterin. Ardından <b>"Ben başla dediğimde, 1'den ${trNumSuffix(scatterCount(),"dat")} kadar sayıları sırayla parmağınla göster"</b> deyin.`,
+          example: () => ``
+        },
+        {
+          label: "Aşama 2 · Büyükten küçüğe",
+          instruction: () => `Sayılar farklı yazı tipi, renk ve biçimlerle (döndürülmüş, dalgalı, derinlikli, yana yayılmış, yukarı çekilmiş, içi boş) verilmiştir. Öğrenciye sayfayı gösterin. Ardından <b>"Ben başla dediğimde, ${trNumSuffix(scatterCount(),"abl")} başlayarak 1'e kadar sayıları sırayla parmağınla göster"</b> deyin.`,
+          example: () => ``
+        }
+      ]
+    },
+    {
+      id: "number-letter",
+      readingLevel: ["post"],
+      label: "Sayı-Harf Bulma",
+      isScatter: true,
+      attrs: [],
+      scatterItems: () => shuffleArray(numberLetterSequence(scatterCount(), currentStageIndex === 1).map(t => ({ text:t }))),
+      renderItem: seqItemHTML,
+      stages: [
+        {
+          label: "Aşama 1 · 1-A-2-B",
+          instruction: () => `Öğrenciye sayfayı gösterin. Ardından <b>"Ben başla dediğimde, sayı ve harfleri sırayla, dönüşümlü olarak parmağınla göster: ${numberLetterSequence(scatterCount()).slice(0,5).join("-")} … diye devam et"</b> deyin.`,
+          example: () => ``
+        },
+        {
+          label: "Aşama 2 · A-1-B-2",
+          instruction: () => `Öğrenciye sayfayı gösterin. Ardından <b>"Ben başla dediğimde, bu kez harften başlayarak, harf ve sayıları sırayla, dönüşümlü olarak parmağınla göster: ${numberLetterSequence(scatterCount(), true).slice(0,5).join("-")} … diye devam et"</b> deyin.`,
+          example: () => ``
         }
       ]
     },
@@ -3576,11 +3732,11 @@ const FRUIT_VEG_IMAGES = {
       id:"islemleme-hizi",
       readingLevel:["post"],
       label:"İşlemleme Hızı",
-      sub:"Hızlı İsimlendirme — Şekil-Renk, Sayı-Renk, Nesne Adı, Meyve-Sebze, Tatlar, Hece",
+      sub:"Hızlı İsimlendirme — Şekil-Renk, Sayı-Renk, Nesne Adı, Meyve-Sebze, Tatlar, Sayı Bulma, Hece",
       purpose:"Görsel bir uyaranı hızlıca tanıyıp isimlendirme alıştırması yapar; bu beceri okuma akıcılığıyla ilişkilendirilir.",
       color:"#2E6F6E",
       group:"Hız & Dikkat",
-      exerciseIds:["shape-color","number-color","object-name","fruit-veg","taste-name","syllable-count"]
+      exerciseIds:["shape-color","number-color","object-name","fruit-veg","taste-name","number-find","syllable-count"]
     },
     {
       id:"goz-takip",
@@ -3596,11 +3752,11 @@ const FRUIT_VEG_IMAGES = {
       id:"yurutucu-islev",
       readingLevel:["post"],
       label:"Yürütücü İşlev",
-      sub:"Stroop, kural değişimi, ket vurma",
+      sub:"Stroop, kural değişimi, ket vurma, sayı-harf",
       purpose:"Dikkati yönetme, kural değiştirme ve dürtüsel tepkiyi durdurma becerisini çalıştırır.",
       color:"#3A6EA5",
       group:"Hız & Dikkat",
-      exerciseIds:["stroop","task-switch","go-no-go"]
+      exerciseIds:["stroop","task-switch","go-no-go","number-letter"]
     },
     {
       id:"calisan-bellek",
@@ -3656,11 +3812,11 @@ const FRUIT_VEG_IMAGES = {
       id:"gorsel-organizasyon",
       readingLevel:["pre","post"],
       label:"Görsel Organizasyon",
-      sub:"Boyut, yön, kenar sayısı",
+      sub:"Boyut, yön, kenar sayısı, karışık sayı",
       purpose:"Görsel öğeleri boyut, yön veya yapı gibi özelliklerine göre analiz etme becerisini çalıştırır.",
       color:"#E8823A",
       group:"Dil & Görsel Analiz",
-      exerciseIds:["size-sort","arrow-direction","edge-count","visual-opposites"]
+      exerciseIds:["size-sort","arrow-direction","edge-count","visual-opposites","number-find-mixed"]
     },
     {
       id:"algisal-akil-yurutme",
@@ -3817,6 +3973,7 @@ const FRUIT_VEG_IMAGES = {
   }
 
   function generateGrid(exercise, rows, cols){
+    if(exercise.isScatter) return exercise.scatterItems();               // sıralı arama çalışmaları: tüm ögeler bir kez, karışık sırayla
     if(typeof exercise.beginGrid === "function") exercise.beginGrid();   // tahta başına bir kez (ör. Tatlar: hangi tatlar çıkacak)
     // Havuz büyüklüğünü ölç: küçük havuzlarda (<=2 değer) "öncekinden farklı olsun" kuralı zorunlu AB-AB
     // nöbetleşmesine yol açar; bu yüzden orada sadece art arda en fazla 2 aynı değere izin verilir.
@@ -4056,35 +4213,51 @@ const FRUIT_VEG_IMAGES = {
   }
 
   function applyAdaptiveDifficulty(ms, errors){
+    const ex = currentExercise();
     const itemCount = currentTier().rows * currentTier().cols;
     const secPerItem = (ms/1000) / itemCount;
-    const isGood = errors === 0 && secPerItem <= SUCCESS_SEC_PER_ITEM;
-    const isBad = errors > 0 || secPerItem >= FAIL_SEC_PER_ITEM;
+    // Sıralı arama (sayıyı bulup gösterme) isimlendirmeden doğal olarak yavaştır: eşikler 2 katı
+    const k = ex.isScatter ? 2 : 1;
+    const isGood = errors === 0 && secPerItem <= SUCCESS_SEC_PER_ITEM * k;
+    const isBad = errors > 0 || secPerItem >= FAIL_SEC_PER_ITEM * k;
+    const combo = currentCombo();
+    const player = currentPlayerName.trim() || "Oyuncu";
+    // Sıralı arama çalışmalarında merdiven aşamaları da kapsar:
+    // Başlangıç→Orta→Zor (Aşama 1), sonra Başlangıç→Orta→Zor (Aşama 2)
+    const useStages = ex.isScatter && ex.stages.length > 1;
+    const stageName = (i) => ex.stages[i].label.split("·")[0].trim();
+    const labelFor = (t, st) => useStages ? `${TIERS[t].label} · ${stageName(st)}` : TIERS[t].label;
+
+    function moveTo(t, st, dir){
+      const label = labelFor(t, st);
+      currentStageIndex = st;
+      goToIndex(findSeqIndex(t, combo.e));
+      if(dir === "up"){
+        showLevelFlash(`🎉 Harika gidiyorsun! Zorluk artırıldı: ${label}`, "levelup");
+        playSound("up"); vibrate([40, 60, 40]);
+      } else {
+        showLevelFlash(`Biraz daha pratik edelim, zorluk azaltıldı: ${label}`, "down");
+        playSound("down"); vibrate(80);
+      }
+      logLevelEvent({t: Date.now(), dir, toLabel: label, player});
+    }
 
     if(isGood){
       successStreak++;
       if(successStreak >= 2){
         successStreak = 0;
-        const combo = currentCombo();
         if(combo.t < TIERS.length - 1){
-          const nextTierLabel = TIERS[combo.t+1].label;
-          goToIndex(findSeqIndex(combo.t+1, combo.e));
-          showLevelFlash(`🎉 Harika gidiyorsun! Zorluk artırıldı: ${nextTierLabel}`, "levelup");
-          playSound("up");
-          vibrate([40, 60, 40]);
-          logLevelEvent({t: Date.now(), dir:"up", toLabel: nextTierLabel, player: currentPlayerName.trim() || "Oyuncu"});
+          moveTo(combo.t + 1, currentStageIndex, "up");
+        } else if(useStages && currentStageIndex < ex.stages.length - 1){
+          moveTo(0, currentStageIndex + 1, "up");          // en zor düzey bitti: bir sonraki aşamaya, baştan
         }
       }
     } else if(isBad){
       successStreak = 0;
-      const combo = currentCombo();
       if(combo.t > 0){
-        const prevTierLabel = TIERS[combo.t-1].label;
-        goToIndex(findSeqIndex(combo.t-1, combo.e));
-        showLevelFlash(`Biraz daha pratik edelim, zorluk azaltıldı: ${prevTierLabel}`, "down");
-        playSound("down");
-        vibrate(80);
-        logLevelEvent({t: Date.now(), dir:"down", toLabel: prevTierLabel, player: currentPlayerName.trim() || "Oyuncu"});
+        moveTo(combo.t - 1, currentStageIndex, "down");
+      } else if(useStages && currentStageIndex > 0){
+        moveTo(TIERS.length - 1, currentStageIndex - 1, "down");   // yeni aşamanın ilk düzeyi zor geldi: önceki aşamanın en zor düzeyine
       }
     } else {
       successStreak = 0;
