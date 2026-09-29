@@ -942,6 +942,22 @@
     align-content:center;
     justify-items:center;
   }
+  /* İşitsel kelime dizisi çalışmaları (Kelime Tekrarı · Kelime Sıralama) */
+  .aud-list{ display:flex; flex-direction:column; gap:10px; width:100%; }
+  .aud-note{ font-size:13px; color:var(--muted, #5B6B78); line-height:1.4; padding:0 2px 2px; }
+  .aud-row{ display:flex; align-items:center; gap:12px; padding:12px 12px; border:1px solid var(--line); border-radius:12px; background:var(--bg); }
+  .aud-num{ flex:0 0 auto; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:14px; background:var(--panel); border:1px solid var(--line); color:var(--ink); }
+  .aud-body{ flex:1; min-width:0; }
+  .aud-words{ font-weight:800; font-size:min(5.4vw, 22px); color:var(--ink); line-height:1.25; }
+  .aud-key{ font-size:13px; color:var(--muted, #5B6B78); margin-top:3px; }
+  .aud-key b{ color:var(--ink); }
+  .aud-delay{ flex:0 0 auto; min-width:78px; padding:10px 8px; border-radius:10px; border:1px solid var(--line); background:var(--panel);
+    font-weight:800; font-size:15px; color:var(--ink); cursor:pointer; }
+  .aud-delay.counting{ background:#FFF3E0; }
+  .aud-delay.go{ background:#2E6F6E; color:#fff; border-color:#2E6F6E; }
+  .aud-row.done{ opacity:0.55; }
+
   /* Sıralı arama çalışmaları (Sayı Bulma · Karışık Sayı Bulma · Sayı-Harf Bulma): satırlı ızgara */
   .seq-cell{ color:var(--ink); }
   .seq-cell .seq-glyph{ display:inline-block; line-height:1; white-space:nowrap; }
@@ -2444,6 +2460,91 @@
     hotColdPool = pool;
   }
 
+  // ---------- İşitsel kelime dizileri (yetişkin sesli okur, çocuk söyler) ----------
+  // Sözel Bellek: Kelime Tekrarı (hemen / 4 sn sonra) · Çalışan Bellek: Kelime Sıralama (tersten / küçükten büyüğe)
+  // Düzey bir dizideki kelime sayısını belirler: 2 / 3 / 4 (okul öncesi x3/5: 2 / 2 / 3).
+  // Sayfa başına dizi sayısı: 5 (okul öncesi x3/5: 3).
+  const AUD_WORDS = ["top","ev","kedi","elma","araba","balık","kuş","çiçek","ayı","süt","şapka","kalem","ay","masa","kapı","bardak","ağaç","bulut","ekmek","saat","kaşık","yıldız","tren","çanta"];
+  const AUD_SIZE_WORDS = [["karınca",1],["fare",2],["kedi",3],["koyun",4],["at",5],["fil",6],["balina",7]];
+  const AUD_LEN_BY_TIER = [2, 3, 4];
+  const PRE_AUD_LEN_BY_TIER = [2, 2, 3];
+  const AUD_DELAY_MS = 4000;
+  function audLen(){ const tb = isPre() ? PRE_AUD_LEN_BY_TIER : AUD_LEN_BY_TIER; return tb[currentCombo().t] || tb[tb.length-1]; }
+  function audTrialCount(){ return isPre() ? 3 : 5; }
+  function makeAudTrials(kind){
+    // kind: "plain" (sıradan kelimeler) | "size" (boyuta göre sıralanabilir hayvanlar)
+    const n = audLen(), trials = [];
+    let prevKey = "";
+    for(let i=0;i<audTrialCount();i++){
+      let words, key, g = 0;
+      do{
+        if(kind === "size"){
+          words = shuffleArray(AUD_SIZE_WORDS).slice(0, n);
+        } else {
+          words = shuffleArray(AUD_WORDS).slice(0, n).map(w => [w, 0]);
+        }
+        key = words.map(w => w[0]).join("|"); g++;
+      } while(key === prevKey && g < 10);
+      prevKey = key;
+      trials.push({ words: words.map(w => w[0]), ranks: words.map(w => w[1]) });
+    }
+    return trials;
+  }
+  function audAnswer(trial, mode){
+    if(mode === "reverse") return trial.words.slice().reverse();
+    if(mode === "size") return trial.words.map((w,i)=>[w, trial.ranks[i]]).sort((a,b)=>a[1]-b[1]).map(x=>x[0]);
+    return trial.words.slice();
+  }
+  let audTimers = [];
+  function clearAudTimers(){ audTimers.forEach(t => clearInterval(t)); audTimers = []; }
+  function renderAuditoryBoard(){
+    const ex = currentExercise();
+    const stage = ex.stages[currentStageIndex];
+    const board = document.getElementById("board");
+    clearAudTimers();
+    board.style.display = "block";
+    board.style.minHeight = "";
+    board.style.padding = "14px";
+    board.style.gridTemplateColumns = "";
+    board.style.gridTemplateRows = "";
+    board.classList.remove("wide-grid");
+    const mode = stage.answerMode || "same";
+    const withDelay = !!stage.delay;
+    const note = withDelay
+      ? "Diziyi okuyun, ardından ⏱ düğmesine basın. Düğme “Söyle!” olunca çocuk söylesin."
+      : "Her diziyi tek tek, saniyede bir kelime hızında sesli okuyun; bitince çocuk söylesin.";
+    board.innerHTML = `<div class="aud-list"><div class="aud-note">${note} Yanlış söylenen dizileri hata sayısına ekleyin.</div>` +
+      currentGrid.map((tr, i) => {
+        const ans = audAnswer(tr, mode);
+        const key = mode === "same" ? "" : `<div class="aud-key">Doğru cevap: <b>${ans.join(" – ")}</b></div>`;
+        const btn = withDelay ? `<button class="aud-delay" data-i="${i}">⏱ ${AUD_DELAY_MS/1000} sn</button>` : "";
+        return `<div class="aud-row" data-row="${i}"><div class="aud-num">${i+1}</div>` +
+               `<div class="aud-body"><div class="aud-words">${tr.words.join(" – ")}</div>${key}</div>${btn}</div>`;
+      }).join("") + `</div>`;
+    board.querySelectorAll(".aud-delay").forEach(btn => {
+      btn.addEventListener("click", () => {
+        if(btn.classList.contains("counting")) return;
+        const row = btn.closest(".aud-row");
+        let left = AUD_DELAY_MS/1000;
+        btn.classList.remove("go");
+        btn.classList.add("counting");
+        btn.textContent = `${left}…`;
+        const t = setInterval(() => {
+          left--;
+          if(left > 0){ btn.textContent = `${left}…`; return; }
+          clearInterval(t);
+          btn.classList.remove("counting");
+          btn.classList.add("go");
+          btn.textContent = "Söyle!";
+          if(row) row.classList.add("done");
+          try{ beep(700, 900, 180, 0.15); }catch(e){}
+          try{ vibrate(60); }catch(e){}
+        }, 1000);
+        audTimers.push(t);
+      });
+    });
+  }
+
   const PRE_OBJECTS_BY_TIER = [
     ["dog","jacket","bread"],
     ["dog","cat","jacket","bread"],
@@ -3661,6 +3762,51 @@ const FRUIT_VEG_IMAGES = {
       ]
     },
     {
+      id: "word-repeat",
+      readingLevel: ["post"],
+      label: "Kelime Tekrarı",
+      isAuditory: true,
+      attrs: [],
+      audTrials: () => makeAudTrials("plain"),
+      stages: [
+        {
+          label: "Aşama 1 · Hemen Tekrar",
+          answerMode: "same",
+          instruction: () => `Kelimeleri <b>çocuğa göstermeden</b> sesli okuyun. Ardından <b>"Söylediğim ${audLen()} kelimeyi aynı sırayla tekrar et"</b> deyin.`,
+          example: () => ``
+        },
+        {
+          label: "Aşama 2 · 4 Saniye Sonra",
+          answerMode: "same",
+          delay: true,
+          instruction: () => `Kelimeleri <b>çocuğa göstermeden</b> sesli okuyun ve <b>"Ben söyle dediğimde, bu ${audLen()} kelimeyi aynı sırayla söyle"</b> deyin. ⏱ düğmesine basın; 4 saniye sonra "Söyle!" deyin.`,
+          example: () => ``
+        }
+      ]
+    },
+    {
+      id: "word-order",
+      readingLevel: ["pre","post"],
+      label: "Kelime Sıralama",
+      isAuditory: true,
+      attrs: [],
+      audTrials: () => makeAudTrials(currentStageIndex === 1 ? "size" : "plain"),
+      stages: [
+        {
+          label: "Aşama 1 · Tersten",
+          answerMode: "reverse",
+          instruction: () => `Kelimeleri <b>çocuğa göstermeden</b> sesli okuyun. Ardından <b>"Söylediğim ${audLen()} kelimeyi sondan başa, tersten söyle"</b> deyin.`,
+          example: () => ``
+        },
+        {
+          label: "Aşama 2 · Küçükten Büyüğe",
+          answerMode: "size",
+          instruction: () => `Hayvan adlarını <b>çocuğa göstermeden</b> sesli okuyun. Ardından <b>"Söylediğim ${audLen()} hayvanı en küçükten en büyüğe doğru sıralayarak söyle"</b> deyin.`,
+          example: () => ``
+        }
+      ]
+    },
+    {
       id: "digit-span",
       readingLevel: ["pre","post"],
       label: "Rakam Dizisi (Digit Span)",
@@ -3824,21 +3970,21 @@ const FRUIT_VEG_IMAGES = {
       id:"calisan-bellek",
       readingLevel:["pre","post"],
       label:"Çalışan Bellek",
-      sub:"N-geri, digit span, ileriye dönük bellek",
+      sub:"N-geri, digit span, kelime sıralama, ileriye dönük bellek",
       purpose:"Birden fazla bilgiyi aynı anda zihinde tutup güncelleme (n-geri) veya bir niyeti geleceğe taşıma (ileriye dönük bellek) becerilerini çalıştırır.",
       color:"#4F9D5A",
       group:"Bellek",
-      exerciseIds:["nback-shape","nback-color","nback-number","digit-span","prospective-event","prospective-time","prospective-delayed"]
+      exerciseIds:["nback-shape","nback-color","nback-number","digit-span","word-order","prospective-event","prospective-time","prospective-delayed"]
     },
     {
       id:"sozel-bellek",
       readingLevel:["post"],
       label:"Sözel Bellek",
-      sub:"Kelime listesi, öbek tekrarı",
+      sub:"Kelime listesi, öbek tekrarı, kelime tekrarı",
       purpose:"Duyduğu bilgiyi kısa süre zihninde tutup doğru sırayla geri getirme becerisini çalıştırır.",
       color:"#2E5F8A",
       group:"Bellek",
-      exerciseIds:["word-list-recall","sentence-repeat"]
+      exerciseIds:["word-list-recall","sentence-repeat","word-repeat"]
     },
     {
       id:"gorsel-bellek",
@@ -4035,6 +4181,7 @@ const FRUIT_VEG_IMAGES = {
   }
 
   function generateGrid(exercise, rows, cols){
+    if(exercise.isAuditory) return exercise.audTrials();                 // işitsel diziler: sayfa başına 5 (okul öncesi 3) dizi
     if(exercise.isScatter) return exercise.scatterItems();               // sıralı arama çalışmaları: tüm ögeler bir kez, karışık sırayla
     if(typeof exercise.beginGrid === "function") exercise.beginGrid();   // tahta başına bir kez (ör. Tatlar: hangi tatlar çıkacak)
     // Havuz büyüklüğünü ölç: küçük havuzlarda (<=2 değer) "öncekinden farklı olsun" kuralı zorunlu AB-AB
@@ -4280,13 +4427,14 @@ const FRUIT_VEG_IMAGES = {
     const secPerItem = (ms/1000) / itemCount;
     // Sıralı arama (sayıyı bulup gösterme) isimlendirmeden doğal olarak yavaştır: eşikler 2 katı
     const k = ex.isScatter ? 2 : 1;
-    const isGood = errors === 0 && secPerItem <= SUCCESS_SEC_PER_ITEM * k;
-    const isBad = errors > 0 || secPerItem >= FAIL_SEC_PER_ITEM * k;
+    // İşitsel dizilerde süre değil doğruluk esas: hiç hata yoksa başarılı, 2+ yanlış dizide zorluk iner
+    const isGood = ex.isAuditory ? errors === 0 : (errors === 0 && secPerItem <= SUCCESS_SEC_PER_ITEM * k);
+    const isBad = ex.isAuditory ? errors >= 2 : (errors > 0 || secPerItem >= FAIL_SEC_PER_ITEM * k);
     const combo = currentCombo();
     const player = currentPlayerName.trim() || "Oyuncu";
     // Sıralı arama çalışmalarında merdiven aşamaları da kapsar:
     // Başlangıç→Orta→Zor (Aşama 1), sonra Başlangıç→Orta→Zor (Aşama 2)
-    const useStages = ex.isScatter && ex.stages.length > 1;
+    const useStages = (ex.isScatter || ex.isAuditory) && ex.stages.length > 1;
     const stageName = (i) => ex.stages[i].label.split("·")[0].trim();
     const labelFor = (t, st) => useStages ? `${TIERS[t].label} · ${stageName(st)}` : TIERS[t].label;
 
@@ -4598,8 +4746,13 @@ const FRUIT_VEG_IMAGES = {
   function renderBoard(){
     const ex = currentExercise();
     const board = document.getElementById("board");
+    clearAudTimers();
     if(ex.isMotion){
       renderMotionBoard();
+      return;
+    }
+    if(ex.isAuditory){
+      renderAuditoryBoard();
       return;
     }
     board.style.display = "grid";
@@ -4645,7 +4798,7 @@ const FRUIT_VEG_IMAGES = {
     if(applyingBoardLayout) return;
     const board = document.getElementById("board");
     if(!board || !currentGrid.length) return;
-    if(currentExercise().isMotion) return;
+    if(currentExercise().isMotion || currentExercise().isAuditory) return;
     applyingBoardLayout = true;
     try{
       let {rows, cols} = currentTier();
@@ -4766,6 +4919,7 @@ const FRUIT_VEG_IMAGES = {
     if(label){
       if(ex.isMotion) label.textContent = "Gözden kaçırma / baş çevirme sayısı";
       else if(ex.isRecall) label.textContent = "Doğru hatırlanan sayısı";
+      else if(ex.isAuditory) label.textContent = "Yanlış söylenen dizi sayısı";
       else label.textContent = "Hata sayısı";
     }
     renderAll();
