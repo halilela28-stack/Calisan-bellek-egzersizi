@@ -2820,6 +2820,11 @@
   };
   const PAIR_SETS_PRE = [["door","key"],["foot","shoe"],["tooth","toothbrush"],["cloud","umbrella"],["flower","wateringcan"]];
   const PAIR_SETS_POST = [["nail","hammer"],["screw","screwdriver"],["letter","envelope"],["pencil","sharpener"],["phone","charger"]];
+  // "Yanlış" olarak verilmemesi gereken, mantıken ilişkilendirilebilecek çaprazlar
+  const PAIR_BLOCKED = new Set([
+    "pencil-envelope",      // kalemle zarfın üstüne adres yazılır
+    "cloud-wateringcan"     // yağmur ve sulama kabı: ikisi de su verir
+  ]);
   const PAIR_COUNT_BY_TIER = [3, 4, 5];
   const PRE_PAIR_COUNT_BY_TIER = [2, 2, 3];
   // Kutular iki nesne taşıdığı için ızgara 3 sütunludur: 15 / 21 / 24 kutu (okul öncesi 9 / 12 / 15)
@@ -2836,10 +2841,17 @@
     const sets = isPre() ? PAIR_SETS_PRE : PAIR_SETS_POST;
     const n = pairWantedCount();
     let pool, key, tries = 0;
-    do{
+    while(true){
       pool = shuffleArray(sets).slice(0, n);
       key = pool.map(p => p[0]).sort().join("|"); tries++;
-    } while(n < sets.length && key === pairLastKey && tries < 8);
+      if(tries >= 30) break;
+      // en az 2 farklı "yanlış" kutu kurulabilmeli; yoksa yanlış kutular hep aynı olur
+      let falseOpts = 0;
+      pool.forEach((a, ai) => pool.forEach((b, bi) => { if(ai !== bi && !PAIR_BLOCKED.has(a[0] + "-" + b[1])) falseOpts++; }));
+      if(falseOpts < 2) continue;
+      if(n < sets.length && key === pairLastKey) continue;
+      break;
+    }
     pairLastKey = key;
     pairPool = pool;
     pairTruthRun = [];
@@ -2847,9 +2859,17 @@
   function makePairItem(forceTruth){
     if(!pairPool || pairPool.length !== pairWantedCount()) pickPairPool();
     let truth = (typeof forceTruth === "boolean") ? forceTruth : Math.random() < 0.5;
-    const i = Math.floor(Math.random() * pairPool.length);
+    let i = Math.floor(Math.random() * pairPool.length);
     let j = i;
-    if(!truth){ do{ j = Math.floor(Math.random() * pairPool.length); } while(j === i); }
+    if(!truth){
+      // İlişkisiz kutu: anlamca ilişkili sayılabilecek çaprazlar (ör. kalem + zarf) hiç oluşturulmaz
+      const opts = [];
+      pairPool.forEach((a, ai) => pairPool.forEach((b, bi) => {
+        if(ai !== bi && !PAIR_BLOCKED.has(a[0] + "-" + b[1])) opts.push([ai, bi]);
+      }));
+      if(opts.length){ [i, j] = randomItem(opts); }
+      else { i = 0; j = 1 % pairPool.length; }
+    }
     const left = pairPool[i][0], right = pairPool[j][1];
     return { key: left + "-" + right, left, right, ok: truth };
   }
