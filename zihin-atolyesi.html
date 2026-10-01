@@ -2630,11 +2630,12 @@
   // Her renk sabit bir harekete karşılık gelir; çocuk masada otururken rengi görünce hareketi yapar.
   // Düzey kaç renk/hareket çıkacağını belirler: 3 / 4 / 5 (okul öncesi x3/5: 2 / 2 / 3).
   const CRT_MOVES = [
-    { color:"#D55E00", emoji:"👃", move:"buruna dokun" },
-    { color:"#0072B2", emoji:"👅", move:"dil çıkar" },
-    { color:"#009E73", emoji:"👏", move:"alkış yap" },
-    { color:"#E69F00", emoji:"👋", move:"bay bay yap" },
-    { color:"#CC79A7", emoji:"😉", move:"göz kırp" }
+    // kiremit turuncuya çok yakın durduğu için bu çalışmada yerine siyah kullanılır
+    { color:"#1F2A33", name:"siyah",   emoji:"👃", move:"buruna dokun" },
+    { color:"#0072B2", name:"mavi",    emoji:"👅", move:"dil çıkar" },
+    { color:"#009E73", name:"yeşil",   emoji:"👏", move:"alkış yap" },
+    { color:"#E69F00", name:"turuncu", emoji:"👋", move:"bay bay yap" },
+    { color:"#CC79A7", name:"mor",     emoji:"😉", move:"göz kırp" }
   ];
   const CRT_COUNT_BY_TIER = [3, 4, 5];
   const PRE_CRT_COUNT_BY_TIER = [2, 2, 3];
@@ -2662,7 +2663,7 @@
       CRT_MOVES.filter(m => pool.some(p => p.color === m.color)).map(m =>
         `<span style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:var(--bg);font-weight:700;">` +
         `<span style="width:18px;height:18px;border-radius:50%;background:${m.color};display:inline-block;"></span>` +
-        `${COLOR_NAMES[m.color]} → ${m.emoji} ${m.move}</span>`).join("") + `</div>`;
+        `${m.name} → ${m.emoji} ${m.move}</span>`).join("") + `</div>`;
   }
 
   // ---------- İşlemleme Hızı: Oluş Sırası (Trail Making Test-A uyarlaması) ----------
@@ -3492,7 +3493,7 @@ const FRUIT_VEG_IMAGES = {
         {
           label: "Aşama 2 · Renk + Hareket",
           instruction: () => `Öğrenci masada otursun. Renk-hareket eşleşmelerini birlikte birkaç kez deneyin. Ardından <b>"Ben başla dediğimde, soldan sağa her rengin önce adını söyle, sonra hareketini yap; olabildiğince hızlı"</b> deyin.` + crtLegendHTML(),
-          example: (item) => `${COLOR_NAMES[item.color]}`
+          example: (item) => `${crtMoveOf(item.color).name}`
         }
       ]
     },
@@ -4087,13 +4088,8 @@ const FRUIT_VEG_IMAGES = {
       renderItem: (item) => `<div class="name-cell">${item.word}</div>`,
       stages: [
         {
-          label: "Aşama 1 · Zıt Anlamı",
+          label: "Zıt Anlamı",
           instruction: () => `Öğrenciye görselleri tanıtın. <b>"Kelimenin zıt anlamını söyle"</b> deyin.`,
-          example: (item) => `${item.opp}`
-        },
-        {
-          label: "Aşama 2 · Zıt Anlam + Cümle",
-          instruction: () => `Zıt anlamını söyledikten sonra o kelimeyi <b>kısa bir cümlede</b> kullansın.`,
           example: (item) => `${item.opp}`
         }
       ]
@@ -4261,13 +4257,8 @@ const FRUIT_VEG_IMAGES = {
       renderItem: (item) => sizedCircleHTML(item.size, item.color),
       stages: [
         {
-          label: "Aşama 1 · Boyut",
+          label: "Boyut",
           instruction: () => `Öğrenciye görselleri tanıtın. <b>"Her dairenin küçük mü, orta mı, büyük mü olduğunu söyle"</b> deyin.`,
-          example: (item) => `${SIZE_LABELS[item.size]}`
-        },
-        {
-          label: "Aşama 2 · Boyut + Örnek Nesne",
-          instruction: () => `Boyutunu söyledikten sonra, aynı boyutta günlük hayattan <b>bir nesne örneği</b> versin (örneğin küçük — "düğme gibi").`,
           example: (item) => `${SIZE_LABELS[item.size]}`
         }
       ]
@@ -4314,14 +4305,9 @@ const FRUIT_VEG_IMAGES = {
       renderItem: (item) => polygonSVG(item.sides, item.color),
       stages: [
         {
-          label: "Aşama 1 · Kenar Sayısı",
+          label: "Kenar Sayısı",
           instruction: () => `Öğrenciye görselleri tanıtın. <b>"Şeklin kaç kenarı olduğunu söyle"</b> deyin.`,
           example: (item) => `${item.sides} kenar`
-        },
-        {
-          label: "Aşama 2 · Kenar + Şekil Adı",
-          instruction: () => `Kenar sayısını söyledikten sonra <b>şeklin adını</b> da eklesin (üçgen, kare, beşgen, altıgen).`,
-          example: (item) => `${item.sides} kenar — ${({3:"üçgen",4:"kare",5:"beşgen",6:"altıgen"})[item.sides]}`
         }
       ]
     },
@@ -4355,7 +4341,7 @@ const FRUIT_VEG_IMAGES = {
     },
     {
       id: "word-repeat",
-      readingLevel: ["post"],
+      readingLevel: ["pre","post"],
       label: "Kelime Tekrarı",
       isAuditory: true,
       attrs: [],
