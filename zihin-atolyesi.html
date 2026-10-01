@@ -2896,6 +2896,55 @@
     return items;
   }
 
+  // ---------- Hedefli kural çalışmaları: hedef sıklığı ----------
+  // Kural Değişimi (yeşil), Ket Vurma (dur hedefi), İleriye Dönük Bellek-Olay (tetikleyici) gibi
+  // çalışmalarda hedef, rastgele seçimle çok seyrek çıkıyordu (25 ögede ~1). Burada her sayfada
+  // hedef sayısı sabit bir orana göre yerleştirilir; hedefe benzeyen "tuzak" ögeler de eklenir.
+  //  targets: [{shape?, color?}]  (shape yoksa o renkteki her şekil hedeftir)
+  //  rate: sayfadaki hedef oranı · maxRun: art arda en fazla kaç hedef · lureRate: tuzak oranı
+  function makeTargetGrid(n, targets, rate, maxRun, lureRate){
+    const isTarget = (it) => targets.some(t => (!t.shape || t.shape === it.shape) && (!t.color || t.color === it.color));
+    const shapesPool = isPre() ? PRE_SHAPES : SHAPES;
+    const colorsPool = isPre() ? PRE_COLORS : COLORS;
+    const tCount = Math.max(1, Math.round(n * rate));
+    const lCount = Math.min(n - tCount, Math.round(n * (lureRate || 0)));
+    // hedef konumları: art arda en fazla maxRun hedef
+    let flags, g = 0;
+    do{
+      flags = shuffleArray(Array.from({length:n}, (_, i) => i < tCount ? "T" : (i < tCount + lCount ? "L" : "N")));
+      let run = 0, ok = true;
+      for(const f of flags){ run = f === "T" ? run + 1 : 0; if(run > maxRun){ ok = false; break; } }
+      if(ok) break;
+      g++;
+    } while(g < 500);
+    const items = [];
+    let tIdx = Math.floor(Math.random() * targets.length);
+    flags.forEach((f, i) => {
+      const prev = items[i-1];
+      let it, k = 0;
+      do{
+        if(f === "T"){
+          const t = targets[(tIdx + k) % targets.length];
+          it = { shape: t.shape || shapesPool[Math.floor(Math.random()*shapesPool.length)],
+                 color: t.color || colorsPool[Math.floor(Math.random()*colorsPool.length)] };
+        } else if(f === "L"){
+          // tuzak: hedefin şeklini ya da rengini taşır ama hedef değildir
+          const t = targets[Math.floor(Math.random()*targets.length)];
+          const keepShape = t.shape && (!t.color || Math.random() < 0.5);
+          it = keepShape
+            ? { shape: t.shape, color: colorsPool[Math.floor(Math.random()*colorsPool.length)] }
+            : { shape: shapesPool[Math.floor(Math.random()*shapesPool.length)], color: t.color || colorsPool[Math.floor(Math.random()*colorsPool.length)] };
+        } else {
+          it = { shape: shapesPool[Math.floor(Math.random()*shapesPool.length)], color: colorsPool[Math.floor(Math.random()*colorsPool.length)] };
+        }
+        k++;
+      } while(k < 60 && ((f !== "T" && isTarget(it)) || (prev && prev.shape === it.shape && prev.color === it.color)));
+      if(f === "T") tIdx++;
+      items.push(it);
+    });
+    return items;
+  }
+
   const PRE_OBJECTS_BY_TIER = [
     ["dog","jacket","bread"],
     ["dog","cat","jacket","bread"],
@@ -3685,13 +3734,8 @@ const FRUIT_VEG_IMAGES = {
       renderItem: (item) => `<div class="name-cell stroop-cell" style="color:${item.inkColor}; font-weight:900;">${item.word.toUpperCase()}</div>`,
       stages: [
         {
-          label: "Aşama 1 · Yazı Rengi",
-          instruction: () => `Öğrenciye görselleri tanıtın. <b>"Kelimeyi değil, yazının RENGİNİ söyle"</b> deyin. Örneğin "YEŞİL" yazısı mavi renkteyse "mavi" denmeli.`,
-          example: (item) => `${COLOR_NAMES[item.inkColor]}`
-        },
-        {
-          label: "Aşama 2 · Hızlı Yazı Rengi",
-          instruction: () => `Aynı kuralla, <b>olabildiğince hızlı</b> şekilde yazının rengini söylemesini isteyin.`,
+          label: "Yazı Rengi",
+          instruction: () => `Öğrenciye görselleri tanıtın. <b>"Kelimeyi değil, yazının RENGİNİ olabildiğince hızlı söyle"</b> deyin. Örneğin "YEŞİL" yazısı mavi renkteyse "mavi" denmeli.`,
           example: (item) => `${COLOR_NAMES[item.inkColor]}`
         }
       ]
@@ -3701,17 +3745,14 @@ const FRUIT_VEG_IMAGES = {
       readingLevel: ["pre","post"],
       label: "Kural Değişimi",
       attrs: ["shape","color"],
+      // yeşil ögeler sayfanın ~%35'i (art arda en fazla 2)
+      makeGrid: (n) => makeTargetGrid(n, [{color:"#009E73"}], 0.35, 2, 0),
       randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
       renderItem: (item) => shapeSVG(item.shape, item.color),
       stages: [
         {
-          label: "Aşama 1 · Şekil Söyle",
-          instruction: () => `Öğrenciye görselleri tanıtın. <b>"Her şeklin sadece adını söyle"</b> deyin (temel kural).`,
-          example: (item) => `${SHAPE_NAMES[item.shape]}`
-        },
-        {
-          label: "Aşama 2 · Kural Değişti",
-          instruction: () => `Şimdi kuralı değiştirin: <b>"Eğer şekil YEŞİLSE rengini söyle, değilse şeklin adını söyle"</b> deyin. Bu, dikkat kaydırma gerektirir.`,
+          label: "Yeşilse Renk, Değilse Şekil",
+          instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Eğer şekil YEŞİLSE rengini söyle, değilse şeklin adını söyle"</b> deyin. Bu, dikkat kaydırma gerektirir.`,
           example: (item) => item.color === "#009E73" ? `${COLOR_NAMES[item.color]}` : `${SHAPE_NAMES[item.shape]}`
         }
       ]
@@ -3721,6 +3762,10 @@ const FRUIT_VEG_IMAGES = {
       readingLevel: ["pre","post"],
       label: "Ket Vurma",
       attrs: ["shape","color"],
+      // "dur" hedefi sayfanın ~%25'i (yan yana gelmez) + ~%15 tuzak (aynı şekil başka renk / aynı renk başka şekil)
+      makeGrid: (n) => makeTargetGrid(n,
+        currentStageIndex === 1 ? [{shape:"heart", color:"#0072B2"}] : [{shape:"star", color:"#D55E00"}],
+        0.25, 1, 0.15),
       randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
       renderItem: (item) => shapeSVG(item.shape, item.color),
       stages: [
@@ -3805,6 +3850,10 @@ const FRUIT_VEG_IMAGES = {
       readingLevel: ["pre","post"],
       label: "İleriye Dönük Bellek (Olay)",
       attrs: ["shape","color"],
+      // tetikleyici(ler) sayfanın ~%20'si (yan yana gelmez) + ~%15 tuzak
+      makeGrid: (n) => makeTargetGrid(n,
+        currentStageIndex === 1 ? [{shape:"triangle", color:"#0072B2"}, {shape:"heart", color:"#009E73"}] : [{shape:"triangle", color:"#0072B2"}],
+        0.2, 1, 0.15),
       randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
       renderItem: (item) => shapeSVG(item.shape, item.color),
       stages: [
