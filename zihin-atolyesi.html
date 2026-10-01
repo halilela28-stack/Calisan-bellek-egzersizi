@@ -957,6 +957,16 @@
   .aud-delay.counting{ background:#FFF3E0; }
   .aud-delay.go{ background:#2E6F6E; color:#fff; border-color:#2E6F6E; }
   .aud-row.done{ opacity:0.55; }
+  /* Yatay modda tahta kaydırılamadığı için diziler iki sütuna dizilir ve sıkışır */
+  @media (orientation: landscape) and (max-height: 520px){
+    .aud-list{ display:grid; grid-template-columns:1fr 1fr; gap:6px 10px; }
+    .aud-note{ grid-column:1 / -1; font-size:11px; padding:0; }
+    .aud-row{ padding:5px 8px; gap:8px; border-radius:10px; }
+    .aud-num{ width:22px; height:22px; font-size:12px; }
+    .aud-words{ font-size:15px; }
+    .aud-key{ font-size:11px; margin-top:1px; }
+    .aud-delay{ min-width:58px; padding:6px 4px; font-size:13px; }
+  }
 
   /* Doğru-Yanlış Eşleşme: iki nesne tek kutuda */
   .pair-cell{ display:flex; align-items:center; justify-content:space-evenly; width:96%; height:90%;
@@ -2536,7 +2546,7 @@
     clearAudTimers();
     board.style.display = "block";
     board.style.minHeight = "";
-    board.style.padding = "14px";
+    board.style.padding = landscapeMQ.matches ? "8px 10px" : "14px";
     board.style.gridTemplateColumns = "";
     board.style.gridTemplateRows = "";
     board.classList.remove("wide-grid");
@@ -2832,7 +2842,6 @@
   const PAIR_DIMS_PRE = [{rows:3, cols:3}, {rows:4, cols:3}, {rows:5, cols:3}];
   let pairPool = null;
   let pairLastKey = "";
-  let pairTruthRun = [];
   function pairWantedCount(){
     const table = isPre() ? PRE_PAIR_COUNT_BY_TIER : PAIR_COUNT_BY_TIER;
     return table[currentCombo().t] || table[table.length-1];
@@ -2854,7 +2863,6 @@
     }
     pairLastKey = key;
     pairPool = pool;
-    pairTruthRun = [];
   }
   function makePairItem(forceTruth){
     if(!pairPool || pairPool.length !== pairWantedCount()) pickPairPool();
@@ -3467,6 +3475,7 @@ const FRUIT_VEG_IMAGES = {
       id: "choice-reaction",
       readingLevel: ["pre","post"],
       label: "Seçimli Tepki",
+      speedFactor: 2,          // her öge bir beden hareketi: isimlendirmeden yavaş, eşikler 2 katı
       attrs: ["color"],
       beginGrid: () => { pickCrtPool(); },
       randomItem: () => {
@@ -3506,6 +3515,7 @@ const FRUIT_VEG_IMAGES = {
       id: "symbol-image",
       readingLevel: ["pre","post"],
       label: "Şekil-Resim Eşleme",
+      speedFactor: 1.5,        // her ögede anahtara bakıp eşini bulma: eşikler 1,5 katı
       isSdmt: true,
       attrs: ["shape"],
       beginGrid: () => { pickSdmtPool(); },
@@ -3526,6 +3536,7 @@ const FRUIT_VEG_IMAGES = {
       id: "related-pairs",
       readingLevel: ["pre","post"],
       label: "Doğru-Yanlış Eşleşme",
+      speedFactor: 1.5,        // her kutuda iki nesne + ilişki kararı: eşikler 1,5 katı
       attrs: ["key"],
       dims: () => (isPre() ? PAIR_DIMS_PRE : PAIR_DIMS_POST),
       makeGrid: (n) => makePairGrid(n),
@@ -5018,7 +5029,7 @@ const FRUIT_VEG_IMAGES = {
     const secPerItem = (ms/1000) / itemCount;
     // Sıralı arama (sayıyı bulup gösterme) isimlendirmeden doğal olarak yavaştır: eşikler 2 katı
     // Oluş Sırası'nda hedef başına tarama + karar gerekir: eşikler 3 katı
-    const k = ex.isSeqRows ? 3 : (ex.isScatter ? 2 : 1);
+    const k = ex.speedFactor || (ex.isSeqRows ? 3 : (ex.isScatter ? 2 : 1));
     // İşitsel dizilerde süre değil doğruluk esas: hiç hata yoksa başarılı, 2+ yanlış dizide zorluk iner
     const isGood = ex.isAuditory ? errors === 0 : (errors === 0 && secPerItem <= SUCCESS_SEC_PER_ITEM * k);
     const isBad = ex.isAuditory ? errors >= 2 : (errors > 0 || secPerItem >= FAIL_SEC_PER_ITEM * k);
@@ -5412,9 +5423,11 @@ const FRUIT_VEG_IMAGES = {
       fitTextCells(board);
       // İlk açılışta yerleşim (özellikle görsellerin boyutu) henüz oturmamış olabilir;
       // bir sonraki karede ölçümü tazeleyip çizgileri gerekirse yeniden konumlandır.
+      const gridAtLayout = currentGrid;
       requestAnimationFrame(()=>{
         requestAnimationFrame(()=>{
-          if(document.getElementById("board") === board){
+          // bu arada sayfa değiştiyse (ör. hızlıca Sonraki'ye basıldıysa) eski çizgileri yeni sayfaya çizme
+          if(document.getElementById("board") === board && currentGrid === gridAtLayout){
             renderRowDividers(board, rows, cols);
           }
         });
