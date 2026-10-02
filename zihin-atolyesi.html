@@ -981,6 +981,15 @@
   .flk-cell img{ width:92%; height:92%; object-fit:contain; display:block; }
   .flk-num{ font-weight:800; line-height:1; color:var(--ink); }
 
+  /* Dokunma oyunları (Stop-Signal): dokunulan hücre işaretlenir */
+  .touch-board .cell{ cursor:pointer; position:relative; -webkit-tap-highlight-color:transparent; }
+  .tap-mark{ position:absolute; inset:6%; border-radius:12px; pointer-events:none; display:flex; align-items:flex-start; justify-content:flex-end;
+    font-weight:900; font-size:18px; padding:2px 6px; box-sizing:border-box; }
+  .tap-mark.ok{ border:4px solid #2E9E4F; background:rgba(46,158,79,0.12); color:#2E9E4F; }
+  .tap-mark.bad{ border:4px solid #D32F2F; background:rgba(211,47,47,0.14); color:#D32F2F; }
+  .touch-status{ font-size:13px; font-weight:700; color:var(--muted, #5B6B78); text-align:center; margin:6px 0 0; }
+  .target-swatch{ display:inline-block; width:16px; height:16px; border-radius:4px; vertical-align:-2px; margin:0 3px; border:1px solid rgba(0,0,0,0.2); }
+
   /* Şekil-Resim Eşleme (SDMT) anahtarı: tahtanın sağ üst köşesi */
   .sdmt-key{ display:none; justify-content:flex-end; margin:0 0 8px; }
   .sdmt-key.show{ display:flex; }
@@ -2242,6 +2251,7 @@
   <div class="sdmt-key" id="sdmtKey"></div>
 
   <div class="board" id="board"></div>
+  <div class="touch-status" id="touchStatus" style="display:none"></div>
 
   <div class="dots" id="dots"></div>
 
@@ -2647,6 +2657,15 @@
   ];
   const CRT_COUNT_BY_TIER = [3, 4, 5];
   const PRE_CRT_COUNT_BY_TIER = [2, 2, 3];
+  // Değişken hedef: renk → hareket eşleşmesi her sayfada / Karıştır'da yeniden karılır
+  let crtMoves = CRT_MOVES.slice();
+  function shuffleCrtMapping(){
+    const last = crtMoves.map(m => m.color).join("|");
+    let cols, g = 0;
+    do{ cols = shuffleArray(CRT_MOVES.map(m => ({color:m.color, name:m.name}))); g++; }
+    while(g < 20 && cols.map(c => c.color).join("|") === last);
+    crtMoves = CRT_MOVES.map((m, i) => Object.assign({}, m, {color: cols[i].color, name: cols[i].name}));
+  }
   let crtPool = null;
   let crtLastKey = "";
   function crtWantedCount(){
@@ -2654,21 +2673,22 @@
     return table[currentCombo().t] || table[table.length-1];
   }
   function pickCrtPool(){
+    shuffleCrtMapping();
     const n = crtWantedCount();
     let pool, key, tries = 0;
     do{
-      pool = shuffleArray(CRT_MOVES).slice(0, n);
+      pool = shuffleArray(crtMoves).slice(0, n);
       key = pool.map(m => m.color).sort().join("|"); tries++;
-    } while(n < CRT_MOVES.length && key === crtLastKey && tries < 8);
+    } while(n < crtMoves.length && key === crtLastKey && tries < 8);
     crtLastKey = key;
     crtPool = pool;
   }
-  function crtMoveOf(color){ return CRT_MOVES.find(m => m.color === color); }
+  function crtMoveOf(color){ return crtMoves.find(m => m.color === color); }
   function crtLegendHTML(){
-    const pool = (crtPool && crtPool.length === crtWantedCount()) ? crtPool : CRT_MOVES.slice(0, crtWantedCount());
+    const pool = (crtPool && crtPool.length === crtWantedCount()) ? crtPool : crtMoves.slice(0, crtWantedCount());
     // Lejant, renk sırası sabit kalsın diye CRT_MOVES sırasıyla gösterilir
     return `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">` +
-      CRT_MOVES.filter(m => pool.some(p => p.color === m.color)).map(m =>
+      crtMoves.filter(m => pool.some(p => p.color === m.color)).map(m =>
         `<span style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:var(--bg);font-weight:700;">` +
         `<span style="width:18px;height:18px;border-radius:50%;background:${m.color};display:inline-block;"></span>` +
         `${m.name} → ${m.emoji} ${m.move}</span>`).join("") + `</div>`;
@@ -2769,6 +2789,15 @@
   const SDMT_COUNT_BY_TIER = [3, 4, 5];
   const PRE_SDMT_COUNT_BY_TIER = [2, 2, 3];
   const SDMT_INK = "#1F2A33";
+  // Değişken hedef: şekil → resim eşleşmesi her sayfada / Karıştır'da yeniden karılır
+  const SDMT_SHAPE_ORDER = ["circle","triangle","square","star","heart"];
+  let sdmtPairs = SDMT_PAIRS.slice();
+  function shuffleSdmtMapping(){
+    const last = sdmtPairs.map(p => p.shape).join("|");
+    let shapes, g = 0;
+    do{ shapes = shuffleArray(SDMT_PAIRS.map(p => p.shape)); g++; } while(g < 20 && shapes.join("|") === last);
+    sdmtPairs = SDMT_PAIRS.map((p, i) => Object.assign({}, p, {shape: shapes[i]}));
+  }
   let sdmtPool = null;
   let sdmtLastKey = "";
   function sdmtShapeSVG(shape){
@@ -2788,24 +2817,26 @@
     return table[currentCombo().t] || table[table.length-1];
   }
   function pickSdmtPool(){
+    shuffleSdmtMapping();
     const n = sdmtWantedCount();
     let pool, key, tries = 0;
     do{
-      pool = shuffleArray(SDMT_PAIRS).slice(0, n);
-      key = pool.map(p => p.shape).sort().join("|"); tries++;
-    } while(n < SDMT_PAIRS.length && key === sdmtLastKey && tries < 8);
+      pool = shuffleArray(sdmtPairs).slice(0, n);
+      key = pool.map(p => p.shape + p.img).sort().join("|"); tries++;
+    } while(n < sdmtPairs.length && key === sdmtLastKey && tries < 8);
     sdmtLastKey = key;
     sdmtPool = pool;
   }
-  function sdmtPairOf(shape){ return SDMT_PAIRS.find(p => p.shape === shape); }
+  function sdmtPairOf(shape){ return sdmtPairs.find(p => p.shape === shape); }
   function renderSdmtKey(){
     const el = document.getElementById("sdmtKey");
     if(!el) return;
     const ex = currentExercise();
     if(!ex.isSdmt){ el.classList.remove("show"); el.innerHTML = ""; return; }
-    const pool = (sdmtPool && sdmtPool.length === sdmtWantedCount()) ? sdmtPool : SDMT_PAIRS.slice(0, sdmtWantedCount());
-    // Anahtar her zaman aynı sırada: daire, üçgen, kare, yıldız, kalp
-    const shown = SDMT_PAIRS.filter(p => pool.some(q => q.shape === p.shape));
+    const pool = (sdmtPool && sdmtPool.length === sdmtWantedCount()) ? sdmtPool : sdmtPairs.slice(0, sdmtWantedCount());
+    // Anahtar her zaman aynı şekil sırasında: daire, üçgen, kare, yıldız, kalp (eşleşen resimler değişir)
+    const shown = sdmtPairs.filter(p => pool.some(q => q.shape === p.shape))
+      .sort((a, b) => SDMT_SHAPE_ORDER.indexOf(a.shape) - SDMT_SHAPE_ORDER.indexOf(b.shape));
     el.innerHTML = `<div class="sdmt-key-box">` + shown.map(p =>
       `<div class="sdmt-pair"><div>${sdmtShapeSVG(p.shape)}</div><div><img src="${sdmtImgSrc(p.img)}" alt=""></div></div>`).join("") + `</div>`;
     el.classList.add("show");
@@ -2913,6 +2944,18 @@
     return items;
   }
 
+  // ---------- Değişken hedef ----------
+  // Hedefi olan tüm çalışmalarda hedef (renk, yüz, tetikleyici, eşleşme...) her yeni sayfada ve
+  // Karıştır'a her basışta yeniden seçilir; böylece çocuk ve uygulayıcı için alışkanlık oluşmaz.
+  // pickDifferent: havuzdan, bir öncekinden farklı bir değer seçer.
+  function pickDifferent(pool, last){
+    if(pool.length < 2) return pool[0];
+    let v, g = 0;
+    do{ v = pool[Math.floor(Math.random()*pool.length)]; g++; } while(v === last && g < 30);
+    return v;
+  }
+  function trUpper(t){ return String(t).toLocaleUpperCase("tr-TR"); }
+
   // ---------- Hedefli kural çalışmaları: hedef sıklığı ----------
   // Kural Değişimi (yeşil), Ket Vurma (dur hedefi), İleriye Dönük Bellek-Olay (tetikleyici) gibi
   // çalışmalarda hedef, rastgele seçimle çok seyrek çıkıyordu (25 ögede ~1). Burada her sayfada
@@ -2976,10 +3019,24 @@
   const FACE_KEYS = ["happy","surprised","sleepy","sad","angry"];
   const FACE_COUNT_BY_TIER = [3, 4, 5];
   const PRE_FACE_COUNT_BY_TIER = [3, 3, 3];   // x3/5 kuralı 2 verir; ama 1 söyle-yüzü + 1 dur-yüzü ile görev anlamını yitirir, en az 3
-  function makeFaceGoGrid(n, stopFace){
+  // Değişken hedef: dur yüz(ler)i her sayfada / Karıştır'da yeniden seçilir
+  let goNoGoStops = ["angry"];
+  function pickGoNoGoStops(){
+    if(currentStageIndex === 1){
+      const a = pickDifferent(FACE_KEYS, goNoGoStops[0]);
+      const b = pickDifferent(FACE_KEYS.filter(f => f !== a), null);
+      goNoGoStops = [a, b];
+    } else {
+      goNoGoStops = [pickDifferent(FACE_KEYS, goNoGoStops[0])];
+    }
+    return goNoGoStops;
+  }
+  function stopFaceText(){ return goNoGoStops.map(f => trUpper(FACE_NAMES[f])).join(" ya da "); }
+  function makeFaceGoGrid(n, stops){
     const table = isPre() ? PRE_FACE_COUNT_BY_TIER : FACE_COUNT_BY_TIER;
     const k = table[currentCombo().t] || table[table.length-1];
-    const others = shuffleArray(FACE_KEYS.filter(f => f !== stopFace)).slice(0, k - 1);
+    // en az 2 farklı "söyle" yüzü kalsın
+    const others = shuffleArray(FACE_KEYS.filter(f => !stops.includes(f))).slice(0, Math.max(2, k - stops.length));
     const tCount = Math.max(1, Math.round(n * 0.25));
     let flags, g = 0;
     do{
@@ -2990,9 +3047,10 @@
       g++;
     } while(g < 500);
     const items = [];
+    let si = Math.floor(Math.random() * stops.length);
     flags.forEach((isStop, i) => {
       let face;
-      if(isStop) face = stopFace;
+      if(isStop){ face = stops[si % stops.length]; si++; }
       else {
         let c = 0;
         do{ face = others[Math.floor(Math.random()*others.length)]; c++; }
@@ -3024,7 +3082,10 @@
   const VEHICLE_KEYS = ["bus","plane","ship","heli","fire","train"];
   const VEHICLE_COUNT_BY_TIER = [3, 4, 5];
   const PRE_VEHICLE_COUNT_BY_TIER = [2, 2, 3];
+  // Değişken hedef: hedef görünüm (ön / arka) her sayfada / Karıştır'da değişir
+  let switchSide = "front";
   function makeVehicleSwitchGrid(n){
+    switchSide = pickDifferent(["front","back"], switchSide);
     const table = isPre() ? PRE_VEHICLE_COUNT_BY_TIER : VEHICLE_COUNT_BY_TIER;
     const k = table[currentCombo().t] || table[table.length-1];
     const pool = shuffleArray(VEHICLE_KEYS).slice(0, k);
@@ -3038,11 +3099,12 @@
       g++;
     } while(g < 500);
     const items = [];
-    flags.forEach((back, i) => {
+    flags.forEach((isTarget, i) => {
+      const back = switchSide === "back" ? isTarget : !isTarget;
       let v, c = 0;
       do{ v = pool[Math.floor(Math.random()*pool.length)]; c++; }
       while(c < 30 && items[i-1] && items[i-1].v === v && items[i-1].back === back);
-      items.push({ v, back, cell: v + (back ? "_b" : "_f") });
+      items.push({ v, back, target: isTarget, cell: v + (back ? "_b" : "_f") });
     });
     return items;
   }
@@ -3149,6 +3211,172 @@
     clearTimeout(window._flkResizeT);
     window._flkResizeT = setTimeout(() => { try{ if(currentExercise().isFlanker) renderFlankerBoard(); }catch(e){} }, 150);
   });
+
+  // İleriye Dönük Bellek (Olay): değişken tetikleyiciler
+  let peTriggers = [{shape:"triangle", color:"#0072B2"}];
+  function pickPeTriggers(){
+    const lastKey = peTriggers.map(t => t.shape + t.color).join("|");
+    let tr, g = 0;
+    do{
+      const shapes = shuffleArray(SHAPES), colors = shuffleArray(COLORS);
+      tr = currentStageIndex === 1
+        ? [{shape:shapes[0], color:colors[0]}, {shape:shapes[1], color:colors[1]}]
+        : [{shape:shapes[0], color:colors[0]}];
+      g++;
+    } while(g < 20 && tr.map(t => t.shape + t.color).join("|") === lastKey);
+    peTriggers = tr;
+    return tr;
+  }
+  function peName(t){ return trUpper(`${COLOR_NAMES[t.color]} ${SHAPE_NAMES[t.shape]}`); }
+  function peMatch(item){ return peTriggers.findIndex(t => t.shape === item.shape && t.color === item.color); }
+
+  // İleriye Dönük Bellek (Zaman): değişken zaman noktaları
+  let ptTimes = [15];
+  function pickPtTimes(){
+    if(currentStageIndex === 1){
+      const a = pickDifferent([10, 15, 20], ptTimes[0]);
+      ptTimes = [a, a + 15];
+    } else {
+      ptTimes = [pickDifferent([10, 15, 20, 25], ptTimes[0])];
+    }
+  }
+  // Ertelenmiş Görev Hatırlama: değişken görev
+  const PD_TASKS_1 = ["bana 3 tane hayvan ismi söyleyeceksin", "bana 3 tane meyve ismi söyleyeceksin", "bana 3 tane renk ismi söyleyeceksin",
+    "ellerini 3 kez çırpacaksın", "bana bir taşıt ismi söyleyeceksin"];
+  const PD_TASKS_2 = ["bana bugünün hangi gün olduğunu söyleyeceksin", "bana en sevdiğin yemeği söyleyeceksin", "ayağa kalkıp bir kez zıplayacaksın",
+    "bana adını ve soyadını söyleyeceksin", "bana kapıyı göstereceksin"];
+  let pdTask = PD_TASKS_1[0];
+  function pickPdTask(){ pdTask = pickDifferent(currentStageIndex === 1 ? PD_TASKS_2 : PD_TASKS_1, pdTask); }
+
+  // ---------- Yürütücü İşlev: Dokunma oyunları (Stop-Signal uyarlaması) ----------
+  // Çocuk ekrandaki hedeflere DOKUNUR, dur işaretlerine dokunmaz. Dokunmaları uygulama sayar:
+  // yanlış dokunma anında hata sayısına eklenir; tüm hedeflere dokunulunca kronometre kendiliğinden durur;
+  // kronometre elle durdurulursa dokunulmamış hedefler (kaçırılan) de hataya eklenir.
+  const CARD_COLORS = [
+    { color:"#E53935", name:"kırmızı" }, { color:"#1E63D6", name:"mavi" }, { color:"#2E9E4F", name:"yeşil" },
+    { color:"#F5C518", name:"sarı" },    { color:"#8E44AD", name:"mor" },  { color:"#F57C00", name:"turuncu" }
+  ];
+  function cardName(c){ const f = CARD_COLORS.find(x => x.color === c); return f ? f.name : ""; }
+  function swatch(c){ return `<span class="target-swatch" style="background:${c}"></span>`; }
+  function stopSignSVG(color){
+    return `<svg viewBox="0 0 100 100" style="width:80%;height:80%;display:block;"><polygon points="30,4 70,4 96,30 96,70 70,96 30,96 4,70 4,30" fill="${color}" stroke="#fff" stroke-width="5"/>` +
+           `<text x="50" y="60" text-anchor="middle" font-size="27" font-weight="900" fill="#fff" font-family="Arial, sans-serif">DUR</text></svg>`;
+  }
+  function plainCardSVG(color){
+    return `<svg viewBox="0 0 80 100" style="width:66%;height:84%;display:block;"><rect x="3" y="3" width="74" height="94" rx="10" fill="${color}" stroke="rgba(0,0,0,0.18)" stroke-width="2"/></svg>`;
+  }
+  // 1) Hayvana Dokun: hayvanlara dokun, hedef renkteki DUR kartına dokunma (Orta/Zor'da başka renkte DUR kartları da var: onlara dokunulur)
+  const TA_ANIMALS = {
+    dog: () => FLK_IMAGES.dog, cat: () => FLK_IMAGES.cat, cow: () => FLK_IMAGES.cow, rabbit: () => FLK_IMAGES.rabbit,
+    elephant: () => FLK_IMAGES.elephant, parrot: () => LIVING_IMAGES.parrot, fish: () => LIVING_IMAGES.fish, penguin: () => HOTCOLD_IMAGES.penguin
+  };
+  const TA_COUNT_BY_TIER = [3, 4, 5];
+  const PRE_TA_COUNT_BY_TIER = [2, 2, 3];
+  const TA_LURE_BY_TIER = [0, 0.10, 0.15];
+  let taStopColor = "#E53935";
+  function makeTouchAnimalGrid(n){
+    const t = currentCombo().t;
+    taStopColor = pickDifferent(CARD_COLORS.map(c => c.color), taStopColor);
+    const k = (isPre() ? PRE_TA_COUNT_BY_TIER : TA_COUNT_BY_TIER)[t] || 3;
+    const animals = shuffleArray(Object.keys(TA_ANIMALS)).slice(0, k);
+    const lureColors = CARD_COLORS.map(c => c.color).filter(c => c !== taStopColor);
+    const sCount = Math.max(1, Math.round(n * 0.25));
+    const lCount = Math.round(n * (TA_LURE_BY_TIER[t] || 0));
+    let flags, g = 0;
+    do{
+      flags = shuffleArray(Array.from({length:n}, (_, i) => i < sCount ? "S" : (i < sCount + lCount ? "L" : "A")));
+      let ok = flags[0] === "A";
+      for(let i = 1; ok && i < n; i++) if(flags[i] === "S" && flags[i-1] === "S") ok = false;
+      if(ok) break;
+      g++;
+    } while(g < 500);
+    const items = [];
+    flags.forEach((f, i) => {
+      if(f === "S") items.push({ kind:"stop", color: taStopColor, go:false });
+      else if(f === "L") items.push({ kind:"stop", color: randomItem(lureColors), go:true });
+      else {
+        let a, c = 0;
+        do{ a = randomItem(animals); c++; } while(c < 30 && animals.length > 1 && items[i-1] && items[i-1].a === a);
+        items.push({ kind:"animal", a, go:true });
+      }
+    });
+    return items;
+  }
+  // 2) Renkli Kart Seç: yalnızca hedef renkteki kartlara dokun (hedef renk ~%40; okul sonrası 6 renk, okul öncesi x3/5: 4 renk)
+  let tcTarget = "#1E63D6";
+  function makeTouchCardGrid(n){
+    tcTarget = pickDifferent(CARD_COLORS.map(c => c.color), tcTarget);
+    const others = shuffleArray(CARD_COLORS.map(c => c.color).filter(c => c !== tcTarget)).slice(0, isPre() ? 3 : 5);
+    const tCount = Math.round(n * 0.4);
+    // hedef kartlar art arda en fazla 2 kez gelsin
+    let flags, g0 = 0;
+    do{
+      flags = shuffleArray(Array.from({length:n}, (_, i) => i < tCount));
+      let run = 0, ok = true;
+      for(const f of flags){ run = f ? run + 1 : 0; if(run > 2){ ok = false; break; } }
+      if(ok) break;
+      g0++;
+    } while(g0 < 500);
+    const items = [];
+    flags.forEach((isT, i) => {
+      if(isT) items.push({ color: tcTarget, go:true });
+      else {
+        let c, g = 0;
+        do{ c = randomItem(others); g++; } while(g < 30 && items[i-1] && items[i-1].color === c);
+        items.push({ color: c, go:false });
+      }
+    });
+    return items;
+  }
+  // Dokunma durumu
+  let touchState = { tapped:new Set(), wrong:0, missAdded:false };
+  function resetTouchState(){ touchState = { tapped:new Set(), wrong:0, missAdded:false }; updateTouchStatus(); }
+  function touchGoTotal(){ return currentGrid.filter(it => it.go).length; }
+  function touchGoTapped(){ let k = 0; touchState.tapped.forEach(i => { if(currentGrid[i] && currentGrid[i].go) k++; }); return k; }
+  function updateTouchStatus(){
+    const el = document.getElementById("touchStatus");
+    if(!el) return;
+    if(!currentExercise().isTouch){ el.style.display = "none"; return; }
+    el.style.display = "";
+    el.textContent = `✓ ${touchGoTapped()} / ${touchGoTotal()}   ·   ✗ yanlış dokunma: ${touchState.wrong}`;
+  }
+  function setErrorCount(v){
+    currentErrorCount = v;
+    const el = document.getElementById("errorCount"); if(el) el.textContent = v;
+  }
+  function handleTouchTap(ev){
+    const ex = currentExercise();
+    if(!ex.isTouch) return;
+    const cell = ev.target.closest(".cell");
+    if(!cell || !cell.parentElement || cell.parentElement.id !== "board") return;
+    const i = Number(cell.dataset.i);
+    if(!Number.isFinite(i) || touchState.tapped.has(i)) return;
+    if(!timerRunning){ showLevelFlash("Önce ▶ Başlat'a basın, sonra çocuk dokunsun.", "down"); return; }
+    touchState.tapped.add(i);
+    const item = currentGrid[i];
+    const mark = document.createElement("div");
+    mark.className = "tap-mark " + (item.go ? "ok" : "bad");
+    mark.textContent = item.go ? "✓" : "✗";
+    cell.appendChild(mark);
+    if(!item.go){
+      touchState.wrong++;
+      setErrorCount(currentErrorCount + 1);
+      try{ vibrate(60); }catch(e){}
+    }
+    updateTouchStatus();
+    if(touchGoTapped() >= touchGoTotal()){
+      touchState.missAdded = true;           // kaçırılan yok
+      stopTimer();
+      showLevelFlash(touchState.wrong ? `Bitti! ${touchState.wrong} yanlış dokunma.` : "Bitti! Hiç yanlış dokunma yok 🎉", "levelup");
+    }
+  }
+  function addTouchMissesOnStop(){
+    if(!currentExercise().isTouch || touchState.missAdded) return;
+    touchState.missAdded = true;
+    const miss = touchGoTotal() - touchGoTapped();
+    if(miss > 0){ setErrorCount(currentErrorCount + miss); showLevelFlash(`${miss} hedefe dokunulmadı; hata sayısına eklendi.`, "down"); }
+  }
+  document.getElementById("board").addEventListener("click", handleTouchTap);
 
   const PRE_OBJECTS_BY_TIER = [
     ["dog","jacket","bread"],
@@ -3598,12 +3826,12 @@ const FRUIT_VEG_IMAGES = {
       stages: [
         {
           label: "Aşama 1 · Hareket",
-          instruction: () => `Öğrenci masada otursun. Renk-hareket eşleşmelerini birlikte birkaç kez deneyin. Ardından <b>"Ben başla dediğimde, soldan sağa her rengi gördüğünde onun hareketini olabildiğince hızlı yap"</b> deyin.` + crtLegendHTML(),
+          instruction: () => `Öğrenci masada otursun. Renk-hareket eşleşmelerini birlikte birkaç kez deneyin (eşleşmeler her sayfada ve Karıştır'da değişir). Ardından <b>"Ben başla dediğimde, soldan sağa her rengi gördüğünde onun hareketini olabildiğince hızlı yap"</b> deyin.` + crtLegendHTML(),
           example: () => ``
         },
         {
           label: "Aşama 2 · Renk + Hareket",
-          instruction: () => `Öğrenci masada otursun. Renk-hareket eşleşmelerini birlikte birkaç kez deneyin. Ardından <b>"Ben başla dediğimde, soldan sağa her rengin önce adını söyle, sonra hareketini yap; olabildiğince hızlı"</b> deyin.` + crtLegendHTML(),
+          instruction: () => `Öğrenci masada otursun. Renk-hareket eşleşmelerini birlikte birkaç kez deneyin (eşleşmeler her sayfada ve Karıştır'da değişir). Ardından <b>"Ben başla dediğimde, soldan sağa her rengin önce adını söyle, sonra hareketini yap; olabildiğince hızlı"</b> deyin.` + crtLegendHTML(),
           example: (item) => `${crtMoveOf(item.color).name}`
         }
       ]
@@ -3639,7 +3867,7 @@ const FRUIT_VEG_IMAGES = {
       stages: [
         {
           label: "Şekil → Resim",
-          instruction: () => `Sağ üstteki anahtarı öğrenciyle birlikte inceleyin: her şeklin altında eşi olan resim var. Ardından <b>"Ben başla dediğimde, soldan sağa her şekle bak ve eşi olan resmin adını olabildiğince hızlı söyle"</b> deyin.`,
+          instruction: () => `Sağ üstteki anahtarı öğrenciyle birlikte inceleyin: her şeklin altında eşi olan resim var. Ardından <b>"Ben başla dediğimde, soldan sağa her şekle bak ve eşi olan resmin adını olabildiğince hızlı söyle"</b> deyin. <i>Eşleşmeler her sayfada ve Karıştır'da değişir; önce anahtarı birlikte okuyun.</i>`,
           example: (item) => `${sdmtPairOf(item.shape).name}`
         }
       ]
@@ -3731,6 +3959,42 @@ const FRUIT_VEG_IMAGES = {
           label: "Aşama 2 · Karışık",
           instruction: () => `Aynı kuralı verin ve ekleyin: <b>"Bazen beşi de aynı olabilir, bazen ortadaki farklı olabilir. Her seferinde yine sadece ORTADAKİNİ söyle"</b>. Uyumlu ve uyumsuz grupların karışması ketleme yükünü artırır.`,
           example: (g) => isPre() ? FLK_NAMES[g.target] : g.target
+        }
+      ]
+    },
+    {
+      id: "touch-animal",
+      readingLevel: ["pre","post"],
+      label: "Hayvana Dokun",
+      isTouch: true,
+      attrs: [],
+      makeGrid: (n) => makeTouchAnimalGrid(n),
+      randomItem: () => ({ kind:"animal", a:"dog", go:true }),
+      renderItem: (item) => item.kind === "animal"
+        ? `<img src="${TA_ANIMALS[item.a]()}" alt="" style="width:86%;height:86%;object-fit:contain;display:block;">`
+        : stopSignSVG(item.color),
+      stages: [
+        {
+          label: "Hayvana Dokun",
+          instruction: () => `Önce <b>▶ Başlat</b>'a basın, sonra çocuk ekrana dokunsun. Çocuğa <b>"Hayvan resimlerine olabildiğince hızlı dokun. AMA ${trUpper(cardName(taStopColor))} ${swatch(taStopColor)} DUR kartına dokunma${currentCombo().t > 0 ? "; başka renkteki DUR kartlarına dokunabilirsin" : ""}"</b> deyin. Dokunmaları uygulama sayar. <i>Dur rengi her sayfada ve Karıştır'da değişir.</i>`,
+          example: () => ``
+        }
+      ]
+    },
+    {
+      id: "touch-card",
+      readingLevel: ["pre","post"],
+      label: "Renkli Kart Seç",
+      isTouch: true,
+      attrs: [],
+      makeGrid: (n) => makeTouchCardGrid(n),
+      randomItem: () => ({ color:"#1E63D6", go:true }),
+      renderItem: (item) => plainCardSVG(item.color),
+      stages: [
+        {
+          label: "Hedef Renge Dokun",
+          instruction: () => `Önce <b>▶ Başlat</b>'a basın, sonra çocuk ekrana dokunsun. Çocuğa <b>"Sadece ${trUpper(cardName(tcTarget))} ${swatch(tcTarget)} kartlara olabildiğince hızlı dokun; diğer renklere dokunma"</b> deyin. Dokunmaları uygulama sayar. <i>Hedef renk her sayfada ve Karıştır'da değişir.</i>`,
+          example: () => ``
         }
       ]
     },
@@ -3981,9 +4245,11 @@ const FRUIT_VEG_IMAGES = {
       renderItem: (item) => `<img src="${VEHICLE_IMAGES[item.v + (item.back ? "_b" : "_f")]}" alt="" style="width:90%;height:90%;object-fit:contain;display:block;">`,
       stages: [
         {
-          label: "Arkadansa 'Arka', Değilse Adı",
-          instruction: () => `Öğrenciye taşıtları önden ve arkadan tanıtın. Ardından <b>"Ben başla dediğimde, taşıtın ARKASINI görüyorsan 'arka' de, önünü görüyorsan taşıtın adını söyle"</b> deyin. Bu, dikkat kaydırma gerektirir.`,
-          example: (item) => item.back ? `arka` : `${VEHICLE_NAMES[item.v]}`
+          label: "Ön / Arka Kuralı",
+          instruction: () => switchSide === "back"
+            ? `Öğrenciye taşıtları önden ve arkadan tanıtın. Ardından <b>"Ben başla dediğimde, taşıtın ARKASINI görüyorsan 'arka' de, önünü görüyorsan taşıtın adını söyle"</b> deyin. Bu, dikkat kaydırma gerektirir. <i>Kural her sayfada ve Karıştır'da değişebilir.</i>`
+            : `Öğrenciye taşıtları önden ve arkadan tanıtın. Ardından <b>"Ben başla dediğimde, taşıtın ÖNÜNÜ görüyorsan 'ön' de, arkasını görüyorsan taşıtın adını söyle"</b> deyin. Bu, dikkat kaydırma gerektirir. <i>Kural her sayfada ve Karıştır'da değişebilir.</i>`,
+          example: (item) => item.target ? (switchSide === "back" ? `arka` : `ön`) : `${VEHICLE_NAMES[item.v]}`
         }
       ]
     },
@@ -3993,18 +4259,18 @@ const FRUIT_VEG_IMAGES = {
       label: "Ket Vurma",
       attrs: ["face"],
       // Yüz ifadeleri: "dur" yüzü sayfanın ~%25'i, hiç yan yana gelmez
-      makeGrid: (n) => makeFaceGoGrid(n, currentStageIndex === 1 ? "sad" : "angry"),
+      makeGrid: (n) => makeFaceGoGrid(n, pickGoNoGoStops()),
       renderItem: (item) => `<img src="${FACE_IMAGES[item.face]}" alt="" style="width:90%;height:90%;object-fit:contain;display:block;border-radius:10px;">`,
       stages: [
         {
-          label: "Aşama 1 · Kızgın Yüzde Dur",
-          instruction: () => `Öğrenciye yüzleri tanıtın ve her birinin duygusunu birlikte söyleyin. Ardından <b>"Ben başla dediğimde, her yüzün duygusunu söyle. AMA kızgın yüz gelirse hiçbir şey söyleme, sessiz kal"</b> deyin.`,
-          example: (item) => item.face === "angry" ? `(sessiz kal)` : `${FACE_NAMES[item.face]}`
+          label: "Aşama 1 · Tek Dur Yüzü",
+          instruction: () => `Öğrenciye yüzleri tanıtın ve her birinin duygusunu birlikte söyleyin. Ardından <b>"Ben başla dediğimde, her yüzün duygusunu söyle. AMA ${stopFaceText()} yüz gelirse hiçbir şey söyleme, sessiz kal"</b> deyin. <i>Dur yüzü her sayfada ve Karıştır'da değişir.</i>`,
+          example: (item) => goNoGoStops.includes(item.face) ? `(sessiz kal)` : `${FACE_NAMES[item.face]}`
         },
         {
-          label: "Aşama 2 · Üzgün Yüzde Dur",
-          instruction: () => `Kuralı değiştirin: <b>"Her yüzün duygusunu söyle. AMA bu kez üzgün yüz gelirse sessiz kal; kızgın yüzü artık söyleyebilirsin"</b> deyin.`,
-          example: (item) => item.face === "sad" ? `(sessiz kal)` : `${FACE_NAMES[item.face]}`
+          label: "Aşama 2 · İki Dur Yüzü",
+          instruction: () => `Kuralı zorlaştırın: <b>"Her yüzün duygusunu söyle. AMA ${stopFaceText()} yüz gelirse sessiz kal"</b> deyin. İki dur yüzünü aynı anda akılda tutmak ketleme yükünü artırır. <i>Dur yüzleri her sayfada ve Karıştır'da değişir.</i>`,
+          example: (item) => goNoGoStops.includes(item.face) ? `(sessiz kal)` : `${FACE_NAMES[item.face]}`
         }
       ]
     },
@@ -4078,23 +4344,23 @@ const FRUIT_VEG_IMAGES = {
       label: "İleriye Dönük Bellek (Olay)",
       attrs: ["shape","color"],
       // tetikleyici(ler) sayfanın ~%20'si (yan yana gelmez) + ~%15 tuzak
-      makeGrid: (n) => makeTargetGrid(n,
-        currentStageIndex === 1 ? [{shape:"triangle", color:"#0072B2"}, {shape:"heart", color:"#009E73"}] : [{shape:"triangle", color:"#0072B2"}],
-        0.2, 1, 0.15),
+      // Değişken hedef: tetikleyici(ler) her sayfada / Karıştır'da yeniden seçilir
+      makeGrid: (n) => makeTargetGrid(n, pickPeTriggers(), 0.2, 1, 0.15),
       randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
       renderItem: (item) => shapeSVG(item.shape, item.color),
       stages: [
         {
           label: "Aşama 1 · Tek Tetikleyici",
-          instruction: () => `<b>Oyunu başlatmadan önce</b> çocuğa şu kuralı verin: "MAVİ ÜÇGEN görünce önce masaya vur, sonra ismini söyle. Diğer şekillerde sadece ismini söyle." Sonra normal şekilde ilerleyin — bu, bir niyeti hatırlama becerisini çalıştırır.`,
-          example: (item) => (item.shape==="triangle" && item.color==="#0072B2") ? `(önce masaya vur) üçgen` : `${SHAPE_NAMES[item.shape]}`
+          instruction: () => `<b>Oyunu başlatmadan önce</b> çocuğa şu kuralı verin: "${peName(peTriggers[0])} görünce önce masaya vur, sonra ismini söyle. Diğer şekillerde sadece ismini söyle." Sonra normal şekilde ilerleyin — bu, bir niyeti hatırlama becerisini çalıştırır. <i>Tetikleyici her sayfada ve Karıştır'da değişir.</i>`,
+          example: (item) => peMatch(item) === 0 ? `(önce masaya vur) ${SHAPE_NAMES[item.shape]}` : `${SHAPE_NAMES[item.shape]}`
         },
         {
           label: "Aşama 2 · Çift Tetikleyici",
-          instruction: () => `Kuralı zorlaştırın: <b>"MAVİ ÜÇGEN'de masaya vur, YEŞİL KALP'te alkış yap"</b> deyin. İki farklı niyeti aynı anda akılda tutma alıştırması yapar.`,
+          instruction: () => `Kuralı zorlaştırın: <b>"${peName(peTriggers[0])} görünce masaya vur, ${peName(peTriggers[1] || peTriggers[0])} görünce alkış yap"</b> deyin. İki farklı niyeti aynı anda akılda tutma alıştırması yapar. <i>Tetikleyiciler her sayfada ve Karıştır'da değişir.</i>`,
           example: (item) => {
-            if(item.shape==="triangle" && item.color==="#0072B2") return `(masaya vur) üçgen`;
-            if(item.shape==="heart" && item.color==="#009E73") return `(alkış yap) kalp`;
+            const m = peMatch(item);
+            if(m === 0) return `(masaya vur) ${SHAPE_NAMES[item.shape]}`;
+            if(m === 1) return `(alkış yap) ${SHAPE_NAMES[item.shape]}`;
             return `${SHAPE_NAMES[item.shape]}`;
           }
         }
@@ -4105,17 +4371,18 @@ const FRUIT_VEG_IMAGES = {
       readingLevel: ["pre","post"],
       label: "İleriye Dönük Bellek (Zaman)",
       attrs: ["shape","color"],
+      beginGrid: () => { pickPtTimes(); },     // değişken hedef: zaman noktası her sayfada / Karıştır'da değişir
       randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
       renderItem: (item) => shapeSVG(item.shape, item.color),
       stages: [
         {
           label: "Aşama 1 · Tek Zaman Noktası",
-          instruction: () => `<b>Oyunu başlatmadan önce</b> çocuğa şunu söyleyin: "Kronometre 15 saniyeye gelince DUR, o anki şekli söyle, sonra devam et." Kronometreyi birlikte izleyin — bu, zamana dayalı bir niyeti hatırlama alıştırması yapar.`,
+          instruction: () => `<b>Oyunu başlatmadan önce</b> çocuğa şunu söyleyin: "Kronometre ${ptTimes[0]} saniyeye gelince DUR, o anki şekli söyle, sonra devam et." Kronometreyi birlikte izleyin — bu, zamana dayalı bir niyeti hatırlama alıştırması yapar. <i>Süre her sayfada ve Karıştır'da değişir.</i>`,
           example: () => ``
         },
         {
           label: "Aşama 2 · İki Zaman Noktası",
-          instruction: () => `Zorlaştırın: <b>"Hem 15. HEM 30. saniyede dur, o anki şekli söyle"</b> deyin.`,
+          instruction: () => `Zorlaştırın: <b>"Hem ${ptTimes[0]}. HEM ${ptTimes[1] || ptTimes[0] + 15}. saniyede dur, o anki şekli söyle"</b> deyin. <i>Süreler her sayfada ve Karıştır'da değişir.</i>`,
           example: () => ``
         }
       ]
@@ -4125,17 +4392,18 @@ const FRUIT_VEG_IMAGES = {
       readingLevel: ["pre","post"],
       label: "Ertelenmiş Görev Hatırlama",
       attrs: ["shape","color"],
+      beginGrid: () => { pickPdTask(); },      // değişken hedef: hatırlanacak görev her sayfada / Karıştır'da değişir
       randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
       renderItem: (item) => shapeSVG(item.shape, item.color),
       stages: [
         {
           label: "Aşama 1 · Basit Görev",
-          instruction: () => `<b>Oyunu başlatmadan önce</b> çocuğa şunu söyleyin: "Bu oyun bitince bana 3 tane hayvan ismi söyleyeceksin, unutma." Sonra normal şekilde şekillerin adını söylemesine devam edin. <b>Oyun bitince</b> talimatı hatırlayıp hatırlamadığını kontrol edin, kaç tanesini hatırladığını hata sayısına girin.`,
+          instruction: () => `<b>Oyunu başlatmadan önce</b> çocuğa şunu söyleyin: "Bu oyun bitince ${pdTask}, unutma." Sonra normal şekilde şekillerin adını söylemesine devam edin. <b>Oyun bitince</b> talimatı hatırlayıp hatırlamadığını kontrol edin, kaç tanesini hatırladığını hata sayısına girin.`,
           example: () => ``
         },
         {
           label: "Aşama 2 · Farklı Görev",
-          instruction: () => `Aynı akışı tekrarlayın, ama bu sefer farklı bir görev verin: "Oyun bitince bana bugünün hangi gün olduğunu söyleyeceksin."`,
+          instruction: () => `Aynı akışı tekrarlayın, ama bu sefer farklı bir görev verin: "Oyun bitince ${pdTask}." <i>Görev her sayfada ve Karıştır'da değişir.</i>`,
           example: () => ``
         }
       ]
@@ -4672,11 +4940,11 @@ const FRUIT_VEG_IMAGES = {
       id:"yurutucu-islev",
       readingLevel:["post"],
       label:"Yürütücü İşlev",
-      sub:"Stroop, kural değişimi, ket vurma, ortadakini söyle, sayı-harf",
+      sub:"Stroop, kural değişimi, ket vurma, ortadakini söyle, dokunma oyunları, sayı-harf",
       purpose:"Dikkati yönetme, kural değiştirme ve dürtüsel tepkiyi durdurma becerisini çalıştırır.",
       color:"#3A6EA5",
       group:"Hız & Dikkat",
-      exerciseIds:["stroop","task-switch","go-no-go","flanker","number-letter"]
+      exerciseIds:["stroop","task-switch","go-no-go","flanker","touch-animal","touch-card","number-letter"]
     },
     {
       id:"calisan-bellek",
@@ -5025,6 +5293,7 @@ const FRUIT_VEG_IMAGES = {
   function stopTimer(){
     clearInterval(timerInterval);
     timerRunning = false;
+    addTouchMissesOnStop();
     stopEyeMotion();
     clearTimeout(recallHideTimeout);
     const btn = document.getElementById("timerBtn");
@@ -5057,6 +5326,11 @@ const FRUIT_VEG_IMAGES = {
     currentErrorCount = 0;
     const countEl = document.getElementById("errorCount");
     if(countEl) countEl.textContent = "0";
+    // dokunma oyunlarında işaretleri de temizle
+    if(currentExercise().isTouch){
+      document.querySelectorAll("#board .tap-mark").forEach(m => m.remove());
+      resetTouchState();
+    }
     document.getElementById("saveResultBtn").style.display = "none";
     document.getElementById("saveHint").style.display = "none";
   }
@@ -5474,6 +5748,7 @@ const FRUIT_VEG_IMAGES = {
     const board = document.getElementById("board");
     clearAudTimers();
     renderSdmtKey();
+    if(!ex.isTouch){ const ts = document.getElementById("touchStatus"); if(ts) ts.style.display = "none"; }
     if(ex.isMotion){
       renderMotionBoard();
       return;
@@ -5494,12 +5769,15 @@ const FRUIT_VEG_IMAGES = {
     board.style.minHeight = "";
     board.style.padding = "14px";
     board.innerHTML = "";
-    currentGrid.forEach(item=>{
+    board.classList.toggle("touch-board", !!ex.isTouch);
+    currentGrid.forEach((item, idx)=>{
       const cell = document.createElement("div");
       cell.className = "cell";
+      cell.dataset.i = idx;
       cell.innerHTML = ex.renderItem(item);
       board.appendChild(cell);
     });
+    resetTouchState();
     applyBoardLayout();
   }
 
