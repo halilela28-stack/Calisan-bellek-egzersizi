@@ -990,6 +990,26 @@
   .touch-status{ font-size:13px; font-weight:700; color:var(--muted, #5B6B78); text-align:center; margin:6px 0 0; }
   .target-swatch{ display:inline-block; width:16px; height:16px; border-radius:4px; vertical-align:-2px; margin:0 3px; border:1px solid rgba(0,0,0,0.2); }
 
+  /* İz Sürme (Trail Making B): dağınık düğümler, dokununca çizgi çizilir */
+  .trl-strip{ display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:4px; margin:0 0 8px; padding:6px 8px;
+    border:2px solid #2E6F6E; border-radius:12px; background:#EAF4F3; }
+  .trl-strip .st{ width:30px; height:30px; display:flex; align-items:center; justify-content:center; border-radius:8px; background:var(--panel); position:relative; }
+  .trl-strip .st img, .trl-strip .st svg{ width:86%; height:86%; object-fit:contain; display:block; }
+  .trl-strip .st.next{ box-shadow:0 0 0 3px #F57C00; }
+  .trl-strip .st.done{ opacity:0.35; }
+  .trl-strip .ar{ font-size:11px; color:#2E6F6E; font-weight:900; }
+  .trl-area{ position:relative; width:100%; touch-action:manipulation; }
+  .trl-area svg.trl-lines{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+  .trl-node{ position:absolute; transform:translate(-50%,-50%); display:flex; align-items:center; justify-content:center; cursor:pointer;
+    border:3px solid #5B6B78; background:var(--panel); border-radius:999px; box-sizing:border-box; font-weight:900; color:var(--ink);
+    -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none; }
+  .trl-node img, .trl-node svg{ width:82%; height:82%; object-fit:contain; display:block; pointer-events:none; }
+  .trl-node.done{ border-color:#2E9E4F; background:#E8F5EC; }
+  .trl-node.bad{ border-color:#D32F2F; background:#FDECEC; animation:trlShake .3s; }
+  @keyframes trlShake{ 25%{ transform:translate(-56%,-50%);} 75%{ transform:translate(-44%,-50%);} }
+  .trl-node .tag{ position:absolute; top:-15px; left:50%; transform:translateX(-50%); font-size:9px; font-weight:900; color:#fff;
+    background:#2E6F6E; border-radius:6px; padding:1px 4px; white-space:nowrap; }
+
   /* Kart Sıralama (DCCS / WCST uyarlaması) */
   .srt-wrap{ display:flex; flex-direction:column; align-items:center; gap:10px; width:100%; }
   .srt-refs{ display:grid; gap:10px; justify-content:center; }
@@ -3394,6 +3414,293 @@
   }
   document.getElementById("board").addEventListener("click", handleTouchTap);
 
+  // ---------- Yürütücü İşlev: İz Sürme (Trail Making Test-B uyarlaması) ----------
+  // Ögeler sayfaya dağınık yerleşir; çocuk iki dizi arasında geçiş yaparak sırayla dokunur, uygulama aralarına çizgi çizer.
+  // Yanlış dokunma anında hata sayısına eklenir (iz ilerlemez); tüm ögelere sırayla dokunulunca kronometre kendiliğinden durur.
+  // Okul öncesi dizilerinin doğal sırası olmadığından üstte bir "yol kartı" sırayı gösterir; sıradaki öge turuncu çerçevelidir.
+  // Değişken hedef: okul öncesinde yol kartındaki sıra her sayfada / Karıştır'da değişir.
+  const MONTHS_TR = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+  const TRL_ANIMALS = ["cat","dog","rabbit","cow","elephant","parrot","fish","penguin"];
+  const TRL_FRUITS = ["apple","banana","strawberry","orange","grapes","watermelon","lemon"];
+  function trlAnimalImg(k){ return TA_ANIMALS[k] ? TA_ANIMALS[k]() : ""; }
+  function trlFruitImg(k){ return FLK_IMAGES[k] || TASTE_IMAGES[k] || ""; }
+  const TRL_PAINTS = [{c:"#E53935", n:"kırmızı"}, {c:"#1E63D6", n:"mavi"}, {c:"#F5C518", n:"sarı"}, {c:"#2E9E4F", n:"yeşil"}, {c:"#F57C00", n:"turuncu"}, {c:"#8E44AD", n:"mor"}];
+  const TRL_SHAPES = [{k:"circle", n:"daire"}, {k:"square", n:"kare"}, {k:"triangle", n:"üçgen"}, {k:"star", n:"yıldız"}, {k:"heart", n:"kalp"}, {k:"cross", n:"artı"}];
+  function paintBlobSVG(c){
+    return `<svg viewBox="0 0 100 100"><path d="M52 8 C70 6 88 20 90 40 C93 58 84 70 88 82 C91 92 76 96 64 90 C52 85 44 94 30 90 C14 86 8 70 12 56 C15 46 6 36 12 24 C18 12 36 9 52 8 Z" fill="${c}"/></svg>`;
+  }
+  function blackShapeSVG(k){
+    const c = "#1F2A33";
+    const body = { circle:`<circle cx="50" cy="50" r="40" fill="${c}"/>`, square:`<rect x="12" y="12" width="76" height="76" rx="4" fill="${c}"/>`,
+      triangle:`<polygon points="50,8 92,88 8,88" fill="${c}"/>`, star:`<polygon points="50,6 61,38 95,38 67,58 78,92 50,71 22,92 33,58 5,38 39,38" fill="${c}"/>`,
+      heart:`<path d="M50 88 C20 65 5 45 5 28 C5 10 20 2 32 2 C42 2 48 8 50 14 C52 8 58 2 68 2 C80 2 95 10 95 28 C95 45 80 65 50 88 Z" fill="${c}"/>`,
+      cross:`<polygon points="36,8 64,8 64,36 92,36 92,64 64,64 64,92 36,92 36,64 8,64 8,36 36,36" fill="${c}"/>` }[k] || "";
+    return `<svg viewBox="0 0 100 100">${body}</svg>`;
+  }
+  // Düğüm sayısı: okul sonrası 16 / 20 / 25 (tahtadaki öge sayısı); okul öncesi 8 / 10 / 12
+  // (3/5 kuralı 9/12/15 verir; ama sırası olmayan dizilerde yol kartı ve ayırt edilebilir görsel sayısı 12 ile sınırlı)
+  const PRE_TRL_COUNT_BY_TIER = [8, 10, 12];
+  function trlCount(){ return isPre() ? (PRE_TRL_COUNT_BY_TIER[currentCombo().t] || 8) : scatterCount(); }
+  function trlSequence(kind){
+    const n = trlCount();
+    const half = Math.ceil(n / 2), half2 = Math.floor(n / 2);
+    if(kind === "animal-fruit"){
+      const a = shuffleArray(TRL_ANIMALS).slice(0, half), f = shuffleArray(TRL_FRUITS).slice(0, half2);
+      const seq = []; for(let i = 0; i < half; i++){ seq.push({t:"img", src:trlAnimalImg(a[i])}); if(i < half2) seq.push({t:"img", src:trlFruitImg(f[i])}); }
+      return seq;
+    }
+    if(kind === "color-shape"){
+      const c = shuffleArray(TRL_PAINTS).slice(0, half), sh = shuffleArray(TRL_SHAPES).slice(0, half2);
+      const seq = []; for(let i = 0; i < half; i++){ seq.push({t:"paint", c:c[i].c}); if(i < half2) seq.push({t:"shape", k:sh[i].k}); }
+      return seq;
+    }
+    if(kind === "number-month"){
+      const seq = []; for(let i = 0; i < half; i++){ seq.push({t:"text", s:String(i+1)}); if(i < half2) seq.push({t:"text", s:MONTHS_TR[i], long:true}); }
+      return seq;
+    }
+    // number-letter: aşama 2'de harften başlar
+    return numberLetterSequence(n, currentStageIndex === 1).map(x => ({t:"text", s:x}));
+  }
+  function trlFace(it){
+    if(it.t === "img") return `<img src="${it.src}" alt="">`;
+    if(it.t === "paint") return paintBlobSVG(it.c);
+    if(it.t === "shape") return blackShapeSVG(it.k);
+    return `<span>${it.s}</span>`;
+  }
+  // Dağınık yerleşim: alan, ögelerin sığacağı bir ızgaraya bölünür; her öge rastgele bir hücreye düşer ve
+  // hücre içinde (taşmadan) rastgele kayar. Hücre sırası ve kayma miktarı saklanır, ekran dönünce yeniden hesaplanır.
+  let trailState = null;
+  function makeTrail(kind){
+    const seq = trlSequence(kind);
+    trailState = { kind, next:0, wrong:0, perm: shuffleArray(Array.from({length:80}, (_, i) => i)) };
+    return seq.map((it, i) => Object.assign({}, it, { order:i, jx: Math.random()*2-1, jy: Math.random()*2-1 }));
+  }
+  function trlPlace(W, H, n, nodeH, hasLong){
+    // sütun sayısı: alanın en-boy oranına göre
+    // ızgarada ~%40 boş hücre bırak: iz kıvrılırken çıkmaza girmesin
+    const target = Math.ceil(n * 1.4);
+    let cols = Math.max(2, Math.round(Math.sqrt(target * W / H * (hasLong ? 0.6 : 1))));
+    let rows = Math.ceil(target / cols);
+    while(cols * rows < target) rows++;
+    const cw = W / cols, ch = H / rows;
+    const cells = trailState.perm.filter(v => v < cols * rows).slice(0, n);
+    return { cols, rows, cw, ch, cells };
+  }
+  function renderTrailBoard(){
+    const board = document.getElementById("board");
+    board.style.display = "block";
+    board.style.minHeight = "";
+    board.style.padding = landscapeMQ.matches ? "6px 8px" : "10px";
+    board.style.gridTemplateColumns = "";
+    board.style.gridTemplateRows = "";
+    board.classList.remove("wide-grid");
+    if(!trailState) return;
+    const n = currentGrid.length;
+    const isLs = landscapeMQ.matches;
+    const pre = isPre();
+    const W = (board.clientWidth || 360) - (isLs ? 16 : 20);
+    const strip = pre
+      ? `<div class="trl-strip">` + currentGrid.map((it, i) => `<div class="st${i === trailState.next ? " next" : ""}${i < trailState.next ? " done" : ""}">${trlFace(it)}</div>` + (i < n - 1 ? `<span class="ar">›</span>` : "")).join("") + `</div>`
+      : "";
+    // yeniden çizerken tahtanın yüksekliği bir an sıfırlanıp sayfa kaymasın
+    if(board.offsetHeight) board.style.minHeight = board.offsetHeight + "px";
+    // önce yol kartını çizip yüksekliğini ölç
+    board.innerHTML = strip + `<div class="trl-area"></div>`;
+    const stripEl = board.querySelector(".trl-strip");
+    const stripH = stripEl ? stripEl.offsetHeight + 8 : 0;
+    // dikeyde: yol kartı + alan, alttaki düğme çubuğunun üstünde tek ekrana sığsın
+    const ctrl = document.querySelector(".controls");
+    const visH = window.innerHeight - (ctrl ? ctrl.offsetHeight : 90) - 24;
+    const H = isLs ? Math.max(140, (board.clientHeight || 300) - 14 - stripH)
+                   : Math.round(Math.max(260, Math.min(W * 1.25, 520, visH - stripH - 24)));
+    const hasLong = currentGrid.some(it => it.long);
+    const TAG = 14;                                    // BAŞLA/BİTİŞ etiketi için üst pay
+    const L = trlPlace(W, H - TAG, n, 0, hasLong);
+    // düğüm boyutu: hücreye sığsın
+    const longK = hasLong ? 1.75 : 1;
+    let node = Math.floor(Math.min(L.ch - 8, (L.cw - 8) / longK, pre ? 66 : 52));
+    node = Math.max(26, node);
+    const fs = Math.round(node * 0.42);
+    // Yerleşim: iz çizgilerinin (ardışık iki öge arası) başka bir ögenin üstünden geçmediği bir dağılım aranır.
+    // Çizgi, henüz dokunulmamış bir ögenin üstünden geçerse o öge birleştirilmiş gibi görünür ve çocuk/uygulayıcı yanılır.
+    const placeWith = (perm, jit) => {
+      const cells = perm.filter(v => v < L.cols * L.rows).slice(0, n);
+      return currentGrid.map((it, i) => {
+        const c = cells[i], cx = c % L.cols, cy = Math.floor(c / L.cols);
+        const w = it.long ? Math.round(node * longK) : node;
+        const mx = Math.max(0, (L.cw - w) / 2 - 3), my = Math.max(0, (L.ch - node) / 2 - 3);
+        return { x: (cx + 0.5) * L.cw + jit[i][0] * mx, y: TAG + (cy + 0.5) * L.ch + jit[i][1] * my, w };
+      });
+    };
+    const crossings = (P) => {
+      let bad = 0;
+      for(let i = 1; i < P.length; i++){
+        const ax = P[i-1].x, ay = P[i-1].y, bx = P[i].x, by = P[i].y, dx = bx - ax, dy = by - ay, L2 = dx*dx + dy*dy || 1;
+        for(let j = 0; j < P.length; j++){
+          if(j === i || j === i - 1) continue;
+          const t = Math.max(0, Math.min(1, ((P[j].x - ax) * dx + (P[j].y - ay) * dy) / L2));
+          const qx = ax + t * dx - P[j].x, qy = ay + t * dy - P[j].y;
+          const r = Math.max(P[j].w, node) / 2 + 5;
+          if(qx*qx + qy*qy < r*r) bad++;
+        }
+      }
+      return bad;
+    };
+    const layoutKey = [Math.round(W), Math.round(H), n, node].join("x");
+    let pos;
+    if(trailState.layoutKey === layoutKey && trailState.pos){
+      pos = trailState.pos;
+    } else {
+      // Yapıcı yerleşim: iz, ızgara hücreleri üzerinde kıvrılan bir yol olarak kurulur. Her yeni öge
+      // bir öncekine en fazla 2 hücre uzaklıkta (ama çoğunlukla bitişik olmayan) bir hücreye konur;
+      // yeni çizgi başka ögenin üstünden geçemez, yeni öge de var olan bir çizginin üstüne düşemez.
+      const cellPt = (c, i) => {
+        const cx = c % L.cols, cy = Math.floor(c / L.cols);
+        const it = currentGrid[i];
+        const w = it.long ? Math.round(node * longK) : node;
+        const mx = Math.max(0, (L.cw - w) / 2 - 3), my = Math.max(0, (L.ch - node) / 2 - 3);
+        return { x: (cx + 0.5) * L.cw + (Math.random()*2-1) * mx, y: TAG + (cy + 0.5) * L.ch + (Math.random()*2-1) * my, w, c };
+      };
+      const near = (px, py, ax, ay, bx, by, r) => {
+        const dx = bx - ax, dy = by - ay, L2 = dx*dx + dy*dy || 1;
+        const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / L2));
+        const qx = ax + t * dx - px, qy = ay + t * dy - py;
+        return qx*qx + qy*qy < r*r;
+      };
+      const R = (w) => Math.max(w, node) / 2 + 5;
+      const total = L.cols * L.rows;
+      const build = () => {
+        const P = [];
+        const used = new Set();
+        let budget = 5000;                     // toplam deneme sınırı (geri izleme patlamasın)
+        const tryStep = (depth) => {
+          if(P.length === n) return true;
+          if(--budget <= 0) return false;
+          let cands;
+          if(!P.length) cands = shuffleArray(Array.from({length: total}, (_, i) => i));
+          else {
+            const pc = P[P.length-1].c, px = pc % L.cols, py = Math.floor(pc / L.cols);
+            cands = [];
+            for(let c = 0; c < total; c++){
+              if(used.has(c)) continue;
+              const d = Math.max(Math.abs(c % L.cols - px), Math.abs(Math.floor(c / L.cols) - py));
+              if(d >= 1 && d <= 2) cands.push({ c, d });
+            }
+            // bitişik olmayanları (2 hücre uzak) biraz daha sık seç: arama tek adımlık olmasın
+            cands = shuffleArray(cands).sort((a, b) => (b.d === 2) - (a.d === 2) || 0).map(x => x.c);
+            cands = shuffleArray(cands.slice(0, 3)).concat(cands.slice(3));
+          }
+          for(const c of cands){
+            for(let rep = 0; rep < 3; rep++){
+              const q = cellPt(c, P.length);
+              let ok = true;
+              if(P.length){
+                const a = P[P.length-1];
+                for(let j = 0; j < P.length - 1 && ok; j++) if(near(P[j].x, P[j].y, a.x, a.y, q.x, q.y, R(P[j].w))) ok = false;
+              }
+              for(let j = 1; j < P.length && ok; j++) if(near(q.x, q.y, P[j-1].x, P[j-1].y, P[j].x, P[j].y, R(q.w))) ok = false;
+              if(!ok) continue;
+              P.push(q); used.add(c);
+              if(tryStep(depth + 1)) return true;
+              P.pop(); used.delete(c);
+              break;
+            }
+          }
+          return false;
+        };
+        return tryStep(0) ? P : null;
+      };
+      let best = null;
+      for(let k = 0; k < 8 && !best; k++) best = build();
+      if(!best){
+        // yedek: rastgele dağılım (çok nadir)
+        best = placeWith(trailState.perm, currentGrid.map(it => [it.jx, it.jy]));
+      }
+      trailState.layoutKey = layoutKey;
+      trailState.crossings = crossings(best);
+      pos = best;
+    }
+    let lines = "";
+    for(let i = 1; i < trailState.next; i++) lines += `<line x1="${pos[i-1].x}" y1="${pos[i-1].y}" x2="${pos[i].x}" y2="${pos[i].y}" stroke="#2E9E4F" stroke-width="3" stroke-linecap="round"/>`;
+    const nodes = currentGrid.map((it, i) => {
+      const tag = i === 0 ? `<span class="tag">BAŞLA</span>` : (i === n - 1 ? `<span class="tag" style="background:#5B6B78">BİTİŞ</span>` : "");
+      return `<div class="trl-node${i < trailState.next ? " done" : ""}" data-o="${i}" style="left:${pos[i].x}px;top:${pos[i].y}px;width:${pos[i].w}px;height:${node}px;font-size:${it.long ? Math.round(fs*0.66) : fs}px;">${trlFace(it)}${tag}</div>`;
+    }).join("");
+    const area = board.querySelector(".trl-area");
+    area.style.height = H + "px";
+    area.innerHTML = `<svg class="trl-lines" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${lines}</svg>${nodes}`;
+    board.style.minHeight = "";
+    trailState.pos = pos;
+  }
+  // doğru dokunuşta tahtayı yeniden çizmeden yalnızca o adımı işaretle (sayfa yerinden oynamaz)
+  function trailMarkStep(i){
+    const board = document.getElementById("board");
+    const node = board.querySelector(`.trl-node[data-o="${i}"]`);
+    if(node) node.classList.add("done");
+    const svg = board.querySelector(".trl-lines");
+    const P = trailState.pos;
+    if(svg && P && i > 0){
+      const ln = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      ln.setAttribute("x1", P[i-1].x); ln.setAttribute("y1", P[i-1].y); ln.setAttribute("x2", P[i].x); ln.setAttribute("y2", P[i].y);
+      ln.setAttribute("stroke", "#2E9E4F"); ln.setAttribute("stroke-width", "3"); ln.setAttribute("stroke-linecap", "round");
+      svg.appendChild(ln);
+    }
+    const st = board.querySelectorAll(".trl-strip .st");
+    if(st.length){
+      st.forEach((el, k) => { el.classList.toggle("done", k <= i); el.classList.toggle("next", k === i + 1); });
+    }
+  }
+  function handleTrailTap(ev){
+    const ex = currentExercise();
+    if(!ex.isTrail || !trailState) return;
+    const el = ev.target.closest(".trl-node");
+    if(!el) return;
+    const st = trailState;
+    if(st.next >= currentGrid.length) return;
+    if(!timerRunning){ showLevelFlash("Önce ▶ Başlat'a basın, sonra çocuk dokunsun.", "down"); return; }
+    const o = Number(el.dataset.o);
+    if(o < st.next) return;                       // zaten birleştirilmiş
+    if(o === st.next){
+      trailMarkStep(st.next);
+      st.next++;
+      if(st.next >= currentGrid.length){
+        stopTimer();
+        showLevelFlash(st.wrong ? `Bitti! ${st.wrong} yanlış dokunma.` : "Bitti! Hiç yanlış yok 🎉", st.wrong ? "down" : "levelup");
+      }
+    } else {
+      st.wrong++;
+      setErrorCount(currentErrorCount + 1);
+      el.classList.remove("bad"); void el.offsetWidth; el.classList.add("bad");
+      try{ vibrate(60); }catch(e){}
+      setTimeout(() => el.classList.remove("bad"), 500);
+    }
+  }
+  document.getElementById("board").addEventListener("click", handleTrailTap);
+
+  // ---------- Dokunmalı çalışmalar: ortak "bitti mi?" denetimi ----------
+  // Tüm dokunmalı çalışmalar (mevcut ve gelecekteki) burada tanımlanır: çalışma bittiğinde kronometre her durumda kendiliğinden durur.
+  // Yeni bir dokunmalı çalışma eklenince ya bu listedeki türlerden birini kullanmalı ya da kendi isDone() fonksiyonunu tanımlamalıdır.
+  function isInteractiveExercise(ex){ return !!(ex && (ex.isTouch || ex.isSort || ex.isTrail || ex.isDone)); }
+  function interactiveIsDone(){
+    const ex = currentExercise();
+    if(!isInteractiveExercise(ex) || !Array.isArray(currentGrid) || !currentGrid.length) return false;
+    if(typeof ex.isDone === "function") return ex.isDone();
+    if(ex.isTrail) return !!trailState && trailState.next >= currentGrid.length;
+    if(ex.isSort)  return !!sortState && sortState.idx >= currentGrid.length;
+    if(ex.isTouch) return touchGoTotal() > 0 && touchGoTapped() >= touchGoTotal();
+    return false;
+  }
+  function ensureInteractiveStop(){
+    if(timerRunning && interactiveIsDone()) stopTimer();
+  }
+  // her dokunuştan sonra (çalışmanın kendi işleyicisinden sonra) ve kronometrenin her tıkında denetle
+  document.getElementById("board").addEventListener("click", () => setTimeout(ensureInteractiveStop, 520));
+  window.addEventListener("resize", () => {
+    clearTimeout(window._trlResizeT);
+    window._trlResizeT = setTimeout(() => { try{ if(currentExercise().isTrail) renderTrailBoard(); }catch(e){} }, 150);
+  });
+  function trailExampleText(k){ return currentGrid.slice(0, k).map(it => it.t === "text" ? it.s : "").filter(Boolean).join(" → "); }
+
   // ---------- Yürütücü İşlev: Kart Sıralama (DCCS / WCST uyarlaması) ----------
   // Üstte örnek kartlar, ortada sıradaki kart. Çocuk sıradaki kartı söylenen kurala göre eşleşen örnek karta dokunarak eşleştirir.
   // Kural açıkça söylenir; belirli sayıda karttan sonra kural değişir ve uygulama bunu büyük bir uyarıyla gösterir.
@@ -4290,19 +4597,63 @@ const FRUIT_VEG_IMAGES = {
       id: "number-letter",
       readingLevel: ["post"],
       label: "Sayı-Harf Bulma",
-      isScatter: true,
-      attrs: [],
-      scatterItems: () => shuffleArray(numberLetterSequence(scatterCount(), currentStageIndex === 1).map(t => ({ text:t }))),
-      renderItem: seqItemHTML,
+      isTrail: true, attrs: [], speedFactor: 2,
+      trail: () => makeTrail("number-letter"),
+      randomItem: () => ({}),
       stages: [
         {
           label: "Aşama 1 · 1-A-2-B",
-          instruction: () => `Öğrenciye sayfayı gösterin. Ardından <b>"Ben başla dediğimde, sayı ve harfleri sırayla, dönüşümlü olarak parmağınla göster: ${numberLetterSequence(scatterCount()).slice(0,5).join("-")} … diye devam et"</b> deyin.`,
+          instruction: () => `Önce <b>▶ Başlat</b>'a basın, sonra çocuk ekrana dokunsun. Çocuğa <b>"BAŞLA yazan yerden başla; sayı ve harflere sırayla, dönüşümlü olarak dokun: ${trailExampleText(5)} … diye BİTİŞ'e kadar devam et"</b> deyin. Doğru dokunuşta çizgi çizilir, yanlışları uygulama sayar.`,
           example: () => ``
         },
         {
           label: "Aşama 2 · A-1-B-2",
-          instruction: () => `Öğrenciye sayfayı gösterin. Ardından <b>"Ben başla dediğimde, bu kez harften başlayarak, harf ve sayıları sırayla, dönüşümlü olarak parmağınla göster: ${numberLetterSequence(scatterCount(), true).slice(0,5).join("-")} … diye devam et"</b> deyin.`,
+          instruction: () => `Önce <b>▶ Başlat</b>'a basın, sonra çocuk ekrana dokunsun. Çocuğa <b>"Bu kez harften başla; harf ve sayılara sırayla, dönüşümlü olarak dokun: ${trailExampleText(5)} … diye BİTİŞ'e kadar devam et"</b> deyin. Doğru dokunuşta çizgi çizilir, yanlışları uygulama sayar.`,
+          example: () => ``
+        }
+      ]
+    },
+    {
+      id: "trail-number-month",
+      readingLevel: ["post"],
+      label: "İz Sürme: Sayı–Ay",
+      isTrail: true, attrs: [], speedFactor: 2.5,
+      trail: () => makeTrail("number-month"),
+      randomItem: () => ({}),
+      stages: [
+        {
+          label: "Sayı – Ay",
+          instruction: () => `Önce <b>▶ Başlat</b>'a basın, sonra çocuk ekrana dokunsun. Çocuğa <b>"BAŞLA yazan yerden başla; sayılar ve aylar arasında sırayla geçerek dokun: ${trailExampleText(6)} … diye BİTİŞ'e kadar devam et"</b> deyin. Doğru dokunuşta çizgi çizilir, yanlışları uygulama sayar.`,
+          example: () => ``
+        }
+      ]
+    },
+    {
+      id: "trail-animal-fruit",
+      readingLevel: ["pre"],
+      label: "İz Sürme: Hayvan–Meyve",
+      isTrail: true, attrs: [], speedFactor: 3,
+      trail: () => makeTrail("animal-fruit"),
+      randomItem: () => ({}),
+      stages: [
+        {
+          label: "Hayvan – Meyve",
+          instruction: () => `Önce <b>▶ Başlat</b>'a basın, sonra çocuk ekrana dokunsun. Üstteki <b>yol kartını</b> çocukla birlikte inceleyin: sıra bir hayvan, bir meyve şeklinde ilerliyor. Ardından <b>"BAŞLA yazan resimden başla, yol kartındaki sırayla resimlere dokun"</b> deyin. Sıradaki resim yol kartında turuncu çerçevelidir. <i>Sıra her sayfada ve Karıştır'da değişir.</i>`,
+          example: () => ``
+        }
+      ]
+    },
+    {
+      id: "trail-color-shape",
+      readingLevel: ["pre"],
+      label: "İz Sürme: Renk–Şekil",
+      isTrail: true, attrs: [], speedFactor: 3,
+      trail: () => makeTrail("color-shape"),
+      randomItem: () => ({}),
+      stages: [
+        {
+          label: "Renk – Şekil",
+          instruction: () => `Önce <b>▶ Başlat</b>'a basın, sonra çocuk ekrana dokunsun. Üstteki <b>yol kartını</b> çocukla birlikte inceleyin: sıra bir renk (boya lekesi), bir şekil (siyah) şeklinde ilerliyor. Ardından <b>"BAŞLA yazan yerden başla, yol kartındaki sırayla dokun"</b> deyin. Sıradaki öge yol kartında turuncu çerçevelidir. <i>Sıra her sayfada ve Karıştır'da değişir.</i>`,
           example: () => ``
         }
       ]
@@ -5228,11 +5579,11 @@ const FRUIT_VEG_IMAGES = {
       id:"yurutucu-islev",
       readingLevel:["post"],
       label:"Yürütücü İşlev",
-      sub:"Stroop, kural değişimi, ket vurma, ortadakini söyle, dokunma oyunları, kart sıralama, sayı-harf",
+      sub:"Stroop, kural değişimi, ket vurma, ortadakini söyle, dokunma oyunları, kart sıralama, iz sürme (sayı-harf, sayı-ay, hayvan-meyve, renk-şekil)",
       purpose:"Dikkati yönetme, kural değiştirme ve dürtüsel tepkiyi durdurma becerisini çalıştırır.",
       color:"#3A6EA5",
       group:"Hız & Dikkat",
-      exerciseIds:["stroop","task-switch","go-no-go","flanker","touch-animal","touch-card","sort-color-shape","sort-animal-size","sort-color-shape-count","sort-words","number-letter"]
+      exerciseIds:["stroop","task-switch","go-no-go","flanker","touch-animal","touch-card","sort-color-shape","sort-animal-size","sort-color-shape-count","sort-words","number-letter","trail-number-month","trail-animal-fruit","trail-color-shape"]
     },
     {
       id:"calisan-bellek",
@@ -5457,6 +5808,7 @@ const FRUIT_VEG_IMAGES = {
   }
 
   function generateGrid(exercise, rows, cols){
+    if(exercise.isTrail) return exercise.trail();                        // İz Sürme: dağınık düğümler
     if(exercise.isSort) return exercise.sortDeck();                       // Kart Sıralama: deste
     if(exercise.isFlanker) return exercise.flankerGroups();             // Flanker: 5'li çerçeveli gruplar
     if(exercise.makeGrid) return exercise.makeGrid(rows * cols);          // kendi dengeli ızgarasını kuran çalışmalar
@@ -5561,6 +5913,7 @@ const FRUIT_VEG_IMAGES = {
     showLevelFlash("Şimdi hatırlamaya çalışın!", "up");
   }
 
+  setInterval(() => { try{ ensureInteractiveStop(); }catch(e){} }, 400);
   function startTimer(){
     setLsOpen(false);
     timerStartedAt = Date.now() - elapsedMs;
@@ -5574,6 +5927,13 @@ const FRUIT_VEG_IMAGES = {
     if(currentExercise().isMotion){
       startEyeMotion();
     }
+    // tüm çalışmalarda Başlat'a basınca tahta ekrana gelsin (dikeyde aşağı kaydırmaya gerek kalmasın)
+    { if(!landscapeMQ.matches){
+        const bd = document.getElementById("board");
+        // kaydırma pencerede ya da bir iç kapsayıcıda olabilir: scrollIntoView ikisini de kaydırır
+        bd.style.scrollMarginTop = "8px";
+        bd.scrollIntoView({ behavior: "smooth", block: "start" });
+      } }
     if(currentExercise().isRecall){
       clearTimeout(recallHideTimeout);
       recallHideTimeout = setTimeout(hideRecallItems, currentTier().studyDurationMs);
@@ -5616,6 +5976,11 @@ const FRUIT_VEG_IMAGES = {
     currentErrorCount = 0;
     const countEl = document.getElementById("errorCount");
     if(countEl) countEl.textContent = "0";
+    // iz sürmede izi baştan başlat
+    if(currentExercise().isTrail && trailState){
+      Object.assign(trailState, { next:0, wrong:0 });
+      renderTrailBoard();
+    }
     // kart sıralamada desteyi baştan başlat
     if(currentExercise().isSort && sortState){
       Object.assign(sortState, { idx:0, wrong:0, persev:0, locked:false, justChanged:false });
@@ -5716,7 +6081,7 @@ const FRUIT_VEG_IMAGES = {
     const ex = currentExercise();
     // Oluş Sırası'nda bulunacak hedef sayısı satır başına 2'dir
     const itemCount = ex.isSeqRows ? Math.max(1, currentGrid.length * 2)
-                    : (ex.isFlanker || ex.isSort) ? Math.max(1, currentGrid.length)
+                    : (ex.isFlanker || ex.isSort || ex.isTrail) ? Math.max(1, currentGrid.length)
                     : currentTier().rows * currentTier().cols;
     const secPerItem = (ms/1000) / itemCount;
     // Sıralı arama (sayıyı bulup gösterme) isimlendirmeden doğal olarak yavaştır: eşikler 2 katı
@@ -5729,7 +6094,7 @@ const FRUIT_VEG_IMAGES = {
     const player = currentPlayerName.trim() || "Oyuncu";
     // Sıralı arama çalışmalarında merdiven aşamaları da kapsar:
     // Başlangıç→Orta→Zor (Aşama 1), sonra Başlangıç→Orta→Zor (Aşama 2)
-    const useStages = (ex.isScatter || ex.isAuditory || ex.isSeqRows || ex.isFlanker) && ex.stages.length > 1;
+    const useStages = (ex.isScatter || ex.isAuditory || ex.isSeqRows || ex.isFlanker || ex.isTrail) && ex.stages.length > 1;
     const stageName = (i) => ex.stages[i].label.split("·")[0].trim();
     const labelFor = (t, st) => useStages ? `${TIERS[t].label} · ${stageName(st)}` : TIERS[t].label;
 
@@ -6064,6 +6429,10 @@ const FRUIT_VEG_IMAGES = {
       renderSortBoard();
       return;
     }
+    if(ex.isTrail){
+      renderTrailBoard();
+      return;
+    }
     board.style.display = "grid";
     board.style.minHeight = "";
     board.style.padding = "14px";
@@ -6111,7 +6480,7 @@ const FRUIT_VEG_IMAGES = {
     if(applyingBoardLayout) return;
     const board = document.getElementById("board");
     if(!board || !currentGrid.length) return;
-    if(currentExercise().isMotion || currentExercise().isAuditory || currentExercise().isSeqRows || currentExercise().isFlanker || currentExercise().isSort) return;
+    if(currentExercise().isMotion || currentExercise().isAuditory || currentExercise().isSeqRows || currentExercise().isFlanker || currentExercise().isSort || currentExercise().isTrail) return;
     applyingBoardLayout = true;
     try{
       let {rows, cols} = currentTier();
