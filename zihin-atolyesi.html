@@ -3715,6 +3715,8 @@
       case "triangle": return `<polygon points="50,10 92,88 8,88" fill="${color}"/>`;
       case "star":     return `<polygon points="50,6 61,38 95,38 67,58 78,92 50,71 22,92 33,58 5,38 39,38" fill="${color}"/>`;
       case "cross":    return `<polygon points="36,8 64,8 64,36 92,36 92,64 64,64 64,92 36,92 36,64 8,64 8,36 36,36" fill="${color}"/>`;
+      case "square":   return `<rect x="14" y="14" width="72" height="72" rx="4" fill="${color}"/>`;
+      case "heart":    return `<path d="M50 88 C20 65 5 45 5 28 C5 10 20 2 32 2 C42 2 48 8 50 14 C52 8 58 2 68 2 C80 2 95 10 95 28 C95 45 80 65 50 88 Z" fill="${color}"/>`;
     }
     return "";
   }
@@ -3739,36 +3741,46 @@
   }
   // Kelime bankası: kategori × hece sayısı (her hücrede en az 2 kelime)
   const SORT_WORDS = {
-    hayvan:  {1:["at","fil","koç"], 2:["kedi","köpek","aslan","tavşan"], 3:["zürafa","kelebek","papağan","karınca"], 4:["kaplumbağa","devekuşu","orangutan"]},
-    yiyecek: {1:["süt","bal","nar"], 2:["ekmek","peynir","havuç","karpuz"], 3:["domates","patates","portakal"], 4:["mandalina","çikolata","karnabahar"]},
-    "eşya":  {1:["top","ip","zil"], 2:["masa","kalem","kaşık","dolap"], 3:["sandalye","tencere","anahtar"], 4:["televizyon","bilgisayar","buzdolabı"]},
-    "taşıt": {1:["tır","jip","yat"], 2:["gemi","kamyon","uçak","tekne"], 3:["araba","otobüs","bisiklet"], 4:["motosiklet","denizaltı"]}
+    hayvan:  {1:["at","fil","koç","kuş"], 2:["kedi","köpek","aslan","tavşan"], 3:["zürafa","kelebek","papağan","karınca"], 4:["kaplumbağa","devekuşu","orangutan"]},
+    yiyecek: {1:["süt","bal","nar"], 2:["ekmek","peynir","havuç","karpuz","elma"], 3:["domates","patates","portakal"], 4:["mandalina","çikolata","karnabahar"]},
+    "eşya":  {1:["top","ip","zil"], 2:["masa","kalem","kaşık","dolap"], 3:["sandalye","tencere","anahtar","şemsiye"], 4:["televizyon","bilgisayar","buzdolabı"]},
+    "taşıt": {1:["tır","jip","yat"], 2:["gemi","kamyon","uçak","tekne"], 3:["araba","otobüs","bisiklet"], 4:["motosiklet","denizaltı","helikopter"]}
   };
   const SORT_CATS = ["hayvan","yiyecek","eşya","taşıt"];
   // Çalışma tanımları
   const SORT_SPECS = {
     "sort-color-shape": {
       dims: [{key:"color", name:"renk", acc:"RENGE"}, {key:"shape", name:"şekil", acc:"ŞEKLE"}],
-      refs: () => [{color:"#E53935", shape:"triangle"}, {color:"#1E63D6", shape:"circle"}],
-      tests: () => [{color:"#1E63D6", shape:"triangle"}, {color:"#E53935", shape:"circle"}],
+      // değişken örnek kartlar: 4 renk ve 4 şekilden her sayfada farklı iki çift
+      refs: () => { const c = shuffleArray(["#E53935","#1E63D6","#F5C518","#2E9E4F"]).slice(0, 2), sh = shuffleArray(["circle","triangle","square","star"]).slice(0, 2);
+                    return [{color:c[0], shape:sh[0]}, {color:c[1], shape:sh[1]}]; },
       face: (c, px) => `<div class="srt-face">${oneShape(c.shape, c.color, Math.round(px*0.62))}</div>`
     },
     "sort-animal-size": {
       dims: [{key:"animal", name:"hayvan türü", acc:"HAYVAN TÜRÜNE"}, {key:"size", name:"büyüklük", acc:"BÜYÜKLÜĞE"}],
-      refs: () => [{animal:"cat", size:"big"}, {animal:"dog", size:"small"}],
-      tests: () => [{animal:"cat", size:"small"}, {animal:"dog", size:"big"}],
+      // değişken örnek kartlar: kedi / köpek / tavşandan iki hayvan; hangisinin büyük olduğu da değişir
+      refs: () => { const a = shuffleArray(["cat","dog","rabbit"]).slice(0, 2), big = Math.random() < 0.5;
+                    return [{animal:a[0], size: big ? "big" : "small"}, {animal:a[1], size: big ? "small" : "big"}]; },
       face: faceAnimalSize
     },
     "sort-color-shape-count": {
       dims: [{key:"color", name:"renk", acc:"RENGE"}, {key:"shape", name:"şekil", acc:"ŞEKLE"}, {key:"count", name:"sayı", acc:"ŞEKİL SAYISINA"}],
-      refs: () => [{color:"#E53935", shape:"triangle", count:1}, {color:"#2E9E4F", shape:"star", count:2},
-                   {color:"#F5C518", shape:"cross", count:3}, {color:"#1E63D6", shape:"circle", count:4}],
+      // değişken örnek kartlar: 5 renk ve 6 şekilden her sayfada farklı 4'er tane; sayılar 1-4 karışık dağılır
+      refs: () => {
+        const c = shuffleArray(["#E53935","#2E9E4F","#F5C518","#1E63D6","#8E44AD"]).slice(0, 4);
+        const sh = shuffleArray(["triangle","star","cross","circle","square","heart"]).slice(0, 4);
+        const n = shuffleArray([1, 2, 3, 4]);
+        return [0,1,2,3].map(i => ({color:c[i], shape:sh[i], count:n[i]}));
+      },
       face: faceShapeCount
     },
     "sort-words": {
       dims: [{key:"cat", name:"anlam kategorisi", acc:"ANLAM KATEGORİSİNE"}, {key:"syl", name:"hece sayısı", acc:"HECE SAYISINA"}, {key:"color", name:"yazı rengi", acc:"YAZI RENGİNE"}],
-      refs: () => [{word:"kuş", cat:"hayvan", syl:1, color:SORT_WORD_COLORS[0].c}, {word:"elma", cat:"yiyecek", syl:2, color:SORT_WORD_COLORS[1].c},
-                   {word:"şemsiye", cat:"eşya", syl:3, color:SORT_WORD_COLORS[2].c}, {word:"helikopter", cat:"taşıt", syl:4, color:SORT_WORD_COLORS[3].c}],
+      // değişken örnek kartlar: kategori ↔ hece sayısı ↔ yazı rengi eşleşmesi ve kelimeler her sayfada değişir
+      refs: () => {
+        const syl = shuffleArray([1, 2, 3, 4]), col = shuffleArray(SORT_WORD_COLORS.map(x => x.c));
+        return SORT_CATS.map((cat, i) => ({ word: randomItem(SORT_WORDS[cat][syl[i]]), cat, syl: syl[i], color: col[i] }));
+      },
       face: faceWord,
       wide: true        // kelimeler için geniş (yatay) kartlar, örnek kartlar 2x2
     }
@@ -3799,13 +3811,20 @@
     let rules, g = 0;
     do{ rules = shuffleArray(spec.dims.map(d => d.key)); g++; } while(g < 20 && rules.join("|") === sortLastRules);
     sortLastRules = rules.join("|");
-    const refs = shuffleArray(spec.refs());
+    // örnek kartlar her sayfada / Karıştır'da değişir (bir öncekiyle aynı olmasın)
+    let refs, gR = 0;
+    do{ refs = shuffleArray(spec.refs()); gR++; }
+    while(gR < 20 && JSON.stringify(refs.map(r => JSON.stringify(r)).sort()) === sortState?.lastRefsKey);
+    const refsKey = JSON.stringify(refs.map(r => JSON.stringify(r)).sort());
+    // 2 örnek kartlı (okul öncesi) çalışmalarda test kartları, örnek kartların boyutları çaprazlanarak üretilir
+    const d0 = spec.dims[0].key, d1 = spec.dims[1].key;
+    const crossTests = refs.length === 2 ? [{[d0]: refs[1][d0], [d1]: refs[0][d1]}, {[d0]: refs[0][d0], [d1]: refs[1][d1]}] : null;
     const cards = [];
     for(let ph = 0; ph < rules.length; ph++){
       for(let k = 0; k < per; k++){
         let c, gg = 0;
         do{
-          c = spec.tests ? Object.assign({}, randomItem(spec.tests())) : makeConflictCard(spec, refs);
+          c = crossTests ? Object.assign({}, randomItem(crossTests)) : makeConflictCard(spec, refs);
           gg++;
         } while(gg < 30 && cards.length && JSON.stringify(cards[cards.length-1]) === JSON.stringify(c));
         c.phase = ph;
@@ -3838,7 +3857,7 @@
         c.order = order;
       });
     }
-    sortState = { refs, rules, per, idx:0, wrong:0, persev:0, locked:false };
+    sortState = { refs, rules, per, idx:0, wrong:0, persev:0, locked:false, lastRefsKey: refsKey };
     return cards;
   }
   function sortRuleText(ph){ const d = sortSpec().dims.find(x => x.key === sortState.rules[ph]); return d ? d.acc : ""; }
