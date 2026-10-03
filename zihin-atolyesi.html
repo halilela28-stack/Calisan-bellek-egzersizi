@@ -693,6 +693,11 @@
     padding-bottom:2px;
     margin-bottom:10px;
   }
+  .exercise-group-label{
+    flex:0 0 auto; align-self:center; font-size:11px; font-weight:900; letter-spacing:.4px; text-transform:uppercase;
+    color:#2E6F6E; padding:0 2px 0 8px; border-left:3px solid #2E6F6E; margin-left:4px;
+  }
+  .exercise-group-label:first-child{ margin-left:0; }
   .exercise-btn{
     flex:0 0 auto;
     border:1px solid var(--line);
@@ -3671,6 +3676,25 @@
   });
   const SEARCH_COMMON = `Her satır bir kez cevaplanır: doğru cevap yeşil, yanlış kırmızı olur (yanlışta doğru cevap kesik çizgiyle gösterilir). Hataları uygulama sayar; tüm satırlar bitince kronometre kendiliğinden durur. <i>Hedefler her sayfada ve Karıştır'da değişir.</i>`;
 
+  // ---------- Yürütücü İşlev: Gece–Gündüz (okul öncesi Stroop) ----------
+  // Güneş görünce "gece", ay görünce "gündüz" denir: otomatik cevabı bastırıp tersini söyleme.
+  // Güneş ve ay sayfada yarı yarıya; aynı resim art arda en fazla 2 kez (düzenli sırayla değişmez, tahmin edilemez).
+  const DN_IMAGES = { sun: "data:image/webp;base64,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", moon: "data:image/webp;base64,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" };
+  function makeDayNightGrid(n){
+    let flags, g = 0;
+    do{
+      const half = n % 2 ? (Math.random() < 0.5 ? Math.ceil(n/2) : Math.floor(n/2)) : n/2;
+      flags = shuffleArray(Array.from({length:n}, (_, i) => i < half));
+      let run = 1, ok = true, alt = 0;
+      for(let i = 1; i < n; i++){ run = flags[i] === flags[i-1] ? run + 1 : 1; if(run > 2){ ok = false; break; } if(flags[i] !== flags[i-1]) alt++; }
+      // tamamen sıralı değişim (güneş-ay-güneş-ay…) olmasın
+      if(ok && alt === n - 1) ok = false;
+      if(ok) break;
+      g++;
+    } while(g < 500);
+    return flags.map(f => ({ k: f ? "sun" : "moon" }));
+  }
+
   // ---------- Yürütücü İşlev: Planlama (Londra Kulesi uyarlaması) ----------
   // Üstte HEDEF dizilim, altta çalışma alanı. Çocuk en az hamleyle hedefe ulaşmaya çalışır.
   // Uygulama her problemin en az hamle sayısını (BFS ile) hesaplar ve gösterir; en az sayıyı aşan her hamle hata sayısına eklenir.
@@ -5209,7 +5233,8 @@ const FRUIT_VEG_IMAGES = {
     {
       id: "number-letter",
       readingLevel: ["post"],
-      label: "Sayı-Harf Bulma",
+      label: "İz Sürme: Sayı–Harf",
+      oldLabels: ["Sayı-Harf Bulma"],     // önceki kayıtlar bu adla tutuldu
       isTrail: true, attrs: [], speedFactor: 2,
       trail: () => makeTrail("number-letter"),
       randomItem: () => ({}),
@@ -5513,6 +5538,16 @@ const FRUIT_VEG_IMAGES = {
           example: (item) => `${COLOR_NAMES[item.inkColor]}`
         }
       ]
+    },
+    {
+      id: "day-night",
+      readingLevel: ["pre"],
+      label: "Gece–Gündüz",
+      attrs: [],
+      makeGrid: (n) => makeDayNightGrid(n),
+      randomItem: () => ({ k:"sun" }),
+      renderItem: (item) => `<img src="${DN_IMAGES[item.k]}" alt="" style="width:86%;height:86%;object-fit:contain;display:block;">`,
+      stages: [{ label: "Tersini Söyle", instruction: () => ``, example: (item) => item.k === "sun" ? "gece" : "gündüz" }]
     },
     {
       id: "task-switch",
@@ -6219,11 +6254,17 @@ const FRUIT_VEG_IMAGES = {
       id:"yurutucu-islev",
       readingLevel:["post"],
       label:"Yürütücü İşlev",
-      sub:"Stroop, kural değişimi, ket vurma, ortadakini söyle, hayvana dokun, kart sıralama, iz sürme (sayı-harf, sayı-ay, hayvan-meyve, renk-şekil), planlama",
+      sub:"Ketleme (Stroop, gece–gündüz, ket vurma, hayvana dokun, ortadakini söyle) · Esneklik (kural değişimi, kart sıralama, iz sürme) · Planlama",
       purpose:"Dikkati yönetme, kural değiştirme ve dürtüsel tepkiyi durdurma becerisini çalıştırır.",
       color:"#3A6EA5",
       group:"Hız & Dikkat",
-      exerciseIds:["stroop","task-switch","go-no-go","flanker","touch-animal","sort-color-shape","sort-animal-size","sort-color-shape-count","sort-words","number-letter","trail-number-month","trail-animal-fruit","trail-color-shape","plan-swap","plan-beads","plan-tol","plan-cubes"]
+      exerciseIds:["stroop","day-night","go-no-go","touch-animal","flanker",
+                   "task-switch","sort-color-shape","sort-animal-size","sort-color-shape-count","sort-words","number-letter","trail-number-month","trail-animal-fruit","trail-color-shape",
+                   "plan-swap","plan-beads","plan-tol","plan-cubes"],
+      // çalışma seçim satırında alt beceri başlıkları
+      exerciseGroups:[["Ketleme",["stroop","day-night","go-no-go","touch-animal","flanker"]],
+                      ["Esneklik",["task-switch","sort-color-shape","sort-animal-size","sort-color-shape-count","sort-words","number-letter","trail-number-month","trail-animal-fruit","trail-color-shape"]],
+                      ["Planlama",["plan-swap","plan-beads","plan-tol","plan-cubes"]]]
     },
     {
       id:"calisan-bellek",
@@ -6519,8 +6560,18 @@ const FRUIT_VEG_IMAGES = {
     row.innerHTML = "";
     const exs = currentCategoryExercises();
     const t = currentCombo().t;
+    const groups = currentCategory().exerciseGroups || [];
+    const shownGroups = new Set();
     exs.forEach((ex, e)=>{
       if((ex.minTier || 0) > t) return;
+      const grp = groups.find(g => g[1].includes(ex.id));
+      if(grp && !shownGroups.has(grp[0])){
+        shownGroups.add(grp[0]);
+        const lbl = document.createElement("span");
+        lbl.className = "exercise-group-label";
+        lbl.textContent = grp[0];
+        row.appendChild(lbl);
+      }
       const btn = document.createElement("button");
       btn.className = "exercise-btn" + (e===currentCombo().e ? " active" : "");
       btn.textContent = ex.label;
@@ -6875,6 +6926,7 @@ const FRUIT_VEG_IMAGES = {
     "eye-saccade-random":[() => Q("Başını sabit tut. Nokta nerede belirirse gözünle hemen oraya bak.")],
     "eye-saccade-reading":[() => `${Q("Başını sabit tut. Noktayı satır satır, soldan sağa gözünle izle.")} Satır sonunda alt satırın başına atlar.`],
     "stroop":           [() => `${Q("Kelimeyi okuma, yazının rengini söyle.")} (mavi yazılmış "YEŞİL" → "mavi")`],
+    "day-night":        [() => Q("Güneş görünce 'gece', ay görünce 'gündüz' de.")],
     "task-switch":      [() => switchSide === "back" ? Q("Arkasını görüyorsan 'arka' de, önünü görüyorsan adını söyle.") : Q("Önünü görüyorsan 'ön' de, arkasını görüyorsan adını söyle.")],
     "go-no-go":         [() => Q(`Yüzün duygusunu söyle. ${stopFaceText()} yüzde sus.`), () => Q(`Yüzün duygusunu söyle. ${stopFaceText()} yüzde sus.`)],
     "flanker":          [() => Q(isPre() ? "Her çerçevede yalnızca ORTADAKİ resmin adını söyle." : "Her çerçevede yalnızca ORTADAKİ rakamı söyle."),
@@ -7938,7 +7990,7 @@ const FRUIT_VEG_IMAGES = {
       CATEGORIES.forEach(cat=>{
         cat.exerciseIds.forEach(id=>{
           const ex = EXERCISES.find(e=>e.id===id);
-          if(ex) _exLabelToCategoryCache[ex.label] = cat;
+          if(ex){ _exLabelToCategoryCache[ex.label] = cat; (ex.oldLabels || []).forEach(l => { _exLabelToCategoryCache[l] = cat; }); }
         });
       });
     }
@@ -8247,7 +8299,7 @@ const FRUIT_VEG_IMAGES = {
     const layout = currentTier();
 
     const list = loadSessions().filter(r =>
-      r.exerciseLabel === ex.label &&
+      (r.exerciseLabel === ex.label || (ex.oldLabels || []).includes(r.exerciseLabel)) &&
       r.stageLabel === stage.label &&
       r.tier === layout.label
     );
