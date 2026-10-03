@@ -3812,23 +3812,31 @@
         cards.push(c);
       }
     }
-    // Okul öncesi (2 örnek kart): örnek kartların yeri her kartta değişir; doğru cevabın konumu
-    // dengeli dağılır ve aynı konum art arda en fazla 2 kez doğru olur — çocuk yere göre ezber yapamaz
-    if(refs.length === 2){
+    // Tüm kart sıralama çalışmalarında örnek kartların yeri her seçimden sonra değişir.
+    // Doğru örnek kartın ekrandaki konumu konumlar arasında dengeli dağılır ve aynı konum art arda
+    // en fazla 2 kez doğru olur; dizilim de bir önceki kartla aynı kalmaz — çocuk yere göre ezber yapamaz.
+    {
+      const k = refs.length;
       let pos, g2 = 0;
       do{
-        pos = shuffleArray(cards.map((_, i) => i % 2));
+        pos = shuffleArray(cards.map((_, i) => i % k));
         let run = 1, ok = true;
         for(let i = 1; i < pos.length; i++){ run = pos[i] === pos[i-1] ? run + 1 : 1; if(run > 2){ ok = false; break; } }
         if(ok) break;
         g2++;
       } while(g2 < 500);
+      let prevOrder = "";
       cards.forEach((c, i) => {
-        const ans = sortMatchIndex(c, rules[c.phase], refs);          // doğru örnek kartın indeksi
-        c.order = pos[i] === 0 ? [ans, 1 - ans] : [1 - ans, ans];     // ekrandaki soldan sağa sıra
+        const ans = sortMatchIndex(c, rules[c.phase], refs);           // doğru örnek kartın indeksi
+        let order, g3 = 0;
+        do{
+          const others = shuffleArray(refs.map((_, r) => r).filter(r => r !== ans));
+          order = others.slice(0, pos[i]).concat([ans], others.slice(pos[i]));   // ekranda soldan sağa
+          g3++;
+        } while(g3 < 20 && k > 2 && order.join() === prevOrder);
+        prevOrder = order.join();
+        c.order = order;
       });
-    } else {
-      cards.forEach(c => { c.order = refs.map((_, i) => i); });       // 4 örnek kartlı WCST: kartlar sabit durur
     }
     sortState = { refs, rules, per, idx:0, wrong:0, persev:0, locked:false };
     return cards;
