@@ -990,6 +990,36 @@
   .touch-status{ font-size:13px; font-weight:700; color:var(--muted, #5B6B78); text-align:center; margin:6px 0 0; }
   .target-swatch{ display:inline-block; width:16px; height:16px; border-radius:4px; vertical-align:-2px; margin:0 3px; border:1px solid rgba(0,0,0,0.2); }
 
+  /* Tahtada metin seçimi, uzun basma menüsü (Kopyala / Ara / Çevir), sürükleme ve çift dokunma yakınlaştırması kapalı:
+     çocuk hızlıca dokunurken ögeler seçilmez, kaymaz, yerinden oynamaz (tüm çalışmalar, mevcut ve gelecek) */
+  #board, #board *, #sdmtKey, #sdmtKey *, #touchStatus{
+    -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; -webkit-user-drag:none;
+    -webkit-tap-highlight-color:transparent;
+  }
+  #board{ touch-action:manipulation; }
+  #board img, #board svg{ pointer-events:none; }
+  #board .trl-node, #board .pln-peg, #board .pln-cube, #board .srt-ref, #board .cell, #board [data-plnreset]{ touch-action:manipulation; }
+
+  /* Planlama (Londra Kulesi uyarlaması) */
+  .pln-wrap{ display:flex; flex-direction:column; align-items:center; gap:8px; width:100%; }
+  .pln-top{ display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; }
+  .pln-goal{ border:2px solid #2E6F6E; border-radius:12px; background:#EAF4F3; padding:4px 10px 6px; display:flex; flex-direction:column; align-items:center; }
+  .pln-goal .lbl{ font-size:11px; font-weight:900; color:#2E6F6E; letter-spacing:.5px; }
+  .pln-info{ font-size:13px; font-weight:800; color:var(--ink); text-align:center; line-height:1.5; }
+  .pln-info .min{ color:#2E6F6E; } .pln-info .over{ color:#D32F2F; }
+  .pln-pegs{ display:flex; align-items:flex-end; justify-content:center; }
+  .pln-peg{ position:relative; display:flex; flex-direction:column-reverse; align-items:center; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .pln-peg .rod{ position:absolute; bottom:0; left:50%; transform:translateX(-50%); background:#8D6E63; border-radius:4px 4px 0 0; }
+  .pln-peg .base{ position:absolute; bottom:-8px; left:0; right:0; height:8px; background:#6D4C41; border-radius:4px; }
+  .pln-peg.sel .base{ background:#F57C00; }
+  .pln-peg.bad{ animation:trlShake .3s; }
+  .pln-item{ position:relative; z-index:1; box-sizing:border-box; border:2px solid rgba(0,0,0,0.25); transition:transform .12s; }
+  .pln-item.up{ transform:translateY(-14px); box-shadow:0 6px 10px rgba(0,0,0,0.25); }
+  .pln-row{ display:flex; gap:10px; justify-content:center; }
+  .pln-cube{ border-radius:10px; border:3px solid rgba(0,0,0,0.25); cursor:pointer; box-sizing:border-box; -webkit-tap-highlight-color:transparent; transition:transform .12s; }
+  .pln-cube.up{ transform:translateY(-12px); box-shadow:0 6px 10px rgba(0,0,0,0.25); border-color:#F57C00; }
+  .pln-btn{ font-size:12px; font-weight:800; border:1px solid var(--line); background:var(--panel); border-radius:999px; padding:5px 12px; cursor:pointer; color:var(--ink); }
+
   /* İz Sürme (Trail Making B): dağınık düğümler, dokununca çizgi çizilir */
   .trl-strip{ display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:4px; margin:0 0 8px; padding:6px 8px;
     border:2px solid #2E6F6E; border-radius:12px; background:#EAF4F3; }
@@ -3414,6 +3444,255 @@
   }
   document.getElementById("board").addEventListener("click", handleTouchTap);
 
+  // ---------- Yürütücü İşlev: Planlama (Londra Kulesi uyarlaması) ----------
+  // Üstte HEDEF dizilim, altta çalışma alanı. Çocuk en az hamleyle hedefe ulaşmaya çalışır.
+  // Uygulama her problemin en az hamle sayısını (BFS ile) hesaplar ve gösterir; en az sayıyı aşan her hamle hata sayısına eklenir.
+  // Bir sayfada art arda birkaç problem (okul sonrası 3, okul öncesi 2); son problem çözülünce kronometre kendiliğinden durur.
+  // Değişken hedef: başlangıç ve hedef dizilimler her sayfada / Karıştır'da yeniden üretilir.
+  const PLN_COLORS = ["#E53935", "#F5C518", "#1E63D6", "#2E9E4F", "#8E44AD"];   // kırmızı, sarı, mavi, yeşil, mor
+  const PLN_SPECS = {
+    // Okul öncesi: tek sıra küp, iki küpe dokununca yer değiştirir (en az değiştirme = n - döngü sayısı)
+    "plan-swap":  { type:"swap", items: [3, 3, 4], target: [[1,1],[2,2],[2,3]], problems: 2, colors:[0,1,2,3] },
+    // Okul öncesi: üç çubuk, 3 boncuk, her çubuk 3 boncuk alır
+    "plan-beads": { type:"pegs", items: [3, 3, 3], caps: [[3,3,3],[3,3,3],[3,3,3]], target: [[2,2],[3,3],[4,4]], problems: 2, colors:[0,1,2] },
+    // Okul sonrası: klasik Londra Kulesi — 3 pul, alanlar 3 / 2 / 1 pul alır
+    "plan-tol":   { type:"pegs", items: [3, 3, 3], caps: [[3,2,1],[3,2,1],[3,2,1]], target: [[3,3],[4,5],[5,6]], problems: 3, colors:[0,3,2] },
+    // Okul sonrası: eşit alanlar, 4-5 küp (daha uzun hamle zinciri)
+    "plan-cubes": { type:"pegs", items: [4, 4, 5], caps: [[4,4,4],[4,4,4],[5,5,5]], target: [[3,4],[5,6],[6,7]], problems: 3, colors:[0,1,2,3,4], square:true }
+  };
+  function plnKey(st){ return JSON.stringify(st); }
+  function plnNeighbors(st, caps){
+    const out = [];
+    for(let a = 0; a < st.length; a++){
+      if(!st[a].length) continue;
+      for(let b = 0; b < st.length; b++){
+        if(a === b || st[b].length >= caps[b]) continue;
+        const nx = st.map(x => x.slice());
+        nx[b].push(nx[a].pop());
+        out.push(nx);
+      }
+    }
+    return out;
+  }
+  function plnBFS(start, caps){
+    const dist = new Map([[plnKey(start), 0]]), q = [start], states = [start];
+    while(q.length){
+      const cur = q.shift(), d = dist.get(plnKey(cur));
+      for(const nx of plnNeighbors(cur, caps)){
+        const k = plnKey(nx);
+        if(!dist.has(k)){ dist.set(k, d + 1); q.push(nx); states.push(nx); }
+      }
+    }
+    return { dist, states };
+  }
+  function plnMinMoves(start, goal, caps){ return plnBFS(start, caps).dist.get(plnKey(goal)); }
+  function plnRandomState(items, caps){
+    let st, g = 0;
+    do{
+      st = caps.map(() => []);
+      shuffleArray(items).forEach(it => {
+        const free = st.map((x, i) => i).filter(i => st[i].length < caps[i]);
+        st[randomItem(free)].push(it);
+      });
+      g++;
+    } while(g < 50 && false);
+    return st;
+  }
+  function swapMin(a, goal){
+    // en az yer değiştirme = n - (permütasyondaki döngü sayısı)
+    const pos = new Map(goal.map((c, i) => [c, i]));
+    const p = a.map(c => pos.get(c)), seen = new Array(p.length).fill(false);
+    let cycles = 0;
+    for(let i = 0; i < p.length; i++){ if(seen[i]) continue; cycles++; let j = i; while(!seen[j]){ seen[j] = true; j = p[j]; } }
+    return p.length - cycles;
+  }
+  function makePlanProblems(){
+    const spec = PLN_SPECS[currentExercise().id];
+    const t = currentCombo().t;
+    const n = spec.items[t];
+    const colors = shuffleArray(spec.colors.map(i => PLN_COLORS[i])).slice(0, n);   // renk kodları
+    const [lo, hi] = spec.target[t];
+    const problems = [];
+    let lastKey = "";
+    for(let k = 0; k < spec.problems; k++){
+      let pr = null, g = 0;
+      while(!pr && g < 60){
+        g++;
+        const want = lo + Math.floor(Math.random() * (hi - lo + 1));
+        if(spec.type === "swap"){
+          const start = shuffleArray(colors);
+          let goal, gg = 0;
+          do{ goal = shuffleArray(colors); gg++; } while(gg < 200 && swapMin(start, goal) !== want);
+          if(swapMin(start, goal) === want) pr = { start, goal, min: want };
+        } else {
+          const caps = spec.caps[t];
+          const start = plnRandomState(colors, caps);
+          const { dist, states } = plnBFS(start, caps);
+          const cands = states.filter(s2 => dist.get(plnKey(s2)) === want);
+          if(cands.length) pr = { start, goal: randomItem(cands), min: want, caps };
+        }
+        if(pr && plnKey([pr.start, pr.goal]) === lastKey) pr = null;
+      }
+      lastKey = plnKey([pr.start, pr.goal]);
+      problems.push(pr);
+    }
+    planState = { p:0, cur: problems[0].start.map(x => Array.isArray(x) ? x.slice() : x), moves:0, extra:0, sel:null, done:false,
+                  firstMoveMs:[], probStart:null, solved:0 };
+    return problems;
+  }
+  let planState = null;
+  function plnSizes(board){
+    const spec = PLN_SPECS[currentExercise().id];
+    const isLs = landscapeMQ.matches;
+    const W = (board.clientWidth || 360) - 24;
+    const H = isLs ? (board.clientHeight || 280) - 20 : Math.min(560, window.innerHeight - 260);
+    const t = currentCombo().t, n = spec.items[t];
+    if(spec.type === "swap"){
+      const cube = Math.min(isLs ? 90 : 84, Math.floor((W * (isLs ? 0.55 : 1) - (n - 1) * 10) / n));
+      return { cube, gcube: Math.round(cube * 0.5) };
+    }
+    const caps = spec.caps[t], maxCap = Math.max(...caps);
+    const workW = isLs ? W * 0.62 : W;
+    let item = Math.floor(Math.min((workW / 3) * 0.72, (isLs ? H - 40 : H * 0.55) / (maxCap + 0.6)));
+    item = Math.max(28, Math.min(item, isLs ? 60 : 52));
+    return { item, gitem: Math.max(14, Math.round(item * 0.42)), pegW: Math.floor(workW / 3) };
+  }
+  function plnPegsHTML(st, caps, item, pegW, opts){
+    const sq = !!opts.square, sel = opts.sel, interactive = !!opts.interactive;
+    return `<div class="pln-pegs" style="gap:${Math.round(pegW*0.12)}px;padding-bottom:8px;">` + st.map((stack, i) => {
+      const h = caps[i] * item + Math.round(item * 0.5);
+      const items = stack.map((c, k) => {
+        const up = interactive && sel === i && k === stack.length - 1;
+        return `<div class="pln-item${up ? " up" : ""}" style="width:${sq ? item : Math.round(item*0.95)}px;height:${sq ? item : Math.round(item*0.95)}px;margin-top:${sq ? 0 : Math.round(item*0.05)}px;background:${c};border-radius:${sq ? Math.round(item*0.16) : 999}px;"></div>`;
+      }).join("");
+      return `<div class="pln-peg${interactive && sel === i ? " sel" : ""}" ${interactive ? `data-peg="${i}"` : ""} style="width:${Math.round(pegW*0.86)}px;height:${h}px;">` +
+             `<div class="rod" style="width:${Math.max(4, Math.round(item*0.14))}px;height:${h}px;"></div><div class="base"></div>${items}</div>`;
+    }).join("") + `</div>`;
+  }
+  function renderPlanBoard(){
+    const board = document.getElementById("board");
+    board.style.display = "block";
+    board.style.minHeight = "";
+    board.style.padding = landscapeMQ.matches ? "8px 10px" : "12px";
+    board.style.gridTemplateColumns = "";
+    board.style.gridTemplateRows = "";
+    board.classList.remove("wide-grid");
+    if(!planState) return;
+    const spec = PLN_SPECS[currentExercise().id];
+    const ps = planState, isLs = landscapeMQ.matches;
+    const total = currentGrid.length;
+    const pr = currentGrid[Math.min(ps.p, total - 1)];
+    const S = plnSizes(board);
+    let goalHtml, workHtml;
+    if(spec.type === "swap"){
+      goalHtml = `<div class="pln-row" style="gap:6px;">` + pr.goal.map(c => `<div style="width:${S.gcube}px;height:${S.gcube}px;border-radius:6px;background:${c};border:2px solid rgba(0,0,0,0.25);"></div>`).join("") + `</div>`;
+      workHtml = `<div class="pln-row">` + ps.cur.map((c, i) => `<div class="pln-cube${ps.sel === i ? " up" : ""}" data-cube="${i}" style="width:${S.cube}px;height:${S.cube}px;background:${c};"></div>`).join("") + `</div>`;
+    } else {
+      goalHtml = plnPegsHTML(pr.goal, pr.caps, S.gitem, Math.round(S.gitem * 3.2), { square: spec.square });
+      workHtml = plnPegsHTML(ps.cur, pr.caps, S.item, S.pegW, { square: spec.square, sel: ps.sel, interactive: true });
+    }
+    const over = Math.max(0, ps.moves - pr.min);
+    const info = ps.done
+      ? `<div class="pln-info">Bitti 🎉 ${total} problem · ${ps.extra} fazla hamle</div>`
+      : `<div class="pln-info">Problem ${ps.p + 1} / ${total}<br><span class="min">En az ${pr.min} hamle</span> · Hamle: <span class="${over ? "over" : ""}">${ps.moves}</span></div>`;
+    const goal = `<div class="pln-goal"><span class="lbl">HEDEF</span>${goalHtml}</div>`;
+    const resetBtn = ps.done ? "" : `<button class="pln-btn" data-plnreset="1">↺ Bu problemi baştan al</button>`;
+    board.innerHTML = isLs
+      ? `<div class="pln-wrap" style="flex-direction:row;align-items:center;justify-content:center;gap:18px;"><div style="display:flex;flex-direction:column;align-items:center;gap:8px;">${goal}${info}${resetBtn}</div><div>${workHtml}</div></div>`
+      : `<div class="pln-wrap"><div class="pln-top">${goal}${info}</div><div style="margin-top:14px;">${workHtml}</div>${resetBtn}</div>`;
+  }
+  function plnSolved(){
+    const pr = currentGrid[planState.p];
+    return plnKey(planState.cur) === plnKey(pr.goal);
+  }
+  function plnAfterMove(){
+    const ps = planState, pr = currentGrid[ps.p];
+    if(ps.moves === 1 && ps.probStart) ps.firstMoveMs.push(Date.now() - ps.probStart);
+    if(ps.moves > pr.min){ ps.extra++; setErrorCount(currentErrorCount + 1); }
+    if(plnSolved()){
+      ps.solved++;
+      if(ps.p >= currentGrid.length - 1){
+        ps.done = true;
+        renderPlanBoard();
+        stopTimer();
+        const avg = ps.firstMoveMs.length ? (ps.firstMoveMs.reduce((a, b) => a + b, 0) / ps.firstMoveMs.length / 1000).toFixed(1) : "-";
+        showLevelFlash(`Bitti! ${ps.extra} fazla hamle · ilk hamleye kadar ortalama ${avg} sn düşünme`, ps.extra ? "down" : "levelup");
+        return;
+      }
+      showLevelFlash(ps.moves === pr.min ? "Harika! En az hamleyle çözdün 🎉" : `Çözüldü (${ps.moves - pr.min} fazla hamle)`, "levelup");
+      ps.locked = true;
+      renderPlanBoard();
+      setTimeout(() => {
+        ps.locked = false;
+        ps.p++; ps.moves = 0; ps.sel = null; ps.probStart = Date.now();
+        const nx = currentGrid[ps.p];
+        ps.cur = nx.start.map(x => Array.isArray(x) ? x.slice() : x);
+        renderPlanBoard();
+      }, 900);
+      return;
+    }
+    renderPlanBoard();
+  }
+  function handlePlanTap(ev){
+    const ex = currentExercise();
+    if(!ex.isPlan || !planState) return;
+    const ps = planState;
+    if(ev.target.closest("[data-plnreset]")){
+      if(ps.done) return;
+      const pr = currentGrid[ps.p];
+      ps.cur = pr.start.map(x => Array.isArray(x) ? x.slice() : x); ps.moves = 0; ps.sel = null;
+      renderPlanBoard();
+      return;
+    }
+    const peg = ev.target.closest(".pln-peg[data-peg]"), cube = ev.target.closest(".pln-cube[data-cube]");
+    if(!peg && !cube) return;
+    if(ps.done || ps.locked) return;
+    if(!timerRunning){ showLevelFlash("Önce ▶ Başlat'a basın, sonra çocuk dokunsun.", "down"); return; }
+    if(!ps.probStart) ps.probStart = Date.now();
+    if(cube){
+      const i = Number(cube.dataset.cube);
+      if(ps.sel === null){ ps.sel = i; renderPlanBoard(); return; }
+      if(ps.sel === i){ ps.sel = null; renderPlanBoard(); return; }
+      const a = ps.sel; [ps.cur[a], ps.cur[i]] = [ps.cur[i], ps.cur[a]];
+      ps.sel = null; ps.moves++;
+      plnAfterMove();
+      return;
+    }
+    const i = Number(peg.dataset.peg);
+    const pr = currentGrid[ps.p];
+    if(ps.sel === null){
+      if(!ps.cur[i].length) return;
+      ps.sel = i; renderPlanBoard(); return;
+    }
+    if(ps.sel === i){ ps.sel = null; renderPlanBoard(); return; }
+    if(ps.cur[i].length >= pr.caps[i]){
+      peg.classList.remove("bad"); void peg.offsetWidth; peg.classList.add("bad");
+      showLevelFlash("Bu alan dolu.", "down");
+      return;
+    }
+    ps.cur[i].push(ps.cur[ps.sel].pop());
+    ps.sel = null; ps.moves++;
+    plnAfterMove();
+  }
+  document.getElementById("board").addEventListener("click", handlePlanTap);
+  // tahtada uzun basma menüsü, metin seçimi ve sürüklemeyi engelle (iOS "Kopyala / Ara / Çevir" balonu)
+  ["contextmenu", "selectstart", "dragstart"].forEach(evn => {
+    document.getElementById("board").addEventListener(evn, e => e.preventDefault());
+  });
+  // çift dokunma yakınlaştırmasına karşı: tahtada çok hızlı ikinci dokunuşun varsayılan davranışını engelle (tıklama yine çalışır)
+  { let lastTouchEnd = 0;
+    document.getElementById("board").addEventListener("touchend", e => {
+      const now = Date.now();
+      if(now - lastTouchEnd < 350){ e.preventDefault(); e.target.click && e.target.closest("[data-peg],[data-cube],[data-ref],.trl-node,.cell,[data-plnreset]") && e.target.click(); }
+      lastTouchEnd = now;
+    }, { passive:false });
+  }
+  window.addEventListener("resize", () => {
+    clearTimeout(window._plnResizeT);
+    window._plnResizeT = setTimeout(() => { try{ if(currentExercise().isPlan) renderPlanBoard(); }catch(e){} }, 150);
+  });
+  const PLAN_COMMON = `Doğru dokunuşla taşıma yapılır; uygulama hamleleri sayar ve <b>en az hamle sayısını</b> gösterir. En az sayıyı aşan her hamle hata sayısına eklenir. Çocuk takılırsa "Bu problemi baştan al" düğmesini kullanın. <i>Problemler her sayfada ve Karıştır'da değişir.</i>`;
+
   // ---------- Yürütücü İşlev: İz Sürme (Trail Making Test-B uyarlaması) ----------
   // Ögeler sayfaya dağınık yerleşir; çocuk iki dizi arasında geçiş yaparak sırayla dokunur, uygulama aralarına çizgi çizer.
   // Yanlış dokunma anında hata sayısına eklenir (iz ilerlemez); tüm ögelere sırayla dokunulunca kronometre kendiliğinden durur.
@@ -3680,7 +3959,7 @@
   // ---------- Dokunmalı çalışmalar: ortak "bitti mi?" denetimi ----------
   // Tüm dokunmalı çalışmalar (mevcut ve gelecekteki) burada tanımlanır: çalışma bittiğinde kronometre her durumda kendiliğinden durur.
   // Yeni bir dokunmalı çalışma eklenince ya bu listedeki türlerden birini kullanmalı ya da kendi isDone() fonksiyonunu tanımlamalıdır.
-  function isInteractiveExercise(ex){ return !!(ex && (ex.isTouch || ex.isSort || ex.isTrail || ex.isDone)); }
+  function isInteractiveExercise(ex){ return !!(ex && (ex.isTouch || ex.isSort || ex.isTrail || ex.isPlan || ex.isDone)); }
   function interactiveIsDone(){
     const ex = currentExercise();
     if(!isInteractiveExercise(ex) || !Array.isArray(currentGrid) || !currentGrid.length) return false;
@@ -4619,6 +4898,46 @@ const FRUIT_VEG_IMAGES = {
       sortDeck: () => makeSortDeck(),
       randomItem: () => ({}),
       stages: [{ label: "Kategori – Hece – Renk", instruction: () => sortInstruction(), example: () => `` }]
+    },
+    {
+      id: "plan-swap",
+      readingLevel: ["pre"],
+      label: "Planlama: Renkli Küpleri Diz",
+      isPlan: true, attrs: [], speedFactor: 12,
+      isDone: () => !!planState && planState.done,
+      plan: () => makePlanProblems(),
+      randomItem: () => ({}),
+      stages: [{ label: "Küpleri Diz", instruction: () => `Önce <b>▶ Başlat</b>'a basın. Çocuğa üstteki <b>HEDEF</b> sırayı gösterin ve <b>"Önce düşün, sonra dokun. İki küpe sırayla dokunursan yer değiştirirler. Küpleri en az değiştirmeyle hedefteki sıraya getir"</b> deyin. ` + PLAN_COMMON, example: () => `` }]
+    },
+    {
+      id: "plan-beads",
+      readingLevel: ["pre"],
+      label: "Planlama: Boncukları Yer Değiştir",
+      isPlan: true, attrs: [], speedFactor: 15,
+      isDone: () => !!planState && planState.done,
+      plan: () => makePlanProblems(),
+      randomItem: () => ({}),
+      stages: [{ label: "Boncuklar", instruction: () => `Önce <b>▶ Başlat</b>'a basın. Çocuğa üstteki <b>HEDEF</b> modeli gösterin ve <b>"Önce düşün, sonra hareket ettir. Bir çubuğa dokun, en üstteki boncuk kalkar; sonra koymak istediğin çubuğa dokun. Boncukları tek tek taşıyarak hedefteki gibi yap"</b> deyin. ` + PLAN_COMMON, example: () => `` }]
+    },
+    {
+      id: "plan-tol",
+      readingLevel: ["post"],
+      label: "Planlama: Üç Bardak – Üç Pul",
+      isPlan: true, attrs: [], speedFactor: 15,
+      isDone: () => !!planState && planState.done,
+      plan: () => makePlanProblems(),
+      randomItem: () => ({}),
+      stages: [{ label: "Üç Bardak", instruction: () => `Önce <b>▶ Başlat</b>'a basın. <b>"Pulları hedefteki dizilime getir. Bir bardağa dokun, en üstteki pul kalkar; sonra koymak istediğin bardağa dokun. Bardaklar farklı sayıda pul alır: biri 3, biri 2, biri 1. Önce zihninde planla, en az hamleyle çöz"</b> deyin. ` + PLAN_COMMON, example: () => `` }]
+    },
+    {
+      id: "plan-cubes",
+      readingLevel: ["post"],
+      label: "Planlama: Kısıtlı Küp Taşıma",
+      isPlan: true, attrs: [], speedFactor: 18,
+      isDone: () => !!planState && planState.done,
+      plan: () => makePlanProblems(),
+      randomItem: () => ({}),
+      stages: [{ label: "Küp Taşıma", instruction: () => `Önce <b>▶ Başlat</b>'a basın. <b>"Her hamlede yalnızca bir küp taşıyabilirsin ve sadece en üstteki küpü alabilirsin. Küpleri hedef modeldeki gibi diz; önce zihninde planla, mümkün olan en az hamleyle çöz"</b> deyin. ` + PLAN_COMMON, example: () => `` }]
     },
     {
       id: "number-letter",
@@ -5606,11 +5925,11 @@ const FRUIT_VEG_IMAGES = {
       id:"yurutucu-islev",
       readingLevel:["post"],
       label:"Yürütücü İşlev",
-      sub:"Stroop, kural değişimi, ket vurma, ortadakini söyle, dokunma oyunları, kart sıralama, iz sürme (sayı-harf, sayı-ay, hayvan-meyve, renk-şekil)",
+      sub:"Stroop, kural değişimi, ket vurma, ortadakini söyle, dokunma oyunları, kart sıralama, iz sürme (sayı-harf, sayı-ay, hayvan-meyve, renk-şekil), planlama",
       purpose:"Dikkati yönetme, kural değiştirme ve dürtüsel tepkiyi durdurma becerisini çalıştırır.",
       color:"#3A6EA5",
       group:"Hız & Dikkat",
-      exerciseIds:["stroop","task-switch","go-no-go","flanker","touch-animal","touch-card","sort-color-shape","sort-animal-size","sort-color-shape-count","sort-words","number-letter","trail-number-month","trail-animal-fruit","trail-color-shape"]
+      exerciseIds:["stroop","task-switch","go-no-go","flanker","touch-animal","touch-card","sort-color-shape","sort-animal-size","sort-color-shape-count","sort-words","number-letter","trail-number-month","trail-animal-fruit","trail-color-shape","plan-swap","plan-beads","plan-tol","plan-cubes"]
     },
     {
       id:"calisan-bellek",
@@ -5835,6 +6154,7 @@ const FRUIT_VEG_IMAGES = {
   }
 
   function generateGrid(exercise, rows, cols){
+    if(exercise.isPlan) return exercise.plan();                          // Planlama: problemler
     if(exercise.isTrail) return exercise.trail();                        // İz Sürme: dağınık düğümler
     if(exercise.isSort) return exercise.sortDeck();                       // Kart Sıralama: deste
     if(exercise.isFlanker) return exercise.flankerGroups();             // Flanker: 5'li çerçeveli gruplar
@@ -6003,6 +6323,11 @@ const FRUIT_VEG_IMAGES = {
     currentErrorCount = 0;
     const countEl = document.getElementById("errorCount");
     if(countEl) countEl.textContent = "0";
+    // planlamada problemleri baştan başlat
+    if(currentExercise().isPlan && planState && currentGrid.length){
+      Object.assign(planState, { p:0, cur: currentGrid[0].start.map(x => Array.isArray(x) ? x.slice() : x), moves:0, extra:0, sel:null, done:false, firstMoveMs:[], probStart:null, solved:0, locked:false });
+      renderPlanBoard();
+    }
     // iz sürmede izi baştan başlat
     if(currentExercise().isTrail && trailState){
       Object.assign(trailState, { next:0, wrong:0 });
@@ -6108,7 +6433,7 @@ const FRUIT_VEG_IMAGES = {
     const ex = currentExercise();
     // Oluş Sırası'nda bulunacak hedef sayısı satır başına 2'dir
     const itemCount = ex.isSeqRows ? Math.max(1, currentGrid.length * 2)
-                    : (ex.isFlanker || ex.isSort || ex.isTrail) ? Math.max(1, currentGrid.length)
+                    : (ex.isFlanker || ex.isSort || ex.isTrail || ex.isPlan) ? Math.max(1, currentGrid.length)
                     : currentTier().rows * currentTier().cols;
     const secPerItem = (ms/1000) / itemCount;
     // Sıralı arama (sayıyı bulup gösterme) isimlendirmeden doğal olarak yavaştır: eşikler 2 katı
@@ -6460,6 +6785,10 @@ const FRUIT_VEG_IMAGES = {
       renderTrailBoard();
       return;
     }
+    if(ex.isPlan){
+      renderPlanBoard();
+      return;
+    }
     board.style.display = "grid";
     board.style.minHeight = "";
     board.style.padding = "14px";
@@ -6507,7 +6836,7 @@ const FRUIT_VEG_IMAGES = {
     if(applyingBoardLayout) return;
     const board = document.getElementById("board");
     if(!board || !currentGrid.length) return;
-    if(currentExercise().isMotion || currentExercise().isAuditory || currentExercise().isSeqRows || currentExercise().isFlanker || currentExercise().isSort || currentExercise().isTrail) return;
+    if(currentExercise().isMotion || currentExercise().isAuditory || currentExercise().isSeqRows || currentExercise().isFlanker || currentExercise().isSort || currentExercise().isTrail || currentExercise().isPlan) return;
     applyingBoardLayout = true;
     try{
       let {rows, cols} = currentTier();
