@@ -1126,6 +1126,10 @@
     background:#1B2430;
     border-radius:12px;
   }
+  /* Sıçrama (sakkad) çalışmaları: sabit hedef noktaları ve satır çizgileri */
+  .sac-mark{ position:absolute; width:18px; height:18px; border-radius:50%; border:2px dashed rgba(255,255,255,0.35); transform:translate(-50%,-50%); }
+  .sac-line{ position:absolute; height:2px; background:rgba(255,255,255,0.14); border-radius:2px; transform:translateY(-50%); }
+  .motion-shape.sac{ width:34px; height:34px; }
   .motion-shape{
     position:absolute;
     width:48px;
@@ -5428,6 +5432,33 @@ const FRUIT_VEG_IMAGES = {
       ]
     },
     {
+      id: "eye-saccade-two",
+      readingLevel: ["pre","post"],
+      label: "Sıçrama: İki Nokta",
+      isMotion: true, sacKind: "two",
+      statefulFn: (ms) => sacTwoPos(ms),
+      attrs: [],
+      stages: [{ label: "Sıçra ve Bak", instruction: () => ``, example: () => `` }]
+    },
+    {
+      id: "eye-saccade-random",
+      readingLevel: ["pre","post"],
+      label: "Sıçrama: Rastgele Nokta",
+      isMotion: true, sacKind: "random",
+      statefulFn: makeRandomSaccade(),
+      attrs: [],
+      stages: [{ label: "Sıçra ve Bak", instruction: () => ``, example: () => `` }]
+    },
+    {
+      id: "eye-saccade-reading",
+      readingLevel: ["pre","post"],
+      label: "Sıçrama: Satır Dönüşü",
+      isMotion: true, sacKind: "read",
+      statefulFn: (ms) => sacReadPos(ms),
+      attrs: [],
+      stages: [{ label: "Satır Satır Bak", instruction: () => ``, example: () => `` }]
+    },
+    {
       id: "eye-junction",
       readingLevel: ["pre","post"],
       label: "Çapraz Kavşak",
@@ -6178,11 +6209,11 @@ const FRUIT_VEG_IMAGES = {
       id:"goz-takip",
       readingLevel:["pre","post"],
       label:"Göz Takip",
-      sub:"Görsel takip / pursuit — Yatay, Dikey, Çapraz, Kare, Üçgen",
+      sub:"İzleme (yatay, dikey, çapraz, şekiller) ve sıçrama (iki nokta, rastgele nokta, satır dönüşü)",
       purpose:"Gözlerin hareketli bir hedefi baş hareketi kullanmadan takip etme alıştırması yapar.",
       color:"#C97F32",
       group:"Hız & Dikkat",
-      exerciseIds:["eye-horizontal","eye-vertical","eye-diagonal","eye-diagonal2","eye-wave","eye-steep-wave","eye-depth","eye-square","eye-triangle","eye-star","eye-junction","eye-crossbox"]
+      exerciseIds:["eye-horizontal","eye-vertical","eye-diagonal","eye-diagonal2","eye-wave","eye-steep-wave","eye-depth","eye-square","eye-triangle","eye-star","eye-junction","eye-crossbox","eye-saccade-two","eye-saccade-random","eye-saccade-reading"]
     },
     {
       id:"yurutucu-islev",
@@ -6840,6 +6871,9 @@ const FRUIT_VEG_IMAGES = {
     "eye-star":         [() => EYE("Şekil yıldız çizer.")],
     "eye-junction":     [() => EYE("Şekil kavşaklarda beklenmedik yöne döner.")],
     "eye-crossbox":     [() => EYE("Şekil kutu ve çaprazlarda beklenmedik yöne gider.")],
+    "eye-saccade-two":  [() => `${Q("Başını sabit tut. Nokta atlayınca gözünle hemen ona bak.")} ${currentCombo().t === 2 ? "Sağ-sol ve üst-alt arasında atlar." : "Sağ ile sol arasında atlar."}`],
+    "eye-saccade-random":[() => Q("Başını sabit tut. Nokta nerede belirirse gözünle hemen oraya bak.")],
+    "eye-saccade-reading":[() => `${Q("Başını sabit tut. Noktayı satır satır, soldan sağa gözünle izle.")} Satır sonunda alt satırın başına atlar.`],
     "stroop":           [() => `${Q("Kelimeyi okuma, yazının rengini söyle.")} (mavi yazılmış "YEŞİL" → "mavi")`],
     "task-switch":      [() => switchSide === "back" ? Q("Arkasını görüyorsan 'arka' de, önünü görüyorsan adını söyle.") : Q("Önünü görüyorsan 'ön' de, arkasını görüyorsan adını söyle.")],
     "go-no-go":         [() => Q(`Yüzün duygusunu söyle. ${stopFaceText()} yüzde sus.`), () => Q(`Yüzün duygusunu söyle. ${stopFaceText()} yüzde sus.`)],
@@ -6926,7 +6960,8 @@ const FRUIT_VEG_IMAGES = {
     board.style.gridTemplateRows = "";
     board.innerHTML = `
       <div class="motion-board" id="motionBoard">
-        <div class="motion-shape" id="motionShape"></div>
+        ${currentExercise().sacKind ? sacDecor(currentExercise().sacKind) : ""}
+        <div class="motion-shape${currentExercise().sacKind ? " sac" : ""}" id="motionShape"></div>
         <div class="motion-progress"><div class="motion-progress-fill" id="motionProgressFill"></div></div>
       </div>
     `;
@@ -6983,6 +7018,67 @@ const FRUIT_VEG_IMAGES = {
     }),
     depth: (t) => ({ x: 0.5, y: 0.5 })
   };
+
+  // ---------- Sıçrama (sakkad) hareketleri ----------
+  // Şekil kaymadan, bir noktadan diğerine ANINDA atlar ve orada kısa bir süre durur (göz sıçraması + bakış sabitleme).
+  // Bekleme süresi düzeye göre kısalır: 1,5 / 1,0 / 0,7 sn (okul öncesinde 1,3 kat daha uzun).
+  const SAC_DWELL_BY_TIER = [1500, 1000, 700];
+  function sacDwell(){ return Math.round((SAC_DWELL_BY_TIER[currentCombo().t] || 1000) * (isPre() ? 1.3 : 1)); }
+  // 1) İki nokta: soldaki ve sağdaki sabit nokta arasında atlama (Zor düzeyde yukarı-aşağı da)
+  const SAC_TWO_POINTS = [{x:0.12, y:0.5}, {x:0.88, y:0.5}];
+  const SAC_FOUR_POINTS = [{x:0.12, y:0.5}, {x:0.88, y:0.5}, {x:0.5, y:0.13}, {x:0.5, y:0.87}];
+  function sacTwoPos(elapsedMs){
+    const i = Math.floor(elapsedMs / sacDwell());
+    if(currentCombo().t === 2){ const seq = [0, 1, 2, 3]; return SAC_FOUR_POINTS[seq[i % 4]]; }  // sol, sağ, üst, alt
+    return SAC_TWO_POINTS[i % 2];
+  }
+  // 2) Rastgele nokta: her seferinde bir öncekinden uzak, rastgele bir yerde belirir
+  function makeRandomSaccade(){
+    let last = -1, pos = {x:0.5, y:0.5}, prevIdx = -1;
+    return function(elapsedMs){
+      const i = Math.floor(elapsedMs / sacDwell());
+      if(elapsedMs < last - 50) prevIdx = -1;
+      last = elapsedMs;
+      if(i !== prevIdx){
+        let p, g = 0;
+        do{ p = { x: 0.1 + Math.random() * 0.8, y: 0.14 + Math.random() * 0.72 }; g++; }
+        while(g < 40 && Math.hypot(p.x - pos.x, p.y - pos.y) < 0.35);
+        pos = p; prevIdx = i;
+      }
+      return pos;
+    };
+  }
+  // 3) Satır dönüşü (okuma): satırda soldan sağa küçük atlamalar, satır sonunda bir alt satırın başına uzun dönüş
+  const SAC_READ_ROWS = 5;
+  const SAC_READ_STEPS_BY_TIER = [4, 5, 6];
+  function sacReadLayout(){
+    const steps = SAC_READ_STEPS_BY_TIER[currentCombo().t] || 5;
+    const rows = Array.from({length: SAC_READ_ROWS}, (_, r) => 0.16 + r * (0.68 / (SAC_READ_ROWS - 1)));
+    const xs = Array.from({length: steps}, (_, k) => 0.1 + k * (0.8 / (steps - 1)));
+    return { rows, xs, steps };
+  }
+  function sacReadPos(elapsedMs){
+    const L = sacReadLayout();
+    // satır içi adımlar daha kısa (okuma sabitlemesi), dönüş adımı biraz daha uzun beklenir
+    const step = Math.round(sacDwell() * 0.55);
+    const rowMs = (L.steps - 1) * step + Math.round(step * 1.6);   // satır sonunda biraz daha uzun durur, sonra dönüş sıçraması
+    const tRow = elapsedMs % (rowMs * SAC_READ_ROWS);
+    const r = Math.floor(tRow / rowMs), inRow = tRow - r * rowMs;
+    const k = Math.min(L.steps - 1, Math.floor(inRow / step));
+    return { x: L.xs[k], y: L.rows[r] };
+  }
+  function sacDecor(kind){
+    if(kind === "two"){
+      const pts = currentCombo().t === 2 ? SAC_FOUR_POINTS : SAC_TWO_POINTS;
+      return pts.map(p => `<div class="sac-mark" style="left:${p.x*100}%;top:${p.y*100}%;"></div>`).join("");
+    }
+    if(kind === "read"){
+      const L = sacReadLayout();
+      return L.rows.map(y => `<div class="sac-line" style="left:7%;width:86%;top:${y*100}%;"></div>`).join("") +
+             L.rows.map(y => L.xs.map(x => `<div class="sac-mark" style="left:${x*100}%;top:${y*100}%;width:10px;height:10px;border-width:1px;"></div>`).join("")).join("");
+    }
+    return "";
+  }
 
   // ---------- Kestirilemez (rastgele yön değiştiren) yörüngeler ----------
   // Bunlar t (0..1 döngü oranı) yerine ham elapsedMs alır ve kendi iç durumunu tutar.
