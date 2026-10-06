@@ -2277,6 +2277,19 @@
   .ex-consent input{ width:22px; height:22px; margin-top:1px; accent-color:var(--teal); flex:none; }
   .ex-err{ color:var(--bad); font-size:13px; font-weight:800; text-align:center; min-height:18px; }
   .ex-danger{ background:none; border:none; color:var(--bad); font-family:inherit; font-weight:900; font-size:14px; padding:10px; cursor:pointer; }
+
+  /* uzmanın önerdikleri: tek dokunuşla açılan çalışmalar */
+  .fh-rec{ width:100%; background:var(--panel); border:2px solid var(--teal); border-radius:20px; box-shadow:0 3px 0 var(--teal-tint); padding:12px 12px 6px; box-sizing:border-box; }
+  .fh-rec-h{ display:flex; align-items:center; gap:8px; font-size:15px; font-weight:900; color:var(--teal-dark); padding:0 2px 6px; }
+  .fh-rec-h svg{ width:20px; height:20px; }
+  .fh-rec-h span{ margin-left:auto; font-size:12px; font-weight:800; color:var(--ink-soft); }
+  .fh-rec-item{ width:100%; display:flex; align-items:center; gap:12px; padding:10px 6px; border:none; border-top:1px solid var(--line); background:none; font-family:inherit; color:var(--ink); text-align:left; cursor:pointer; }
+  .fh-rec-item:first-of-type{ border-top:none; }
+  .fh-rec-num{ flex:none; width:34px; height:34px; border-radius:50%; background:var(--teal-tint); color:var(--teal-dark); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:15px; }
+  .fh-rec-tx{ flex:1; min-width:0; } .fh-rec-t1{ font-size:15px; font-weight:900; } .fh-rec-t2{ font-size:12px; color:var(--ink-soft); }
+  .fh-rec-go{ flex:none; height:38px; padding:0 14px; border-radius:12px; background:var(--teal); color:#fff; font-weight:900; font-size:14px; display:flex; align-items:center; box-shadow:0 3px 0 var(--teal-dark); }
+  html.rec-mode .session-bar{ display:flex; }
+  html.rec-mode #prevBtn, html.rec-mode #nextBtn{ visibility:hidden; }
 </style>
 </head>
 <body>
@@ -9130,7 +9143,7 @@ const FRUIT_VEG_IMAGES = {
   function startApp(mode){
     if(mode === "etkinlik") mode = getEtkinlikView();
     exitGameMode();
-    try{ exitSessionMode(); hideFamScreens(); hideLinkScreens(); }catch(e){}
+    try{ exitSessionMode(); exitRecMode(); hideFamScreens(); hideLinkScreens(); }catch(e){}
     appMode = mode;
     document.getElementById("modeScreen").style.display = "none";
     if(mode === "cocuk"){
@@ -9244,7 +9257,8 @@ const FRUIT_VEG_IMAGES = {
     const warm = pick(eyePref.length && rnd() < 0.6 ? eyePref : eyeAll);
     const mains = famExIds(target).slice();
     const prog = typeof familyProgram === "function" ? familyProgram() : null;
-    const fixed = prog && prog.target === target && Array.isArray(prog.mains) ? prog.mains.filter(id => mains.includes(id)) : [];
+    let fixed = prog && prog.target === target && Array.isArray(prog.mains) ? prog.mains.filter(id => mains.includes(id)) : [];
+    if(fixed.length > 2){ const f = fixed.slice(); fixed = []; while(fixed.length < 2 && f.length){ fixed.push(f.splice(Math.floor(rnd() * f.length), 1)[0]); } }   // önerilenlerden her gün 2'si
     let m1 = fixed[0] || pick(mains); let rest = mains.filter(x => x !== m1); let m2 = fixed[1] || (rest.length ? pick(rest) : m1);
     if(fixed.length === 1 && m2 === m1){ rest = mains.filter(x => x !== m1); m2 = rest.length ? pick(rest) : m1; }
     let closePool = CATEGORIES.flatMap(c => c.id === target ? [] : c.exerciseIds).filter(id => { const ex = exerciseById(id); return ex && ex.readingLevel.includes(famLvl()) && isGameEligible(ex); });
@@ -9286,6 +9300,7 @@ const FRUIT_VEG_IMAGES = {
         <span class="fh-ring"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="7"/><circle cx="32" cy="32" r="26" fill="none" stroke="#FFC21A" stroke-width="7" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/></svg><b>${n}/4</b></span>
         <span class="fh-tx"><div class="fh-t1">${all ? "Bugün tamam!" : "Bugünün oturumu"}</div><div class="fh-t2">${famProfile()} · yaklaşık 12 dakika · hedef: ${famCatName(plan.target)}</div></span>
         <span class="fh-go">${all ? "Gör" : (n ? "Devam" : "Başla")}</span></button>
+      ${recommendedCardHtml()}
       <button type="button" class="fh-week" id="fhWeekBtn"><span class="ic">${I_CHART}</span><span><div class="t1">Bu hafta</div><div class="t2">Çalışılan günler ve kısa gelişim özeti</div></span></button>
       <button type="button" class="fh-week" id="fhLinkBtn"><span class="ic" style="background:var(--teal-tint);color:var(--teal-dark)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></span>
         <span><div class="t1">${familyLinkLocal() ? "Uzmanınıza bağlı" : "Uzmana bağlan"}</div><div class="t2">${familyLinkLocal() ? (familyProgram() ? "Program: " + famCatName(familyProgram().target) + " · " + (familyProgram().days || []).map(d => DAY_SHORT[d]).join(", ") : "Uzmanınızın programı bekleniyor") : "Uzmanınızın verdiği kodu girin"}</div></span></button>`;
@@ -9293,6 +9308,7 @@ const FRUIT_VEG_IMAGES = {
     document.getElementById("fhTodayBtn").onclick = showToday;
     document.getElementById("fhWeekBtn").onclick = showWeek;
     document.getElementById("fhLinkBtn").onclick = showLinkScreen;
+    box.querySelectorAll("[data-rec]").forEach(b => b.onclick = () => openRecommended(b.dataset.rec));
     try{ watchFamilyLink(); }catch(e){}
   }
   function hideFamScreens(){ ["todayScreen","weekScreen"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; }); }
@@ -9339,6 +9355,7 @@ const FRUIT_VEG_IMAGES = {
     const wc = document.getElementById("famWeekCta"); if(wc) wc.onclick = showWeek;
   }
   function startSessionStep(idx){
+    try{ exitRecMode(); }catch(e){}
     const plan = todayPlan(); const id = plan.steps[idx]; if(!id) return;
     const ci = CATEGORIES.findIndex(c => c.exerciseIds.includes(id)); if(ci < 0) return;
     hideFamScreens();
@@ -9351,6 +9368,7 @@ const FRUIT_VEG_IMAGES = {
     if(sidx === undefined || sidx < 0) sidx = findSeqIndex(0, e);
     goToIndex(sidx); currentStageIndex = 0; renderStageRow(); newPage();
     renderSessionBar(false);
+    document.getElementById("sessionBackBtn").lastChild.textContent = " Bugün";
     window.scrollTo(0, 0);
   }
   function renderSessionBar(stepDone){
@@ -9574,7 +9592,7 @@ const FRUIT_VEG_IMAGES = {
           <div class="ex-field"><label>Hedef alan</label><div class="fam-chips">${targets.map(c => `<button type="button" class="fam-chip${c.id === p.target ? " on" : ""}" data-t="${c.id}">${famCatName(c.id)}</button>`).join("")}</div></div>
           <div class="ex-field"><label>Günler</label><div class="ex-seg" style="grid-template-columns:repeat(7,1fr)">${DAY_SHORT.map((d, i) => `<button type="button" data-d="${i}" class="${p.days.includes(i) ? "on" : ""}">${d}</button>`).join("")}</div></div>
           <div class="ex-field"><label>Günlük süre</label><div class="ex-seg" style="grid-template-columns:repeat(3,1fr)">${[10, 15, 20].map(m => `<button type="button" data-m="${m}" class="${p.minutes === m ? "on" : ""}">${m} dk</button>`).join("")}</div></div>
-          <div class="ex-field"><label>Ana çalışmalar (boş bırakılırsa her gün uygulama seçer; en fazla 2)</label>
+          <div class="ex-field"><label>Önerilen çalışmalar (en fazla 4). Aile bunları tek dokunuşla açar; günlük oturumda her gün bunlardan 2'si yapılır. Boş bırakılırsa uygulama seçer.</label>
             <div>${exs.map(id => `<div class="ex-row" data-x="${id}"><div class="tx"><div class="t1">${famLabel(id)}</div></div><span class="ex-check${p.mains.includes(id) ? " on" : ""}">${p.mains.includes(id) ? I_CHECK : ""}</span></div>`).join("")}</div></div>
           <div class="ex-err" id="exProgErr"></div>
           <button type="button" class="fam-cta" id="exSendBtn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3L10.5 13.5"/><path d="M21 3l-6.5 18-4-7.5-7.5-4z"/></svg> ${l.program ? "Programı güncelle" : "Aileye gönder"}</button>
@@ -9588,7 +9606,7 @@ const FRUIT_VEG_IMAGES = {
       w.querySelectorAll("[data-t]").forEach(x => x.onclick = () => { p.target = x.dataset.t; p.mains = []; draw(); });
       w.querySelectorAll("[data-d]").forEach(x => x.onclick = () => { const d = +x.dataset.d; p.days = p.days.includes(d) ? p.days.filter(v => v !== d) : p.days.concat([d]).sort(); draw(); });
       w.querySelectorAll("[data-m]").forEach(x => x.onclick = () => { p.minutes = +x.dataset.m; draw(); });
-      w.querySelectorAll("[data-x]").forEach(x => x.onclick = () => { const id = x.dataset.x; if(p.mains.includes(id)) p.mains = p.mains.filter(v => v !== id); else if(p.mains.length < 2) p.mains = p.mains.concat([id]); draw(); });
+      w.querySelectorAll("[data-x]").forEach(x => x.onclick = () => { const id = x.dataset.x; if(p.mains.includes(id)) p.mains = p.mains.filter(v => v !== id); else if(p.mains.length < 4) p.mains = p.mains.concat([id]); draw(); });
       const sh = document.getElementById("exShareBtn");
       if(sh) sh.onclick = async () => {
         const text = `Zihin Atölyesi bağlantı kodu (${l.childName}): ${fmtCode(code)}\nUygulamada Bilişsel Etkinlik → Aile → Uzmana bağlan bölümüne girin.`;
@@ -9633,6 +9651,45 @@ const FRUIT_VEG_IMAGES = {
     document.getElementById("linkBackBtn").addEventListener("click", leaveToCategories);
     window.addEventListener("firebase-ready", () => setTimeout(() => { try{ watchFamilyLink(); }catch(e){} }, 1500));
   })();
+
+
+  // ---------- AİLE: uzmanın önerdiği çalışmalar (tek dokunuşla aç) ----------
+  // Uzman çalışma seçtiyse onlar; seçmediyse hedef alanın çalışmaları listelenir. Aile kategorilerde aramak zorunda kalmaz.
+  let recActive = null;   // açık önerilen çalışmanın kimliği
+  function recommendedIds(){
+    const prog = familyProgram(); if(!prog) return [];
+    const pool = famExIds(prog.target);
+    const chosen = (prog.mains || []).filter(id => pool.includes(id));
+    return chosen.length ? chosen : pool.slice(0, 6);
+  }
+  function recommendedCardHtml(){
+    const prog = familyProgram(); if(!prog) return "";
+    const ids = recommendedIds(); if(!ids.length) return "";
+    const chosen = (prog.mains || []).length > 0;
+    const doneToday = new Set(loadSessions().filter(r => r.player === famProfile() && todayKey(new Date(r.t)) === todayKey()).map(r => r.exerciseLabel));
+    return `<div class="fh-rec"><div class="fh-rec-h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg>Uzmanınızın önerdikleri<span>${chosen ? "uzman seçti" : famCatName(prog.target)}</span></div>` +
+      ids.map((id, i) => { const ex = exerciseById(id); const done = doneToday.has(ex.label);
+        return `<button type="button" class="fh-rec-item" data-rec="${id}"><span class="fh-rec-num">${done ? I_CHECK.replace('stroke-width="3"', 'stroke-width="3" width="18" height="18"') : i + 1}</span><span class="fh-rec-tx"><div class="fh-rec-t1">${famLabel(id)}</div><div class="fh-rec-t2">${famCatName(CATEGORIES.find(c => c.exerciseIds.includes(id)).id)}${done ? " · bugün yapıldı" : ""}</div></span><span class="fh-rec-go">Aç</span></button>`; }).join("") + `</div>`;
+  }
+  function openRecommended(id){
+    const ci = CATEGORIES.findIndex(c => c.exerciseIds.includes(id)); if(ci < 0) return;
+    hideFamScreens(); hideLinkScreens();
+    exitSessionMode();
+    appMode = "aile";
+    recActive = id;
+    document.documentElement.classList.add("rec-mode");
+    selectCategory(ci);
+    const e = currentCategoryExercises().findIndex(x => x.id === id);
+    let sidx = findSeqIndex(Math.max(lastTierFor(id), exerciseById(id).minTier || 0), e);
+    if(sidx === undefined || sidx < 0) sidx = findSeqIndex(0, e);
+    goToIndex(sidx); currentStageIndex = 0; renderStageRow(); newPage();
+    document.getElementById("sessionStepLabel").textContent = "Uzman önerisi";
+    document.getElementById("sessionStepTitle").textContent = famLabel(id);
+    document.getElementById("sessionNextBtn").style.display = "none";
+    document.getElementById("sessionBackBtn").lastChild.textContent = " Geri";
+    window.scrollTo(0, 0);
+  }
+  function exitRecMode(){ recActive = null; document.documentElement.classList.remove("rec-mode"); }
 
   // ================= AİLE: Bu hafta (sade özet) =================
   // Rakam yerine anlam: bu haftayı geçen haftayla, aynı çalışmalar üzerinden karşılaştırır.
@@ -9698,7 +9755,11 @@ const FRUIT_VEG_IMAGES = {
   (function initFamily(){
     document.getElementById("todayBackBtn").addEventListener("click", () => { hideFamScreens(); renderCategoryList(); document.getElementById("categoryScreen").style.display = "block"; });
     document.getElementById("weekBackBtn").addEventListener("click", () => { hideFamScreens(); renderCategoryList(); document.getElementById("categoryScreen").style.display = "block"; });
-    document.getElementById("sessionBackBtn").addEventListener("click", () => { resetTimer(); showToday(); });
+    document.getElementById("sessionBackBtn").addEventListener("click", () => {
+      resetTimer();
+      if(recActive){ exitRecMode(); document.getElementById("mainApp").style.display = "none"; leaveToCategories(); }
+      else showToday();
+    });
     document.getElementById("sessionNextBtn").addEventListener("click", () => {
       resetTimer();
       const plan = todayPlan(), nx = plan.done.findIndex(x => !x);
@@ -11057,7 +11118,7 @@ const FRUIT_VEG_IMAGES = {
 
   function openCategoryScreen(){
     resetTimer();   // egzersiz ekranından çıkılıyor, çalışan zamanlayıcı arkada tıklamaya devam etmesin
-    try{ exitSessionMode(); }catch(e){}
+    try{ exitSessionMode(); exitRecMode(); }catch(e){}
     categoryBackTarget = "mainApp";
     document.getElementById("mainApp").style.display = "none";
     renderCategoryList();
