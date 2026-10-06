@@ -2305,6 +2305,7 @@
     #gameStopStars{ display:none; }
     .gb-title{ white-space:normal !important; font-size:15px !important; line-height:1.15; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; } }
   .gw-list{ display:flex; flex-direction:column; gap:8px; max-height:46vh; overflow-y:auto; }
+  #gamePlayerSelect.unset{ color:var(--ink-soft); }
   .gw-item{ display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:16px; border:2px solid var(--line); background:var(--panel); font-family:inherit; font-weight:900; font-size:17px; color:var(--ink); cursor:pointer; box-shadow:0 3px 0 var(--edge); text-align:left; }
   .gw-item.on{ border-color:var(--teal); background:var(--teal-tint); box-shadow:0 3px 0 var(--teal); }
   .gw-item .ok{ margin-left:auto; color:var(--teal-dark); font-size:14px; }
@@ -2531,7 +2532,7 @@
   <div class="settings-inner">
     <div class="settings-header">
       <h2>Ayarlar</h2>
-      <div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.06-c</div>
+      <div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.06-d</div>
       <button class="icon-btn" id="closeSettingsBtn">✕</button>
     </div>
 
@@ -9432,7 +9433,7 @@ const FRUIT_VEG_IMAGES = {
   // Ailenin kaydettiği sonuçlar uzmana da gider (links/{kod}/results). Uzman listesi için aile, bağlantı belgesindeki
   // kısa haftalık özeti (çalışılan günler, son etkinlik) günceller.
   // Firestore yapısı: links/{kod} { expertUid, childName, level, familyUid, consent, program, weekKey, weekDays, lastActivityAt }
-  const APP_VERSION = "2026.10.06-c";
+  const APP_VERSION = "2026.10.06-d";
   const LINK_LOCAL_KEY = "wm_family_links_v1";   // aile cihazında: kişi|seviye → kod + program önbelleği
   const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -9895,11 +9896,14 @@ const FRUIT_VEG_IMAGES = {
   function renderGamePlayerSelect(){
     const sel = document.getElementById("gamePlayerSelect");
     if(!sel) return;
-    const names = (typeof playersList !== "undefined" ? playersList : []).slice();
-    const cur = gameProfile();
-    if(!names.includes(cur) && cur !== "Misafir") names.push(cur);
-    sel.innerHTML = ['<option value="Misafir">Misafir</option>'].concat(names.map(n => `<option value="${n.replace(/"/g,"&quot;")}">${n.replace(/</g,"&lt;")}</option>`)).join("");
-    sel.value = cur;
+    const names = (typeof playersList !== "undefined" ? playersList : []).filter(n => n !== "Misafir");
+    const cur = (currentPlayerName || "").trim();
+    if(cur && cur !== "Misafir" && !names.includes(cur)) names.push(cur);
+    const esc = (n) => String(n).replace(/"/g, "&quot;"), html = (n) => String(n).replace(/</g, "&lt;");
+    sel.innerHTML = `<option value="" disabled>Kişi seç…</option>` + names.map(n => `<option value="${esc(n)}">${html(n)}</option>`).join("") +
+      `<option value="Misafir">Misafir</option><option value="__new__">+ Yeni kişi ekle</option>`;
+    sel.value = cur || "";
+    sel.classList.toggle("unset", !cur);
   }
   function showIslandMap(){
     exitGameMode();
@@ -9908,7 +9912,7 @@ const FRUIT_VEG_IMAGES = {
     document.getElementById("mainApp").style.display = "none";
     renderGamePlayerSelect();
     const lvl = readingLevel === "pre" ? "Okul Öncesi" : "Okul Sonrası";
-    document.getElementById("islandSub").textContent = `${gameProfile()} · ${lvl}`;
+    document.getElementById("islandSub").textContent = `${(currentPlayerName || "").trim() || "Kişi seçilmedi"} · ${lvl}`;
     document.getElementById("islandTotal").textContent = gameTotalStars();
     const map = document.getElementById("islandMap");
     const H = 172, W = 100;
@@ -10091,9 +10095,11 @@ const FRUIT_VEG_IMAGES = {
   }
 
   // ---- bir durağı oyna ----
+  let gamePendingStart = null;
   function startGameStop(exId, islId){
     const ci = CATEGORIES.findIndex(c => c.exerciseIds.includes(exId));
     if(ci < 0) return;
+    if(!(currentPlayerName || "").trim()){ gamePendingStart = [exId, islId]; openGameWho(); return; }   // önce kim oynuyor
     gameStop = { exId, islandId: islId || gameIsland };
     gameIsland = gameStop.islandId;
     hideGameScreens();
@@ -10101,7 +10107,6 @@ const FRUIT_VEG_IMAGES = {
     appMode = "aile";
     gameMode = true;
     document.documentElement.classList.add("game-mode");
-    if(!currentPlayerName) currentPlayerName = "Misafir";
     selectCategory(ci);
     const e = currentCategoryExercises().findIndex(x => x.id === exId);
     const t = gameNextTier(exId);
@@ -10186,18 +10191,21 @@ const FRUIT_VEG_IMAGES = {
     b.disabled = !!timerRunning;
     b.setAttribute("aria-label", `Kim oynuyor: ${n}. Değiştirmek için dokunun`);
   }
-  function openGameWho(){
+  function openGameWho(focusNew){
     if(timerRunning) return;
-    const cur = gameProfile();
-    const names = ["Misafir"].concat((typeof playersList !== "undefined" ? playersList : []).filter(n => n !== "Misafir"));
+    const cur = (currentPlayerName || "").trim();
+    const names = (typeof playersList !== "undefined" ? playersList : []).filter(n => n !== "Misafir").concat(["Misafir"]);
     document.getElementById("gwList").innerHTML = names.map(n => `<button type="button" class="gw-item${n === cur ? " on" : ""}" data-who="${n.replace(/"/g, "&quot;")}">${avatarHTML(n, 34)}<span>${n.replace(/</g, "&lt;")}</span>${n === cur ? '<span class="ok">Oynuyor</span>' : ""}</button>`).join("");
     document.getElementById("gwNewName").value = "";
     document.getElementById("gameWhoSheet").style.display = "flex";
+    if(focusNew === true) setTimeout(() => document.getElementById("gwNewName").focus(), 50);
   }
   function setGamePlayer(name){
     document.getElementById("gameWhoSheet").style.display = "none";
-    if(name === gameProfile()) return;
-    currentPlayerName = name === "Misafir" ? "" : name;
+    const pending = gamePendingStart; gamePendingStart = null;
+    if(pending){ currentPlayerName = name; sfx("pop"); startGameStop(pending[0], pending[1]); return; }
+    if(name === (currentPlayerName || "").trim()) return;
+    currentPlayerName = name;
     sfx("pop");
     if(gameMode && gameStop) startGameStop(gameStop.exId, gameStop.islandId);   // yeni kişinin yıldızı ve düzeyiyle yeniden aç
     else showIslandMap();
@@ -10215,7 +10223,7 @@ const FRUIT_VEG_IMAGES = {
     document.getElementById("gwList").addEventListener("click", e => { const b = e.target.closest("[data-who]"); if(b) setGamePlayer(b.dataset.who); });
     document.getElementById("gwAddBtn").addEventListener("click", () => gameAddPlayer(document.getElementById("gwNewName").value));
     document.getElementById("gwNewName").addEventListener("keydown", e => { if(e.key === "Enter") gameAddPlayer(e.target.value); });
-    document.getElementById("gwCancelBtn").addEventListener("click", () => { document.getElementById("gameWhoSheet").style.display = "none"; });
+    document.getElementById("gwCancelBtn").addEventListener("click", () => { gamePendingStart = null; document.getElementById("gameWhoSheet").style.display = "none"; if(!gameMode) showIslandMap(); });
   })();
 
   // ---- ebeveyn kilidi ----
@@ -10257,7 +10265,11 @@ const FRUIT_VEG_IMAGES = {
       const b = e.target.closest(".isl-island"); if(b){ sfx("pop"); showIslandStops(b.dataset.isl); }
     });
     document.getElementById("islandStops").addEventListener("click", e => { const p = e.target.closest("[data-play]"); if(p){ sfx("go"); startGameStop(p.dataset.play, p.dataset.isl); } });
-    document.getElementById("gamePlayerSelect").addEventListener("change", e => { currentPlayerName = e.target.value === "Misafir" ? "" : e.target.value; showIslandMap(); });
+    document.getElementById("gamePlayerSelect").addEventListener("change", e => {
+      const v = e.target.value;
+      if(v === "__new__"){ renderGamePlayerSelect(); openGameWho(true); return; }
+      currentPlayerName = v; showIslandMap();
+    });
     document.getElementById("gameMapBtn").addEventListener("click", () => {
       resetTimer();
       exitGameMode();
