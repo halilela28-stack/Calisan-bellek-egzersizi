@@ -2536,7 +2536,7 @@
   <div class="settings-inner">
     <div class="settings-header">
       <h2>Ayarlar</h2>
-      <div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.06-e</div>
+      <div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.06-f</div>
       <button class="icon-btn" id="closeSettingsBtn">✕</button>
     </div>
 
@@ -9332,6 +9332,7 @@ const FRUIT_VEG_IMAGES = {
   function renderFamilyHome(){
     const box = document.getElementById("familyHome"); if(!box) return;
     if(appMode !== "aile"){ box.style.display = "none"; return; }
+    try{ resolveLinkedChild(); }catch(e){}
     const plan = todayPlan(), n = plan.done.filter(Boolean).length, all = n === 4;
     const C = 2 * Math.PI * 26, off = C * (1 - n / 4);
     box.innerHTML = `<button type="button" class="fh-today" id="fhTodayBtn">
@@ -9438,7 +9439,7 @@ const FRUIT_VEG_IMAGES = {
   // Ailenin kaydettiği sonuçlar uzmana da gider (links/{kod}/results). Uzman listesi için aile, bağlantı belgesindeki
   // kısa haftalık özeti (çalışılan günler, son etkinlik) günceller.
   // Firestore yapısı: links/{kod} { expertUid, childName, level, familyUid, consent, program, weekKey, weekDays, lastActivityAt }
-  const APP_VERSION = "2026.10.06-e";
+  const APP_VERSION = "2026.10.06-f";
   const LINK_LOCAL_KEY = "wm_family_links_v1";   // aile cihazında: kişi|seviye → kod + program önbelleği
   const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -9446,7 +9447,37 @@ const FRUIT_VEG_IMAGES = {
   function newLinkCode(){ let c = ""; const a = new Uint32Array(8); (window.crypto || {}).getRandomValues ? crypto.getRandomValues(a) : a.forEach((_, i) => a[i] = Math.random() * 1e9); a.forEach(v => c += CODE_ALPHA[v % CODE_ALPHA.length]); return c; }
   function fmtCode(c){ return c ? c.slice(0, 4) + " " + c.slice(4) : ""; }
   function cleanCode(c){ return String(c || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); }
-  function familyLinkLocal(){ const all = famStoreGet(LINK_LOCAL_KEY); return all[famProfile() + "|" + famLvl()] || null; }
+  function familyLinkLocal(){
+    const all = famStoreGet(LINK_LOCAL_KEY), lvl = famLvl();
+    const hit = all[famProfile() + "|" + lvl];
+    if(hit) return hit;
+    // kişi seçilmeden bağlanılmışsa ("Oyuncu" adıyla), o bağlantı geçerli kişisiz durumda kullanılabilir
+    if(famProfile() === "Oyuncu") return all["Oyuncu|" + lvl] || null;
+    return null;
+  }
+  // bağlantının sahibi olan çocuğun adı: ailenin seçtiği profil; yoksa uzmanın yazdığı ad
+  function linkedChildName(l){
+    l = l || familyLinkLocal(); if(!l) return "";
+    const p = (l.profile || "").trim();
+    return p && p !== "Oyuncu" ? p : (l.childName || "").trim();
+  }
+  // "Oyuncu" adıyla kaydedilmiş eski bağlantıyı çocuğun gerçek adına taşı ve o adı geçerli kişi yap
+  function resolveLinkedChild(){
+    const all = famStoreGet(LINK_LOCAL_KEY), lvl = famLvl();
+    if(famProfile() !== "Oyuncu") return;
+    const l = all["Oyuncu|" + lvl]; if(!l) return;
+    const name = linkedChildName(l); if(!name) return;
+    l.profile = name; all[name + "|" + lvl] = l; delete all["Oyuncu|" + lvl];
+    famStoreSet(LINK_LOCAL_KEY, all);
+    currentPlayerName = name;
+    try{
+      if(typeof playersList !== "undefined" && !playersList.includes(name)){
+        if(firestoreReady && window.__fb){ const { db, collection, addDoc } = window.__fb; addDoc(collection(db, "players"), withUid({ name, createdAt: Date.now() })).catch(() => {}); playersList = playersList.concat([name]); }
+        else { playersList.push(name); queuePendingWrite("players", { name, createdAt: Date.now() }); }
+        renderPlayerOptions();
+      }
+    }catch(e){}
+  }
   function setFamilyLinkLocal(v){ const all = famStoreGet(LINK_LOCAL_KEY); const k = famProfile() + "|" + famLvl(); if(v) all[k] = v; else delete all[k]; famStoreSet(LINK_LOCAL_KEY, all); }
   const DAY_SHORT = ["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"];
   const todayDayIdx = () => (new Date().getDay() + 6) % 7;
@@ -9475,7 +9506,8 @@ const FRUIT_VEG_IMAGES = {
     const l = familyLinkLocal();
     if(!l || !fbOk()) return;
     const { db, doc, collection, addDoc, updateDoc } = window.__fb;
-    addDoc(collection(db, "links", l.code, "results"), Object.assign({}, record, { uid: window.__fb.uid, fromSession: !!sessionActive })).catch(e => console.error("Uzmana sonuç gönderilemedi:", e));
+    const child = linkedChildName(l) || record.player;
+    addDoc(collection(db, "links", l.code, "results"), Object.assign({}, record, { player: child, uid: window.__fb.uid, fromSession: !!sessionActive })).catch(e => console.error("Uzmana sonuç gönderilemedi:", e));
     const wk = weekKey();
     l.weekDays = l.weekKey === wk ? Array.from(new Set((l.weekDays || []).concat([todayDayIdx()]))) : [todayDayIdx()];
     l.weekKey = wk; setFamilyLinkLocal(l);
@@ -9521,8 +9553,9 @@ const FRUIT_VEG_IMAGES = {
           const d = snap.data();
           if(d.familyUid && d.familyUid !== window.__fb.uid){ err.textContent = "Bu kod başka bir cihazda kullanılmış. Uzmanınızdan yeni kod isteyin."; return; }
           await updateDoc(doc(db, "links", code), { familyUid: window.__fb.uid, familyLinkedAt: Date.now(), consent: true });
-          const owner = (document.getElementById("linkChildSel") || {}).value || famProfile();
-          if(owner && owner !== famProfile()){ currentPlayerName = owner; }
+          let owner = ((document.getElementById("linkChildSel") || {}).value || famProfile()).trim();
+          if(!owner || owner === "Oyuncu") owner = (d.childName || "").trim() || "Oyuncu";   // kişi seçilmediyse uzmanın yazdığı ad
+          if(owner !== famProfile()){ currentPlayerName = owner; }
           setFamilyLinkLocal({ code, childName: d.childName, profile: famProfile(), program: d.program || null, linkedAt: Date.now() });
           watchFamilyLink();
           showLevelFlash("Uzmanınıza bağlandınız ✓", "levelup");
@@ -9541,6 +9574,8 @@ const FRUIT_VEG_IMAGES = {
     expertLinksUnsub = onSnapshot(query(collection(db, "links"), where("expertUid", "==", window.__fb.uid)), snap => {
       expertLinks = snap.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => String(a.childName).localeCompare(String(b.childName), "tr"));
       if(document.getElementById("expertScreen").style.display !== "none" && expertView.mode === "list") renderExpertList();
+      // danışan sayfası, veriler gelmeden açıldıysa veriler gelince yeniden çiz
+      if(document.getElementById("expertScreen").style.display !== "none" && expertView.mode === "client" && expertView.pendingData && expertLinks.some(x => x.id === expertView.code)){ expertView.pendingData = false; renderExpertClient(expertView.code); }
       if(document.getElementById("categoryScreen").style.display !== "none") renderExpertHome();
     }, e => console.error("Danışanlar okunamadı:", e));
   }
@@ -9616,7 +9651,9 @@ const FRUIT_VEG_IMAGES = {
     };
   }
   function renderExpertClient(code){
-    const l = expertLinks.find(x => x.id === code) || { id: code, childName: "", level: "post" };
+    const found = expertLinks.find(x => x.id === code);
+    expertView.pendingData = !found;
+    const l = found || { id: code, childName: "", level: "post" };
     const w = document.getElementById("expertWrap");
     const lvlSave = readingLevel; readingLevel = l.level || "post";
     const targets = famTargetOptions();
@@ -9682,7 +9719,7 @@ const FRUIT_VEG_IMAGES = {
       const box = document.getElementById("exResults"); if(!box) return;
       const short = (l) => { const i = String(l).indexOf(": "); return i >= 0 ? l.slice(i + 2) : l; };
       box.innerHTML = expertResults.length ? expertResults.slice(0, 12).map(r => `<div class="ex-row"><div class="tx"><div class="t1">${short(r.exerciseLabel)}</div>
-          <div class="t2">${new Date(r.t).toLocaleDateString("tr-TR", { day:"numeric", month:"short" })} · ${r.tier} · ${(r.ms / 1000).toFixed(1)} sn · ${r.errors} hata${r.fromSession ? " · oturum" : ""}</div></div></div>`).join("")
+          <div class="t2">${r.player ? String(r.player).replace(/</g, "&lt;") + " · " : ""}${new Date(r.t).toLocaleDateString("tr-TR", { day:"numeric", month:"short" })} · ${r.tier} · ${(r.ms / 1000).toFixed(1)} sn · ${r.errors} hata${r.fromSession ? " · oturum" : ""}</div></div></div>`).join("")
         : `<div class="fam-sub" style="font-weight:600;margin-top:6px">Henüz sonuç yok.</div>`;
     }, e => console.error("Sonuçlar okunamadı:", e));
   }
@@ -9736,8 +9773,9 @@ const FRUIT_VEG_IMAGES = {
   function exitRecMode(){ recActive = null; document.documentElement.classList.remove("rec-mode"); }
   // ödev / oturum hangi çocuğa aitse onun adı sabitlenir (seçim gerekmez)
   function pinAssignedChild(){
+    try{ resolveLinkedChild(); }catch(e){}
     const l = familyLinkLocal();
-    const name = (l && l.profile) || famProfile();
+    const name = linkedChildName(l) || famProfile();
     if(name && name !== "Oyuncu"){
       currentPlayerName = name;
       const sel = document.getElementById("playerSelect");
