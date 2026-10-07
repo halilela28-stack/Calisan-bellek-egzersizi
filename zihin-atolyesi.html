@@ -1300,6 +1300,19 @@
   }
   @keyframes studyBar{ from{ width:100%; } to{ width:0%; } }
   @keyframes spkPulse{ from{ transform:scale(1); } to{ transform:scale(1.08); } }
+  .rc-box{ margin:10px 0 4px; background:var(--panel); border:2px dashed var(--line); border-radius:18px; padding:8px 12px; }
+  .rc-box summary{ cursor:pointer; font-weight:900; color:var(--teal-dark); display:flex; align-items:center; gap:8px; flex-wrap:wrap; list-style:none; }
+  .rc-box summary::-webkit-details-marker{ display:none; } .rc-box summary::before{ content:"▸"; } .rc-box[open] summary::before{ content:"▾"; }
+  .rc-cnt{ background:#E3F6EC; color:#13703F; border-radius:999px; padding:1px 9px; font-size:14px; }
+  .rc-hint{ font-size:12px; font-weight:700; color:var(--ink-soft); }
+  .rc-note{ font-size:13px; font-weight:700; color:var(--ink-soft); margin:6px 0; }
+  .rc-grid{ display:grid; gap:6px; }
+  .rc-cell{ position:relative; aspect-ratio:1; min-height:44px; border:2px solid var(--line); border-radius:12px; background:var(--panel); padding:4px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-family:inherit; overflow:hidden; }
+  .rc-cell .name-cell{ font-size:13px !important; padding:0 !important; word-break:break-word; }
+  .rc-cell svg{ width:100%; height:100%; } .rc-cell.off{ opacity:.35; cursor:default; }
+  .rc-cell.on{ border-color:#1FA463; background:#E3F6EC; }
+  .rc-num{ position:absolute; left:3px; top:2px; font-size:11px; font-weight:900; color:var(--ink-soft); }
+  .rc-ok{ position:absolute; right:3px; top:1px; font-size:14px; font-weight:900; color:#1FA463; }
   .recall-hidden{
     width:100%;
     height:100%;
@@ -2634,7 +2647,7 @@
   <div class="settings-inner">
     <div class="settings-header">
       <h2>Ayarlar</h2>
-      <div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.07-j</div>
+      <div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.07-k</div>
       <button class="icon-btn" id="closeSettingsBtn">✕</button>
     </div>
 
@@ -7945,8 +7958,7 @@ const FRUIT_VEG_IMAGES = {
     const board = document.getElementById("board"); let key = document.getElementById("recallKey");
     if(!recallListen()){ if(key) key.remove(); return; }
     board.querySelectorAll(".cell").forEach(c => { c.innerHTML = `<div class="recall-hidden">🔊</div>`; });
-    if(!key){ key = document.createElement("details"); key.id = "recallKey"; key.style.cssText = "margin:8px 4px;font-weight:700"; board.insertAdjacentElement("afterend", key); }
-    key.innerHTML = `<summary style="font-weight:900;color:var(--teal-dark);cursor:pointer">Cevap anahtarı (yalnızca yetişkin için)</summary><div style="font-size:17px;margin-top:4px">${recallWords().join(" – ")}</div>`;
+    if(key) key.remove();   // dinleyerek aşamasında cevaplar okuma bitince açılan kontrol listesinde
   }
   function hideRecallItems(){
     const board = document.getElementById("board");
@@ -7955,7 +7967,34 @@ const FRUIT_VEG_IMAGES = {
       cell.innerHTML = `<div class="recall-hidden">🙈</div>`;
     });
     showLevelFlash("Şimdi hatırlamaya çalışın!", "up");
+    try{ renderRecallChecklist(); }catch(e){ console.error(e); }
   }
+  // Kapandıktan sonra yetişkin için kontrol listesi: gösterilenler küçük kartlar olarak; çocuğun hatırladıklarına dokunulur, "doğru hatırlanan sayısı" kendiliğinden güncellenir.
+  let recallChecked = {};
+  function recallTargets(){ const ex = currentExercise(); return currentGrid.map((it, i) => ({ it, i })).filter(x => ex.id === "position-recall" ? x.it.lit : true); }
+  function removeRecallChecklist(){ const el = document.getElementById("recallCheck"); if(el) el.remove(); recallChecked = {}; }
+  function renderRecallChecklist(){
+    const ex = currentExercise(); if(!ex.isRecall) return;
+    const board = document.getElementById("board"); let box = document.getElementById("recallCheck");
+    if(!box){ box = document.createElement("details"); box.id = "recallCheck"; box.className = "rc-box"; board.insertAdjacentElement("afterend", box); }
+    const ordered = /sırayla|Sırayla|soldan sağa/.test(ex.stages[stIx()].label + " " + ((INSTR_SHORT[ex.id] || [])[stIx()] ? INSTR_SHORT[ex.id][stIx()]() : ""));
+    const cols = currentTier().cols, isPos = ex.id === "position-recall";
+    const targets = recallTargets(), orderOf = {}; targets.forEach((x, k) => { orderOf[x.i] = ex.id === "digit-span" ? (x.i % cols) + 1 : k + 1; });   // rakam dizisinde her satır ayrı bir dizi
+    const n = Object.keys(recallChecked).filter(k => recallChecked[k]).length;
+    const cell = (it, i) => { const tgt = orderOf[i] != null, on = !!recallChecked[i];
+      return `<button type="button" class="rc-cell${tgt ? "" : " off"}${on ? " on" : ""}" ${tgt ? `data-rc="${i}"` : "disabled"}>${ex.renderItem(it)}${ordered && tgt ? `<span class="rc-num">${orderOf[i]}</span>` : ""}${on ? `<span class="rc-ok">✓</span>` : ""}</button>`; };
+    // konum çalışmasında yer bilgisi önemli: tahtanın küçük kopyası; diğerlerinde yalnızca gösterilenler
+    const grid = isPos ? currentGrid.map(cell).join("") : targets.map(x => cell(x.it, x.i)).join("");
+    box.innerHTML = `<summary>Kontrol listesi <span class="rc-cnt">${n}/${targets.length}</span><span class="rc-hint">yetişkin için · çocuk cevap verdikten sonra açın</span></summary>
+      <div class="rc-note">${ordered ? "Sırası doğru olarak söylediklerine dokunun (numara doğru sırayı gösterir)." : isPos ? "Çocuğun doğru gösterdiği dolu dairelere dokunun." : "Çocuğun hatırladıklarına dokunun."} Sayaç kendiliğinden güncellenir.</div>
+      <div class="rc-grid" style="grid-template-columns:repeat(${isPos ? cols : Math.min(cols, 6)}, minmax(0, 1fr))">${grid}</div>`;
+  }
+  document.addEventListener("click", (ev) => {
+    const b = ev.target.closest("#recallCheck [data-rc]"); if(!b) return;
+    const i = b.dataset.rc; recallChecked[i] = !recallChecked[i];
+    setErrorCount(Object.keys(recallChecked).filter(k => recallChecked[k]).length);
+    const open = document.getElementById("recallCheck").open; renderRecallChecklist(); document.getElementById("recallCheck").open = open;
+  });
 
   setInterval(() => { try{ ensureInteractiveStop(); }catch(e){} }, 400);
   function startTimer(){
@@ -7989,7 +8028,7 @@ const FRUIT_VEG_IMAGES = {
       if(recallListen()){   // dinleyerek: öğeler gösterilmez, uygulama sırayla okur
         const words = recallWords(); clearTimeout(window._rlT); (window._rlTs || []).forEach(clearTimeout); window._rlTs = [];
         words.forEach((w, k) => window._rlTs.push(setTimeout(() => { if(timerRunning) sayTask(w); }, 300 + k * 1400 * (window.__wmSpeed || 1))));
-        recallHideTimeout = setTimeout(() => showLevelFlash("Şimdi hatırlamaya çalışın!", "up"), (300 + words.length * 1400) * (window.__wmSpeed || 1));
+        recallHideTimeout = setTimeout(() => { showLevelFlash("Şimdi hatırlamaya çalışın!", "up"); try{ renderRecallChecklist(); }catch(e){} }, (300 + words.length * 1400) * (window.__wmSpeed || 1));
       } else recallHideTimeout = setTimeout(hideRecallItems, currentTier().studyDurationMs);
     }
   }
@@ -10721,6 +10760,7 @@ const FRUIT_VEG_IMAGES = {
     const board = document.getElementById("board");
     clearAudTimers();
     { const k = document.getElementById("recallKey"); if(k && !recallListen()) k.remove(); }
+    removeRecallChecklist();
     renderSdmtKey();
     if(!ex.isTouch){ const ts = document.getElementById("touchStatus"); if(ts) ts.style.display = "none"; }
     if(ex.isMotion){
@@ -12383,7 +12423,7 @@ const FRUIT_VEG_IMAGES = {
   // Ailenin kaydettiği sonuçlar uzmana da gider (links/{kod}/results). Uzman listesi için aile, bağlantı belgesindeki
   // kısa haftalık özeti (çalışılan günler, son etkinlik) günceller.
   // Firestore yapısı: links/{kod} { expertUid, childName, level, familyUid, consent, program, weekKey, weekDays, lastActivityAt }
-  const APP_VERSION = "2026.10.07-j";
+  const APP_VERSION = "2026.10.07-k";
   const LINK_LOCAL_KEY = "wm_family_links_v1";   // aile cihazında: kişi|seviye → kod + program önbelleği
   const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
