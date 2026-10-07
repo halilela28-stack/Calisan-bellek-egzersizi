@@ -2587,7 +2587,7 @@
   <div class="settings-inner">
     <div class="settings-header">
       <h2>Ayarlar</h2>
-      <div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.07-c</div>
+      <div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.07-e</div>
       <button class="icon-btn" id="closeSettingsBtn">✕</button>
     </div>
 
@@ -5678,6 +5678,16 @@ const FRUIT_VEG_IMAGES = {
       ]
     },
     {
+      id: "same-number",
+      readingLevel: ["pre","post"],
+      label: "Aynı Sayıyı Bul",
+      isMt: true, attrs: [], speedFactor: 4,
+      onShuffle: () => { snNewTarget(); },
+      isDone: () => !!mtState && mtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Aşama 1 · Biçimi Farklı, Sayı Aynı", instruction: () => ``, example: () => `` } ]
+    },
+    {
       id: "number-find-mixed",
       readingLevel: ["pre","post"],
       label: "Karışık Sayı Bulma",
@@ -7149,7 +7159,7 @@ const FRUIT_VEG_IMAGES = {
       readingLevel: ["pre","post"],
       label: "Cümleyi Tekrarla",
       isAuditory: true, attrs: [], errorLabel: "Yanlış tekrarlanan cümle",
-      audTrials: () => shuffleArray(SENT_BANK[isPre() ? "pre" : "post"][currentCombo().t]).slice(0, 5),
+      audTrials: () => shuffleArray(SENT_BANK[isPre() ? "pre" : "post"][currentCombo().t]).slice(0, isPre() ? 3 : 5),
       audRender: (tr) => `<div class="aud-list"><div class="aud-note">Cümleyi <b>göstermeden</b>, doğal bir hızla bir kez okuyun ya da 🔊 ile dinletin; çocuk <b>aynen</b> tekrar etsin. Kelime ekleme, atlama, ek ya da sıra değişikliği yanlış sayılır.</div>` +
         tr.map((x, i) => `<div class="aud-row"><div class="aud-num">${i + 1}</div><div class="aud-body" style="display:flex;align-items:center;gap:10px;justify-content:space-between"><div style="font-size:19px;font-weight:800;line-height:1.4">${x}</div>${sayBtn(x)}</div></div>`).join("") + `</div>`,
       randomItem: () => ({}),
@@ -7349,7 +7359,7 @@ const FRUIT_VEG_IMAGES = {
       id:"islemleme-hizi",
       readingLevel:["post"],
       label:"İşlemleme Hızı",
-      sub:"Hızlı isimlendirme, sayı bulma, seçimli tepki, simge arama, şekil-resim eşleme, doğru-yanlış eşleşme, oluş sırası, renkli kart seç · dokunmalı: gruba dokun, sayılara sırayla dokun, hızlı seç, doğru çiftler",
+      sub:"Hızlı isimlendirme, sayı bulma, seçimli tepki, simge arama, şekil-resim eşleme, doğru-yanlış eşleşme, oluş sırası, renkli kart seç · dokunmalı: gruba dokun, sayılara sırayla dokun, hızlı seç, doğru çiftler · strateji aşamaları",
       purpose:"Görsel bir uyaranı hızlıca tanıyıp isimlendirme alıştırması yapar; bu beceri okuma akıcılığıyla ilişkilendirilir.",
       color:"#2E6F6E",
       group:"Hız & Dikkat",
@@ -7369,13 +7379,11 @@ const FRUIT_VEG_IMAGES = {
       id:"yurutucu-islev",
       readingLevel:["post"],
       label:"Yürütücü İşlev",
-      sub:"Ketleme (Stroop, gece–gündüz, ket vurma, hayvana dokun, ortadakini söyle, balıklar hangi yöne, yüzler tek tek) · Esneklik (kural değişimi, ön mü arka mı, kart sıralama, iz sürme) · Planlama (önce planla)",
+      sub:"Ketleme (Stroop, gece–gündüz, ket vurma, hayvana dokun, ortadakini söyle, balıklar hangi yöne, yüzler tek tek) · Esneklik (kural değişimi, ön mü arka mı, kart sıralama, iz sürme) · Planlama (boncuklar, küpler, üç bardak, önce planla) · strateji aşamaları",
       purpose:"Dikkati yönetme, kural değiştirme ve dürtüsel tepkiyi durdurma becerisini çalıştırır.",
       color:"#3A6EA5",
       group:"Hız & Dikkat",
-      exerciseIds:["stroop","day-night","go-no-go","fish-flanker","touch-animal","stroop-touch","day-night-touch","flanker","face-go",
-                   "task-switch","sort-color-shape","sort-animal-size","sort-color-shape-count","sort-words","number-letter","trail-number-month","trail-animal-fruit","trail-color-shape","switch-touch",
-                   "plan-beads","plan-swap","plan-tol","plan-cubes","plan-think"],
+      exerciseIds:["stroop","day-night","go-no-go","fish-flanker","stroop-touch","day-night-touch","touch-animal","flanker","task-switch","face-go","sort-color-shape","sort-animal-size","sort-color-shape-count","sort-words","number-letter","trail-number-month","trail-animal-fruit","trail-color-shape","switch-touch","plan-beads","plan-swap","plan-tol","plan-cubes","plan-think"],
       // çalışma seçim satırında alt beceri başlıkları
       exerciseGroups:[["Ketleme",["stroop","day-night","go-no-go","fish-flanker","touch-animal","stroop-touch","day-night-touch","flanker","face-go"]],
                       ["Esneklik",["task-switch","sort-color-shape","sort-animal-size","sort-color-shape-count","sort-words","number-letter","trail-number-month","trail-animal-fruit","trail-color-shape","switch-touch"]],
@@ -7385,21 +7393,21 @@ const FRUIT_VEG_IMAGES = {
       id:"calisan-bellek",
       readingLevel:["pre","post"],
       label:"Çalışan Bellek",
-      sub:"N-geri, aynı mı?, rakam dizisi, Corsi blokları, dinleme ve okuma aralığı, harf-sayı sıralama, sırayı hatırla, nerede saklandı, sondakileri hatırla, Zihni nerede?, market listesi, ileriye dönük bellek",
+      sub:"N-geri, aynı mı?, rakam dizisi, Corsi blokları, dinleme ve okuma aralığı, harf-sayı sıralama, sırayı hatırla, nerede saklandı, sondakileri hatırla, Zihni nerede?, market listesi, ileriye dönük bellek · strateji aşamaları",
       purpose:"Birden fazla bilgiyi aynı anda zihinde tutup güncelleme (n-geri) veya bir niyeti geleceğe taşıma (ileriye dönük bellek) becerilerini çalıştırır.",
       color:"#4F9D5A",
       group:"Bellek",
-      exerciseIds:["nback-shape","corsi","market","nback-color","span-listen","zihni","wm-same","lns","market-verbal","digit-span","running","span-touch","nback-number","zihni-verbal","wm-seq","corsi-verbal","word-order","running-verbal","lns-touch","animal-fruit","wm-where","span-read","prospective-event","prospective-time","prospective-delayed"]
+      exerciseIds:["nback-shape","corsi","market","nback-color","span-listen","zihni","wm-same","lns","market-verbal","digit-span","running","span-touch","nback-number","zihni-verbal","wm-seq","corsi-verbal","running-verbal","word-order","lns-touch","animal-fruit","wm-where","span-read","prospective-event","prospective-time","prospective-delayed"]
     },
     {
       id:"sozel-bellek",
       readingLevel:["pre","post"],
       label:"Sözel Bellek",
-      sub:"Liste öğrenme (gecikmeli + tanıma), kategorili liste, hikâye, kelime çiftleri, uydurma kelime ve cümle tekrarı · dokunmalı: duyduklarını bul, yönerge izle, eşini hatırla · strateji aşamaları",
+      sub:"Kelime listesi, liste öğrenme (gecikmeli + tanıma), kategorili liste, hikâye, kelime çiftleri, karışık dizi, uydurma kelime, kelime ve cümle tekrarı · dokunmalı: eşini hatırla, duyduklarını bul, yönerge izle, duyduğun sırayla dokun · strateji aşamaları",
       purpose:"Duyduğu bilgiyi kısa süre zihninde tutup doğru sırayla geri getirme becerisini çalıştırır.",
       color:"#2E5F8A",
       group:"Bellek",
-      exerciseIds:["word-list-recall","pal-touch","pic-seq-say","mixed-span","list-learn","short-story","story-recall","nonword","hear-find","word-pairs","dir-follow","cat-list","sentence-repeat","pic-seq-touch","sent-listen","word-repeat"]
+      exerciseIds:["word-list-recall","pal-touch","pic-seq-say","sent-listen","mixed-span","list-learn","short-story","story-recall","nonword","hear-find","word-pairs","dir-follow","cat-list","sentence-repeat","pic-seq-touch","word-repeat"]
     },
     {
       id:"gorsel-bellek",
@@ -7415,7 +7423,7 @@ const FRUIT_VEG_IMAGES = {
       id:"sozel-organizasyon",
       readingLevel:["post"],
       label:"Sözel Organizasyon",
-      sub:"Kategori, zıt anlam, hece sayma",
+      sub:"Kategori, zıt anlam, hece sayma · strateji aşamaları",
       purpose:"Kelimeleri anlamına, sesine veya kategorisine göre hızlıca sınıflandırma becerisini çalıştırır.",
       color:"#8A5A8C",
       group:"Dil & Görsel Analiz",
@@ -7425,7 +7433,7 @@ const FRUIT_VEG_IMAGES = {
       id:"sozel-kavrama",
       readingLevel:["post"],
       label:"Sözel Kavrama",
-      sub:"Benzerlik bulma, kelime tanımlama, genel kavrama",
+      sub:"Benzerlik bulma, kelime tanımlama, genel kavrama · strateji aşamaları",
       purpose:"Kelimeler arası soyut ilişkiler kurma ve sözel akıl yürütme becerisini çalıştırır.",
       color:"#6B4C9A",
       group:"Dil & Görsel Analiz",
@@ -7435,17 +7443,17 @@ const FRUIT_VEG_IMAGES = {
       id:"gorsel-organizasyon",
       readingLevel:["pre","post"],
       label:"Görsel Organizasyon",
-      sub:"Boyut, yön, kenar sayısı, karışık sayı",
+      sub:"Boyut, yön, kenar sayısı, görsel zıtlar · dokunmalı: aynı sayıyı bul (biçim değişmezliği) · strateji aşamaları",
       purpose:"Görsel öğeleri boyut, yön veya yapı gibi özelliklerine göre analiz etme becerisini çalıştırır.",
       color:"#E8823A",
       group:"Dil & Görsel Analiz",
-      exerciseIds:["size-sort","arrow-direction","edge-count","visual-opposites","number-find-mixed"]
+      exerciseIds:["size-sort","arrow-direction","edge-count","visual-opposites","same-number"]
     },
     {
       id:"algisal-akil-yurutme",
       readingLevel:["pre","post"],
       label:"Algısal Akıl Yürütme",
-      sub:"Farklı olanı bulma, örüntü tamamlama, görsel analoji",
+      sub:"Farklı olanı bulma, örüntü tamamlama, görsel analoji · strateji aşamaları",
       purpose:"Görsel örüntüleri analiz edip mantıksal ilişki kurma becerisini çalıştırır.",
       color:"#B08900",
       group:"Dil & Görsel Analiz",
@@ -8214,7 +8222,7 @@ const FRUIT_VEG_IMAGES = {
       return;
     }
     // where
-    const d = wmGridDims(st.B, S.isLs ? S.W * 0.68 : S.W, S.H - 90, 120);
+    const d = wmGridDims(st.B, S.isLs ? S.W * 0.68 : S.W, S.H - (S.isLs ? 108 : 90), 120);
     const askK = st.phase === "ask" ? st.ask[st.askIdx] : null;
     const info = st.phase === "idle" ? `Hayvanlar kutulara saklanacak` : st.phase === "show" ? `<b>Hangi hayvan nerede? Aklında tut…</b>` : st.phase === "done" ? "Bitti!" : "";
     const askHtml = askK ? `<div class="wm-ask">${imgTag(animalImg(askK)).replace(/style="[^"]*"/, "")}<span>${trUpper(ANIMAL_NAMES[askK])} nerede?</span></div>` : `<div class="wm-info">${info}</div>`;
@@ -8947,30 +8955,54 @@ const FRUIT_VEG_IMAGES = {
   const sceneStudyMs = () => (isPre() ? [20000, 16000, 12000] : [15000, 12000, 9000])[currentCombo().t];
   function sceneImgHTML(k, W, H, isLs){ const w = Math.min(W, isLs ? (H - 30) * 1.5 : 520); return `<img src="${SCENE_IMAGES[k]}" alt="" style="display:block;width:${w}px;max-width:100%;border-radius:14px;margin:0 auto">`; }
   const studyBar = (ms) => `<div style="height:8px;background:var(--line);border-radius:6px;overflow:hidden;margin:6px auto 0;max-width:520px"><div style="height:100%;background:var(--teal);animation:studyBar ${ms * (window.__wmSpeed || 1)}ms linear forwards"></div></div>`;
+
+  // ---- Aynı Sayıyı Bul (biçim değişmezliği): yazı tipi/boyut/renk/açı değişse de aynı sayıyı tanıma ----
+  const SN_PLURAL = { 1:"1'leri", 2:"2'leri", 3:"3'leri", 4:"4'leri", 5:"5'leri", 6:"6'ları", 7:"7'leri", 8:"8'leri", 9:"9'ları" };
+  const SN_LOOK = { 1:[7], 7:[1], 2:[5], 5:[2], 3:[8], 8:[3], 4:[9], 9:[4], 6:[8] };   // benzer görünen çeldiriciler
+  let snTarget = null;
+  // hedef havuzu: ayna görüntüsü Zor düzeyde çeldirici olduğu için simetrik görünen 1 ve 8 orada hedef olmaz
+  function snPool(){ return isPre() ? [1, 2, 3, 4, 5] : (currentCombo().t === 2 ? [2, 3, 4, 5, 7] : [2, 3, 4, 5, 7, 8]); }
+  function snValid(){ if(snTarget == null || !snPool().includes(snTarget)) snNewTarget(); return snTarget; }
+  function snNewTarget(){ const pool = snPool(); let t; do{ t = randomItem(pool); } while(t === snTarget && pool.length > 1); snTarget = t; return t; }
+  function snBuild(){
+    const t = currentCombo().t, T = snValid();
+    const N = (isPre() ? [8, 10, 12] : [16, 20, 24])[t], K = (isPre() ? [2, 3, 4] : [4, 5, 6])[t];
+    const fonts = isPre() ? PRE_SCATTER_FONTS : SCATTER_FONTS, pool = isPre() ? [1, 2, 3, 4, 5] : [1, 2, 3, 4, 5, 7, 8];
+    const look = (SN_LOOK[T] || []).filter(x => pool.includes(x));
+    const items = [];
+    for(let k = 0; k < K; k++) items.push({ d:T, tgt:true });
+    // Zor (okul sonrası): ayna görüntüsü hedefler çeldirici olur — "ters yazılmış sayı aynı sayı değildir"
+    const mirrors = !isPre() && t === 2 ? 2 : 0;
+    for(let k = 0; k < mirrors; k++) items.push({ d:T, tgt:false, mirror:true });
+    while(items.length < N){ const useLook = t > 0 && look.length && Math.random() < 0.45; const d = useLook ? randomItem(look) : randomItem(pool.filter(x => x !== T)); items.push({ d, tgt:false }); }
+    const rot = isPre() ? [0, 10, 20][t] : [15, 25, 30][t];   // çok eğiklik 1–7 gibi sayıları gerçekten belirsizleştirir
+    return shuffleArray(items).map(x => Object.assign(x, { font: randomItem(fonts), color: randomItem(COLORS), r: Math.round((Math.random() * 2 - 1) * rot), sc: 0.75 + Math.random() * 0.45 }));
+  }
   const NEW_MT = {
     build: {
       "hear-find": () => { const t = currentCombo().t, K = (isPre() ? [2, 2, 3] : [3, 4, 5])[t], G = (isPre() ? [4, 6, 6] : [6, 8, 9])[t];
-        mtState = { kind:"hear", trials: Array.from({length:4}, () => { const p = shuffleArray(picPool()).slice(0, G); return { opts: p, heard: shuffleArray(p.slice()).slice(0, K) }; }), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
-      "dir-follow": () => { mtState = { kind:"dir", trials: Array.from({length:5}, dirTrial), ti:0, pos:0, wrong:0, phase:"idle" }; return mtState.trials; },
+        mtState = { kind:"hear", trials: Array.from({length: isPre() ? 3 : 4}, () => { const p = shuffleArray(picPool()).slice(0, G); return { opts: p, heard: shuffleArray(p.slice()).slice(0, K) }; }), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
+      "dir-follow": () => { mtState = { kind:"dir", trials: Array.from({length: isPre() ? 3 : 5}, dirTrial), ti:0, pos:0, wrong:0, phase:"idle" }; return mtState.trials; },
       "vis-miss": () => { const t = currentCombo().t, N = (isPre() ? [3, 4, 5] : [5, 6, 8])[t];
-        mtState = { kind:"miss", trials: Array.from({length:5}, () => { const p = shuffleArray(picPool()); const set = p.slice(0, N), gone = Math.floor(Math.random() * N);
+        mtState = { kind:"miss", trials: Array.from({length: isPre() ? 3 : 5}, () => { const p = shuffleArray(picPool()); const set = p.slice(0, N), gone = Math.floor(Math.random() * N);
           return { set, gone, opts: shuffleArray([set[gone]].concat(p.slice(N, N + 3))), shuffle: t > 0 }; }), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
       "vis-chg": () => { const t = currentCombo().t, N = (isPre() ? [3, 4, 4] : [4, 6, 8])[t];
-        mtState = { kind:"chg", trials: Array.from({length:5}, () => { const p = shuffleArray(picPool()); return { set: p.slice(0, N), at: Math.floor(Math.random() * N), neo: p[N] }; }), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
+        mtState = { kind:"chg", trials: Array.from({length: isPre() ? 3 : 5}, () => { const p = shuffleArray(picPool()); return { set: p.slice(0, N), at: Math.floor(Math.random() * N), neo: p[N] }; }), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
       "vis-recog": () => { const t = currentCombo().t, M = (isPre() ? [4, 5, 6] : [6, 8, 10])[t], pool = shuffleArray(picPool());
         let study = pool.slice(0, M), fresh = pool.slice(M, M * 2), delayed = false;
         if(currentStageIndex === 1){ const d = delayGet("recog"); if(d && d.keys){ const byK = Object.fromEntries(picPool().map(x => [x.k, x])); const s2 = d.keys.map(k => byK[k]).filter(Boolean);
           if(s2.length){ study = s2; fresh = shuffleArray(picPool().filter(x => !d.keys.includes(x.k))).slice(0, s2.length); delayed = true; } } }
         mtState = { kind:"recog", study, test: shuffleArray(study.map(x => ({ x, old:true })).concat(fresh.map(x => ({ x, old:false })))), qi:0, wrong:0, hits:0, fa:0, phase:"idle", delayed };
         return mtState.test; },
-      "vis-face": () => { mtState = { kind:"face", trials: Array.from({length:3}, faceTrial), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
+      "same-number": () => { const items = snBuild(); mtState = { kind:"samenum", T: snTarget, items, found:{}, bad:{}, wrong:0, phase:"idle" }; return items; },
+      "vis-face": () => { mtState = { kind:"face", trials: Array.from({length: isPre() ? 2 : 3}, faceTrial), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
       "scene-mem": () => { const sc = pickScene(), N = (isPre() ? [3, 4, 4] : [4, 5, 6])[currentCombo().t];
         mtState = { kind:"scene", sc, qs: sc.q.slice(0, N), qi:0, wrong:0, ok:0, phase:"idle" }; return [sc]; },
       "scene-touch": () => { const sc = pickScene(), N = isPre() ? 3 : 4, others = SCENES.filter(x => x !== sc).flatMap(x => x.objs).filter(o => !sc.not.includes(o));   // sahnede benzeri olan nesneler çeldirici olmaz
         const qs = shuffleArray(sc.objs).slice(0, N).map(o => ({ ans:o, opts: shuffleArray([o].concat(shuffleArray(others).slice(0, 3))) }));
         mtState = { kind:"scenet", sc, qs, qi:0, wrong:0, phase:"idle" }; return [sc]; },
       "vis-draw": () => { const t = currentCombo().t, n = !isPre() && t === 2 ? 4 : 3, segs = (isPre() ? [2, 3, 4] : [3, 4, 6])[t];
-        mtState = { kind:"draw", n, trials: Array.from({length:4}, () => drawPattern(n, segs)), ti:0, wrong:0, phase:"idle", mine:new Set(), sel:-1 }; return mtState.trials; }
+        mtState = { kind:"draw", n, trials: Array.from({length: isPre() ? 3 : 4}, () => drawPattern(n, segs)), ti:0, wrong:0, phase:"idle", mine:new Set(), sel:-1 }; return mtState.trials; }
     },
     start: {
       hear(){ const st = mtState, tr = st.trials[st.ti]; st.phase = "listen"; st.found = {}; st.bad = {}; renderMtBoard();
@@ -8993,6 +9025,7 @@ const FRUIT_VEG_IMAGES = {
         st.phase = "study"; st.si = -1; renderMtBoard(); const step = isPre() ? 1700 : 1400;
         st.study.forEach((x, k) => mtLater(() => { st.si = k; renderMtBoard(); }, 300 + k * step));
         mtLater(() => { if(currentStageIndex === 0) delaySet("recog", { keys: st.study.map(x => x.k) }); st.phase = "ask"; renderMtBoard(); }, 300 + st.study.length * step + 300); },
+      samenum(){ const st = mtState; st.phase = "input"; renderMtBoard(); },
       face(){ const st = mtState, tr = st.trials[st.ti]; st.found = {}; st.bad = {}; st.si = -1; st.phase = "study"; renderMtBoard();
         const list = tr.mode === "name" ? tr.ppl : tr.study, step = tr.mode === "name" ? (isPre() ? 3000 : 2600) + (stIx() !== currentStageIndex ? 1200 : 0) : (isPre() ? 1800 : 1500);
         list.forEach((x, k) => mtLater(() => { st.si = k; renderMtBoard(); if(tr.mode === "name") sayTask("Bu " + x.nm + "."); }, 300 + k * step));
@@ -9021,6 +9054,9 @@ const FRUIT_VEG_IMAGES = {
           else { st.bad[i] = 1; mtErr(); renderMtBoard(); } return; }
         const want = tr.order[st.qi], ok = i === want; st.pick = i; st.phase = "fb"; if(ok) gameSfx("correct"); else mtErr(); renderMtBoard();
         mtLater(() => { st.pick = null; st.qi++; if(st.qi >= tr.order.length){ NEW_MT.next(); return; } st.phase = "input"; sayTask("Hangisi " + tr.ppl[tr.order[st.qi]].nm + "?"); renderMtBoard(); }, ok ? 600 : 1300); },
+      samenum(i){ const st = mtState; if(st.phase !== "input" || st.found[i] || st.bad[i]) return; const it = st.items[i];
+        if(it.tgt){ st.found[i] = 1; gameSfx("correct"); renderMtBoard(); if(Object.keys(st.found).length >= st.items.filter(x => x.tgt).length){ st.phase = "fb"; mtLater(() => mtFinish(), 500); } }
+        else { st.bad[i] = 1; mtErr(); renderMtBoard(); } },
       scenet(i){ const st = mtState, q = st.qs[st.qi]; if(st.phase !== "ask") return; st.pick = i; st.phase = "fb";
         const ok = q.opts[i] === q.ans; if(ok) gameSfx("correct"); else mtErr(); renderMtBoard();
         mtLater(() => { st.qi++; st.pick = null; if(st.qi >= st.qs.length){ mtFinish(); return; } st.phase = "ask"; renderMtBoard(); }, ok ? 600 : 1300); },
@@ -9062,6 +9098,7 @@ const FRUIT_VEG_IMAGES = {
       const pic = (x, i, c, mk, extra) => `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${c}px;height:${c}px;">${x ? imgTag(x.src) : ""}${extra || ""}</div>`;
       if(st.phase === "idle") return { info:"▶ Başlat'a bas", body: dots };
       if(st.phase === "done"){
+        if(st.kind === "samenum") return { info:"Bitti!", body:"" };
         if(st.kind === "scene") return { info:`Bitti · doğru <b>${st.ok}/${st.qs.length}</b>`, body:"" };
         if(st.kind === "scenet") return { info:"Bitti!", body:"" };
         if(st.kind === "recog") return { info:`Bitti · doğru tanınan <b>${st.hits}/${st.study.length}</b> · yanlış "gördüm" <b>${st.fa}</b>`, body:"" };
@@ -9103,10 +9140,16 @@ const FRUIT_VEG_IMAGES = {
         info = `${st.delayed ? "⏰ " : ""}<b>Bunu gördün mü?</b> · ${st.qi + 1}/${st.test.length}`;
         body = `<div class="wm-card${st.fb ? " " + st.fb : ""}" style="width:${sz}px;height:${sz}px;${st.fb === "ok" ? "border-color:#1FA463" : st.fb === "bad" ? "border-color:#E5484D" : ""}">${imgTag(it.x.src)}</div>` +
           `<div class="wm-btns" style="margin:10px auto 0"><button type="button" class="wm-btn same" data-judge="1">Gördüm</button><button type="button" class="wm-btn diff" data-judge="0">Görmedim</button></div>`;
+      } else if(st.kind === "samenum"){
+        const total = st.items.filter(x => x.tgt).length;
+        const head = `<div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px"><span style="font-weight:800">Bul:</span><span style="font:900 40px 'Trebuchet MS',Verdana,sans-serif;color:var(--ink);background:var(--panel);border:3px solid var(--teal);border-radius:14px;padding:0 16px;line-height:56px">${st.T}</span><span style="font-weight:800">${Object.keys(st.found).length}/${total}</span></div>`;
+        info = "<b>Aynı sayının hepsine</b> dokun";
+        body = head + grid(st.items, (x, i, c) => { const mk = st.found[i] ? " ok" : st.bad[i] ? " bad" : "";
+          return `<div class="wm-pic${mk}" data-mt="${i}" style="width:${c}px;height:${c}px;"><span style="font-family:${x.font.replace(/"/g, "'")};font-weight:800;font-size:${Math.round(c * 0.55 * x.sc)}px;color:${x.color};display:inline-block;transform:rotate(${x.r}deg)${x.mirror ? " scaleX(-1)" : ""};line-height:1">${x.d}</span></div>`; }, 52, isLs ? H - 70 : H - 70);
       } else if(st.kind === "face"){
         const tr = st.trials[ti], fimg = (fid) => `<img src="${FACE_ID_IMAGES[fid]}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:12px">`;
         if(st.phase === "study"){
-          const sz = Math.min(isLs ? H - 60 : 200, W * 0.6);
+          const sz = Math.min(isLs ? H - (tr.mode === "name" ? 110 : 60) : 200, W * 0.6);
           if(tr.mode === "name"){ const x = tr.ppl[st.si]; info = `<b>Yüzü ve adını aklında tut</b>`;
             body = dots + (x ? `<div class="wm-card" style="width:${sz}px;height:${sz}px;padding:4px">${fimg(x.i)}</div><div style="font-weight:900;font-size:24px;margin-top:6px">${x.nm}</div>${stIx() !== currentStageIndex ? `<div style="font-weight:800;color:#B07D00">💡 Bir özelliğini bul, adıyla birleştir</div>` : ""}` : ""); }
           else { const fid = tr.study[st.si]; info = `<b>Yüzlere iyi bak…</b> ${Math.max(0, st.si + 1)}/${tr.study.length}`; body = dots + `<div class="wm-card" style="width:${sz}px;height:${sz}px;padding:4px">${fid != null ? fimg(fid) : ""}</div>`; }
@@ -9145,7 +9188,7 @@ const FRUIT_VEG_IMAGES = {
       return { info, body };
     }
   };
-  const NEW_MT_KINDS = ["hear","dir","miss","chg","recog","draw","face","scene","scenet"];
+  const NEW_MT_KINDS = ["hear","dir","miss","chg","recog","draw","face","scene","scenet","samenum"];
 
   // ---- Gecikmeli hatırlama: son yapılan görevi ve zamanını saklar, 10 dk sonra hatırlatır ----
   const DELAY_TASKS = { story:"Hikâye Hatırlama → Aşama 3 (Gecikmeli)", recog:"Bunu Gördün mü? → Aşama 2 (Gecikmeli)", list:"Liste Öğrenme → Aşama 2 (Gecikmeli)" };
@@ -9228,7 +9271,7 @@ const FRUIT_VEG_IMAGES = {
   };
   function nwBuild(){
     const t = currentCombo().t, lens = isPre() ? [[2, 2], [2, 3], [3, 4]][t] : [[2, 3], [3, 4], [4, 5]][t], out = [];
-    lens.forEach(L => shuffleArray(NW_BANK[L]).slice(0, 4).forEach(w => out.push({ w, L })));
+    lens.forEach((L, k) => shuffleArray(NW_BANK[L]).slice(0, isPre() ? [3, 2][k] : 4).forEach(w => out.push({ w, L })));
     return out;
   }
   // ---- Cümle tekrarı (dinleyerek; giderek uzayan ve karmaşıklaşan cümleler) ----
@@ -9288,7 +9331,7 @@ const FRUIT_VEG_IMAGES = {
     }
     if(id === "pic-seq-say" || id === "pic-seq-touch"){
       const L = (isPre() ? [2, 3, 4] : [3, 4, 5])[currentCombo().t];
-      mtState = { kind: id === "pic-seq-say" ? "picsay" : "picseq", audio: id === "pic-seq-touch", trials: Array.from({length:4}, () => shuffleArray(picPool()).slice(0, L)), ti:0, pos:0, wrong:0, phase:"idle" };
+      mtState = { kind: id === "pic-seq-say" ? "picsay" : "picseq", audio: id === "pic-seq-touch", trials: Array.from({length: isPre() ? 3 : 4}, () => shuffleArray(picPool()).slice(0, L)), ti:0, pos:0, wrong:0, phase:"idle" };
       return mtState.trials;
     }
     if(NEW_MT.build[id]) return NEW_MT.build[id]();
@@ -9695,6 +9738,7 @@ const FRUIT_VEG_IMAGES = {
     "vis-miss":         [() => Q("Resimlere iyi bak. Biri kaybolacak; eksik olana dokun.")],
     "vis-chg":          [() => Q("Resimlere iyi bak. Biri değişecek; değişene dokun.")],
     "vis-recog":        [() => Q("Resimlere iyi bak. Sonra her resim için Gördüm ya da Görmedim'e dokun."), () => `10–15 dk sonra açın: ${Q("Az önce gördüğün resimleri hatırlıyor musun? Gördüm ya da Görmedim'e dokun.")}`],
+    "same-number":      [() => Q(`Bütün ${SN_PLURAL[snValid()]} bul ve dokun. Rengi, boyu, eğikliği farklı olabilir.`) + (!isPre() && currentCombo().t === 2 ? ` ${Q("Ters yazılmış olana dokunma.")}` : "")],
     "vis-face":         [() => Q("Yüzlere iyi bak. Sonra gördüğün yüzlere dokun, bitince Bitti'ye bas."), () => Q("Yüzleri ve adlarını aklında tut. Adını duyunca o yüze dokun.")],
     "scene-mem":        [() => `Resme birlikte bakın; kapanınca soruları sorun: ${Q("Resme iyi bak, sonra sorularıma cevap ver.")}`],
     "scene-touch":      [() => Q("Resme iyi bak. Kapanınca resimde olana dokun.")],
@@ -9703,7 +9747,7 @@ const FRUIT_VEG_IMAGES = {
     "cat-list":         [() => `Okuyun: ${Q("Kelimeleri dinle. Bitince hatırladıklarını söyle.")}`, () => `💡 Okumadan önce grupları söyleyin. Sonra: ${Q("Dinle, grupla ve gruplar hâlinde söyle.")}`],
     "nonword":          [() => `Okuyun: ${Q("Şimdi uydurma kelimeler söyleyeceğim. Duyduğun gibi tekrar et.")}`],
     "sent-listen":      [() => `Göstermeden okuyun: ${Q("Söylediğim cümleyi aynen tekrar et.")}`],
-    "pal-touch":        [() => Q("Çiftleri izle ve dinle. Sonra bir resim gelecek; eşine dokun."), () => `💡 ${Q("Her çifti görünce ikisini birlikte hayal et. Kedi balıkla oynuyor gibi.")}`],
+    "pal-touch":        [() => Q("Çiftleri izle ve dinle. Sonra bir resim gelecek; eşine dokun."), () => `💡 ${Q("Her çifti görünce ikisini tek bir resimde birlikte hayal et.")}`],
     "word-pairs":       [() => `Okuyun: ${Q("Bu kelimeler ikişer ikişer arkadaş. İlkini söyleyince arkadaşını sen söyle.")}`, () => `Okuyun: ${Q("Her sayının bir kelimesi var. Sayıyı söyleyince kelimesini sen söyle.")}`, () => `Okuyun: ${Q("Her çocuk bir şehirde yaşıyor. İsmi söyleyince şehrini sen söyle.")}`, () => `💡 Okuyun: ${Q("Her çifti duyunca ikisiyle bir cümle kur. Sonra ilkini söyleyince eşini sen söyle.")}`],
     "mixed-span":       [() => `Göstermeden okuyun: ${Q("Söylediklerimi aynı sırayla tekrar et.")}`, () => `💡 Gruplar hâlinde okuyun: ${Q("Parça parça aklında tut, parça parça söyle.")}`],
     "story-recall":     [() => `Okuyun: ${Q("Sana bir hikâye okuyacağım. Bitince hatırladığın her şeyi anlat.")}`, () => `💡 Okumadan önce: ${Q("Dinlerken kim, nerede, ne zaman, ne oldu sorularının cevabını yakala.")}`, () => `Aşama 1'deki hikâyeyi okumadan sorun: ${Q("Az önceki hikâyeyi hatırlıyor musun? Bana yeniden anlat.")}`],
@@ -9784,9 +9828,9 @@ const FRUIT_VEG_IMAGES = {
     "word-repeat":      [() => `Göstermeden okuyun: ${Q(`${audLen()} kelimeyi aynı sırayla tekrar et.`)}`,
                          () => `Göstermeden okuyun, ⏱'a basın: ${Q(`'Söyle!' deyince ${audLen()} kelimeyi aynı sırayla söyle.`)}`,
                          () => `💡 Okuyun, ⏱'a basın: ${Q(`Beklerken kelimeleri içinden ya da fısıldayarak tekrar et. 'Söyle!' deyince söyle.`)}` + " Sonucu Aşama 2 ile karşılaştırın."],
-    "shape-recall":     [() => `Şekilleri birlikte inceleyin. Kapanınca: ${Q("Hangi şekilleri gördün?")}`, () => `Kapanınca: ${Q("Şekilleri renkleriyle söyle.")}`, () => `💡 ${Q("Bakarken her şekli sesli söyle: mavi üçgen, sarı kalp…")} Kapanınca: ${Q("Hangilerini gördün?")}`],
+    "shape-recall":     [() => `Şekilleri birlikte inceleyin. Kapanınca: ${Q("Hangi şekilleri gördün?")}`, () => `Kapanınca: ${Q("Şekilleri renkleriyle söyle.")}`, () => `💡 ${Q("Bakarken her şekli sesli söyle: mavi üçgen, yeşil kalp…")} Kapanınca: ${Q("Hangilerini gördün?")}`],
     "position-recall":  [() => `Dolu daireleri birlikte inceleyin. Kapanınca: ${Q("Hangi daireler doluydu?")}`, () => `Kapanınca: ${Q("Dolu daireleri soldan sağa söyle.")}`, () => `💡 ${Q("Dolu daireler neye benziyor? Bir çizgi mi, bir harf mi?")} Kapanınca: ${Q("Hangi daireler doluydu?")}`],
-    "color-recall":     [() => `Renkleri birlikte inceleyin. Kapanınca: ${Q("Hangi renkleri gördün?")}`, () => `Kapanınca: ${Q("Aynı sırayla söyle.")}`, () => `💡 ${Q("Her rengi bir şeye benzet: kırmızı elma, mavi deniz…")} Kapanınca: ${Q("Hangi renkleri gördün?")}`],
+    "color-recall":     [() => `Renkleri birlikte inceleyin. Kapanınca: ${Q("Hangi renkleri gördün?")}`, () => `Kapanınca: ${Q("Aynı sırayla söyle.")}`, () => `💡 ${Q("Her rengi bir şeye benzet: mavi deniz, yeşil yaprak, turuncu portakal…")} Kapanınca: ${Q("Hangi renkleri gördün?")}`],
     "word-group":       [() => Q("Kelime hangi gruba ait? Söyle."), () => Q("Grubunu söyle, o gruptan bir örnek daha ver.")],
     "opposite-match":   [() => Q("Kelimenin zıt anlamlısını söyle.")],
     "similarities":     [() => Q("İki kelimenin ortak yönü ne?"), () => Q("Ortak yönü söyle, aynı gruptan bir örnek daha ver.")],
@@ -9805,10 +9849,10 @@ const FRUIT_VEG_IMAGES = {
   // ---------- Strateji aşamaları (kural: her çalışmaya ihtiyaca göre) ----------
   // [asıl aşama, strateji adı, çocuğa söylenecek cümle]. Asıl aşamanın mekaniği aynen kullanılır; sonuç onunla karşılaştırılır.
   const STRATEGIES = (() => {
-    const finger = [0, "Parmakla İzle", "Parmağınla her resmin altını göster, satır satır ilerle."];
+    const finger = [0, "Parmakla İzle", "Parmağınla her birinin altını göster, satır satır ilerle."];
     const scan = [0, "Sistemli Tara", "Soldan sağa, satır satır bak; hiçbirini atlama."];
     const nback = [1, "Sesli Tekrarla", "Her yenisi gelince son ikisini içinden tekrar et."];
-    const rule = [0, "Kuralı Söyle", "Her karttan önce kuralı sesli söyle: ‘Şimdi renge göre.’ Yanlış olursa yeni kuralı ara."];
+    const rule = (r) => [0, "Kuralı Söyle", `Her karttan önce kuralı sesli söyle: ‘Şimdi ${r} göre.’ Yanlış olursa yeni kuralı ara.`];
     const trail = [0, "Sıradakini Söyle", "Dokunmadan önce sıradakini sesli söyle."];
     const plan = [0, "Sesli Düşün", "Başlamadan hedefe bak; ilk hamleni sesli söyle, sonra yap."];
     const stop = [0, "Dur–Bak–Yap", "Her resimde önce içinden ‘dur, bak’ de; sonra karar ver."];
@@ -9834,7 +9878,7 @@ const FRUIT_VEG_IMAGES = {
       "flanker":[0, "Ortaya Odaklan", "Önce ortadakini parmağınla göster, sonra söyle."],
       "task-switch":[0, "Kuralı Söyle", "Her kartta önce kuralı sesli söyle, sonra cevap ver."],
       "switch-touch":[0, "Kuralı Söyle", "Her kartta önce kuralı sesli söyle, sonra dokun."],
-      "sort-color-shape":rule, "sort-animal-size":rule, "sort-color-shape-count":rule, "sort-words":rule,
+      "sort-color-shape":rule("renge"), "sort-animal-size":rule("hayvana"), "sort-color-shape-count":rule("renge"), "sort-words":rule("kategoriye"),
       "number-letter":trail, "trail-number-month":trail, "trail-animal-fruit":trail, "trail-color-shape":trail,
       "plan-beads":plan, "plan-swap":plan, "plan-tol":plan, "plan-cubes":plan,
       // Çalışan Bellek
@@ -9865,7 +9909,7 @@ const FRUIT_VEG_IMAGES = {
       "short-story":[0, "Hayal Et", "Dinlerken hikâyeyi bir film gibi gözünde canlandır."],
       // Görsel Bellek (henüz stratejisi olmayanlar)
       "rt-position":[0, "Şekle Benzet", "Dolu daireler neye benziyor? Bir çizgi mi, bir harf mi?"],
-      "rt-shapes":[0, "Adlandır", "Bakarken her şekli sesli söyle: mavi üçgen, sarı kalp…"],
+      "rt-shapes":[0, "Adlandır", "Bakarken her şekli sesli söyle: mavi üçgen, yeşil kalp…"],
       "rt-colors":[0, "Sesli Söyle", "Renkleri görünce sırayla sesli söyle."],
       "vis-miss":[0, "Adlandır", "Bakarken resimlerin adlarını sırayla söyle."],
       "vis-chg":[0, "Sistemli Bak", "Satır satır bak, adlarını içinden söyle."],
@@ -9885,6 +9929,7 @@ const FRUIT_VEG_IMAGES = {
       "arrow-direction":[0, "Elinle Göster", "Okun yönünü önce elinle göster, sonra söyle."],
       "edge-count":[0, "Parmakla Say", "Bir köşeden başla, parmağınla kenarlara dokunarak say."],
       "number-find-mixed":scan,
+      "same-number":[0, "Şeklini Söyle", "Sayının şeklini kendine anlat; sonra satır satır tara."],
       "odd-one-out":[0, "Tek Tek Karşılaştır", "Renge, şekle, büyüklüğe tek tek bak: hangisi farklı?"],
       "sequence-pattern":[0, "Sesli Söyle", "Örüntüyü sesli söyle, sonra sıradakini bul."],
       "visual-analogy":[0, "Kuralı Söyle", "İlk çiftte ne değişti? Sesli söyle, sonra ikinci çifte uygula."]
@@ -9912,6 +9957,7 @@ const FRUIT_VEG_IMAGES = {
     let ins;
     try{ ins = shortFn ? shortFn() : stage.instruction(); }catch(e){ ins = stage.instruction(); }
     if(stage.strategyOf != null) ins = `<span class="strat-tip">💡 <b>Strateji · ${stage.stratName}:</b> ${Q(stage.strategy)}</span>${ins}`;
+    else { const sm = /Strateji · (.+)$/.exec(stage.label || ""); if(sm && /^💡/.test(ins)) ins = `<span class="strat-tip">💡 <b>Strateji · ${sm[1]}</b></span>` + ins.replace(/^💡\s*/, ""); }
     const html = exampleText
       ? `${ins}<span class="example">Örneğin: "${exampleText}"</span>`
       : `${ins}`;
@@ -11543,6 +11589,7 @@ const FRUIT_VEG_IMAGES = {
 
   document.getElementById("reshuffleBtn").addEventListener("click", ()=>{
     const ex = currentExercise();
+    if(ex.onShuffle) try{ ex.onShuffle(); }catch(e){}   // hedefli çalışmalarda yeni hedef
     if(!ex.isMotion){
       const {rows, cols} = currentTier();
       currentGrid = generateGrid(ex, rows, cols);
@@ -11844,7 +11891,7 @@ const FRUIT_VEG_IMAGES = {
   // Ailenin kaydettiği sonuçlar uzmana da gider (links/{kod}/results). Uzman listesi için aile, bağlantı belgesindeki
   // kısa haftalık özeti (çalışılan günler, son etkinlik) günceller.
   // Firestore yapısı: links/{kod} { expertUid, childName, level, familyUid, consent, program, weekKey, weekDays, lastActivityAt }
-  const APP_VERSION = "2026.10.07-c";
+  const APP_VERSION = "2026.10.07-e";
   const LINK_LOCAL_KEY = "wm_family_links_v1";   // aile cihazında: kişi|seviye → kod + program önbelleği
   const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -12325,7 +12372,7 @@ const FRUIT_VEG_IMAGES = {
   };
   const GAME_ISLANDS = [
     { id:"hiz",    name:"Hız Adası",    color:"#FFB648", ids:["search-object","search-shape","trail-numbers","cat-fruit","search-symbol","search-letter","sdmt-touch","cat-cold","quick-sort","touch-card","cat-living","pairs-touch"] },
-    { id:"dikkat", name:"Dikkat Adası", color:"#62D394", ids:["touch-animal","fish-flanker","stroop-touch","day-night-touch","face-go","switch-touch","sort-color-shape","sort-animal-size","sort-color-shape-count","sort-words","trail-animal-fruit","trail-color-shape","number-letter","trail-number-month"] },
+    { id:"dikkat", name:"Dikkat Adası", color:"#62D394", ids:["same-number","touch-animal","fish-flanker","stroop-touch","day-night-touch","face-go","switch-touch","sort-color-shape","sort-animal-size","sort-color-shape-count","sort-words","trail-animal-fruit","trail-color-shape","number-letter","trail-number-month"] },
     { id:"goz",    name:"Göz Adası",    color:"#B09BFF", fromCategory:"goz-takip" },
     { id:"bellek", name:"Bellek Adası", color:"#F7D046", ids:["wm-same","corsi","zihni","wm-seq","span-touch","market","wm-where","running","lns-touch","animal-fruit","rt-shapes","vis-miss","rt-position","vis-chg","rt-colors","vis-recog","vis-face","scene-touch","vis-draw"] },
     { id:"soz",    name:"Söz Adası",    color:"#FF9EC4", ids:["hear-find","pal-touch","dir-follow","pic-seq-touch"] },
