@@ -277,6 +277,43 @@
   .isl-island.locked{ filter:grayscale(.55) saturate(.7) brightness(1.05); }
   .isl-island .lk{ position:absolute; top:-12px; right:-6px; width:32px; height:32px; border-radius:50%; background:#fff; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; color:var(--ink-soft); }
   .isl-island .lk svg{ width:18px; height:18px; }
+  .isl-route{ display:flex; flex-direction:column; gap:10px; }
+  .rt-card{ background:var(--panel); border-radius:22px; padding:12px 14px; box-shadow:0 4px 0 rgba(10,60,90,.18); display:flex; flex-direction:column; gap:10px; }
+  .rt-h{ display:flex; justify-content:space-between; align-items:center; font-weight:900; font-size:17px; color:var(--ink); }
+  .rt-cnt{ background:var(--amber-tint); color:#7A4300; border-radius:999px; padding:2px 10px; font-size:14px; } .rt-ok{ background:#E3F6EC; color:#13703F; border-radius:999px; padding:2px 10px; font-size:14px; }
+  .rt-steps{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:6px 8px; }
+  .rt-step{ display:flex; align-items:center; gap:6px; background:var(--bg, #F3F7FA); border:0; border-radius:14px; padding:6px; font-family:inherit; cursor:pointer; text-align:left; min-width:0; }
+  .rt-nm{ overflow:hidden; text-overflow:ellipsis; }
+  .rt-dot{ flex:none; width:34px; height:34px; border-radius:50%; border:3px solid #fff; box-shadow:0 2px 0 rgba(0,0,0,.15); display:flex; align-items:center; justify-content:center; font-weight:900; color:#1C2B39; }
+  .rt-dot svg{ width:18px; height:18px; } .rt-step.done .rt-dot{ filter:saturate(.6); }
+  .rt-step.now .rt-dot{ outline:3px solid #FFC83D; outline-offset:2px; animation:rtPulse 1.2s ease-in-out infinite; }
+  @keyframes rtPulse{ 50%{ transform:scale(1.08); } } html.calm .rt-step.now .rt-dot{ animation:none; }
+  .rt-tx{ display:flex; flex-direction:column; line-height:1.15; } .rt-role{ font-size:11px; font-weight:800; color:var(--ink-soft); display:flex; align-items:center; gap:3px; } .rt-role svg{ width:13px; height:13px; }
+  .rt-nm{ font-size:13px; font-weight:800; color:var(--ink); }
+  .rt-link{ flex:none; width:14px; height:3px; background:repeating-linear-gradient(90deg,#B8C6D3 0 4px,transparent 4px 7px); }
+  .rt-msg{ font-weight:700; color:var(--ink-soft); font-size:14px; } .rt-go{ align-self:flex-start; }
+  .rt-row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .rt-pill{ display:flex; align-items:center; gap:6px; background:var(--panel); border-radius:999px; padding:6px 12px; font-size:14px; font-weight:700; color:var(--ink); box-shadow:0 3px 0 rgba(10,60,90,.15); border:0; font-family:inherit; }
+  .rt-pill svg{ width:20px; height:20px; } .rt-pill b{ font-weight:900; }
+  .rt-week i{ width:9px; height:9px; border-radius:50%; background:#D5DEE7; display:inline-block; } .rt-week i.on{ background:#1FA463; } .rt-week i.today{ box-shadow:0 0 0 2px #FFC83D; }
+  .rt-closet{ cursor:pointer; } .zmascot.mini{ width:24px; height:24px; }
+  .rt-time{ font-size:13px; font-weight:700; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.25); padding-left:4px; }
+  .isl-grow{ position:absolute; right:5%; top:22%; display:flex; flex-direction:column; gap:2px; } .isl-grow svg{ width:22px; height:22px; filter:drop-shadow(0 1px 0 rgba(0,0,0,.15)); }
+  .gb-hint{ flex:1 1 100%; order:9; background:#FFF4D6; border:2px solid #E0A100; border-radius:12px; padding:4px 10px; font-size:13px; font-weight:800; color:#7A5600; }
+  html.game-mode .game-bar{ flex-wrap:wrap; }
+  .gr-line.gx{ color:#7A5600; } .gr-route{ margin-top:8px; width:100%; }
+  .gs-sleep{ background:linear-gradient(180deg,#203A63,#3B5A8C); align-items:center; justify-content:center; }
+  .gs-inner{ background:var(--panel); border-radius:26px; padding:22px 20px; width:min(360px,92vw); display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; box-shadow:0 8px 0 rgba(0,0,0,.2); }
+  .gs-inner h2{ margin:0; font-size:24px; color:var(--ink); } .gs-inner p{ margin:0; font-weight:700; color:var(--ink-soft); }
+  .gs-mascot svg{ width:150px; height:150px; } .gs-z{ font-weight:900; color:#6C8BC7; letter-spacing:4px; font-size:20px; }
+  .gs-inner .gr-btn{ width:100%; }
+  .cl-card{ max-height:90vh; overflow:auto; align-items:stretch; }
+  .cl-preview{ display:flex; justify-content:center; }
+  .cl-name{ display:flex; align-items:center; gap:8px; } .cl-name label{ font-weight:800; } .cl-name input{ flex:1; min-width:0; border:2px solid var(--line); border-radius:12px; padding:8px 10px; font:inherit; font-weight:700; } .cl-preview svg{ width:130px; height:130px; }
+  .cl-list{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+  .cl-item{ display:flex; flex-direction:column; align-items:center; gap:2px; padding:8px 6px; border-radius:16px; border:2px solid var(--line); background:var(--panel); font-family:inherit; cursor:pointer; }
+  .cl-item.on{ border-color:#1FA463; background:#E3F6EC; } .cl-item.locked{ opacity:.6; }
+  .cl-ico{ width:56px; height:56px; } .cl-nm{ font-weight:900; font-size:14px; color:var(--ink); } .cl-need{ font-size:11px; font-weight:700; color:var(--ink-soft); text-align:center; }
   .isl-next{ background:var(--panel); border-radius:20px; padding:12px 14px; display:flex; align-items:center; gap:12px; }
   .isl-next .tx{ flex:1; min-width:0; } .isl-next .t1{ font-size:15px; font-weight:900; color:var(--ink); } .isl-next .t2{ font-size:13px; color:var(--ink-soft); }
   .isl-play{ height:46px; padding:0 18px; border-radius:14px; border:none; background:#E8A35E; color:#1F2A33; font-family:inherit; font-weight:900; font-size:15px; cursor:pointer; }
@@ -2587,7 +2624,7 @@
   <div class="settings-inner">
     <div class="settings-header">
       <h2>Ayarlar</h2>
-      <div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.07-e</div>
+      <div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.07-g</div>
       <button class="icon-btn" id="closeSettingsBtn">✕</button>
     </div>
 
@@ -2597,6 +2634,15 @@
         <input type="checkbox" id="soundToggle" checked>
         <span class="switch-track"><span class="switch-thumb"></span></span>
       </label>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-label">Günlük oyun süresi<br><span style="font-size:12px;font-weight:600;color:var(--ink-soft)">Bilişsel Oyun'da süre dolunca Zihni uyur; yetişkin 10 dakika ekleyebilir</span></div>
+      <select id="gameLimitSel" class="player-input" style="width:auto;min-width:96px"><option value="0">Sınırsız</option><option value="10">10 dk</option><option value="15">15 dk</option><option value="20">20 dk</option><option value="30">30 dk</option></select>
+    </div>
+    <div class="settings-group" style="flex-wrap:wrap">
+      <div class="settings-label">Oyun ilerlemesi yedeği<br><span style="font-size:12px;font-weight:600;color:var(--ink-soft)">Yıldızlar, ışıklar ve Zihni'nin dolabı bu cihazda saklanır. Telefon değişmeden önce yedek alın.</span></div>
+      <div style="display:flex;gap:8px"><button type="button" class="btn-ghost" id="gameBackupBtn">Yedek al</button><button type="button" class="btn-ghost" id="gameRestoreBtn">Geri yükle</button><input type="file" id="gameRestoreFile" accept="application/json,.json" style="display:none"></div>
     </div>
 
     <div class="settings-group">
@@ -2771,6 +2817,7 @@
       <div class="isl-total"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4L2.8 9.5l6.4-.8z" fill="#E39B2D" stroke="#E39B2D" stroke-width="1.2" stroke-linejoin="round"/></svg><span id="islandTotal">0</span></div>
     </div>
     <div class="isl-who"><label for="gamePlayerSelect">Kim oynuyor?</label><select id="gamePlayerSelect" class="player-input"></select></div>
+    <div class="isl-route" id="islandRoute"></div>
     <div class="isl-map" id="islandMap"></div>
     <div class="isl-next" id="islandNext"></div>
   </div>
@@ -2793,6 +2840,7 @@
     <div class="gr-card" id="grCard"></div>
     <div class="gr-note">Kıyas yalnızca kendi önceki sonuçlarınla yapılır.</div>
     <div class="gr-btns"><button type="button" class="gr-btn ghost" id="grMapBtn">Haritaya dön</button><button type="button" class="gr-btn" id="grAgainBtn">Bir daha</button></div>
+    <button type="button" class="gr-btn gr-route" id="grRouteBtn" style="display:none">Rotada sıradaki ›</button>
   </div>
 </div>
 <div class="parent-lock" id="gameWhoSheet" style="display:none;">
@@ -2801,6 +2849,25 @@
     <div class="gw-list" id="gwList"></div>
     <div class="gw-new"><input id="gwNewName" class="ex-input" placeholder="Yeni kişi adı" maxlength="40"><button type="button" class="gw-add" id="gwAddBtn">Ekle</button></div>
     <button type="button" class="pl-cancel" id="gwCancelBtn">Vazgeç</button>
+  </div>
+</div>
+<div class="mode-screen game-screen gs-sleep" id="gameSleep" style="display:none;">
+  <div class="gs-inner">
+    <div class="gs-mascot" id="gsMascot"></div>
+    <div class="gs-z" aria-hidden="true">z z z</div>
+    <h2>Bugünlük bu kadar!</h2>
+    <p id="gsText">Zihni çok çalıştı, şimdi dinleniyor. Yarın yine buluşalım.</p>
+    <button type="button" class="gr-btn" id="gsExitBtn">Tamam</button>
+    <button type="button" class="gr-btn ghost" id="gsMoreBtn">Yetişkin: 10 dakika daha</button>
+  </div>
+</div>
+<div class="parent-lock" id="closetSheet" style="display:none;">
+  <div class="pl-card cl-card" role="dialog" aria-modal="true" aria-labelledby="clTitle">
+    <div class="pl-title" id="clTitle">Dolap</div>
+    <div class="cl-preview" id="closetPreview"></div>
+    <div class="cl-name"><label for="mascotNameIn">Adı</label><input id="mascotNameIn" maxlength="12" placeholder="Zihni" autocomplete="off"><button type="button" class="btn-ghost" id="mascotNameBtn">Kaydet</button></div>
+    <div class="cl-list" id="closetList"></div>
+    <button type="button" class="pl-cancel" id="closetCloseBtn">Kapat</button>
   </div>
 </div>
 <div class="parent-lock" id="parentLock" style="display:none;">
@@ -2823,7 +2890,7 @@
   </div>
   <div class="game-bar" id="gameBar">
     <button type="button" class="gb-btn" id="gameMapBtn" aria-label="Haritaya dön"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg> Harita</button>
-    <span class="gb-title" id="gameStopTitle"></span>
+    <span class="gb-title" id="gameStopTitle"></span><span class="gb-hint" id="gameHint" style="display:none"></span>
     <span class="gb-stars" id="gameStopStars"></span>
     <button type="button" class="gb-who" id="gameWhoBtn" aria-label="Kim oynuyor"></button>
     <button type="button" class="gb-btn" id="gameSpeakBtn" aria-label="Konuşmayı kapat" aria-pressed="false"></button>
@@ -7193,6 +7260,114 @@ const FRUIT_VEG_IMAGES = {
       stages: [ { label: "Bak ve Bul", instruction: () => ``, example: () => `` } ]
     },
     {
+      id: "odd-cat",
+      readingLevel: ["pre","post"],
+      label: "Gruba Uymayanı Bul",
+      isMt: true, attrs: [], speedFactor: 6,
+      isDone: () => !!mtState && mtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "opp-touch",
+      readingLevel: ["pre","post"],
+      label: "Zıttını Seç",
+      isMt: true, attrs: [], speedFactor: 6,
+      isDone: () => !!mtState && mtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "syl-touch",
+      readingLevel: ["pre","post"],
+      label: "Hece Sayısına Dokun",
+      isMt: true, attrs: [], speedFactor: 6,
+      isDone: () => !!mtState && mtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "sim-touch",
+      readingLevel: ["pre","post"],
+      label: "Hangisi Benziyor?",
+      isMt: true, attrs: [], speedFactor: 6,
+      isDone: () => !!mtState && mtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "def-touch",
+      readingLevel: ["pre","post"],
+      label: "Tanımı Dinle, Resmi Seç",
+      isMt: true, attrs: [], speedFactor: 6,
+      isDone: () => !!mtState && mtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "use-touch",
+      readingLevel: ["pre","post"],
+      label: "Ne İşe Yarar?",
+      isMt: true, attrs: [], speedFactor: 6,
+      isDone: () => !!mtState && mtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "size-touch",
+      readingLevel: ["pre","post"],
+      label: "Küçükten Büyüğe Dokun",
+      isMt: true, attrs: [], speedFactor: 6,
+      isDone: () => !!mtState && mtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "arrow-touch",
+      readingLevel: ["pre","post"],
+      label: "Okun Yönüne Dokun",
+      isMt: true, attrs: [], speedFactor: 6,
+      isDone: () => !!mtState && mtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "edge-touch",
+      readingLevel: ["pre","post"],
+      label: "Kenar Sayısına Dokun",
+      isMt: true, attrs: [], speedFactor: 6,
+      isDone: () => !!mtState && mtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "odd-touch",
+      readingLevel: ["pre","post"],
+      label: "Farklı Olanı Bul (dokunmalı)",
+      isMt: true, attrs: [], speedFactor: 6,
+      isDone: () => !!mtState && mtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "pattern-touch",
+      readingLevel: ["pre","post"],
+      label: "Sıradakini Seç",
+      isMt: true, attrs: [], speedFactor: 6,
+      isDone: () => !!mtState && mtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "analogy-touch",
+      readingLevel: ["pre","post"],
+      label: "Eşini Seç (analoji)",
+      isMt: true, attrs: [], speedFactor: 6,
+      isDone: () => !!mtState && mtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
+    },
+    {
       id: "digit-span",
       readingLevel: ["pre","post"],
       label: "Rakam Dizisi (Digit Span)",
@@ -7423,41 +7598,41 @@ const FRUIT_VEG_IMAGES = {
       id:"sozel-organizasyon",
       readingLevel:["post"],
       label:"Sözel Organizasyon",
-      sub:"Kategori, zıt anlam, hece sayma · strateji aşamaları",
+      sub:"Kategori, zıt anlam, hece sayma · dokunmalı: gruba uymayanı bul, zıttını seç, hece sayısına dokun · strateji aşamaları",
       purpose:"Kelimeleri anlamına, sesine veya kategorisine göre hızlıca sınıflandırma becerisini çalıştırır.",
       color:"#8A5A8C",
       group:"Dil & Görsel Analiz",
-      exerciseIds:["word-group","opposite-match","syllable-count"]
+      exerciseIds:["word-group","opposite-match","syllable-count","odd-cat","opp-touch","syl-touch"]
     },
     {
       id:"sozel-kavrama",
       readingLevel:["post"],
       label:"Sözel Kavrama",
-      sub:"Benzerlik bulma, kelime tanımlama, genel kavrama · strateji aşamaları",
+      sub:"Benzerlik bulma, kelime tanımlama, genel kavrama · dokunmalı: hangisi benziyor, tanımı dinle, ne işe yarar · strateji aşamaları",
       purpose:"Kelimeler arası soyut ilişkiler kurma ve sözel akıl yürütme becerisini çalıştırır.",
       color:"#6B4C9A",
       group:"Dil & Görsel Analiz",
-      exerciseIds:["similarities","vocabulary","practical-reasoning"]
+      exerciseIds:["similarities","vocabulary","practical-reasoning","sim-touch","def-touch","use-touch"]
     },
     {
       id:"gorsel-organizasyon",
       readingLevel:["pre","post"],
       label:"Görsel Organizasyon",
-      sub:"Boyut, yön, kenar sayısı, görsel zıtlar · dokunmalı: aynı sayıyı bul (biçim değişmezliği) · strateji aşamaları",
+      sub:"Boyut, yön, kenar sayısı, görsel zıtlar · dokunmalı: küçükten büyüğe, okun yönü, kenar sayısı, aynı sayıyı bul (biçim değişmezliği) · strateji aşamaları",
       purpose:"Görsel öğeleri boyut, yön veya yapı gibi özelliklerine göre analiz etme becerisini çalıştırır.",
       color:"#E8823A",
       group:"Dil & Görsel Analiz",
-      exerciseIds:["size-sort","arrow-direction","edge-count","visual-opposites","same-number"]
+      exerciseIds:["size-sort","arrow-direction","edge-count","size-touch","visual-opposites","arrow-touch","same-number","edge-touch"]
     },
     {
       id:"algisal-akil-yurutme",
       readingLevel:["pre","post"],
       label:"Algısal Akıl Yürütme",
-      sub:"Farklı olanı bulma, örüntü tamamlama, görsel analoji · strateji aşamaları",
+      sub:"Farklı olanı bulma, örüntü tamamlama, görsel analoji · dokunmalı biçimleri · strateji aşamaları",
       purpose:"Görsel örüntüleri analiz edip mantıksal ilişki kurma becerisini çalıştırır.",
       color:"#B08900",
       group:"Dil & Görsel Analiz",
-      exerciseIds:["odd-one-out","sequence-pattern","visual-analogy"]
+      exerciseIds:["odd-one-out","sequence-pattern","visual-analogy","odd-touch","pattern-touch","analogy-touch"]
     },
   ];
 
@@ -8978,6 +9153,150 @@ const FRUIT_VEG_IMAGES = {
     const rot = isPre() ? [0, 10, 20][t] : [15, 25, 30][t];   // çok eğiklik 1–7 gibi sayıları gerçekten belirsizleştirir
     return shuffleArray(items).map(x => Object.assign(x, { font: randomItem(fonts), color: randomItem(COLORS), r: Math.round((Math.random() * 2 - 1) * rot), sc: 0.75 + Math.random() * 0.45 }));
   }
+
+  // ================= Taslak kategorilerin dokunmalı çalışmaları: ortak seçmeli motor (quiz) + boyut sıralama =================
+  const QZ_SAFE_SEA = ["fish","dolphin","starfish","turtle","crab","seahorse"];   // ahtapot ve köpekbalığı onaylanana kadar kullanılmıyor
+  function qzCats(){
+    return {
+      toy:    { n:"oyuncak",        items: TOY_KEYS.map(k => ({ k:"t-" + k, n: TOY_NAMES[k], src: TOY_IMAGES[k] })) },
+      house:  { n:"ev eşyası",      items: HOUSE_KEYS.map(k => ({ k:"h-" + k, n: HOUSE_NAMES[k], src: HOUSE_IMAGES[k] })) },
+      meyve:  { n:"meyve",          items: Object.keys(FRUIT_VEG_NAMES).filter(k => FRUIT_VEG_CATEGORY[k] === "meyve").map(k => ({ k:"f-" + k, n: FRUIT_VEG_NAMES[k], src: FRUIT_VEG_IMAGES[k] })) },
+      sebze:  { n:"sebze",          items: Object.keys(FRUIT_VEG_NAMES).filter(k => FRUIT_VEG_CATEGORY[k] === "sebze" && k !== "tomato").map(k => ({ k:"f-" + k, n: FRUIT_VEG_NAMES[k], src: FRUIT_VEG_IMAGES[k] })) },
+      wild:   { n:"kara hayvanı",   items: WILD_KEYS.map(k => ({ k:"w-" + k, n: WILD_NAMES[k], src: WILD_IMAGES[k] })) },
+      sea:    { n:"deniz canlısı",  items: QZ_SAFE_SEA.map(k => ({ k:"s-" + k, n: SEA_NAMES[k], src: SEA_IMAGES[k] })) },
+      vehicle:{ n:"taşıt",          items: Object.keys(VEHICLE_NAMES).map(k => ({ k:"v-" + k, n: VEHICLE_NAMES[k], src: VEHICLE_IMAGES[k + "_f"] })) }
+    };
+  }
+  const QZ_CLOSE = { meyve:"sebze", sebze:"meyve", wild:"sea", sea:"wild" };   // yakın kategoriler (Zor)
+  const qzPic = (src, sc) => `<img src="${src}" alt="" style="width:${Math.round((sc || 1) * 100)}%;height:${Math.round((sc || 1) * 100)}%;object-fit:contain">`;
+  const qzTrials = (post, pre) => isPre() ? pre : post;
+  const qzOpts = (post, pre) => isPre() ? pre : post;
+  function qzMake(stim, opts, ans, extra){ const order = shuffleArray(opts.map((o, i) => i)); return Object.assign({ stim, opts: order.map(i => opts[i]), ans: order.indexOf(ans) }, extra || {}); }
+  // syllable: Türkçede hece sayısı ünlü sayısına eşittir
+  const trSyl = (w) => (w.match(/[aeıioöuüâîû]/gi) || []).length;
+  // tanımlar ve "ne işe yarar" soruları (resimlerle birebir)
+  const QZ_DEFS = { "w-lion":"Yelesi olan, kükreyen büyük bir hayvan.", "w-giraffe":"Boynu çok uzun, benekli bir hayvan.", "w-zebra":"Siyah beyaz çizgili, ata benzeyen bir hayvan.",
+    "w-monkey":"Ağaçtan ağaca atlayan, muz seven bir hayvan.", "w-bear":"Büyük, tüylü ve bal seven bir hayvan.", "w-fox":"Kabarık kuyruklu, kurnaz bir hayvan.", "w-squirrel":"Fındık toplayan, kabarık kuyruklu küçük bir hayvan.", "w-hedgehog":"Sırtı dikenli küçük bir hayvan.",
+    "s-fish":"Suda yaşayan, yüzgeçleriyle yüzen bir hayvan.", "s-dolphin":"Denizde yaşayan, sudan zıplamayı seven akıllı bir hayvan.", "s-starfish":"Beş kollu, yıldıza benzeyen bir deniz canlısı.", "s-turtle":"Sırtında kabuğu olan, yavaş yürüyen bir hayvan.", "s-crab":"Yan yan yürüyen, kıskaçlı bir deniz canlısı.", "s-seahorse":"Başı ata benzeyen küçük bir deniz canlısı.",
+    "f-apple":"Ağaçta yetişen, yuvarlak bir meyve.", "f-banana":"Sarı kabuklu, uzun bir meyve.", "f-grapes":"Salkım salkım olan, küçük taneli bir meyve.", "f-strawberry":"Kırmızı, üstünde minik tohumları olan bir meyve.", "f-orange":"Turuncu renkli, suyu sıkılan bir meyve.",
+    "f-carrot":"Turuncu renkli, tavşanların sevdiği bir sebze.", "f-cucumber":"Yeşil, uzun ve serin bir sebze.", "f-pepper":"İçi boş, bazen acı olan bir sebze.", "f-broccoli":"Küçük bir ağaca benzeyen yeşil bir sebze.",
+    "v-bus":"Çok yolcu taşıyan, yolda giden büyük bir taşıt.", "v-plane":"Kanatları olan, gökyüzünde uçan bir taşıt.", "v-ship":"Denizde yüzen büyük bir taşıt.", "v-heli":"Tepesinde dönen pervanesi olan bir taşıt.", "v-fire":"Yangını söndürmeye giden bir taşıt.", "v-train":"Raylarda giden, vagonları olan bir taşıt." };
+  function qzUseItems(){
+    return [ { q:"Saçımızı neyle tararız?", src: HOUSE_IMAGES.comb }, { q:"Kâğıdı neyle keseriz?", src: HOUSE_IMAGES.scissors }, { q:"Saatin kaç olduğunu neye bakarak öğreniriz?", src: HOUSE_IMAGES.clock },
+      { q:"Karanlıkta odayı neyle aydınlatırız?", src: HOUSE_IMAGES.lamp }, { q:"Uyurken başımızı neye koyarız?", src: HOUSE_IMAGES.pillow }, { q:"Suyu neyle taşırız?", src: HOUSE_IMAGES.bucket },
+      { q:"Yeri neyle süpürürüz?", src: HOUSE_IMAGES.broom }, { q:"Çayı neyle içeriz?", src: HOUSE_IMAGES.cup }, { q:"Kapıyı neyle açarız?", src: PAIR_IMAGES.key },
+      { q:"Yağmurda ıslanmamak için neyi açarız?", src: PAIR_IMAGES.umbrella }, { q:"Dişlerimizi neyle fırçalarız?", src: PAIR_IMAGES.toothbrush }, { q:"Çiviyi neyle çakarız?", src: PAIR_IMAGES.hammer },
+      { q:"Kalemimizi neyle açarız?", src: PAIR_IMAGES.sharpener }, { q:"Çiçekleri neyle sularız?", src: PAIR_IMAGES.wateringcan }, { q:"Mektubu neyin içine koyarız?", src: PAIR_IMAGES.envelope } ];
+  }
+  const QZ_ARROW_ROT = { up:0, "up-right":45, right:90, "down-right":135, down:180, "down-left":225, left:270, "up-left":315 };
+  const qzArrow = (d, col) => arrowSVG("up", col).replace("rotate(0deg)", `rotate(${QZ_ARROW_ROT[d]}deg)`);
+  const QZ_OPP_FACE = { happy:"sad", sad:"happy" };
+  const QZ = {
+    // Sözel Organizasyon
+    "odd-cat": () => { const C = qzCats(), t = currentCombo().t, N = qzOpts([4, 4, 5][t], [3, 3, 4][t]);
+      return Array.from({length: qzTrials(6, 4)}, () => { const keys = Object.keys(C).filter(k => C[k].items.length >= N - 1); const a = randomItem(keys);
+        const b = t === 2 && QZ_CLOSE[a] ? QZ_CLOSE[a] : randomItem(keys.filter(k => k !== a && QZ_CLOSE[a] !== k));
+        const same = shuffleArray(C[a].items).slice(0, N - 1), odd = randomItem(C[b].items);
+        const opts = same.map(x => qzPic(x.src)).concat([qzPic(odd.src)]);
+        return qzMake("", opts, opts.length - 1, { prompt:"<b>Gruba uymayan</b> hangisi?", after:`${cap(odd.n)} bir ${C[a].n} değil.` }); }); },
+    "opp-touch": () => { const t = currentCombo().t, types = isPre() ? ["size","hot","face","length","fill"] : ["size","hot","face","length","fill","position","vertical"];
+      return Array.from({length: qzTrials(6, 4)}, () => { const ty = randomItem(types); let stim, opts, word;
+        if(ty === "size"){ const [p, q] = shuffleArray(picPool()).slice(0, 2); word = "büyük"; stim = qzPic(p.src, 1); opts = [qzPic(p.src, 0.45), qzPic(p.src, 1), qzPic(q.src, 1)]; }
+        else if(ty === "hot"){ const hot = ["soup","iron","sun","fire"], cold = ["snowman","penguin","icecream","ice"]; const h = shuffleArray(hot); word = "sıcak"; stim = qzPic(HOTCOLD_IMAGES[h[0]]); opts = [qzPic(HOTCOLD_IMAGES[randomItem(cold)]), qzPic(HOTCOLD_IMAGES[h[1]]), qzPic(HOTCOLD_IMAGES[h[2]])]; }
+        else if(ty === "face"){ const f = randomItem(["happy","sad"]); word = f === "happy" ? "mutlu" : "üzgün"; stim = qzPic(FACE_IMAGES[f]); opts = [qzPic(FACE_IMAGES[QZ_OPP_FACE[f]]), qzPic(FACE_IMAGES[f]), qzPic(FACE_IMAGES[randomItem(["surprised","sleepy"])])]; }
+        else { const st = randomItem(OPPOSITE_STATES[ty]), op = OPPOSITE_STATES[ty].find(x => x !== st), col = randomItem(COLORS), oth = randomItem(Object.keys(OPPOSITE_STATES).filter(k => k !== ty && (!isPre() || ["length","fill"].includes(k))));
+          word = OPPOSITE_LABELS[st]; stim = oppositeSVG(ty, st, col); opts = [oppositeSVG(ty, op, col), oppositeSVG(ty, st, col), oppositeSVG(oth, randomItem(OPPOSITE_STATES[oth]), col)]; }
+        if(t === 2 && !isPre()) opts = opts.slice(0, 3);
+        return qzMake(stim, opts, 0, { prompt:`<b>${cap(word)}</b> · zıttı hangisi?`, say:`${cap(word)}. Zıttı hangisi?` }); }); },
+    "syl-touch": () => { const t = currentCombo().t, C = qzCats();
+      const pool = Object.values(C).flatMap(c => c.items).filter(x => !/\s/.test(x.n)).filter(x => { const s = trSyl(x.n); return isPre() ? s >= 1 && s <= 3 : (t === 0 ? s <= 2 : t === 1 ? s <= 3 : s >= 2); });
+      const max = isPre() ? 3 : 4;
+      return shuffleArray(pool).slice(0, qzTrials(6, 4)).map(x => { const s = Math.min(trSyl(x.n), max);
+        const opts = Array.from({length:max}, (_, i) => `<span style="font-size:20px;letter-spacing:1px">${"👏".repeat(i + 1)}</span><span style="display:block;font-weight:900;font-size:18px">${i + 1}</span>`);
+        return { stim: qzPic(x.src), opts, ans: s - 1, prompt:"Kaç hece? <b>El çırparak</b> say", say: x.n, replay:true, fixed:true }; }); },
+    // Sözel Kavrama
+    "sim-touch": () => { const C = qzCats(), t = currentCombo().t, N = qzOpts([3, 4, 5][t], [3, 3, 3][t]);
+      return Array.from({length: qzTrials(6, 4)}, () => { const keys = Object.keys(C); const a = randomItem(keys.filter(k => C[k].items.length >= 3));
+        const ex = shuffleArray(C[a].items), shown = ex.slice(0, t === 0 ? 2 : 1), ans = ex[t === 0 ? 2 : 1];
+        const others = shuffleArray(keys.filter(k => k !== a && (t === 2 && !isPre() ? true : QZ_CLOSE[a] !== k))).slice(0, N - 1).map(k => randomItem(C[k].items));
+        if(t === 2 && !isPre() && QZ_CLOSE[a] && !others.some(o => C[QZ_CLOSE[a]].items.includes(o))) others[0] = randomItem(C[QZ_CLOSE[a]].items);
+        const opts = [qzPic(ans.src)].concat(others.map(o => qzPic(o.src)));
+        const stim = `<div style="display:flex;gap:8px;justify-content:center">${shown.map(x => `<div class="wm-card" style="width:92px;height:92px">${qzPic(x.src)}</div>`).join("")}</div>`;
+        return qzMake(stim, opts, 0, { prompt: shown.length > 1 ? "<b>Bunlara benzeyen</b> hangisi?" : "<b>Buna benzeyen</b> hangisi?", raw:true, after:`İkisi de ${C[a].n}.` }); }); },
+    "def-touch": () => { const C = qzCats(), t = currentCombo().t, N = qzOpts([3, 4, 4][t], [3, 3, 3][t]);
+      const all = Object.entries(C).filter(([k]) => ["wild","sea","meyve","sebze","vehicle"].includes(k)).flatMap(([k, c]) => c.items.filter(x => QZ_DEFS[x.k]).map(x => Object.assign({ cat:k }, x)));
+      return shuffleArray(all).slice(0, qzTrials(6, 4)).map(x => {
+        const sameCat = all.filter(y => y.cat === x.cat && y.k !== x.k), other = all.filter(y => y.cat !== x.cat);
+        const dis = shuffleArray(t === 0 ? other : t === 1 ? sameCat.slice(0, 1).concat(other) : sameCat.concat(other)).slice(0, N - 1);
+        const opts = [qzPic(x.src)].concat(dis.map(d => qzPic(d.src)));
+        return qzMake("", opts, 0, { prompt:"<b>Dinle</b>, anlatılanı bul", say: QZ_DEFS[x.k], replay:true, showText: !isPre() && t === 2 ? false : false }); }); },
+    "use-touch": () => { const t = currentCombo().t, N = qzOpts([3, 4, 4][t], [3, 3, 3][t]), items = qzUseItems();
+      return shuffleArray(items).slice(0, qzTrials(6, 4)).map(x => { const dis = shuffleArray(items.filter(y => y !== x)).slice(0, N - 1);
+        const opts = [qzPic(x.src)].concat(dis.map(d => qzPic(d.src)));
+        return qzMake("", opts, 0, { prompt: x.q, say: x.q, replay:true }); }); },
+    // Görsel Organizasyon
+    "arrow-touch": () => { const t = currentCombo().t, dirs4 = ["up","down","left","right"], dirs8 = dirs4.concat(["up-left","up-right","down-left","down-right"]);
+      const dirs = isPre() ? (t === 2 ? dirs4 : ["left","right"].concat(t ? ["up","down"] : [])) : (t === 2 ? dirs8 : dirs4);
+      return Array.from({length: qzTrials(8, 5)}, () => { const d = randomItem(dirs), col = randomItem(COLORS);
+        const opts = dirs.map(x => qzArrow(x, "#5B6B7A")); return { stim: qzArrow(d, col), opts, ans: dirs.indexOf(d), prompt:"Ok <b>hangi yöne</b> bakıyor?", fixed:true }; }); },
+    "edge-touch": () => { const t = currentCombo().t, sides = isPre() ? [[3, 4], [3, 4, 5], [3, 4, 5]][t] : [[3, 4, 5], [3, 4, 5, 6], [3, 4, 5, 6, 8]][t];
+      return Array.from({length: qzTrials(6, 4)}, () => { const n = randomItem(sides), col = randomItem(COLORS);
+        const rot = t === 0 ? 0 : Math.round(Math.random() * 60 - 30);
+        const opts = sides.map(x => `<span style="font-size:30px;font-weight:900">${x}</span>`);
+        return { stim: `<div style="transform:rotate(${rot}deg);width:100%;height:100%">${polygonSVG(n, col)}</div>`, opts, ans: sides.indexOf(n), prompt:"Bu şeklin <b>kaç kenarı</b> var?", fixed:true }; }); },
+    // Algısal Akıl Yürütme
+    "odd-touch": () => { const t = currentCombo().t, N = qzOpts([4, 6, 9][t], [3, 4, 6][t]);
+      return Array.from({length: qzTrials(6, 4)}, () => { const dim = t === 2 && !isPre() ? randomItem(["rot","size","color"]) : randomItem(["shape","color"]);
+        const sh = randomItem(SHAPES.filter(x => x !== "circle")), col = randomItem(COLORS); let oddSh = sh, oddCol = col, rot = 0, sc = 1;
+        if(dim === "shape") oddSh = randomItem(SHAPES.filter(x => x !== sh)); else if(dim === "color") oddCol = randomItem(COLORS.filter(x => x !== col)); else if(dim === "rot") rot = 180; else sc = 0.7;
+        const opts = Array.from({length:N}, (_, i) => i === 0 ? `<div style="width:100%;height:100%;transform:rotate(${rot}deg) scale(${sc})">${shapeSVG(oddSh, oddCol)}</div>` : shapeSVG(sh, col));
+        return qzMake("", opts, 0, { prompt:"<b>Farklı olan</b> hangisi?" }); }); },
+    "pattern-touch": () => { const t = currentCombo().t;
+      return Array.from({length: qzTrials(6, 4)}, () => { const cols = shuffleArray(COLORS), shs = shuffleArray(SHAPES);
+        const units = [ [ [shs[0], cols[0]], [shs[1], cols[1]] ], [ [shs[0], cols[0]], [shs[0], cols[0]], [shs[1], cols[1]] ], [ [shs[0], cols[0]], [shs[1], cols[1]], [shs[2], cols[2]] ] ];
+        const u = isPre() ? units[t === 2 ? 1 : 0] : units[t];
+        const len = u.length * 2 + 1, seq = Array.from({length: len}, (_, i) => u[i % u.length]), ans = seq[len - 1];
+        const shown = seq.slice(0, len - 1).map(([s, c]) => `<div class="wm-card" style="width:44px;height:44px;padding:4px">${shapeSVG(s, c)}</div>`).join("") + `<div class="wm-card" style="width:44px;height:44px;font-weight:900;font-size:24px;border-style:dashed">?</div>`;
+        const cand = u.map(([s, c]) => s + "|" + c); const extra = [shs[3] + "|" + cols[3]];
+        const optKeys = Array.from(new Set(cand.concat(extra))).slice(0, isPre() ? 3 : 4);
+        const opts = optKeys.map(k => { const [s, c] = k.split("|"); return shapeSVG(s, c); });
+        return { stim: `<div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center">${shown}</div>`, opts, ans: optKeys.indexOf(ans[0] + "|" + ans[1]), prompt:"<b>Sırada</b> hangisi var?", raw:true }; }); },
+    "analogy-touch": () => { const t = currentCombo().t;
+      return Array.from({length: qzTrials(5, 3)}, () => { const ty = isPre() ? randomItem(["color","size"]) : (t === 2 ? "both" : randomItem(["color","size","shape"]));
+        const [s1, s2, s3] = shuffleArray(SHAPES.filter(x => x !== "circle")), [c1, c2] = shuffleArray(COLORS);
+        const f = (s, c, sc) => `<div style="width:100%;height:100%;transform:scale(${sc || 1})">${shapeSVG(s, c)}</div>`;
+        let A, B, C, D, wrong;
+        if(ty === "color"){ A = f(s1, c1); B = f(s1, c2); C = f(s2, c1); D = f(s2, c2); wrong = [f(s2, c1), f(s1, c2)]; }
+        else if(ty === "size"){ A = f(s1, c1, 1); B = f(s1, c1, 0.55); C = f(s2, c2, 1); D = f(s2, c2, 0.55); wrong = [f(s2, c2, 1), f(s1, c1, 0.55)]; }
+        else if(ty === "shape"){ A = f(s1, c1); B = f(s3, c1); C = f(s2, c2); D = f(s3, c2); wrong = [f(s2, c2), f(s3, c1)]; }
+        else { A = f(s1, c1, 1); B = f(s1, c2, 0.55); C = f(s2, c1, 1); D = f(s2, c2, 0.55); wrong = [f(s2, c2, 1), f(s2, c1, 0.55)]; }
+        const card = (h) => `<div class="wm-card" style="width:62px;height:62px;padding:5px">${h}</div>`;
+        const stim = `<div style="display:flex;align-items:center;gap:6px;justify-content:center;flex-wrap:wrap">${card(A)}<b>→</b>${card(B)}<span style="width:14px"></span>${card(C)}<b>→</b><div class="wm-card" style="width:62px;height:62px;font-weight:900;font-size:26px;border-style:dashed">?</div></div>`;
+        const opts = [D].concat(wrong).slice(0, isPre() ? 3 : 3);
+        return qzMake(stim, opts, 0, { prompt:"İlk ikili gibi: <b>soru işaretine</b> hangisi gelir?", raw:true }); }); }
+  };
+  function qzStart(){ const st = mtState; st.phase = "ask"; st.pick = null; renderMtBoard(); const tr = st.trials[st.ti]; if(tr.say) mtLater(() => sayTask(tr.say, 0.85), 250); }
+  function qzTap(i){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "ask") return; st.pick = i; st.phase = "fb";
+    const ok = i === tr.ans; if(ok) gameSfx("correct"); else mtErr(); renderMtBoard();
+    if(!ok && tr.after) mtLater(() => sayTask(tr.after), 300);
+    mtLater(() => { st.ti++; if(st.ti >= st.trials.length){ mtFinish(); return; } qzStart(); }, ok ? 600 : 1500); }
+  function qzRender(st, W, H, isLs){
+    const tr = st.trials[Math.min(st.ti, st.trials.length - 1)], dots = `<div class="wm-dots">${st.trials.map((x, i) => `<i class="${i < st.ti ? "on" : ""}"></i>`).join("")}</div>`;
+    if(st.phase === "idle") return { info:"▶ Başlat'a bas", body: dots };
+    if(st.phase === "done") return { info:"Bitti!", body: dots };
+    const stimH = tr.stim ? (tr.raw ? `<div style="margin:2px 0 8px">${tr.stim}</div>` : `<div class="wm-card" style="width:${Math.min(isLs ? H * 0.5 : 130, W * 0.4)}px;height:${Math.min(isLs ? H * 0.5 : 130, W * 0.4)}px;margin:0 auto 8px;padding:6px">${tr.stim}</div>`) : "";
+    const replay = tr.replay ? `<button type="button" class="wm-btn diff" data-mtbtn="qz-replay" style="margin:0 auto 8px;display:block;min-width:0;padding:8px 16px">🔊 Bir daha dinle</button>` : "";
+    const n = tr.opts.length, d = wmGridDims(n, isLs ? W * (tr.stim ? 0.55 : tr.replay ? 0.7 : 0.9) : W, isLs ? H - 40 : Math.max(120, H - (tr.stim ? (tr.raw ? 120 : 150) : 30) - (tr.replay ? 50 : 0)), tr.fixed ? 64 : 80);
+    const grid = `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + tr.opts.map((o, i) => {
+      const mk = st.phase === "fb" ? (i === tr.ans ? " ok" : (i === st.pick ? " bad" : "")) : "";
+      return `<div class="wm-pic${mk}" data-mt="${i}" style="width:${d.cell}px;height:${d.cell}px;padding:6px;flex-direction:column">${o}</div>`; }).join("") + `</div>`;
+    const body = dots + (isLs && (tr.stim || tr.replay) ? `<div style="display:flex;gap:16px;align-items:center;justify-content:center"><div>${stimH}${replay}</div>${grid}</div>` : stimH + replay + grid);
+    return { info: tr.prompt, body };
+  }
+  // ---- Küçükten Büyüğe Dokun ----
+  function szBuild(){ const t = currentCombo().t, N = (isPre() ? [3, 3, 4] : [3, 4, 5])[t], close = t === 2;
+    return Array.from({length: qzTrials(5, 3)}, () => { const p = randomItem(picPool()), base = close ? 0.5 : 0.35, step = (1 - base) / (N - 1);
+      const sizes = Array.from({length:N}, (_, i) => +(base + step * i).toFixed(2)); return { src: p.src, sizes, order: shuffleArray(sizes.map((s, i) => i)) }; }); }
   const NEW_MT = {
     build: {
       "hear-find": () => { const t = currentCombo().t, K = (isPre() ? [2, 2, 3] : [3, 4, 5])[t], G = (isPre() ? [4, 6, 6] : [6, 8, 9])[t];
@@ -8994,6 +9313,8 @@ const FRUIT_VEG_IMAGES = {
           if(s2.length){ study = s2; fresh = shuffleArray(picPool().filter(x => !d.keys.includes(x.k))).slice(0, s2.length); delayed = true; } } }
         mtState = { kind:"recog", study, test: shuffleArray(study.map(x => ({ x, old:true })).concat(fresh.map(x => ({ x, old:false })))), qi:0, wrong:0, hits:0, fa:0, phase:"idle", delayed };
         return mtState.test; },
+      ...Object.fromEntries(Object.keys(QZ).map(id => [id, () => { mtState = { kind:"quiz", qid:id, trials: QZ[id](), ti:0, wrong:0, phase:"idle" }; return mtState.trials; }])),
+      "size-touch": () => { mtState = { kind:"size", trials: szBuild(), ti:0, pos:0, wrong:0, phase:"idle", marks:{} }; return mtState.trials; },
       "same-number": () => { const items = snBuild(); mtState = { kind:"samenum", T: snTarget, items, found:{}, bad:{}, wrong:0, phase:"idle" }; return items; },
       "vis-face": () => { mtState = { kind:"face", trials: Array.from({length: isPre() ? 2 : 3}, faceTrial), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
       "scene-mem": () => { const sc = pickScene(), N = (isPre() ? [3, 4, 4] : [4, 5, 6])[currentCombo().t];
@@ -9026,6 +9347,8 @@ const FRUIT_VEG_IMAGES = {
         st.study.forEach((x, k) => mtLater(() => { st.si = k; renderMtBoard(); }, 300 + k * step));
         mtLater(() => { if(currentStageIndex === 0) delaySet("recog", { keys: st.study.map(x => x.k) }); st.phase = "ask"; renderMtBoard(); }, 300 + st.study.length * step + 300); },
       samenum(){ const st = mtState; st.phase = "input"; renderMtBoard(); },
+      quiz(){ qzStart(); },
+      size(){ const st = mtState; st.phase = "input"; st.pos = 0; st.marks = {}; renderMtBoard(); },
       face(){ const st = mtState, tr = st.trials[st.ti]; st.found = {}; st.bad = {}; st.si = -1; st.phase = "study"; renderMtBoard();
         const list = tr.mode === "name" ? tr.ppl : tr.study, step = tr.mode === "name" ? (isPre() ? 3000 : 2600) + (stIx() !== currentStageIndex ? 1200 : 0) : (isPre() ? 1800 : 1500);
         list.forEach((x, k) => mtLater(() => { st.si = k; renderMtBoard(); if(tr.mode === "name") sayTask("Bu " + x.nm + "."); }, 300 + k * step));
@@ -9054,6 +9377,10 @@ const FRUIT_VEG_IMAGES = {
           else { st.bad[i] = 1; mtErr(); renderMtBoard(); } return; }
         const want = tr.order[st.qi], ok = i === want; st.pick = i; st.phase = "fb"; if(ok) gameSfx("correct"); else mtErr(); renderMtBoard();
         mtLater(() => { st.pick = null; st.qi++; if(st.qi >= tr.order.length){ NEW_MT.next(); return; } st.phase = "input"; sayTask("Hangisi " + tr.ppl[tr.order[st.qi]].nm + "?"); renderMtBoard(); }, ok ? 600 : 1300); },
+      quiz(i){ qzTap(i); },
+      size(i){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "input" || st.marks[i]) return;
+        if(tr.order[i] === st.pos){ st.marks[i] = "ok"; st.pos++; gameSfx("correct"); renderMtBoard(); if(st.pos >= tr.sizes.length){ st.phase = "fb"; mtLater(() => { st.marks = {}; st.pos = 0; NEW_MT.next(); }, 600); } }
+        else { st.marks[i] = "bad"; mtErr(); renderMtBoard(); mtLater(() => { if(st.marks[i] === "bad"){ delete st.marks[i]; renderMtBoard(); } }, 600); } },
       samenum(i){ const st = mtState; if(st.phase !== "input" || st.found[i] || st.bad[i]) return; const it = st.items[i];
         if(it.tgt){ st.found[i] = 1; gameSfx("correct"); renderMtBoard(); if(Object.keys(st.found).length >= st.items.filter(x => x.tgt).length){ st.phase = "fb"; mtLater(() => mtFinish(), 500); } }
         else { st.bad[i] = 1; mtErr(); renderMtBoard(); } },
@@ -9083,6 +9410,7 @@ const FRUIT_VEG_IMAGES = {
       "face-done"(){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "input" || tr.mode !== "recog") return;
         const miss = tr.study.length - Object.keys(st.found).length; for(let k = 0; k < miss; k++) mtErr();
         st.phase = "fb"; st.reveal = true; renderMtBoard(); mtLater(() => { st.reveal = false; NEW_MT.next(); }, miss ? 1500 : 500); },
+      "qz-replay"(){ const st = mtState, tr = st.trials && st.trials[st.ti]; if(tr && tr.say) sayTask(tr.say, 0.85); },
       "draw-undo"(){ const st = mtState; if(st.phase !== "input") return; st.mine = new Set(); st.sel = -1; renderMtBoard(); },
       "draw-done"(){ const st = mtState; if(st.phase !== "input") return; const want = st.trials[st.ti];
         let e = 0; want.forEach(k => { if(!st.mine.has(k)) e++; }); st.mine.forEach(k => { if(!want.has(k)) e++; });
@@ -9140,6 +9468,12 @@ const FRUIT_VEG_IMAGES = {
         info = `${st.delayed ? "⏰ " : ""}<b>Bunu gördün mü?</b> · ${st.qi + 1}/${st.test.length}`;
         body = `<div class="wm-card${st.fb ? " " + st.fb : ""}" style="width:${sz}px;height:${sz}px;${st.fb === "ok" ? "border-color:#1FA463" : st.fb === "bad" ? "border-color:#E5484D" : ""}">${imgTag(it.x.src)}</div>` +
           `<div class="wm-btns" style="margin:10px auto 0"><button type="button" class="wm-btn same" data-judge="1">Gördüm</button><button type="button" class="wm-btn diff" data-judge="0">Görmedim</button></div>`;
+      } else if(st.kind === "quiz"){
+        const r = qzRender(st, W, H, isLs); info = r.info; body = r.body;
+      } else if(st.kind === "size"){
+        const tr = st.trials[ti];
+        info = "<b>Küçükten büyüğe</b> dokun";
+        body = dots + grid(tr.order, (o, i, c) => `<div class="wm-pic${st.marks[i] ? " " + st.marks[i] : ""}" data-mt="${i}" style="width:${c}px;height:${c}px;">${qzPic(tr.src, tr.sizes[o])}${st.marks[i] === "ok" ? `<span class="num">${tr.order[i] + 1}</span>` : ""}</div>`, 80);
       } else if(st.kind === "samenum"){
         const total = st.items.filter(x => x.tgt).length;
         const head = `<div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px"><span style="font-weight:800">Bul:</span><span style="font:900 40px 'Trebuchet MS',Verdana,sans-serif;color:var(--ink);background:var(--panel);border:3px solid var(--teal);border-radius:14px;padding:0 16px;line-height:56px">${st.T}</span><span style="font-weight:800">${Object.keys(st.found).length}/${total}</span></div>`;
@@ -9188,7 +9522,7 @@ const FRUIT_VEG_IMAGES = {
       return { info, body };
     }
   };
-  const NEW_MT_KINDS = ["hear","dir","miss","chg","recog","draw","face","scene","scenet","samenum"];
+  const NEW_MT_KINDS = ["hear","dir","miss","chg","recog","draw","face","scene","scenet","samenum","size"];
 
   // ---- Gecikmeli hatırlama: son yapılan görevi ve zamanını saklar, 10 dk sonra hatırlatır ----
   const DELAY_TASKS = { story:"Hikâye Hatırlama → Aşama 3 (Gecikmeli)", recog:"Bunu Gördün mü? → Aşama 2 (Gecikmeli)", list:"Liste Öğrenme → Aşama 2 (Gecikmeli)" };
@@ -9605,6 +9939,8 @@ const FRUIT_VEG_IMAGES = {
         const cueHtml = `<div class="wm-card" style="width:${cue}px;height:${cue}px;border-color:var(--teal)">${imgTag(p.a.src)}</div>`;
         body = dots + (isLs ? `<div style="display:flex;gap:16px;align-items:center;justify-content:center">${cueHtml}${grid}</div>` : cueHtml + grid);
       }
+    } else if(st.kind === "quiz"){
+      const r = qzRender(st, W, H, isLs); info = r.info; body = r.body;
     } else if(NEW_MT_KINDS.includes(st.kind)){
       const r = NEW_MT.render(st, W, H, isLs); info = r.info; body = r.body;
     } else if(st.kind === "picsay" && st.phase === "judge"){
@@ -9738,6 +10074,18 @@ const FRUIT_VEG_IMAGES = {
     "vis-miss":         [() => Q("Resimlere iyi bak. Biri kaybolacak; eksik olana dokun.")],
     "vis-chg":          [() => Q("Resimlere iyi bak. Biri değişecek; değişene dokun.")],
     "vis-recog":        [() => Q("Resimlere iyi bak. Sonra her resim için Gördüm ya da Görmedim'e dokun."), () => `10–15 dk sonra açın: ${Q("Az önce gördüğün resimleri hatırlıyor musun? Gördüm ya da Görmedim'e dokun.")}`],
+    "odd-cat":          [() => Q("Resimlere bak. Gruba uymayana dokun.")],
+    "opp-touch":        [() => Q("Dinle ve üstteki resme bak. Zıttı olan resme dokun.")],
+    "syl-touch":        [() => Q("Resmin adını dinle, el çırparak heceleri say. Doğru sayıya dokun.")],
+    "sim-touch":        [() => Q("Üstteki resimlere bak. Onlara benzeyen resme dokun.")],
+    "def-touch":        [() => Q("Dinle. Anlatılan resme dokun.")],
+    "use-touch":        [() => Q("Soruyu dinle. Doğru resme dokun.")],
+    "size-touch":       [() => Q("Resimlere küçükten büyüğe doğru dokun.")],
+    "arrow-touch":      [() => Q("Üstteki ok hangi yöne bakıyorsa, aynı yöne bakan oka dokun.")],
+    "edge-touch":       [() => Q("Şeklin kenarlarını say. Doğru sayıya dokun.")],
+    "odd-touch":        [() => Q("Şekillere bak. Farklı olana dokun.")],
+    "pattern-touch":    [() => Q("Sırayı incele. Soru işaretine gelecek olana dokun.")],
+    "analogy-touch":    [() => Q("İlk ikilide ne değişti? Aynısını yap; soru işaretine geleni seç.")],
     "same-number":      [() => Q(`Bütün ${SN_PLURAL[snValid()]} bul ve dokun. Rengi, boyu, eğikliği farklı olabilir.`) + (!isPre() && currentCombo().t === 2 ? ` ${Q("Ters yazılmış olana dokunma.")}` : "")],
     "vis-face":         [() => Q("Yüzlere iyi bak. Sonra gördüğün yüzlere dokun, bitince Bitti'ye bas."), () => Q("Yüzleri ve adlarını aklında tut. Adını duyunca o yüze dokun.")],
     "scene-mem":        [() => `Resme birlikte bakın; kapanınca soruları sorun: ${Q("Resme iyi bak, sonra sorularıma cevap ver.")}`],
@@ -9929,6 +10277,18 @@ const FRUIT_VEG_IMAGES = {
       "arrow-direction":[0, "Elinle Göster", "Okun yönünü önce elinle göster, sonra söyle."],
       "edge-count":[0, "Parmakla Say", "Bir köşeden başla, parmağınla kenarlara dokunarak say."],
       "number-find-mixed":scan,
+      "odd-cat":[0, "Kendine Sor", "Kendine sor: Bunlar ne? Hangisi onlardan değil?"],
+      "opp-touch":[0, "Kelimeyi Söyle", "Önce resimdekini söyle, sonra tersini düşün."],
+      "syl-touch":[0, "El Çırp", "Adını söylerken her hecede bir el çırp, sonra say."],
+      "sim-touch":[0, "Kendine Sor", "Kendine sor: Bu ne? Hangi gruba girer?"],
+      "def-touch":[0, "İpucunu Yakala", "Dinlerken en önemli ipucunu kendine söyle."],
+      "use-touch":[0, "Hayal Et", "O işi yaparken kendini gözünde canlandır."],
+      "size-touch":[0, "En Küçüğü Bul", "Her seferinde kalanlar arasından en küçüğünü ara."],
+      "arrow-touch":[0, "Elinle Göster", "Okun yönünü önce elinle göster, sonra dokun."],
+      "edge-touch":[0, "Parmakla Say", "Bir köşeden başla, kenarlara dokunarak say."],
+      "odd-touch":[0, "Tek Tek Karşılaştır", "Renge, şekle, büyüklüğe ve yöne tek tek bak."],
+      "pattern-touch":[0, "Sesli Söyle", "Sırayı sesli söyle, sonra sıradakini bul."],
+      "analogy-touch":[0, "Kuralı Söyle", "İlk ikilide ne değişti? Sesli söyle, sonra uygula."],
       "same-number":[0, "Şeklini Söyle", "Sayının şeklini kendine anlat; sonra satır satır tara."],
       "odd-one-out":[0, "Tek Tek Karşılaştır", "Renge, şekle, büyüklüğe tek tek bak: hangisi farklı?"],
       "sequence-pattern":[0, "Sesli Söyle", "Örüntüyü sesli söyle, sonra sıradakini bul."],
@@ -11658,12 +12018,15 @@ const FRUIT_VEG_IMAGES = {
     const arm = (d, cls) => `<path class="${cls || ""}" d="${d}" fill="none" stroke="${shade}" stroke-width="13" stroke-linecap="round"/><path class="${cls || ""}" d="${d}" fill="none" stroke="${body}" stroke-width="9" stroke-linecap="round"/>`;
     const armsDown = arm("M34 78 C 22 88, 18 98, 26 104") + arm("M48 84 C 44 96, 46 104, 54 106") + arm("M72 84 C 76 96, 74 104, 66 106") + arm("M86 78 C 98 88, 102 98, 94 104");
     const armsCheer = arm("M30 70 C 16 62, 10 48, 16 38", "wave") + arm("M48 84 C 44 96, 46 104, 54 106") + arm("M72 84 C 76 96, 74 104, 66 106") + arm("M90 70 C 104 62, 110 48, 104 38", "wave");
-    const eyes = mood === "cheer"
+    const eyes = mood === "sleepy"
+      ? `<path d="M37 52 Q45 58 53 52" fill="none" stroke="${dark}" stroke-width="4" stroke-linecap="round"/><path d="M67 52 Q75 58 83 52" fill="none" stroke="${dark}" stroke-width="4" stroke-linecap="round"/>`
+      : mood === "cheer"
       ? `<path d="M37 50 Q45 40 53 50" fill="none" stroke="${dark}" stroke-width="4.5" stroke-linecap="round"/><path d="M67 50 Q75 40 83 50" fill="none" stroke="${dark}" stroke-width="4.5" stroke-linecap="round"/>`
       : `<g class="blink"><ellipse cx="45" cy="50" rx="11" ry="12.5" fill="#fff"/><ellipse cx="75" cy="50" rx="11" ry="12.5" fill="#fff"/>
          <circle cx="47" cy="52" r="6.2" fill="${dark}"/><circle cx="77" cy="52" r="6.2" fill="${dark}"/><circle cx="49.5" cy="49" r="2.3" fill="#fff"/><circle cx="79.5" cy="49" r="2.3" fill="#fff"/></g>`;
     const brows = mood === "encourage" ? `<path d="M36 34 Q44 30 52 33" fill="none" stroke="${dark}" stroke-width="3" stroke-linecap="round"/><path d="M68 33 Q76 30 84 34" fill="none" stroke="${dark}" stroke-width="3" stroke-linecap="round"/>` : "";
-    const mouth = mood === "cheer"
+    const mouth = mood === "sleepy" ? `<ellipse cx="60" cy="68" rx="4.5" ry="5.5" fill="${dark}"/>`
+      : mood === "cheer"
       ? `<path d="M48 64 Q60 80 72 64 Z" fill="${dark}"/><path d="M53 70 Q60 76 67 70" fill="#FF7A8A"/>`
       : mood === "encourage" ? `<path d="M51 67 Q60 73 69 67" fill="none" stroke="${dark}" stroke-width="4" stroke-linecap="round"/>`
       : `<path d="M50 65 Q60 75 70 65" fill="none" stroke="${dark}" stroke-width="4" stroke-linecap="round"/>`;
@@ -11891,7 +12254,7 @@ const FRUIT_VEG_IMAGES = {
   // Ailenin kaydettiği sonuçlar uzmana da gider (links/{kod}/results). Uzman listesi için aile, bağlantı belgesindeki
   // kısa haftalık özeti (çalışılan günler, son etkinlik) günceller.
   // Firestore yapısı: links/{kod} { expertUid, childName, level, familyUid, consent, program, weekKey, weekDays, lastActivityAt }
-  const APP_VERSION = "2026.10.07-e";
+  const APP_VERSION = "2026.10.07-g";
   const LINK_LOCAL_KEY = "wm_family_links_v1";   // aile cihazında: kişi|seviye → kod + program önbelleği
   const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -12117,8 +12480,10 @@ const FRUIT_VEG_IMAGES = {
     const w = document.getElementById("expertWrap");
     const lvlSave = readingLevel; readingLevel = l.level || "post";
     const targets = famTargetOptions();
-    const p = Object.assign({ target: targets[0] ? targets[0].id : "islemleme-hizi", days: [0,1,2,3,4], minutes: 12, mains: [] }, l.program || {});
+    const p = Object.assign({ target: targets[0] ? targets[0].id : "islemleme-hizi", days: [0,1,2,3,4], minutes: 12, mains: [], games: [] }, l.program || {});
+    if(!Array.isArray(p.games)) p.games = [];
     const mainsOf = (t) => famExIds(t);
+    let gamesOpen = null;
     const draw = () => {
       readingLevel = l.level || "post";
       const exs = mainsOf(p.target);
@@ -12134,6 +12499,10 @@ const FRUIT_VEG_IMAGES = {
           <div class="ex-field"><label>Günlük süre</label><div class="ex-seg" style="grid-template-columns:repeat(3,1fr)">${[10, 15, 20].map(m => `<button type="button" data-m="${m}" class="${p.minutes === m ? "on" : ""}">${m} dk</button>`).join("")}</div></div>
           <div class="ex-field"><label>Önerilen çalışmalar (en fazla 4). Aile bunları tek dokunuşla açar; günlük oturumda her gün bunlardan 2'si yapılır. Boş bırakılırsa uygulama seçer.</label>
             <div>${exs.map(id => `<div class="ex-row" data-x="${id}"><div class="tx"><div class="t1">${famLabel(id)}</div></div><span class="ex-check${p.mains.includes(id) ? " on" : ""}">${p.mains.includes(id) ? I_CHECK : ""}</span></div>`).join("")}</div></div>
+          <div class="ex-field"><label>Oyun haritası görevleri (en fazla 3). Çocuğun Zihin Adaları'ndaki "Bugünün Rotası"na <b>özel görev</b> olarak eklenir.</label>
+            ${p.games.length ? `<div class="fam-chips" style="margin-bottom:6px">${p.games.map(id => `<button type="button" class="fam-chip on" data-g="${id}">${famLabel(id)} ✕</button>`).join("")}</div>` : ""}
+            <div>${GAME_ISLANDS.filter(i => !i.legacy && i.id !== "goz").map(i => { const ids = gameIslandStops(i); if(!ids.length) return "";
+              return `<details class="ex-isl" data-isl="${i.id}"${gamesOpen === i.id ? " open" : ""}><summary style="font-weight:800;cursor:pointer;padding:6px 0"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${i.color};margin-right:6px"></span>${i.name} <span style="color:var(--ink-soft);font-weight:700">(${ids.filter(x => p.games.includes(x)).length}/${ids.length})</span></summary>${ids.map(id => `<div class="ex-row" data-g="${id}"><div class="tx"><div class="t1">${famLabel(id)}</div></div><span class="ex-check${p.games.includes(id) ? " on" : ""}">${p.games.includes(id) ? I_CHECK : ""}</span></div>`).join("")}</details>`; }).join("")}</div></div>
           <div class="ex-err" id="exProgErr"></div>
           <button type="button" class="fam-cta" id="exSendBtn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3L10.5 13.5"/><path d="M21 3l-6.5 18-4-7.5-7.5-4z"/></svg> ${l.program ? "Programı güncelle" : "Aileye gönder"}</button>
         </div>
@@ -12147,6 +12516,9 @@ const FRUIT_VEG_IMAGES = {
       w.querySelectorAll("[data-d]").forEach(x => x.onclick = () => { const d = +x.dataset.d; p.days = p.days.includes(d) ? p.days.filter(v => v !== d) : p.days.concat([d]).sort(); draw(); });
       w.querySelectorAll("[data-m]").forEach(x => x.onclick = () => { p.minutes = +x.dataset.m; draw(); });
       w.querySelectorAll("[data-x]").forEach(x => x.onclick = () => { const id = x.dataset.x; if(p.mains.includes(id)) p.mains = p.mains.filter(v => v !== id); else if(p.mains.length < 4) p.mains = p.mains.concat([id]); draw(); });
+      w.querySelectorAll("details.ex-isl").forEach(d => d.addEventListener("toggle", () => { if(d.open) gamesOpen = d.dataset.isl; }));
+      w.querySelectorAll("[data-g]").forEach(x => x.onclick = () => { const id = x.dataset.g; const d = x.closest("details"); if(d) gamesOpen = d.dataset.isl;
+        if(p.games.includes(id)) p.games = p.games.filter(v => v !== id); else if(p.games.length < 3) p.games = p.games.concat([id]); else { showLevelFlash("En fazla 3 oyun görevi seçilebilir.", "down"); return; } draw(); });
       const sh = document.getElementById("exShareBtn");
       if(sh) sh.onclick = async () => {
         const text = `Zihin Atölyesi bağlantı kodu (${l.childName}): ${fmtCode(code)}\nUygulamada Bilişsel Etkinlik → Aile → Uzmana bağlan bölümüne girin.`;
@@ -12157,7 +12529,7 @@ const FRUIT_VEG_IMAGES = {
         if(!p.days.length){ err.textContent = "En az bir gün seçin."; return; }
         if(!fbOk()){ err.textContent = "İnternet bağlantısı yok."; return; }
         const { db, doc, updateDoc } = window.__fb;
-        try{ await updateDoc(doc(db, "links", code), { program: { target: p.target, days: p.days, minutes: p.minutes, mains: p.mains, updatedAt: Date.now() } }); showLevelFlash(l.familyUid ? "Program aileye gönderildi ✓" : "Program kaydedildi; aile bağlanınca görecek ✓", "levelup"); }
+        try{ await updateDoc(doc(db, "links", code), { program: { target: p.target, days: p.days, minutes: p.minutes, mains: p.mains, games: p.games, updatedAt: Date.now() } }); showLevelFlash(l.familyUid ? "Program aileye gönderildi ✓" : "Program kaydedildi; aile bağlanınca görecek ✓", "levelup"); }
         catch(e){ console.error(e); err.textContent = "Program kaydedilemedi."; }
       };
       document.getElementById("exRenameBtn").onclick = async () => {
@@ -12367,6 +12739,8 @@ const FRUIT_VEG_IMAGES = {
     goz:'<svg viewBox="0 0 24 24" fill="none" stroke="#5B47C9" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3.2" fill="#5B47C9"/></svg>',
     plan:'<svg viewBox="0 0 24 24" fill="none" stroke="#C2410C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5L3.5 6.5v13L9 17.5l6 2 5.5-2v-13L15 6.5z"/><path d="M9 4.5v13M15 6.5v13"/></svg>',
     bellek:'<svg viewBox="0 0 24 24" fill="none" stroke="#9A6B00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1.1 1.3 1.1 2.2h5c0-.9.5-1.7 1.1-2.2A6 6 0 0 0 12 3z" fill="#FFE27A"/></svg>',
+    kavram:'<svg viewBox="0 0 24 24" fill="none" stroke="#1D6FB8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="6" fill="#DDF1FF"/><path d="M9.5 16.5h5M10.5 19.5h3"/><path d="M12 7v3l2 1"/></svg>',
+    bulmaca:'<svg viewBox="0 0 24 24" fill="none" stroke="#6B3FD0" stroke-width="2" stroke-linejoin="round"><path d="M4 9h4a2 2 0 1 1 4 0h4v4a2 2 0 1 1 0 4v3H4z" fill="#EEE4FF"/></svg>',
     soz:'<svg viewBox="0 0 24 24" fill="none" stroke="#B4236A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v10H9l-5 4z" fill="#FFD6E8"/><path d="M8 9h8M8 12h5"/></svg>',
     park:'<svg viewBox="0 0 24 24" fill="none" stroke="#1D6FB8" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3.5 9.5c5 1.5 12 1.5 17 0M3.5 14.5c5-1.5 12-1.5 17 0M12 3v18"/></svg>'
   };
@@ -12376,6 +12750,8 @@ const FRUIT_VEG_IMAGES = {
     { id:"goz",    name:"Göz Adası",    color:"#B09BFF", fromCategory:"goz-takip" },
     { id:"bellek", name:"Bellek Adası", color:"#F7D046", ids:["wm-same","corsi","zihni","wm-seq","span-touch","market","wm-where","running","lns-touch","animal-fruit","rt-shapes","vis-miss","rt-position","vis-chg","rt-colors","vis-recog","vis-face","scene-touch","vis-draw"] },
     { id:"soz",    name:"Söz Adası",    color:"#FF9EC4", ids:["hear-find","pal-touch","dir-follow","pic-seq-touch"] },
+    { id:"kavram", name:"Kavram Adası", color:"#8FD3FF", ids:["odd-cat","sim-touch","opp-touch","def-touch","syl-touch","use-touch"] },
+    { id:"bulmaca",name:"Bulmaca Adası",color:"#C9A7FF", ids:["size-touch","odd-touch","arrow-touch","pattern-touch","edge-touch","analogy-touch"] },
     { id:"plan",   name:"Plan Adası",   color:"#FF8E7E", ids:["plan-swap","plan-beads","plan-tol","plan-cubes","plan-think"], unlockStars:3 },
     { id:"park",   name:"Oyun Parkı",   color:"#62C1FA", legacy:true }
   ];
@@ -12403,6 +12779,10 @@ const FRUIT_VEG_IMAGES = {
     const i = r.stars.findIndex(x => !x);
     let t = i < 0 ? 2 : i;
     const ex = exerciseById(exId);
+    // akıllı zorluk (süre): Başlangıç'ı hatasız ve çok hızlı bitirdiyse bir sonraki sefer doğrudan Zor denenir
+    if(r.jump === 2 && !r.stars[2]) return Math.max(2, (ex && ex.minTier) || 0);
+    // akıllı zorluk (hata): aynı düzeyde iki kez zorlandıysa bir alt düzeyle ısınır; orada başarınca geri döner
+    if(t > 0 && r.fails && (r.fails[t] || 0) >= 2) t -= 1;
     return Math.max(t, (ex && ex.minTier) || 0);
   }
   function gameIslandStops(isl){
@@ -12466,7 +12846,8 @@ const FRUIT_VEG_IMAGES = {
       const here = hereIsl && hereIsl.id === isl.id ? `<span class="here">Buradasın</span>` : "";
       const palms = isl.legacy ? PALM_SVG : (i % 2 ? PALM_SVG.replace('class="palm"', 'class="palm l"') : PALM_SVG);
       if(here) herePos = { left, top, right: i % 2 === 0 };
-      return `<button type="button" class="isl-island${locked ? " locked" : ""}" data-isl="${isl.id}" style="left:${left}%;top:${top}px;background:${isl.color};">${palms}<span class="ico">${GAME_ISLAND_ICONS[isl.id] || ""}</span>${lock}<span class="nm">${isl.name}</span>${stars}${extra}${here}</button>`;
+      const grow = isl.legacy ? "" : (() => { const n = gxIslGrowth(isl.id); return n ? `<span class="isl-grow">${GROW_SVG.slice(0, n).join("")}</span>` : ""; })();
+      return `<button type="button" class="isl-island${locked ? " locked" : ""}" data-isl="${isl.id}" style="left:${left}%;top:${top}px;background:${isl.color};">${palms}<span class="ico">${GAME_ISLAND_ICONS[isl.id] || ""}</span>${lock}<span class="nm">${isl.name}</span>${stars}${extra}${here}${grow}</button>`;
     }).join("");
     // adaları birleştiren yol: hafif dalgalı (yüzde cinsinden x'i piksele çevirip sinüs dalgası ile çiz)
     const mapW = map.clientWidth || 360, mapH = GAME_ISLANDS.length * H + 40;
@@ -12486,7 +12867,7 @@ const FRUIT_VEG_IMAGES = {
     map.innerHTML = `<svg class="isl-path" viewBox="0 0 ${mapW} ${mapH}" aria-hidden="true">` +
       `<path d="${pathD}" fill="none" stroke="rgba(8,70,120,.25)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" transform="translate(0,3)"/>` +
       `<path d="${pathD}" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-dasharray="1 13" stroke-linecap="round" stroke-linejoin="round"/></svg>` + html +
-      (herePos ? `<div class="isl-mascot" style="${herePos.right ? `left:min(calc(${herePos.left + 48}% + 4px), calc(100% - 74px))` : `left:max(calc(${herePos.left}% - 70px), 0px)`};top:${herePos.top + 30}px;">${mascotSVG("happy")}</div>` : "");
+      (herePos ? `<div class="isl-mascot" style="${herePos.right ? `left:min(calc(${herePos.left + 48}% + 4px), calc(100% - 74px))` : `left:max(calc(${herePos.left}% - 70px), 0px)`};top:${herePos.top + 30}px;">${zihniSVG("happy")}</div>` : "");
     // sıradaki durak: yıldızı eksik olan ilk açık durak
     let next = null;
     for(const isl of GAME_ISLANDS){
@@ -12498,6 +12879,7 @@ const FRUIT_VEG_IMAGES = {
     nx.innerHTML = next
       ? `<div class="tx"><div class="t1">Sıradaki durak</div><div class="t2">${next.isl.name} · ${gameChildLabel(exerciseById(next.id))}</div></div><button type="button" class="isl-play" data-play="${next.id}" data-isl="${next.isl.id}">Oyna</button>`
       : `<div class="tx"><div class="t1">Tüm yıldızları topladın!</div><div class="t2">İstediğin durağı yeniden oynayabilirsin.</div></div>`;
+    try{ gxRenderMapExtras(); if(gxRouteNext() && (currentPlayerName || "").trim()) nx.style.display = "none"; else nx.style.display = ""; }catch(e){ console.error(e); }
     document.getElementById("islandScreen").style.display = "flex";
     document.getElementById("islandScreen").scrollTop = 0;
     try{ scheduleTour("islands", "islandScreen"); }catch(e){}
@@ -12636,6 +13018,7 @@ const FRUIT_VEG_IMAGES = {
     const ci = CATEGORIES.findIndex(c => c.exerciseIds.includes(exId));
     if(ci < 0) return;
     if(!(currentPlayerName || "").trim()){ gamePendingStart = [exId, islId]; openGameWho(); return; }   // önce kim oynuyor
+    if(gxOver()){ gxShowSleep(); return; }
     gameStop = { exId, islandId: islId || gameIsland };
     gameIsland = gameStop.islandId;
     hideGameScreens();
@@ -12656,8 +13039,13 @@ const FRUIT_VEG_IMAGES = {
     document.getElementById("gameStopTitle").textContent = gameChildLabel(ex);
     document.getElementById("gameStopStars").innerHTML = gameRecord(exId).stars.map(GAME_STAR_SVG).join("");
     renderGameWho();
+    // zorlandığı durakta ipucu (o çalışmanın strateji cümlesi)
+    const rr = gameRecord(exId), tt = currentCombo().t, hint = gxHintFor(exId);
+    const needHint = !!hint && rr.fails && ((rr.fails[tt] || 0) >= 1 || (rr.fails[tt + 1] || 0) >= 2);
+    gameStop.hinted = needHint;
+    const hb = document.getElementById("gameHint"); hb.style.display = needHint ? "" : "none"; hb.textContent = needHint ? "💡 İpucu: " + hint : "";
     window.scrollTo(0, 0);
-    setTimeout(() => { if(gameMode) speakText(`${gameLine("start")} ${childInstructionText()}`); }, 450);
+    setTimeout(() => { if(gameMode) speakText(`${gameLine("start")} ${childInstructionText()}${needHint ? " İpucu: " + hint : ""}`); }, 450);
   }
   // kronometre durunca: çalışma bittiyse yıldız ve ödül ekranı
   function gameAfterStop(){
@@ -12678,15 +13066,28 @@ const FRUIT_VEG_IMAGES = {
     if(good) r.stars[t] = true;
     const faster = good && r.best[t] && ms < r.best[t];
     if(good) r.best[t] = r.best[t] ? Math.min(r.best[t], ms) : ms;
+    // akıllı zorluk kaydı
+    r.fails = r.fails || [0, 0, 0];
+    const warmedUp = good && t < 2 && (r.fails[t + 1] || 0) >= 2;
+    if(good){ r.fails[t] = 0; if(warmedUp) r.fails[t + 1] = 0; }
+    else r.fails[t] = (r.fails[t] || 0) + (errors >= Math.max(4, allowed * 3) ? 2 : 1);
+    const stepDown = !good && t > 0 && r.fails[t] >= 2;
+    if(r.jump === t) delete r.jump;
+    let jumped = false;
+    if(good && newStar && t === 0 && !r.stars[2] && !ex.isMotion && gxFastFlawless(ex, ms, errors)){ r.jump = 2; jumped = true; }
     gameRecordSave(ex.id, r);
-    showGameReward({ ex, t, good, newStar, faster, r });
+    let gx = []; try{ gx = gxAfterStop(ex.id, gameStop.islandId, { good, newStar, faster, hinted: !!gameStop.hinted }); }catch(e){ console.error(e); }
+    if(warmedUp) gx.unshift({ k:"up", t:`Isındın! Şimdi yeniden ${GAME_TIER_NAMES[t + 1]} düzeyi deneyebilirsin.` });
+    if(stepDown) gx.unshift({ k:"down", t:"Bir dahaki sefere biraz daha kolayıyla ısınacağız." });
+    if(jumped) gx.unshift({ k:"up", t:"Çok hızlı ve hatasızdın! Bir dahaki sefere Zor düzeyi deneyeceksin." });
+    showGameReward({ ex, t, good, newStar, faster, r, gx });
   }
-  function showGameReward({ ex, t, good, newStar, faster, r }){
+  function showGameReward({ ex, t, good, newStar, faster, r, gx }){
     const isl = GAME_ISLANDS.find(x => x.id === (gameStop && gameStop.islandId));
     document.getElementById("grWhere").textContent = `${isl ? isl.name + " · " : ""}${gameChildLabel(ex)}`;
     document.getElementById("grTitle").textContent = good ? "Durak tamam!" : "Az kaldı!";
     document.getElementById("grTitle").classList.toggle("soft", !good);
-    document.getElementById("grMascot").innerHTML = mascotSVG(good ? "cheer" : "encourage");
+    document.getElementById("grMascot").innerHTML = zihniSVG(good ? "cheer" : "encourage");
     document.querySelector("#gameReward .gr-rays").style.display = good ? "" : "none";
     const burst = document.getElementById("grBurst");
     burst.innerHTML = good && newStar ? Array.from({length: 14}, (_, k) => {
@@ -12707,7 +13108,15 @@ const FRUIT_VEG_IMAGES = {
     } else {
       lines.push(L(I_AGAIN, "#9A5A12", "Biraz acele ettin. Bir daha dene, bu kez daha dikkatli!"));
     }
+    const I_SP = '<path d="M12 3l2 5.6 5.6 2-5.6 2L12 18.2l-2-5.6-5.6-2 5.6-2z"/>';
+    (gx || []).forEach(x => lines.push(L(x.k === "down" ? I_AGAIN : x.k === "up" ? I_UP : I_SP, "#B07D00", x.t).replace('class="gr-line"', 'class="gr-line gx"')));
     document.getElementById("grCard").innerHTML = lines.join("");
+    // rotada sıradaki ve süre sınırı
+    const over = gxOver(), nxt = over ? null : gxRouteNext();
+    const rb = document.getElementById("grRouteBtn"); rb.style.display = nxt && nxt.id !== ex.id ? "" : "none";
+    if(nxt){ rb.dataset.play = nxt.id; rb.dataset.isl = nxt.isl; }
+    document.getElementById("grAgainBtn").style.display = over ? "none" : "";
+    document.getElementById("grMapBtn").textContent = over ? "Zihni uyusun" : "Haritaya dön";
     document.getElementById("gameReward").style.display = "block";
     document.getElementById("gameReward").scrollTop = 0;
     const allDone = r.stars.every(Boolean);
@@ -12808,6 +13217,7 @@ const FRUIT_VEG_IMAGES = {
     });
     document.getElementById("islandStopsBackBtn").addEventListener("click", showIslandMap);
     document.getElementById("islandScreen").addEventListener("click", e => {
+      if(e.target.closest("#closetBtn")){ sfx("pop"); gxOpenCloset(); return; }
       const p = e.target.closest("[data-play]"); if(p){ sfx("go"); startGameStop(p.dataset.play, p.dataset.isl); return; }
       const b = e.target.closest(".isl-island"); if(b){ sfx("pop"); showIslandStops(b.dataset.isl); }
     });
@@ -12825,7 +13235,15 @@ const FRUIT_VEG_IMAGES = {
     });
     document.getElementById("gameSpeakBtn").addEventListener("click", toggleSpeechMute);
     renderSpeakBtn();
+    document.getElementById("grRouteBtn").addEventListener("click", (e) => {
+      const b = e.currentTarget; document.getElementById("gameReward").style.display = "none"; resetTimer(); sfx("go");
+      startGameStop(b.dataset.play, b.dataset.isl);
+    });
+    document.getElementById("gsExitBtn").addEventListener("click", () => { document.getElementById("gameSleep").style.display = "none"; hideGameScreens(); exitGameMode(); document.getElementById("modeScreen").style.display = "flex"; });
+    document.getElementById("gsMoreBtn").addEventListener("click", () => showParentLock(() => { const g = gxGet(), k = todayKey(); g.extra[k] = (g.extra[k] || 0) + 10; g.warned[k] = 0; gxSave(g); document.getElementById("gameSleep").style.display = "none"; showIslandMap(); }));
+    document.getElementById("closetCloseBtn").addEventListener("click", () => { document.getElementById("closetSheet").style.display = "none"; showIslandMap(); });
     document.getElementById("grMapBtn").addEventListener("click", () => {
+      if(gxOver()){ document.getElementById("gameReward").style.display = "none"; resetTimer(); gxShowSleep(); return; }
       document.getElementById("gameReward").style.display = "none";
       resetTimer(); exitGameMode(); document.getElementById("mainApp").style.display = "none";
       if(gameIsland) showIslandStops(gameIsland); else showIslandMap();
@@ -12838,6 +13256,219 @@ const FRUIT_VEG_IMAGES = {
     document.querySelectorAll("#viewSwitch .view-btn").forEach(b => b.addEventListener("click", (e) => { e.stopPropagation(); setEtkinlikView(b.dataset.view); }));
     renderViewSwitch();
     try{ if(window.speechSynthesis) speechSynthesis.getVoices(); }catch(e){}
+  })();
+
+
+  // ================= OYUN+ : Bugünün Rotası · süre sınırı · akıllı zorluk · ışık · büyüyen ada · Zihni'nin dolabı · nazik seri =================
+  const GX_KEY = "wm_gamex_v1", GX_ROUTE_KEY = "wm_game_route_v1", GX_LIMIT_KEY = "wm_game_limit_v1";
+  function mascotName(){ try{ const n = (gxGet().mname || "").trim(); return n || "Zihni"; }catch(e){ return "Zihni"; } }
+  function gxAll(){ try{ return JSON.parse(localStorage.getItem(GX_KEY) || "{}"); }catch(e){ return {}; } }
+  function gxGet(){ const d = gxAll(), p = gameProfile(); const g = d[p] || {};
+    return Object.assign({ light:0, lightIsl:{}, owned:[], worn:{}, routes:0, weeks:{}, weekGoals:0, screen:{}, extra:{}, warned:{} }, g); }
+  function gxSave(g){ const d = gxAll(); d[gameProfile()] = g; try{ localStorage.setItem(GX_KEY, JSON.stringify(d)); }catch(e){} }
+
+  // ---- süre sınırı (yalnızca çocuğun tek başına oynadığı oyun modunda sayılır) ----
+  function gxLimitMin(){ try{ const v = localStorage.getItem(GX_LIMIT_KEY); return v === null ? 20 : Number(v); }catch(e){ return 20; } }
+  function gxUsedSec(){ const g = gxGet(); return g.screen[todayKey()] || 0; }
+  function gxAllowedSec(){ const L = gxLimitMin(); if(!L) return Infinity; const g = gxGet(); return (L + (g.extra[todayKey()] || 0)) * 60; }
+  function gxOver(){ return gxUsedSec() >= gxAllowedSec(); }
+  function gxScreensActive(){ return gameMode || ["islandScreen","islandStopsScreen","gameReward"].some(id => { const el = document.getElementById(id); return el && el.style.display !== "none"; }); }
+  setInterval(() => { try{
+    if(document.hidden || !gxScreensActive() || !(currentPlayerName || "").trim()) return;
+    const g = gxGet(), k = todayKey(); g.screen[k] = (g.screen[k] || 0) + 5;
+    for(const old in g.screen){ if(old < todayKey(new Date(Date.now() - 14 * 864e5))) delete g.screen[old]; }
+    const left = gxAllowedSec() - g.screen[k];
+    if(left <= 120 && left > 0 && !g.warned[k]){ g.warned[k] = 1; gxSave(g); showLevelFlashGame(`${mascotName()} esniyor… Biraz sonra dinlenme zamanı.`); try{ speakText(`${mascotName()} esniyor. Bu son durağın olabilir.`); }catch(e){} return; }
+    gxSave(g);
+    if(left <= 0 && !timerRunning && document.getElementById("gameReward").style.display === "none" && document.getElementById("gameSleep").style.display === "none") gxShowSleep();
+  }catch(e){} }, 5000);
+  function gxShowSleep(){
+    hideGameScreens(); exitGameMode(); document.getElementById("mainApp").style.display = "none";
+    document.getElementById("gsMascot").innerHTML = zihniSVG("sleepy");
+    document.getElementById("gsText").textContent = `${mascotName()} çok çalıştı, şimdi dinleniyor. Yarın yine buluşalım.`;
+    document.getElementById("gameSleep").style.display = "flex";
+    try{ speakText(`Bugünlük bu kadar! ${mascotName()} dinleniyor. Yarın yine buluşalım.`); }catch(e){}
+  }
+
+  // ---- akıllı zorluk: iki kez zorlanınca bir alt düzeyle ısınma, ardından geri dönüş; zorlanınca ipucu ----
+  // hatasız ve başarı eşiğinin belirgin altında bir sürede bitirdi mi (uyarlamalı ilerlemedeki öge başına süre ölçütü)
+  function gxFastFlawless(ex, ms, errors){
+    if(errors !== 0) return false;
+    const n = ex.isSeqRows ? Math.max(1, currentGrid.length * 2) : Array.isArray(currentGrid) && currentGrid.length ? currentGrid.length : 1;
+    const k = ex.speedFactor || (ex.isSeqRows ? 3 : (ex.isScatter ? 2 : 1));
+    return (ms / 1000) / n <= SUCCESS_SEC_PER_ITEM * k * 0.6;
+  }
+  function gxHintFor(exId){ const sp = typeof STRATEGIES !== "undefined" ? STRATEGIES[exId] : null; return sp ? sp[2] : ""; }
+
+  // ---- ışık: çaba, başarı, gelişim ve strateji kullanımı ödüllendirilir (başkalarıyla kıyas yok) ----
+  const GROW = [ { at:5, nm:"çiçekler açtı" }, { at:15, nm:"gökkuşağı çıktı" }, { at:30, nm:"deniz feneri yandı" } ];
+  const GROW_SVG = [
+    '<svg viewBox="0 0 24 24"><g fill="#FF7AB6"><circle cx="12" cy="6.5" r="3.6"/><circle cx="17.2" cy="10.3" r="3.6"/><circle cx="15.2" cy="16.4" r="3.6"/><circle cx="8.8" cy="16.4" r="3.6"/><circle cx="6.8" cy="10.3" r="3.6"/></g><circle cx="12" cy="12" r="3.4" fill="#FFD23F"/></svg>',
+    '<svg viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round"><path d="M3 18a9 9 0 0 1 18 0" stroke="#E5484D"/><path d="M6 18a6 6 0 0 1 12 0" stroke="#F5C518"/><path d="M9 18a3 3 0 0 1 6 0" stroke="#2E6FD8"/></svg>',
+    '<svg viewBox="0 0 24 24"><path d="M9 21l1.5-14h3L15 21z" fill="#fff" stroke="#C0392B" stroke-width="1.2"/><path d="M9.8 14h4.4l.3 3H9.5z" fill="#E5484D"/><path d="M10.3 9.5h3.4l.2 2H10.1z" fill="#E5484D"/><path d="M9.5 7h5l-1-3h-3z" fill="#FFD23F"/><path d="M15.5 5.5l5-2M15.5 6.5l5 1" stroke="#FFD23F" stroke-width="1.6" stroke-linecap="round"/></svg>'
+  ];
+  function gxIslGrowth(islId){ const n = gxGet().lightIsl[islId] || 0; return GROW.filter(x => n >= x.at).length; }
+
+  // ---- Zihni'nin dolabı: aksesuarlar satın alınmaz, kilometre taşlarıyla açılır ----
+  const ACCS = [
+    { id:"bow",     slot:"neck", nm:"Papyon",        need:"İlk rotanı tamamla",              ok:(g) => g.routes >= 1 },
+    { id:"glasses", slot:"face", nm:"Gözlük",        need:"10 ışık topla",                   ok:(g) => g.light >= 10 },
+    { id:"explorer",slot:"head", nm:"Kâşif şapkası", need:"30 ışık topla",                   ok:(g) => g.light >= 30 },
+    { id:"scarf",   slot:"neck", nm:"Atkı",          need:"Bir haftada 4 gün oyna",          ok:(g) => g.weekGoals >= 1 },
+    { id:"flowers", slot:"head", nm:"Çiçek tacı",    need:"3 rota tamamla",                  ok:(g) => g.routes >= 3 },
+    { id:"cape",    slot:"back", nm:"Pelerin",       need:"80 ışık topla",                   ok:(g) => g.light >= 80 },
+    { id:"crown",   slot:"head", nm:"Taç",           need:"Bir adanın tüm yıldızlarını topla", ok:() => GAME_ISLANDS.some(i => !i.legacy && (() => { const s = gameIslandStarInfo(i); return s.total && s.got >= s.total; })()) }
+  ];
+  const ACC_SVG = {
+    cape:     '<path d="M32 40 Q20 70 24 98 L96 98 Q100 70 88 40 Z" fill="#7B5CFF"/><path d="M32 40 Q26 70 29 98" fill="none" stroke="#5B3FE0" stroke-width="3"/>',
+    explorer: '<ellipse cx="60" cy="17" rx="36" ry="6.5" fill="#B88A45"/><path d="M38 17 Q39 -6 60 -8 Q81 -6 82 17 Z" fill="#D9B26B"/><rect x="39" y="9" width="42" height="6" fill="#8B5A2B"/>',
+    crown:    '<path d="M40 19 L40 2 L50 10 L60 -5 L70 10 L80 2 L80 19 Z" fill="#FFC83D" stroke="#D99A00" stroke-width="2" stroke-linejoin="round"/><circle cx="60" cy="12" r="3" fill="#E5484D"/><circle cx="48" cy="14" r="2.2" fill="#2E6FD8"/><circle cx="72" cy="14" r="2.2" fill="#1FA463"/>',
+    flowers:  [[34,24],[45,15],[60,12],[75,15],[86,24]].map(([x, y], k) => `<g transform="translate(${x} ${y})">${[0,72,144,216,288].map(a => `<circle cx="${(Math.cos(a * Math.PI / 180) * 4.2).toFixed(1)}" cy="${(Math.sin(a * Math.PI / 180) * 4.2).toFixed(1)}" r="3.4" fill="${["#FF7AB6","#FFD23F","#FF8A3D","#B58CFF","#FF7AB6"][k]}"/>`).join("")}<circle r="2.6" fill="#fff"/></g>`).join(""),
+    glasses:  '<circle cx="45" cy="50" r="14.5" fill="none" stroke="#1C2B39" stroke-width="3.5"/><circle cx="75" cy="50" r="14.5" fill="none" stroke="#1C2B39" stroke-width="3.5"/><path d="M59 48 Q60 45 61 48" fill="none" stroke="#1C2B39" stroke-width="3.5"/>',
+    bow:      '<path d="M60 83 L45 74 L45 92 Z" fill="#E5484D"/><path d="M60 83 L75 74 L75 92 Z" fill="#E5484D"/><circle cx="60" cy="83" r="4.5" fill="#B8262B"/>',
+    scarf:    '<path d="M27 70 Q60 88 93 70 L94 79 Q60 97 26 79 Z" fill="#FF8A3D"/><path d="M78 82 L84 102 L74 103 L70 85 Z" fill="#FF8A3D"/><path d="M30 74 Q60 90 90 74" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="4 5" opacity=".7"/>'
+  };
+  // oyun ekranlarında Zihni: aksesuarlarıyla (başın üstüne yer açmak için görüntü alanı genişler)
+  function zihniSVG(mood){
+    let s = mascotSVG(mood);
+    if(!(currentPlayerName || "").trim()) return s;
+    const w = gxGet().worn || {}; const ids = Object.values(w).filter(Boolean);
+    if(!ids.length) return s;
+    s = s.replace('viewBox="0 0 120 120"', 'viewBox="0 -14 120 134"');
+    if(w.back) s = s.replace('<g class="bob">', '<g class="bob">' + ACC_SVG[w.back]);
+    const front = ["face","neck","head"].map(k => w[k] ? ACC_SVG[w[k]] : "").join("");
+    return s.replace(/<\/g><\/svg>\s*$/, front + "</g></svg>");
+  }
+  function gxUnlockNew(g){ const got = []; ACCS.forEach(a => { if(!g.owned.includes(a.id) && a.ok(g)){ g.owned.push(a.id); got.push(a); } }); return got; }
+
+  // ---- nazik seri: haftada 4 gün hedefi; kaçırılan gün sıfırlamaz ----
+  const WEEK_GOAL = 4;
+  function gxWeekDays(g){ return (g.weeks[weekKey()] || []); }
+
+  // ---- Bugünün Rotası: ısınma → (uzman görevleri) → hedef alan → sevdiği adadan kapanış ----
+  function gxIslandOf(exId){ return GAME_ISLANDS.find(i => !i.legacy && gameIslandStops(i).includes(exId)); }
+  function gxExpertGames(){ const p = typeof familyProgram === "function" ? familyProgram() : null; return p && Array.isArray(p.games) ? p.games.filter(id => { const i = gxIslandOf(id); return i && !gameIslandLocked(i); }) : []; }
+  function gxBuildRoute(){
+    const rnd = seededRand("route" + todayKey() + gameProfile() + (readingLevel || "post"));
+    const pick = (arr) => arr.length ? arr[Math.floor(rnd() * arr.length)] : null;
+    const open = GAME_ISLANDS.filter(i => !i.legacy && !gameIslandLocked(i));
+    const stopsOf = (i) => gameIslandStops(i);
+    const notFull = (ids) => { const a = ids.filter(id => gameStars(id) < 3); return a.length ? a : ids; };
+    const used = new Set(), steps = [];
+    const add = (id, role, expert) => { if(id && !used.has(id)){ used.add(id); steps.push({ id, isl: gxIslandOf(id).id, role, expert: !!expert }); } };
+    const goz = open.find(i => i.id === "goz"); if(goz) add(pick(notFull(stopsOf(goz))), "Isınma");
+    const L = isPre() ? 3 : 4;
+    gxExpertGames().slice(0, 2).forEach(id => add(id, "Özel görev", true));
+    const tgt = (() => { try{ return famTarget(); }catch(e){ return null; } })();
+    const tgtIds = open.flatMap(stopsOf).filter(id => tgt && (CATEGORIES.find(c => c.id === tgt) || { exerciseIds:[] }).exerciseIds.includes(id) && !used.has(id));
+    while(steps.length < L - 1){ const pool = notFull(tgtIds.filter(id => !used.has(id))); const id = pick(pool.length ? pool : notFull(open.filter(i => i.id !== "goz").flatMap(stopsOf).filter(id => !used.has(id)))); if(!id) break; add(id, "Ana durak"); }
+    // kapanış: en çok oynadığı adadan (sevdiği alan)
+    const plays = (i) => stopsOf(i).reduce((a, id) => a + (gameRecord(id).plays || 0), 0);
+    // en çok oynanan ada; henüz oyun yoksa ana duraklardan farklı bir ada (alan çeşitliliği)
+    const mainIsl = new Set(steps.filter(s => s.role !== "Isınma").map(s => s.isl));
+    const cands = open.filter(i => i.id !== "goz");
+    const fav = cands.some(i => plays(i) > 0) ? cands.sort((a, b) => plays(b) - plays(a))[0] : (pick(cands.filter(i => !mainIsl.has(i.id))) || pick(cands));
+    if(fav) add(pick(stopsOf(fav).filter(id => !used.has(id))), "Kapanış");
+    return { steps, done: steps.map(() => false), sig: gxExpertGames().join("+") };
+  }
+  function gxRoute(){
+    let st; try{ st = JSON.parse(localStorage.getItem(GX_ROUTE_KEY) || "{}"); }catch(e){ st = {}; }
+    const k = gameProfile() + "|" + (readingLevel || "post") + "|" + todayKey();
+    const sig = gxExpertGames().join("+");
+    if(!st[k] || (st[k].sig !== sig && !st[k].done.some(Boolean))){ st[k] = gxBuildRoute(); }
+    for(const kk in st){ if(!kk.endsWith(todayKey())) delete st[kk]; }   // yalnızca bugünkü rotalar saklanır
+    try{ localStorage.setItem(GX_ROUTE_KEY, JSON.stringify(st)); }catch(e){}
+    return st[k];
+  }
+  function gxRouteSave(r){ let st; try{ st = JSON.parse(localStorage.getItem(GX_ROUTE_KEY) || "{}"); }catch(e){ st = {}; } st[gameProfile() + "|" + (readingLevel || "post") + "|" + todayKey()] = r; try{ localStorage.setItem(GX_ROUTE_KEY, JSON.stringify(st)); }catch(e){} }
+  function gxRouteNext(){ const r = gxRoute(); const i = r.done.findIndex(x => !x); return i < 0 ? null : r.steps[i]; }
+  const I_LETTER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></svg>';
+  const I_SPARK = '<svg viewBox="0 0 24 24"><path d="M12 2.5l2.2 6.3 6.3 2.2-6.3 2.2L12 19.5l-2.2-6.3L3.5 11l6.3-2.2z" fill="#FFC83D" stroke="#E0A100" stroke-width="1.2" stroke-linejoin="round"/></svg>';
+  function gxRenderMapExtras(){
+    const box = document.getElementById("islandRoute"); if(!box) return;
+    if(!(currentPlayerName || "").trim()){ box.innerHTML = ""; return; }
+    const g = gxGet(), r = gxRoute(), days = gxWeekDays(g), ti = todayDayIdx();
+    const allDone = r.done.every(Boolean), nx = gxRouteNext();
+    const steps = r.steps.map((s, i) => { const ex = exerciseById(s.id), isl = GAME_ISLANDS.find(x => x.id === s.isl);
+      return `<button type="button" class="rt-step${r.done[i] ? " done" : ""}${nx && nx.id === s.id ? " now" : ""}" data-play="${s.id}" data-isl="${s.isl}"><span class="rt-dot" style="background:${isl ? isl.color : "#ccc"}">${r.done[i] ? I_CHECK : i + 1}</span><span class="rt-tx"><span class="rt-role">${s.expert ? I_LETTER + " " : ""}${s.role}</span><span class="rt-nm">${gameChildLabel(ex)}</span></span></button>`; }).join("");
+    const L = gxLimitMin(), leftMin = L ? Math.max(0, Math.ceil((gxAllowedSec() - gxUsedSec()) / 60)) : null;
+    box.innerHTML = `<div class="rt-card"><div class="rt-h"><span>Bugünün Rotası</span>${allDone ? `<span class="rt-ok">Tamam!</span>` : `<span class="rt-cnt">${r.done.filter(Boolean).length}/${r.steps.length}</span>`}</div>
+      <div class="rt-steps">${steps}</div>
+      ${allDone ? `<div class="rt-msg">Rotayı bitirdin! İstersen başka duraklarda da oynayabilirsin.</div>` : nx ? `<button type="button" class="isl-play rt-go" data-play="${nx.id}" data-isl="${nx.isl}">Rotaya devam</button>` : ""}</div>
+      <div class="rt-row"><div class="rt-pill" title="Işık">${I_SPARK}<b>${g.light}</b> ışık</div>
+      <div class="rt-pill rt-week" title="Bu hafta oynanan günler">${DAY_SHORT.map((d, i) => `<i class="${days.includes(i) ? "on" : ""}${i === ti ? " today" : ""}"></i>`).join("")}<b>${Math.min(days.length, WEEK_GOAL)}/${WEEK_GOAL}</b> gün</div>
+      <button type="button" class="rt-pill rt-closet" id="closetBtn">${mascotSVG("happy").replace('class="zmascot"', 'class="zmascot mini"')}Dolap</button></div>
+      ${leftMin !== null ? `<div class="rt-time">Bugün kalan oyun süresi: <b>${leftMin} dk</b></div>` : ""}`;
+  }
+  function gxOpenCloset(){
+    const g = gxGet(); gxUnlockNew(g); gxSave(g);
+    const sheet = document.getElementById("closetSheet");
+    const draw = () => { const g2 = gxGet();
+      document.getElementById("closetPreview").innerHTML = zihniSVG("happy");
+      document.getElementById("closetList").innerHTML = ACCS.map(a => { const own = g2.owned.includes(a.id), on = g2.worn[a.slot] === a.id;
+        return `<button type="button" class="cl-item${own ? "" : " locked"}${on ? " on" : ""}" data-acc="${a.id}"><svg viewBox="0 -14 120 134" class="cl-ico">${a.slot === "back" ? ACC_SVG[a.id] : ""}<ellipse cx="60" cy="47" rx="37" ry="33" fill="#3DCFC2" opacity="${own ? 0.35 : 0.15}"/>${a.slot !== "back" ? ACC_SVG[a.id] : ""}</svg><span class="cl-nm">${a.nm}</span><span class="cl-need">${own ? (on ? "Takılı · çıkar" : "Tak") : "🔒 " + a.need}</span></button>`; }).join("");
+    };
+    draw(); sheet.style.display = "flex";
+    const nin = document.getElementById("mascotNameIn"); nin.value = (gxGet().mname || "");
+    document.getElementById("clTitle").textContent = `Dolap · ${mascotName()}`;
+    document.getElementById("mascotNameBtn").onclick = () => { const v = nin.value.replace(/[^A-Za-zÇĞİÖŞÜçğıöşü ]/g, "").replace(/\s+/g, " ").trim().slice(0, 12);
+      const g3 = gxGet(); g3.mname = v; gxSave(g3); nin.value = v; document.getElementById("clTitle").textContent = `Dolap · ${mascotName()}`; sfx("solved"); showLevelFlashGame(`Yeni adı: ${mascotName()}`); };
+    document.getElementById("closetList").onclick = (e) => { const b = e.target.closest("[data-acc]"); if(!b) return; const a = ACCS.find(x => x.id === b.dataset.acc), g2 = gxGet();
+      if(!g2.owned.includes(a.id)){ showLevelFlashGame(`${a.nm}: ${a.need}`); return; }
+      g2.worn[a.slot] = g2.worn[a.slot] === a.id ? null : a.id; gxSave(g2); sfx("pop"); draw(); };
+  }
+  // ---- durak bitince: ışık, rota, seri, büyüme, aksesuar ----
+  function gxAfterStop(exId, islId, info){
+    const g = gxGet(), lines = []; let light = 1; const why = ["bitirdin"];
+    if(info.good){ light++; why.push("başardın"); }
+    if(info.newStar){ light++; why.push("yeni yıldız"); }
+    if(info.faster){ light++; why.push("kendini geçtin"); }
+    if(info.good && info.hinted){ light++; why.push("ipucunu kullandın"); }
+    const before = islId ? gxIslGrowth(islId) : 0;
+    // rota
+    const r = gxRoute(); const ri = r.steps.findIndex((s, i) => s.id === exId && !r.done[i]);
+    let routeDone = false;
+    if(ri >= 0){ r.done[ri] = true; gxRouteSave(r); if(r.done.every(Boolean)){ routeDone = true; light += 3; g.routes = (g.routes || 0) + 1; } }
+    // seri (haftalık)
+    const wk = weekKey(), di = todayDayIdx(); g.weeks[wk] = g.weeks[wk] || []; let weekGoal = false;
+    if(!g.weeks[wk].includes(di)){ g.weeks[wk].push(di); if(g.weeks[wk].length === WEEK_GOAL){ weekGoal = true; light += 5; g.weekGoals = (g.weekGoals || 0) + 1; } }
+    for(const k in g.weeks){ if(k < todayKey(new Date(Date.now() - 60 * 864e5))) delete g.weeks[k]; }
+    g.light = (g.light || 0) + light; if(islId) g.lightIsl[islId] = (g.lightIsl[islId] || 0) + light;
+    const after = islId ? (g.lightIsl[islId] >= GROW[0].at ? GROW.filter(x => g.lightIsl[islId] >= x.at).length : 0) : 0;
+    const unlocked = gxUnlockNew(g); gxSave(g);
+    lines.push({ k:"light", t:`+${light} ışık · ${why.join(", ")}${routeDone ? ", rota" : ""}${weekGoal ? ", haftalık hedef" : ""}` });
+    if(routeDone) lines.push({ k:"route", t:"Bugünün rotası tamam!" });
+    if(weekGoal) lines.push({ k:"week", t:`Bu hafta ${WEEK_GOAL} gün oynadın!` });
+    if(after > before){ const isl = GAME_ISLANDS.find(x => x.id === islId); lines.push({ k:"grow", t:`${isl ? isl.name : "Ada"}: ${GROW[after - 1].nm}!` }); }
+    unlocked.forEach(a => lines.push({ k:"acc", t:`Dolaba yeni: ${a.nm}` }));
+    return lines;
+  }
+
+  (function initGameSettings(){
+    const sel = document.getElementById("gameLimitSel");
+    if(sel){ sel.value = String(gxLimitMin()); sel.addEventListener("change", () => { try{ localStorage.setItem(GX_LIMIT_KEY, sel.value); }catch(e){} }); }
+    const keys = [GAME_KEY, GX_KEY];
+    const bb = document.getElementById("gameBackupBtn"), rb = document.getElementById("gameRestoreBtn"), rf = document.getElementById("gameRestoreFile");
+    if(bb) bb.addEventListener("click", () => {
+      const data = { app:"zihin-atolyesi", kind:"game-progress", v:1, at: new Date().toISOString(), keys:{} };
+      keys.forEach(k => { try{ data.keys[k] = JSON.parse(localStorage.getItem(k) || "{}"); }catch(e){} });
+      const blob = new Blob([JSON.stringify(data)], { type:"application/json" }), a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = `zihin-atolyesi-oyun-yedegi-${todayKey()}.json`; document.body.appendChild(a); a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+      showLevelFlash("Yedek dosyası hazırlandı ✓", "levelup");
+    });
+    if(rb) rb.addEventListener("click", () => rf.click());
+    if(rf) rf.addEventListener("change", () => {
+      const f = rf.files && rf.files[0]; if(!f) return;
+      const rd = new FileReader();
+      rd.onload = () => { try{
+        const d = JSON.parse(rd.result); if(!d || d.kind !== "game-progress" || !d.keys) throw 0;
+        if(!confirm("Bu cihazdaki oyun ilerlemesi yedekteki ile birleştirilsin mi? Aynı kişinin kayıtlarında yedekteki geçerli olur.")) return;
+        keys.forEach(k => { if(!d.keys[k]) return; let cur = {}; try{ cur = JSON.parse(localStorage.getItem(k) || "{}"); }catch(e){} localStorage.setItem(k, JSON.stringify(Object.assign(cur, d.keys[k]))); });
+        showLevelFlash("Oyun ilerlemesi geri yüklendi ✓", "levelup");
+      }catch(e){ showLevelFlash("Bu dosya bir oyun yedeği değil.", "down"); } rf.value = ""; };
+      rd.readAsText(f);
+    });
   })();
 
   function chooseReadingLevel(level){
@@ -13454,7 +14085,7 @@ const FRUIT_VEG_IMAGES = {
       }
       const card = document.createElement("button");
       card.className = "category-card";
-      const isDraft = !["islemleme-hizi","goz-takip","yurutucu-islev","calisan-bellek","gorsel-bellek"].includes(cat.id);   // içeriği tamamlanan kategorilerde "Taslak" etiketi yok
+      const isDraft = !["islemleme-hizi","goz-takip","yurutucu-islev","calisan-bellek","gorsel-bellek","sozel-organizasyon","gorsel-organizasyon","algisal-akil-yurutme"].includes(cat.id);   // içeriği tamamlanan kategorilerde "Taslak" etiketi yok
       const isComingSoon = readingLevel === "pre" && !categoryHasPreExercises(cat);
       let badge = "";
       if(isComingSoon) badge = `<span class="category-badge category-badge-soon">Yakında eklenecek</span>`;
@@ -13508,11 +14139,13 @@ const FRUIT_VEG_IMAGES = {
       ]
     },
     islands: {
-      key: "wm_tour_islands_seen_v1",
+      key: "wm_tour_islands_seen_v2",
       steps: [
         {sel:"#islandScreen .isl-head", title:"Zihin Adaları", text:"Çocuğun tek başına oynadığı harita. Toplam yıldız sağ üstte görünür; kıyas yalnızca çocuğun kendi önceki sonuçlarıyla yapılır."},
         {sel:"#islandScreen .isl-who", title:"Kim oynuyor?", text:"Oynamadan önce çocuğu seçin. Yıldızlar ve düzey her çocuğa özeldir; aynı cihazı kardeşler de kullanabilir."},
         {sel:"#islandMap .isl-island", title:"Adalar ve duraklar", text:"Her ada bir beceri alanı. Her durakta Başlangıç, Orta ve Zor için üç yıldız var; zorluk kazanılan yıldıza göre kendiliğinden seçilir. Plan Adası 3 yıldızla açılır."},
+        {sel:"#islandRoute .rt-card", title:"Bugünün Rotası", text:"Her gün 3–4 duraklık rota: ısınma, haftanın hedef alanı (uzman seçtiyse 'özel görev') ve çocuğun sevdiği adadan kapanış. Zorlandığı durakta ipucu verilir; iki kez zorlanırsa bir alt düzeyle ısınır."},
+        {sel:"#islandRoute .rt-row", title:"Işık, hafta ve dolap", text:"Işık; bitirmek, başarmak, kendini geçmek ve ipucunu kullanmak için verilir, adalar ışıkla büyür. Haftalık hedef 4 gün; kaçırılan gün sıfırlamaz. Aksesuarlar satın alınmaz, hedeflerle açılır. Günlük süre Ayarlar'dan değişir."},
         {sel:"#islandNext", title:"Sıradaki durak", text:"'Oyna' ile durak açılır. Yönerge sesli okunur; oyun ekranındaki hoparlörle konuşma kapatılabilir. Çalışma bitince kronometre kendiliğinden durur ve ödül ekranı çıkar."},
         {sel:"#islandBackBtn", title:"Ebeveyn kontrolü", text:"Oyundan çıkmak için bir işlem sorusu sorulur; çocuk yanlışlıkla çıkamaz."}
       ]
