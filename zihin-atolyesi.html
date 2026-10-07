@@ -335,7 +335,16 @@
   html.game-mode .error-btn, html.game-mode #saveResultBtn, html.game-mode #saveHint, html.game-mode .controls,
   html.game-mode #dots, html.game-mode #lsToggleBtn, html.game-mode #lsPage, html.game-mode .timer-btn.running{ display:none !important; }
   /* ödül ekranı */
-  .game-reward{ position:fixed; inset:0; z-index:200; background:linear-gradient(#FBEBDA, var(--bg) 60%); overflow-y:auto; }
+  .game-reward{ position:fixed; inset:0; z-index:200; background:linear-gradient(#FBEBDA, var(--bg) 60%); overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; }
+  .game-reward.many .gr-inner{ padding-top:22px; gap:8px; }
+  .game-reward.many .gr-mascot{ width:78px !important; height:78px !important; }
+  .game-reward.many .gr-title{ font-size:30px !important; }
+  .game-reward.many .gr-stars svg{ width:40px !important; height:40px !important; } .game-reward.many .gr-stars svg.mid{ width:50px !important; height:50px !important; }
+  .game-reward.many .gr-card{ padding:12px 14px; gap:7px; } .game-reward.many .gr-line{ font-size:14px; line-height:1.3; }
+  .game-reward.many .gr-rays{ top:150px; }
+  .gr-btns{ position:sticky; bottom:0; z-index:2; padding-bottom:max(10px, env(safe-area-inset-bottom)); background:linear-gradient(transparent, var(--bg) 35%); }
+  .gr-raysbox{ position:absolute; left:0; top:0; width:100%; height:100%; min-height:100vh; overflow:hidden; pointer-events:none; z-index:0; }
+  .gr-line svg{ flex:none; }
   .gr-inner{ max-width:440px; margin:0 auto; padding:48px 22px 28px; display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center; box-sizing:border-box; min-height:100%; }
   .gr-where{ font-size:15px; font-weight:800; color:#9A5A12; }
   .gr-title{ font-size:30px; font-weight:900; color:var(--ink); }
@@ -2625,7 +2634,7 @@
   <div class="settings-inner">
     <div class="settings-header">
       <h2>Ayarlar</h2>
-      <div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.07-h</div>
+      <div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.07-j</div>
       <button class="icon-btn" id="closeSettingsBtn">✕</button>
     </div>
 
@@ -2831,7 +2840,7 @@
   </div>
 </div>
 <div class="game-reward" id="gameReward" style="display:none;">
-  <div class="gr-rays" aria-hidden="true"></div>
+  <div class="gr-raysbox" aria-hidden="true"><div class="gr-rays"></div></div>
   <div class="gr-inner">
     <div class="gr-mascot" id="grMascot" aria-hidden="true"></div>
     <div class="gr-where" id="grWhere"></div>
@@ -11108,8 +11117,16 @@ const FRUIT_VEG_IMAGES = {
     });
   }
 
+  // cihazda kişiye bağlı tutulan her şey: oyun ilerlemesi, ışık/dolap/süre, günlük rota ve oturum, hafta hedefi, gecikmeli hatırlama
+  function clearLocalPersonData(name){
+    const dropKey = (key, test) => { try{ const d = JSON.parse(localStorage.getItem(key) || "{}"); let ch = false; Object.keys(d).forEach(k => { if(test(k)){ delete d[k]; ch = true; } }); if(ch) localStorage.setItem(key, JSON.stringify(d)); }catch(e){} };
+    dropKey("wm_game_v1", k => k === name);
+    dropKey("wm_gamex_v1", k => k === name);
+    ["wm_game_route_v1", "wm_daily_v1", "wm_week_target_v1"].forEach(key => dropKey(key, k => k.split("|")[0] === name));
+    try{ Object.keys(localStorage).filter(k => /^wm_delay_[a-z]+_/.test(k) && k.replace(/^wm_delay_[a-z]+_/, "") === name).forEach(k => localStorage.removeItem(k)); }catch(e){}
+  }
   async function deletePersonData(name){
-    if(!confirm(`"${name}" kişisine ait tüm çalışma sonuçları, düzey değişiklikleri ve kişi kaydı kalıcı olarak silinecek. Bu işlem geri alınamaz. Emin misin?`)) return;
+    if(!confirm(`"${name}" kişisine ait tüm çalışma sonuçları, düzey değişiklikleri, kişi kaydı ve bu cihazdaki oyun ilerlemesi (yıldızlar, ışıklar, dolap) kalıcı olarak silinecek. Bu işlem geri alınamaz. Emin misin?`)) return;
     try{
       if(firestoreReady && window.__fb && window.__fb.uid){
         const { db, collection, getDocs, writeBatch, query, where, uid } = window.__fb;
@@ -11133,6 +11150,7 @@ const FRUIT_VEG_IMAGES = {
       alert("Silme sırasında bir sorun oluştu. Lütfen tekrar dene.");
       return;
     }
+    try{ clearLocalPersonData(name); }catch(e){ console.error(e); }
     if(currentPlayerName === name){
       currentPlayerName = "";
       document.getElementById("playerSelect").value = "";
@@ -12365,7 +12383,7 @@ const FRUIT_VEG_IMAGES = {
   // Ailenin kaydettiği sonuçlar uzmana da gider (links/{kod}/results). Uzman listesi için aile, bağlantı belgesindeki
   // kısa haftalık özeti (çalışılan günler, son etkinlik) günceller.
   // Firestore yapısı: links/{kod} { expertUid, childName, level, familyUid, consent, program, weekKey, weekDays, lastActivityAt }
-  const APP_VERSION = "2026.10.07-h";
+  const APP_VERSION = "2026.10.07-j";
   const LINK_LOCAL_KEY = "wm_family_links_v1";   // aile cihazında: kişi|seviye → kod + program önbelleği
   const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -12650,9 +12668,13 @@ const FRUIT_VEG_IMAGES = {
         try{ await updateDoc(doc(db, "links", code), { childName: nv }); l.childName = nv; showLevelFlash("Ad güncellendi ✓", "levelup"); draw(); }catch(e){ console.error(e); }
       };
       document.getElementById("exDeleteBtn").onclick = async () => {
-        if(!confirm(`${l.childName} ve aile bağlantısı silinsin mi? Aile cihazındaki bağlantı da sona erer.`)) return;
+        if(!confirm(`${l.childName}, aile bağlantısı ve bu bağlantıyla gönderilmiş sonuçlar silinsin mi? Aile cihazındaki bağlantı da sona erer.`)) return;
         if(!fbOk()) return;
-        const { db, doc, deleteDoc } = window.__fb;
+        const { db, doc, deleteDoc, collection, getDocs, writeBatch } = window.__fb;
+        try{   // kural izin veriyorsa önce bu bağlantıya gönderilmiş sonuçlar silinir
+          const snap = await getDocs(collection(db, "links", code, "results"));
+          for(let i = 0; i < snap.docs.length; i += 400){ const bt = writeBatch(db); snap.docs.slice(i, i + 400).forEach(d => bt.delete(d.ref)); await bt.commit(); }
+        }catch(e){ console.warn("Sonuçlar silinemedi (Firestore kuralı gerekebilir):", e); }
         try{ await deleteDoc(doc(db, "links", code)); showExpert("list"); }catch(e){ console.error(e); }
       };
       if(l.familyUid) watchExpertResults(code);
@@ -13183,14 +13205,16 @@ const FRUIT_VEG_IMAGES = {
     if(good){ r.fails[t] = 0; if(warmedUp) r.fails[t + 1] = 0; }
     else r.fails[t] = (r.fails[t] || 0) + (errors >= Math.max(4, allowed * 3) ? 2 : 1);
     const stepDown = !good && t > 0 && r.fails[t] >= 2;
-    if(r.jump === t) delete r.jump;
+    let skipped = false;
+    if(r.jump === t){ delete r.jump; if(good && t === 2 && !r.stars[1]){ r.stars[1] = true; skipped = true; } }   // Zor başarıldıysa atlanan Orta da geçilmiş sayılır
     let jumped = false;
     if(good && newStar && t === 0 && !r.stars[2] && !ex.isMotion && gxFastFlawless(ex, ms, errors)){ r.jump = 2; jumped = true; }
     gameRecordSave(ex.id, r);
     let gx = []; try{ gx = gxAfterStop(ex.id, gameStop.islandId, { good, newStar, faster, hinted: !!gameStop.hinted }); }catch(e){ console.error(e); }
     if(warmedUp) gx.unshift({ k:"up", t:`Isındın! Şimdi yeniden ${GAME_TIER_NAMES[t + 1]} düzeyi deneyebilirsin.` });
     if(stepDown) gx.unshift({ k:"down", t:"Bir dahaki sefere biraz daha kolayıyla ısınacağız." });
-    if(jumped) gx.unshift({ k:"up", t:"Çok hızlı ve hatasızdın! Bir dahaki sefere Zor düzeyi deneyeceksin." });
+    if(jumped) gx.unshift({ k:"up", t:"Çok hızlı ve hatasızdın! Orta'yı atlayıp Zor düzeyi deneyeceksin." });
+    if(skipped) gx.unshift({ k:"up", t:"Zor düzeyi başardığın için Orta da tamamlandı." });
     showGameReward({ ex, t, good, newStar, faster, r, gx });
   }
   function showGameReward({ ex, t, good, newStar, faster, r, gx }){
@@ -13215,13 +13239,14 @@ const FRUIT_VEG_IMAGES = {
       if(newStar) lines.push(L(I_OK, "#2E6F6E", "Yeni yıldız kazandın!"));
       if(faster) lines.push(L(I_UP, "#2E6F6E", "Öncekinden daha hızlıydın"));
       const nt = r.stars.findIndex(x => !x);
-      lines.push(nt < 0 ? L(I_OK, "#9A5A12", "Bu duraktaki tüm yıldızları topladın!") : L(I_NEXT, "#9A5A12", `Sıradaki: ${GAME_TIER_NAMES[nt]} düzey`));
+      lines.push(nt < 0 ? L(I_OK, "#9A5A12", "Bu duraktaki tüm yıldızları topladın!") : L(I_NEXT, "#9A5A12", `Sıradaki: ${GAME_TIER_NAMES[gameNextTier(ex.id)]} düzey`));
     } else {
       lines.push(L(I_AGAIN, "#9A5A12", "Biraz acele ettin. Bir daha dene, bu kez daha dikkatli!"));
     }
     const I_SP = '<path d="M12 3l2 5.6 5.6 2-5.6 2L12 18.2l-2-5.6-5.6-2 5.6-2z"/>';
     (gx || []).forEach(x => lines.push(L(x.k === "down" ? I_AGAIN : x.k === "up" ? I_UP : I_SP, "#B07D00", x.t).replace('class="gr-line"', 'class="gr-line gx"')));
     document.getElementById("grCard").innerHTML = lines.join("");
+    document.getElementById("gameReward").classList.toggle("many", lines.length > 4);
     // rotada sıradaki ve süre sınırı
     const over = gxOver(), nxt = over ? null : gxRouteNext();
     const rb = document.getElementById("grRouteBtn"); rb.style.display = nxt && nxt.id !== ex.id ? "" : "none";
