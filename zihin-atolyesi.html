@@ -2582,7 +2582,7 @@
   <div class="settings-inner">
     <div class="settings-header">
       <h2>Ayarlar</h2>
-      <div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.06-m</div>
+      <div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.06-p</div>
       <button class="icon-btn" id="closeSettingsBtn">✕</button>
     </div>
 
@@ -3220,6 +3220,7 @@
     board.style.gridTemplateColumns = "";
     board.style.gridTemplateRows = "";
     board.classList.remove("wide-grid");
+    if(ex.audRender){ board.innerHTML = ex.audRender(currentGrid); return; }   // özel işitsel/sözel liste (dinleme aralığı, harf-sayı)
     const mode = stage.answerMode || "same";
     const withDelay = !!stage.delay;
     const note = withDelay
@@ -4505,7 +4506,7 @@
     const board = document.getElementById("board");
     let start = null;
     const pick = (ex, t) => (ex.isPlan && t.closest(".pln-peg[data-peg], .pln-cube[data-cube]")) ? "plan"
-      : (ex.isSort && t.closest(".srt-ref")) ? "sort" : (ex.isWm && t.closest("[data-ans],[data-pic],[data-box]")) ? "wm" : (ex.isChoice && t.closest("[data-ch]")) ? "ch" : (ex.isRt && t.closest("[data-rt]")) ? "rt" : null;
+      : (ex.isSort && t.closest(".srt-ref")) ? "sort" : (ex.isWm && t.closest("[data-ans],[data-pic],[data-box]")) ? "wm" : (ex.isChoice && t.closest("[data-ch]")) ? "ch" : (ex.isRt && t.closest("[data-rt]")) ? "rt" : (ex.isMt && t.closest("[data-mt],[data-judge]")) ? "mt" : null;
     board.addEventListener("pointerdown", (ev) => {
       if(ev.button > 0){ start = null; return; }
       const kind = pick(currentExercise(), ev.target);
@@ -4520,7 +4521,7 @@
       if(!st || Date.now() - st.t > 800 || Math.hypot(ev.clientX - st.x, ev.clientY - st.y) > 10) return;
       window._fastTapTs = Date.now();
       const fake = { target: st.target };
-      if(st.kind === "plan") handlePlanTap(fake); else if(st.kind === "sort") handleSortTap(fake); else if(st.kind === "ch") handleChoiceTap(fake); else if(st.kind === "rt") handleRtTap(fake); else handleWmTap(fake);
+      if(st.kind === "plan") handlePlanTap(fake); else if(st.kind === "sort") handleSortTap(fake); else if(st.kind === "ch") handleChoiceTap(fake); else if(st.kind === "rt") handleRtTap(fake); else if(st.kind === "mt") handleMtTap(fake); else handleWmTap(fake);
     }, { passive:true });
   })();
   // tahtada uzun basma menüsü, metin seçimi ve sürüklemeyi engelle (iOS "Kopyala / Ara / Çevir" balonu)
@@ -4805,7 +4806,7 @@
   // ---------- Dokunmalı çalışmalar: ortak "bitti mi?" denetimi ----------
   // Tüm dokunmalı çalışmalar (mevcut ve gelecekteki) burada tanımlanır: çalışma bittiğinde kronometre her durumda kendiliğinden durur.
   // Yeni bir dokunmalı çalışma eklenince ya bu listedeki türlerden birini kullanmalı ya da kendi isDone() fonksiyonunu tanımlamalıdır.
-  function isInteractiveExercise(ex){ return !!(ex && (ex.isTouch || ex.isSort || ex.isTrail || ex.isPlan || ex.isSearch || ex.isWm || ex.isChoice || ex.isRt || ex.isDone)); }
+  function isInteractiveExercise(ex){ return !!(ex && (ex.isTouch || ex.isSort || ex.isTrail || ex.isPlan || ex.isSearch || ex.isWm || ex.isChoice || ex.isRt || ex.isMt || ex.isDone)); }
   function interactiveIsDone(){
     const ex = currentExercise();
     if(!isInteractiveExercise(ex) || !Array.isArray(currentGrid) || !currentGrid.length) return false;
@@ -6825,6 +6826,143 @@ const FRUIT_VEG_IMAGES = {
       stages: [ { label: "Nerede Saklandı?", instruction: () => ``, example: () => `` } ]
     },
     {
+      id: "corsi",
+      readingLevel: ["pre","post"],
+      label: "Corsi Blokları",
+      isMt: true, attrs: [], speedFactor: 10,
+      isDone: () => !!mtState && mtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Aşama 1 · İleri", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Geri", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "corsi-verbal",
+      readingLevel: ["pre","post"],
+      label: "Corsi Blokları (uzmanla)",
+      isMt: true, attrs: [], speedFactor: 10,
+      isDone: () => !!mtState && mtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Aşama 1 · İleri", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Geri", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "span-listen",
+      readingLevel: ["pre","post"],
+      label: "Dinleme Aralığı",
+      isAuditory: true, attrs: [], errorLabel: "Hatalı set sayısı",
+      audTrials: () => makeSpanSets(isPre() ? 2 : 3),
+      audRender: (sets) => renderSpanList(sets, false),
+      randomItem: () => ({}),
+      stages: [ { label: "Cümle + Nesne", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "span-read",
+      readingLevel: ["post"],
+      label: "Okuma Aralığı",
+      isAuditory: true, attrs: [], errorLabel: "Hatalı set sayısı",
+      audTrials: () => makeSpanSets(3),
+      audRender: (sets) => renderSpanList(sets, true),
+      randomItem: () => ({}),
+      stages: [ { label: "Oku + Hatırla", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "span-touch",
+      readingLevel: ["pre","post"],
+      label: "Resimli Dinleme Aralığı",
+      isMt: true, attrs: [], speedFactor: 15,
+      isDone: () => !!mtState && mtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Doğru mu? + Sırayla Bul", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "lns",
+      readingLevel: ["post"],
+      label: "Harf-Sayı Sıralama",
+      isAuditory: true, attrs: [],
+      audTrials: () => Array.from({length:5}, () => ({ words: makeLnsSeq(lnsLen()), ranks: [] })),
+      audRender: (trials) => `<div class="aud-list"><div class="aud-note">Her diziyi saniyede bir öğe hızında okuyun; çocuk istenen sırayla söylesin. Yanlış söylenen dizileri hata sayısına ekleyin.</div>` +
+        trials.map((tr, i) => `<div class="aud-row"><div class="aud-num">${i + 1}</div><div class="aud-body"><div class="aud-words">${tr.words.join(" – ")}</div><div class="aud-key">Doğru cevap: <b>${lnsAnswer(tr.words, currentStageIndex === 1).join(" – ")}</b></div></div></div>`).join("") + `</div>`,
+      randomItem: () => ({}),
+      stages: [ { label: "Aşama 1 · Önce Sayılar, Sonra Harfler", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Sıralı (1-2-3, A-B-C)", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "lns-touch",
+      readingLevel: ["post"],
+      label: "Harf-Sayı Sıralama (dokunmalı)",
+      isMt: true, attrs: [], speedFactor: 12,
+      isDone: () => !!mtState && mtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Aşama 1 · Önce Sayılar, Sonra Harfler", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Sıralı (1-2-3, A-B-C)", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "animal-fruit",
+      readingLevel: ["pre"],
+      label: "Hayvan-Meyve Sıralama",
+      isMt: true, attrs: [], speedFactor: 12,
+      isDone: () => !!mtState && mtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Önce Hayvanlar, Sonra Meyveler", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "running",
+      readingLevel: ["pre","post"],
+      label: "Sondakileri Hatırla",
+      isMt: true, attrs: [], speedFactor: 12,
+      isDone: () => !!mtState && mtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Son Resimler", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "running-verbal",
+      readingLevel: ["pre","post"],
+      label: "Sondakileri Hatırla (sözlü)",
+      isAuditory: true, attrs: [],
+      audTrials: () => Array.from({length: isPre() ? 3 : 5}, () => ({ words: makeRunStream().map(x => x.n), ranks: [] })),
+      audRender: (trials) => `<div class="aud-list"><div class="aud-note">Kelimeleri saniyede bir okuyun; kaç kelime olacağını söylemeyin. Bitince çocuk <b>son ${runLast()}</b> kelimeyi sırayla söylesin. Yanlış dizileri hata sayısına ekleyin.</div>` +
+        trials.map((tr, i) => `<div class="aud-row"><div class="aud-num">${i + 1}</div><div class="aud-body"><div class="aud-words">${tr.words.join(" – ")}</div><div class="aud-key">Doğru cevap: <b>${tr.words.slice(-runLast()).join(" – ")}</b></div></div></div>`).join("") + `</div>`,
+      randomItem: () => ({}),
+      stages: [ { label: "Son Kelimeler", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "zihni",
+      readingLevel: ["pre","post"],
+      label: "Zihni Nerede?",
+      isMt: true, attrs: [], speedFactor: 12,
+      isDone: () => !!mtState && mtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Zihinde Takip", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "zihni-verbal",
+      readingLevel: ["pre","post"],
+      label: "Zihni Nerede? (sözlü)",
+      isAuditory: true, attrs: [],
+      audTrials: () => Array.from({length: isPre() ? 3 : 5}, () => makeZihniRound()),
+      audRender: (rs) => { const n = rs[0].n; return `<div class="aud-list"><div class="aud-note">Çocuk ${n}×${n} ızgaraya baksın. Başlangıç kutusunu gösterin, sonra komutları okuyun (çocuk Zihni'yi görmez). Sonunda Zihni'nin olduğu kutuyu göstersin ya da söylesin. Yanlışları hata sayısına ekleyin.</div>` +
+        `<div class="wm-grid" style="grid-template-columns:repeat(${n}, 56px);gap:6px;margin:8px auto">${Array.from({length:n * n}, () => `<div class="wm-pic" style="width:56px;height:56px;border-radius:12px;cursor:default"></div>`).join("")}</div>` +
+        rs.map((r, i) => `<div class="aud-row"><div class="aud-num">${i + 1}</div><div class="aud-body"><div class="aud-words" style="font-size:18px">Başlangıç: ${zhCellName({ n:r.n, ex:r.sx, ey:r.sy })} · ${r.cmds.map(d => `${ZH_DIRS[d].w} 1`).join(", ")}</div><div class="aud-key">Doğru cevap: <b>${zhCellName(r)}</b></div></div></div>`).join("") + `</div>`; },
+      randomItem: () => ({}),
+      stages: [ { label: "Komutları Dinle", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "market",
+      readingLevel: ["pre","post"],
+      label: "Market Listesi",
+      isMt: true, attrs: [], speedFactor: 20,
+      isDone: () => !!mtState && mtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Liste → Balon → Raf", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "market-verbal",
+      readingLevel: ["pre","post"],
+      label: "Market Listesi (sözlü)",
+      isAuditory: true, attrs: [],
+      audTrials: () => Array.from({length:3}, () => ({ list: makeMarketRound().list, task: randomItem(MK_DISTRACT) })),
+      audRender: (rs) => `<div class="aud-list"><div class="aud-note">Listeyi okuyun, sonra çocuğa araya giren görevi yaptırın; bitince listedekileri söylesin (sıra önemli değil). Eksik ya da yanlış söylediği listeleri hata sayısına ekleyin.</div>` +
+        rs.map((r, i) => `<div class="aud-row"><div class="aud-num">${i + 1}</div><div class="aud-body"><div class="aud-words">🛒 ${r.list.map(x => x.n).join(", ")}</div><div class="aud-key">Araya giren görev: <b>${r.task}</b></div></div></div>`).join("") + `</div>`,
+      randomItem: () => ({}),
+      stages: [ { label: "Liste + Ara Görev", instruction: () => ``, example: () => `` } ]
+    },
+    {
       id: "digit-span",
       readingLevel: ["pre","post"],
       label: "Rakam Dizisi (Digit Span)",
@@ -6990,7 +7128,7 @@ const FRUIT_VEG_IMAGES = {
       id:"islemleme-hizi",
       readingLevel:["post"],
       label:"İşlemleme Hızı",
-      sub:"Hızlı isimlendirme, sayı bulma, seçimli tepki, simge arama, şekil-resim eşleme, doğru-yanlış eşleşme, oluş sırası, renkli kart seç",
+      sub:"Hızlı isimlendirme, sayı bulma, seçimli tepki, simge arama, şekil-resim eşleme, doğru-yanlış eşleşme, oluş sırası, renkli kart seç · dokunmalı: gruba dokun, sayılara sırayla dokun, hızlı seç, doğru çiftler",
       purpose:"Görsel bir uyaranı hızlıca tanıyıp isimlendirme alıştırması yapar; bu beceri okuma akıcılığıyla ilişkilendirilir.",
       color:"#2E6F6E",
       group:"Hız & Dikkat",
@@ -7010,7 +7148,7 @@ const FRUIT_VEG_IMAGES = {
       id:"yurutucu-islev",
       readingLevel:["post"],
       label:"Yürütücü İşlev",
-      sub:"Ketleme (Stroop, gece–gündüz, ket vurma, hayvana dokun, ortadakini söyle) · Esneklik (kural değişimi, kart sıralama, iz sürme) · Planlama",
+      sub:"Ketleme (Stroop, gece–gündüz, ket vurma, hayvana dokun, ortadakini söyle, balıklar hangi yöne, yüzler tek tek) · Esneklik (kural değişimi, ön mü arka mı, kart sıralama, iz sürme) · Planlama (önce planla)",
       purpose:"Dikkati yönetme, kural değiştirme ve dürtüsel tepkiyi durdurma becerisini çalıştırır.",
       color:"#3A6EA5",
       group:"Hız & Dikkat",
@@ -7026,11 +7164,11 @@ const FRUIT_VEG_IMAGES = {
       id:"calisan-bellek",
       readingLevel:["pre","post"],
       label:"Çalışan Bellek",
-      sub:"N-geri, digit span, kelime sıralama, ileriye dönük bellek",
+      sub:"N-geri, aynı mı?, rakam dizisi, Corsi blokları, dinleme ve okuma aralığı, harf-sayı sıralama, sırayı hatırla, nerede saklandı, sondakileri hatırla, Zihni nerede?, market listesi, ileriye dönük bellek",
       purpose:"Birden fazla bilgiyi aynı anda zihinde tutup güncelleme (n-geri) veya bir niyeti geleceğe taşıma (ileriye dönük bellek) becerilerini çalıştırır.",
       color:"#4F9D5A",
       group:"Bellek",
-      exerciseIds:["nback-shape","nback-color","nback-number","wm-same","digit-span","wm-seq","word-order","wm-where","prospective-event","prospective-time","prospective-delayed"]
+      exerciseIds:["nback-shape","corsi","market","nback-color","span-listen","zihni","wm-same","lns","market-verbal","digit-span","running","span-touch","nback-number","zihni-verbal","wm-seq","corsi-verbal","word-order","running-verbal","lns-touch","animal-fruit","wm-where","span-read","prospective-event","prospective-time","prospective-delayed"]
     },
     {
       id:"sozel-bellek",
@@ -7046,7 +7184,7 @@ const FRUIT_VEG_IMAGES = {
       id:"gorsel-bellek",
       readingLevel:["pre","post"],
       label:"Görsel Bellek",
-      sub:"Şekil, konum, renk hatırlama",
+      sub:"Şekil, konum, renk hatırlama · dokunmalı: gördüğün şekilleri bul, dolu daireleri göster, renkleri sırayla seç",
       purpose:"Gördüğü görsel bilgiyi kısa süre sonra hatırlama becerisini çalıştırır.",
       color:"#D64545",
       group:"Bellek",
@@ -7245,6 +7383,7 @@ const FRUIT_VEG_IMAGES = {
   }
 
   function generateGrid(exercise, rows, cols){
+    if(exercise.isMt) return mtBuild();                                  // Corsi, resimli dinleme aralığı, harf-sayı, hayvan-meyve
     if(exercise.isRt) return rtBuild();                                  // dokunmalı hatırlama
     if(exercise.isChoice) return chBuild();                              // seçmeli tepki denemeleri
     if(exercise.isWm) return exercise.wm();                              // Çalışan Bellek dokunmalı
@@ -7382,6 +7521,7 @@ const FRUIT_VEG_IMAGES = {
     if(currentExercise().isWm){ setTimeout(() => { try{ wmStart(); }catch(e){ console.error(e); } }, 250); }
     if(currentExercise().isChoice){ setTimeout(() => { try{ chStart(); }catch(e){ console.error(e); } }, 250); }
     if(currentExercise().isRt){ setTimeout(() => { try{ rtStart(); }catch(e){ console.error(e); } }, 250); }
+    if(currentExercise().isMt){ setTimeout(() => { try{ mtStart(); }catch(e){ console.error(e); } }, 250); }
     if(currentExercise().id === "plan-think"){ try{ plnStartLock(); }catch(e){} }
     if(typeof gameMode !== "undefined" && gameMode){ sfx("go"); speakText(gameLine("go"), { pitch: 1.2 }); try{ renderGameWho(); }catch(e){} }
     // tüm çalışmalarda Başlat'a basınca tahta ekrana gelsin (dikeyde aşağı kaydırmaya gerek kalmasın)
@@ -7435,6 +7575,8 @@ const FRUIT_VEG_IMAGES = {
     const countEl = document.getElementById("errorCount");
     if(countEl) countEl.textContent = "0";
     try{ if(gameMode) renderGameWho(); }catch(e){}
+    // Corsi vb.: baştan kur
+    if(currentExercise().isMt){ mtClear(); currentGrid = mtBuild(); renderMtBoard(); }
     // dokunmalı hatırlama: baştan kur
     if(currentExercise().isRt){ rtClear(); currentGrid = rtBuild(); renderRtBoard(); }
     // seçmeli tepki: baştan kur
@@ -7556,7 +7698,7 @@ const FRUIT_VEG_IMAGES = {
     const ex = currentExercise();
     // Oluş Sırası'nda bulunacak hedef sayısı satır başına 2'dir
     const itemCount = ex.isSeqRows ? Math.max(1, currentGrid.length * 2)
-                    : (ex.isFlanker || ex.isSort || ex.isTrail || ex.isPlan || ex.isSearch || ex.isWm || ex.isChoice || ex.isRt) ? Math.max(1, currentGrid.length)
+                    : (ex.isFlanker || ex.isSort || ex.isTrail || ex.isPlan || ex.isSearch || ex.isWm || ex.isChoice || ex.isRt || ex.isMt) ? Math.max(1, currentGrid.length)
                     : currentTier().rows * currentTier().cols;
     const secPerItem = (ms/1000) / itemCount;
     // Sıralı arama (sayıyı bulup gösterme) isimlendirmeden doğal olarak yavaştır: eşikler 2 katı
@@ -7569,7 +7711,7 @@ const FRUIT_VEG_IMAGES = {
     const player = currentPlayerName.trim() || "Oyuncu";
     // Sıralı arama çalışmalarında merdiven aşamaları da kapsar:
     // Başlangıç→Orta→Zor (Aşama 1), sonra Başlangıç→Orta→Zor (Aşama 2)
-    const useStages = (ex.isScatter || ex.isAuditory || ex.isSeqRows || ex.isFlanker || ex.isTrail || ex.isWm) && ex.stages.length > 1;
+    const useStages = (ex.isScatter || ex.isAuditory || ex.isSeqRows || ex.isFlanker || ex.isTrail || ex.isWm || ex.isMt) && ex.stages.length > 1;
     const stageName = (i) => ex.stages[i].label.split("·")[0].trim();
     const labelFor = (t, st) => useStages ? `${TIERS[t].label} · ${stageName(st)}` : TIERS[t].label;
 
@@ -8275,6 +8417,451 @@ const FRUIT_VEG_IMAGES = {
   document.getElementById("board").addEventListener("click", (ev) => { if(Date.now() - (window._fastTapTs || 0) < 700) return; handleRtTap(ev); });
   window.addEventListener("resize", () => { clearTimeout(window._rtResizeT); window._rtResizeT = setTimeout(() => { try{ if(currentExercise().isRt) renderRtBoard(); }catch(e){} }, 150); });
 
+
+  // ================= ÇALIŞAN BELLEK: Corsi, Dinleme/Okuma Aralığı, Harf-Sayı Sıralama =================
+  // ---- Cümle bankası (Dinleme / Okuma Aralığı): her öğe bir resimli nesne + doğru ve yanlış cümle ----
+  // Türkçe uyarlama: cümle fiille bittiği için son kelime yerine cümlenin konusu olan NESNE hatırlanır.
+  const SPAN_BANK = [
+    { k:"dog",      n:"köpek",       img:() => TA_ANIMALS.dog(),      t:"Köpekler havlar.",               f:"Köpekler uçar.",                bt:"Bu hayvan havlar.",          bf:"Bu hayvan uçar." },
+    { k:"cat",      n:"kedi",        img:() => TA_ANIMALS.cat(),      t:"Kediler miyavlar.",              f:"Kediler havlar.",               bt:"Bu hayvan miyavlar.",        bf:"Bu hayvan havlar." },
+    { k:"cow",      n:"inek",        img:() => TA_ANIMALS.cow(),      t:"İnekten süt elde edilir.",       f:"İnekler ağaçta yaşar.",         bt:"Bu hayvandan süt elde edilir.", bf:"Bu hayvan ağaçta yaşar." },
+    { k:"fish",     n:"balık",       img:() => SEA_IMAGES.fish,       t:"Balıklar suda yaşar.",           f:"Balıklar ağaca tırmanır.",      bt:"Bu hayvan suda yaşar.",      bf:"Bu hayvan ağaca tırmanır." },
+    { k:"elephant", n:"fil",         img:() => TA_ANIMALS.elephant(), t:"Fillerin hortumu vardır.",       f:"Filler çok küçüktür.",          bt:"Bu hayvanın hortumu vardır.", bf:"Bu hayvan çok küçüktür." },
+    { k:"parrot",   n:"papağan",     img:() => TA_ANIMALS.parrot(),   t:"Papağanlar uçabilir.",           f:"Papağanların dört bacağı vardır.", bt:"Bu hayvan uçabilir.",      bf:"Bu hayvanın dört bacağı vardır." },
+    { k:"penguin",  n:"penguen",     img:() => TA_ANIMALS.penguin(),  t:"Penguenler soğukta yaşar.",      f:"Penguenler çölde yaşar.",       bt:"Bu hayvan soğukta yaşar.",   bf:"Bu hayvan çölde yaşar." },
+    { k:"lion",     n:"aslan",       img:() => WILD_IMAGES.lion,      t:"Aslanlar et yer.",               f:"Aslanlar ot gibi küçüktür.",    bt:"Bu hayvan et yer.",          bf:"Bu hayvan bir oyuncaktır." },
+    { k:"giraffe",  n:"zürafa",      img:() => WILD_IMAGES.giraffe,   t:"Zürafaların boynu uzundur.",     f:"Zürafaların boynu kısadır.",    bt:"Bu hayvanın boynu uzundur.", bf:"Bu hayvanın boynu kısadır." },
+    { k:"zebra",    n:"zebra",       img:() => WILD_IMAGES.zebra,     t:"Zebraların çizgileri vardır.",   f:"Zebralar mor renklidir.",       bt:"Bu hayvanın çizgileri vardır.", bf:"Bu hayvan mor renklidir." },
+    { k:"monkey",   n:"maymun",      img:() => WILD_IMAGES.monkey,    t:"Maymunlar ağaca tırmanır.",      f:"Maymunlar denizde yüzer.",      bt:"Bu hayvan ağaca tırmanır.",  bf:"Bu hayvan denizde yaşar." },
+    { k:"bear",     n:"ayı",         img:() => WILD_IMAGES.bear,      t:"Ayılar kışın uyur.",             f:"Ayılar yumurtadan çıkar.",      bt:"Bu hayvan kışın uyur.",      bf:"Bu hayvan yumurtadan çıkar." },
+    { k:"squirrel", n:"sincap",      img:() => WILD_IMAGES.squirrel,  t:"Sincaplar fındık yer.",          f:"Sincaplar filden büyüktür.",    bt:"Bu hayvan fındık yer.",      bf:"Bu hayvan filden büyüktür." },
+    { k:"hedgehog", n:"kirpi",       img:() => WILD_IMAGES.hedgehog,  t:"Kirpilerin dikenleri vardır.",   f:"Kirpiler uçar.",                bt:"Bu hayvanın dikenleri vardır.", bf:"Bu hayvan uçar." },
+    { k:"dolphin",  n:"yunus",       img:() => SEA_IMAGES.dolphin,    t:"Yunuslar denizde yüzer.",        f:"Yunuslar ormanda yaşar.",       bt:"Bu hayvan denizde yüzer.",   bf:"Bu hayvan ormanda yaşar." },
+    { k:"turtle",   n:"kaplumbağa",  img:() => SEA_IMAGES.turtle,     t:"Kaplumbağaların kabuğu vardır.", f:"Kaplumbağalar çok hızlı koşar.", bt:"Bu hayvanın kabuğu vardır.", bf:"Bu hayvan çok hızlı koşar." },
+    { k:"crab",     n:"yengeç",      img:() => SEA_IMAGES.crab,       t:"Yengeçler yan yan yürür.",       f:"Yengeçler ağaçta yaşar.",       bt:"Bu hayvan yan yan yürür.",   bf:"Bu hayvan ağaçta yaşar." },
+    { k:"ball",     n:"top",         img:() => TOY_IMAGES.ball,       t:"Top yuvarlaktır.",               f:"Top kare şeklindedir.",         bt:"Bu oyuncak yuvarlaktır.",    bf:"Bu oyuncak kare şeklindedir." },
+    { k:"teddy",    n:"ayıcık",      img:() => TOY_IMAGES.teddy,      t:"Ayıcık yumuşaktır.",             f:"Ayıcık yenir.",                 bt:"Bu oyuncak yumuşaktır.",     bf:"Bu oyuncak yenir." },
+    { k:"kite",     n:"uçurtma",     img:() => TOY_IMAGES.kite,       t:"Uçurtma rüzgârda uçar.",         f:"Uçurtma suda yüzer.",           bt:"Bu oyuncak rüzgârda uçar.",  bf:"Bu oyuncak suda yüzer." },
+    { k:"drum",     n:"davul",       img:() => TOY_IMAGES.drum,       t:"Davul çalınır.",                 f:"Davul giyilir.",                bt:"Bu çalınır.",                bf:"Bu giyilir." },
+    { k:"train",    n:"tren",        img:() => TOY_IMAGES.train,      t:"Tren raylarda gider.",           f:"Tren gökyüzünde uçar.",         bt:"Bu raylarda gider.",         bf:"Bu gökyüzünde uçar." },
+    { k:"cup",      n:"fincan",      img:() => HOUSE_IMAGES.cup,      t:"Fincanla çay içilir.",           f:"Fincanla saç taranır.",         bt:"Bununla çay içilir.",        bf:"Bununla saç taranır." },
+    { k:"scissors", n:"makas",       img:() => HOUSE_IMAGES.scissors, t:"Makasla kâğıt kesilir.",         f:"Makasla çorba içilir.",         bt:"Bununla kâğıt kesilir.",     bf:"Bununla çorba içilir." },
+    { k:"clock",    n:"saat",        img:() => HOUSE_IMAGES.clock,    t:"Saat zamanı gösterir.",          f:"Saat havlar.",                  bt:"Bu zamanı gösterir.",        bf:"Bu havlar." },
+    { k:"lamp",     n:"lamba",       img:() => HOUSE_IMAGES.lamp,     t:"Lamba ışık verir.",              f:"Lamba yemek pişirir.",          bt:"Bu ışık verir.",             bf:"Bu yemek pişirir." },
+    { k:"comb",     n:"tarak",       img:() => HOUSE_IMAGES.comb,     t:"Tarakla saç taranır.",           f:"Tarakla su taşınır.",           bt:"Bununla saç taranır.",       bf:"Bununla su taşınır." },
+    { k:"pillow",   n:"yastık",      img:() => HOUSE_IMAGES.pillow,   t:"Yastık yumuşaktır.",             f:"Yastık çok sert ve keskindir.", bt:"Bu yumuşaktır.",             bf:"Bu çok keskindir." },
+    { k:"bucket",   n:"kova",        img:() => HOUSE_IMAGES.bucket,   t:"Kovayla su taşınır.",            f:"Kovayla resim çizilir.",        bt:"Bununla su taşınır.",        bf:"Bununla resim çizilir." },
+    { k:"broom",    n:"süpürge",     img:() => HOUSE_IMAGES.broom,    t:"Süpürgeyle yer temizlenir.",     f:"Süpürge meyve verir.",          bt:"Bununla yer temizlenir.",    bf:"Bu meyve verir." },
+    { k:"apple",    n:"elma",        img:() => FRUIT_VEG_IMAGES.apple,  t:"Elma bir meyvedir.",           f:"Elma bir hayvandır.",           bt:"Bu bir meyvedir.",           bf:"Bu bir hayvandır." },
+    { k:"banana",   n:"muz",         img:() => FRUIT_VEG_IMAGES.banana, t:"Muzun kabuğu soyulur.",        f:"Muz havlar.",                   bt:"Bunun kabuğu soyulur.",      bf:"Bu havlar." },
+    { k:"carrot",   n:"havuç",       img:() => FRUIT_VEG_IMAGES.carrot, t:"Havuç bir sebzedir.",          f:"Havuç uçabilir.",               bt:"Bu bir sebzedir.",           bf:"Bu uçabilir." },
+    { k:"strawberry", n:"çilek",     img:() => FRUIT_VEG_IMAGES.strawberry, t:"Çilek kırmızıdır.",        f:"Çilek mavidir.",                bt:"Bu kırmızıdır.",             bf:"Bu mavidir." }
+  ];
+  const SPAN_SETS = { post:[2, 3, 4], pre:[2, 2, 3] };
+  const spanSetSize = () => (isPre() ? SPAN_SETS.pre : SPAN_SETS.post)[currentCombo().t];
+  function makeSpanSets(count){
+    const size = spanSetSize(), pool = shuffleArray(SPAN_BANK), sets = [];
+    let k = 0;
+    for(let s2 = 0; s2 < count; s2++){
+      const items = [];
+      for(let i = 0; i < size; i++){ const b = pool[k++ % pool.length]; items.push({ b, truth: Math.random() < 0.5 }); }
+      sets.push({ items });
+    }
+    return sets;
+  }
+  function renderSpanList(sets, readMode){
+    return `<div class="aud-list"><div class="aud-note">${readMode ? "Çocuk her cümleyi kendisi okusun ve doğru mu yanlış mı söylesin; set bitince cümlelerdeki nesneleri sırayla söylesin." : "Her cümleyi okuyun; çocuk doğru mu yanlış mı söylesin ve cümledeki nesneyi aklında tutsun. Set bitince nesneleri sırayla söylesin."} Nesneleri yanlış ya da eksik söylediği setleri hata sayısına ekleyin.</div>` +
+      sets.map((st, i) => `<div class="aud-row" data-row="${i}"><div class="aud-num">${i + 1}</div><div class="aud-body">` +
+        st.items.map(it => `<div class="${readMode ? "span-read" : "aud-words"}" style="${readMode ? "font-size:22px;font-weight:800;line-height:1.35;margin:4px 0" : "font-size:19px;margin:3px 0"}">${it.truth ? it.b.t : it.b.f} <span style="font-size:13px;font-weight:900;color:${it.truth ? "#1FA463" : "#E5484D"}">(${it.truth ? "doğru" : "yanlış"})</span></div>`).join("") +
+        `<div class="aud-key">Hatırlanacak: <b>${st.items.map(it => it.b.n).join(" – ")}</b></div></div></div>`).join("") + `</div>`;
+  }
+
+  // ---- Harf-Sayı Sıralama ----
+  const LNS_LETTERS = { 0:"ABCDEFGHKLMNPRST".split(""), 1:"ABCDEFGHİKLMNOPRSTUYZ".split(""), 2:"ABCÇDEFGHIİKLMNOÖPRSŞTUÜVYZ".split("") };
+  const TR_ALPHA = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ";
+  const lnsLen = () => [3, 4, 5][currentCombo().t];
+  function makeLnsSeq(len){
+    const t = currentCombo().t, letters = shuffleArray(LNS_LETTERS[t]), digits = shuffleArray(["1","2","3","4","5","6","7","8","9"]);
+    const nL = Math.max(1, Math.floor(len / 2)), nD = len - nL;
+    let seq; let g = 0;
+    do{ seq = shuffleArray(digits.slice(0, nD).concat(letters.slice(0, nL))); g++; } while(g < 30 && seq.every((x, i) => i === 0 || /\d/.test(x) !== /\d/.test(seq[i-1])) === false && false);
+    return seq;
+  }
+  function lnsAnswer(seq, sorted){
+    const d = seq.filter(x => /\d/.test(x)), l = seq.filter(x => !/\d/.test(x));
+    if(sorted){ d.sort((a, b) => a - b); l.sort((a, b) => TR_ALPHA.indexOf(a) - TR_ALPHA.indexOf(b)); }
+    return d.concat(l);
+  }
+
+
+  // ================= ÇALIŞAN BELLEK: Son Üçü Hatırla · Zihni Nerede? · Market Listesi =================
+  // ortak resim havuzu (oyuncak, ev eşyası, meyve-sebze, hayvan)
+  function picPool(){
+    return TOY_KEYS.map(k => ({ k:"t-" + k, n: TOY_NAMES[k], src: TOY_IMAGES[k], cat:"toy" }))
+      .concat(HOUSE_KEYS.map(k => ({ k:"h-" + k, n: HOUSE_NAMES[k], src: HOUSE_IMAGES[k], cat:"house" })))
+      .concat(Object.keys(FRUIT_VEG_NAMES).map(k => ({ k:"f-" + k, n: FRUIT_VEG_NAMES[k], src: FRUIT_VEG_IMAGES[k], cat: FRUIT_VEG_CATEGORY[k] })));
+  }
+  const RUN_LAST = { post:[2, 3, 4], pre:[2, 2, 3] };
+  const runLast = () => (isPre() ? RUN_LAST.pre : RUN_LAST.post)[currentCombo().t];
+  function makeRunStream(){
+    const L = runLast(), len = L + 2 + Math.floor(Math.random() * 4);   // akış uzunluğu her turda değişir
+    const pool = shuffleArray(picPool()); return pool.slice(0, len);
+  }
+  // Zihni Nerede?: ızgara ve komutlar
+  const ZH_SPEC = { post:{ n:[3, 4, 4], k:[2, 3, 4] }, pre:{ n:[3, 3, 3], k:[1, 2, 3] } };
+  const ZH_DIRS = { R:{dx:1, dy:0, w:"sağa", a:"→"}, L:{dx:-1, dy:0, w:"sola", a:"←"}, U:{dx:0, dy:-1, w:"yukarı", a:"↑"}, D:{dx:0, dy:1, w:"aşağı", a:"↓"} };
+  function makeZihniRound(){
+    const sp = isPre() ? ZH_SPEC.pre : ZH_SPEC.post, t = currentCombo().t, n = sp.n[t], k = sp.k[t];
+    let x = Math.floor(n / 2), y = Math.floor(n / 2); if(n % 2 === 0){ x = Math.floor(Math.random() * n); y = Math.floor(Math.random() * n); }
+    const sx = x, sy = y, cmds = [];
+    let last = null;
+    while(cmds.length < k){
+      const opts = Object.keys(ZH_DIRS).filter(d => { const v = ZH_DIRS[d]; return x + v.dx >= 0 && x + v.dx < n && y + v.dy >= 0 && y + v.dy < n && !(last && ZH_DIRS[last].dx === -v.dx && ZH_DIRS[last].dy === -v.dy); });
+      const d = randomItem(opts); x += ZH_DIRS[d].dx; y += ZH_DIRS[d].dy; cmds.push(d); last = d;
+    }
+    return { n, sx, sy, cmds, ex: x, ey: y };
+  }
+  function zhCellName(r){ const n = r.n; const col = ["sol", "orta", "sağ"], row = ["üst", "orta", "alt"];
+    if(n === 3) return (r.ey === 1 && r.ex === 1) ? "tam orta" : `${row[r.ey]} ${col[r.ex]}`.replace("orta orta", "tam orta");
+    return `${r.ey + 1}. satır, ${r.ex + 1}. sütun`; }
+  // Market Listesi
+  const MK_K = { post:[3, 4, 5], pre:[2, 3, 3] };
+  const mkK = () => (isPre() ? MK_K.pre : MK_K.post)[currentCombo().t];
+  function makeMarketRound(){
+    const all = picPool(), K = mkK(), list = shuffleArray(all).slice(0, K);
+    const similar = shuffleArray(all.filter(x => !list.includes(x) && list.some(l => l.cat === x.cat))).slice(0, Math.min(Math.ceil(K * 0.8), 8 - K));   // raf en fazla 9 ürün
+    const other = shuffleArray(all.filter(x => !list.includes(x) && !similar.includes(x))).slice(0, Math.max(1, Math.min(9, K * 2 + 1) - K - similar.length));
+    return { list, shelf: shuffleArray(list.concat(similar, other)) };
+  }
+  const MK_DISTRACT = ["20'den geriye doğru ikişer ikişer say", "haftanın günlerini say", "5 tane hayvan adı söyle", "ellerini 5 kez çırp ve say", "en sevdiğin oyunu anlat"];
+
+  // ================= Dokunmalı çalışma motoru (isMt): Corsi, Resimli Dinleme Aralığı, Harf-Sayı (dokunmalı), Hayvan-Meyve Sıralama =================
+  let mtState = null, mtTimers = [];
+  function mtClear(){ mtTimers.forEach(t => clearTimeout(t)); mtTimers = []; }
+  function mtLater(fn, ms){ const st = mtState; mtTimers.push(setTimeout(() => { if(mtState === st && timerRunning) fn(); }, ms * (window.__wmSpeed || 1))); }
+  function mtErr(){ mtState.wrong++; setErrorCount(currentErrorCount + 1); try{ vibrate(60); }catch(e){} gameSfx("wrong"); }
+  function mtFinish(extra){
+    const st = mtState; st.phase = "done"; renderMtBoard(); stopTimer();
+    showLevelFlash((st.wrong ? `Bitti! ${st.wrong} hata.` : "Bitti! Hiç hata yok 🎉") + (extra || ""), st.wrong ? "down" : "levelup");
+  }
+  function mtBuild(){
+    const id = currentExercise().id, t = currentCombo().t, pre = isPre();
+    mtClear();
+    if(id === "corsi" || id === "corsi-verbal"){
+      const N = pre ? 6 : 9;
+      mtState = { kind: id, N, blocks: null, len: (pre ? [2, 2, 3] : [2, 3, 4])[t], maxLen: pre ? 6 : 9, tries: 0, okAtLen: 0, best: 0, wrong:0, phase:"idle", back: currentStageIndex === 1, seq:[], pos:0, trials:0 };
+      return Array.from({length: 12}, () => ({}));
+    }
+    if(id === "span-touch"){
+      const sets = makeSpanSets(pre ? 2 : 3);
+      mtState = { kind:id, sets, si:0, ii:0, wrong:0, phase:"idle" };
+      return sets;
+    }
+    if(id === "lns-touch"){
+      const n = 4;
+      mtState = { kind:id, trials: Array.from({length:n}, () => makeLnsSeq(lnsLen())), ti:0, pos:0, wrong:0, phase:"idle", sorted: currentStageIndex === 1 };
+      return mtState.trials;
+    }
+    if(id === "running"){
+      const R = isPre() ? 3 : 4;
+      mtState = { kind:id, trials: Array.from({length:R}, () => makeRunStream()), ti:0, pos:0, wrong:0, phase:"idle", L: runLast() };
+      return mtState.trials;
+    }
+    if(id === "zihni"){
+      const R = isPre() ? 3 : 4;
+      mtState = { kind:id, rounds: Array.from({length:R}, () => makeZihniRound()), ri:0, wrong:0, phase:"idle", res:[] };
+      return mtState.rounds;
+    }
+    if(id === "market"){
+      mtState = { kind:id, rounds: Array.from({length:2}, () => makeMarketRound()), ri:0, wrong:0, phase:"idle", found:{}, res:[] };
+      return mtState.rounds;
+    }
+    // animal-fruit (okul öncesi)
+    const n = 4;
+    mtState = { kind:"animal-fruit", trials: Array.from({length:n}, () => { const L = [3, 4, 4][t]; const nA = Math.ceil(L / 2);
+      const a = shuffleArray(NB_ANIMALS).slice(0, nA).map(k => ({ k, g:"a", src: animalImg(k) })), f = shuffleArray(["apple","banana","grapes","strawberry","orange"]).slice(0, L - nA).map(k => ({ k, g:"f", src: FRUIT_VEG_IMAGES[k] }));
+      return shuffleArray(a.concat(f)); }), ti:0, pos:0, wrong:0, phase:"idle" };
+    return mtState.trials;
+  }
+  function mtStart(){ const st = mtState; if(!st || st.phase !== "idle") return;
+    if(st.kind === "corsi" || st.kind === "corsi-verbal") corsiTrial();
+    else if(st.kind === "span-touch") spanShow();
+    else if(st.kind === "running") runShow();
+    else if(st.kind === "zihni") zhShow();
+    else if(st.kind === "market") mkShow();
+    else seqShow();
+  }
+  // --- Son Üçü Hatırla ---
+  function runShow(){
+    const st = mtState, items = st.trials[st.ti];
+    st.phase = "show"; st.showIdx = -1; st.pos = 0; st.marks = {}; renderMtBoard();
+    const step = isPre() ? 1300 : 1000;
+    items.forEach((x, k) => mtLater(() => { st.showIdx = k; renderMtBoard(); gameSfx("pop"); }, 400 + k * step));
+    mtLater(() => {
+      const last = items.slice(-st.L), earlier = items.slice(0, -st.L);
+      const extra = shuffleArray(earlier).slice(0, isPre() ? 2 : 3).concat(shuffleArray(picPool().filter(p => !items.some(x => x.k === p.k))).slice(0, 1));   // aynı resim iki kez çıkmasın
+      st.options = shuffleArray(last.concat(extra)); st.target = last; st.showIdx = -1; st.phase = "input"; renderMtBoard();
+      if(gameMode) speakText(`Son ${st.L} resme sırayla dokun.`);
+    }, 400 + items.length * step + 200);
+  }
+  function runTap(i){
+    const st = mtState; if(st.phase !== "input") return;
+    if(st.options[i] === st.target[st.pos] && !st.marks[i]){ st.marks[i] = "ok"; st.pos++; gameSfx("correct"); renderMtBoard(); if(st.pos >= st.target.length){ st.phase = "fb"; mtLater(runNext, 600); } }
+    else { st.marks[i] = "bad"; mtErr(); st.reveal = true; st.phase = "fb"; renderMtBoard(); mtLater(() => { st.reveal = false; runNext(); }, 1300); }
+  }
+  function runNext(){ const st = mtState; st.ti++; if(st.ti >= st.trials.length){ mtFinish(); return; } runShow(); }
+  // --- Zihni Nerede? ---
+  function zhShow(){
+    const st = mtState, r = st.rounds[st.ri];
+    st.phase = "start"; st.cmdIdx = -1; st.pick = null; renderMtBoard();
+    const step = isPre() ? 1600 : 1300;
+    mtLater(() => { st.phase = "cmds"; renderMtBoard(); }, 1400);
+    r.cmds.forEach((d, k) => mtLater(() => { st.cmdIdx = k; renderMtBoard(); gameSfx("pop"); if(!isPre()) speakText(`${ZH_DIRS[d].w} bir`); }, 1400 + 300 + k * step));
+    mtLater(() => { st.cmdIdx = -1; st.phase = "input"; renderMtBoard(); if(gameMode) speakText("Zihni şimdi nerede? Dokun."); }, 1400 + 300 + r.cmds.length * step + 200);
+  }
+  function zhTap(i){
+    const st = mtState; if(st.phase !== "input") return;
+    const r = st.rounds[st.ri], ok = i === r.ey * r.n + r.ex;
+    st.pick = i; st.res[st.ri] = ok; st.phase = "reveal"; if(ok) gameSfx("correct"); else mtErr(); renderMtBoard();
+    mtLater(() => { st.ri++; if(st.ri >= st.rounds.length){ mtFinish(); return; } zhShow(); }, ok ? 900 : 1500);
+  }
+  // --- Market Listesi ---
+  function mkShow(){
+    const st = mtState, r = st.rounds[st.ri];
+    st.phase = "list"; st.found = {}; st.marks = {}; renderMtBoard();
+    if(gameMode) speakText("Listeyi aklında tut: " + r.list.map(x => x.n).join(", "));
+    const ms = (isPre() ? 1800 : 1400) * r.list.length + 800;
+    mtLater(() => { st.phase = "distract"; st.balloons = Array.from({length:6}, (_, i) => ({ i, popped:false, c: randomItem(["#FF6B6B","#4DABF7","#FFD43B","#69DB7C","#B197FC","#FFA94D"]) })); renderMtBoard(); if(gameMode) speakText("Şimdi balonları patlat!"); }, ms);
+  }
+  function mkPop(i){
+    const st = mtState; if(st.phase !== "distract") return;
+    if(st.balloons[i].popped) return; st.balloons[i].popped = true; gameSfx("pop"); renderMtBoard();
+    if(st.balloons.every(b => b.popped)){ st.phase = "shop"; renderMtBoard(); if(gameMode) speakText("Şimdi listedekileri raftan seç."); }
+  }
+  function mkTap(i){
+    const st = mtState; if(st.phase !== "shop") return;
+    const r = st.rounds[st.ri], it = r.shelf[i]; if(st.marks[i]) return;
+    if(r.list.includes(it)){ st.marks[i] = "ok"; gameSfx("correct"); } else { st.marks[i] = "bad"; mtErr(); st.roundBad = (st.roundBad || 0) + 1; }
+    renderMtBoard();
+    if(r.list.every(x => st.marks[r.shelf.indexOf(x)] === "ok")){ st.res[st.ri] = !st.roundBad; st.roundBad = 0; st.phase = "fb"; mtLater(() => { st.ri++; if(st.ri >= st.rounds.length){ mtFinish(); return; } mkShow(); }, 800); }
+  }
+  // --- Corsi ---
+  function corsiLayout(){
+    const st = mtState; if(st.blocks) return;
+    const pts = []; let g = 0;
+    while(pts.length < st.N && g < 4000){ g++; const x = 0.06 + Math.random() * 0.76, y = 0.06 + Math.random() * 0.76;
+      if(pts.every(p => Math.abs(p.x - x) > 0.2 || Math.abs(p.y - y) > 0.2)) pts.push({ x, y }); }
+    st.blocks = pts;
+  }
+  function corsiTrial(){
+    const st = mtState; corsiLayout();
+    st.seq = []; while(st.seq.length < st.len){ const i = Math.floor(Math.random() * st.N); if(!st.seq.includes(i)) st.seq.push(i); }
+    st.pos = 0; st.marks = {}; st.phase = "show"; st.lit = null; renderMtBoard();
+    const on = isPre() ? 900 : 750, off = 300;
+    st.seq.forEach((bi, k) => {
+      mtLater(() => { st.lit = bi; renderMtBoard(); gameSfx("pop"); }, 600 + k * (on + off));
+      mtLater(() => { st.lit = null; renderMtBoard(); }, 600 + k * (on + off) + on);
+    });
+    mtLater(() => { st.phase = st.kind === "corsi" ? "input" : "judge"; renderMtBoard(); }, 600 + st.seq.length * (on + off) + 100);
+  }
+  function corsiResult(ok){
+    const st = mtState; st.trials++; st.tries++;
+    if(ok){ st.okAtLen++; st.best = Math.max(st.best, st.len); gameSfx("correct"); } else mtErr();
+    st.phase = "between"; renderMtBoard();
+    mtLater(() => {
+      if(st.tries >= 2){
+        if(st.okAtLen === 0 || st.len >= st.maxLen){ mtFinish(` En uzun dizi: ${st.best || "—"}`); return; }
+        st.len++; st.tries = 0; st.okAtLen = 0;
+      }
+      corsiTrial();
+    }, 700);
+  }
+  function corsiTap(i){
+    const st = mtState; if(st.phase !== "input") return;
+    const order = st.back ? st.seq.slice().reverse() : st.seq;
+    if(order[st.pos] === i){ st.marks = {}; st.marks[i] = "ok"; st.pos++; renderMtBoard(); if(st.pos >= order.length) corsiResult(true); }
+    else { st.marks = {}; st.marks[i] = "bad"; renderMtBoard(); corsiResult(false); }
+  }
+  // --- Resimli Dinleme Aralığı ---
+  function spanShow(){
+    const st = mtState, set = st.sets[st.si], it = set.items[st.ii];
+    st.phase = "judge"; st.flash = ""; renderMtBoard();
+    speakText(it.truth ? it.b.bt : it.b.bf);
+  }
+  function spanJudge(yes){
+    const st = mtState; if(st.phase !== "judge") return;
+    const it = st.sets[st.si].items[st.ii], ok = (yes === 1) === it.truth;
+    st.flash = ok ? "ok" : "bad"; if(ok) gameSfx("correct"); else mtErr();
+    st.phase = "fb"; renderMtBoard();
+    mtLater(() => {
+      st.ii++;
+      if(st.ii < st.sets[st.si].items.length){ spanShow(); return; }
+      const set = st.sets[st.si], tg = set.items.map(x => x.b);
+      const dis = shuffleArray(SPAN_BANK.filter(b => !tg.includes(b))).slice(0, isPre() ? 2 : 3);
+      st.options = shuffleArray(tg.concat(dis)); st.pos = 0; st.marks = {}; st.phase = "recall"; renderMtBoard();
+      speakText("Şimdi gördüğün resimlere sırayla dokun.");
+    }, ok ? 450 : 750);
+  }
+  function spanTap(i){
+    const st = mtState; if(st.phase !== "recall") return;
+    const order = st.sets[st.si].items.map(x => x.b);
+    if(st.options[i] === order[st.pos]){ st.marks[i] = "ok"; st.pos++; gameSfx("correct"); renderMtBoard(); if(st.pos >= order.length) spanNextSet(); }
+    else { st.marks[i] = "bad"; mtErr(); st.reveal = true; renderMtBoard(); st.phase = "fb"; mtLater(() => { st.reveal = false; spanNextSet(); }, 1100); }
+  }
+  function spanNextSet(){ const st = mtState; st.phase = "fb"; mtLater(() => { st.si++; st.ii = 0; if(st.si >= st.sets.length){ mtFinish(); return; } spanShow(); }, 600); }
+  // --- Harf-Sayı (dokunmalı) ve Hayvan-Meyve: öğeler tek tek gösterilir, sonra istenen sırayla dokunulur ---
+  function seqShow(){
+    const st = mtState, items = st.trials[st.ti];
+    st.phase = "show"; st.showIdx = -1; st.pos = 0; st.marks = {}; renderMtBoard();
+    const step = isPre() ? 1300 : 1100;
+    if(st.kind === "lns-touch") speakText(items.join(", "), { rate: 0.85 });
+    items.forEach((x, k) => { mtLater(() => { st.showIdx = k; renderMtBoard(); }, 400 + k * step); });
+    mtLater(() => { st.showIdx = -1; st.phase = "input"; st.keys = shuffleArray(items.map((x, i) => i)); renderMtBoard(); }, 400 + items.length * step + 200);
+  }
+  function seqTarget(){
+    const st = mtState, items = st.trials[st.ti];
+    if(st.kind === "lns-touch") return lnsAnswer(items, st.sorted);
+    return items.filter(x => x.g === "a").concat(items.filter(x => x.g === "f"));
+  }
+  function seqTap(i){
+    const st = mtState; if(st.phase !== "input") return;
+    const items = st.trials[st.ti], want = seqTarget()[st.pos], got = items[i];
+    const same = st.kind === "lns-touch" ? got === want : got === want;
+    if(same && !st.marks[i]){ st.marks[i] = "ok"; st.pos++; gameSfx("correct"); renderMtBoard(); if(st.pos >= items.length){ st.phase = "fb"; mtLater(seqNext, 600); } }
+    else { st.marks[i] = "bad"; mtErr(); st.reveal = true; st.phase = "fb"; renderMtBoard(); mtLater(() => { st.reveal = false; seqNext(); }, 1300); }
+  }
+  function seqNext(){ const st = mtState; st.ti++; if(st.ti >= st.trials.length){ mtFinish(); return; } seqShow(); }
+
+  function renderMtBoard(){
+    const board = document.getElementById("board");
+    board.style.display = "block"; board.style.minHeight = ""; board.style.padding = landscapeMQ.matches ? "6px 8px" : "12px";
+    board.style.gridTemplateColumns = ""; board.style.gridTemplateRows = ""; board.classList.remove("wide-grid");
+    if(!mtState) return;
+    const st = mtState, isLs = landscapeMQ.matches;
+    const W = (board.clientWidth || 360) - 24, H = isLs ? (board.clientHeight || 280) - 60 : Math.min(460, window.innerHeight - 330);
+    let info = "", body = "";
+    if(st.kind === "corsi" || st.kind === "corsi-verbal"){
+      corsiLayout();
+      const area = Math.min(W, isLs ? (st.kind === "corsi-verbal" && st.phase === "judge" ? H - 112 : H) : 420), bs = Math.round(area * 0.15);
+      info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "show" ? "<b>İzle…</b>" : st.phase === "input" ? `<b>${st.back ? "Tersten" : "Aynı sırayla"}</b> dokun · ${st.pos}/${st.seq.length}` : st.phase === "judge" ? `Çocuk sırayı ${st.back ? "<b>tersten</b>" : ""} söylesin / göstersin:` : st.phase === "done" ? `Bitti · en uzun dizi <b>${st.best || "—"}</b>` : `Dizi uzunluğu: <b>${st.len}</b>`;
+      body = `<div style="position:relative;width:${area}px;height:${area}px;margin:0 auto;background:#EEF2F6;border-radius:18px;">` + st.blocks.map((p, i) => {
+        const lit = st.lit === i, mk = st.marks && st.marks[i];
+        const bg = lit ? "#FFC21A" : mk === "ok" ? "#1FA463" : mk === "bad" ? "#E5484D" : "#2E6FD8";
+        const num = st.kind === "corsi-verbal" ? `<span style="color:#fff;font-weight:900;font-size:${Math.round(bs * 0.42)}px">${i + 1}</span>` : "";
+        return `<div data-mt="${i}" style="position:absolute;left:${(p.x * area).toFixed(0)}px;top:${(p.y * area).toFixed(0)}px;width:${bs}px;height:${bs}px;border-radius:10px;background:${bg};box-shadow:0 4px 0 rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .1s">${num}</div>`; }).join("") + `</div>`;
+      if(st.kind === "corsi-verbal" && st.phase === "judge"){
+        const order = st.back ? st.seq.slice().reverse() : st.seq;
+        body += `<div class="aud-key" style="text-align:center;margin-top:8px">Doğru cevap: <b>${order.map(i => i + 1).join(" – ")}</b></div><div class="wm-btns" style="margin:8px auto 0"><button type="button" class="wm-btn same" data-judge="1">✓ Doğru</button><button type="button" class="wm-btn diff" style="background:#E5484D;box-shadow:0 5px 0 #A9262B" data-judge="0">✗ Yanlış</button></div>`;
+      }
+    } else if(st.kind === "span-touch"){
+      const set = st.sets[st.si] || st.sets[0], it = set.items[Math.min(st.ii, set.items.length - 1)];
+      const dots = `<div class="wm-dots">${st.sets.map((x, i) => `<i class="${i < st.si ? "on" : ""}"></i>`).join("")}</div>`;
+      if(st.phase === "idle"){ info = "▶ Başlat'a bas"; body = dots; }
+      else if(st.phase === "done"){ info = "Bitti!"; body = dots; }
+      else if(st.phase === "recall" || (st.phase === "fb" && st.options && st.ii >= set.items.length)){
+        info = `<b>Gördüğün resimlere sırayla dokun</b> · ${st.pos}/${set.items.length}`;
+        const d = wmGridDims(st.options.length, W, H, 96);
+        const order = set.items.map(x => x.b);
+        body = dots + `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + st.options.map((b, i) => {
+          const mk = st.marks[i] || (st.reveal && order.includes(b) ? "ok" : "");
+          const num = st.reveal && order.includes(b) ? `<span class="num">${order.indexOf(b) + 1}</span>` : "";
+          return `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${d.cell}px;height:${d.cell}px;">${imgTag(b.img())}${num}</div>`; }).join("") + `</div>`;
+      } else {
+        info = `Cümle ${st.ii + 1} / ${set.items.length} · <b>doğru mu?</b>`;
+        const sz = Math.min(isLs ? H - 10 : 200, W * (isLs ? 0.4 : 0.6));
+        const cardHtml = `<div class="wm-card ${st.flash || ""}" style="width:${sz}px;height:${sz}px;flex:none">${imgTag(it.b.img())}</div>`;
+        const ctrl = `<div style="font-size:13px;color:var(--ink-soft);text-align:center;min-height:18px">${document.documentElement.classList.contains("show-span-text") ? (it.truth ? it.b.bt : it.b.bf) : ""}</div>` +
+          `<div class="wm-btns"><button type="button" class="wm-btn same" data-judge="1" ${st.phase === "judge" ? "" : "disabled"}>✓ Doğru</button><button type="button" class="wm-btn diff" style="background:#E5484D;box-shadow:0 5px 0 #A9262B" data-judge="0" ${st.phase === "judge" ? "" : "disabled"}>✗ Yanlış</button></div>` +
+          `<div style="display:flex;gap:8px;justify-content:center"><button type="button" class="gb-btn" data-speak="1">🔊 Tekrar dinle</button><button type="button" class="gb-btn" data-showtext="1">Aa Metni göster</button></div>`;
+        if(isLs){ body = dots + `<div style="display:flex;gap:18px;align-items:center;justify-content:center;width:100%">${cardHtml}<div style="display:flex;flex-direction:column;gap:10px;flex:1;max-width:420px">${ctrl}</div></div>`; }
+        else body = dots + cardHtml +
+          `<div style="font-size:13px;color:var(--ink-soft);text-align:center;min-height:18px">${document.documentElement.classList.contains("show-span-text") ? (it.truth ? it.b.bt : it.b.bf) : ""}</div>` +
+          `<div class="wm-btns"><button type="button" class="wm-btn same" data-judge="1" ${st.phase === "judge" ? "" : "disabled"}>✓ Doğru</button><button type="button" class="wm-btn diff" style="background:#E5484D;box-shadow:0 5px 0 #A9262B" data-judge="0" ${st.phase === "judge" ? "" : "disabled"}>✗ Yanlış</button></div>` +
+          `<div style="display:flex;gap:8px;justify-content:center"><button type="button" class="gb-btn" data-speak="1">🔊 Tekrar dinle</button><button type="button" class="gb-btn" data-showtext="1">Aa Metni göster</button></div>`;
+      }
+    } else if(st.kind === "running"){
+      const items = st.trials[Math.min(st.ti, st.trials.length - 1)];
+      const dots = `<div class="wm-dots">${st.trials.map((x, i) => `<i class="${i < st.ti ? "on" : ""}"></i>`).join("")}</div>`;
+      if(st.phase === "idle"){ info = "▶ Başlat'a bas"; body = dots; }
+      else if(st.phase === "done"){ info = "Bitti!"; body = dots; }
+      else if(st.phase === "show"){ info = "<b>İzle…</b> (ne zaman biteceği belli değil)"; const sz = Math.min(isLs ? H - 30 : 180, W * 0.55); body = dots + `<div class="wm-card" style="width:${sz}px;height:${sz}px;">${st.showIdx >= 0 ? imgTag(items[st.showIdx].src) : ""}</div>`; }
+      else {
+        info = `<b>Son ${st.L}</b> resme sırayla dokun · ${st.pos}/${st.L}`;
+        const d = wmGridDims(st.options.length, W, isLs ? H - 30 : H, 96);
+        body = dots + `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + st.options.map((o, i) => {
+          const inT = st.target.indexOf(o), mk = st.marks[i] || (st.reveal && inT >= 0 ? "ok" : "");
+          return `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${d.cell}px;height:${d.cell}px;">${imgTag(o.src)}${st.reveal && inT >= 0 ? `<span class="num">${inT + 1}</span>` : ""}</div>`; }).join("") + `</div>`;
+      }
+    } else if(st.kind === "zihni"){
+      const r = st.rounds[Math.min(st.ri, st.rounds.length - 1)], n = r.n;
+      const dots = `<div class="wm-dots">${st.rounds.map((x, i) => `<i class="${st.res[i] === true ? "on" : st.res[i] === false ? "off" : ""}"></i>`).join("")}</div>`;
+      const area = Math.min(W, isLs ? H - 20 : 320), cell = Math.floor((area - (n - 1) * 6) / n);
+      const showZ = st.phase === "start" ? r.sy * n + r.sx : st.phase === "reveal" ? r.ey * n + r.ex : -1;
+      const cmd = st.phase === "cmds" && st.cmdIdx >= 0 ? r.cmds[st.cmdIdx] : null;
+      info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "start" ? "<b>Zihni burada.</b> Aklında tut…" : st.phase === "cmds" ? `Komut ${Math.max(1, st.cmdIdx + 1)} / ${r.cmds.length}` : st.phase === "input" ? "<b>Zihni şimdi nerede?</b> Dokun." : st.phase === "done" ? "Bitti!" : "";
+      const grid = `<div class="wm-grid" style="grid-template-columns:repeat(${n}, ${cell}px);gap:6px;">` + Array.from({length:n * n}, (_, i) => {
+        const mk = st.phase === "reveal" && st.pick === i ? (i === r.ey * n + r.ex ? "ok" : "bad") : "";
+        return `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${cell}px;height:${cell}px;border-radius:14px;">${showZ === i ? `<div style="width:80%;height:80%">${mascotSVG(st.phase === "reveal" ? "cheer" : "happy")}</div>` : ""}</div>`; }).join("") + `</div>`;
+      const cmdBox = `<div style="min-height:64px;display:flex;align-items:center;justify-content:center;gap:12px">${cmd ? `<span style="font-size:52px;font-weight:900;color:var(--teal-dark);line-height:1">${ZH_DIRS[cmd].a}</span>${isPre() ? "" : `<span style="font-size:26px;font-weight:900;color:var(--ink)">${ZH_DIRS[cmd].w} 1</span>`}` : ""}</div>`;
+      body = dots + (isLs ? `<div style="display:flex;gap:18px;align-items:center;justify-content:center">${grid}${cmdBox}</div>` : cmdBox + grid);
+    } else if(st.kind === "market"){
+      const r = st.rounds[Math.min(st.ri, st.rounds.length - 1)];
+      const dots = `<div class="wm-dots">${st.rounds.map((x, i) => `<i class="${st.res[i] === true ? "on" : st.res[i] === false ? "off" : ""}"></i>`).join("")}</div>`;
+      if(st.phase === "idle"){ info = "▶ Başlat'a bas"; body = dots; }
+      else if(st.phase === "done"){ info = "Bitti!"; body = dots; }
+      else if(st.phase === "list"){
+        info = "<b>Alışveriş listesi</b> · aklında tut";
+        const d = wmGridDims(r.list.length, W, isLs ? H - 75 : H * 0.7, isLs ? 80 : 96);
+        body = dots + `<div style="background:#FFFDF2;border:2px dashed #E0C97A;border-radius:18px;padding:10px"><div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + r.list.map(x => `<div style="display:flex;flex-direction:column;align-items:center;width:${d.cell}px"><div class="wm-pic" style="width:${d.cell}px;height:${d.cell}px;cursor:default">${imgTag(x.src)}</div><b style="font-size:14px;margin-top:2px">${x.n}</b></div>`).join("") + `</div></div>`;
+      } else if(st.phase === "distract"){
+        info = "<b>Balonların hepsini patlat!</b>";
+        const d = wmGridDims(6, W, isLs ? H - 20 : 260, 90);
+        body = dots + `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + st.balloons.map(bl => `<div data-mt="${bl.i}" style="width:${d.cell}px;height:${d.cell}px;display:flex;align-items:center;justify-content:center;cursor:pointer">${bl.popped ? `<span style="font-size:${Math.round(d.cell * 0.4)}px">💥</span>` : `<svg viewBox="0 0 60 80" style="width:70%;height:90%"><ellipse cx="30" cy="30" rx="24" ry="28" fill="${bl.c}"/><ellipse cx="22" cy="20" rx="6" ry="9" fill="#fff" opacity=".45"/><path d="M30 58 l-4 6 h8z" fill="${bl.c}"/><path d="M30 64 q-6 8 0 14" stroke="#888" fill="none" stroke-width="1.5"/></svg>`}</div>`).join("") + `</div>`;
+      } else {
+        const got = r.list.filter(x => st.marks[r.shelf.indexOf(x)] === "ok").length;
+        info = `<b>Listedekileri raftan seç</b> · ${got}/${r.list.length}`;
+        const d = wmGridDims(r.shelf.length, W, isLs ? H - 20 : H, 92);
+        body = dots + `<div style="background:linear-gradient(#F3E3C3 0 0) bottom/100% 6px no-repeat;padding-bottom:8px"><div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + r.shelf.map((x, i) => `<div class="wm-pic${st.marks[i] ? " " + st.marks[i] : ""}" data-mt="${i}" style="width:${d.cell}px;height:${d.cell}px;">${imgTag(x.src)}</div>`).join("") + `</div></div>`;
+      }
+    } else {
+      const items = st.trials[Math.min(st.ti, st.trials.length - 1)], isL = st.kind === "lns-touch";
+      const face = (x) => isL ? `<span style="font-size:34px;font-weight:900;color:var(--ink)">${x}</span>` : imgTag(x.src);
+      const dots = `<div class="wm-dots">${st.trials.map((x, i) => `<i class="${i < st.ti ? "on" : ""}"></i>`).join("")}</div>`;
+      if(st.phase === "idle"){ info = "▶ Başlat'a bas"; body = dots; }
+      else if(st.phase === "done"){ info = "Bitti!"; body = dots; }
+      else if(st.phase === "show"){
+        info = isL ? "<b>Dinle ve izle…</b>" : "<b>İyi bak…</b>";
+        const sz = Math.min(isLs ? H - 30 : 180, W * 0.55);
+        body = dots + `<div class="wm-card" style="width:${sz}px;height:${sz}px;">${st.showIdx >= 0 ? face(items[st.showIdx]) : ""}</div>`;
+      } else {
+        const tgt = seqTarget();
+        info = isL ? (st.sorted ? "Önce sayılar <b>küçükten büyüğe</b>, sonra harfler <b>alfabe sırasıyla</b>" : "Önce <b>sayılara</b>, sonra <b>harflere</b> dokun (duyduğun sırayla)") : "Önce <b>hayvanlara</b>, sonra <b>meyvelere</b> dokun (gördüğün sırayla)";
+        const d = wmGridDims(items.length, W, isLs ? H - 45 : H, isL ? 84 : 100);
+        body = dots + `<div class="wm-info">${st.pos}/${items.length}</div><div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + st.keys.map(i => {
+          const mk = st.marks[i] || (st.reveal ? "ok" : "");
+          const num = st.reveal ? `<span class="num">${tgt.indexOf(items[i]) + 1}</span>` : "";
+          return `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${d.cell}px;height:${d.cell}px;">${face(items[i])}${num}</div>`; }).join("") + `</div>`;
+      }
+    }
+    board.innerHTML = `<div class="wm-wrap"><div class="wm-info">${info}</div>${body}</div>`;
+  }
+  function handleMtTap(ev){
+    if(!currentExercise().isMt || !mtState) return;
+    const sp = ev.target.closest("[data-speak]"); if(sp){ const st = mtState; const it = st.sets && st.sets[st.si] && st.sets[st.si].items[st.ii]; if(it) speakText(it.truth ? it.b.bt : it.b.bf); return; }
+    const tx = ev.target.closest("[data-showtext]"); if(tx){ document.documentElement.classList.toggle("show-span-text"); renderMtBoard(); return; }
+    const b = ev.target.closest("[data-mt],[data-judge]"); if(!b) return;
+    if(!timerRunning){ showLevelFlash("Önce ▶ Başlat'a basın.", "down"); return; }
+    const st = mtState;
+    if(b.dataset.judge !== undefined){ if(st.kind === "corsi-verbal" && st.phase === "judge") corsiResult(b.dataset.judge === "1"); else if(st.kind === "span-touch") spanJudge(Number(b.dataset.judge)); return; }
+    const i = Number(b.dataset.mt);
+    if(st.kind === "corsi") corsiTap(i); else if(st.kind === "span-touch") spanTap(i);
+    else if(st.kind === "running") runTap(i); else if(st.kind === "zihni") zhTap(i);
+    else if(st.kind === "market"){ if(st.phase === "distract") mkPop(i); else mkTap(i); }
+    else if(st.kind !== "corsi-verbal") seqTap(i);
+  }
+  document.getElementById("board").addEventListener("click", (ev) => { if(Date.now() - (window._fastTapTs || 0) < 700) return; handleMtTap(ev); });
+  window.addEventListener("resize", () => { clearTimeout(window._mtResizeT); window._mtResizeT = setTimeout(() => { try{ if(currentExercise().isMt) renderMtBoard(); }catch(e){} }, 150); });
+
   // ---------- Kısa yönergeler ----------
   // Tüm çalışmaların yönergeleri: çocuğa söylenecek cümle (kalın) + gerekiyorsa tek kısa uygulayıcı notu.
   // Puanlama, renkli işaretler, Karıştır'da değişme gibi uygulama ayrıntıları yönergede yazılmaz.
@@ -8310,6 +8897,20 @@ const FRUIT_VEG_IMAGES = {
     "face-go":          [() => Q(`Her yüzde DOKUN'a bas. ${trUpper(FACE_NAMES[fgStop])} yüzde dokunma, bekle.`)],
     "switch-touch":     [() => Q("Yeşil çerçevede gördüğünü, turuncu çerçevede TERSİNİ seç: ön mü, arka mı?")],
     "plan-think":       [() => `${Q("Önce zihninde planla; birkaç saniye sonra dokunabilirsin. En az hamleyle hedefteki gibi yap.")} İsterseniz çocuk kaç hamlede çözeceğini önce söylesin.`],
+    "running":          [() => Q(`Resimler tek tek gelecek; ne zaman biteceği belli değil. Bitince SON ${runLast()} resme sırayla dokun.`)],
+    "running-verbal":   [() => `Göstermeden okuyun: ${Q(`Dinle. Bitince son ${runLast()} kelimeyi sırayla söyle.`)}`],
+    "zihni":            [() => Q(isPre() ? "Zihni'nin yerine bak. Sonra okları izle ve Zihni'nin gittiği kutuya dokun." : "Zihni'nin yerine bak. Sonra komutları izle; Zihni'yi zihninde yürüt ve son kutuya dokun.")],
+    "zihni-verbal":     [() => `Komutları okuyun: ${Q("Zihni'yi zihninde yürüt; sonunda hangi kutuda?")}`],
+    "market":           [() => Q("Listeyi aklında tut. Balonları patlat, sonra listedekileri raftan seç.")],
+    "market-verbal":    [() => `Listeyi okuyun: ${Q("Bunları aklında tut; görevden sonra bana söyle.")}`],
+    "corsi":            [() => Q("Mavi bloklar sırayla yanacak. Sonra aynı sırayla dokun."), () => Q("Bloklar sırayla yanacak. Sonra TERSTEN dokun: sondan başa.")],
+    "corsi-verbal":     [() => `Bloklar sırayla yanar. ${Q("Yanan blokların numaralarını aynı sırayla söyle ya da göster.")} Doğru/Yanlış ile kaydedin.`, () => `Bloklar sırayla yanar. ${Q("Numaraları TERSTEN söyle ya da göster.")} Doğru/Yanlış ile kaydedin.`],
+    "span-listen":      [() => `Göstermeden okuyun: ${Q("Doğru mu yanlış mı söyle; cümledeki nesneyi aklında tut.")}`],
+    "span-read":        [() => Q("Cümleleri oku, doğru mu yanlış mı söyle. Sonra nesneleri sırayla söyle.")],
+    "span-touch":       [() => Q("Cümleyi dinle: doğruysa ✓, yanlışsa ✗. Resimleri aklında tut, sonra sırayla dokun.")],
+    "lns":              [() => `Göstermeden okuyun: ${Q("Önce sayıları, sonra harfleri söyle.")}`, () => `Göstermeden okuyun: ${Q("Sayıları küçükten büyüğe, sonra harfleri alfabe sırasıyla söyle.")}`],
+    "lns-touch":        [() => Q("Dinle. Sonra önce sayılara, sonra harflere dokun."), () => Q("Dinle. Sayılara küçükten büyüğe, harflere alfabe sırasıyla dokun.")],
+    "animal-fruit":     [() => Q("Resimlere iyi bak. Sonra önce hayvanlara, sonra meyvelere dokun.")],
     "rt-shapes":        [() => Q("Şekillere iyi bak. Kapanınca gördüğün şekillere dokun.")],
     "rt-position":      [() => Q("Hangi daireler dolu, iyi bak. Kapanınca o dairelere dokun.")],
     "rt-colors":        [() => Q("Renklere sırayla bak. Kapanınca aynı sırayla renklere dokun.")],
@@ -8729,6 +9330,10 @@ const FRUIT_VEG_IMAGES = {
       renderRtBoard();
       return;
     }
+    if(ex.isMt){
+      renderMtBoard();
+      return;
+    }
     board.style.display = "grid";
     board.style.minHeight = "";
     board.style.padding = "14px";
@@ -8776,7 +9381,7 @@ const FRUIT_VEG_IMAGES = {
     if(applyingBoardLayout) return;
     const board = document.getElementById("board");
     if(!board || !currentGrid.length) return;
-    if(currentExercise().isMotion || currentExercise().isAuditory || currentExercise().isSeqRows || currentExercise().isFlanker || currentExercise().isSort || currentExercise().isTrail || currentExercise().isPlan || currentExercise().isSearch || currentExercise().isWm || currentExercise().isChoice || currentExercise().isRt) return;
+    if(currentExercise().isMotion || currentExercise().isAuditory || currentExercise().isSeqRows || currentExercise().isFlanker || currentExercise().isSort || currentExercise().isTrail || currentExercise().isPlan || currentExercise().isSearch || currentExercise().isWm || currentExercise().isChoice || currentExercise().isRt || currentExercise().isMt) return;
     applyingBoardLayout = true;
     try{
       let {rows, cols} = currentTier();
@@ -8899,6 +9504,7 @@ const FRUIT_VEG_IMAGES = {
     if(label){
       if(ex.isMotion) label.textContent = "Gözden kaçırma / baş çevirme sayısı";
       else if(ex.isRecall) label.textContent = "Doğru hatırlanan sayısı";
+      else if(ex.errorLabel) label.textContent = ex.errorLabel;
       else if(ex.isAuditory) label.textContent = "Yanlış söylenen dizi sayısı";
       else label.textContent = "Hata sayısı";
     }
@@ -10326,7 +10932,7 @@ const FRUIT_VEG_IMAGES = {
   // Ailenin kaydettiği sonuçlar uzmana da gider (links/{kod}/results). Uzman listesi için aile, bağlantı belgesindeki
   // kısa haftalık özeti (çalışılan günler, son etkinlik) günceller.
   // Firestore yapısı: links/{kod} { expertUid, childName, level, familyUid, consent, program, weekKey, weekDays, lastActivityAt }
-  const APP_VERSION = "2026.10.06-m";
+  const APP_VERSION = "2026.10.06-p";
   const LINK_LOCAL_KEY = "wm_family_links_v1";   // aile cihazında: kişi|seviye → kod + program önbelleği
   const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -10808,7 +11414,7 @@ const FRUIT_VEG_IMAGES = {
     { id:"hiz",    name:"Hız Adası",    color:"#FFB648", ids:["search-object","search-shape","trail-numbers","cat-fruit","search-symbol","search-letter","sdmt-touch","cat-cold","quick-sort","touch-card","cat-living","pairs-touch"] },
     { id:"dikkat", name:"Dikkat Adası", color:"#62D394", ids:["touch-animal","fish-flanker","stroop-touch","day-night-touch","face-go","switch-touch","sort-color-shape","sort-animal-size","sort-color-shape-count","sort-words","trail-animal-fruit","trail-color-shape","number-letter","trail-number-month"] },
     { id:"goz",    name:"Göz Adası",    color:"#B09BFF", fromCategory:"goz-takip" },
-    { id:"bellek", name:"Bellek Adası", color:"#F7D046", ids:["wm-same","wm-seq","wm-where","rt-shapes","rt-position","rt-colors"] },
+    { id:"bellek", name:"Bellek Adası", color:"#F7D046", ids:["wm-same","corsi","zihni","wm-seq","span-touch","market","wm-where","running","lns-touch","animal-fruit","rt-shapes","rt-position","rt-colors"] },
     { id:"plan",   name:"Plan Adası",   color:"#FF8E7E", ids:["plan-swap","plan-beads","plan-tol","plan-cubes","plan-think"], unlockStars:3 },
     { id:"park",   name:"Oyun Parkı",   color:"#62C1FA", legacy:true }
   ];
@@ -11887,7 +12493,7 @@ const FRUIT_VEG_IMAGES = {
       }
       const card = document.createElement("button");
       card.className = "category-card";
-      const isDraft = !["islemleme-hizi","goz-takip","yurutucu-islev"].includes(cat.id);   // içeriği tamamlanan kategorilerde "Taslak" etiketi yok
+      const isDraft = !["islemleme-hizi","goz-takip","yurutucu-islev","calisan-bellek"].includes(cat.id);   // içeriği tamamlanan kategorilerde "Taslak" etiketi yok
       const isComingSoon = readingLevel === "pre" && !categoryHasPreExercises(cat);
       let badge = "";
       if(isComingSoon) badge = `<span class="category-badge category-badge-soon">Yakında eklenecek</span>`;
