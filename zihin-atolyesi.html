@@ -2255,6 +2255,7 @@
   .sb-tx{ flex:1; min-width:0; } .sb-step{ font-size:12px; font-weight:900; color:var(--teal); text-transform:uppercase; letter-spacing:.4px; }
   .sb-title{ font-size:15px; font-weight:900; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .sb-next{ flex:none; height:44px; padding:0 14px; border:none; border-radius:14px; background:var(--amber); color:#2A1700; font-family:inherit; font-weight:900; font-size:15px; box-shadow:0 3px 0 var(--amber-dark); cursor:pointer; animation:islBob 1.6s ease-in-out infinite; }
+  .sb-next.calm-btn{ animation:none; background:var(--panel); color:var(--teal-dark); border:2px solid var(--line); box-shadow:0 3px 0 var(--edge); }
   html.session-mode #prevBtn, html.session-mode #nextBtn{ visibility:hidden; }
 
   /* ===================== UZMAN ↔ AİLE ===================== */
@@ -2353,6 +2354,13 @@
   .ch-key{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap; background:var(--teal-tint); border-radius:14px; padding:6px; }
   .ch-kp{ width:44px; display:flex; flex-direction:column; align-items:center; background:var(--panel); border-radius:10px; padding:3px; }
   .ch-kp svg{ width:26px; height:26px; } .ch-kp img{ width:34px !important; height:34px !important; }
+
+  /* dokunmalı hatırlama (Görsel Bellek) */
+  .rt-slots{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+  .rt-slot{ width:46px; height:46px; border-radius:50%; border:3px dashed var(--edge); background:var(--panel); }
+  .rt-pal{ display:grid; gap:10px; justify-content:center; }
+  .rt-sw{ border-radius:50%; border:4px solid #fff; box-shadow:0 0 0 2px var(--line), 0 4px 0 var(--edge); cursor:pointer; }
+  .rt-sw.ok{ box-shadow:0 0 0 4px var(--good); } .rt-sw.bad{ box-shadow:0 0 0 4px var(--bad); animation:trlShake .3s; }
 </style>
 </head>
 <body>
@@ -2574,7 +2582,7 @@
   <div class="settings-inner">
     <div class="settings-header">
       <h2>Ayarlar</h2>
-      <div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.06-k</div>
+      <div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.06-m</div>
       <button class="icon-btn" id="closeSettingsBtn">✕</button>
     </div>
 
@@ -4497,7 +4505,7 @@
     const board = document.getElementById("board");
     let start = null;
     const pick = (ex, t) => (ex.isPlan && t.closest(".pln-peg[data-peg], .pln-cube[data-cube]")) ? "plan"
-      : (ex.isSort && t.closest(".srt-ref")) ? "sort" : (ex.isWm && t.closest("[data-ans],[data-pic],[data-box]")) ? "wm" : (ex.isChoice && t.closest("[data-ch]")) ? "ch" : null;
+      : (ex.isSort && t.closest(".srt-ref")) ? "sort" : (ex.isWm && t.closest("[data-ans],[data-pic],[data-box]")) ? "wm" : (ex.isChoice && t.closest("[data-ch]")) ? "ch" : (ex.isRt && t.closest("[data-rt]")) ? "rt" : null;
     board.addEventListener("pointerdown", (ev) => {
       if(ev.button > 0){ start = null; return; }
       const kind = pick(currentExercise(), ev.target);
@@ -4512,7 +4520,7 @@
       if(!st || Date.now() - st.t > 800 || Math.hypot(ev.clientX - st.x, ev.clientY - st.y) > 10) return;
       window._fastTapTs = Date.now();
       const fake = { target: st.target };
-      if(st.kind === "plan") handlePlanTap(fake); else if(st.kind === "sort") handleSortTap(fake); else if(st.kind === "ch") handleChoiceTap(fake); else handleWmTap(fake);
+      if(st.kind === "plan") handlePlanTap(fake); else if(st.kind === "sort") handleSortTap(fake); else if(st.kind === "ch") handleChoiceTap(fake); else if(st.kind === "rt") handleRtTap(fake); else handleWmTap(fake);
     }, { passive:true });
   })();
   // tahtada uzun basma menüsü, metin seçimi ve sürüklemeyi engelle (iOS "Kopyala / Ara / Çevir" balonu)
@@ -4797,7 +4805,7 @@
   // ---------- Dokunmalı çalışmalar: ortak "bitti mi?" denetimi ----------
   // Tüm dokunmalı çalışmalar (mevcut ve gelecekteki) burada tanımlanır: çalışma bittiğinde kronometre her durumda kendiliğinden durur.
   // Yeni bir dokunmalı çalışma eklenince ya bu listedeki türlerden birini kullanmalı ya da kendi isDone() fonksiyonunu tanımlamalıdır.
-  function isInteractiveExercise(ex){ return !!(ex && (ex.isTouch || ex.isSort || ex.isTrail || ex.isPlan || ex.isSearch || ex.isWm || ex.isChoice || ex.isDone)); }
+  function isInteractiveExercise(ex){ return !!(ex && (ex.isTouch || ex.isSort || ex.isTrail || ex.isPlan || ex.isSearch || ex.isWm || ex.isChoice || ex.isRt || ex.isDone)); }
   function interactiveIsDone(){
     const ex = currentExercise();
     if(!isInteractiveExercise(ex) || !Array.isArray(currentGrid) || !currentGrid.length) return false;
@@ -6868,11 +6876,39 @@ const FRUIT_VEG_IMAGES = {
 
     // ---------- Görsel Bellek (çalış-hatırla) ----------
     {
+      id: "rt-shapes",
+      readingLevel: ["pre","post"],
+      label: "Gördüğün Şekilleri Bul",
+      isRt: true, attrs: [], speedFactor: 12,
+      isDone: () => !!rtState && rtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Gördüğün Şekilleri Bul", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "rt-position",
+      readingLevel: ["pre","post"],
+      label: "Dolu Daireleri Göster",
+      isRt: true, attrs: [], speedFactor: 12,
+      isDone: () => !!rtState && rtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Dolu Daireleri Göster", instruction: () => ``, example: () => `` } ]
+    },
+    {
+      id: "rt-colors",
+      readingLevel: ["pre","post"],
+      label: "Renkleri Sırayla Seç",
+      isRt: true, attrs: [], speedFactor: 12,
+      isDone: () => !!rtState && rtState.phase === "done",
+      randomItem: () => ({}),
+      stages: [ { label: "Renkleri Sırayla Seç", instruction: () => ``, example: () => `` } ]
+    },
+    {
       id: "shape-recall",
       readingLevel: ["pre","post"],
       label: "Şekil Hatırlama",
       isRecall: true,
       attrs: ["shape","color"],
+      dims: () => isPre() ? [{rows:2, cols:2}, {rows:2, cols:3}, {rows:2, cols:4}] : [{rows:2, cols:4}, {rows:2, cols:5}, {rows:3, cols:4}],   // görsel sayısı yarıya indirildi
       randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
       renderItem: (item) => shapeSVG(item.shape, item.color),
       stages: [
@@ -6899,22 +6935,23 @@ const FRUIT_VEG_IMAGES = {
       label: "Konum Hatırlama",
       isRecall: true,
       attrs: ["lit"],
+      dims: () => isPre() ? [{rows:2, cols:2}, {rows:2, cols:3}, {rows:2, cols:4}] : [{rows:2, cols:4}, {rows:2, cols:5}, {rows:3, cols:4}],   // görsel sayısı yarıya indirildi
       randomItem: () => ({ lit: Math.random() < 0.4, color: randomItem(COLORS) }),
       renderItem: (item) => litCircleHTML(item.lit, item.color),
       stages: [
         {
-          label: "Aşama 1 · Dolu Kareleri İncele",
-          instruction: () => `Hangi karelerin <b>dolu</b> olduğunu birlikte inceleyin. Süre dolunca kapanacak — çocuktan hangi konumların dolu olduğunu hatırlamasını isteyin, doğru sayısını girin.`,
+          label: "Aşama 1 · Dolu Daireleri İncele",
+          instruction: () => `Hangi dairelerin <b>dolu</b> olduğunu birlikte inceleyin. Süre dolunca kapanacak — çocuktan hangi konumların dolu olduğunu hatırlamasını isteyin, doğru sayısını girin.`,
           example: () => ``
         },
         {
           label: "Aşama 2 · Sırayla Hatırlama",
-          instruction: () => `Aynı şekilde inceleyin, çocuktan dolu kareleri <b>soldan sağa sırayla</b> saymasını isteyin.`,
+          instruction: () => `Aynı şekilde inceleyin, çocuktan dolu daireleri <b>soldan sağa sırayla</b> saymasını isteyin.`,
           example: () => ``
         },
         {
           label: "Aşama 3 · Tersten Say",
-          instruction: () => `Aynı şekilde inceleyin, çocuktan dolu kareleri <b>sağdan sola</b> (tersten) saymasını isteyin.`,
+          instruction: () => `Aynı şekilde inceleyin, çocuktan dolu daireleri <b>sağdan sola</b> (tersten) saymasını isteyin.`,
           example: () => ``
         }
       ]
@@ -6925,6 +6962,7 @@ const FRUIT_VEG_IMAGES = {
       label: "Renk Hatırlama",
       isRecall: true,
       attrs: ["color"],
+      dims: () => isPre() ? [{rows:2, cols:2}, {rows:2, cols:3}, {rows:2, cols:4}] : [{rows:2, cols:4}, {rows:2, cols:5}, {rows:3, cols:4}],   // görsel sayısı yarıya indirildi
       randomItem: () => ({ color: randomItem(COLORS) }),
       renderItem: (item) => colorSwatchHTML(item.color),
       stages: [
@@ -7012,7 +7050,7 @@ const FRUIT_VEG_IMAGES = {
       purpose:"Gördüğü görsel bilgiyi kısa süre sonra hatırlama becerisini çalıştırır.",
       color:"#D64545",
       group:"Bellek",
-      exerciseIds:["shape-recall","position-recall","color-recall"]
+      exerciseIds:["shape-recall","rt-position","color-recall","rt-shapes","position-recall","rt-colors"]
     },
     {
       id:"sozel-organizasyon",
@@ -7207,6 +7245,7 @@ const FRUIT_VEG_IMAGES = {
   }
 
   function generateGrid(exercise, rows, cols){
+    if(exercise.isRt) return rtBuild();                                  // dokunmalı hatırlama
     if(exercise.isChoice) return chBuild();                              // seçmeli tepki denemeleri
     if(exercise.isWm) return exercise.wm();                              // Çalışan Bellek dokunmalı
     if(exercise.isSearch) return exercise.search();                      // Simge Arama: satırlar
@@ -7342,6 +7381,7 @@ const FRUIT_VEG_IMAGES = {
     }
     if(currentExercise().isWm){ setTimeout(() => { try{ wmStart(); }catch(e){ console.error(e); } }, 250); }
     if(currentExercise().isChoice){ setTimeout(() => { try{ chStart(); }catch(e){ console.error(e); } }, 250); }
+    if(currentExercise().isRt){ setTimeout(() => { try{ rtStart(); }catch(e){ console.error(e); } }, 250); }
     if(currentExercise().id === "plan-think"){ try{ plnStartLock(); }catch(e){} }
     if(typeof gameMode !== "undefined" && gameMode){ sfx("go"); speakText(gameLine("go"), { pitch: 1.2 }); try{ renderGameWho(); }catch(e){} }
     // tüm çalışmalarda Başlat'a basınca tahta ekrana gelsin (dikeyde aşağı kaydırmaya gerek kalmasın)
@@ -7395,6 +7435,8 @@ const FRUIT_VEG_IMAGES = {
     const countEl = document.getElementById("errorCount");
     if(countEl) countEl.textContent = "0";
     try{ if(gameMode) renderGameWho(); }catch(e){}
+    // dokunmalı hatırlama: baştan kur
+    if(currentExercise().isRt){ rtClear(); currentGrid = rtBuild(); renderRtBoard(); }
     // seçmeli tepki: baştan kur
     if(currentExercise().isChoice){ chClear(); currentGrid = chBuild(); renderChoiceBoard(); }
     // çalışan bellek dokunmalı: baştan kur
@@ -7514,7 +7556,7 @@ const FRUIT_VEG_IMAGES = {
     const ex = currentExercise();
     // Oluş Sırası'nda bulunacak hedef sayısı satır başına 2'dir
     const itemCount = ex.isSeqRows ? Math.max(1, currentGrid.length * 2)
-                    : (ex.isFlanker || ex.isSort || ex.isTrail || ex.isPlan || ex.isSearch || ex.isWm || ex.isChoice) ? Math.max(1, currentGrid.length)
+                    : (ex.isFlanker || ex.isSort || ex.isTrail || ex.isPlan || ex.isSearch || ex.isWm || ex.isChoice || ex.isRt) ? Math.max(1, currentGrid.length)
                     : currentTier().rows * currentTier().cols;
     const secPerItem = (ms/1000) / itemCount;
     // Sıralı arama (sayıyı bulup gösterme) isimlendirmeden doğal olarak yavaştır: eşikler 2 katı
@@ -7757,8 +7799,9 @@ const FRUIT_VEG_IMAGES = {
       const cell = Math.min(maxCell, Math.floor(Math.min((W - (cols - 1) * 10) / cols, (H - (rows - 1) * 10) / rows)));
       cands.push({ cols, cell, empty: cols * rows - count });
     }
-    const top = Math.max(...cands.map(c => c.cell));
-    return cands.filter(c => c.cell >= top * 0.92).sort((a, b) => a.empty - b.empty || b.cols - a.cols)[0];
+    // puan: büyük hücre iyi; boş yer ve çok uzun/çok geniş (dengesiz) düzen cezalı
+    const score = (c) => { const rows = Math.ceil(count / c.cols); return c.cell - 6 * c.empty - 4 * Math.abs(rows - c.cols); };
+    return cands.sort((a, b) => score(b) - score(a) || b.cols - a.cols)[0];
   }
 
   function renderWmBoard(){
@@ -8115,11 +8158,128 @@ const FRUIT_VEG_IMAGES = {
   }
   const plnLocked = () => currentExercise().id === "plan-think" && planState && planState.lockUntil && Date.now() < planState.lockUntil;
 
+
+  // ================= GÖRSEL BELLEK: dokunmalı hatırlama (Bellek Adası) =================
+  // Her turda görseller kısa süre gösterilir, sonra gizlenir; çocuk gördüklerini dokunarak bulur.
+  // rt-shapes: gördüğün şekilleri seçenekler arasından bul · rt-position: dolu daireleri göster · rt-colors: renkleri aynı sırayla seç
+  let rtState = null, rtTimers = [];
+  function rtClear(){ rtTimers.forEach(t => clearTimeout(t)); rtTimers = []; }
+  function rtLater(fn, ms){ const st = rtState; rtTimers.push(setTimeout(() => { if(rtState === st && timerRunning) fn(); }, ms * (window.__wmSpeed || 1))); }
+  const RT_SPECS = {
+    "rt-shapes":   { k:[3, 4, 5], preK:[2, 3, 3], rounds:3, preRounds:2 },
+    "rt-position": { cells:[8, 10, 12], preCells:[4, 6, 8], k:[3, 4, 5], preK:[2, 2, 3], rounds:3, preRounds:2 },
+    "rt-colors":   { k:[3, 4, 5], preK:[2, 3, 3], rounds:3, preRounds:2 }
+  };
+  function rtBuild(){
+    const id = currentExercise().id, sp = RT_SPECS[id], t = currentCombo().t, pre = isPre();
+    rtClear();
+    const R = pre ? sp.preRounds : sp.rounds, K = (pre ? sp.preK : sp.k)[t];
+    rtState = { id, K, R, round:0, wrong:0, phase:"idle", res:[], cells: sp.cells ? (pre ? sp.preCells : sp.cells)[t] : 0 };
+    return Array.from({length:R}, (_, i) => ({ round:i }));
+  }
+  function rtNewRound(){
+    const st = rtState, pre = isPre();
+    st.found = {}; st.marks = {}; st.pos = 0; st.roundWrong = 0;
+    if(st.id === "rt-shapes"){
+      const pool = []; SHAPES.forEach(sh => COLORS.forEach(c => pool.push({ shape: sh, color: c })));
+      const tg = shuffleArray(pool).slice(0, st.K);
+      const key = (x) => x.shape + x.color;
+      // çeldiriciler: hedefle aynı şekil ya da aynı renk taşıyanlar öncelikli (yalnızca şekle ya da renge bakmak yetmesin)
+      const near = shuffleArray(pool.filter(x => !tg.some(y => key(y) === key(x)) && tg.some(y => y.shape === x.shape || y.color === x.color)));
+      const far = shuffleArray(pool.filter(x => !tg.some(y => key(y) === key(x)) && !near.includes(x)));
+      const dis = near.concat(far).slice(0, st.K + (pre ? 1 : 2));
+      st.targets = tg; st.options = shuffleArray(tg.concat(dis));
+    } else if(st.id === "rt-position"){
+      st.lit = shuffleArray(Array.from({length:st.cells}, (_, i) => i)).slice(0, st.K);
+      st.colors = st.lit.reduce((a, i) => { a[i] = randomItem(COLORS); return a; }, {});
+    } else {
+      const pal = pre ? COLORS.slice(0, 4) : COLORS.concat(["#7B4FD6"]);
+      st.pal = shuffleArray(pal);
+      st.seq = []; while(st.seq.length < st.K){ const c = randomItem(pal); if(st.seq[st.seq.length-1] !== c) st.seq.push(c); }
+    }
+    st.phase = "study"; renderRtBoard();
+    const ms = (pre ? 1700 : 1200) * st.K + 800;
+    rtLater(() => { st.phase = "answer"; renderRtBoard(); if(gameMode) speakText(st.id === "rt-colors" ? "Şimdi renkleri aynı sırayla seç." : "Şimdi gördüklerini bul."); }, ms);
+  }
+  function rtStart(){ if(rtState && rtState.phase === "idle") rtNewRound(); }
+  function rtEndRound(){
+    const st = rtState;
+    st.res[st.round] = st.roundWrong === 0; st.round++; st.phase = "between"; renderRtBoard();
+    rtLater(() => {
+      if(st.round >= st.R){ st.phase = "done"; renderRtBoard(); stopTimer(); showLevelFlash(st.wrong ? `Bitti! ${st.wrong} hata.` : "Bitti! Hiç hata yok 🎉", st.wrong ? "down" : "levelup"); return; }
+      rtNewRound();
+    }, 800);
+  }
+  function rtErr(){ rtState.wrong++; rtState.roundWrong++; setErrorCount(currentErrorCount + 1); try{ vibrate(60); }catch(e){} gameSfx("wrong"); }
+  function rtTap(i){
+    const st = rtState; if(!st || st.phase !== "answer") return;
+    if(st.id === "rt-shapes"){
+      if(st.found[i]) return;
+      const o = st.options[i], hit = st.targets.some(t => t.shape === o.shape && t.color === o.color);
+      st.found[i] = true; st.marks[i] = hit ? "ok" : "bad";
+      if(hit) gameSfx("correct"); else rtErr();
+      renderRtBoard();
+      const got = Object.keys(st.marks).filter(k => st.marks[k] === "ok").length;
+      if(got >= st.K) rtEndRound();
+    } else if(st.id === "rt-position"){
+      if(st.found[i]) return;
+      const hit = st.lit.includes(i);
+      st.found[i] = true; st.marks[i] = hit ? "ok" : "bad";
+      if(hit) gameSfx("correct"); else rtErr();
+      renderRtBoard();
+      if(st.lit.every(x => st.found[x])) rtEndRound();
+    } else {
+      const c = st.pal[i];
+      if(c === st.seq[st.pos]){ st.pos++; st.marks = {}; st.marks[i] = "ok"; gameSfx("correct"); renderRtBoard(); if(st.pos >= st.seq.length) rtEndRound(); }
+      else { st.marks = {}; st.marks[i] = "bad"; rtErr(); st.reveal = true; renderRtBoard(); rtLater(() => { st.reveal = false; rtEndRound(); }, 900); st.phase = "between"; }
+    }
+  }
+  function renderRtBoard(){
+    const board = document.getElementById("board");
+    board.style.display = "block"; board.style.minHeight = ""; board.style.padding = landscapeMQ.matches ? "6px 8px" : "12px";
+    board.style.gridTemplateColumns = ""; board.style.gridTemplateRows = ""; board.classList.remove("wide-grid");
+    if(!rtState) return;
+    const st = rtState, isLs = landscapeMQ.matches;
+    const W = (board.clientWidth || 360) - 24, H = isLs ? (board.clientHeight || 280) - 70 : Math.min(520, window.innerHeight - 320);
+    const dots = `<div class="wm-dots">${Array.from({length:st.R}, (_, i) => `<i class="${st.res[i] === true ? "on" : st.res[i] === false ? "off" : ""}"></i>`).join("")}</div>`;
+    const info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "study" ? "<b>İyi bak, aklında tut…</b>" : st.phase === "answer" ? (st.id === "rt-colors" ? `<b>Aynı sırayla</b> seç · ${st.pos}/${st.seq.length}` : "<b>Gördüklerini bul</b>") : st.phase === "done" ? "Bitti!" : "";
+    let body = "";
+    if(st.id === "rt-shapes"){
+      const list = st.phase === "study" ? st.targets : (st.phase === "idle" ? [] : st.options);
+      const d = wmGridDims(Math.max(1, list.length), W, H, 100);
+      body = `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + list.map((o, i) => `<div class="wm-pic${st.phase === "study" ? "" : ""}${st.marks && st.marks[i] && st.phase !== "study" ? " " + st.marks[i] : ""}" data-rt="${i}" style="width:${d.cell}px;height:${d.cell}px;"><div style="width:72%;height:72%">${shapeSVG(o.shape, o.color)}</div></div>`).join("") + `</div>`;
+    } else if(st.id === "rt-position"){
+      const n = st.cells, d = wmGridDims(n, W, H, 96);
+      body = `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + Array.from({length:n}, (_, i) => {
+        const show = st.phase === "study" && st.lit.includes(i);
+        const mark = st.phase !== "study" && st.marks && st.marks[i];
+        const fill = show ? st.colors[i] : (mark === "ok" ? st.colors[i] : null);
+        return `<div data-rt="${i}" style="width:${d.cell}px;height:${d.cell}px;cursor:pointer;${mark === "bad" ? "animation:trlShake .3s;" : ""}">${fill ? litCircleHTML(true, fill) : `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="${mark === "bad" ? "#E5484D" : "#D9E2E2"}" stroke-width="5"/></svg>`}</div>`; }).join("") + `</div>`;
+    } else {
+      const sz = Math.min(64, Math.floor((W - 8 * 6) / Math.max(st.K, 5)), isLs ? Math.floor((H + 50) / 3.4) : 64);
+      const slots = st.phase === "study" || st.reveal
+        ? st.seq.map(c => `<span class="rt-sw" style="width:${sz}px;height:${sz}px;background:${c};cursor:default"></span>`).join("")
+        : st.phase === "idle" ? "" : (st.seq || []).map((c, i) => i < st.pos ? `<span class="rt-sw" style="width:${sz}px;height:${sz}px;background:${c};cursor:default"></span>` : `<span class="rt-slot" style="width:${sz}px;height:${sz}px"></span>`).join("");
+      const pc = isLs ? (st.pal || []).length || 5 : 3, psz = isLs ? Math.min(70, Math.floor((W - 12 * pc) / pc), Math.floor(H * 0.45)) : Math.min(76, sz + 12);   // yatayda palet tek satır
+      const pal = st.phase === "answer" || st.phase === "between" ? `<div class="rt-pal" style="grid-template-columns:repeat(${pc}, ${psz}px);">` + st.pal.map((c, i) => `<span class="rt-sw${st.marks && st.marks[i] ? " " + st.marks[i] : ""}" data-rt="${i}" style="width:${psz}px;height:${psz}px;background:${c}"></span>`).join("") + `</div>` : "";
+      body = `<div class="rt-slots">${slots}</div>${pal}`;
+    }
+    board.innerHTML = `<div class="wm-wrap"><div class="wm-info">${info}</div>${dots}${body}</div>`;
+  }
+  function handleRtTap(ev){
+    if(!currentExercise().isRt || !rtState) return;
+    const b = ev.target.closest("[data-rt]"); if(!b) return;
+    if(!timerRunning){ showLevelFlash("Önce ▶ Başlat'a basın.", "down"); return; }
+    rtTap(Number(b.dataset.rt));
+  }
+  document.getElementById("board").addEventListener("click", (ev) => { if(Date.now() - (window._fastTapTs || 0) < 700) return; handleRtTap(ev); });
+  window.addEventListener("resize", () => { clearTimeout(window._rtResizeT); window._rtResizeT = setTimeout(() => { try{ if(currentExercise().isRt) renderRtBoard(); }catch(e){} }, 150); });
+
   // ---------- Kısa yönergeler ----------
   // Tüm çalışmaların yönergeleri: çocuğa söylenecek cümle (kalın) + gerekiyorsa tek kısa uygulayıcı notu.
   // Puanlama, renkli işaretler, Karıştır'da değişme gibi uygulama ayrıntıları yönergede yazılmaz.
   const Q = (t) => `<b>"${t}"</b>`;
-  const EYE = (d) => `${Q("Başını sabit tut, gözünle şekli takip et.")} ${d}`;
+  const EYE = (d) => `${Q("Başını sabit tut, gözünle topu takip et.")} ${d}`;
   const INSTR_SHORT = {
     "shape-color":      [() => Q("Şekillerin adını hızlıca söyle."), () => Q("Şekillerin rengini ve adını hızlıca söyle.")],
     "number-color":     [() => Q("Rakamları hızlıca söyle."), () => Q("Rakamın rengini ve kendisini hızlıca söyle.")],
@@ -8150,27 +8310,30 @@ const FRUIT_VEG_IMAGES = {
     "face-go":          [() => Q(`Her yüzde DOKUN'a bas. ${trUpper(FACE_NAMES[fgStop])} yüzde dokunma, bekle.`)],
     "switch-touch":     [() => Q("Yeşil çerçevede gördüğünü, turuncu çerçevede TERSİNİ seç: ön mü, arka mı?")],
     "plan-think":       [() => `${Q("Önce zihninde planla; birkaç saniye sonra dokunabilirsin. En az hamleyle hedefteki gibi yap.")} İsterseniz çocuk kaç hamlede çözeceğini önce söylesin.`],
+    "rt-shapes":        [() => Q("Şekillere iyi bak. Kapanınca gördüğün şekillere dokun.")],
+    "rt-position":      [() => Q("Hangi daireler dolu, iyi bak. Kapanınca o dairelere dokun.")],
+    "rt-colors":        [() => Q("Renklere sırayla bak. Kapanınca aynı sırayla renklere dokun.")],
     "wm-same":          [() => Q("Kart, BİR ÖNCEKİ kartla aynıysa AYNI'ya, değilse FARKLI'ya dokun."), () => Q("Kart, İKİ ÖNCEKİ kartla aynıysa AYNI'ya, değilse FARKLI'ya dokun.")],
     "wm-seq":           [() => Q("Oyuncaklar sırayla parlayacak. Sonra aynı sırayla dokun."), () => Q("Oyuncaklar sırayla parlayacak. Sonra TERSTEN dokun: sondan başa.")],
     "wm-where":         [() => Q("Hayvanlar kutulara saklanacak. Sorulan hayvanın kutusuna dokun.")],
     "number-find":      [() => Q(`1'den ${trNumSuffix(scatterCount(),"dat")} kadar sayıları sırayla göster.`),
                          () => Q(`${trNumSuffix(scatterCount(),"abl")} 1'e kadar sayıları geriye doğru göster.`)],
     "syllable-count":   [() => Q("Kelime kaç heceli? Söyle."), () => Q("Heceleyerek söyle, sonra kaç hece olduğunu söyle.")],
-    "eye-horizontal":   [() => EYE("Şekil sağa sola gider.")],
-    "eye-vertical":     [() => EYE("Şekil yukarı aşağı gider.")],
-    "eye-diagonal":     [() => EYE("Şekil sol üstten sağ alta gider.")],
-    "eye-diagonal2":    [() => EYE("Şekil sağ üstten sol alta gider.")],
-    "eye-wave":         [() => EYE("Şekil dalgalanarak sağa sola gider.")],
-    "eye-steep-wave":   [() => EYE("Şekil dalgalanarak yukarı aşağı gider.")],
-    "eye-depth":        [() => EYE("Şekil büyüyüp küçülür; yaklaşıp uzaklaşır gibi.")],
-    "eye-square":       [() => EYE("Şekil kare çizer.")],
-    "eye-triangle":     [() => EYE("Şekil üçgen çizer.")],
-    "eye-star":         [() => EYE("Şekil yıldız çizer.")],
-    "eye-junction":     [() => EYE("Şekil kavşaklarda beklenmedik yöne döner.")],
-    "eye-crossbox":     [() => EYE("Şekil kutu ve çaprazlarda beklenmedik yöne gider.")],
-    "eye-saccade-two":  [() => `${Q("Başını sabit tut. Nokta atlayınca gözünle hemen ona bak.")} ${currentCombo().t === 2 ? "Sağ-sol ve üst-alt arasında atlar." : "Sağ ile sol arasında atlar."}`],
-    "eye-saccade-random":[() => Q("Başını sabit tut. Nokta nerede belirirse gözünle hemen oraya bak.")],
-    "eye-saccade-reading":[() => `${Q("Başını sabit tut. Noktayı satır satır, soldan sağa gözünle izle.")} Satır sonunda alt satırın başına atlar.`],
+    "eye-horizontal":   [() => EYE("Top sağa sola gider.")],
+    "eye-vertical":     [() => EYE("Top yukarı aşağı gider.")],
+    "eye-diagonal":     [() => EYE("Top sol üstten sağ alta gider.")],
+    "eye-diagonal2":    [() => EYE("Top sağ üstten sol alta gider.")],
+    "eye-wave":         [() => EYE("Top dalgalanarak sağa sola gider.")],
+    "eye-steep-wave":   [() => EYE("Top dalgalanarak yukarı aşağı gider.")],
+    "eye-depth":        [() => EYE("Top büyüyüp küçülür; yaklaşıp uzaklaşır gibi.")],
+    "eye-square":       [() => EYE("Top kare çizer.")],
+    "eye-triangle":     [() => EYE("Top üçgen çizer.")],
+    "eye-star":         [() => EYE("Top yıldız çizer.")],
+    "eye-junction":     [() => EYE("Top kavşaklarda beklenmedik yöne döner.")],
+    "eye-crossbox":     [() => EYE("Top kutu ve çaprazlarda beklenmedik yöne gider.")],
+    "eye-saccade-two":  [() => `${Q("Başını sabit tut. Top atlayınca gözünle hemen ona bak.")} ${currentCombo().t === 2 ? "Sağ-sol ve üst-alt arasında atlar." : "Sağ ile sol arasında atlar."}`],
+    "eye-saccade-random":[() => Q("Başını sabit tut. Top nerede belirirse gözünle hemen oraya bak.")],
+    "eye-saccade-reading":[() => `${Q("Başını sabit tut. Topu satır satır, soldan sağa gözünle izle.")} Satır sonunda alt satırın başına atlar.`],
     "stroop":           [() => `${Q("Kelimeyi okuma, yazının rengini söyle.")} (mavi yazılmış "YEŞİL" → "mavi")`],
     "day-night":        [() => Q("Güneş görünce 'gece', ay görünce 'gündüz' de.")],
     "task-switch":      [() => switchSide === "back" ? Q("Arkasını görüyorsan 'arka' de, önünü görüyorsan adını söyle.") : Q("Önünü görüyorsan 'ön' de, arkasını görüyorsan adını söyle.")],
@@ -8207,7 +8370,7 @@ const FRUIT_VEG_IMAGES = {
     "word-repeat":      [() => `Göstermeden okuyun: ${Q(`${audLen()} kelimeyi aynı sırayla tekrar et.`)}`,
                          () => `Göstermeden okuyun, ⏱'a basın: ${Q(`'Söyle!' deyince ${audLen()} kelimeyi aynı sırayla söyle.`)}`],
     "shape-recall":     [() => `Şekilleri birlikte inceleyin. Kapanınca: ${Q("Hangi şekilleri gördün?")}`, () => `Kapanınca: ${Q("Şekilleri renkleriyle söyle.")}`, () => `Kapanınca: ${Q("Tersten söyle.")}`],
-    "position-recall":  [() => `Dolu kareleri birlikte inceleyin. Kapanınca: ${Q("Hangi kareler doluydu?")}`, () => `Kapanınca: ${Q("Dolu kareleri soldan sağa söyle.")}`, () => `Kapanınca: ${Q("Dolu kareleri sağdan sola söyle.")}`],
+    "position-recall":  [() => `Dolu daireleri birlikte inceleyin. Kapanınca: ${Q("Hangi daireler doluydu?")}`, () => `Kapanınca: ${Q("Dolu daireleri soldan sağa söyle.")}`, () => `Kapanınca: ${Q("Dolu daireleri sağdan sola söyle.")}`],
     "color-recall":     [() => `Renkleri birlikte inceleyin. Kapanınca: ${Q("Hangi renkleri gördün?")}`, () => `Kapanınca: ${Q("Aynı sırayla söyle.")}`, () => `Kapanınca: ${Q("Tersten söyle.")}`],
     "word-group":       [() => Q("Kelime hangi gruba ait? Söyle."), () => Q("Grubunu söyle, o gruptan bir örnek daha ver.")],
     "opposite-match":   [() => Q("Kelimenin zıt anlamlısını söyle.")],
@@ -8562,6 +8725,10 @@ const FRUIT_VEG_IMAGES = {
       renderChoiceBoard();
       return;
     }
+    if(ex.isRt){
+      renderRtBoard();
+      return;
+    }
     board.style.display = "grid";
     board.style.minHeight = "";
     board.style.padding = "14px";
@@ -8609,7 +8776,7 @@ const FRUIT_VEG_IMAGES = {
     if(applyingBoardLayout) return;
     const board = document.getElementById("board");
     if(!board || !currentGrid.length) return;
-    if(currentExercise().isMotion || currentExercise().isAuditory || currentExercise().isSeqRows || currentExercise().isFlanker || currentExercise().isSort || currentExercise().isTrail || currentExercise().isPlan || currentExercise().isSearch || currentExercise().isWm || currentExercise().isChoice) return;
+    if(currentExercise().isMotion || currentExercise().isAuditory || currentExercise().isSeqRows || currentExercise().isFlanker || currentExercise().isSort || currentExercise().isTrail || currentExercise().isPlan || currentExercise().isSearch || currentExercise().isWm || currentExercise().isChoice || currentExercise().isRt) return;
     applyingBoardLayout = true;
     try{
       let {rows, cols} = currentTier();
@@ -9001,6 +9168,7 @@ const FRUIT_VEG_IMAGES = {
       flashSaved();
       celebrateSave();
       try{ onSessionRecord(); }catch(e){}
+      try{ onRecRecord(); }catch(e){}
       try{ if(appMode === "aile" || gameMode) sendResultToExpert(record); }catch(e){}
       const screen = document.getElementById("historyScreen");
       if(screen && screen.style.display !== "none"){
@@ -10158,7 +10326,7 @@ const FRUIT_VEG_IMAGES = {
   // Ailenin kaydettiği sonuçlar uzmana da gider (links/{kod}/results). Uzman listesi için aile, bağlantı belgesindeki
   // kısa haftalık özeti (çalışılan günler, son etkinlik) günceller.
   // Firestore yapısı: links/{kod} { expertUid, childName, level, familyUid, consent, program, weekKey, weekDays, lastActivityAt }
-  const APP_VERSION = "2026.10.06-k";
+  const APP_VERSION = "2026.10.06-m";
   const LINK_LOCAL_KEY = "wm_family_links_v1";   // aile cihazında: kişi|seviye → kod + program önbelleği
   const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -10484,6 +10652,29 @@ const FRUIT_VEG_IMAGES = {
       ids.map((id, i) => { const ex = exerciseById(id); const done = doneToday.has(ex.label);
         return `<button type="button" class="fh-rec-item" data-rec="${id}"><span class="fh-rec-num">${done ? I_CHECK.replace('stroke-width="3"', 'stroke-width="3" width="18" height="18"') : i + 1}</span><span class="fh-rec-tx"><div class="fh-rec-t1">${famLabel(id)}</div><div class="fh-rec-t2">${famCatName(CATEGORIES.find(c => c.exerciseIds.includes(id)).id)}${done ? " · bugün yapıldı" : ""}</div></span><span class="fh-rec-go">Aç</span></button>`; }).join("") + `</div>`;
   }
+  // öneriler art arda: üst çubukta "Öneri 2/4" ve "Sonraki öneri" düğmesi; son öneriden sonra "Bitir"
+  function recNextId(){ const ids = recommendedIds(); const i = ids.indexOf(recActive); return i >= 0 && i < ids.length - 1 ? ids[i + 1] : null; }
+  function renderRecBar(saved){
+    const ids = recommendedIds(), i = ids.indexOf(recActive);
+    document.getElementById("sessionStepLabel").textContent = `Uzman önerisi · ${i + 1}/${ids.length}`;
+    document.getElementById("sessionStepTitle").textContent = famLabel(recActive);
+    const nb = document.getElementById("sessionNextBtn");
+    nb.style.display = "";
+    nb.textContent = recNextId() ? "Sonraki ›" : "Bitir ›";
+    nb.classList.toggle("calm-btn", !saved);   // kaydedilene kadar sakin, kaydedilince zıplar
+  }
+  function recNext(){
+    const nx = recNextId();
+    if(nx){ openRecommended(nx); return; }
+    exitRecMode(); document.getElementById("mainApp").style.display = "none"; leaveToCategories();
+    showLevelFlash("Uzmanınızın önerdiği çalışmalar tamam 🎉", "levelup");
+  }
+  function onRecRecord(){
+    if(!recActive || currentExercise().id !== recActive) return;
+    renderRecBar(true);
+    const nx = recNextId();
+    showLevelFlash(nx ? `Tamam! Sıradaki öneri: ${famLabel(nx)}` : "Son öneri de tamam! 🎉", "levelup");
+  }
   function openRecommended(id){
     const ci = CATEGORIES.findIndex(c => c.exerciseIds.includes(id)); if(ci < 0) return;
     hideFamScreens(); hideLinkScreens();
@@ -10497,9 +10688,7 @@ const FRUIT_VEG_IMAGES = {
     if(sidx === undefined || sidx < 0) sidx = findSeqIndex(0, e);
     goToIndex(sidx); currentStageIndex = 0; renderStageRow(); newPage();
     pinAssignedChild();
-    document.getElementById("sessionStepLabel").textContent = "Uzman önerisi";
-    document.getElementById("sessionStepTitle").textContent = famLabel(id);
-    document.getElementById("sessionNextBtn").style.display = "none";
+    renderRecBar(false);
     document.getElementById("sessionBackBtn").lastChild.textContent = " Geri";
     window.scrollTo(0, 0);
   }
@@ -10592,6 +10781,7 @@ const FRUIT_VEG_IMAGES = {
     });
     document.getElementById("sessionNextBtn").addEventListener("click", () => {
       resetTimer();
+      if(recActive){ recNext(); return; }
       const plan = todayPlan(), nx = plan.done.findIndex(x => !x);
       if(nx < 0) showToday(); else startSessionStep(nx);
     });
@@ -10618,7 +10808,7 @@ const FRUIT_VEG_IMAGES = {
     { id:"hiz",    name:"Hız Adası",    color:"#FFB648", ids:["search-object","search-shape","trail-numbers","cat-fruit","search-symbol","search-letter","sdmt-touch","cat-cold","quick-sort","touch-card","cat-living","pairs-touch"] },
     { id:"dikkat", name:"Dikkat Adası", color:"#62D394", ids:["touch-animal","fish-flanker","stroop-touch","day-night-touch","face-go","switch-touch","sort-color-shape","sort-animal-size","sort-color-shape-count","sort-words","trail-animal-fruit","trail-color-shape","number-letter","trail-number-month"] },
     { id:"goz",    name:"Göz Adası",    color:"#B09BFF", fromCategory:"goz-takip" },
-    { id:"bellek", name:"Bellek Adası", color:"#F7D046", ids:["wm-same","wm-seq","wm-where"] },
+    { id:"bellek", name:"Bellek Adası", color:"#F7D046", ids:["wm-same","wm-seq","wm-where","rt-shapes","rt-position","rt-colors"] },
     { id:"plan",   name:"Plan Adası",   color:"#FF8E7E", ids:["plan-swap","plan-beads","plan-tol","plan-cubes","plan-think"], unlockStars:3 },
     { id:"park",   name:"Oyun Parkı",   color:"#62C1FA", legacy:true }
   ];
