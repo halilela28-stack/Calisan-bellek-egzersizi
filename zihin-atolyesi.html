@@ -355,6 +355,20 @@ html.hide-clock #timerDisplay{ visibility:hidden; }
 .mola-ball-wrap{ height:200px; display:flex; align-items:center; justify-content:center; } .mola-ball{ width:70px; height:70px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #FFD1E0, #FF8FB1 70%); transition:transform 4s ease-in-out; }
 .mola-ball.in{ animation:molaIn 4s ease-in-out forwards; } .mola-ball.out{ animation:molaOut 4s ease-in-out forwards; } @keyframes molaIn{ from{ transform:scale(1); } to{ transform:scale(2.6); } } @keyframes molaOut{ from{ transform:scale(2.6); } to{ transform:scale(1); } }
 .mola-inv{ display:block; margin:10px auto 0; border:0; border-radius:16px; background:#CFE8B8; color:#2F6B2F; font-family:inherit; font-weight:900; font-size:15px; padding:10px 16px; cursor:pointer; }
+.pk-area{ position:relative; width:100%; background:linear-gradient(#BFE6FF, #E9F7FF); border:2px solid var(--line); border-radius:18px; overflow:hidden; touch-action:none; }
+.pk-bln{ position:absolute; width:56px; height:68px; border-radius:50% 50% 48% 48%; cursor:pointer; box-shadow:inset -6px -8px 0 rgba(0,0,0,.12); } .pk-bln::after{ content:""; position:absolute; left:50%; bottom:-14px; width:2px; height:14px; background:#7A8A99; }
+.pk-bln.pop{ transform:scale(1.4); opacity:0; transition:all .15s; } .pk-chip{ display:inline-block; color:#fff; font-weight:900; border-radius:10px; padding:1px 8px; }
+.pk-moles{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:0 auto; background:#8BC56A; border-radius:22px; padding:12px; }
+.pk-hole{ position:relative; border-radius:50%; background:radial-gradient(ellipse at 50% 70%, #4A2E14 55%, #6B4423 56%); cursor:pointer; overflow:hidden; }
+.pk-mole{ position:absolute; left:15%; right:15%; bottom:8%; height:72%; border-radius:46% 46% 30% 30%; background:#9C6B3E; animation:molUp .15s ease-out; } .pk-mole.hit{ filter:brightness(1.4); transform:scale(.9); }
+@keyframes molUp{ from{ transform:translateY(60%); } to{ transform:translateY(0); } }
+.pk-eye{ position:absolute; top:28%; width:14%; height:16%; border-radius:50%; background:#1D2A35; } .pk-eye.l{ left:28%; } .pk-eye.r{ right:28%; } .pk-nose{ position:absolute; left:40%; top:48%; width:20%; height:14%; border-radius:50%; background:#F48FB1; }
+.pk-hat{ position:absolute; left:10%; right:10%; top:-14%; height:30%; background:#E5484D; border-radius:40% 40% 8% 8%; box-shadow:0 6px 0 #A9262B; }
+.pk-fall{ position:absolute; width:48px; height:48px; margin-left:-24px; top:0; } .pk-fall img{ width:100%; height:100%; object-fit:contain; } .pk-stone{ display:block; width:100%; height:100%; border-radius:46% 54% 50% 50%; background:radial-gradient(circle at 35% 30%, #B8BEC6, #6B7480); }
+.pk-basket{ position:absolute; bottom:4%; width:26%; height:11%; margin-left:-13%; background:#C98A4B; border:3px solid #7A4A1E; border-radius:6px 6px 22px 22px; }
+.pk-drop{ animation:molUp .4s ease-out; } .pk-pad.lit{ opacity:1; transform:scale(1.05); box-shadow:0 0 0 6px rgba(255,255,255,.8), 0 0 26px rgba(0,0,0,.25); }
+.pk-sea{ position:relative; width:100%; background:linear-gradient(#9FD8FF, #3E95D6); border-radius:18px; overflow:hidden; }
+.pk-lh{ position:absolute; width:56px; height:84px; margin:-42px 0 0 -28px; cursor:pointer; } .pk-lh .on{ display:none; } .pk-lh.lit .on{ display:block; } .pk-lh.lit .off{ display:none; }
 .pnb-c{ background:#fff; border:2px solid var(--line); border-radius:10px; } .pnb-c.on{ background:#2E6FD8; border-color:#2E6FD8; }
 .tone-k{ border:0; border-radius:20px; opacity:.55; box-shadow:0 5px 0 rgba(0,0,0,.2); cursor:pointer; } .tone-k.lit{ opacity:1; transform:scale(1.05); box-shadow:0 0 0 6px rgba(255,255,255,.8), 0 0 24px rgba(0,0,0,.25); }
 .stp-b{ min-width:110px !important; font-size:34px !important; } .sdk-p{ width:56px; height:56px; border:3px solid var(--line); border-radius:14px; background:#fff; padding:4px; cursor:pointer; } .sdk-p.on{ border-color:var(--ink); outline:3px solid var(--teal); }
@@ -2704,7 +2718,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.08-l</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.08-m</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -8059,6 +8073,60 @@ randomItem: () => ({}),
 stages: [ { label: "Dinle ve Tamamla", instruction: () => ``, example: () => `` } ]
 },
 {
+id: "pk-balloon",
+readingLevel: ["pre","post"],
+label: "Balon Patlat",
+isMt: true, attrs: [], speedFactor: 10, noBolt: true, noAdaptive: true,
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Oyna", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "pk-mole",
+readingLevel: ["pre","post"],
+label: "Köstebek Yakala",
+isMt: true, attrs: [], speedFactor: 10, noBolt: true, noAdaptive: true,
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Oyna", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "pk-catch",
+readingLevel: ["pre","post"],
+label: "Meyve Sepeti",
+isMt: true, attrs: [], speedFactor: 10, noBolt: true, noAdaptive: true,
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Oyna", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "pk-bag",
+readingLevel: ["pre","post"],
+label: "Zihni'nin Eşyaları",
+isMt: true, attrs: [], speedFactor: 10, noBolt: true, noAdaptive: true,
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Oyna", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "pk-simon",
+readingLevel: ["pre","post"],
+label: "Renk Simon",
+isMt: true, attrs: [], speedFactor: 10, noBolt: true, noAdaptive: true,
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Oyna", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "pk-light",
+readingLevel: ["pre","post"],
+label: "Deniz Feneri Işıkları",
+isMt: true, attrs: [], speedFactor: 10, noBolt: true, noAdaptive: true,
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Oyna", instruction: () => ``, example: () => `` } ]
+},
+{
 id: "digit-span",
 readingLevel: ["pre","post"],
 label: "Rakam Dizisi (Digit Span)",
@@ -8219,6 +8287,17 @@ example: () => ``
 ];
 
 const CATEGORIES = [
+{
+id:"oyun-parki",
+hidden:true,
+readingLevel:["pre","post"],
+label:"Oyun Parkı",
+sub:"Kısa, tekrar oynanabilir oyunlar: dikkat, tepki, göz–el, bellek",
+purpose:"Bilişsel becerileri oyun mekaniğinin içinde, kısa ve tekrar oynanabilir oyunlarla çalıştırır.",
+color:"#62C1FA",
+group:"Oyun",
+exerciseIds:["pk-balloon","pk-bag","pk-mole","pk-simon","pk-catch","pk-light"]
+},
 {
 id:"islemleme-hizi",
 readingLevel:["post"],
@@ -9899,6 +9978,13 @@ return qzMake(stim, opts, 0, { prompt:"İlk ikili gibi: <b>soru işaretine</b> h
 QZ["sem-decide"] = () => semTrials(); QZ["listen-answer"] = () => laTrials(); QZ["sent-pic"] = () => spTrials(); QZ["sent-verify"] = () => svTrials(); QZ["syl-blend"] = () => sbTrials(); QZ["wh-scene"] = () => whTrials(); QZ["paper-fold"] = () => pfTrials(); QZ["view-from"] = () => vfTrials(); QZ["cause-effect"] = () => ceTrials(); QZ["num-pattern"] = () => npTrials(); QZ["opp-touch"] = () => oppTrials2(); QZ["pattern-touch"] = () => patTrials2(); QZ["analogy-touch"] = () => anaTrials2(); QZ["matrix-fill"] = () => mxTrials(); QZ["rule-induce"] = () => riTrials(); QZ["balance"] = () => balTrials(); QZ["mental-rot"] = () => mrTrials(); QZ["overlap-count"] = () => ovTrials(); QZ["embedded"] = () => embTrials(); QZ["closure"] = () => clsTrials(); QZ["vanalogy-touch"] = () => anlTrials(); QZ["word-pic"] = () => wpTrials(); QZ["proverb-touch"] = () => pmcBuild(); QZ["absurd-touch"] = () => absBuild(); QZ["concept-touch"] = () => cpTrials(); QZ["infer-touch"] = () => imcBuild(); QZ["rhyme-touch"] = () => rhBuild(); QZ["syn-touch"] = () => synBuild(); QZ["part-whole"] = () => pwBuild();
 function cupsApply(){ const st = mtState, tr = st.trials[st.ti], box = document.getElementById("cupsBox"); if(!box) return; const w = box.clientWidth / tr.n;
 box.querySelectorAll("[data-cup]").forEach(el => { const c = +el.dataset.cup; el.style.left = (st.slot.indexOf(c) * w + w * 0.1) + "px"; el.style.transform = st.lift && c === tr.ball ? "translateY(-46px)" : "translateY(0)"; el.style.transitionDuration = Math.round(tr.ms * 0.8 * (window.__wmSpeed || 1)) + "ms"; }); }
+function molDraw(){ const st = mtState, g = document.getElementById("pkMoles"); if(!g) return; g.querySelectorAll(".pk-hole").forEach((h, k) => { const on = st.cur && st.cur.h === k;
+h.innerHTML = on ? `<div class="pk-mole${st.cur.hit ? " hit" : ""}">${st.cur.hat ? `<span class="pk-hat"></span>` : ""}<span class="pk-eye l"></span><span class="pk-eye r"></span><span class="pk-nose"></span></div>` : ""; });
+const hd = document.getElementById("pkScore"); if(hd) hd.textContent = st.score; }
+function smnFlash(k, ms){ const st = mtState; try{ toneBeep(TONE_KEYS[k % 4].f + (k >= 4 ? 120 : 0)); }catch(e){} const el = document.querySelector(`[data-pad="${k}"]`); if(el){ el.classList.add("lit"); setTimeout(() => el.classList.remove("lit"), ms * (window.__wmSpeed || 1)); } }
+function smnRound(){ const st = mtState, c = st.cfg; if(st.seq.length >= c.target){ st.phase = "done"; mtFinish(` En uzun dizi: ${st.score}`); return; }
+st.seq.push(Math.floor(Math.random() * st.pads)); st.pos = 0; st.phase = "play"; renderMtBoard();
+st.seq.forEach((k, j) => mtLater(() => smnFlash(k, c.ms * 0.7), 500 + j * c.ms)); mtLater(() => { st.phase = "input"; renderMtBoard(); }, 500 + st.seq.length * c.ms); }
 function stopResp(d){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "go") return; if(tr.stop && st.red){ mtErr(); } else if(tr.stop && !st.red){ /* dur işaretinden önce basıldı: geçerli yanıt sayılır */ if(d !== tr.dir) mtErr(); else gameSfx("correct"); } else if(d !== tr.dir) mtErr(); else gameSfx("correct");
 st.phase = "fb"; renderMtBoard(); mtLater(NEW_MT.next, 350); }
 function rhyEval(){ const st = mtState, tr = st.trials[st.ti], T = st.taps; let ok = T.length === tr.L;
@@ -10805,6 +10891,28 @@ const RHYME_DONE = { pre:[ { t:0, q:"“Minik kedi süt içer, bıyığından s�
 { t:1, q:"“Rüzgâr eser, yapraklar uçar; sincap ağaca hemen …”", a:"kaçar" }, { t:1, q:"“Saat tik tak, tik tak çalar; sabah olunca herkes …”", a:"kalkar" }, { t:1, q:"“Kurbağa vrak vrak der, sinek görünce hemen …”", a:"yer" },
 { t:2, q:"“Ördek yüzer gölde, yavrusu hep …”", a:"önde" }, { t:2, q:"“Annem pasta yapar, mutfak mis gibi …”", a:"kokar" } ] };
 
+// ===== OYUN PARKI (1. grup): Balon Patlat, Köstebek Yakala, Meyve Sepeti, Zihni'nin Eşyaları, Renk Simon, Deniz Feneri =====
+const PK_COLS = [["kırmızı","#E5484D"],["mavi","#2E6FD8"],["sarı","#F5C518"],["yeşil","#1FA463"]];
+const pkAlive = (st, my) => mtState === st && timerRunning && (my == null || st.round === my);
+function pkHud(st, extra){ return `<div class="pk-hud"><span>⭐ ${st.score || 0}</span>${extra || ""}</div>`; }
+// Balon Patlat (seçici dikkat; Zor'da hedef renk değişir)
+function blnCfg(){ const t = currentCombo().t, pre = isPre(); return { N: pre ? [8, 10, 12][t] : [12, 15, 18][t], rise: (pre ? [6.5, 5.5, 4.8] : [5.2, 4.4, 3.6])[t], gap: (pre ? [1100, 1000, 900] : [900, 800, 700])[t], sw: !pre && t >= 1 }; }
+// Köstebek Yakala (ket vurma)
+function molCfg(){ const t = currentCombo().t, pre = isPre(); return { N: pre ? [10, 12, 14][t] : [14, 18, 22][t], up: (pre ? [1600, 1350, 1150] : [1150, 950, 780])[t], hat: pre && t === 0 ? 0 : 0.22 }; }
+// Meyve Sepeti (göz–el)
+function ctcCfg(){ const t = currentCombo().t, pre = isPre(); return { N: pre ? [10, 12, 14][t] : [14, 18, 22][t], fall: (pre ? [3.4, 3.0, 2.6] : [2.8, 2.3, 1.9])[t], stone: pre ? 0.2 : 0.3, gap: (pre ? [1200, 1050, 950] : [1000, 850, 720])[t] }; }
+// Zihni'nin Eşyaları (görsel bellek)
+function bagTrials(){ const t = currentCombo().t, pre = isPre(), K = pre ? [2, 3, 3][t] : [3, 4, 5][t];
+return Array.from({length:4}, () => { const pool = shuffleArray(picPool()), inBag = pool.slice(0, K), out = pool.slice(K, K + 3), askIn = t === 0;
+const opts = askIn ? shuffleArray([inBag[0]].concat(out.slice(0, 2))) : shuffleArray(inBag.slice(0, Math.min(K, 3)).concat([out[0]]));
+return { inBag, opts, ans: askIn ? opts.indexOf(inBag[0]) : opts.indexOf(out[0]), askIn }; }); }
+// Renk Simon ve Deniz Feneri (giderek uzayan dizi)
+function smnCfg(){ const t = currentCombo().t, pre = isPre(); return { target: pre ? [3, 4, 5][t] : [5, 7, 9][t], ms: (pre ? [800, 700, 650] : [650, 550, 450])[t] }; }
+function lhCfg(){ const t = currentCombo().t, pre = isPre(); const K = pre ? 4 : [6, 7, 8][t], pts = []; let g = 0;
+while(pts.length < K && g++ < 400){ const x = 12 + Math.random() * 76, y = 18 + Math.random() * 62; if(pts.every(p => Math.hypot(p[0] - x, p[1] - y) > 18)) pts.push([x, y]); }
+return { pts, target: pre ? [3, 4, 5][t] : [4, 6, 8][t], ms: (pre ? [900, 800, 700] : [750, 650, 550])[t] }; }
+const LH_SVG = (on) => `<svg viewBox="0 0 40 60" width="100%" height="100%"><path d="M14 56 L17 20 H23 L26 56 Z" fill="#fff" stroke="#2B3A4A" stroke-width="2"/><path d="M15.5 34h9M15 46h10" stroke="#E5484D" stroke-width="4"/><rect x="14" y="12" width="12" height="9" rx="2" fill="${on ? "#FFE27A" : "#C9D3DE"}" stroke="#2B3A4A" stroke-width="2"/><path d="M13 12 L20 4 L27 12 Z" fill="#E5484D" stroke="#2B3A4A" stroke-width="2"/>${on ? `<path d="M26 16 L40 10 M26 17 L40 22 M14 16 L0 10 M14 17 L0 22" stroke="#FFD23F" stroke-width="3" stroke-linecap="round"/>` : ""}</svg>`;
+
 const NEW_MT = {
 build: {
 "hear-find": () => { const t = currentCombo().t, K = (isPre() ? [2, 2, 3] : [3, 4, 5])[t], G = (isPre() ? [4, 6, 6] : [6, 8, 9])[t];
@@ -10856,6 +10964,12 @@ return mtState.test; },
 "pic-order": () => { mtState = { kind:"porder", trials: poTrials(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
 "finger-trace": () => { mtState = { kind:"ftrace", trials: ftTrials(), ti:0, wrong:0, phase:"idle", res:[] }; return mtState.trials; },
 "eye-count": () => { mtState = { kind:"ecount", trials: ecTrials(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
+"pk-balloon": () => { const c = blnCfg(); mtState = { kind:"bln", cfg:c, phase:"idle", score:0, wrong:0, items:[], next:0, tgt: Math.floor(Math.random() * 4) }; return Array.from({length: c.N}, () => ({})); },
+"pk-mole": () => { const c = molCfg(); mtState = { kind:"mol", cfg:c, phase:"idle", score:0, wrong:0, k:0, cur:null }; return Array.from({length: c.N}, () => ({})); },
+"pk-catch": () => { const c = ctcCfg(); mtState = { kind:"ctc", cfg:c, phase:"idle", score:0, wrong:0, items:[], bx:0.5 }; return Array.from({length: c.N}, () => ({})); },
+"pk-bag": () => { mtState = { kind:"bag", trials: bagTrials(), ti:0, wrong:0, phase:"idle", score:0 }; return mtState.trials; },
+"pk-simon": () => { const c = smnCfg(); mtState = { kind:"smn", cfg:c, seq:[], phase:"idle", score:0, wrong:0, pads:4 }; return Array.from({length: c.target}, () => ({})); },
+"pk-light": () => { const c = lhCfg(); mtState = { kind:"smn", cfg:c, seq:[], phase:"idle", score:0, wrong:0, pads:c.pts.length, lh:true }; return Array.from({length: c.target}, () => ({})); },
 "sent-pic": () => { mtState = { kind:"quiz", qid:"sent-pic", trials: spTrials(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
 "new-word": () => { const d = newWordBuild(); mtState = Object.assign({ kind:"nword", wrong:0, phase:"idle", li:-1, qi:0 }, d); return d.test; },
 "pair-match": () => { mtState = { kind:"pairm", trials: pmTrials(), ti:0, wrong:0, phase:"idle", pk:[], bad:{} }; return mtState.trials; },
@@ -10961,6 +11075,43 @@ list.forEach((x, k) => mtLater(() => { st.si = k; renderMtBoard(); if(tr.mode ==
 mtLater(() => { st.phase = "input"; st.qi = 0; if(tr.mode === "name") sayTask("Hangisi " + tr.ppl[tr.order[0]].nm + "?"); renderMtBoard(); }, 300 + list.length * step + 300); },
 scene(){ const st = mtState; st.phase = "study"; renderMtBoard(); mtLater(() => { st.phase = "ask"; renderMtBoard(); }, sceneStudyMs()); },
 scenet(){ const st = mtState; st.phase = "study"; renderMtBoard(); mtLater(() => { st.phase = "ask"; st.pick = null; renderMtBoard(); }, sceneStudyMs()); },
+bln(){ const st = mtState, c = st.cfg; st.phase = "run"; renderMtBoard(); sayTask(`Yalnızca ${PK_COLS[st.tgt][0]} balonları patlat!`);
+const area = document.getElementById("pkArea"); if(!area) return; const total = c.N * 2, kinds = shuffleArray(Array.from({length: total}, (_, i) => i < c.N)); let made = 0, tgtMade = 0;
+const spawn = () => { if(!pkAlive(st) || st.phase !== "run") return; if(made >= total) return; const isT = kinds[made++]; if(isT) tgtMade++;
+if(c.sw && tgtMade === Math.ceil(c.N / 2) && !st.switched){ st.switched = true; let n; do{ n = Math.floor(Math.random() * 4); } while(n === st.tgt); st.tgt = n; sayTask(`Şimdi ${PK_COLS[n][0]} balonlar!`); const h = document.getElementById("pkTgt"); if(h){ h.style.background = PK_COLS[n][1]; h.textContent = PK_COLS[n][0]; } }
+const col = isT ? st.tgt : randomItem([0, 1, 2, 3].filter(x => x !== st.tgt)), id = st.next++, el = document.createElement("div");
+el.className = "pk-bln"; el.dataset.mt = id; el.style.background = `radial-gradient(circle at 35% 30%, #ffffffaa, ${PK_COLS[col][1]} 55%)`; el.style.left = (6 + Math.random() * 76) + "%"; area.appendChild(el);
+st.items.push({ id, col, y: 1.05, el, t0: performance.now() }); mtLater(spawn, c.gap); };
+spawn();
+const frame = (now) => { if(!pkAlive(st) || st.phase !== "run") return; const A = area.clientHeight;
+for(const b of st.items.slice()){ const u = (now - b.t0) / (c.rise * 1000 * (window.__wmSpeed || 1)); b.y = 1.05 - u * 1.25; b.el.style.top = (b.y * A) + "px";
+if(b.y < -0.2){ if(b.col === st.tgt) mtErr(); b.el.remove(); st.items.splice(st.items.indexOf(b), 1); } }
+if(made >= total && !st.items.length){ st.phase = "done"; mtFinish(` Patlatılan: ${st.score}`); return; } requestAnimationFrame(frame); };
+requestAnimationFrame(frame); },
+mol(){ const st = mtState, c = st.cfg; st.phase = "run"; renderMtBoard(); sayTask("Köstebeğe vur, şapkalıya vurma!");
+const pop = () => { if(!pkAlive(st) || st.phase !== "run") return; if(st.k >= c.N){ st.phase = "done"; mtFinish(` Yakalanan: ${st.score}`); return; } st.k++;
+let h; do{ h = Math.floor(Math.random() * 9); } while(st.cur && h === st.cur.h); const cur = { h, hat: Math.random() < c.hat, hit:false }; st.cur = cur; molDraw();
+mtLater(() => { if(st.cur === cur){ if(!cur.hit && !cur.hat) mtErr(); st.cur = null; molDraw(); mtLater(pop, 320); } }, c.up); };
+mtLater(pop, 500); },
+ctc(){ const st = mtState, c = st.cfg; st.phase = "run"; renderMtBoard(); sayTask("Sepetle meyveleri yakala, taşları yakalama!");
+const area = document.getElementById("pkArea"), bk = document.getElementById("pkBasket"); if(!area || !bk) return;
+const setX = (e) => { const r = area.getBoundingClientRect(); st.bx = Math.max(0.1, Math.min(0.9, (e.clientX - r.left) / r.width)); bk.style.left = (st.bx * 100) + "%"; };
+area.onpointerdown = (e) => { area.setPointerCapture && area.setPointerCapture(e.pointerId); setX(e); }; area.onpointermove = (e) => { if(e.buttons || e.pointerType === "touch") setX(e); };
+let made = 0; const fruits = shuffleArray(Array.from({length: c.N}, (_, i) => i >= Math.round(c.N * c.stone)));
+const spawn = () => { if(!pkAlive(st) || st.phase !== "run" || made >= c.N) return; const fruit = fruits[made++], el = document.createElement("div"), x = 0.1 + Math.random() * 0.8;
+el.className = "pk-fall"; el.style.left = (x * 100) + "%"; el.innerHTML = fruit ? `<img src="${randomItem(qzCats().meyve.items).src}" alt="">` : `<span class="pk-stone"></span>`; area.appendChild(el);
+st.items.push({ x, fruit, el, t0: performance.now() }); mtLater(spawn, c.gap); };
+spawn();
+const frame = (now) => { if(!pkAlive(st) || st.phase !== "run") return; const A = area.clientHeight;
+for(const it of st.items.slice()){ const u = (now - it.t0) / (c.fall * 1000 * (window.__wmSpeed || 1)); it.el.style.top = (u * 0.86 * A) + "px";
+if(u >= 1){ const caught = Math.abs(it.x - st.bx) < 0.14; if(it.fruit){ if(caught){ st.score++; gameSfx("pop"); } else mtErr(); } else if(caught) mtErr(); it.el.remove(); st.items.splice(st.items.indexOf(it), 1); const hd = document.getElementById("pkScore"); if(hd) hd.textContent = st.score; } }
+if(made >= c.N && !st.items.length){ st.phase = "done"; mtFinish(` Yakalanan meyve: ${st.score}`); return; } requestAnimationFrame(frame); };
+requestAnimationFrame(frame); },
+bag(){ const st = mtState, tr = st.trials[st.ti]; st.phase = "show"; st.bi = -1; renderMtBoard(); const step = isPre() ? 1200 : 950;
+tr.inBag.forEach((x, k) => mtLater(() => { st.bi = k; renderMtBoard(); }, 300 + k * step));
+mtLater(() => { st.phase = "closed"; renderMtBoard(); }, 300 + tr.inBag.length * step);
+mtLater(() => { st.phase = "ask"; st.pick = null; renderMtBoard(); sayTask(tr.askIn ? "Hangisi bavulda?" : "Hangisi bavulda yok?"); }, 300 + tr.inBag.length * step + 900); },
+smn(){ const st = mtState; st.seq = []; smnRound(); },
 clue(){ const st = mtState, tr = st.trials[st.ti]; st.phase = "clues"; st.shown = 0; renderMtBoard(); const step = isPre() ? 2600 : 2200;
 tr.clues.forEach((c, k) => mtLater(() => { st.shown = k + 1; renderMtBoard(); sayTask(c, 0.9); }, 300 + k * step));
 mtLater(() => { st.phase = "ask"; st.pick = null; renderMtBoard(); sayTask("Hangisi?"); }, 300 + tr.clues.length * step); },
@@ -11081,6 +11232,12 @@ else { st.bad[i] = 1; mtErr(); renderMtBoard(); } },
 scenet(i){ const st = mtState, q = st.qs[st.qi]; if(st.phase !== "ask") return; st.pick = i; st.phase = "fb";
 const ok = q.opts[i] === q.ans; if(ok) gameSfx("correct"); else mtErr(); renderMtBoard();
 mtLater(() => { st.qi++; st.pick = null; if(st.qi >= st.qs.length){ mtFinish(); return; } st.phase = "ask"; renderMtBoard(); }, ok ? 600 : 1300); },
+bln(i){ const st = mtState; if(st.phase !== "run") return; const b = st.items.find(x => x.id === i); if(!b) return; if(b.col === st.tgt){ st.score++; gameSfx("pop"); } else mtErr();
+b.el.classList.add("pop"); st.items.splice(st.items.indexOf(b), 1); setTimeout(() => b.el.remove(), 160); const hd = document.getElementById("pkScore"); if(hd) hd.textContent = st.score; },
+mol(i){ const st = mtState; if(st.phase !== "run" || !st.cur || st.cur.hit || st.cur.h !== i) return; st.cur.hit = true; if(st.cur.hat){ mtErr(); } else { st.score++; gameSfx("pop"); } molDraw(); },
+bag(i){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "ask") return; st.pick = i; st.phase = "fb"; if(i === tr.ans){ st.score++; gameSfx("correct"); } else mtErr(); renderMtBoard(); mtLater(NEW_MT.next, i === tr.ans ? 600 : 1400); },
+smn(i){ const st = mtState; if(st.phase !== "input") return; smnFlash(i, 220); if(i === st.seq[st.pos]){ st.pos++; if(st.pos >= st.seq.length){ st.phase = "wait"; st.score = st.seq.length; gameSfx("correct"); mtLater(smnRound, 700); } }
+else { mtErr(); st.phase = "fb"; renderMtBoard(); mtLater(() => { st.phase = "done"; mtFinish(` En uzun dizi: ${st.score}`); }, 900); } },
 clue(i){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "ask") return; const ok = tr.cands[i] === tr.tg; st.pick = i; st.phase = "fb"; if(ok) gameSfx("correct"); else mtErr(); renderMtBoard(); mtLater(NEW_MT.next, ok ? 600 : 1400); },
 ctab(i){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "input") return;
 if(typeof i === "string" && i[0] === "p"){ st.sel = Number(i.slice(1)); renderMtBoard(); return; }
@@ -11320,6 +11477,27 @@ const n = st.cards.length, d = wmGridDims(n, W, isLs ? H - 40 : H - 20, 58);
 info = `<b>Eşleri bul</b> · ${Object.keys(st.done).length / 2}/${st.P}`;
 body = `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + st.cards.map((c, i) => { const up = st.done[i] || st.open.includes(i);
 return `<div class="wm-pic mem-card${up ? " up" : ""}${st.done[i] ? " ok" : ""}" data-mt="${i}" style="width:${d.cell}px;height:${d.cell}px;padding:5px">${up ? `<img src="${c.x.src}" alt="" style="width:100%;height:100%;object-fit:contain">` : `<span class="mem-back">?</span>`}</div>`; }).join("") + `</div>`;
+} else if(st.kind === "bln" || st.kind === "ctc"){
+const ah = isLs ? H - 20 : Math.min(H - 20, 460);
+info = st.kind === "bln" ? `Yalnızca <span id="pkTgt" class="pk-chip" style="background:${PK_COLS[st.tgt][1]}">${PK_COLS[st.tgt][0]}</span> balonları patlat · ⭐ <b id="pkScore">${st.score}</b>` : `Meyveleri yakala, taşları yakalama · ⭐ <b id="pkScore">${st.score}</b>`;
+body = `<div id="pkArea" class="pk-area" style="height:${ah}px">${st.kind === "ctc" ? `<div id="pkBasket" class="pk-basket" style="left:${st.bx * 100}%"></div>` : ""}</div>`;
+} else if(st.kind === "mol"){
+const sz = Math.min(isLs ? H - 30 : 320, W - 20);
+info = `Köstebeğe vur, <b>şapkalıya vurma</b> · ⭐ <b id="pkScore">${st.score}</b> · ${st.k}/${st.cfg.N}`;
+body = `<div id="pkMoles" class="pk-moles" style="width:${sz}px;height:${sz}px">${Array.from({length:9}, (_, k) => `<div class="pk-hole" data-mt="${k}"></div>`).join("")}</div>`;
+} else if(st.kind === "bag"){
+const tr = st.trials[ti], sz = Math.min(isLs ? H - 50 : 170, W * 0.5);
+const bag = (open) => `<svg viewBox="0 0 100 90" width="${sz}" height="${sz * 0.9}"><rect x="12" y="26" width="76" height="58" rx="10" fill="#B9773A" stroke="#7A4A1E" stroke-width="3"/><rect x="36" y="12" width="28" height="16" rx="6" fill="none" stroke="#7A4A1E" stroke-width="5"/>${open ? `<rect x="18" y="24" width="64" height="10" rx="4" fill="#3A2410"/>` : `<rect x="12" y="44" width="76" height="6" fill="#7A4A1E"/><rect x="45" y="40" width="10" height="14" rx="2" fill="#FFD23F"/>`}</svg>`;
+if(st.phase === "show" || st.phase === "closed"){ const x = tr.inBag[st.bi]; info = st.phase === "show" ? `Zihni bavulunu hazırlıyor… <b>${Math.max(0, st.bi + 1)}/${tr.inBag.length}</b>` : "<b>Bavul kapandı!</b>";
+body = `<div style="display:flex;${isLs ? "" : "flex-direction:column;"}align-items:center;justify-content:center;gap:8px"><div style="width:80px;height:80px">${zihniSVG("happy")}</div>${st.phase === "show" && x ? `<div class="wm-card pk-drop" style="width:90px;height:90px;padding:5px"><img src="${x.src}" alt="" style="width:100%;height:100%;object-fit:contain"></div>` : ""}${bag(st.phase === "show")}</div>`; }
+else { const d = wmGridDims(tr.opts.length, W, isLs ? H - 40 : H - 60, 120); info = tr.askIn ? "Hangisi <b>bavulda</b>?" : "Hangisi bavulda <b>yok</b>?";
+body = `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">${tr.opts.map((x, i) => `<div class="wm-pic${st.phase === "fb" ? (i === tr.ans ? " ok" : i === st.pick ? " bad" : "") : ""}" data-mt="${i}" style="width:${d.cell}px;height:${d.cell}px;padding:5px"><img src="${x.src}" alt="" style="width:100%;height:100%;object-fit:contain"></div>`).join("")}</div>`; }
+} else if(st.kind === "smn"){
+const c = st.cfg; info = st.phase === "play" ? `<b>İzle ve dinle…</b> dizi ${st.seq.length}` : st.phase === "input" ? `<b>Aynı sırayla</b> dokun · ${st.pos}/${st.seq.length}` : st.phase === "fb" ? "Olmadı! Bir dahakine…" : `⭐ Dizi ${st.score}`;
+if(st.lh){ const ah = isLs ? H - 20 : Math.min(H - 20, 420);
+body = `<div class="pk-sea" style="height:${ah}px">${c.pts.map((p, k) => `<div class="pk-lh" data-pad="${k}" ${st.phase === "input" ? `data-mt="${k}"` : ""} style="left:${p[0]}%;top:${p[1]}%"><div class="off">${LH_SVG(false)}</div><div class="on">${LH_SVG(true)}</div></div>`).join("")}</div>`; }
+else { const kw = Math.min(isLs ? (H - 60) / 2 : 130, (W - 30) / 2);
+body = `<div style="display:grid;grid-template-columns:repeat(2, ${kw}px);gap:10px;justify-content:center">${TONE_KEYS.map((k, i) => `<button type="button" class="tone-k pk-pad" data-pad="${i}" ${st.phase === "input" ? `data-mt="${i}"` : ""} style="width:${kw}px;height:${kw}px;background:${k.c}"></button>`).join("")}</div>`; }
 } else if(st.kind === "clue"){
 const tr = st.trials[ti], d = wmGridDims(tr.cands.length, isLs ? W * 0.55 : W, isLs ? H - 40 : H - 130, 100);
 info = st.phase === "clues" ? `<b>İpuçlarını dinle…</b> ${st.shown}/${tr.clues.length}` : st.phase === "ask" ? "İpuçlarına uyan <b>tek şekil</b> hangisi?" : (st.pick != null && tr.cands[st.pick] === tr.tg ? "<b>Buldun!</b>" : "Doğrusu yeşil olan");
@@ -11599,7 +11777,7 @@ body = dots + (st.copy ? `<div style="display:flex;${isLs ? "" : "flex-direction
 return { info, body };
 }
 };
-const NEW_MT_KINDS = ["hear","dir","miss","chg","recog","draw","face","scene","scenet","samenum","size","movesay","storyord","whatdo","flu","spic","fsort","absay","parr","nword","clue","ctab","cobj","porder","ftrace","ecount","pairm","per","fix","dual","stop","vig","pnb","csp","tone","wseen","route","sbuild","spotd","sdk","blk","clut","sym","maze","ssnd","seqw","dots","chase","time","ferr","cups","mmath","who","rhy","mem"];
+const NEW_MT_KINDS = ["hear","dir","miss","chg","recog","draw","face","scene","scenet","samenum","size","movesay","storyord","whatdo","flu","spic","fsort","absay","parr","nword","bln","mol","ctc","bag","smn","clue","ctab","cobj","porder","ftrace","ecount","pairm","per","fix","dual","stop","vig","pnb","csp","tone","wseen","route","sbuild","spotd","sdk","blk","clut","sym","maze","ssnd","seqw","dots","chase","time","ferr","cups","mmath","who","rhy","mem"];
 
 const DELAY_TASKS = { story:"Hikâye Hatırlama → Aşama 3 (Gecikmeli)", recog:"Bunu Gördün mü? → Aşama 2 (Gecikmeli)", list:"Liste Öğrenme → Aşama 2 (Gecikmeli)" };
 function delayKey(task){ return "wm_delay_" + task + "_" + (currentPlayerName || "Misafir"); }
@@ -12131,6 +12309,12 @@ const INSTR_SHORT = {
 "vis-miss":         [() => Q("Resimlere iyi bak. Biri kaybolacak; eksik olana dokun.")],
 "vis-chg":          [() => Q("Resimlere iyi bak. Biri değişecek; değişene dokun.")],
 "vis-recog":        [() => Q("Resimlere iyi bak. Sonra her resim için Gördüm ya da Görmedim'e dokun."), () => `10–15 dk sonra açın: ${Q("Az önce gördüğün resimleri hatırlıyor musun? Gördüm ya da Görmedim'e dokun.")}`],
+"pk-balloon":       [() => Q("Yalnızca söylenen renkteki balonları patlat. Renk değişirse dikkat et!")],
+"pk-mole":          [() => Q("Delikten çıkan köstebeğe hızlıca dokun. Şapkalı köstebeğe dokunma!")],
+"pk-catch":         [() => Q("Parmağınla sepeti kaydır. Meyveleri yakala, taşları yakalama.")],
+"pk-bag":           [() => Q("Zihni bavuluna ne koyuyor, iyi bak. Bavul kapanınca soruyu cevapla.")],
+"pk-simon":         [() => Q("Renklerin sırasını izle ve dinle, sonra aynı sırayla dokun. Dizi her turda uzar.")],
+"pk-light":         [() => Q("Fenerlerin yanma sırasını izle, sonra aynı sırayla dokun. Her turda bir fener daha yanar.")],
 "clue-find":        [() => Q("İpuçlarını dinle. Hepsine uyan tek şekle dokun.")],
 "class-table":      [() => Q("Aşağıdan bir parça seç. Rengi satıra, şekli sütuna uyan kutuya koy.")],
 "color-obj":        [() => Q("Resimlere ve kartlarının rengine iyi bak. Sonra her resmin hangi renk karttaydığını seç.")],
@@ -13685,7 +13869,7 @@ wrap.id = "summaryContentWrap";
 container.appendChild(wrap);
 
 const catSummaries = computeCategorySummaries(all);
-const untried = CATEGORIES.filter(c=> !catSummaries.find(cs=> cs.category.id === c.id));
+const untried = CATEGORIES.filter(c=> !c.hidden && !catSummaries.find(cs=> cs.category.id === c.id));
 const distinctDays = new Set(all.map(r=> dayKey(r.t))).size;
 const overallRate = all.length ? Math.round((all.filter(r=> !r.errors).length / all.length) * 100) : 0;
 const stats = {
@@ -14210,7 +14394,7 @@ function famExIds(catId){
 const c = CATEGORIES.find(x => x.id === catId); if(!c) return [];
 return c.exerciseIds.filter(id => { const ex = exerciseById(id); return ex && ex.readingLevel.includes(famLvl()) && !ex.isMotion; });
 }
-function famTargetOptions(){ return CATEGORIES.filter(c => c.id !== "goz-takip" && famExIds(c.id).length >= 2); }
+function famTargetOptions(){ return CATEGORIES.filter(c => !c.hidden && c.id !== "goz-takip" && famExIds(c.id).length >= 2); }
 function famTarget(){
 const prog = typeof familyProgram === "function" ? familyProgram() : null;
 if(prog && prog.target && famTargetOptions().some(c => c.id === prog.target)) return prog.target;   // uzmanın programı
@@ -14371,7 +14555,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.08-l";
+const APP_VERSION = "2026.10.08-m";
 const LINK_LOCAL_KEY = "wm_family_links_v1";   // aile cihazında: kişi|seviye → kod + program önbelleği
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -14863,7 +15047,7 @@ const GAME_ISLANDS = [
 { id:"usta",   name:"Usta Adası",    color:"#FFE27A", special:true, unlockStars:40, dyn:() => gxUstaStops() },
 { id:"gezgin", name:"Gezgin Adası",  color:"#9FE0D8", special:true, dyn:() => gxGezginStops() },
 { id:"mola",   name:"Mola Adası",    color:"#CFE8B8", special:true, mola:true },
-{ id:"park",   name:"Oyun Parkı",    color:"#62C1FA", legacy:true }
+{ id:"park",   name:"Oyun Parkı",    color:"#62C1FA", fromCategory:"oyun-parki", park:true }
 ];
 const GAME_TIER_NAMES = ["Başlangıç","Orta","Zor"];
 let gameMode = false;
@@ -15188,7 +15372,7 @@ let jumped = false;
 if(good && newStar && t === 0 && !r.stars[2] && !ex.isMotion && gxFastFlawless(ex, ms, errors)){ r.jump = 2; jumped = true; }
 if(!good && !ex.isMotion) r.lastBad = todayKey(); else if(good && r.lastBad) delete r.lastBad;   // gecikmeli tekrar için
 r.bolt = r.bolt || [false, false, false];
-const onTime = good && !ex.isMotion && gxOnTime(ex, ms), newBolt = onTime && !r.bolt[t]; if(onTime) r.bolt[t] = true;
+const onTime = good && !ex.isMotion && !ex.noBolt && gxOnTime(ex, ms), newBolt = onTime && !r.bolt[t]; if(onTime) r.bolt[t] = true;
 gameRecordSave(ex.id, r);
 const outcome = !good ? 0 : (errors === 0 ? 2 : 1), predHit = gameStop.pred != null && gameStop.pred === outcome;
 const spIsl = GAME_ISLANDS.find(x => x.id === gameStop.islandId && x.special);
@@ -16200,6 +16384,7 @@ if(!list) return;
 list.innerHTML = "";
 let lastGroup = null;
 CATEGORIES.forEach(cat=>{
+if(cat.hidden) return;
 if(cat.group !== lastGroup){
 const header = document.createElement("div");
 header.className = "about-group-header";
@@ -16253,6 +16438,7 @@ const list = document.getElementById("categoryList");
 list.innerHTML = "";
 let lastGroup = null;
 CATEGORIES.forEach((cat)=>{
+if(cat.hidden) return;
 const realIndex = CATEGORIES.indexOf(cat);
 if(cat.group !== lastGroup){
 const header = document.createElement("div");
