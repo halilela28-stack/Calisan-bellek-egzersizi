@@ -335,6 +335,8 @@ html.hide-clock #timerDisplay{ visibility:hidden; }
 .mx-g{ display:grid; gap:4px; margin:0 auto 8px; background:#C9D3DE; padding:4px; border-radius:12px; } .mx-c{ background:#fff; border-radius:8px; aspect-ratio:1; display:flex; align-items:center; justify-content:center; padding:3px; } .mx-c.q{ font-weight:900; font-size:26px; color:var(--ink-soft); border:2px dashed #9AA9B8; }
 @media (orientation: landscape) and (max-height: 520px){ .mx-g{ width:140px !important; } .ri-box{ max-width:130px !important; padding:3px !important; } .ri-i{ max-height:44px; } }
 .ri-box{ border-radius:14px; padding:6px; border:3px solid; flex:1; max-width:180px; } .ri-box.ok{ border-color:#1FA463; background:#E3F6EC; } .ri-box.no{ border-color:#E5484D; background:#FCE3E3; } .ri-h{ font-weight:900; font-size:13px; text-align:center; } .ri-items{ display:grid; grid-template-columns:repeat(2, 1fr); gap:3px; } .ri-i{ background:#fff; border-radius:8px; aspect-ratio:1; padding:2px; }
+#ttsCaption{ position:fixed; left:50%; bottom:calc(96px + env(safe-area-inset-bottom)); transform:translate(-50%, 20px); max-width:min(560px, 92vw); background:rgba(29,42,53,.92); color:#fff; font-weight:800; font-size:18px; line-height:1.35; padding:10px 16px; border-radius:16px; z-index:500; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; text-align:center; }
+#ttsCaption.on{ opacity:1; transform:translate(-50%, 0); }
 .qz-txt-grid{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; width:min(420px, 100%); margin:0 auto; }
 .qz-txt{ min-height:58px; padding:8px 10px !important; text-align:center; }
 .fs-x, .fs-v{ position:absolute; right:3px; top:1px; width:22px; height:22px; border-radius:50%; color:#fff; font-weight:900; font-size:14px; display:flex; align-items:center; justify-content:center; } .fs-x{ background:#E5484D; } .fs-v{ background:#1FA463; }
@@ -2680,7 +2682,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.08-f</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.08-g</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -2699,6 +2701,14 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-group" style="flex-wrap:wrap">
 <div class="settings-label">Oyun ilerlemesi yedeği<br><span style="font-size:12px;font-weight:600;color:var(--ink-soft)">Yıldızlar, ışıklar ve Zihni'nin dolabı bu cihazda saklanır. Telefon değişmeden önce yedek alın.</span></div>
 <div style="display:flex;gap:8px"><button type="button" class="btn-ghost" id="gameBackupBtn">Yedek al</button><button type="button" class="btn-ghost" id="gameRestoreBtn">Geri yükle</button><input type="file" id="gameRestoreFile" accept="application/json,.json" style="display:none"></div>
+</div>
+
+<div class="settings-group">
+<div class="settings-label">Altyazı<br><span style="font-size:12px;font-weight:600;color:var(--ink-soft)">Sesli okunan yönerge ve soruları ekranda yazıyla da gösterir (işitme güçlüğü ya da ses kapalıyken). Cihazda Türkçe ses yoksa kendiliğinden açılır.</span></div>
+<label class="switch">
+<input type="checkbox" id="captionToggle">
+<span class="switch-track"><span class="switch-thumb"></span></span>
+</label>
 </div>
 
 <div class="settings-group">
@@ -5631,7 +5641,7 @@ example: () => ``
 id: "same-number",
 readingLevel: ["pre","post"],
 label: "Aynı Sayıyı Bul",
-isMt: true, attrs: [], speedFactor: 4,
+isMt: true, attrs: [], speedFactor: 1,
 onShuffle: () => { snNewTarget(); },
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
@@ -6453,10 +6463,10 @@ example: (item) => `${item.opp}`
 
 {
 id: "similarities",
-readingLevel: ["post"],
+readingLevel: ["pre","post"],
 label: "Benzerlik Bulma",
 attrs: ["a"],
-randomItem: () => randomItem([SIMILARITY_PAIRS, SIM_FUNC, SIM_ABSTRACT][currentCombo().t] || SIMILARITY_PAIRS),
+randomItem: () => randomItem((isPre() ? [SIM_PRE0, SIM_PRE1, SIM_PRE2] : [SIMILARITY_PAIRS, SIM_FUNC, SIM_ABSTRACT])[currentCombo().t] || SIMILARITY_PAIRS),
 renderItem: (item) => `<div class="name-cell phrase-cell">${item.a} - ${item.b}</div>`,
 stages: [
 {
@@ -6473,10 +6483,10 @@ example: (item) => `${item.hint}`
 },
 {
 id: "vocabulary",
-readingLevel: ["post"],
+readingLevel: ["pre","post"],
 label: "Kelime Tanımlama",
 attrs: ["word"],
-randomItem: () => randomItem([VOCAB_CONCRETE, VOCAB_WORDS.concat(VOCAB_ACTION), VOCAB_ABSTRACT][currentCombo().t] || VOCAB_WORDS),
+randomItem: () => randomItem((isPre() ? [VOCAB_PRE0, VOCAB_PRE1, VOCAB_PRE2] : [VOCAB_CONCRETE, VOCAB_WORDS.concat(VOCAB_ACTION), VOCAB_ABSTRACT])[currentCombo().t] || VOCAB_WORDS),
 renderItem: (item) => `<div class="name-cell">${item.word}</div>`,
 stages: [
 {
@@ -6493,10 +6503,10 @@ example: (item) => `${item.def}`
 },
 {
 id: "practical-reasoning",
-readingLevel: ["post"],
+readingLevel: ["pre","post"],
 label: "Genel Kavrama",
 attrs: ["q"],
-randomItem: () => randomItem([COMPREHENSION_QS, COMP_WHY, COMP_IF][currentCombo().t] || COMPREHENSION_QS),
+randomItem: () => randomItem((isPre() ? [COMP_PRE0, COMP_PRE1, COMP_PRE2] : [COMPREHENSION_QS, COMP_WHY, COMP_IF])[currentCombo().t] || COMPREHENSION_QS),
 renderItem: (item) => `<div class="name-cell phrase-cell">${item.q}</div>`,
 stages: [
 {
@@ -6795,7 +6805,7 @@ stages: [ { label: "Nerede Saklandı?", instruction: () => ``, example: () => ``
 id: "corsi",
 readingLevel: ["pre","post"],
 label: "Corsi Blokları",
-isMt: true, attrs: [], speedFactor: 10,
+isMt: true, attrs: [], speedFactor: 21,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Aşama 1 · İleri", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Geri", instruction: () => ``, example: () => `` } ]
@@ -6804,7 +6814,7 @@ stages: [ { label: "Aşama 1 · İleri", instruction: () => ``, example: () => `
 id: "corsi-verbal",
 readingLevel: ["pre","post"],
 label: "Corsi Blokları (uzmanla)",
-isMt: true, attrs: [], speedFactor: 10,
+isMt: true, attrs: [], speedFactor: 16.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Aşama 1 · İleri", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Geri", instruction: () => ``, example: () => `` } ]
@@ -6833,7 +6843,7 @@ stages: [ { label: "Oku + Hatırla", instruction: () => ``, example: () => `` } 
 id: "span-touch",
 readingLevel: ["pre","post"],
 label: "Resimli Dinleme Aralığı",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 17,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Doğru mu? + Sırayla Bul", instruction: () => ``, example: () => `` } ]
@@ -6853,7 +6863,7 @@ stages: [ { label: "Aşama 1 · Önce Sayılar, Sonra Harfler", instruction: () 
 id: "lns-touch",
 readingLevel: ["post"],
 label: "Harf-Sayı Sıralama (dokunmalı)",
-isMt: true, attrs: [], speedFactor: 12,
+isMt: true, attrs: [], speedFactor: 13.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Aşama 1 · Önce Sayılar, Sonra Harfler", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Sıralı (1-2-3, A-B-C)", instruction: () => ``, example: () => `` } ]
@@ -6862,7 +6872,7 @@ stages: [ { label: "Aşama 1 · Önce Sayılar, Sonra Harfler", instruction: () 
 id: "animal-fruit",
 readingLevel: ["pre"],
 label: "Hayvan-Meyve Sıralama",
-isMt: true, attrs: [], speedFactor: 12,
+isMt: true, attrs: [], speedFactor: 9,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Önce Hayvanlar, Sonra Meyveler", instruction: () => ``, example: () => `` } ]
@@ -6871,7 +6881,7 @@ stages: [ { label: "Önce Hayvanlar, Sonra Meyveler", instruction: () => ``, exa
 id: "running",
 readingLevel: ["pre","post"],
 label: "Sondakileri Hatırla",
-isMt: true, attrs: [], speedFactor: 12,
+isMt: true, attrs: [], speedFactor: 13.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Son Resimler", instruction: () => ``, example: () => `` } ]
@@ -6891,7 +6901,7 @@ stages: [ { label: "Son Kelimeler", instruction: () => ``, example: () => `` } ]
 id: "zihni",
 readingLevel: ["pre","post"],
 label: "Zihni Nerede?",
-isMt: true, attrs: [], speedFactor: 12,
+isMt: true, attrs: [], speedFactor: 11.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Zihinde Takip", instruction: () => ``, example: () => `` } ]
@@ -6912,7 +6922,7 @@ stages: [ { label: "Komutları Dinle", instruction: () => ``, example: () => `` 
 id: "market",
 readingLevel: ["pre","post"],
 label: "Market Listesi",
-isMt: true, attrs: [], speedFactor: 20,
+isMt: true, attrs: [], speedFactor: 23.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Liste → Balon → Raf", instruction: () => ``, example: () => `` } ]
@@ -6932,7 +6942,7 @@ stages: [ { label: "Liste + Ara Görev", instruction: () => ``, example: () => `
 id: "pal-touch",
 readingLevel: ["pre","post"],
 label: "Eşini Hatırla",
-isMt: true, attrs: [], speedFactor: 20,
+isMt: true, attrs: [], speedFactor: 11.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Aşama 1 · Öğren ve Hatırla", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Strateji · Hayal Et", instruction: () => ``, example: () => `` } ]
@@ -6990,7 +7000,7 @@ stages: [ { label: "Dinle ve Cevapla", instruction: () => ``, example: () => `` 
 id: "pic-seq-say",
 readingLevel: ["pre"],
 label: "Resimleri Sırayla Söyle",
-isMt: true, attrs: [], speedFactor: 12,
+isMt: true, attrs: [], speedFactor: 7,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Sırayla Söyle", instruction: () => ``, example: () => `` } ]
@@ -6999,7 +7009,7 @@ stages: [ { label: "Sırayla Söyle", instruction: () => ``, example: () => `` }
 id: "pic-seq-touch",
 readingLevel: ["pre","post"],
 label: "Duyduğun Sırayla Dokun",
-isMt: true, attrs: [], speedFactor: 12,
+isMt: true, attrs: [], speedFactor: 16,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Sırayla Dokun", instruction: () => ``, example: () => `` } ]
@@ -7008,7 +7018,7 @@ stages: [ { label: "Sırayla Dokun", instruction: () => ``, example: () => `` } 
 id: "hear-find",
 readingLevel: ["pre","post"],
 label: "Duyduklarını Bul",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 15.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Dinle ve Bul", instruction: () => ``, example: () => `` } ]
@@ -7017,7 +7027,7 @@ stages: [ { label: "Dinle ve Bul", instruction: () => ``, example: () => `` } ]
 id: "dir-follow",
 readingLevel: ["pre","post"],
 label: "Yönerge İzle",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 15.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Dinle ve Yap", instruction: () => ``, example: () => `` } ]
@@ -7026,7 +7036,7 @@ stages: [ { label: "Dinle ve Yap", instruction: () => ``, example: () => `` } ]
 id: "vis-miss",
 readingLevel: ["pre","post"],
 label: "Ne Eksik?",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 10.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Eksik Olanı Bul", instruction: () => ``, example: () => `` } ]
@@ -7035,7 +7045,7 @@ stages: [ { label: "Eksik Olanı Bul", instruction: () => ``, example: () => `` 
 id: "vis-chg",
 readingLevel: ["pre","post"],
 label: "Ne Değişti?",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 10.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Değişeni Bul", instruction: () => ``, example: () => `` } ]
@@ -7044,7 +7054,7 @@ stages: [ { label: "Değişeni Bul", instruction: () => ``, example: () => `` } 
 id: "vis-recog",
 readingLevel: ["pre","post"],
 label: "Bunu Gördün mü?",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 3,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Aşama 1 · Hemen", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Gecikmeli (10–15 dk sonra)", instruction: () => ``, example: () => `` } ]
@@ -7053,7 +7063,7 @@ stages: [ { label: "Aşama 1 · Hemen", instruction: () => ``, example: () => ``
 id: "vis-draw",
 readingLevel: ["pre","post"],
 label: "Çizgiyi Hatırla",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 20,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Çiz", instruction: () => ``, example: () => `` } ]
@@ -7116,7 +7126,7 @@ stages: [ { label: "Aşama 1 · Yüzleri Tanı", instruction: () => ``, example:
 id: "scene-mem",
 readingLevel: ["pre","post"],
 label: "Resme Bak, Hatırla",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 39,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Bak ve Cevapla", instruction: () => ``, example: () => `` } ]
@@ -7125,7 +7135,7 @@ stages: [ { label: "Bak ve Cevapla", instruction: () => ``, example: () => `` } 
 id: "scene-touch",
 readingLevel: ["pre","post"],
 label: "Resimde Ne Vardı?",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 23.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Bak ve Bul", instruction: () => ``, example: () => `` } ]
@@ -7134,7 +7144,7 @@ stages: [ { label: "Bak ve Bul", instruction: () => ``, example: () => `` } ]
 id: "odd-cat",
 readingLevel: ["pre","post"],
 label: "Gruba Uymayanı Bul",
-isMt: true, attrs: [], speedFactor: 6,
+isMt: true, attrs: [], speedFactor: 4,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
@@ -7143,7 +7153,7 @@ stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
 id: "opp-touch",
 readingLevel: ["pre","post"],
 label: "Zıttını Seç",
-isMt: true, attrs: [], speedFactor: 6,
+isMt: true, attrs: [], speedFactor: 4,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
@@ -7152,7 +7162,7 @@ stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
 id: "syl-touch",
 readingLevel: ["pre","post"],
 label: "Hece Sayısına Dokun",
-isMt: true, attrs: [], speedFactor: 6,
+isMt: true, attrs: [], speedFactor: 4.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
@@ -7161,7 +7171,7 @@ stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
 id: "sim-touch",
 readingLevel: ["pre","post"],
 label: "Hangisi Benziyor?",
-isMt: true, attrs: [], speedFactor: 6,
+isMt: true, attrs: [], speedFactor: 4,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
@@ -7179,7 +7189,7 @@ stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
 id: "use-touch",
 readingLevel: ["pre","post"],
 label: "Ne İşe Yarar?",
-isMt: true, attrs: [], speedFactor: 6,
+isMt: true, attrs: [], speedFactor: 5.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
@@ -7188,7 +7198,7 @@ stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
 id: "size-touch",
 readingLevel: ["pre","post"],
 label: "Küçükten Büyüğe Dokun",
-isMt: true, attrs: [], speedFactor: 6,
+isMt: true, attrs: [], speedFactor: 7,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
@@ -7197,7 +7207,7 @@ stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
 id: "arrow-touch",
 readingLevel: ["pre","post"],
 label: "Okun Yönüne Dokun",
-isMt: true, attrs: [], speedFactor: 6,
+isMt: true, attrs: [], speedFactor: 3,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
@@ -7206,7 +7216,7 @@ stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
 id: "edge-touch",
 readingLevel: ["pre","post"],
 label: "Kenar Sayısına Dokun",
-isMt: true, attrs: [], speedFactor: 6,
+isMt: true, attrs: [], speedFactor: 3.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
@@ -7215,7 +7225,7 @@ stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
 id: "odd-touch",
 readingLevel: ["pre","post"],
 label: "Farklı Olanı Bul (dokunmalı)",
-isMt: true, attrs: [], speedFactor: 6,
+isMt: true, attrs: [], speedFactor: 3.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
@@ -7224,7 +7234,7 @@ stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
 id: "pattern-touch",
 readingLevel: ["pre","post"],
 label: "Sıradakini Seç",
-isMt: true, attrs: [], speedFactor: 6,
+isMt: true, attrs: [], speedFactor: 4.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
@@ -7242,7 +7252,7 @@ stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
 id: "move-seq",
 readingLevel: ["pre","post"],
 label: "Hareket Sırası",
-isMt: true, attrs: [], speedFactor: 12,
+isMt: true, attrs: [], speedFactor: 13.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Dinle ve Yap", instruction: () => ``, example: () => `` } ]
@@ -7251,7 +7261,7 @@ stages: [ { label: "Dinle ve Yap", instruction: () => ``, example: () => `` } ]
 id: "story-order",
 readingLevel: ["pre","post"],
 label: "Hikâyeyi Sırala",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 20,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "İzle, Dinle, Sırala", instruction: () => ``, example: () => `` } ]
@@ -7260,7 +7270,7 @@ stages: [ { label: "İzle, Dinle, Sırala", instruction: () => ``, example: () =
 id: "what-do",
 readingLevel: ["pre","post"],
 label: "Ne Yapmalı?",
-isMt: true, attrs: [], speedFactor: 30,
+isMt: true, attrs: [], speedFactor: 5.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Aşama 1 · Ne Yapmalı?", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Nedenini Söyle", instruction: () => ``, example: () => `` } ]
@@ -7287,7 +7297,7 @@ stages: [ { label: "Kelime Üret", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "flu-switch",
-readingLevel: ["post"],
+readingLevel: ["pre","post"],
 label: "Kategori Değiştirme",
 isMt: true, attrs: [], speedFactor: 20,
 noAdaptive: true, errorLabel: "Doğru kelime sayısı",
@@ -7299,7 +7309,7 @@ stages: [ { label: "Sırayla Üret", instruction: () => ``, example: () => `` } 
 id: "sort-pic",
 readingLevel: ["pre","post"],
 label: "Resimleri Grupla",
-isMt: true, attrs: [], speedFactor: 20,
+isMt: true, attrs: [], speedFactor: 2.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Grupla", instruction: () => ``, example: () => `` } ]
@@ -7308,7 +7318,7 @@ stages: [ { label: "Grupla", instruction: () => ``, example: () => `` } ]
 id: "free-sort",
 readingLevel: ["pre","post"],
 label: "Kendi Kümeni Kur",
-isMt: true, attrs: [], speedFactor: 20,
+isMt: true, attrs: [], speedFactor: 3.5,
 errorLabel: "Hata (uymayan + adı uygun olmayan)",
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
@@ -7329,7 +7339,7 @@ stages: [ { label: "Grupla ve Söyle", instruction: () => ``, example: () => `` 
 id: "same-sound",
 readingLevel: ["pre","post"],
 label: "Aynı Sesle Başlayanı Bul",
-isMt: true, attrs: [], speedFactor: 8,
+isMt: true, attrs: [], speedFactor: 7,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Dokun ve Bul", instruction: () => ``, example: () => `` } ]
@@ -7338,7 +7348,7 @@ stages: [ { label: "Dokun ve Bul", instruction: () => ``, example: () => `` } ]
 id: "rhyme-touch",
 readingLevel: ["pre","post"],
 label: "Uyaklı mı?",
-isMt: true, attrs: [], speedFactor: 8,
+isMt: true, attrs: [], speedFactor: 4.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Dinle ve Seç", instruction: () => ``, example: () => `` } ]
@@ -7347,25 +7357,25 @@ stages: [ { label: "Dinle ve Seç", instruction: () => ``, example: () => `` } ]
 id: "syn-touch",
 readingLevel: ["post"],
 label: "Eş Anlamlısını Bul",
-isMt: true, attrs: [], speedFactor: 8,
+isMt: true, attrs: [], speedFactor: 4,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "seq-words",
-readingLevel: ["post"],
+readingLevel: ["pre","post"],
 label: "Sıraya Diz",
-isMt: true, attrs: [], speedFactor: 8,
+isMt: true, attrs: [], speedFactor: 7,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Sırala", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "part-whole",
-readingLevel: ["post"],
+readingLevel: ["pre","post"],
 label: "Parça–Bütün",
-isMt: true, attrs: [], speedFactor: 8,
+isMt: true, attrs: [], speedFactor: 4,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
@@ -7385,7 +7395,7 @@ stages: [ { label: "Uyaklı Kelime Söyle", instruction: () => ``, example: () =
 id: "dot-count",
 readingLevel: ["pre","post"],
 label: "Kaç Tane?",
-isMt: true, attrs: [], speedFactor: 4,
+isMt: true, attrs: [], speedFactor: 3,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Bak ve Söyle", instruction: () => ``, example: () => `` } ]
@@ -7394,7 +7404,7 @@ stages: [ { label: "Bak ve Söyle", instruction: () => ``, example: () => `` } ]
 id: "sem-decide",
 readingLevel: ["pre","post"],
 label: "Anlam Kararı",
-isMt: true, attrs: [], speedFactor: 2,
+isMt: true, attrs: [], speedFactor: 2.5,
 onShuffle: () => { semPick(true); },
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
@@ -7404,7 +7414,7 @@ stages: [ { label: "Evet mi, Hayır mı?", instruction: () => ``, example: () =>
 id: "eye-touch",
 readingLevel: ["pre","post"],
 label: "Hareketli Hedefe Dokun",
-isMt: true, attrs: [], speedFactor: 6,
+isMt: true, attrs: [], speedFactor: 2,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Topu Yakala", instruction: () => ``, example: () => `` } ]
@@ -7433,7 +7443,7 @@ stages: [ { label: "İçinden Say", instruction: () => ``, example: () => `` } ]
 id: "find-error",
 readingLevel: ["pre","post"],
 label: "Hatayı Bul",
-isMt: true, attrs: [], speedFactor: 10,
+isMt: true, attrs: [], speedFactor: 5.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Kontrol Et", instruction: () => ``, example: () => `` } ]
@@ -7442,7 +7452,7 @@ stages: [ { label: "Kontrol Et", instruction: () => ``, example: () => `` } ]
 id: "cups",
 readingLevel: ["pre","post"],
 label: "Bardak Oyunu",
-isMt: true, attrs: [], speedFactor: 20,
+isMt: true, attrs: [], speedFactor: 10,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Topu Takip Et", instruction: () => ``, example: () => `` } ]
@@ -7451,7 +7461,7 @@ stages: [ { label: "Topu Takip Et", instruction: () => ``, example: () => `` } ]
 id: "mental-math",
 readingLevel: ["pre","post"],
 label: "Zihinden Hesap",
-isMt: true, attrs: [], speedFactor: 20,
+isMt: true, attrs: [], speedFactor: 13,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Aklında Hesapla", instruction: () => ``, example: () => `` } ]
@@ -7460,7 +7470,7 @@ stages: [ { label: "Aklında Hesapla", instruction: () => ``, example: () => `` 
 id: "who-said",
 readingLevel: ["pre","post"],
 label: "Kim Söyledi?",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 6,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Dinle ve Hatırla", instruction: () => ``, example: () => `` } ]
@@ -7469,7 +7479,7 @@ stages: [ { label: "Dinle ve Hatırla", instruction: () => ``, example: () => ``
 id: "rhythm",
 readingLevel: ["pre","post"],
 label: "Ritim Tekrarı",
-isMt: true, attrs: [], speedFactor: 20,
+isMt: true, attrs: [], speedFactor: 12,
 noAdaptive: true,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
@@ -7479,7 +7489,7 @@ stages: [ { label: "Dinle ve Vur", instruction: () => ``, example: () => `` } ]
 id: "memory-cards",
 readingLevel: ["pre","post"],
 label: "Kart Eşleştirme",
-isMt: true, attrs: [], speedFactor: 20,
+isMt: true, attrs: [], speedFactor: 3.5,
 noAdaptive: true, errorLabel: "Fazladan eşleşmeyen deneme",
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
@@ -7533,7 +7543,7 @@ stages: [ { label: "Sor ve Değerlendir", instruction: () => ``, example: () => 
 id: "proverb-touch",
 readingLevel: ["post"],
 label: "Ne Anlama Geliyor?",
-isMt: true, attrs: [], speedFactor: 10,
+isMt: true, attrs: [], speedFactor: 6,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Dinle ve Seç", instruction: () => ``, example: () => `` } ]
@@ -7542,7 +7552,7 @@ stages: [ { label: "Dinle ve Seç", instruction: () => ``, example: () => `` } ]
 id: "absurd-touch",
 readingLevel: ["pre","post"],
 label: "Saçma mı?",
-isMt: true, attrs: [], speedFactor: 10,
+isMt: true, attrs: [], speedFactor: 6.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Dinle ve Seç", instruction: () => ``, example: () => `` } ]
@@ -7551,7 +7561,7 @@ stages: [ { label: "Dinle ve Seç", instruction: () => ``, example: () => `` } ]
 id: "concept-touch",
 readingLevel: ["pre","post"],
 label: "Kavram Bilgisi",
-isMt: true, attrs: [], speedFactor: 10,
+isMt: true, attrs: [], speedFactor: 6,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Dinle ve Seç", instruction: () => ``, example: () => `` } ]
@@ -7560,7 +7570,7 @@ stages: [ { label: "Dinle ve Seç", instruction: () => ``, example: () => `` } ]
 id: "infer-touch",
 readingLevel: ["post"],
 label: "Çıkarım Seç",
-isMt: true, attrs: [], speedFactor: 10,
+isMt: true, attrs: [], speedFactor: 11,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Dinle ve Seç", instruction: () => ``, example: () => `` } ]
@@ -7569,7 +7579,7 @@ stages: [ { label: "Dinle ve Seç", instruction: () => ``, example: () => `` } ]
 id: "vanalogy-touch",
 readingLevel: ["pre","post"],
 label: "Analoji Tamamla",
-isMt: true, attrs: [], speedFactor: 12,
+isMt: true, attrs: [], speedFactor: 7,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "İkiliyi Tamamla", instruction: () => ``, example: () => `` } ]
@@ -7578,7 +7588,7 @@ stages: [ { label: "İkiliyi Tamamla", instruction: () => ``, example: () => `` 
 id: "word-pic",
 readingLevel: ["pre","post"],
 label: "Hangi Kelime?",
-isMt: true, attrs: [], speedFactor: 12,
+isMt: true, attrs: [], speedFactor: 5.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Dinle ve Göster", instruction: () => ``, example: () => `` } ]
@@ -7587,7 +7597,7 @@ stages: [ { label: "Dinle ve Göster", instruction: () => ``, example: () => `` 
 id: "absurd-say",
 readingLevel: ["pre","post"],
 label: "Saçmalığı Bul",
-isMt: true, attrs: [], speedFactor: 12,
+isMt: true, attrs: [], speedFactor: 6,
 errorLabel: "Uygun olmayan açıklama",
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
@@ -7597,7 +7607,7 @@ stages: [ { label: "Bul ve Açıkla", instruction: () => ``, example: () => `` }
 id: "block-design",
 readingLevel: ["pre","post"],
 label: "Bloklarla Desen",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 32,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Aşama 1 · Modeli Yap", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Döndürülmüş Model", instruction: () => ``, example: () => `` } ]
@@ -7606,7 +7616,7 @@ stages: [ { label: "Aşama 1 · Modeli Yap", instruction: () => ``, example: () 
 id: "mental-rot",
 readingLevel: ["pre","post"],
 label: "Zihinsel Döndürme",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 6,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Döndür ve Bul", instruction: () => ``, example: () => `` } ]
@@ -7615,7 +7625,7 @@ stages: [ { label: "Döndür ve Bul", instruction: () => ``, example: () => `` }
 id: "clutter-find",
 readingLevel: ["pre","post"],
 label: "Kalabalıkta Bul",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 1,
 onShuffle: () => { clutTarget = null; },
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
@@ -7625,7 +7635,7 @@ stages: [ { label: "Hepsini Bul", instruction: () => ``, example: () => `` } ]
 id: "overlap-count",
 readingLevel: ["pre","post"],
 label: "Üst Üste Şekiller",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 6,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Say ve Seç", instruction: () => ``, example: () => `` } ]
@@ -7634,7 +7644,7 @@ stages: [ { label: "Say ve Seç", instruction: () => ``, example: () => `` } ]
 id: "embedded",
 readingLevel: ["post"],
 label: "Gizli Şekil",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 7,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Bul ve Seç", instruction: () => ``, example: () => `` } ]
@@ -7643,7 +7653,7 @@ stages: [ { label: "Bul ve Seç", instruction: () => ``, example: () => `` } ]
 id: "closure",
 readingLevel: ["pre","post"],
 label: "Görsel Tamamlama",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 4.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Tamamla ve Seç", instruction: () => ``, example: () => `` } ]
@@ -7652,7 +7662,7 @@ stages: [ { label: "Tamamla ve Seç", instruction: () => ``, example: () => `` }
 id: "copy-design",
 readingLevel: ["pre","post"],
 label: "Deseni Kopyala",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 16,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Modele Bakarak Çiz", instruction: () => ``, example: () => `` } ]
@@ -7661,7 +7671,7 @@ stages: [ { label: "Modele Bakarak Çiz", instruction: () => ``, example: () => 
 id: "symmetry",
 readingLevel: ["pre","post"],
 label: "Simetriyi Tamamla",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 12,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Ayna Gibi Tamamla", instruction: () => ``, example: () => `` } ]
@@ -7670,7 +7680,7 @@ stages: [ { label: "Ayna Gibi Tamamla", instruction: () => ``, example: () => ``
 id: "maze",
 readingLevel: ["pre","post"],
 label: "Labirent",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 33,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Çıkışı Bul", instruction: () => ``, example: () => `` } ]
@@ -7679,7 +7689,7 @@ stages: [ { label: "Çıkışı Bul", instruction: () => ``, example: () => `` }
 id: "matrix-fill",
 readingLevel: ["pre","post"],
 label: "Matris Tamamla",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 7,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Boş Kutuyu Bul", instruction: () => ``, example: () => `` } ]
@@ -7688,7 +7698,7 @@ stages: [ { label: "Boş Kutuyu Bul", instruction: () => ``, example: () => `` }
 id: "rule-induce",
 readingLevel: ["pre","post"],
 label: "Kural Keşfi",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 7,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Kuralı Bul", instruction: () => ``, example: () => `` } ]
@@ -7697,7 +7707,7 @@ stages: [ { label: "Kuralı Bul", instruction: () => ``, example: () => `` } ]
 id: "balance",
 readingLevel: ["pre","post"],
 label: "Terazi",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 7,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Teraziyi Düşün", instruction: () => ``, example: () => `` } ]
@@ -7706,7 +7716,7 @@ stages: [ { label: "Teraziyi Düşün", instruction: () => ``, example: () => ``
 id: "pic-arrange",
 readingLevel: ["pre","post"],
 label: "Resimleri Sırala",
-isMt: true, attrs: [], speedFactor: 15,
+isMt: true, attrs: [], speedFactor: 8,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Aşama 1 · Sırala", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Sırala ve Anlat", instruction: () => ``, example: () => `` } ]
@@ -7877,7 +7887,7 @@ id:"islemleme-hizi",
 readingLevel:["post"],
 label:"İşlemleme Hızı",
 sub:"Hızlı isimlendirme, sayı bulma, seçimli tepki, simge arama, şekil-resim eşleme, doğru-yanlış eşleşme, oluş sırası, renkli kart seç · dokunmalı: gruba dokun, sayılara sırayla dokun, hızlı seç, doğru çiftler · kaç tane (bir bakışta sayı), anlam kararı · strateji aşamaları",
-purpose:"Görsel bir uyaranı hızlıca tanıyıp isimlendirme alıştırması yapar; bu beceri okuma akıcılığıyla ilişkilendirilir.",
+purpose:"Görsel bilgiyi hızlı ve doğru biçimde tarama, eşleme, isimlendirme ve karar verme becerisini çalıştırır; bu beceriler okuma akıcılığıyla ilişkilendirilir.",
 color:"#2E6F6E",
 group:"Hız & Dikkat",
 exerciseIds:["shape-color","trail-numbers","object-name","dot-count","search-object","search-symbol","fruit-veg","sdmt-touch","number-find","cat-cold","number-color","quick-sort","related-pairs","cat-living","taste-name","search-shape","search-letter","origin-order","sem-decide","hot-cold","touch-card","symbol-image","choice-reaction","pairs-touch","living-nonliving","cat-fruit"]
@@ -7887,7 +7897,7 @@ id:"goz-takip",
 readingLevel:["pre","post"],
 label:"Göz Takip",
 sub:"İzleme (yatay, dikey, çapraz, şekiller), sıçrama (iki nokta, rastgele nokta, satır dönüşü) · dokunmalı: hareketli hedefe dokun (göz–el)",
-purpose:"Gözlerin hareketli bir hedefi baş hareketi kullanmadan takip etme alıştırması yapar.",
+purpose:"Gözlerin hareketli bir hedefi baş hareketi olmadan izlemesini, bir noktadan diğerine hızlı sıçramasını ve göz–el koordinasyonunu çalıştırır.",
 color:"#C97F32",
 group:"Hız & Dikkat",
 exerciseIds:["eye-horizontal","eye-vertical","eye-diagonal","eye-diagonal2","eye-wave","eye-steep-wave","eye-depth","eye-square","eye-triangle","eye-star","eye-junction","eye-crossbox","eye-saccade-two","eye-saccade-random","eye-saccade-reading","eye-touch"]
@@ -7897,7 +7907,7 @@ id:"yurutucu-islev",
 readingLevel:["post"],
 label:"Yürütücü İşlev",
 sub:"Ketleme (Stroop, gece–gündüz, ket vurma, hayvana dokun, ortadakini söyle, balıklar hangi yöne, yüzler tek tek) · Esneklik (kural değişimi, ön mü arka mı, kart sıralama, iz sürme) · Planlama (boncuklar, küpler, üç bardak, önce planla) · zaman tahmini, hatayı bul (öz denetim), başka ne işe yarar (esnek düşünme) · strateji aşamaları",
-purpose:"Dikkati yönetme, kural değiştirme ve dürtüsel tepkiyi durdurma becerisini çalıştırır.",
+purpose:"Dikkati yönetme, kural değiştirme, dürtüsel tepkiyi durdurma, planlama, zamanı tahmin etme ve kendi işini denetleme becerilerini çalıştırır.",
 color:"#3A6EA5",
 group:"Hız & Dikkat",
 exerciseIds:["stroop","day-night","go-no-go","fish-flanker","stroop-touch","day-night-touch","touch-animal","flanker","task-switch","face-go","time-est","sort-color-shape","sort-animal-size","sort-color-shape-count","sort-words","find-error","number-letter","trail-number-month","trail-animal-fruit","trail-color-shape","switch-touch","alt-uses","plan-beads","plan-swap","plan-tol","plan-cubes","plan-think"],
@@ -7910,7 +7920,7 @@ id:"calisan-bellek",
 readingLevel:["pre","post"],
 label:"Çalışan Bellek",
 sub:"N-geri, aynı mı?, rakam dizisi, Corsi blokları, dinleme ve okuma aralığı, harf-sayı sıralama, sırayı hatırla, nerede saklandı, sondakileri hatırla, Zihni nerede?, market listesi, ileriye dönük bellek · bardak oyunu, zihinden hesap · strateji aşamaları",
-purpose:"Birden fazla bilgiyi aynı anda zihinde tutup güncelleme (n-geri) veya bir niyeti geleceğe taşıma (ileriye dönük bellek) becerilerini çalıştırır.",
+purpose:"Bilgiyi kısa süre zihinde tutup üzerinde işlem yapma becerisini çalıştırır: sayı ve kelime dizileri, ters ve sıralı tekrar, n-geri güncelleme, ileriye dönük bellek, zihinden hesap ve görsel-uzamsal takip.",
 color:"#4F9D5A",
 group:"Bellek",
 exerciseIds:["nback-shape","corsi","market","nback-color","span-listen","zihni","cups","wm-same","lns","market-verbal","digit-span","mental-math","running","span-touch","nback-number","zihni-verbal","wm-seq","corsi-verbal","running-verbal","word-order","lns-touch","animal-fruit","wm-where","span-read","prospective-event","prospective-time","prospective-delayed"]
@@ -7920,7 +7930,7 @@ id:"sozel-bellek",
 readingLevel:["pre","post"],
 label:"Sözel Bellek",
 sub:"Kelime listesi, liste öğrenme (gecikmeli + tanıma), kategorili liste, hikâye, kelime çiftleri, karışık dizi, uydurma kelime, kelime ve cümle tekrarı, hareket sırası · dokunmalı: eşini hatırla, duyduklarını bul, yönerge izle, duyduğun sırayla dokun, hikâyeyi sırala · kim söyledi (kaynak belleği), ritim tekrarı · strateji aşamaları",
-purpose:"Duyduğu bilgiyi kısa süre zihninde tutup doğru sırayla geri getirme becerisini çalıştırır.",
+purpose:"Duyduğu bilgiyi kaydedip sonra geri getirme becerisini çalıştırır: kelime listeleri ve öğrenme denemeleri, kelime çiftleri, hikâye ve cümle hatırlama, gecikmeli hatırlama, sözel yönerge ve kaynak belleği.",
 color:"#2E5F8A",
 group:"Bellek",
 exerciseIds:["word-list-recall","pal-touch","pic-seq-say","sent-listen","move-seq","mixed-span","list-learn","who-said","short-story","story-recall","nonword","hear-find","story-order","word-pairs","rhythm","dir-follow","cat-list","sentence-repeat","pic-seq-touch","word-repeat"]
@@ -7930,7 +7940,7 @@ id:"gorsel-bellek",
 readingLevel:["pre","post"],
 label:"Görsel Bellek",
 sub:"Şekil, renk ve konum hatırlama · yüz ve yüz–isim belleği, sahne belleği · ne eksik, ne değişti, görsel tanıma (gecikmeli), çizgiyi hatırla · kart eşleştirme · strateji aşamaları",
-purpose:"Gördüğü görsel bilgiyi kısa süre sonra hatırlama becerisini çalıştırır.",
+purpose:"Gördüğü nesne, konum, yüz, sahne ve desenleri kısa ya da uzun bir süre sonra hatırlama becerisini çalıştırır.",
 color:"#D64545",
 group:"Bellek",
 exerciseIds:["shape-recall","rt-position","vis-miss","color-recall","vis-face","rt-shapes","scene-mem","vis-recog","memory-cards","position-recall","vis-chg","rt-colors","scene-touch","vis-draw"]
@@ -7940,7 +7950,7 @@ id:"sozel-organizasyon",
 readingLevel:["post"],
 label:"Sözel Organizasyon",
 sub:"Sözel akıcılık (kategori, ses/harf, kategori değiştirme) · anlamsal kümeleme (üst kavram, resimleri grupla, hangileri birlikte, kendi kümeni kur) · ses ve uyak, hece · zıt ve eş anlam, parça–bütün, sıraya diz · dokunmalı biçimler · strateji aşamaları",
-purpose:"Kelimeleri anlamına, sesine veya kategorisine göre hızlıca sınıflandırma becerisini çalıştırır.",
+purpose:"Sözcükleri anlamına ve sesine göre düzenleme becerisini çalıştırır: sözel akıcılık, anlamsal kümeleme ve üst kavram, uyak, hece ve ses farkındalığı, zıt ve eş anlam, parça–bütün ve sıralama.",
 color:"#8A5A8C",
 group:"Dil & Görsel Analiz",
 exerciseIds:["word-group","flu-cat","opposite-match","sort-pic","syllable-count","rhyme-say","group-say","odd-cat","flu-letter","part-whole","opp-touch","seq-words","rhyme-touch","free-sort","syl-touch","syn-touch","same-sound","flu-switch"]
@@ -7950,7 +7960,7 @@ id:"sozel-kavrama",
 readingLevel:["post"],
 label:"Sözel Kavrama",
 sub:"Benzerlik, kelime tanımlama, genel kavrama, ne yapmalı · sözel analoji, benzetme ve atasözü, çıkarım, çok anlamlı kelimeler, saçmalığı bul · dokunmalı: hangi kelime (alıcı sözcük dağarcığı), analoji tamamla, saçma mı, kavram bilgisi, ne anlama geliyor, çıkarım seç, hangisi benziyor, tanımı dinle, ne işe yarar · strateji aşamaları",
-purpose:"Kelimeler arası soyut ilişkiler kurma ve sözel akıl yürütme becerisini çalıştırır.",
+purpose:"Kelimeleri ve sözel ifadeleri anlama, aralarında ilişki kurma becerisini çalıştırır: alıcı sözcük dağarcığı, tanımlama, benzerlik ve analoji, mecaz ve atasözü, çıkarım, mantıksızlık bulma ve temel kavramlar.",
 color:"#6B4C9A",
 group:"Dil & Görsel Analiz",
 exerciseIds:["similarities","analogy-say","vocabulary","absurd-touch","practical-reasoning","word-pic","proverb-say","sim-touch","vanalogy-touch","concept-touch","infer-say","absurd-say","def-touch","proverb-touch","homonym-say","what-do","infer-touch","use-touch"]
@@ -7960,7 +7970,7 @@ id:"gorsel-organizasyon",
 readingLevel:["pre","post"],
 label:"Görsel Organizasyon",
 sub:"Boyut, yön, kenar sayısı, görsel zıtlar, biçim değişmezliği · bloklarla desen, zihinsel döndürme, şekil–zemin (kalabalıkta bul, üst üste şekiller, gizli şekil), görsel tamamlama · desen kopyala, simetri, labirent · strateji aşamaları",
-purpose:"Görsel öğeleri boyut, yön veya yapı gibi özelliklerine göre analiz etme becerisini çalıştırır.",
+purpose:"Görsel bilgiyi çözümleyip düzenleme becerisini çalıştırır: boyut, yön ve biçim değişmezliği, zihinsel döndürme, şekil–zemin ayırt etme, görsel tamamlama, bloklarla desen, kopyalama, simetri ve labirent.",
 color:"#E8823A",
 group:"Dil & Görsel Analiz",
 exerciseIds:["size-sort","block-design","arrow-direction","clutter-find","edge-count","mental-rot","size-touch","closure","visual-opposites","copy-design","arrow-touch","overlap-count","same-number","symmetry","edge-touch","embedded","maze"]
@@ -7970,7 +7980,7 @@ id:"algisal-akil-yurutme",
 readingLevel:["pre","post"],
 label:"Algısal Akıl Yürütme",
 sub:"Farklı olanı bulma, örüntü (tekrarlayan ve büyüyen), görsel analoji (boyut, renk, dolgu, döndürme, sayı, parça–bütün) · matris tamamla (Raven/Wechsler tarzı), kural keşfi, terazi · resimleri sırala (neden–sonuç) · dokunmalı biçimler · strateji aşamaları",
-purpose:"Görsel örüntüleri analiz edip mantıksal ilişki kurma becerisini çalıştırır.",
+purpose:"Görsel örüntü ve ilişkileri çözümleyerek sözel olmayan akıl yürütme becerisini çalıştırır: örüntü ve matris tamamlama, analoji, kural keşfi, terazi ve neden–sonuç sıralaması.",
 color:"#B08900",
 group:"Dil & Görsel Analiz",
 exerciseIds:["odd-one-out","matrix-fill","sequence-pattern","rule-induce","visual-analogy","pic-arrange","balance","odd-touch","pattern-touch","analogy-touch"]
@@ -9341,11 +9351,18 @@ renderBoard();
 });
 
 
+const CAPTION_KEY = "wm_caption_v1";
+function captionOn(){ try{ return localStorage.getItem(CAPTION_KEY) === "1"; }catch(e){ return false; } }
+function ttsUsable(){ try{ if(!("speechSynthesis" in window)) return false; const v = speechSynthesis.getVoices(); return !v || v.length === 0 ? (window.__ttsVoicesTried ? false : true) : true; }catch(e){ return false; } }
+function showCaption(t){ let el = document.getElementById("ttsCaption"); if(!el){ el = document.createElement("div"); el.id = "ttsCaption"; el.setAttribute("role", "status"); el.setAttribute("aria-live", "polite"); document.body.appendChild(el); }
+el.textContent = "🔊 " + t; el.classList.add("on"); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove("on"), Math.max(2600, t.length * 95)); }
+try{ if("speechSynthesis" in window){ speechSynthesis.getVoices(); setTimeout(() => { window.__ttsVoicesTried = true; }, 2500); } }catch(e){}
 function sayTask(t, rate){
 try{
-if(!("speechSynthesis" in window)){ showLevelFlash("🔊 Yetişkin okusun: " + t, "up"); return; }
+if(captionOn() || !ttsUsable()) showCaption(t);
+if(!("speechSynthesis" in window)) return;
 speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = "tr-TR"; u.rate = rate || 0.9; u.pitch = 1.1;
-_trVoice = _trVoice || pickTurkishVoice(); if(_trVoice) u.voice = _trVoice; speechSynthesis.speak(u);
+_trVoice = _trVoice || pickTurkishVoice(); if(_trVoice) u.voice = _trVoice; u.onerror = () => showCaption(t); speechSynthesis.speak(u);
 }catch(e){}
 }
 const SPEAKER_HTML = (on) => `<div class="wm-card" style="width:150px;height:150px;font-size:70px;${on ? "animation:spkPulse .6s ease-in-out infinite alternate;" : ""}">🔊</div>`;
@@ -9541,7 +9558,7 @@ const stim = `<div style="display:flex;align-items:center;gap:6px;justify-conten
 const opts = [D].concat(wrong).slice(0, isPre() ? 3 : 3);
 return qzMake(stim, opts, 0, { prompt:"İlk ikili gibi: <b>soru işaretine</b> hangisi gelir?", raw:true }); }); }
 };
-QZ["sem-decide"] = () => semTrials(); QZ["pattern-touch"] = () => patTrials2(); QZ["analogy-touch"] = () => anaTrials2(); QZ["matrix-fill"] = () => mxTrials(); QZ["rule-induce"] = () => riTrials(); QZ["balance"] = () => balTrials(); QZ["mental-rot"] = () => mrTrials(); QZ["overlap-count"] = () => ovTrials(); QZ["embedded"] = () => embTrials(); QZ["closure"] = () => clsTrials(); QZ["vanalogy-touch"] = () => anlTrials(); QZ["word-pic"] = () => wpTrials(); QZ["proverb-touch"] = () => pmcBuild(); QZ["absurd-touch"] = () => absBuild(); QZ["concept-touch"] = () => cpTrials(); QZ["infer-touch"] = () => imcBuild(); QZ["rhyme-touch"] = () => rhBuild(); QZ["syn-touch"] = () => synBuild(); QZ["part-whole"] = () => pwBuild();
+QZ["sem-decide"] = () => semTrials(); QZ["opp-touch"] = () => oppTrials2(); QZ["pattern-touch"] = () => patTrials2(); QZ["analogy-touch"] = () => anaTrials2(); QZ["matrix-fill"] = () => mxTrials(); QZ["rule-induce"] = () => riTrials(); QZ["balance"] = () => balTrials(); QZ["mental-rot"] = () => mrTrials(); QZ["overlap-count"] = () => ovTrials(); QZ["embedded"] = () => embTrials(); QZ["closure"] = () => clsTrials(); QZ["vanalogy-touch"] = () => anlTrials(); QZ["word-pic"] = () => wpTrials(); QZ["proverb-touch"] = () => pmcBuild(); QZ["absurd-touch"] = () => absBuild(); QZ["concept-touch"] = () => cpTrials(); QZ["infer-touch"] = () => imcBuild(); QZ["rhyme-touch"] = () => rhBuild(); QZ["syn-touch"] = () => synBuild(); QZ["part-whole"] = () => pwBuild();
 function cupsApply(){ const st = mtState, tr = st.trials[st.ti], box = document.getElementById("cupsBox"); if(!box) return; const w = box.clientWidth / tr.n;
 box.querySelectorAll("[data-cup]").forEach(el => { const c = +el.dataset.cup; el.style.left = (st.slot.indexOf(c) * w + w * 0.1) + "px"; el.style.transform = st.lift && c === tr.ball ? "translateY(-46px)" : "translateY(0)"; el.style.transitionDuration = Math.round(tr.ms * 0.8 * (window.__wmSpeed || 1)) + "ms"; }); }
 function rhyEval(){ const st = mtState, tr = st.trials[st.ti], T = st.taps; let ok = T.length === tr.L;
@@ -9601,6 +9618,7 @@ const pool = isPre() ? (t === 0 ? WHATDO.slice(0, 4) : WHATDO) : WHATDO; return 
 const FLU_CATS = { pre:[ { k:"hayvan", n:"HAYVANLAR", say:"Bildiğin hayvanları söyle." }, { k:"yiyecek", n:"YİYECEKLER", say:"Yenebilen şeylerden olabildiğince çok söyle." } ],
 post:[ { k:"hayvan", n:"HAYVANLAR", say:"Bildiğin bütün hayvanları söyle." }, { k:"meyve", n:"MEYVELER", say:"Bildiğin bütün meyveleri söyle." }, { k:"meslek", n:"MESLEKLER", say:"Bildiğin bütün meslekleri söyle." } ] };
 const FLU_LETTERS = { pre:["B","M","K","T","S"], post:[["K","S","B"], ["A","M","T"], ["D","E","Ç"]] };
+const FLU_SWITCH_PRE = [ [["HAYVAN","hayvan"],["YİYECEK","yiyecek"]], [["HAYVAN","hayvan"],["YİYECEK","yiyecek"]], [["RENK","renk"],["HAYVAN","hayvan"]] ];
 const FLU_SWITCH = [ [["HAYVAN","hayvan"],["YİYECEK","yiyecek"]], [["MEYVE","meyve"],["GİYSİ","giysi"]], [["HAYVAN","hayvan"],["YİYECEK","yiyecek"],["TAŞIT","taşıt"]] ];
 let fluTarget = {};
 function fluSecs(fid){ if(fid === "alt-uses") return (isPre() ? [45, 60, 60] : [60, 90, 90])[currentCombo().t]; return (isPre() ? [30, 45, 60] : [45, 60, 60])[currentCombo().t]; }
@@ -9615,7 +9633,7 @@ const tg = fluPick(fid);
 if(fid === "flu-cat"){ const c = FLU_CATS[isPre() ? "pre" : "post"].find(x => x.k === tg); return { big: c.n, say: c.say }; }
 if(fid === "alt-uses"){ const o = ALT_OBJ().find(x => x.n === tg); return { big: o.n.toLocaleUpperCase("tr-TR"), img: o.src, say: isPre() ? `Bir ${o.n} başka ne işe yarar? Aklına gelen her şeyi söyle.` : `${cap(o.n)} başka nelere yarayabilir? Olağan dışı kullanımlar da düşün.`, sub:"başka ne işe yarar?" }; }
 if(fid === "flu-letter") return isPre() ? { big: tg, say:`${tg} sesiyle başlayan kelimeler bulalım.`, sub:"sesiyle başlayan kelimeler" } : { big: tg, say:`${tg} harfiyle başlayan olabildiğince çok kelime söyle.`, sub:"harfiyle başlayan kelimeler" };
-const sw = FLU_SWITCH[currentCombo().t]; return { big: sw.map(x => x[0]).join(" – "), say:`Sırayla bir ${sw.map(x => x[1]).join(", bir ")} söyle.`, sw };
+const sw = isPre() ? FLU_SWITCH_PRE[currentCombo().t] : FLU_SWITCH[currentCombo().t]; return { big: sw.map(x => x[0]).join(" – "), say:`Sırayla bir ${sw.map(x => x[1]).join(", bir ")} söyle.`, sw };
 }
 const GS_BANK = { hayvan:["kedi","köpek","tavşan","kuş","inek","at","aslan"], meyve:["elma","muz","çilek","armut","kiraz","üzüm"], sebze:["havuç","patates","soğan","salatalık","ıspanak"],
 "taşıt":["araba","otobüs","tren","uçak","gemi","bisiklet"], giysi:["ceket","çorap","şapka","etek","pantolon","kazak"], mutfak:["kaşık","tabak","çatal","tencere","bardak"] };
@@ -9695,7 +9713,11 @@ if(t === 2 && SYN_OPP[w]) dis[0] = SYN_OPP[w];   // Zor: zıt anlamlı çeldiric
 const opts = [`<b style="font-size:19px">${s}</b>`].concat(dis.map(d => `<b style="font-size:19px">${d}</b>`));
 return qzMake(`<div style="font-size:30px;font-weight:900;color:var(--teal-dark)">${w}</div>`, opts, 0, { prompt:"<b>Eş anlamlısı</b> hangisi?", fixed:true, text:true, raw:true }); }); }
 const PW = [["tekerlek","araba"],["yaprak","ağaç"],["sayfa","kitap"],["parmak","el"],["kanat","kuş"],["yelken","gemi"],["kulp","fincan"],["ekran","telefon"],["çatı","ev"],["bilye","rulman"],["yüzgeç","balık"],["dal","ağaç"],["tuş","piyano"]].filter(p => p[0] !== "bilye");
-function pwBuild(){ const t = currentCombo().t, N = [3, 4, 4][t], wholes = Array.from(new Set(PW.map(p => p[1]))), parts = PW.map(p => p[0]);
+function pwBuildPre(){ const t = currentCombo().t, N = [3, 4, 4][t];
+return shuffleArray([0, 1, 2, 3]).slice(0, N).map(i => { const rev = t === 2 && Math.random() < 0.5, others = shuffleArray([0, 1, 2, 3].filter(x => x !== i)).slice(0, 2);
+if(!rev) return qzMake(`<div style="width:110px;height:110px;margin:0 auto">${qzPic(PART_IMAGES[i * 2 + 1])}</div>`, [i].concat(others).map(x => qzPic(PART_IMAGES[x * 2])), 0, { prompt:`<b>${cap(PART_PAIRS[i][1])}</b> neyin parçası?`, raw:true, fixed:true, cell:96, say:`${cap(PART_PAIRS[i][1])} neyin parçası?`, replay:true });
+return qzMake(`<div style="width:110px;height:110px;margin:0 auto">${qzPic(PART_IMAGES[i * 2])}</div>`, [i].concat(others).map(x => qzPic(PART_IMAGES[x * 2 + 1])), 0, { prompt:"Bunun <b>parçası</b> hangisi?", raw:true, fixed:true, cell:96, say:"Bunun parçası hangisi?", replay:true }); }); }
+function pwBuild(){ if(isPre()) return pwBuildPre(); const t = currentCombo().t, N = [3, 4, 4][t], wholes = Array.from(new Set(PW.map(p => p[1]))), parts = PW.map(p => p[0]);
 return shuffleArray(PW).slice(0, 6).map(([pa, wh]) => {
 if(t < 2){ const dis = shuffleArray(wholes.filter(w => w !== wh)).slice(0, N - 1);
 return qzMake(`<div style="font-size:26px;font-weight:900;color:var(--teal-dark)">${pa}</div>`, [wh].concat(dis).map(x => `<b style="font-size:19px">${x}</b>`), 0, { prompt:`<b>${cap(pa)}</b> neyin parçası?`, fixed:true, text:true, raw:true }); }
@@ -9703,7 +9725,11 @@ const own = PW.filter(p => p[1] === wh).map(p => p[0]), dis = shuffleArray(parts
 return qzMake(`<div style="font-size:26px;font-weight:900;color:var(--teal-dark)">${wh}</div>`, [pa].concat(dis).map(x => `<b style="font-size:19px">${x}</b>`), 0, { prompt:"Bunun <b>parçası</b> hangisi?", fixed:true, text:true, raw:true }); }); }
 const SEQW = [ ["sabah","öğle","akşam","gece"], ["ilkbahar","yaz","sonbahar","kış"], ["bebek","çocuk","genç","yaşlı"], ["tohum","fidan","ağaç","meyve"], ["yumurta","civciv","tavuk"],
 ["pazartesi","salı","çarşamba","perşembe","cuma"], ["karınca","kedi","at","fil"], ["damla","su birikintisi","göl","deniz"], ["ocak","şubat","mart","nisan","mayıs"], ["bir","üç","beş","yedi","dokuz"] ];
-function swBuild(){ const t = currentCombo().t, L = [3, 4, 5][t];
+// okul öncesi: hayvanları gerçek büyüklüklerine göre sırala (resimler aynı boyda: kavramsal sıralama, algısal değil)
+const SW_PRE_ANIMALS = () => [ ["papağan", TA_ANIMALS.parrot()], ["kedi", TA_ANIMALS.cat()], ["köpek", TA_ANIMALS.dog()], ["inek", TA_ANIMALS.cow()], ["fil", TA_ANIMALS.elephant()] ];
+function swBuildPre(){ const t = currentCombo().t, A = SW_PRE_ANIMALS(), sets = [[0, 1, 4], [0, 2, 3], [0, 1, 3, 4]];
+return Array.from({length:3}, () => { const idx = t === 0 ? sets[0] : t === 1 ? randomItem([[0, 1, 4], [0, 2, 3], [1, 3, 4]]) : sets[2]; return { seq: idx.map(i => A[i][0]), pics: idx.map(i => A[i][1]), cards: shuffleArray(idx.map((x, k) => k)) }; }); }
+function swBuild(){ if(isPre()) return swBuildPre(); const t = currentCombo().t, L = [3, 4, 5][t];
 return shuffleArray(SEQW.filter(q => q.length >= L)).slice(0, 4).map(q => { const start = Math.floor(Math.random() * (q.length - L + 1)), seq = q.slice(start, start + L); return { seq, cards: shuffleArray(seq.map((w, i) => i)) }; }); }
 const RHYME_TIPS = "Kelimenin başını değiştir, sonunu koru; uydurma kelime de olur.";
 function rhsBuild(){ const t = currentCombo().t, src = isPre() ? RHYME_SAY.pre : RHYME_SAY.post; return [{ items: shuffleArray(src).slice(0, isPre() ? [4, 5, 6][t] : [6, 8, 10][t]) }]; }
@@ -10154,6 +10180,22 @@ const opts = choices.map(n => `<div style="display:flex;flex-wrap:wrap;gap:2px;j
 out.push(qzMake(stim, opts, 0, { prompt:"Teraziyi <b>dengelemek</b> için kaç mavi daire gerekir?", raw:true, fixed:true, cell:84 })); }
 return out; }
 // ---- Sıradakini Seç (genişletilmiş): AB / AAB / ABC + büyüyen örüntüler ----
+const OPP_PRE = () => [
+{ w:"gece", pic: DN_IMAGES.moon, opp: DN_IMAGES.sun, same: DN_IMAGES.moon },
+{ w:"sıcak", pic: HOTCOLD_IMAGES.fire, opp: randomItem([HOTCOLD_IMAGES.snowman, HOTCOLD_IMAGES.ice, HOTCOLD_IMAGES.icecream]), same: randomItem([HOTCOLD_IMAGES.soup, HOTCOLD_IMAGES.iron, HOTCOLD_IMAGES.sun]) },
+{ w:"soğuk", pic: HOTCOLD_IMAGES.penguin, opp: randomItem([HOTCOLD_IMAGES.fire, HOTCOLD_IMAGES.soup, HOTCOLD_IMAGES.sun]), same: randomItem([HOTCOLD_IMAGES.snowman, HOTCOLD_IMAGES.ice, HOTCOLD_IMAGES.icecream]) },
+{ w:"gündüz", pic: DN_IMAGES.sun, opp: DN_IMAGES.moon, same: DN_IMAGES.sun },
+{ w:"mutlu", pic: WP_EMO_IMAGES[2], opp: WP_EMO_IMAGES[4], same: WP_EMO_IMAGES[2] },
+{ w:"yavru", pic: ANIM_YB_IMAGES[5], opp: ANIM_YB_IMAGES[4], same: ANIM_YB_IMAGES[1] } ];
+const OPP_POST = [["büyük","küçük","iri"],["hızlı","yavaş","çabuk"],["sıcak","soğuk","ılık"],["zengin","fakir","varlıklı"],["cesur","korkak","yürekli"],["erken","geç","sabah"],["kolay","zor","basit"],["genç","yaşlı","yeni"],["açık","kapalı","geniş"],["dolu","boş","kalabalık"],["uzun","kısa","yüksek"],["ağır","hafif","büyük"],["temiz","kirli","parlak"],["sert","yumuşak","katı"]];
+function oppTrials2(){ const t = currentCombo().t;
+if(isPre()){ const P = OPP_PRE(), N = [3, 4, 5][t];
+return shuffleArray(P).slice(0, N).map(x => { const other = randomItem(P.filter(y => y.w !== x.w && y.opp !== x.opp && y.opp !== x.same)).opp;
+return qzMake(`<div style="width:110px;height:110px;margin:0 auto">${qzPic(x.pic)}</div>`, [x.opp, x.same, other].map(src => qzPic(src)), 0, { prompt:`<b>${x.w}</b> · zıttı hangisi?`, raw:true, fixed:true, cell:96, say:`${cap(x.w)}. Bunun zıttı hangisi?`, replay:true }); }); }
+const N = [3, 4, 4][t];
+return shuffleArray(OPP_POST).slice(0, 6).map(([w, opp, near]) => { const un = randomItem(OPP_POST.filter(x => x[0] !== w))[0];
+const opts = [opp, near, un].concat(t >= 1 ? [randomItem(OPP_POST.filter(x => x[0] !== w && x[0] !== un))[1]] : []).slice(0, N);
+return qzMake(`<div style="font-size:30px;font-weight:900;color:var(--teal-dark);text-align:center">${w}</div>`, opts.map(x => `<b style="font-size:19px">${x}</b>`), 0, { prompt:"<b>Zıt anlamlısı</b> hangisi?", raw:true, fixed:true, text:true }); }); }
 function patTrials2(){ const t = currentCombo().t, pre = isPre(), N = pre ? 4 : 6, out = [];
 for(let q = 0; q < N; q++){ const [s1, s2, s3] = shuffleArray(AA_SH), [c1, c2, c3] = shuffleArray(AA_COL); let seq, muts;
 const ty = pre ? [["colorAB"], ["shapeAB","colorAB"], ["AAB","sizeGrow"]][t] : [["ABC","AAB"], ["countGrow","sizeGrow"], ["rotStep","twoAttr"]][t];
@@ -10647,10 +10689,11 @@ const done = `<div class="wm-btns" style="margin:8px auto 0"><button type="butto
 body = isLs ? dots + `<div style="display:flex;gap:16px;align-items:center;justify-content:center"><div>${head}${done}</div>${g2(W * 0.6, H - 30)}</div>` : dots + head + g2(W, H - 120) + done;
 } else if(st.kind === "seqw"){
 const tr = st.trials[ti], L = tr.seq.length;
-info = "<b>Doğru sıraya</b> diz: önce geleni seç";
+info = tr.pics ? "<b>En küçükten en büyüğe</b> diz (gerçek büyüklüklerine göre)" : "<b>Doğru sıraya</b> diz: önce geleni seç";
 const sw = Math.min((W - 8 * L) / L, 120);
-const slots = `<div style="display:flex;gap:6px;justify-content:center;margin-bottom:12px">${tr.seq.map((w, k) => { const ci = st.placed[k]; return `<div class="wm-card" style="width:${sw}px;height:54px;font-weight:900;font-size:${sw < 80 ? 13 : 16}px;${ci == null ? "border-style:dashed" : ""}">${ci != null ? tr.seq[tr.cards[ci]] : k + 1}</div>`; }).join("")}</div>`;
-const cards = `<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">${tr.cards.map((c, i) => st.placed.includes(i) ? "" : `<div class="wm-pic${st.bad[i] ? " bad" : ""}" data-mt="${i}" style="min-width:${Math.min(130, W / 2 - 20)}px;height:56px;padding:4px 10px;font-weight:900;font-size:17px">${tr.seq[c]}</div>`).join("")}</div>`;
+const lab = (k) => tr.pics ? `<img src="${tr.pics[k]}" alt="" style="width:100%;height:100%;object-fit:contain">` : tr.seq[k], ph = tr.pics ? 76 : 54;
+const slots = `<div style="display:flex;gap:6px;justify-content:center;margin-bottom:12px">${tr.seq.map((w, k) => { const ci = st.placed[k]; return `<div class="wm-card" style="width:${tr.pics ? Math.min(sw, 80) : sw}px;height:${ph}px;padding:3px;font-weight:900;font-size:${sw < 80 ? 13 : 16}px;${ci == null ? "border-style:dashed" : ""}">${ci != null ? lab(tr.cards[ci]) : k + 1}</div>`; }).join("")}</div>`;
+const cards = `<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">${tr.cards.map((c, i) => st.placed.includes(i) ? "" : `<div class="wm-pic${st.bad[i] ? " bad" : ""}" data-mt="${i}" style="${tr.pics ? "width:90px;height:90px;padding:4px" : `min-width:${Math.min(130, W / 2 - 20)}px;height:56px;padding:4px 10px`};font-weight:900;font-size:17px">${lab(c)}</div>`).join("")}</div>`;
 body = dots + slots + cards;
 } else if(st.kind === "spic"){
 const cur = st.queue[Math.min(st.qi, st.queue.length - 1)], n = st.bins.length;
@@ -11333,8 +11376,8 @@ const INSTR_SHORT = {
 "rhyme-say":        [() => `Kelimeyi söyleyin: ${Q("Bunun gibi biten bir kelime söyle.")}`],
 "rhyme-touch":      [() => Q("İki kelimeyi dinle. Sonları benziyorsa Uyaklı'ya dokun.")],
 "syn-touch":        [() => Q("Kelimeyle aynı anlama gelen kelimeye dokun.")],
-"seq-words":        [() => Q("Kelimeleri doğru sıraya diz: önce geleni seç.")],
-"part-whole":       [() => Q("Soruyu oku, doğru kelimeye dokun.")],
+"seq-words":        [() => isPre() ? Q("Hayvanları gerçekte en küçükten en büyüğe doğru sırala.") : Q("Kelimeleri doğru sıraya diz: önce geleni seç.")],
+"part-whole":       [() => isPre() ? Q("Dinle. Parçanın ait olduğu bütüne ya da bütünün parçasına dokun.") : Q("Soruyu oku, doğru kelimeye dokun.")],
 "flu-cat":          [() => `Okuyun ve ▶'a basın: ${Q(fluPrompt("flu-cat").say)} Tekrarları ve kural dışı sözcükleri ayrı işaretleyin.`],
 "flu-letter":       [() => `Okuyun ve ▶'a basın: ${Q(fluPrompt("flu-letter").say)} Özel adlar (Ali, Bursa) ve aynı kelimenin türevleri sayılmaz.`],
 "flu-switch":       [() => `Okuyun ve ▶'a basın: ${Q(fluPrompt("flu-switch").say)} Sıra karışırsa ayrı işaretleyin.`],
@@ -11345,7 +11388,7 @@ const INSTR_SHORT = {
 "story-order":      [() => Q("Hikâyeyi izle ve dinle. Sonra resimleri doğru sıraya koy.")],
 "what-do":          [() => `Resmi gösterin, soruyu okuyun (uygulama da okur): ${Q("Ne yapmalı?")}`, () => `Cevaptan sonra sorun: ${Q("Neden?")} Cevap ve gerekçeyi birlikte değerlendirin.`],
 "odd-cat":          [() => Q("Resimlere bak. Gruba uymayana dokun.")],
-"opp-touch":        [() => Q("Dinle ve üstteki resme bak. Zıttı olan resme dokun.")],
+"opp-touch":        [() => isPre() ? Q("Dinle. Söylenenin zıttını gösteren resme dokun.") : Q("Kelimenin zıt anlamlısına dokun.")], "opp-touch-old":    [() => Q("Dinle ve üstteki resme bak. Zıttı olan resme dokun.")],
 "syl-touch":        [() => Q("Resmin adını dinle, el çırparak heceleri say. Doğru sayıya dokun.")],
 "sim-touch":        [() => Q("Üstteki resimlere bak. Onlara benzeyen resme dokun.")],
 "def-touch":        [() => Q("Dinle. Anlatılan resme dokun.")],
@@ -13277,6 +13320,8 @@ document.getElementById("bsMascot").innerHTML = mascotSVG("happy");
 const em = document.querySelector('.mode-card[data-mode="cocuk"] .mode-emoji');
 if(em){ em.innerHTML = mascotSVG("happy"); em.classList.add("has-mascot"); }
 applyCalm();
+const ct = document.getElementById("captionToggle");
+if(ct){ ct.checked = captionOn(); ct.addEventListener("change", e => { try{ localStorage.setItem(CAPTION_KEY, e.target.checked ? "1" : "0"); }catch(_){} }); }
 const t = document.getElementById("calmToggle");
 if(t) t.addEventListener("change", e => { try{ localStorage.setItem(CALM_KEY, e.target.checked ? "1" : "0"); }catch(_){} applyCalm(); });
 const sp = document.getElementById("brandSplash");
@@ -13468,7 +13513,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.08-f";
+const APP_VERSION = "2026.10.08-g";
 const LINK_LOCAL_KEY = "wm_family_links_v1";   // aile cihazında: kişi|seviye → kod + program önbelleği
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -15045,6 +15090,16 @@ const VOCAB_WORDS = [
 {word:"dürüst", def:"doğru sözlü"}, {word:"cömert", def:"paylaşmayı seven"},
 {word:"tembel", def:"çalışmaktan kaçınan"}, {word:"yardımsever", def:"başkalarına yardım eden"}
 ];
+// Okul Öncesi bankaları (yetişkin okur): Başlangıç somut kategori · Orta işlev · Zor ortak özellik
+const SIM_PRE0 = [ {a:"elma", b:"muz", hint:"ikisi de meyve"}, {a:"kedi", b:"köpek", hint:"ikisi de hayvan"}, {a:"araba", b:"otobüs", hint:"ikisi de taşıt"}, {a:"tişört", b:"pantolon", hint:"ikisi de giysi"}, {a:"top", b:"bebek", hint:"ikisi de oyuncak"}, {a:"masa", b:"sandalye", hint:"ikisi de eşya / mobilya"} ];
+const SIM_PRE1 = [ {a:"kaşık", b:"çatal", hint:"ikisiyle de yemek yenir"}, {a:"bardak", b:"fincan", hint:"ikisiyle de bir şey içilir"}, {a:"yatak", b:"yastık", hint:"ikisi de uyurken kullanılır"}, {a:"diş fırçası", b:"diş macunu", hint:"ikisiyle de diş fırçalanır"}, {a:"kalem", b:"boya", hint:"ikisiyle de çizilir"}, {a:"şapka", b:"bere", hint:"ikisi de başa takılır"} ];
+const SIM_PRE2 = [ {a:"top", b:"portakal", hint:"ikisi de yuvarlak"}, {a:"kar", b:"süt", hint:"ikisi de beyaz"}, {a:"güneş", b:"ateş", hint:"ikisi de sıcak"}, {a:"buz", b:"dondurma", hint:"ikisi de soğuk"}, {a:"kuş", b:"uçak", hint:"ikisi de uçar"}, {a:"balık", b:"gemi", hint:"ikisi de suda gider"} ];
+const VOCAB_PRE0 = [ {word:"top", def:"oynamak için yuvarlak oyuncak"}, {word:"yatak", def:"üzerinde uyuduğumuz eşya"}, {word:"ayakkabı", def:"ayağa giyilen şey"}, {word:"buzdolabı", def:"yiyecekleri soğuk tutan dolap"}, {word:"şemsiye", def:"yağmurda ıslanmamak için açılan şey"}, {word:"diş fırçası", def:"dişleri temizleyen fırça"} ];
+const VOCAB_PRE1 = [ {word:"koşmak", def:"çok hızlı yürümek / hızla ilerlemek"}, {word:"uyumak", def:"gözleri kapatıp dinlenmek"}, {word:"zıplamak", def:"yerden yukarı sıçramak"}, {word:"yıkamak", def:"suyla temizlemek"}, {word:"çizmek", def:"kalemle resim yapmak"}, {word:"paylaşmak", def:"elindekini başkasına da vermek"} ];
+const VOCAB_PRE2 = [ {word:"mutlu", def:"sevinçli, neşeli"}, {word:"ıslak", def:"suyla dolmuş, kuru olmayan"}, {word:"yorgun", def:"gücü azalmış, dinlenmek isteyen"}, {word:"karanlık", def:"ışığı olmayan"}, {word:"kocaman", def:"çok büyük"}, {word:"sessiz", def:"ses çıkarmayan"} ];
+const COMP_PRE0 = [ {q:"Karnın acıkınca ne yaparsın?", hint:"yemek yerim / büyüklere söylerim"}, {q:"Ellerin kirlenince ne yaparsın?", hint:"ellerimi yıkarım"}, {q:"Uykun gelince ne yaparsın?", hint:"yatağıma yatarım, uyurum"}, {q:"Üşüyünce ne yaparsın?", hint:"montumu / kazağımı giyerim"}, {q:"Susayınca ne yaparsın?", hint:"su içerim"}, {q:"Dizini incitince ne yaparsın?", hint:"bir büyüğe söylerim"} ];
+const COMP_PRE1 = [ {q:"Neden dişlerimizi fırçalarız?", hint:"dişlerimiz çürümesin / temiz kalsın"}, {q:"Neden kışın mont giyeriz?", hint:"üşümemek için"}, {q:"Neden karşıdan karşıya geçerken bir büyüğün elini tutarız?", hint:"güvende olmak / araba çarpmasın diye"}, {q:"Neden oyuncaklarımızı toplarız?", hint:"kaybolmasın, kimse basıp düşmesin"}, {q:"Neden yemekten önce ellerimizi yıkarız?", hint:"mikroplar ağzımıza girmesin"} ];
+const COMP_PRE2 = [ {q:"Oyuncağın kırılsa ne yaparsın?", hint:"bir büyüğe gösteririm, tamir etmeye çalışırız"}, {q:"Parkta annemi göremesem ne yaparım?", hint:"olduğum yerde kalır, bir görevliye / büyüğe söylerim"}, {q:"Arkadaşın ağlıyorsa ne yaparsın?", hint:"neden ağladığını sorarım, yardım ederim"}, {q:"Yanlışlıkla birinin ayağına bassan ne yaparsın?", hint:"özür dilerim"}, {q:"Yerde çöp görürsen ne yaparsın?", hint:"çöp kutusuna atarım"} ];
 const SIM_FUNC = [ {a:"kalem", b:"fırça", hint:"ikisiyle de çizilir / boyanır"}, {a:"bıçak", b:"makas", hint:"ikisi de keser"}, {a:"mum", b:"lamba", hint:"ikisi de ışık verir"},
 {a:"bardak", b:"kova", hint:"ikisine de sıvı konur"}, {a:"gözlük", b:"dürbün", hint:"ikisi de görmeye yardım eder"}, {a:"kaşık", b:"kürek", hint:"ikisi de bir şeyi alıp taşır"},
 {a:"palto", b:"eldiven", hint:"ikisi de soğuktan korur"}, {a:"telefon", b:"mektup", hint:"ikisiyle de haberleşilir"} ];
