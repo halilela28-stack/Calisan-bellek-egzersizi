@@ -2747,7 +2747,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.08-p</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.08-q</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -3181,9 +3181,9 @@ const NUMBERS_BY_TIER = [
 const COLOR_NAMES = {"#D55E00":"kiremit","#CC79A7":"mor","#0072B2":"mavi","#009E73":"yeşil","#E69F00":"turuncu"};
 
 const TIERS = [
-{label:"Başlangıç", rows:4, cols:4, eyeDurationMs:60000, eyeSpeedMs:4500, studyDurationMs:8000},
-{label:"Orta Düzey", rows:5, cols:4, eyeDurationMs:80000, eyeSpeedMs:2500, studyDurationMs:12000},
-{label:"Zor Düzey", rows:5, cols:5, eyeDurationMs:100000, eyeSpeedMs:1800, studyDurationMs:16000},
+{label:"Başlangıç", rows:4, cols:4, eyeDurationMs:25000, eyeSpeedMs:4500, studyDurationMs:8000},
+{label:"Orta Düzey", rows:5, cols:4, eyeDurationMs:25000, eyeSpeedMs:2500, studyDurationMs:12000},
+{label:"Zor Düzey", rows:5, cols:5, eyeDurationMs:25000, eyeSpeedMs:1800, studyDurationMs:16000},
 ];
 
 function randomItem(arr){
@@ -13075,7 +13075,7 @@ if(lsBox) lsBox.innerHTML = html;
 
 let motionAnimFrame = null;
 let motionStartTs = 0;
-let motionDurationMs = 60000;
+let motionDurationMs = 25000;
 
 function renderMotionBoard(){
 const board = document.getElementById("board");
@@ -13320,7 +13320,7 @@ stopTimer();
 }
 
 function startEyeMotion(){
-motionDurationMs = currentTier().eyeDurationMs || 60000;
+motionDurationMs = currentTier().eyeDurationMs || 25000;
 motionStartTs = 0;
 if(motionAnimFrame) cancelAnimationFrame(motionAnimFrame);
 motionAnimFrame = requestAnimationFrame(motionAnimStep);
@@ -14770,8 +14770,10 @@ const eyePref = eyeAll.filter(id => /saccade/.test(id));
 const warm = pick(eyePref.length && rnd() < 0.6 ? eyePref : eyeAll);
 const mains = famExIds(target).slice();
 const prog = typeof familyProgram === "function" ? familyProgram() : null;
-let fixed = prog && prog.target === target && Array.isArray(prog.mains) ? prog.mains.filter(id => mains.includes(id)) : [];
-if(fixed.length > 2){ const f = fixed.slice(); fixed = []; while(fixed.length < 2 && f.length){ fixed.push(f.splice(Math.floor(rnd() * f.length), 1)[0]); } }   // önerilenlerden her gün 2'si
+const hwIds = prog && Array.isArray(prog.hw) ? prog.hw.filter(id => { const ex = exerciseById(id); return ex && ex.readingLevel.includes(famLvl()); }) : [];
+let fixed = (prog && prog.target === target && Array.isArray(prog.mains) ? prog.mains.filter(id => mains.includes(id)) : []);
+if(hwIds.length){ const h = hwIds.slice(), pickH = []; while(pickH.length < Math.min(2, h.length)) pickH.push(h.splice(Math.floor(rnd() * h.length), 1)[0]); fixed = pickH.concat(fixed.filter(x => !pickH.includes(x))).slice(0, 2); }
+if(fixed.length > 2 && !hwIds.length){ const f = fixed.slice(); fixed = []; while(fixed.length < 2 && f.length){ fixed.push(f.splice(Math.floor(rnd() * f.length), 1)[0]); } }   // önerilenlerden her gün 2'si
 let m1 = fixed[0] || pick(mains); let rest = mains.filter(x => x !== m1); let m2 = fixed[1] || (rest.length ? pick(rest) : m1);
 if(fixed.length === 1 && m2 === m1){ rest = mains.filter(x => x !== m1); m2 = rest.length ? pick(rest) : m1; }
 let closePool = CATEGORIES.flatMap(c => c.id === target ? [] : c.exerciseIds).filter(id => { const ex = exerciseById(id); return ex && ex.readingLevel.includes(famLvl()) && isGameEligible(ex); });
@@ -14781,7 +14783,7 @@ return { target, steps:[warm, m1, m2, close], done:[false, false, false, false] 
 }
 function todayPlan(){
 const st = famStoreGet(DAILY_KEY), k = famProfile() + "|" + famLvl() + "|" + todayKey();
-const progSig = (() => { const p = typeof familyProgram === "function" ? familyProgram() : null; return p ? [p.target, (p.mains || []).join("+")].join("|") : ""; })();
+const progSig = (() => { const p = typeof familyProgram === "function" ? familyProgram() : null; return p ? [p.target, (p.mains || []).join("+"), (p.hw || []).join("+")].join("|") : ""; })();
 if(st[k] && (st[k].progSig || "") !== progSig && !st[k].done.some(Boolean)){ delete st[k]; }   // program değiştiyse (henüz başlanmamışsa) yeniden kur
 if(!st[k] || st[k].target !== famTarget()){
 const keepDone = st[k] && st[k].target === famTarget() ? st[k].done : null;
@@ -14910,7 +14912,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.08-p";
+const APP_VERSION = "2026.10.08-q";
 const LINK_LOCAL_KEY = "wm_family_links_v1";   // aile cihazında: kişi|seviye → kod + program önbelleği
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -15125,8 +15127,9 @@ const l = found || { id: code, childName: "", level: "post" };
 const w = document.getElementById("expertWrap");
 const lvlSave = readingLevel; readingLevel = l.level || "post";
 const targets = famTargetOptions();
-const p = Object.assign({ target: targets[0] ? targets[0].id : "islemleme-hizi", days: [0,1,2,3,4], minutes: 12, mains: [], games: [] }, l.program || {});
-if(!Array.isArray(p.games)) p.games = [];
+const p = Object.assign({ target: targets[0] ? targets[0].id : "islemleme-hizi", days: [0,1,2,3,4], minutes: 12, mains: [], games: [], hw: [] }, l.program || {});
+if(!Array.isArray(p.games)) p.games = []; if(!Array.isArray(p.hw)) p.hw = [];
+const hwSel = new Set();
 const mainsOf = (t) => famExIds(t);
 let gamesOpen = null;
 const draw = () => {
@@ -15137,6 +15140,14 @@ w.innerHTML = `<div style="display:flex;align-items:flex-start;gap:10px"><h2 cla
 ${!l.familyUid ? `<div class="fam-card" style="display:flex;flex-direction:column;gap:10px"><div style="font-weight:900">Bağlantı kodu</div><div class="ex-code">${fmtCode(code)}</div>
 <div class="fam-sub" style="font-weight:600">Aile, uygulamada <b>Bilişsel Etkinlik → Aile → Uzmana bağlan</b> bölümüne bu kodu girer.</div>
 <button type="button" class="fam-cta ghost" id="exShareBtn">Kodu paylaş</button></div>` : ""}
+${(() => { const W = hwWeakPages(l.childName); const lv = readingLevel;
+return `<div class="fam-card" style="display:flex;flex-direction:column;gap:10px"><div style="font-weight:900;font-size:16px">Ödevlendirme</div>
+<div class="fam-sub" style="font-weight:600">Bu cihazda <b>${escHTML(l.childName || "danışan")}</b> adıyla yaptığınız son 45 günlük oturumlara göre zorlandığı sayfalar (son 3 denemenin yarısından fazlasında 2+ hata ya da son denemede 3+ hata).</div>
+${p.hw.length ? `<div><div style="font-weight:800;margin-bottom:6px">Verilen ödevler</div><div class="fam-chips">${p.hw.map(id => `<button type="button" class="fam-chip on" data-hwx="${id}">📌 ${famLabel(id)} ✕</button>`).join("")}</div></div>` : ""}
+${W.list.length ? `<div>${W.list.slice(0, 8).map(x => `<div class="ex-row" data-hws="${x.id}"><div class="tx"><div class="t1">${famLabel(x.id)}${p.hw.includes(x.id) ? " · 📌" : ""}</div><div class="fam-sub" style="font-weight:600">${famCatName(x.cat)} · son: ${x.err} hata, ${escHTML(x.tier || "")} · başarı %${x.rate} (${x.n} deneme)</div></div><span class="ex-check${hwSel.has(x.id) ? " on" : ""}">${hwSel.has(x.id) ? I_CHECK : ""}</span></div>`).join("")}</div>
+<div style="display:flex;gap:8px"><button type="button" class="fam-cta" id="hwAutoBtn" style="flex:1">Otomatik ödevlendir</button><button type="button" class="fam-cta ghost" id="hwManBtn" style="flex:1">Seçilenleri ödev yap${hwSel.size ? ` (${hwSel.size})` : ""}</button></div>
+<div class="fam-sub" style="font-weight:600">Otomatik: en çok zorlandığı 4 sayfa ödev olur. Manuel: listeden işaretlediklerinizi ekler. En fazla 4 ödev; aile bunları günlük oturumda öncelikli yapar.</div>`
+: `<div class="fam-sub" style="font-weight:700;color:var(--ink)">${W.total ? "Zorlandığı sayfa görünmüyor; son oturumlar başarılı. 👍" : "Bu cihazda bu danışanla kaydedilmiş oturum yok. Etkinlikte “Kim çalışıyor?” bölümünden danışanın adını seçerek çalışın."}</div>`}</div>`; })()}
 <div class="fam-card" style="display:flex;flex-direction:column;gap:14px">
 <div style="font-weight:900;font-size:16px">Haftalık program</div>
 <div class="ex-field"><label>Hedef alan</label><div class="fam-chips">${targets.map(c => `<button type="button" class="fam-chip${c.id === p.target ? " on" : ""}" data-t="${c.id}">${famCatName(c.id)}</button>`).join("")}</div></div>
@@ -15158,6 +15169,13 @@ ${l.familyUid ? `<div class="fam-card"><div style="font-weight:900;font-size:16p
 <button type="button" class="ex-danger" id="exDeleteBtn">Danışanı ve bağlantıyı sil</button>`;
 readingLevel = lvlSave;
 w.querySelectorAll("[data-t]").forEach(x => x.onclick = () => { p.target = x.dataset.t; p.mains = []; draw(); });
+const saveProg = async (msg) => { if(!fbOk()){ showLevelFlash("İnternet bağlantısı yok.", "down"); return false; } const { db, doc, updateDoc } = window.__fb;
+try{ await updateDoc(doc(db, "links", code), { program: { target: p.target, days: p.days, minutes: p.minutes, mains: p.mains, games: p.games, hw: p.hw, updatedAt: Date.now() } }); l.program = Object.assign({}, p); showLevelFlash(msg, "levelup"); return true; }catch(e){ console.error(e); showLevelFlash("Ödev kaydedilemedi.", "down"); return false; } };
+w.querySelectorAll("[data-hws]").forEach(x => x.onclick = () => { const id = x.dataset.hws; if(hwSel.has(id)) hwSel.delete(id); else hwSel.add(id); draw(); });
+w.querySelectorAll("[data-hwx]").forEach(x => x.onclick = async () => { p.hw = p.hw.filter(v => v !== x.dataset.hwx); await saveProg("Ödev kaldırıldı ✓"); draw(); });
+const ha = document.getElementById("hwAutoBtn"); if(ha) ha.onclick = async () => { readingLevel = l.level || "post"; const W = hwWeakPages(l.childName); readingLevel = lvlSave; p.hw = W.list.filter(x => exerciseById(x.id).readingLevel.includes(l.level || "post")).slice(0, 4).map(x => x.id); hwSel.clear(); if(await saveProg(`${p.hw.length} sayfa ödev olarak gönderildi ✓`)) draw(); };
+const hm = document.getElementById("hwManBtn"); if(hm) hm.onclick = async () => { if(!hwSel.size){ showLevelFlash("Önce listeden sayfa işaretleyin.", "down"); return; } const add = [...hwSel].filter(id => !p.hw.includes(id)); const next = p.hw.concat(add);
+if(next.length > 4){ showLevelFlash(`En fazla 4 ödev olabilir (şu an ${p.hw.length}).`, "down"); return; } p.hw = next; hwSel.clear(); if(await saveProg(`${add.length} sayfa ödev olarak eklendi ✓`)) draw(); };
 w.querySelectorAll("[data-d]").forEach(x => x.onclick = () => { const d = +x.dataset.d; p.days = p.days.includes(d) ? p.days.filter(v => v !== d) : p.days.concat([d]).sort(); draw(); });
 w.querySelectorAll("[data-m]").forEach(x => x.onclick = () => { p.minutes = +x.dataset.m; draw(); });
 w.querySelectorAll("[data-x]").forEach(x => x.onclick = () => { const id = x.dataset.x; if(p.mains.includes(id)) p.mains = p.mains.filter(v => v !== id); else if(p.mains.length < 4) p.mains = p.mains.concat([id]); draw(); });
@@ -15174,7 +15192,7 @@ const err = document.getElementById("exProgErr"); err.textContent = "";
 if(!p.days.length){ err.textContent = "En az bir gün seçin."; return; }
 if(!fbOk()){ err.textContent = "İnternet bağlantısı yok."; return; }
 const { db, doc, updateDoc } = window.__fb;
-try{ await updateDoc(doc(db, "links", code), { program: { target: p.target, days: p.days, minutes: p.minutes, mains: p.mains, games: p.games, updatedAt: Date.now() } }); showLevelFlash(l.familyUid ? "Program aileye gönderildi ✓" : "Program kaydedildi; aile bağlanınca görecek ✓", "levelup"); }
+try{ await updateDoc(doc(db, "links", code), { program: { target: p.target, days: p.days, minutes: p.minutes, mains: p.mains, games: p.games, hw: p.hw, updatedAt: Date.now() } }); showLevelFlash(l.familyUid ? "Program aileye gönderildi ✓" : "Program kaydedildi; aile bağlanınca görecek ✓", "levelup"); }
 catch(e){ console.error(e); err.textContent = "Program kaydedilemedi."; }
 };
 document.getElementById("exRenameBtn").onclick = async () => {
@@ -15197,6 +15215,17 @@ if(l.familyUid) watchExpertResults(code);
 };
 draw();
 }
+// uzmanın bu cihazda danışanla yaptığı oturumlardan zorlanılan sayfalar
+function hwWeakPages(childName){ const nm = (childName || "").trim().toLocaleLowerCase("tr"); if(!nm) return { list:[], total:0 };
+const since = Date.now() - 45 * 864e5, recs = loadSessions().filter(r => (r.player || "").trim().toLocaleLowerCase("tr") === nm && r.t >= since);
+const by = {}; recs.forEach(r => { (by[r.exerciseLabel] = by[r.exerciseLabel] || []).push(r); });
+const list = [];
+for(const [label, arr] of Object.entries(by)){ const ex = EXERCISES.find(e => e.label === label || (e.oldLabels || []).includes(label)); if(!ex) continue;
+const cat = CATEGORIES.find(c => !c.hidden && c.exerciseIds.includes(ex.id)); if(!cat || cat.id === "goz-takip") continue;
+const last = arr.sort((a, b) => b.t - a.t).slice(0, 3), bad = last.filter(r => (r.errors || 0) >= 2).length, rate = Math.round((1 - bad / last.length) * 100);
+if(rate < 50 || (last[0].errors || 0) >= 3) list.push({ id: ex.id, cat: cat.id, rate, err: last[0].errors || 0, tier: last[0].tier, n: last.length, t: last[0].t }); }
+list.sort((a, b) => a.rate - b.rate || b.err - a.err || b.t - a.t);
+return { list, total: recs.length }; }
 function watchExpertResults(code){
 if(!fbOk()) return;
 if(expertResultsUnsub){ expertResultsUnsub(); expertResultsUnsub = null; }
@@ -15225,16 +15254,18 @@ function recommendedIds(){
 const prog = familyProgram(); if(!prog) return [];
 const pool = famExIds(prog.target);
 const chosen = (prog.mains || []).filter(id => pool.includes(id));
-return chosen.length ? chosen : pool.slice(0, 6);
+const hw = (prog.hw || []).filter(id => { const ex = exerciseById(id); return ex && ex.readingLevel.includes(famLvl()); });
+const base = chosen.length ? chosen : pool.slice(0, 6);
+return hw.concat(base.filter(id => !hw.includes(id)));
 }
 function recommendedCardHtml(){
 const prog = familyProgram(); if(!prog) return "";
 const ids = recommendedIds(); if(!ids.length) return "";
-const chosen = (prog.mains || []).length > 0;
+const chosen = (prog.mains || []).length > 0 || (prog.hw || []).length > 0;
 const doneToday = new Set(loadSessions().filter(r => r.player === famProfile() && todayKey(new Date(r.t)) === todayKey()).map(r => r.exerciseLabel));
 return `<div class="fh-rec"><div class="fh-rec-h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg>Uzmanınızın önerdikleri<span>${chosen ? "uzman seçti" : famCatName(prog.target)}</span></div>` +
 ids.map((id, i) => { const ex = exerciseById(id); const done = doneToday.has(ex.label);
-return `<button type="button" class="fh-rec-item" data-rec="${id}"><span class="fh-rec-num">${done ? I_CHECK.replace('stroke-width="3"', 'stroke-width="3" width="18" height="18"') : i + 1}</span><span class="fh-rec-tx"><div class="fh-rec-t1">${famLabel(id)}</div><div class="fh-rec-t2">${famCatName(CATEGORIES.find(c => c.exerciseIds.includes(id)).id)}${done ? " · bugün yapıldı" : ""}</div></span><span class="fh-rec-go">Aç</span></button>`; }).join("") + `</div>`;
+return `<button type="button" class="fh-rec-item" data-rec="${id}"><span class="fh-rec-num">${done ? I_CHECK.replace('stroke-width="3"', 'stroke-width="3" width="18" height="18"') : i + 1}</span><span class="fh-rec-tx"><div class="fh-rec-t1">${(prog.hw || []).includes(id) ? "📌 " : ""}${famLabel(id)}</div><div class="fh-rec-t2">${(prog.hw || []).includes(id) ? "Uzmanın ödevi · " : ""}${famCatName(CATEGORIES.find(c => c.exerciseIds.includes(id)).id)}${done ? " · bugün yapıldı" : ""}</div></span><span class="fh-rec-go">Aç</span></button>`; }).join("") + `</div>`;
 }
 function recNextId(){ const ids = recommendedIds(); const i = ids.indexOf(recActive); return i >= 0 && i < ids.length - 1 ? ids[i + 1] : null; }
 function renderRecBar(saved){
