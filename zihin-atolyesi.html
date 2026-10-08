@@ -380,6 +380,7 @@ html.game-mode #dots, html.game-mode #lsToggleBtn, html.game-mode #lsPage, html.
 .gr-inner{ max-width:440px; margin:0 auto; padding:48px 22px 28px; display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center; box-sizing:border-box; min-height:100%; }
 .gr-where{ font-size:15px; font-weight:800; color:#9A5A12; }
 .gr-title{ font-size:30px; font-weight:900; color:var(--ink); }
+.st-bolt{ font-size:13px; font-weight:900; color:#B07D00; margin-left:4px; align-self:center; }
 .gr-stars{ display:flex; gap:10px; align-items:flex-end; margin:6px 0; }
 .gr-stars svg{ width:64px; height:64px; } .gr-stars svg.mid{ width:82px; height:82px; }
 .gr-chips{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
@@ -2679,7 +2680,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.08-e</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.08-f</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -2800,7 +2801,6 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="history-panel" style="margin-top:0;">
 <div class="history-tabs">
 <button class="history-tab active" id="tabRecent" data-tab="recent">Son Sonuçlar</button>
-<button class="history-tab" id="tabLeaderboard" data-tab="leaderboard"><span class="ui-icon-slot" id="tabLeaderboardIconSlot"></span> Liderlik</button>
 <button class="history-tab" id="tabReport" data-tab="report"><span class="ui-icon-slot" id="tabReportIconSlot"></span> Rapor</button>
 <button class="history-tab" id="tabSummary" data-tab="summary"><span class="ui-icon-slot" id="tabSummaryIconSlot"></span> Özet</button>
 </div>
@@ -12449,9 +12449,7 @@ d.toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"});
 }
 
 function renderHistory(){
-if(currentHistoryTab === "leaderboard"){
-renderLeaderboard();
-} else if(currentHistoryTab === "report"){
+if(currentHistoryTab === "report"){
 renderWeeklyReport();
 } else if(currentHistoryTab === "summary"){
 renderSummary();
@@ -12933,62 +12931,6 @@ container.appendChild(card);
 });
 }
 
-function renderLeaderboard(){
-const container = document.getElementById("historyList");
-const ex = currentExercise();
-const stage = ex.stages[currentStageIndex];
-const layout = currentTier();
-
-const list = loadSessions().filter(r =>
-(r.exerciseLabel === ex.label || (ex.oldLabels || []).includes(r.exerciseLabel)) &&
-r.stageLabel === stage.label &&
-r.tier === layout.label
-);
-
-container.innerHTML = "";
-
-if(list.length === 0){
-document.getElementById("historyTitle").innerHTML = `<span class="ui-icon-slot">${uiIconSVG("trophy")}</span> ${ex.label} · ${stage.label} · ${layout.label}`;
-container.innerHTML = `<div class="history-empty"><span class="history-empty-icon">${uiIconSVG("trophy")}</span>Bu egzersiz, aşama ve zorlukta henüz sonuç yok. Aynı kombinasyonda birkaç kişi denesin, burada karşılaştırılsın.</div>`;
-return;
-}
-
-const bestByPlayer = {};
-list.forEach(r=>{
-const cur = bestByPlayer[r.player];
-const rErrors = r.errors || 0;
-if(!cur || rErrors < cur.errors || (rErrors === cur.errors && r.ms < cur.ms)){
-bestByPlayer[r.player] = { player: r.player, ms: r.ms, errors: rErrors };
-}
-});
-const totalPlayers = Object.keys(bestByPlayer).length;
-document.getElementById("historyTitle").innerHTML = `<span class="ui-icon-slot">${uiIconSVG("trophy")}</span> ${ex.label} · ${stage.label} · ${layout.label} · ${totalPlayers} kişi`;
-
-const ranked = Object.values(bestByPlayer)
-.sort((a,b) => (a.errors - b.errors) || (a.ms - b.ms))
-.slice(0, 10);
-
-const maxMs = Math.max(...ranked.map(r=>r.ms), 1);
-const medals = ["🥇","🥈","🥉"];
-ranked.forEach((r, i)=>{
-const card = document.createElement("div");
-card.className = "result-card";
-const pct = Math.max(6, Math.round((r.ms / maxMs) * 100));
-const rankLabel = medals[i] ? `${medals[i]}` : `${i+1}.`;
-card.innerHTML = `
-<div class="rc-top">
-<span class="rc-rank">${rankLabel}</span>
-${avatarHTML(r.player,18)}
-<span class="rc-name">${escHTML(r.player)}</span>
-<span class="rc-time">${formatTime(r.ms)}</span>
-</div>
-<div class="rc-meta">${r.errors ? r.errors + " hata" : "Hatasız 👏"}</div>
-<div class="rc-bar-wrap"><div class="rc-bar" style="width:${pct}%"></div></div>
-`;
-container.appendChild(card);
-});
-}
-
 function renderPlayerOptions(){
 const sel = document.getElementById("playerSelect");
 const prevValue = sel.value;
@@ -13079,14 +13021,12 @@ playerPromptResolvedAt = Date.now();
 function setHistoryTab(tab){
 currentHistoryTab = tab;
 document.getElementById("tabRecent").classList.toggle("active", tab==="recent");
-document.getElementById("tabLeaderboard").classList.toggle("active", tab==="leaderboard");
 document.getElementById("tabReport").classList.toggle("active", tab==="report");
 document.getElementById("tabSummary").classList.toggle("active", tab==="summary");
 renderHistory();
 }
 
 document.getElementById("tabRecent").addEventListener("click", ()=> setHistoryTab("recent"));
-document.getElementById("tabLeaderboard").addEventListener("click", ()=> setHistoryTab("leaderboard"));
 document.getElementById("tabReport").addEventListener("click", ()=> setHistoryTab("report"));
 document.getElementById("tabSummary").addEventListener("click", ()=> setHistoryTab("summary"));
 
@@ -13528,7 +13468,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.08-e";
+const APP_VERSION = "2026.10.08-f";
 const LINK_LOCAL_KEY = "wm_family_links_v1";   // aile cihazında: kişi|seviye → kod + program önbelleği
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -14152,7 +14092,7 @@ const ex = exerciseById(id), r = gameRecord(id), t = gameNextTier(id);
 const done = r.stars.every(Boolean);
 return `<div class="isl-stop${done ? " complete" : ""}"><span class="num" style="background:${isl.color.replace(/^#/, "#")};color:#1C2B39;">${k + 1}</span><div class="tx"><div class="t1">${gameChildLabel(ex)}</div>
 <div class="t2">${done ? "Tüm yıldızlar tamam · yeniden oynayabilirsin" : "Sıradaki: " + GAME_TIER_NAMES[t]}</div>
-<div class="st">${r.stars.map(GAME_STAR_SVG).join("")}</div></div>
+<div class="st">${r.stars.map(GAME_STAR_SVG).join("")}${(r.bolt || []).filter(Boolean).length ? `<span class="st-bolt" title="Şimşek rozeti">⚡${(r.bolt || []).filter(Boolean).length}</span>` : ""}</div></div>
 <button type="button" class="isl-play" data-play="${id}" data-isl="${islId}">Oyna</button></div>`;
 }).join("");
 document.getElementById("islandStopsScreen").style.display = "flex";
@@ -14319,8 +14259,11 @@ let skipped = false;
 if(r.jump === t){ delete r.jump; if(good && t === 2 && !r.stars[1]){ r.stars[1] = true; skipped = true; } }   // Zor başarıldıysa atlanan Orta da geçilmiş sayılır
 let jumped = false;
 if(good && newStar && t === 0 && !r.stars[2] && !ex.isMotion && gxFastFlawless(ex, ms, errors)){ r.jump = 2; jumped = true; }
+r.bolt = r.bolt || [false, false, false];
+const onTime = good && !ex.isMotion && gxOnTime(ex, ms), newBolt = onTime && !r.bolt[t]; if(onTime) r.bolt[t] = true;
 gameRecordSave(ex.id, r);
-let gx = []; try{ gx = gxAfterStop(ex.id, gameStop.islandId, { good, newStar, faster, hinted: !!gameStop.hinted }); }catch(e){ console.error(e); }
+let gx = []; try{ gx = gxAfterStop(ex.id, gameStop.islandId, { good, newStar, faster, hinted: !!gameStop.hinted, bolt: newBolt }); }catch(e){ console.error(e); }
+if(newBolt) gx.unshift({ k:"bolt", t:"⚡ Şimşek rozeti! Süre hedefini tutturdun." });
 if(warmedUp) gx.unshift({ k:"up", t:`Isındın! Şimdi yeniden ${GAME_TIER_NAMES[t + 1]} düzeyi deneyebilirsin.` });
 if(stepDown) gx.unshift({ k:"down", t:"Bir dahaki sefere biraz daha kolayıyla ısınacağız." });
 if(jumped) gx.unshift({ k:"up", t:"Çok hızlı ve hatasızdın! Orta'yı atlayıp Zor düzeyi deneyeceksin." });
@@ -14340,7 +14283,7 @@ const a = (k / 14) * Math.PI * 2, d = 90 + Math.random() * 60;
 return `<i style="--dx:${(Math.cos(a) * d).toFixed(0)}px;--dy:${(Math.sin(a) * d).toFixed(0)}px;animation-delay:${(0.3 + Math.random() * 0.15).toFixed(2)}s"></i>`;
 }).join("") : "";
 document.getElementById("grStars").innerHTML = r.stars.map((on, i) => GAME_STAR_SVG(on).replace("<svg ", `<svg class="${i === 1 ? "mid" : ""}" `)).join("");
-document.getElementById("grChips").innerHTML = GAME_TIER_NAMES.map((nm, i) => `<span class="gr-chip${r.stars[i] ? " on" : ""}">${nm}${r.stars[i] ? " ✓" : ""}</span>`).join("");
+document.getElementById("grChips").innerHTML = GAME_TIER_NAMES.map((nm, i) => `<span class="gr-chip${r.stars[i] ? " on" : ""}">${nm}${r.stars[i] ? " ✓" : ""}${r.bolt && r.bolt[i] ? " ⚡" : ""}</span>`).join("");
 const L = (icon, color, text) => `<div class="gr-line"><svg viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${icon}</svg>${text}</div>`;
 const I_OK = '<path d="M4.5 12.5l4.5 4.5 10.5-11"/>', I_UP = '<path d="M5 14l7-7 7 7"/>', I_NEXT = '<path d="M5 12h14M13 6l6 6-6 6"/>', I_AGAIN = '<path d="M4 12a8 8 0 1 0 3-6.2"/><path d="M4 4v4h4"/>';
 const lines = [];
@@ -14529,6 +14472,12 @@ document.getElementById("gameSleep").style.display = "flex";
 try{ speakText(`Bugünlük bu kadar! ${mascotName()} dinleniyor. Yarın yine buluşalım.`); }catch(e){}
 }
 
+// süre hedefi: Etkinlik modundaki başarı eşiğiyle aynı ölçüt (öge başına süre ≤ eşik × çalışmanın hız katsayısı)
+function gxOnTime(ex, ms){
+const n = ex.isSeqRows ? Math.max(1, currentGrid.length * 2) : Array.isArray(currentGrid) && currentGrid.length ? currentGrid.length : 1;
+const k = ex.speedFactor || (ex.isSeqRows ? 3 : (ex.isScatter ? 2 : 1));
+return (ms / 1000) / n <= SUCCESS_SEC_PER_ITEM * k;
+}
 function gxFastFlawless(ex, ms, errors){
 if(errors !== 0) return false;
 const n = ex.isSeqRows ? Math.max(1, currentGrid.length * 2) : Array.isArray(currentGrid) && currentGrid.length ? currentGrid.length : 1;
@@ -14653,6 +14602,7 @@ if(info.good){ light++; why.push("başardın"); }
 if(info.newStar){ light++; why.push("yeni yıldız"); }
 if(info.faster){ light++; why.push("kendini geçtin"); }
 if(info.good && info.hinted){ light++; why.push("ipucunu kullandın"); }
+if(info.bolt){ light++; why.push("şimşek rozeti"); }
 const before = islId ? gxIslGrowth(islId) : 0;
 const r = gxRoute(); const ri = r.steps.findIndex((s, i) => s.id === exId && !r.done[i]);
 let routeDone = false;
@@ -15382,7 +15332,7 @@ steps: [
 {sel:"#islandScreen .isl-who", title:"Kim oynuyor?", text:"Oynamadan önce çocuğu seçin. Yıldızlar ve düzey her çocuğa özeldir; aynı cihazı kardeşler de kullanabilir."},
 {sel:"#islandMap .isl-island", title:"Adalar ve duraklar", text:"Her ada bir beceri alanı. Her durakta Başlangıç, Orta ve Zor için üç yıldız var; zorluk kazanılan yıldıza göre kendiliğinden seçilir. Plan Adası 3 yıldızla açılır."},
 {sel:"#islandRoute .rt-card", title:"Bugünün Rotası", text:"Her gün 3–4 duraklık rota: ısınma, haftanın hedef alanı (uzman seçtiyse 'özel görev') ve çocuğun sevdiği adadan kapanış. Zorlandığı durakta ipucu verilir; iki kez zorlanırsa bir alt düzeyle ısınır."},
-{sel:"#islandRoute .rt-row", title:"Işık, hafta ve dolap", text:"Işık; bitirmek, başarmak, kendini geçmek ve ipucunu kullanmak için verilir, adalar ışıkla büyür. Haftalık hedef 4 gün; kaçırılan gün sıfırlamaz. Aksesuarlar satın alınmaz, hedeflerle açılır. Günlük süre Ayarlar'dan değişir."},
+{sel:"#islandRoute .rt-row", title:"Işık, hafta ve dolap", text:"Işık; bitirmek, başarmak, kendini geçmek ve ipucunu kullanmak için verilir, adalar ışıkla büyür. Süre hedefi tutturulursa ayrıca ⚡ şimşek rozeti kazanılır; tutturulamazsa hiçbir şey kaybedilmez. Haftalık hedef 4 gün; kaçırılan gün sıfırlamaz. Aksesuarlar satın alınmaz, hedeflerle açılır. Günlük süre Ayarlar'dan değişir."},
 {sel:"#islandNext", title:"Sıradaki durak", text:"'Oyna' ile durak açılır. Yönerge sesli okunur; oyun ekranındaki hoparlörle konuşma kapatılabilir. Çalışma bitince kronometre kendiliğinden durur ve ödül ekranı çıkar."},
 {sel:"#islandBackBtn", title:"Ebeveyn kontrolü", text:"Oyundan çıkmak için bir işlem sorusu sorulur; çocuk yanlışlıkla çıkamaz."}
 ]
@@ -15424,7 +15374,7 @@ steps: [
 {sel:"#prevBtn",           title:"Önceki",          text:"Bir önceki çalışma sayfasına döner."},
 {sel:"#reshuffleBtn",      title:"Karıştır",        text:"Sayfayı yeniler. Hedefi olan çalışmalarda hedef de değişir (ör. dokunulacak renk ya da dur yüzü); böylece alışkanlık oluşmaz."},
 {sel:"#nextBtn",           title:"Sonraki",         text:"Sıradaki çalışma sayfasına geçer. Sayfalar düzeylere ve çalışmalara göre ilerler."},
-{sel:"#historyToggle",     title:"Geçmiş sonuçlar", text:"Kaydedilen çalışmaları, liderlik tablosunu ve gelişim raporunu burada görürsün.", menu:true}
+{sel:"#historyToggle",     title:"Geçmiş sonuçlar", text:"Kaydedilen çalışmaları, gelişim raporunu ve özeti burada görürsün.", menu:true}
 ]
 }
 };
@@ -15853,7 +15803,6 @@ document.getElementById("consentIconSlot").innerHTML = uiIconSVG("shield");
 document.getElementById("cloudBadgeIcon").innerHTML = uiIconSVG("cloud-off");
 document.getElementById("reshuffleIconSlot").innerHTML = uiIconSVG("shuffle");
 document.getElementById("historyToggleIconSlot").innerHTML = uiIconSVG("chart");
-document.getElementById("tabLeaderboardIconSlot").innerHTML = uiIconSVG("trophy");
 document.getElementById("tabReportIconSlot").innerHTML = uiIconSVG("calendar");
 document.getElementById("tabSummaryIconSlot").innerHTML = uiIconSVG("grid");
 document.getElementById("exportCsvIconSlot").innerHTML = uiIconSVG("arrow-down");
