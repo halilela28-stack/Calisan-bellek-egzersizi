@@ -332,6 +332,9 @@ html.hide-clock #timerDisplay{ visibility:hidden; }
 .wm-pic.sel{ border-color:#E5484D !important; }
 .qz-replay{ margin:0 auto 10px !important; display:block !important; min-width:0 !important; height:auto !important; padding:7px 16px !important; font-size:15px !important; }
 .anl-w{ background:var(--panel); border:2px solid var(--line); border-radius:12px; padding:4px 10px; } .anl-w.q{ border-style:dashed; }
+.mx-g{ display:grid; gap:4px; margin:0 auto 8px; background:#C9D3DE; padding:4px; border-radius:12px; } .mx-c{ background:#fff; border-radius:8px; aspect-ratio:1; display:flex; align-items:center; justify-content:center; padding:3px; } .mx-c.q{ font-weight:900; font-size:26px; color:var(--ink-soft); border:2px dashed #9AA9B8; }
+@media (orientation: landscape) and (max-height: 520px){ .mx-g{ width:140px !important; } .ri-box{ max-width:130px !important; padding:3px !important; } .ri-i{ max-height:44px; } }
+.ri-box{ border-radius:14px; padding:6px; border:3px solid; flex:1; max-width:180px; } .ri-box.ok{ border-color:#1FA463; background:#E3F6EC; } .ri-box.no{ border-color:#E5484D; background:#FCE3E3; } .ri-h{ font-weight:900; font-size:13px; text-align:center; } .ri-items{ display:grid; grid-template-columns:repeat(2, 1fr); gap:3px; } .ri-i{ background:#fff; border-radius:8px; aspect-ratio:1; padding:2px; }
 .qz-txt-grid{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; width:min(420px, 100%); margin:0 auto; }
 .qz-txt{ min-height:58px; padding:8px 10px !important; text-align:center; }
 .fs-x, .fs-v{ position:absolute; right:3px; top:1px; width:22px; height:22px; border-radius:50%; color:#fff; font-weight:900; font-size:14px; display:flex; align-items:center; justify-content:center; } .fs-x{ background:#E5484D; } .fs-v{ background:#1FA463; }
@@ -2676,7 +2679,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.08-c</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.08-d</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -7673,6 +7676,33 @@ randomItem: () => ({}),
 stages: [ { label: "Çıkışı Bul", instruction: () => ``, example: () => `` } ]
 },
 {
+id: "matrix-fill",
+readingLevel: ["pre","post"],
+label: "Matris Tamamla",
+isMt: true, attrs: [], speedFactor: 15,
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Boş Kutuyu Bul", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "rule-induce",
+readingLevel: ["pre","post"],
+label: "Kural Keşfi",
+isMt: true, attrs: [], speedFactor: 15,
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Kuralı Bul", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "balance",
+readingLevel: ["pre","post"],
+label: "Terazi",
+isMt: true, attrs: [], speedFactor: 15,
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Teraziyi Düşün", instruction: () => ``, example: () => `` } ]
+},
+{
 id: "digit-span",
 readingLevel: ["pre","post"],
 label: "Rakam Dizisi (Digit Span)",
@@ -7930,11 +7960,11 @@ exerciseIds:["size-sort","block-design","arrow-direction","clutter-find","edge-c
 id:"algisal-akil-yurutme",
 readingLevel:["pre","post"],
 label:"Algısal Akıl Yürütme",
-sub:"Farklı olanı bulma, örüntü tamamlama, görsel analoji · dokunmalı biçimleri · strateji aşamaları",
+sub:"Farklı olanı bulma, örüntü (tekrarlayan ve büyüyen), görsel analoji (boyut, renk, dolgu, döndürme, sayı) · matris tamamla (Raven/Wechsler tarzı), kural keşfi, terazi · dokunmalı biçimler · strateji aşamaları",
 purpose:"Görsel örüntüleri analiz edip mantıksal ilişki kurma becerisini çalıştırır.",
 color:"#B08900",
 group:"Dil & Görsel Analiz",
-exerciseIds:["odd-one-out","sequence-pattern","visual-analogy","odd-touch","pattern-touch","analogy-touch"]
+exerciseIds:["odd-one-out","matrix-fill","sequence-pattern","rule-induce","visual-analogy","balance","odd-touch","pattern-touch","analogy-touch"]
 },
 ];
 
@@ -9502,7 +9532,7 @@ const stim = `<div style="display:flex;align-items:center;gap:6px;justify-conten
 const opts = [D].concat(wrong).slice(0, isPre() ? 3 : 3);
 return qzMake(stim, opts, 0, { prompt:"İlk ikili gibi: <b>soru işaretine</b> hangisi gelir?", raw:true }); }); }
 };
-QZ["sem-decide"] = () => semTrials(); QZ["mental-rot"] = () => mrTrials(); QZ["overlap-count"] = () => ovTrials(); QZ["embedded"] = () => embTrials(); QZ["closure"] = () => clsTrials(); QZ["vanalogy-touch"] = () => anlTrials(); QZ["word-pic"] = () => wpTrials(); QZ["proverb-touch"] = () => pmcBuild(); QZ["absurd-touch"] = () => absBuild(); QZ["concept-touch"] = () => cpTrials(); QZ["infer-touch"] = () => imcBuild(); QZ["rhyme-touch"] = () => rhBuild(); QZ["syn-touch"] = () => synBuild(); QZ["part-whole"] = () => pwBuild();
+QZ["sem-decide"] = () => semTrials(); QZ["pattern-touch"] = () => patTrials2(); QZ["analogy-touch"] = () => anaTrials2(); QZ["matrix-fill"] = () => mxTrials(); QZ["rule-induce"] = () => riTrials(); QZ["balance"] = () => balTrials(); QZ["mental-rot"] = () => mrTrials(); QZ["overlap-count"] = () => ovTrials(); QZ["embedded"] = () => embTrials(); QZ["closure"] = () => clsTrials(); QZ["vanalogy-touch"] = () => anlTrials(); QZ["word-pic"] = () => wpTrials(); QZ["proverb-touch"] = () => pmcBuild(); QZ["absurd-touch"] = () => absBuild(); QZ["concept-touch"] = () => cpTrials(); QZ["infer-touch"] = () => imcBuild(); QZ["rhyme-touch"] = () => rhBuild(); QZ["syn-touch"] = () => synBuild(); QZ["part-whole"] = () => pwBuild();
 function cupsApply(){ const st = mtState, tr = st.trials[st.ti], box = document.getElementById("cupsBox"); if(!box) return; const w = box.clientWidth / tr.n;
 box.querySelectorAll("[data-cup]").forEach(el => { const c = +el.dataset.cup; el.style.left = (st.slot.indexOf(c) * w + w * 0.1) + "px"; el.style.transform = st.lift && c === tr.ball ? "translateY(-46px)" : "translateY(0)"; el.style.transitionDuration = Math.round(tr.ms * 0.8 * (window.__wmSpeed || 1)) + "ms"; }); }
 function rhyEval(){ const st = mtState, tr = st.trials[st.ti], T = st.taps; let ok = T.length === tr.L;
@@ -10042,6 +10072,117 @@ if(!nb.length){ st.pop(); continue; } const [d, x] = randomItem(nb), op = { n:"s
 return W; }
 function mazeTrials(){ const t = currentCombo().t, n = isPre() ? [4, 5, 6][t] : [6, 8, 10][t]; return Array.from({length: isPre() ? 2 : 2}, () => ({ n, walls: mazeGen(n) })); }
 
+// ===== ALGISAL AKIL YÜRÜTME (ek): matris tamamla, kural keşfi, terazi; sıradakini seç ve eşini seç genişletmesi =====
+const AA_SH = ["circle","square","triangle"], AA_COL = ["#E5484D","#2E6FD8","#F5C518","#1FA463"], AA_SHN = { circle:"daire", square:"kare", triangle:"üçgen" };
+function aaShape(sh, cx, cy, r, col, opt){ opt = opt || {}; const fill = opt.outline ? "none" : col, st = `stroke="${col}" stroke-width="${opt.outline ? 4 : 0}"`, rot = opt.rot ? ` transform="rotate(${opt.rot} ${cx} ${cy})"` : "";
+let el = sh === "circle" ? `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" ${st}/>` : sh === "square" ? `<rect x="${cx - r}" y="${cy - r}" width="${2 * r}" height="${2 * r}" fill="${fill}" ${st}/>`
+: sh === "triangle" ? `<polygon points="${cx},${cy - r} ${cx + r},${cy + r * 0.85} ${cx - r},${cy + r * 0.85}" fill="${fill}" ${st}/>`
+: sh === "pointer" ? `<polygon points="${cx - r},${cy - r * 0.7} ${cx + r},${cy} ${cx - r},${cy + r * 0.7} ${cx - r * 0.45},${cy}" fill="${fill}" ${st}/>` : "";
+if(opt.dot) el += `<circle cx="${cx}" cy="${cy + (sh === "triangle" ? r * 0.25 : 0)}" r="${r * 0.22}" fill="${opt.outline ? col : "#fff"}"/>`;
+return `<g${rot}>${el}</g>`; }
+// hücre: { sh, col, n (1-3), sz (0.6/1), rot, outline, dot }
+function aaCell(c){ const n = c.n || 1, r = (n === 1 ? 26 : n === 2 ? 18 : 14) * (c.sz || 1), pos = n === 1 ? [[50, 50]] : n === 2 ? [[30, 50], [70, 50]] : [[25, 62], [50, 36], [75, 62]];
+return `<svg viewBox="0 0 100 100" width="100%" height="100%">${pos.map(([x, y]) => aaShape(c.sh, x, y, r, c.col, c)).join("")}</svg>`; }
+const aaKey = (c) => JSON.stringify([c.sh, c.col, c.n || 1, c.sz || 1, c.rot || 0, !!c.outline, !!c.dot]);
+function aaDistract(ans, muts, k){ const out = [], seen = new Set([aaKey(ans)]); for(const m of shuffleArray(muts)){ const d = Object.assign({}, ans, m); if(!seen.has(aaKey(d))){ seen.add(aaKey(d)); out.push(d); } if(out.length >= k) break; } return out; }
+// ---- Matris Tamamla ----
+function mxTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 4 : 5, out = [];
+for(let q = 0; q < N; q++){ let grid, size, muts;
+const [s1, s2, s3] = shuffleArray(AA_SH), [c1, c2, c3] = shuffleArray(AA_COL);
+if(pre){ size = 2; const ty = t === 0 ? "color" : t === 1 ? randomItem(["color","size"]) : randomItem(["size","count"]);
+if(ty === "color") grid = [{ sh:s1, col:c1 }, { sh:s1, col:c2 }, { sh:s2, col:c1 }, { sh:s2, col:c2 }];
+else if(ty === "size") grid = [{ sh:s1, col:c1, sz:0.55 }, { sh:s1, col:c1, sz:1 }, { sh:s2, col:c2, sz:0.55 }, { sh:s2, col:c2, sz:1 }];
+else grid = [{ sh:s1, col:c1, n:1 }, { sh:s1, col:c1, n:2 }, { sh:s2, col:c2, n:1 }, { sh:s2, col:c2, n:2 }];
+muts = [{ col:c1 }, { col:c3 }, { sh:s1 }, { sh:s3 }, { sz:0.55 }, { sz:1 }, { n:1 }, { n:3 }]; }
+else { size = 3; const ty = t === 0 ? "countShape" : t === 1 ? randomItem(["latin","countShape","latinColor"]) : randomItem(["rotation","twoRule","latin"]); grid = [];
+for(let r = 0; r < 3; r++) for(let c = 0; c < 3; c++){
+if(ty === "countShape") grid.push({ sh:[s1, s2, s3][r], col:c1, n:c + 1 });
+else if(ty === "latin") grid.push({ sh:[s1, s2, s3][(r + c) % 3], col:[c1, c2, c3][r] });
+else if(ty === "latinColor") grid.push({ sh:[s1, s2, s3][r], col:[c1, c2, c3][(c + r) % 3] });
+else if(ty === "rotation") grid.push({ sh:"pointer", col:[c1, c2, c3][r], rot:[0, 90, 180][c] + r * 90 });
+else grid.push({ sh:s1, col:[c1, c2, c3][r], n:c + 1 }); }
+muts = [{ n:1 }, { n:2 }, { n:3 }, { sh:s1 }, { sh:s2 }, { sh:s3 }, { col:c1 }, { col:c2 }, { col:c3 }, { rot:0 }, { rot:90 }, { rot:270 }]; }
+const ans = grid[grid.length - 1], dis = aaDistract(ans, muts, pre ? 2 : 3);
+const cells = grid.map((c, i) => i === grid.length - 1 ? `<div class="mx-c q">?</div>` : `<div class="mx-c">${aaCell(c)}</div>`).join("");
+const stim = `<div class="mx-g" style="grid-template-columns:repeat(${size}, 1fr);width:${size === 2 ? 170 : 210}px">${cells}</div>`;
+const opts = [ans].concat(dis).map(aaCell); out.push(qzMake(stim, opts, 0, { prompt:"Matristeki <b>boş kutuya</b> ne gelir?", raw:true, fixed:true, cell:86 })); }
+return out; }
+// ---- Kural Keşfi ----
+const RI_RULES = { pre:[ { k:"red", d:"hepsi kırmızı", ok:(c) => c.col === AA_COL[0] }, { k:"circle", d:"hepsi daire", ok:(c) => c.sh === "circle" }, { k:"big", d:"hepsi büyük", ok:(c) => (c.sz || 1) === 1 } ],
+post:[ { k:"outline", d:"hepsinin içi boş", ok:(c) => !!c.outline }, { k:"corner", d:"hepsinin köşesi var", ok:(c) => c.sh !== "circle" }, { k:"dot", d:"hepsinin içinde nokta var", ok:(c) => !!c.dot },
+{ k:"two", d:"hepsinde iki şekil var", ok:(c) => (c.n || 1) === 2 }, { k:"red", d:"hepsi kırmızı", ok:(c) => c.col === AA_COL[0] } ] };
+function riRand(pre){ const c = { sh: randomItem(AA_SH), col: randomItem(AA_COL), sz: pre ? randomItem([0.6, 1]) : 1 }; if(!pre){ c.outline = Math.random() < 0.5; c.dot = Math.random() < 0.4; c.n = randomItem([1, 2, 3]); } return c; }
+function riTrials(){ const t = currentCombo().t, pre = isPre(), rules = pre ? RI_RULES.pre : RI_RULES.post, K = pre ? [3, 3, 4][t] : [3, 4, 4][t];
+return Array.from({length: pre ? 4 : 5}, () => { const R = randomItem(rules), gen = (want) => { let c, g = 0; do{ c = riRand(pre); } while(R.ok(c) !== want && g++ < 200); return c; };
+// ✓ grubunda kural dışındaki özellikler çeşitli olsun; yoksa çocuk yanlış bir ortaklığa (ör. hepsi aynı renk) yönelebilir
+let yes, g4 = 0; do{ yes = Array.from({length:K}, () => gen(true)); } while(g4++ < 60 && ((R.k !== "red" && new Set(yes.map(c => c.col)).size < 2) || (R.k !== "circle" && R.k !== "corner" && new Set(yes.map(c => c.sh)).size < 2)));
+const no = Array.from({length:K}, () => gen(false)), ans = gen(true), dis = [], used = new Set([aaKey(ans)]);
+let g3 = 0; while(dis.length < (pre ? 2 : 3) && g3++ < 300){ const d = gen(false); if(!used.has(aaKey(d))){ used.add(aaKey(d)); dis.push(d); } }   // seçenekler birbirinden farklı
+const box = (arr, ok) => `<div class="ri-box ${ok ? "ok" : "no"}"><div class="ri-h">${ok ? "✓ Bunlar" : "✗ Bunlar değil"}</div><div class="ri-items">${arr.map(c => `<div class="ri-i">${aaCell(c)}</div>`).join("")}</div></div>`;
+const stim = `<div style="display:flex;gap:8px;justify-content:center">${box(yes, true)}${box(no, false)}</div>`;
+return qzMake(stim, [ans].concat(dis).map(aaCell), 0, { prompt:"Hangisi <b>✓ grubuna</b> girer?", raw:true, fixed:true, cell:80, rule: R.d }); }); }
+// ---- Terazi ----
+function balSVG(L, Rt, tilt){ const tr = tilt === "L" ? 9 : tilt === "R" ? -9 : 0, icons = (arr, x0) => arr.map((sh, i) => aaShape(sh, x0 + (i - (arr.length - 1) / 2) * 18, 29, 8.5, { circle:"#2E6FD8", square:"#1FA463", triangle:"#E5484D" }[sh])).join("");
+return `<svg viewBox="0 0 200 110" width="100%" height="100%"><polygon points="92,100 108,100 100,58" fill="#8B5A2B"/><g transform="rotate(${-tr} 100 58)"><rect x="18" y="55" width="164" height="5" rx="2" fill="#B9773A"/><line x1="40" y1="58" x2="40" y2="40" stroke="#8B5A2B" stroke-width="2"/><line x1="160" y1="58" x2="160" y2="40" stroke="#8B5A2B" stroke-width="2"/><path d="M14 40 h52 l-6 8 h-40 z" fill="#D9B26B"/><path d="M134 40 h52 l-6 8 h-40 z" fill="#D9B26B"/><g transform="translate(-60 0)">${icons(L, 100)}</g><g transform="translate(60 0)">${icons(Rt, 100)}</g></g></svg>`; }
+function balTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 4 : 5, out = [], W = { circle:1, triangle:2, square:4 };
+for(let q = 0; q < N; q++){
+if(pre){ if(t < 2){ const [a, b] = shuffleArray(AA_SH).slice(0, 2), heavy = W[a] > W[b] ? a : b, lightS = heavy === a ? b : a, sideL = Math.random() < 0.5;
+const stim = `<div style="width:220px;height:120px;margin:0 auto">${balSVG(sideL ? [heavy] : [lightS], sideL ? [lightS] : [heavy], sideL ? "L" : "R")}</div>`;
+out.push(qzMake(stim, [aaCell({ sh:heavy, col:{ circle:"#2E6FD8", square:"#1FA463", triangle:"#E5484D" }[heavy] }), aaCell({ sh:lightS, col:{ circle:"#2E6FD8", square:"#1FA463", triangle:"#E5484D" }[lightS] })], 0, { prompt:"Hangisi <b>daha ağır</b>?", raw:true, fixed:true, cell:90 })); }
+else { const ord = ["circle","triangle","square"];   // iki terazi: ağırlık sırası (geçişlilik)
+const stim = `<div style="display:flex;gap:6px;justify-content:center"><div style="width:150px;height:84px">${balSVG(["triangle"], ["circle"], "L")}</div><div style="width:150px;height:84px">${balSVG(["square"], ["triangle"], "L")}</div></div>`;
+out.push(qzMake(stim, ord.slice().reverse().map(sh => aaCell({ sh, col:{ circle:"#2E6FD8", square:"#1FA463", triangle:"#E5484D" }[sh] })), 0, { prompt:"<b>En ağır</b> hangisi?", raw:true, fixed:true, cell:84 })); }
+continue; }
+// okul sonrası: denge eşitlikleri → dengeleyeni bul
+const rows = [`<div style="width:150px;height:84px">${balSVG(["triangle"], ["circle","circle"], "")}</div>`]; let L, ans;
+if(t === 0){ const k = randomItem([1, 2]); L = Array(k).fill("triangle"); ans = 2 * k; }
+else if(t === 1){ rows.push(`<div style="width:150px;height:84px">${balSVG(["square"], ["triangle","triangle"], "")}</div>`); L = ["square"]; ans = 4; }
+else { rows.push(`<div style="width:150px;height:84px">${balSVG(["square"], ["triangle","triangle"], "")}</div>`); L = ["square","triangle"]; ans = 6; }
+const q2 = `<div style="width:150px;height:84px">${balSVG(L, ["?"], "")}</div>`.replace("", "");
+const stim = `<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">${rows.join("")}<div style="width:150px;height:84px;position:relative">${balSVG(L, [], "")}<b style="position:absolute;right:26px;top:6px;font-size:22px">?</b></div></div>`;
+const choices = Array.from(new Set([ans, ans - 1, ans + 1, ans + 2, Math.max(1, ans - 2)])).slice(0, 4);
+const opts = choices.map(n => `<div style="display:flex;flex-wrap:wrap;gap:2px;justify-content:center;align-items:center;width:100%;height:100%">${Array.from({length:n}, () => `<svg viewBox="0 0 20 20" width="18" height="18"><circle cx="10" cy="10" r="8" fill="#2E6FD8"/></svg>`).join("")}</div>`);
+out.push(qzMake(stim, opts, 0, { prompt:"Teraziyi <b>dengelemek</b> için kaç mavi daire gerekir?", raw:true, fixed:true, cell:84 })); }
+return out; }
+// ---- Sıradakini Seç (genişletilmiş): AB / AAB / ABC + büyüyen örüntüler ----
+function patTrials2(){ const t = currentCombo().t, pre = isPre(), N = pre ? 4 : 6, out = [];
+for(let q = 0; q < N; q++){ const [s1, s2, s3] = shuffleArray(AA_SH), [c1, c2, c3] = shuffleArray(AA_COL); let seq, muts;
+const ty = pre ? [["colorAB"], ["shapeAB","colorAB"], ["AAB","sizeGrow"]][t] : [["ABC","AAB"], ["countGrow","sizeGrow"], ["rotStep","twoAttr"]][t];
+const k = randomItem(ty);
+if(k === "colorAB") seq = [0, 1, 0, 1, 0, 1].map(i => ({ sh:"circle", col:[c1, c2][i] }));
+else if(k === "shapeAB") seq = [0, 1, 0, 1, 0, 1].map(i => ({ sh:[s1, s2][i], col:c1 }));
+else if(k === "AAB") seq = [0, 0, 1, 0, 0, 1, 0].map(i => ({ sh:[s1, s2][i], col:[c1, c2][i] }));
+else if(k === "ABC") seq = [0, 1, 2, 0, 1, 2, 0].map(i => ({ sh:[s1, s2, s3][i], col:[c1, c2, c3][i] }));
+else if(k === "sizeGrow") seq = [0.45, 0.65, 0.85, 1].map(z => ({ sh:s1, col:c1, sz:z }));
+else if(k === "countGrow") seq = [1, 2, 3].map(n => ({ sh:s1, col:c1, n }));
+else if(k === "rotStep") seq = [0, 90, 180, 270].map(r => ({ sh:"pointer", col:c1, rot:r }));
+else seq = [0, 1, 2, 3, 4, 5].map(i => ({ sh:[s1, s2][i % 2], col:[c1, c2, c3][i % 3] }));   // şekil 2'li, renk 3'lü döngü
+const ans = seq[seq.length - 1], shown = seq.slice(0, -1);
+muts = [{ col:c1 }, { col:c2 }, { col:c3 }, { sh:s1 }, { sh:s2 }, { sh:s3 }, { sz:0.65 }, { sz:0.85 }, { n:2 }, { n:1 }, { rot:90 }, { rot:180 }, { rot:0 }];
+const dis = aaDistract(ans, muts, pre ? 2 : 3);
+const stim = `<div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center">${shown.map(c => `<div class="wm-card" style="width:44px;height:44px;padding:3px">${aaCell(c)}</div>`).join("")}<div class="wm-card" style="width:44px;height:44px;font-weight:900;font-size:22px;border-style:dashed">?</div></div>`;
+out.push(qzMake(stim, [ans].concat(dis).map(aaCell), 0, { prompt:"<b>Sırada</b> hangisi var?", raw:true, fixed:true, cell:84 })); }
+return out; }
+// ---- Eşini Seç (genişletilmiş): boyut, renk, dolgu, nokta, döndürme, sayı; okul öncesinde resimli renk değişimi ----
+const AN_RED_PICS = () => [ { n:"elma", src: FRUIT_VEG_IMAGES.apple }, { n:"çilek", src: FRUIT_VEG_IMAGES.strawberry }, { n:"araba", src: TOY_IMAGES.car }, { n:"fincan", src: HOUSE_IMAGES.cup }, { n:"terlik", src: PAL_EXTRA_IMAGES.slipper } ];
+function anaTrials2(){ const t = currentCombo().t, pre = isPre(), N = pre ? 4 : 5, out = [];
+for(let q = 0; q < N; q++){
+if(pre && t === 2 && q % 2 === 0){ const [a, b, c] = shuffleArray(AN_RED_PICS()).slice(0, 3), g = (x, green) => `<div style="width:100%;height:100%;${green ? "filter:hue-rotate(110deg) saturate(1.2)" : ""}">${qzPic(x.src)}</div>`;
+const card = (h) => `<div class="wm-card" style="width:62px;height:62px;padding:4px">${h}</div>`;
+const stim = `<div style="display:flex;align-items:center;gap:6px;justify-content:center;flex-wrap:wrap">${card(g(a))}<b>→</b>${card(g(a, true))}<span style="width:10px"></span>${card(g(b))}<b>→</b><div class="wm-card" style="width:62px;height:62px;font-weight:900;font-size:26px;border-style:dashed">?</div></div>`;
+out.push(qzMake(stim, [g(b, true), g(b), g(c, true)], 0, { prompt:"İlk ikili gibi: <b>soru işaretine</b> hangisi gelir?", raw:true, fixed:true, cell:96 })); continue; }
+const [s1, s2] = shuffleArray(AA_SH), [c1, c2, c3] = shuffleArray(AA_COL);
+const types = pre ? [["size","color"], ["size","color","count"], ["color","size"]][t] : [["fill","dot"], ["rot","count","fill"], ["two"]][t], ty = randomItem(types);
+const tf = { size:(c) => Object.assign({}, c, { sz:1 }), color:(c) => Object.assign({}, c, { col:c2 }), count:(c) => Object.assign({}, c, { n:2 }), fill:(c) => Object.assign({}, c, { outline:false }),
+dot:(c) => Object.assign({}, c, { dot:true }), rot:(c) => Object.assign({}, c, { rot:90 }), two:(c) => Object.assign({}, c, { col:c2, n:2 }) }[ty];
+const base = (sh) => ty === "size" ? { sh, col:c1, sz:0.55 } : ty === "fill" ? { sh, col:c1, outline:true } : ty === "rot" ? { sh:"pointer", col:sh === s1 ? c1 : c3 } : { sh, col:c1 };
+const A = base(s1), B = tf(A), C = base(s2), D = tf(C);
+const dis = aaDistract(D, [{ sz:0.55 }, { col:c1 }, { col:c3 }, { n:1 }, { n:3 }, { outline:!D.outline }, { dot:!D.dot }, { rot:0 }, { rot:180 }, { sh:s1 }], pre ? 2 : 3);
+const card = (c) => `<div class="wm-card" style="width:62px;height:62px;padding:4px">${aaCell(c)}</div>`;
+const stim = `<div style="display:flex;align-items:center;gap:6px;justify-content:center;flex-wrap:wrap">${card(A)}<b>→</b>${card(B)}<span style="width:10px"></span>${card(C)}<b>→</b><div class="wm-card" style="width:62px;height:62px;font-weight:900;font-size:26px;border-style:dashed">?</div></div>`;
+out.push(qzMake(stim, [D].concat(dis).map(aaCell), 0, { prompt:"İlk ikili gibi: <b>soru işaretine</b> hangisi gelir?", raw:true, fixed:true, cell:86 })); }
+return out; }
+
 const NEW_MT = {
 build: {
 "hear-find": () => { const t = currentCombo().t, K = (isPre() ? [2, 2, 3] : [3, 4, 5])[t], G = (isPre() ? [4, 6, 6] : [6, 8, 9])[t];
@@ -10083,6 +10224,7 @@ return mtState.test; },
 "copy-design": () => { const t = currentCombo().t, n = !isPre() && t === 2 ? 4 : 3, segs = (isPre() ? [2, 3, 4] : [3, 5, 7])[t]; mtState = { kind:"draw", copy:true, n, trials: Array.from({length:3}, () => drawPattern(n, segs)), ti:0, wrong:0, phase:"idle", mine:new Set(), sel:-1 }; return mtState.trials; },
 "symmetry": () => { mtState = { kind:"sym", trials: symTrials(), ti:0, wrong:0, phase:"idle", mine:{} }; return mtState.trials; },
 "maze": () => { mtState = { kind:"maze", trials: mazeTrials(), ti:0, wrong:0, phase:"idle", pos:0, path:[0] }; return mtState.trials; },
+...Object.fromEntries([["matrix-fill", mxTrials], ["rule-induce", riTrials], ["balance", balTrials]].map(([id, f]) => [id, () => { mtState = { kind:"quiz", qid:id, trials: f(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; }])),
 "rhyme-touch": () => { mtState = { kind:"quiz", qid:"rhyme-touch", trials: rhBuild(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
 "syn-touch": () => { mtState = { kind:"quiz", qid:"syn-touch", trials: synBuild(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
 "part-whole": () => { mtState = { kind:"quiz", qid:"part-whole", trials: pwBuild(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
@@ -11112,6 +11254,9 @@ const INSTR_SHORT = {
 "vis-miss":         [() => Q("Resimlere iyi bak. Biri kaybolacak; eksik olana dokun.")],
 "vis-chg":          [() => Q("Resimlere iyi bak. Biri değişecek; değişene dokun.")],
 "vis-recog":        [() => Q("Resimlere iyi bak. Sonra her resim için Gördüm ya da Görmedim'e dokun."), () => `10–15 dk sonra açın: ${Q("Az önce gördüğün resimleri hatırlıyor musun? Gördüm ya da Görmedim'e dokun.")}`],
+"matrix-fill":      [() => Q("Satırlara ve sütunlara bak. Boş kutuya gelecek olanı seç.")],
+"rule-induce":      [() => Q("Yeşil kutudakilerin ortak kuralını bul. Hangisi o gruba girer?")],
+"balance":          [() => isPre() ? Q("Terazinin aşağı inen tarafı daha ağırdır. Soruya göre seç.") : Q("Üstteki teraziler dengede. Son teraziyi dengelemek için kaç mavi daire gerekir?")],
 "block-design":     [() => Q("Modele bak. Bloklara dokunarak aynı deseni yap, bitince Bitti'ye bas."), () => Q("Model döndürülmüş. Ok yukarıyı gösteriyor; deseni düz hâliyle yap.")],
 "mental-rot":       [() => Q("Üstteki şekle bak. Döndürülmüş aynısını seç.")],
 "clutter-find":     [() => Q(`Kalabalığın içinde bütün ${clutTarget || "hedef"} resimlerini bul ve dokun.`)],
@@ -11168,7 +11313,7 @@ const INSTR_SHORT = {
 "arrow-touch":      [() => Q("Üstteki ok hangi yöne bakıyorsa, aynı yöne bakan oka dokun.")],
 "edge-touch":       [() => Q("Şeklin kenarlarını say. Doğru sayıya dokun.")],
 "odd-touch":        [() => Q("Şekillere bak. Farklı olana dokun.")],
-"pattern-touch":    [() => Q("Sırayı incele. Soru işaretine gelecek olana dokun.")],
+"pattern-touch":    [() => Q("Sırayı incele: tekrar mı ediyor, büyüyor mu, dönüyor mu? Soru işaretine gelecek olana dokun.")],
 "analogy-touch":    [() => Q("İlk ikilide ne değişti? Aynısını yap; soru işaretine geleni seç.")],
 "same-number":      [() => Q(`Bütün ${SN_PLURAL[snValid()]} bul ve dokun. Rengi, boyu, eğikliği farklı olabilir.`) ],
 "vis-face":         [() => Q("Yüzlere iyi bak. Sonra gördüğün yüzlere dokun, bitince Bitti'ye bas."), () => Q("Yüzleri ve adlarını aklında tut. Adını duyunca o yüze dokun.")],
@@ -11353,6 +11498,9 @@ return {
 "arrow-direction":[0, "Elinle Göster", "Okun yönünü önce elinle göster, sonra söyle."],
 "edge-count":[0, "Parmakla Say", "Bir köşeden başla, parmağınla kenarlara dokunarak say."],
 "number-find-mixed":scan,
+"matrix-fill":[0, "Satır, Sonra Sütun", "Önce satırda neyin değiştiğini söyle, sonra sütunda; ikisini birleştir."],
+"rule-induce":[0, "Ortak Olanı Söyle", "Yeşil kutudakilerin hepsinde olan, kırmızılarda olmayan özelliği söyle."],
+"balance":[0, "Yerine Koy", "Dengedeki teraziyi kullan: bir şeklin yerine ona eşit olanları koy, sonra say."],
 "block-design":[0, "Parçalara Böl", "Modeli satır satır incele; her bloğu tek tek kontrol ederek yerleştir."],
 "mental-rot":[0, "Ayırt Edici Parça", "Şeklin ayırt edici bir ucunu bul; döndürünce o uç nereye gider?"],
 "clutter-find":[0, "Sistemli Tara", "Soldan sağa, yukarıdan aşağıya tara; bulduklarını say."],
@@ -13338,7 +13486,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.08-c";
+const APP_VERSION = "2026.10.08-d";
 const LINK_LOCAL_KEY = "wm_family_links_v1";   // aile cihazında: kişi|seviye → kod + program önbelleği
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -13817,7 +13965,7 @@ const GAME_ISLANDS = [
 { id:"bellek", name:"Bellek Adası", color:"#F7D046", ids:["wm-same","corsi","zihni","wm-seq","span-touch","market","wm-where","running","lns-touch","animal-fruit","rt-shapes","vis-miss","rt-position","vis-chg","rt-colors","vis-recog","vis-face","scene-touch","vis-draw","cups","mental-math","memory-cards"] },
 { id:"soz",    name:"Söz Adası",    color:"#FF9EC4", ids:["hear-find","pal-touch","story-order","dir-follow","pic-seq-touch","who-said","rhythm"] },
 { id:"kavram", name:"Kavram Adası", color:"#8FD3FF", ids:["word-pic","vanalogy-touch","concept-touch","absurd-touch","proverb-touch","infer-touch","odd-cat","sort-pic","same-sound","sim-touch","opp-touch","rhyme-touch","free-sort","def-touch","syl-touch","syn-touch","use-touch","seq-words","part-whole"] },
-{ id:"bulmaca",name:"Bulmaca Adası",color:"#C9A7FF", ids:["block-design","mental-rot","clutter-find","overlap-count","embedded","closure","copy-design","symmetry","maze","size-touch","odd-touch","arrow-touch","pattern-touch","edge-touch","analogy-touch"] },
+{ id:"bulmaca",name:"Bulmaca Adası",color:"#C9A7FF", ids:["matrix-fill","rule-induce","balance","block-design","mental-rot","clutter-find","overlap-count","embedded","closure","copy-design","symmetry","maze","size-touch","odd-touch","arrow-touch","pattern-touch","edge-touch","analogy-touch"] },
 { id:"plan",   name:"Plan Adası",   color:"#FF8E7E", ids:["plan-swap","plan-beads","plan-tol","plan-cubes","plan-think"], unlockStars:3 },
 { id:"park",   name:"Oyun Parkı",   color:"#62C1FA", legacy:true }
 ];
