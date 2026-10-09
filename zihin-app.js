@@ -11438,6 +11438,7 @@ const em = document.querySelector('.mode-card[data-mode="cocuk"] .mode-emoji');
 if(em){ em.innerHTML = mascotSVG("happy"); em.classList.add("has-mascot"); }
 applyCalm();
 try{ renderPlaceSettings(); }catch(e){}
+try{ renderAcctSettings(); }catch(e){}
 const pt = document.getElementById("predToggle");
 { const eb = document.getElementById("expertDevBtn"); if(eb){ const upd = () => { const on = isExpertDevice(); eb.textContent = on ? "Açık ✓" : "Kapalı"; eb.classList.toggle("on", on); }; upd(); eb.onclick = () => { try{ localStorage.setItem(EXPERT_DEV_KEY, isExpertDevice() ? "0" : "1"); }catch(e){} upd(); }; } }
 if(pt){ pt.checked = predOn(); pt.addEventListener("change", e => { try{ localStorage.setItem(PRED_KEY, e.target.checked ? "1" : "0"); }catch(_){} }); }
@@ -11639,7 +11640,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.10-a";
+const APP_VERSION = "2026.10.10-c";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -14053,7 +14054,11 @@ const LAST_KEY = "wm_last_v1";
 function lastGet(){ try{ return JSON.parse(localStorage.getItem(LAST_KEY) || "null"); }catch(e){ return null; } }
 function lastSave(mode, player){ const p = (player || "").trim(); if(!p || p === "Misafir" || p === "Oyuncu") return; const rec = { mode, level: readingLevel === "pre" ? "pre" : "post", player: p, t: Date.now() };
 try{ localStorage.setItem(LAST_KEY, JSON.stringify(rec)); const m = JSON.parse(localStorage.getItem("wm_last_by") || "{}"); m[p] = rec; localStorage.setItem("wm_last_by", JSON.stringify(m)); }catch(e){} }
-function lastFor(n){ try{ const m = JSON.parse(localStorage.getItem("wm_last_by") || "{}"); if(m[n]) return m[n]; }catch(e){} const L = lastGet(); return L && L.player === n ? L : null; }
+function lastFor(n){ try{ const m = JSON.parse(localStorage.getItem("wm_last_by") || "{}"); if(m[n]) return m[n]; }catch(e){} const L = lastGet(); if(L && L.player === n) return L; return lastInfer(n); }
+function lastInfer(n){ try{ const lv = getPlayerLevel(n) || "post"; let sT = 0; loadSessions().forEach(r => { if((r.player || "").trim() === n && r.t > sT) sT = r.t; });
+let gT = 0; const keep = currentPlayerName, keepL = readingLevel; try{ currentPlayerName = n; readingLevel = lv; const g = gxGet(); Object.keys(g.screen || {}).forEach(k => { const t = Date.parse(k); if(!isNaN(t) && t > gT) gT = t + 12 * 36e5; }); }catch(e){} finally{ currentPlayerName = keep; readingLevel = keepL; }
+if(!gT){ const d = (gameStoreAll()[n] || {})[lv] || {}; if(Object.values(d).some(r => r && (r.plays || (r.stars && r.stars.some(Boolean))))) gT = 1; }
+if(!sT && !gT) return null; const mode = gT >= sT ? "cocuk" : (getEtkinlikView() === "uzman" ? "uzman" : "aile"); return { mode, level: lv, player: n, t: Math.max(sT, gT) }; }catch(e){ return null; } }
 const MODE_NAMES = { cocuk:"Zihin Adaları", aile:"Bilişsel Etkinlik · Aile", uzman:"Bilişsel Etkinlik · Uzman" };
 function renderResume(){ const L = lastGet(), btn = document.getElementById("returnSplashBtn"); let el = document.getElementById("resumeCard");
   const ok = L && L.player && localStorage.getItem(CONSENT_KEY) === "true" && MODE_NAMES[L.mode];
@@ -14070,6 +14075,60 @@ function resumeLast(rec){ const L = (rec && rec.mode) ? rec : lastGet(); if(!L) 
   try{ chooseReadingLevel(L.level); }catch(e){ console.error(e); proceedAfterOnboarding(); } }
 { const _crl = chooseReadingLevel; chooseReadingLevel = function(l){ const r = _crl.apply(this, arguments); try{ if(appMode === "aile" || appMode === "uzman") lastSave(appMode, currentPlayerName); }catch(e){} return r; }; }
 renderResume();
+// ===== HESAP (e-posta) VE BULUT SENKRONU =====
+const SYNC_KEYS = ["wm_game_v1","wm_gamex_v1","wm_game_route_v1","wm_game_limit_v1","wm_place_v1","wm_ages_v1","wm_player_levels_v1","wm_last_v1","wm_last_by","wm_who_last","wm_unlock_seen_v1","wm_predict_v1","wm_mola_v1","wm_daily_v1","wm_week_target_v1","wm_family_links_v1"];
+const SYNC_T_KEY = "wm_sync_t";
+const syncable = (k) => SYNC_KEYS.includes(k) || k.startsWith("wm_delay_");
+function acct(){ const f = window.__fb; return f && f.authApi ? f.authApi : null; }
+function acctEmail(){ const a = acct(); return a && !a.isAnon ? a.email : null; }
+function syncCollect(){ const d = {}; for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); if(syncable(k)) d[k] = localStorage.getItem(k); } return d; }
+let syncTimer = null, syncBusy = false, syncApplying = false, syncReady = false;   // hesaptaki veri indirilip karşılaştırılmadan yükleme yok
+async function syncUpload(force){ if(!acctEmail() || syncApplying || (!syncReady && !force)) return false; const { db, doc, setDoc } = window.__fb; const t = Date.now();
+try{ syncBusy = true; await setDoc(doc(db, "appState", window.__fb.uid), { uid: window.__fb.uid, t, data: JSON.stringify(syncCollect()) }); localStorage.setItem(SYNC_T_KEY, String(t)); return true; }
+catch(e){ console.error("Senkron yüklenemedi:", e); return false; } finally{ syncBusy = false; } }
+function syncSchedule(){ if(!acctEmail()) return; clearTimeout(syncTimer); syncTimer = setTimeout(syncUpload, 4000); }
+async function syncDownload(){ if(!acctEmail()) return "yok"; const { db, doc, getDoc } = window.__fb;
+try{ const snap = await getDoc(doc(db, "appState", window.__fb.uid)); const local = Number(localStorage.getItem(SYNC_T_KEY) || 0);
+if(!snap.exists()){ syncReady = true; await syncUpload(); return "ilk"; }
+const r = snap.data(); if(r.t > local){ const d = JSON.parse(r.data || "{}"); syncApplying = true;
+Object.keys(d).forEach(k => { try{ localStorage.setItem(k, d[k]); }catch(e){} }); localStorage.setItem(SYNC_T_KEY, String(r.t)); syncApplying = false; syncReady = true; return "indi"; }
+syncReady = true; if(local > r.t) await syncUpload(); return "güncel"; }
+catch(e){ console.error("Senkron indirilemedi:", e); return "hata"; } }
+{ const _set = Storage.prototype.setItem; Storage.prototype.setItem = function(k, v){ _set.call(this, k, v); try{ if(this === window.localStorage && !syncApplying && syncable(k)) syncSchedule(); }catch(e){} }; }
+document.addEventListener("visibilitychange", () => { if(document.visibilityState === "hidden" && syncTimer){ clearTimeout(syncTimer); syncUpload(); } });
+window.addEventListener("firebase-ready", async () => { if(!acctEmail()) return; const r = await syncDownload();
+if(r === "indi" && !sessionStorage.getItem("wm_sync_reloaded")){ sessionStorage.setItem("wm_sync_reloaded", "1"); location.reload(); } });
+const AUTH_ERR = { "auth/email-already-in-use":"Bu e-postayla zaten bir hesap var. “Giriş yap”ı kullanın.", "auth/credential-already-in-use":"Bu e-postayla zaten bir hesap var. “Giriş yap”ı kullanın.", "auth/invalid-email":"E-posta adresi geçerli görünmüyor.",
+"auth/weak-password":"Şifre en az 6 karakter olmalı.", "auth/wrong-password":"E-posta ya da şifre hatalı.", "auth/invalid-credential":"E-posta ya da şifre hatalı.", "auth/user-not-found":"Bu e-postayla bir hesap bulunamadı.",
+"auth/too-many-requests":"Çok fazla deneme yapıldı. Biraz sonra tekrar deneyin.", "auth/network-request-failed":"İnternet bağlantısı yok.", "auth/operation-not-allowed":"E-posta ile giriş Firebase'de henüz açılmamış (Authentication → Sign-in method → Email/Password)." };
+const authMsg = (e) => AUTH_ERR[e && e.code] || "İşlem tamamlanamadı. Lütfen tekrar deneyin.";
+function renderAcctSettings(){ const box = document.getElementById("acctBox"); if(!box) return; const a = acct(), em = acctEmail(), t = Number(localStorage.getItem(SYNC_T_KEY) || 0);
+if(!a){ box.innerHTML = `<div class="acct-note">Bulut bağlantısı yok. İnternete bağlanınca hesap seçenekleri görünür.</div>`; return; }
+if(em){ box.innerHTML = `<div class="acct-note"><b>${escHTML(em)}</b> ile giriş yapıldı.<br>Son eşitleme: ${t ? new Date(t).toLocaleString("tr-TR") : "henüz yok"}</div>
+<div class="acct-btns"><button type="button" class="fam-chip" id="acctSyncBtn">Şimdi eşitle</button><button type="button" class="fam-chip" id="acctOutBtn">Çıkış yap</button></div>`;
+document.getElementById("acctSyncBtn").onclick = async () => { const ok = await syncUpload(); showLevelFlash(ok ? "Eşitlendi ✓" : "Eşitlenemedi", ok ? "levelup" : "down"); renderAcctSettings(); };
+document.getElementById("acctOutBtn").onclick = async () => { if(!confirm("Çıkış yapılsın mı? Bu cihazdaki veriler silinmez ama artık hesapla eşitlenmez.")) return; try{ await a.signOut(); }catch(e){} location.reload(); };
+return; }
+box.innerHTML = `<div class="acct-note">Şu an ilerleme yalnızca bu cihazda. Bir hesap oluşturursanız kişiler, sonuçlar ve oyun ilerlemesi buluta kaydedilir; başka bir cihazdan aynı hesapla girdiğinizde kaldığınız yerden devam edersiniz.</div>
+<div class="acct-btns"><button type="button" class="fam-chip on" id="acctNewBtn">Hesap oluştur</button><button type="button" class="fam-chip" id="acctInBtn">Giriş yap</button></div>`;
+document.getElementById("acctNewBtn").onclick = () => acctForm("new"); document.getElementById("acctInBtn").onclick = () => acctForm("in"); }
+function acctForm(mode){ const sh = whoSheet(`<div class="mola-h">${mode === "new" ? "Hesap oluştur" : "Giriş yap"}</div>
+${mode === "new" ? `<div class="mola-s">Bu cihazdaki kişiler ve ilerleme bu hesaba taşınır.</div>` : `<div class="mola-s">Hesaptaki veriler bu cihaza gelir. Bu cihazda hesaba bağlı olmayan kayıtlar varsa hesaptakiyle değiştirilir.</div>`}
+<input id="acEmail" class="ex-input" type="email" autocomplete="email" placeholder="E-posta" style="width:100%;margin:6px 0">
+<input id="acPass" class="ex-input" type="password" autocomplete="${mode === "new" ? "new-password" : "current-password"}" placeholder="Şifre (en az 6 karakter)" style="width:100%;margin:6px 0">
+${mode === "new" ? `<input id="acPass2" class="ex-input" type="password" autocomplete="new-password" placeholder="Şifre (tekrar)" style="width:100%;margin:6px 0">` : ""}
+<div class="ex-err" id="acErr"></div><div class="mola-list"><button type="button" id="acGo"><span>${mode === "new" ? "✨" : "🔑"}</span>${mode === "new" ? "Hesabı oluştur" : "Giriş yap"}</button></div>
+${mode === "in" ? `<button type="button" class="age-link" id="acReset">Şifremi unuttum</button>` : ""}`);
+const err = (m) => { document.getElementById("acErr").textContent = m; };
+document.getElementById("acGo").onclick = async () => { const a = acct(); if(!a) return err("İnternet bağlantısı yok."); const em = document.getElementById("acEmail").value.trim(), pw = document.getElementById("acPass").value;
+if(!/^\S+@\S+\.\S+$/.test(em)) return err("E-posta adresi geçerli görünmüyor."); if(pw.length < 6) return err("Şifre en az 6 karakter olmalı.");
+if(mode === "new" && pw !== document.getElementById("acPass2").value) return err("Şifreler aynı değil.");
+err("Lütfen bekleyin…"); try{ if(mode === "new"){ await a.link(em, pw); syncReady = true; await syncUpload(true); sh.style.display = "none"; showLevelFlash("Hesap oluşturuldu ✓", "levelup"); renderAcctSettings(); }
+else { await a.signIn(em, pw); localStorage.setItem(SYNC_T_KEY, "0"); sessionStorage.removeItem("wm_sync_reloaded"); err("Veriler getiriliyor…"); setTimeout(() => location.reload(), 600); } }
+catch(e){ console.error(e); err(authMsg(e)); } };
+const rs = document.getElementById("acReset"); if(rs) rs.onclick = async () => { const em = document.getElementById("acEmail").value.trim(); if(!/^\S+@\S+\.\S+$/.test(em)) return err("Önce e-posta adresinizi yazın.");
+try{ await acct().reset(em); err("Şifre sıfırlama bağlantısı e-postanıza gönderildi."); }catch(e){ err(authMsg(e)); } }; }
+
 
 // ---- Ayarlar: dört başlık altında, açılır-kapanır bölümler ----
 (function settingsSections(){ try{ const inner = document.querySelector("#settingsScreen .settings-inner");
@@ -14077,7 +14136,7 @@ if(inner){ let wrap = null; [...inner.children].forEach(ch => { const isLab = ch
 if(isLab){ wrap = document.createElement("div"); wrap.className = "settings-group set-loose"; inner.insertBefore(wrap, ch); wrap.appendChild(ch); } else if(stop){ wrap = null; } else if(wrap){ wrap.appendChild(ch); } }); }
 const groups = [...document.querySelectorAll("#settingsScreen .settings-group")]; if(!groups.length) return;
 const S = [["👧 Çocuk", ["Günlük oyun süresi","Başlangıç değerlendirmesi","Tahmin et"]], ["🎯 Oyun ve zorluk", ["Adaptif zorluk","Uzman Modu'nda"]],
-["🔊 Ses ve görünüm", ["Ses efektleri","Altyazı","Sade görünüm","Titreşim","Kutlama","Erişilebilirlik","Yazı boyutu"]], ["💾 Veri ve cihaz", ["Oyun ilerlemesi yedeği","Kişiler ve veriler","Bu cihaz uzman","Sorun giderme"]]];
+["🔊 Ses ve görünüm", ["Ses efektleri","Altyazı","Sade görünüm","Titreşim","Kutlama","Erişilebilirlik","Yazı boyutu"]], ["💾 Hesap, veri ve cihaz", ["Hesap ve bulut","Oyun ilerlemesi yedeği","Kişiler ve veriler","Bu cihaz uzman","Sorun giderme"]]];
 const lab = (g) => ((g.querySelector(".settings-label") || {}).textContent || "").trim(); const host = groups[0].parentNode, mark = document.createElement("div"); host.insertBefore(mark, groups[0]);
 S.forEach(([title, keys], k) => { const d = document.createElement("details"); d.className = "set-sec"; if(k === 0) d.open = true; d.innerHTML = `<summary>${title}</summary>`;
 keys.forEach(key => groups.filter(g => lab(g).startsWith(key)).forEach(g => d.appendChild(g))); if(d.children.length > 1) host.insertBefore(d, mark); });
@@ -14114,9 +14173,10 @@ el.innerHTML = `<div class="hm-wrap">
 <div class="hm-row hm-head" id="hmHead">${cur ? `<span class="hm-av big" style="background:hsl(${whoHue(cur)},70%,88%)">${whoAvatar(cur)}</span><div class="hm-tx"><span class="hm-cap">Daha önce çalışanlar</span><b>${escHTML(cur)}</b><span>${sub(cur)}</span></div>` : guest ? `<span class="hm-av big" style="background:#FDE5C2">${zihniSVG("happy")}</span><div class="hm-tx"><b>Misafir</b><span>kayıt tutulmaz</span></div>` : `<span class="hm-av big" style="background:#EEF4F4;font-size:24px;color:#0A847E">?</span><div class="hm-tx"><b>Kişi seç</b><span>${names.length ? "daha önce çalışanlardan seçin" : "aşağıdan kişi ekleyin"}</span></div>`}<i class="hm-chev">${whoListOpen ? "▴" : "▾"}</i></div>
 ${whoListOpen ? `<div class="hm-list">${names.slice(0, 3).map(row).join("")}${names.length > 3 ? `<div class="hm-more">${names.slice(3).map(row).join("")}</div>` : ""}</div>` : ""}
 </div>
+${L && L.player && names.includes(L.player) && MODE_NAMES[L.mode] ? `<button type="button" class="hm-resume" id="hmResume"><span class="hm-play">▶</span><span><b>Kaldığın yerden devam</b><span>${escHTML(L.player)} · ${L.mode === "cocuk" ? "Zihin Adaları" : "Bilişsel Etkinlik"}</span></span></button>` : ""}
 <button type="button" class="hm-add hm-add-out" id="hmAdd">＋ Kişi ekle</button>
 <div class="hm-guest"><button type="button" id="hmGuest">Misafir girişi</button></div>
-${L && L.player && names.includes(L.player) && MODE_NAMES[L.mode] ? `<button type="button" class="hm-resume" id="hmResume"><span class="hm-play">▶</span><span><b>Kaldığın yerden devam</b><span>${escHTML(L.player)} · ${L.mode === "cocuk" ? "Zihin Adaları" : "Bilişsel Etkinlik"}</span></span></button>` : ""}
+
 <div class="hm-card hm-mode" id="hmEtk"><div class="hm-mh"><span class="hm-ic etk">👥</span><div><b>Bilişsel Etkinlik</b><span>Uzmanla veya aileyle birlikte</span></div><i class="hm-go">›</i></div>
 <div class="hm-seg"><button type="button" data-hview="uzman" class="${view === "uzman" ? "on" : ""}">💼 Uzman girişi</button><button type="button" data-hview="aile" class="${view === "aile" ? "on" : ""}">🏡 Aile girişi</button></div>
 ${view === "uzman" ? `<button type="button" class="hm-link" id="hmClients">Danışanlarım ve ödevler</button>` : ""}</div>
