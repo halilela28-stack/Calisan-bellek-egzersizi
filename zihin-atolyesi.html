@@ -381,6 +381,14 @@ html.hide-clock #timerDisplay{ visibility:hidden; }
 [data-mt], [data-mtbtn], [data-judge]{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 @media (orientation: portrait){ html.board-run #mainApp::after{ content:""; display:block; height:72vh; } }
 .tier-btn.usta{ background:linear-gradient(#FFF3C4,#FFE27A); border-color:#E0A100; color:#7A5600; } .tier-btn.usta.active{ background:linear-gradient(#FFD23F,#F5A524); color:#3D2B00; }
+#growthScreen{ position:fixed; inset:0; z-index:420; background:linear-gradient(#F3FAF0,#FDFCF6); display:none; justify-content:center; overflow-y:auto; padding:12px 12px calc(16px + env(safe-area-inset-bottom)); }
+.gr-sum{ background:#fff; border-radius:16px; padding:12px 14px; font-weight:700; line-height:1.5; margin:6px 0 10px; } .gr-note{ background:#FFF8E5; border:2px solid #F1DFC2; border-radius:16px; padding:12px 14px; font-size:14px; font-weight:600; line-height:1.5; margin-bottom:10px; }
+.gr-h{ font-weight:900; font-size:16px; margin:14px 0 6px; } .gr-list{ display:flex; flex-direction:column; gap:6px; } .gr-row{ display:flex; justify-content:space-between; align-items:center; gap:8px; background:#fff; border-radius:14px; padding:9px 12px; } .gr-row span{ display:block; font-size:12px; font-weight:600; color:var(--ink-soft); }
+.gr-row em{ font-style:normal; font-weight:900; font-size:12px; border-radius:9px; padding:3px 9px; white-space:nowrap; } .gr-row .t2{ background:#DDF5E7; color:#1B7A45; } .gr-row .t1{ background:#DDF1FF; color:#1E5FA8; } .gr-row .t0{ background:#FFF1D6; color:#9A6B00; } .gr-row .tz{ background:#EEF1F4; color:#6B7A88; }
+.resume-card{ display:flex; align-items:center; gap:12px; width:min(380px, 92%); margin:0 auto 12px; padding:14px 16px; border:0; border-radius:22px; background:linear-gradient(135deg,#1BB8AE,#0A847E); color:#fff; font-family:inherit; text-align:left; cursor:pointer; box-shadow:0 6px 0 #076A64; }
+.resume-card .rc-play{ flex:none; width:46px; height:46px; border-radius:50%; background:rgba(255,255,255,.22); display:flex; align-items:center; justify-content:center; font-size:20px; }
+.resume-card .rc-tx b{ display:block; font-size:18px; font-weight:900; } .resume-card .rc-tx span{ display:block; font-size:13px; font-weight:700; opacity:.92; margin-top:2px; }
+.onboard-next-btn.rc-alt{ background:#fff !important; color:var(--teal-dark) !important; box-shadow:0 4px 0 #CFE3E1 !important; border:2px solid #CFE3E1 !important; font-size:16px !important; }
 .rl-light{ width:110px; height:110px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:24px; color:#fff; box-shadow:0 6px 0 rgba(0,0,0,.2); } .rl-light.green{ background:#1FA463; } .rl-light.red{ background:#E5484D; }
 .rl-track{ position:relative; height:70px; background:#EAF4E4; border:3px solid #8BC56A; border-radius:18px; overflow:hidden; } .rl-prog{ position:absolute; left:0; top:0; bottom:0; background:#CFE8B8; } .rl-run{ position:absolute; top:10px; width:48px; height:48px; } .rl-flag{ position:absolute; right:6px; top:16px; font-size:30px; }
 .rl-track.caught{ animation:rlShake .4s; } @keyframes rlShake{ 25%{ transform:translateX(-8px); } 75%{ transform:translateX(8px); } }
@@ -2762,7 +2770,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.08-u</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.08-x</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -11241,6 +11249,36 @@ box.innerHTML = `<div style="font-size:13px;font-weight:700">${escHTML(nm)} · $
 <button type="button" class="fam-chip" id="placeRunBtn">${p ? "Yeniden değerlendir" : "Keşif turunu başlat"}</button>`;
 document.getElementById("placeRunBtn").onclick = () => placeStart(nm); }
 
+// ===== GELİŞİM HARİTASI (aile): güçlü yönler / gelişen alanlar; tanı dili ve kıyas yok =====
+const GR_CATS = () => CATEGORIES.filter(c => !c.hidden && c.id !== "goz-takip");
+function growthData(name, groups){ groups = groups || GR_CATS(); const nm = (name || "").trim(), since = Date.now() - 28 * 864e5, mid = Date.now() - 14 * 864e5;
+const recs = loadSessions().filter(r => r.player === nm && r.t >= since);
+const catOfLabel = (lb) => { const ex = EXERCISES.find(e => e.label === lb || (e.oldLabels || []).includes(lb)); return ex ? (CATEGORIES.find(c => !c.hidden && c.exerciseIds.includes(ex.id)) || {}).id : null; };
+const tierIx = (lb) => Math.max(0, TIERS.findIndex(x => x.label === lb));
+const gs = (gameStoreAll()[nm] || {})[readingLevel === "pre" ? "pre" : "post"] || {};
+const exOfLabel = (lb) => { const ex = EXERCISES.find(e => e.label === lb || (e.oldLabels || []).includes(lb)); return ex ? ex.id : null; };
+return groups.map(c => { const rs = recs.filter(r => c.okul ? c.exerciseIds.includes(exOfLabel(r.exerciseLabel)) : catOfLabel(r.exerciseLabel) === c.id), ok = (r) => (r.errors || 0) <= 1;
+const early = rs.filter(r => r.t < mid), late = rs.filter(r => r.t >= mid), rate = (a) => a.length ? a.filter(ok).length / a.length : null, avgT = (a) => a.length ? a.reduce((s, r) => s + tierIx(r.tier), 0) / a.length : null;
+const stars = c.exerciseIds.reduce((s, id) => s + ((gs[id] && gs[id].stars) ? gs[id].stars.filter(Boolean).length : 0), 0), crowns = c.exerciseIds.filter(id => gs[id] && gs[id].crown).length;
+const n = rs.length, R = rate(rs), up = (avgT(late) != null && avgT(early) != null && avgT(late) - avgT(early) >= 0.5) || (rate(late) != null && rate(early) != null && rate(late) - rate(early) >= 0.2);
+const days = n ? (Math.max(...rs.map(r => r.t)) - Math.min(...rs.map(r => r.t))) / 864e5 : 0;
+let st = "az"; if(n + stars >= 3){ if(n >= 3 && R >= 0.75 && avgT(rs) >= 1 || crowns > 0 || (n < 3 && stars >= 6)) st = "guclu"; else if(up) st = "gelisiyor"; else st = "pratik"; }
+const support = n >= 5 && days >= 14 && R < 0.4 && !up;
+return { c, n, stars, crowns, st, support, R }; }); }
+const GR_TXT = { guclu:["Güçlü yön","t2"], gelisiyor:["Gelişiyor","t1"], pratik:["Pratik sürüyor","t0"], az:["Henüz az veri","tz"] };
+function showGrowth(){ const nm = famProfile(); let el = document.getElementById("growthScreen"); if(!el){ el = document.createElement("div"); el.id = "growthScreen"; document.body.appendChild(el); }
+const D = growthData(nm), strong = D.filter(x => x.st === "guclu").map(x => x.c.label), grow = D.filter(x => x.st === "gelisiyor").map(x => x.c.label), sup = D.filter(x => x.support), P = placeGet(nm);
+const linked = typeof familyLinkLocal === "function" && familyLinkLocal();
+el.innerHTML = `<div class="adv-wrap"><div class="adv-top"><button type="button" class="mola-x" data-gr="close">✕</button><div><div class="adv-t1">Son 4 hafta</div><div class="adv-t2">${escHTML(nm)} · gelişim haritası</div></div></div>
+<div class="gr-sum">${strong.length ? `<div>🌟 <b>Güçlü yönler:</b> ${strong.join(", ")}</div>` : ""}${grow.length ? `<div>🌱 <b>Gelişen alanlar:</b> ${grow.join(", ")}</div>` : ""}${!strong.length && !grow.length ? `<div>Birkaç gün düzenli çalıştıkça burada çocuğunuzun güçlü yönleri ve gelişen alanları görünecek.</div>` : ""}</div>
+${sup.length ? `<div class="gr-note"><b>Bir öneri:</b> ${sup.map(x => x.c.label).join(", ")} alanında bir süredir zorlanma görünüyor. Bu bir değerlendirme ya da tanı değildir; çocuklar farklı hızlarda gelişir. İsterseniz bu özeti bir çocuk gelişim uzmanı, özel eğitim öğretmeni ya da dil ve konuşma terapistiyle paylaşabilirsiniz.${linked ? ` <i>Uzmanınız bu sonuçları görebiliyor.</i>` : `<button type="button" class="fam-cta ghost" data-gr="link" style="margin-top:8px">Uzmana bağlan</button>`}</div>` : ""}
+<div class="gr-list">${D.map(x => `<div class="gr-row"><div><b>${x.c.label}</b><span>${x.n ? `${x.n} çalışma` : ""}${x.n && x.stars ? " · " : ""}${x.stars ? `${x.stars} ⭐` : ""}${x.crowns ? ` · ${x.crowns} 👑` : ""}</span></div><em class="${GR_TXT[x.st][1]}">${GR_TXT[x.st][0]}</em></div>`).join("")}</div>
+  ${(() => { const O = growthData(nm, OKUL_SKILLS).filter(x => famExIds(x.c.id).length >= 3); return `<div class="gr-h">🎒 Okul becerileri</div><div class="gr-list">${O.map(x => `<div class="gr-row"><div><b>${x.c.label}</b><span>${x.n ? `${x.n} çalışma` : ""}${x.n && x.stars ? " · " : ""}${x.stars ? `${x.stars} ⭐` : ""}</span></div><em class="${GR_TXT[x.st][1]}">${GR_TXT[x.st][0]}</em></div>`).join("")}</div><div class="fam-sub" style="font-weight:600;margin:6px 0">Bir okul becerisini günlük oturumun hedefi yapmak için “Bugünün oturumu” ekranında hedef alanı değiştirin.</div>`; })()}
+${P ? `<div class="fam-sub" style="font-weight:600;margin:10px 0">Keşif turu (${new Date(P.t).toLocaleDateString("tr-TR")}): ${placeSummary(P)}</div>` : ""}
+<div class="fam-sub" style="font-weight:600;margin:10px 0 20px">Bu sayfa çocuğunuzun uygulamadaki çalışmalarını özetler; başka çocuklarla karşılaştırma yapmaz ve tanı koymaz.</div></div>`;
+el.style.display = "flex"; el.scrollTop = 0;
+el.querySelectorAll("[data-gr]").forEach(b => b.onclick = () => { el.style.display = "none"; if(b.dataset.gr === "link"){ try{ showLinkScreen(); }catch(e){} } }); }
+
 const NEW_MT = {
 build: {
 "hear-find": () => { const t = currentCombo().t, K = (isPre() ? [2, 2, 3] : [3, 4, 5])[t], G = (isPre() ? [4, 6, 6] : [6, 8, 9])[t];
@@ -14858,11 +14896,12 @@ function weekKey(d){ return todayKey(weekStart(d)); }
 function famStoreGet(key){ try{ return JSON.parse(localStorage.getItem(key) || "{}"); }catch(e){ return {}; } }
 function famStoreSet(key, v){ try{ localStorage.setItem(key, JSON.stringify(v)); }catch(e){} }
 function seededRand(seedStr){ let h = 2166136261; for(const c of seedStr){ h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 100000) / 100000; }; }
+const OKUL_SKILLS = [{ id:"okul-fonoloji", label:"Okumaya hazırlık: sesler ve heceler", okul:true, exerciseIds:["syl-touch", "syllable-count", "syl-blend", "rhyme-touch", "rhyme-say", "same-sound", "phon-manip", "nonword", "pk-train", "pk-rhyme"] },{ id:"okul-akicilik", label:"Okuma akıcılığı ve hızlı isimlendirme", okul:true, exerciseIds:["shape-color", "object-name", "number-color", "ran-letter", "sent-verify", "search-letter", "pair-match", "sem-decide"] },{ id:"okul-sayi", label:"Sayı ve erken matematik", okul:true, exerciseIds:["dot-count", "mental-math", "num-pattern", "balance", "pk-bridge", "trail-numbers", "number-find", "count-span"] },{ id:"okul-anlama", label:"Dinlediğini anlama ve yönergeler", okul:true, exerciseIds:["dir-follow", "listen-answer", "sent-pic", "word-pic", "wh-scene", "short-story", "story-recall", "concept-touch", "sent-listen"] },{ id:"okul-dikkat", label:"Sınıfta dikkat ve öz denetim", okul:true, exerciseIds:["go-no-go", "stop-signal", "vigilance", "touch-animal", "dual-task", "find-error", "pk-redlight", "flanker"] },{ id:"okul-yazma", label:"Yazmaya hazırlık: görsel-motor", okul:true, exerciseIds:["copy-design", "symmetry", "maze", "finger-trace", "block-design", "vis-draw", "trail-animal-fruit"] }];
 function famExIds(catId){
-const c = CATEGORIES.find(x => x.id === catId); if(!c) return [];
+const c = CATEGORIES.find(x => x.id === catId) || OKUL_SKILLS.find(x => x.id === catId); if(!c) return [];
 return c.exerciseIds.filter(id => { const ex = exerciseById(id); return ex && ex.readingLevel.includes(famLvl()) && !ex.isMotion; });
 }
-function famTargetOptions(){ return CATEGORIES.filter(c => !c.hidden && c.id !== "goz-takip" && famExIds(c.id).length >= 2); }
+function famTargetOptions(){ return CATEGORIES.filter(c => !c.hidden && c.id !== "goz-takip" && famExIds(c.id).length >= 2).concat(OKUL_SKILLS.filter(c => famExIds(c.id).length >= 3)); }
 function famTarget(){
 const prog = typeof familyProgram === "function" ? familyProgram() : null;
 if(prog && prog.target && famTargetOptions().some(c => c.id === prog.target)) return prog.target;   // uzmanın programı
@@ -14907,7 +14946,7 @@ return st[k];
 }
 function saveTodayPlan(plan){ const st = famStoreGet(DAILY_KEY); st[famProfile() + "|" + famLvl() + "|" + todayKey()] = plan; famStoreSet(DAILY_KEY, st); }
 function famLabel(id){ const ex = exerciseById(id); if(!ex) return ""; const i = ex.label.indexOf(": "); return i >= 0 ? ex.label.slice(i + 2) : ex.label; }
-function famCatName(catId){ const c = CATEGORIES.find(x => x.id === catId); return c ? (c.label || c.title || catId) : catId; }
+function famCatName(catId){ const c = CATEGORIES.find(x => x.id === catId) || OKUL_SKILLS.find(x => x.id === catId); return c ? (c.okul ? "🎒 " : "") + (c.label || c.title || catId) : catId; }
 function lastTierFor(id){
 const ex = exerciseById(id); if(!ex) return 0;
 const names = [ex.label].concat(ex.oldLabels || []);
@@ -14930,6 +14969,7 @@ box.innerHTML = `<button type="button" class="fh-today" id="fhTodayBtn">
 <span class="fh-tx"><div class="fh-t1">${all ? "Bugün tamam!" : "Bugünün oturumu"}</div><div class="fh-t2">${famProfile() === "Oyuncu" ? "Önce kişi seçin" : escHTML(famProfile())} · yaklaşık 12 dakika · hedef: ${famCatName(plan.target)}</div></span>
 <span class="fh-go">${all ? "Gör" : (n ? "Devam" : "Başla")}</span></button>
 ${recommendedCardHtml()}
+<button type="button" class="fh-week" id="fhGrowBtn"><span class="ic" style="background:#FFF3C4;color:#9A6B00">🌱</span><span><div class="t1">Gelişim haritası</div><div class="t2">Güçlü yönler ve gelişen alanlar</div></span></button>
 <button type="button" class="fh-week" id="fhWeekBtn"><span class="ic">${I_CHART}</span><span><div class="t1">Bu hafta</div><div class="t2">Çalışılan günler ve kısa gelişim özeti</div></span></button>
 <button type="button" class="fh-week" id="fhLinkBtn"><span class="ic" style="background:var(--teal-tint);color:var(--teal-dark)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></span>
 <span><div class="t1">${familyLinkLocal() ? "Uzmanınıza bağlı" : "Uzmana bağlan"}</div><div class="t2">${familyLinkLocal() ? (familyProgram() ? "Program: " + famCatName(familyProgram().target) + " · " + (familyProgram().days || []).map(d => DAY_SHORT[d]).join(", ") : "Uzmanınızın programı bekleniyor") : (otherLevelLink() ? "Bu çocuğun uzman programı " + (famLvl() === "pre" ? "Okul Sonrası" : "Okul Öncesi") + " seviyesinde; seviyeyi değiştirin" : "Uzmanınızın verdiği kodu girin")}</div></span></button>`;
@@ -14938,6 +14978,7 @@ const needPerson = () => famProfile() === "Oyuncu" && !familyLinkLocal();
 const guard = (fn) => () => { if(needPerson()) pickPerson(() => renderCategoryList(), { noGuest:true }); else fn(); };
 document.getElementById("fhTodayBtn").onclick = guard(showToday);
 document.getElementById("fhWeekBtn").onclick = guard(showWeek);
+document.getElementById("fhGrowBtn").onclick = guard(showGrowth);
 document.getElementById("fhLinkBtn").onclick = guard(showLinkScreen);
 box.querySelectorAll("[data-rec]").forEach(b => b.onclick = () => openRecommended(b.dataset.rec));
 try{ watchFamilyLink(); }catch(e){}
@@ -15025,7 +15066,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.08-u";
+const APP_VERSION = "2026.10.08-x";
 const LINK_LOCAL_KEY = "wm_family_links_v1";   // aile cihazında: kişi|seviye → kod + program önbelleği
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -15616,6 +15657,7 @@ sel.value = cur || "";
 sel.classList.toggle("unset", !cur);
 }
 function showIslandMap(){
+try{ lastSave("cocuk", gameProfile()); }catch(e){}
 exitGameMode();
 hideAllKidScreens();
 hideGameScreens();
@@ -17404,6 +17446,26 @@ document.getElementById("consentScreen").style.display = "flex";
 document.getElementById("returnSplashIcon").innerHTML = `<div class="logo-zihni">${zihniSVG("happy")}</div>`;
 document.getElementById("returnSloganText").textContent = randomItem(RETURN_SLOGANS);
 document.getElementById("returnSplashBtn").addEventListener("click", proceedAfterOnboarding);
+// ---- Kaldığın yerden devam: son mod + kişi + seviye ----
+const LAST_KEY = "wm_last_v1";
+function lastGet(){ try{ return JSON.parse(localStorage.getItem(LAST_KEY) || "null"); }catch(e){ return null; } }
+function lastSave(mode, player){ const p = (player || "").trim(); if(!p || p === "Misafir" || p === "Oyuncu") return; try{ localStorage.setItem(LAST_KEY, JSON.stringify({ mode, level: readingLevel === "pre" ? "pre" : "post", player: p, t: Date.now() })); }catch(e){} }
+const MODE_NAMES = { cocuk:"Zihin Adaları", aile:"Bilişsel Etkinlik · Aile", uzman:"Bilişsel Etkinlik · Uzman" };
+function renderResume(){ const L = lastGet(), btn = document.getElementById("returnSplashBtn"); let el = document.getElementById("resumeCard");
+  const ok = L && L.player && localStorage.getItem(CONSENT_KEY) === "true" && MODE_NAMES[L.mode];
+  if(!ok){ if(el) el.remove(); return; }
+  if(!el){ el = document.createElement("button"); el.type = "button"; el.id = "resumeCard"; el.className = "resume-card"; btn.parentNode.insertBefore(el, btn); el.addEventListener("click", resumeLast); }
+  el.innerHTML = `<span class="rc-play">▶</span><span class="rc-tx"><b>Kaldığın yerden devam</b><span>${escHTML(L.player)} · ${MODE_NAMES[L.mode]} · ${L.level === "pre" ? "Okul Öncesi" : "Okul Sonrası"}</span></span>`;
+  btn.textContent = "Başka kişi ya da mod"; btn.classList.add("rc-alt"); }
+function resumeLast(){ const L = lastGet(); if(!L) return proceedAfterOnboarding();
+  localStorage.setItem(SEEN_ONBOARDING_KEY, "true"); document.getElementById("returnSplashScreen").style.display = "none";
+  readingLevel = L.level; try{ applyLevelDefaultThresholds(readingLevel); }catch(e){}
+  if(L.mode === "cocuk"){ appMode = "cocuk"; currentPlayerName = L.player; try{ showIslandMap(); }catch(e){ proceedAfterOnboarding(); } return; }
+  try{ exitGameMode(); exitSessionMode(); exitRecMode(); hideFamScreens(); hideLinkScreens(); }catch(e){}
+  appMode = L.mode; pendingLevelPlayerName = L.player; pendingLevelPlayerIsNew = false;
+  try{ chooseReadingLevel(L.level); }catch(e){ console.error(e); proceedAfterOnboarding(); } }
+{ const _crl = chooseReadingLevel; chooseReadingLevel = function(l){ const r = _crl.apply(this, arguments); try{ if(appMode === "aile" || appMode === "uzman") lastSave(appMode, currentPlayerName); }catch(e){} return r; }; }
+renderResume();
 
 if(localStorage.getItem(SEEN_ONBOARDING_KEY) === "true"){
 onboardEntryScreen = "returnSplashScreen";
