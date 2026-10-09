@@ -369,6 +369,18 @@ html.hide-clock #timerDisplay{ visibility:hidden; }
 .adv-tx{ background:#fff; border-radius:16px; padding:12px 14px; margin:10px 0; font-weight:700; font-size:16px; line-height:1.4; box-shadow:0 3px 0 rgba(0,0,0,.05); }
 .adv-tasks{ display:flex; flex-direction:column; gap:8px; } .adv-task{ display:flex; align-items:center; gap:10px; background:#fff; border:3px solid #F1DFC2; border-radius:16px; padding:8px 10px; } .adv-task span{ font-size:20px; color:#E0A100; } .adv-task b{ flex:1; } .adv-task em{ color:#1FA463; font-weight:800; font-style:normal; } .adv-task.ok{ border-color:#BDE5CB; } .adv-task.ok span{ color:#1FA463; }
 .adv-nav{ display:flex; justify-content:space-between; margin-top:12px; gap:10px; }
+#placeSheet{ position:fixed; inset:0; z-index:470; background:rgba(20,30,40,.45); display:none; align-items:center; justify-content:center; padding:16px; }
+#placeScreen{ position:fixed; inset:0; z-index:465; background:linear-gradient(#E3F6F4, #F6FBFA); display:none; justify-content:center; overflow-y:auto; padding:12px 12px calc(16px + env(safe-area-inset-bottom)); }
+.place-top{ margin:calc(10px + env(safe-area-inset-top)) 0 10px; } .place-dots{ display:flex; gap:6px; justify-content:center; } .place-dots span{ width:28px; height:8px; border-radius:6px; background:#CFE3E1; } .place-dots .done{ background:#3CCFC0; } .place-dots .cur{ background:#0A847E; }
+.place-q{ text-align:center; font-weight:800; font-size:19px; margin:8px 0 10px; } .place-stim{ display:flex; justify-content:center; margin-bottom:12px; max-width:100%; overflow:hidden; } .ps-in{ display:inline-block; max-width:100%; } .ps-in > svg:only-child{ width:min(56vw, 220px); height:min(56vw, 220px); display:block; } .place-stim img{ max-height:34vh !important; width:auto !important; max-width:100% !important; object-fit:contain; } .place-stim > div{ max-width:100%; }
+.place-opts{ display:grid; gap:10px; justify-content:center; margin:0 auto; max-width:520px; } .place-opts .wm-pic.ok{ box-shadow:0 0 0 4px #1FA463; } .place-opts .wm-pic.bad{ box-shadow:0 0 0 4px #E5484D; }
+.place-res{ display:grid; grid-template-columns:1fr 1fr; gap:8px; max-width:360px; margin:12px auto 4px; text-align:left; } .place-res div{ background:#fff; border-radius:12px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center; gap:6px; font-size:14px; }
+.place-res span{ font-weight:900; font-size:13px; border-radius:8px; padding:2px 8px; } .place-res .t0{ background:#FFF1D6; color:#9A6B00; } .place-res .t1{ background:#DDF1FF; color:#1E5FA8; } .place-res .t2{ background:#DDF5E7; color:#1B7A45; }
+.place-res.small{ margin:6px 0; max-width:none; } .place-res.small div{ background:var(--panel); font-size:12px; padding:6px 8px; }
+.place-card{ display:flex; align-items:center; gap:10px; background:#fff; border-radius:18px; padding:10px 12px; margin:0 auto 10px; max-width:520px; box-shadow:0 4px 14px rgba(0,60,90,.12); } .place-card > span{ font-size:30px; } .place-card > div{ flex:1; font-size:13px; font-weight:600; color:var(--ink-soft); } .place-card b{ color:var(--ink); font-size:15px; } .place-card .gr-btn{ flex:none; padding:8px 16px; }
+[data-mt], [data-mtbtn], [data-judge]{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
+@media (orientation: portrait){ html.board-run #mainApp::after{ content:""; display:block; height:72vh; } }
+.tier-btn.usta{ background:linear-gradient(#FFF3C4,#FFE27A); border-color:#E0A100; color:#7A5600; } .tier-btn.usta.active{ background:linear-gradient(#FFD23F,#F5A524); color:#3D2B00; }
 .rl-light{ width:110px; height:110px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:24px; color:#fff; box-shadow:0 6px 0 rgba(0,0,0,.2); } .rl-light.green{ background:#1FA463; } .rl-light.red{ background:#E5484D; }
 .rl-track{ position:relative; height:70px; background:#EAF4E4; border:3px solid #8BC56A; border-radius:18px; overflow:hidden; } .rl-prog{ position:absolute; left:0; top:0; bottom:0; background:#CFE8B8; } .rl-run{ position:absolute; top:10px; width:48px; height:48px; } .rl-flag{ position:absolute; right:6px; top:16px; font-size:30px; }
 .rl-track.caught{ animation:rlShake .4s; } @keyframes rlShake{ 25%{ transform:translateX(-8px); } 75%{ transform:translateX(8px); } }
@@ -2750,7 +2762,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.08-r</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.08-u</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -2769,6 +2781,11 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-group" style="flex-wrap:wrap">
 <div class="settings-label">Oyun ilerlemesi yedeği<br><span style="font-size:12px;font-weight:600;color:var(--ink-soft)">Yıldızlar, ışıklar ve Zihni'nin dolabı bu cihazda saklanır. Telefon değişmeden önce yedek alın.</span></div>
 <div style="display:flex;gap:8px"><button type="button" class="btn-ghost" id="gameBackupBtn">Yedek al</button><button type="button" class="btn-ghost" id="gameRestoreBtn">Geri yükle</button><input type="file" id="gameRestoreFile" accept="application/json,.json" style="display:none"></div>
+</div>
+
+<div class="settings-group" style="flex-direction:column;align-items:stretch;gap:6px">
+<div class="settings-label">Başlangıç değerlendirmesi (keşif turu)<br><span style="font-size:12px;font-weight:600;color:var(--ink-soft)">Seçili kişinin alanlara göre başlangıç düzeyleri. Hiç yapılmamış çalışmalar bu düzeylerden başlar.</span></div>
+<div id="placeSettingsBox"></div>
 </div>
 
 <div class="settings-group">
@@ -3187,7 +3204,9 @@ const TIERS = [
 {label:"Başlangıç", rows:4, cols:4, eyeDurationMs:25000, eyeSpeedMs:4500, studyDurationMs:8000},
 {label:"Orta Düzey", rows:5, cols:4, eyeDurationMs:25000, eyeSpeedMs:2500, studyDurationMs:12000},
 {label:"Zor Düzey", rows:5, cols:5, eyeDurationMs:25000, eyeSpeedMs:1800, studyDurationMs:16000},
+{label:"Usta", rows:5, cols:5, eyeDurationMs:25000, eyeSpeedMs:1500, studyDurationMs:16000},
 ];
+const tierMax = (ex) => ex && ex.maxTier === 3 ? 3 : 2;   // Usta yalnızca ayarı yazılmış sayfalarda
 
 function randomItem(arr){
 if(isPre()){
@@ -7756,7 +7775,7 @@ stages: [ { label: "Ayna Gibi Tamamla", instruction: () => ``, example: () => ``
 id: "maze",
 readingLevel: ["pre","post"],
 label: "Labirent",
-isMt: true, attrs: [], speedFactor: 33,
+isMt: true, maxTier: 3, attrs: [], speedFactor: 33,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Çıkışı Bul", instruction: () => ``, example: () => `` } ]
@@ -7801,7 +7820,7 @@ stages: [ { label: "Aşama 1 · Sırala", instruction: () => ``, example: () => 
 id: "pair-match",
 readingLevel: ["pre","post"],
 label: "Aynı İkiliyi Bul",
-isMt: true, attrs: [], speedFactor: 5,
+isMt: true, maxTier: 3, attrs: [], speedFactor: 5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Hızla Bul", instruction: () => ``, example: () => `` } ]
@@ -7867,7 +7886,7 @@ stages: [ { label: "Dikkatini Koru", instruction: () => ``, example: () => `` } 
 id: "pos-nback",
 readingLevel: ["pre","post"],
 label: "Konum N-Geri",
-isMt: true, attrs: [], speedFactor: 2.5,
+isMt: true, maxTier: 3, attrs: [], speedFactor: 2.5,
 noAdaptive: true,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
@@ -7877,7 +7896,7 @@ stages: [ { label: "Aynı Yer mi?", instruction: () => ``, example: () => `` } ]
 id: "count-span",
 readingLevel: ["pre","post"],
 label: "Say ve Hatırla",
-isMt: true, attrs: [], speedFactor: 11.5,
+isMt: true, maxTier: 3, attrs: [], speedFactor: 11.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Say, Aklında Tut", instruction: () => ``, example: () => `` } ]
@@ -7904,7 +7923,7 @@ stages: [ { label: "Bak ve Seç", instruction: () => ``, example: () => `` } ]
 id: "route-mem",
 readingLevel: ["pre","post"],
 label: "Yolu Hatırla",
-isMt: true, attrs: [], speedFactor: 12,
+isMt: true, maxTier: 3, attrs: [], speedFactor: 12,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "İzle ve Tekrarla", instruction: () => ``, example: () => `` } ]
@@ -7940,7 +7959,7 @@ stages: [ { label: "Bak ve Cevapla", instruction: () => ``, example: () => `` } 
 id: "spot-diff",
 readingLevel: ["pre","post"],
 label: "Farkları Bul",
-isMt: true, attrs: [], speedFactor: 15.5,
+isMt: true, maxTier: 3, attrs: [], speedFactor: 15.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Karşılaştır ve Bul", instruction: () => ``, example: () => `` } ]
@@ -7976,7 +7995,7 @@ stages: [ { label: "Sonucu Bul", instruction: () => ``, example: () => `` } ]
 id: "sudoku",
 readingLevel: ["pre","post"],
 label: "Resimli Sudoku",
-isMt: true, attrs: [], speedFactor: 32,
+isMt: true, maxTier: 3, attrs: [], speedFactor: 32,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Tabloyu Doldur", instruction: () => ``, example: () => `` } ]
@@ -7985,7 +8004,7 @@ stages: [ { label: "Tabloyu Doldur", instruction: () => ``, example: () => `` } 
 id: "num-pattern",
 readingLevel: ["post"],
 label: "Sayı Örüntüsü",
-isMt: true, attrs: [], speedFactor: 8,
+isMt: true, maxTier: 3, attrs: [], speedFactor: 8,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Kuralı Bul", instruction: () => ``, example: () => `` } ]
@@ -8144,7 +8163,7 @@ stages: [ { label: "Oyna", instruction: () => ``, example: () => `` } ]
 id: "pk-simon",
 readingLevel: ["pre","post"],
 label: "Renk Simon",
-isMt: true, attrs: [], speedFactor: 10, noBolt: true, noAdaptive: true,
+isMt: true, maxTier: 3, attrs: [], speedFactor: 10, noBolt: true, noAdaptive: true,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Oyna", instruction: () => ``, example: () => `` } ]
@@ -8153,7 +8172,7 @@ stages: [ { label: "Oyna", instruction: () => ``, example: () => `` } ]
 id: "pk-light",
 readingLevel: ["pre","post"],
 label: "Deniz Feneri Işıkları",
-isMt: true, attrs: [], speedFactor: 10, noBolt: true, noAdaptive: true,
+isMt: true, maxTier: 3, attrs: [], speedFactor: 10, noBolt: true, noAdaptive: true,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Oyna", instruction: () => ``, example: () => `` } ]
@@ -8537,7 +8556,7 @@ const seq = [];
 const exs = currentCategoryExercises();
 TIERS.forEach((_, t)=>{
 exs.forEach((ex, e)=>{
-if((ex.minTier || 0) <= t){
+if((ex.minTier || 0) <= t && t <= tierMax(ex)){
 seq.push({t, e});
 }
 });
@@ -8728,8 +8747,9 @@ function renderTierRow(){
 const row = document.getElementById("tierRow");
 row.innerHTML = "";
 TIERS.forEach((tier, t)=>{
+if(t > tierMax(currentExercise())) return;
 const btn = document.createElement("button");
-btn.className = "tier-btn" + (t===currentCombo().t ? " active" : "");
+btn.className = "tier-btn" + (t===currentCombo().t ? " active" : "") + (t === 3 ? " usta" : "");
 btn.textContent = tier.label;
 btn.addEventListener("click", ()=>{
 goToIndex(findSeqIndex(t, currentCombo().e));
@@ -8746,7 +8766,7 @@ const t = currentCombo().t;
 const groups = currentCategory().exerciseGroups || [];
 const shownGroups = new Set();
 exs.forEach((ex, e)=>{
-if((ex.minTier || 0) > t) return;
+if((ex.minTier || 0) > t || t > tierMax(ex)) return;
 const grp = groups.find(g => g[1].includes(ex.id));
 if(grp && !shownGroups.has(grp[0])){
 shownGroups.add(grp[0]);
@@ -8845,7 +8865,9 @@ if(typeof gameMode !== "undefined" && gameMode){ sfx("go"); speakText(gameLine("
 { if(!landscapeMQ.matches){
 const bd = document.getElementById("board");
 bd.style.scrollMarginTop = "8px";
+document.documentElement.classList.add("board-run");   // kısa sayfalarda da tahta en üste kayabilsin
 bd.scrollIntoView({ behavior: "smooth", block: "start" });
+[500, 1000].forEach(ms => setTimeout(() => { try{ if(!timerRunning || landscapeMQ.matches) return; const r = bd.getBoundingClientRect(); if(r.top > 60 || r.top < -40) bd.scrollIntoView({ behavior: ms === 500 ? "smooth" : "auto", block: "start" }); }catch(e){} }, ms));
 } }
 if(currentExercise().isRecall){
 clearTimeout(recallHideTimeout);
@@ -8874,6 +8896,7 @@ if(gameMode){ setTimeout(gameAfterStop, 400); try{ renderGameWho(); }catch(e){} 
 }
 
 function resetTimer(){
+document.documentElement.classList.remove("board-run");
 clearInterval(timerInterval);
 timerRunning = false;
 stopEyeMotion();
@@ -9037,7 +9060,7 @@ if(isGood){
 successStreak++;
 if(successStreak >= 2){
 successStreak = 0;
-if(combo.t < TIERS.length - 1){
+if(combo.t < tierMax(ex)){
 moveTo(combo.t + 1, currentStageIndex, "up");
 } else if(useStages && currentStageIndex < baseStageCount(ex) - 1){
 moveTo(0, currentStageIndex + 1, "up");          // en zor düzey bitti: bir sonraki aşamaya, baştan
@@ -9048,7 +9071,7 @@ successStreak = 0;
 if(combo.t > 0){
 moveTo(combo.t - 1, currentStageIndex, "down");
 } else if(useStages && currentStageIndex > 0 && currentStageIndex < baseStageCount(ex)){
-moveTo(TIERS.length - 1, currentStageIndex - 1, "down");   // yeni aşamanın ilk düzeyi zor geldi: önceki aşamanın en zor düzeyine
+moveTo(tierMax(ex), currentStageIndex - 1, "down");   // yeni aşamanın ilk düzeyi zor geldi: önceki aşamanın en zor düzeyine
 }
 } else {
 successStreak = 0;
@@ -10102,6 +10125,11 @@ function cupsApply(){ const st = mtState, tr = st.trials[st.ti], box = document.
 box.querySelectorAll("[data-cup]").forEach(el => { const c = +el.dataset.cup; el.style.left = (st.slot.indexOf(c) * w + w * 0.1) + "px"; el.style.transform = st.lift && c === tr.ball ? "translateY(-46px)" : "translateY(0)"; el.style.transitionDuration = Math.round(tr.ms * 0.8 * (window.__wmSpeed || 1)) + "ms"; }); }
 function rlPaint(){ const st = mtState, l = document.getElementById("rlLight"); if(l){ l.className = "rl-light " + st.light; l.textContent = st.light === "green" ? "Koş!" : "Dur!"; } }
 function rlFlash(){ sayTask("Yakalandın!"); const a = document.getElementById("rlTrack"); if(a){ a.classList.remove("caught"); void a.offsetWidth; a.classList.add("caught"); } }
+function escPaint(){ const st = mtState, svg = document.getElementById("escSvg"); if(!svg || st.kind !== "esc"){ renderMtBoard(); return; } const n = st.n, c = Number(svg.dataset.c);
+const ctr = (i) => [((i % n) + 0.5) * c, (Math.floor(i / n) + 0.5) * c];
+const [px, py] = ctr(st.pos), me = svg.querySelector("#escMe"); if(me){ me.setAttribute("cx", px); me.setAttribute("cy", py); }
+st.cl.forEach((k, j) => { const t = svg.querySelector("#escCl" + j); if(t){ const [x, y] = ctr(k); t.setAttribute("x", x); t.setAttribute("y", y + c * 0.18); } });
+const s0 = svg.querySelector('[data-mt="0"]'); if(s0) s0.setAttribute("fill", st.flash ? "#FCE3E3" : "transparent"); }
 function escHit(){ const st = mtState; mtErr(); st.pos = 0; st.flash = true; setTimeout(() => { st.flash = false; }, 400); sayTask("Bulut! Baştan başla."); }
 function molDraw(){ const st = mtState, g = document.getElementById("pkMoles"); if(!g) return; g.querySelectorAll(".pk-hole").forEach((h, k) => { const on = st.cur && st.cur.h === k;
 h.innerHTML = on ? `<div class="pk-mole${st.cur.hit ? " hit" : ""}">${st.cur.hat ? `<span class="pk-hat"></span>` : ""}<span class="pk-eye l"></span><span class="pk-eye r"></span><span class="pk-nose"></span></div>` : ""; });
@@ -10656,7 +10684,7 @@ while(st.length){ const c = st[st.length - 1], r = Math.floor(c / n), k = c % n,
 if(r > 0 && !seen.has(c - n)) nb.push(["n", c - n]); if(k < n - 1 && !seen.has(c + 1)) nb.push(["e", c + 1]); if(r < n - 1 && !seen.has(c + n)) nb.push(["s", c + n]); if(k > 0 && !seen.has(c - 1)) nb.push(["w", c - 1]);
 if(!nb.length){ st.pop(); continue; } const [d, x] = randomItem(nb), op = { n:"s", s:"n", e:"w", w:"e" }[d]; W[c][d] = 0; W[x][op] = 0; seen.add(x); st.push(x); }
 return W; }
-function mazeTrials(){ const t = currentCombo().t, n = isPre() ? [4, 5, 6][t] : [6, 8, 10][t]; return Array.from({length: isPre() ? 2 : 2}, () => ({ n, walls: mazeGen(n) })); }
+function mazeTrials(){ const t = currentCombo().t, n = isPre() ? [4, 5, 6, 7][t] : [6, 8, 10, 11][t]; return Array.from({length: isPre() ? 2 : 2}, () => ({ n, walls: mazeGen(n) })); }
 
 // ===== ALGISAL AKIL YÜRÜTME (ek): matris tamamla, kural keşfi, terazi; sıradakini seç ve eşini seç genişletmesi =====
 const AA_SH = ["circle","square","triangle"], AA_COL = ["#E5484D","#2E6FD8","#F5C518","#1FA463"], AA_SHN = { circle:"daire", square:"kare", triangle:"üçgen" };
@@ -10803,9 +10831,9 @@ const PART_PAIRS = [ ["araba","tekerlek"], ["kuş","kanat"], ["ağaç","yaprak"]
 // ===== 2. aşama yeni yöntemler (A): işlemleme hızı, göz takip, yürütücü işlev, çalışan bellek =====
 // Aynı İkiliyi Bul: satırda tam olarak bir eş ikili var
 function pmTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 5 : 8;
-const mk = () => { if(pre){ const pool = shuffleArray(picPool()).slice(0, [4, 5, 5][t]); const dup = pool[0]; return shuffleArray(pool.concat([dup])).map(x => ({ k: x.n, h: qzPic(x.src) })); }
+const mk = () => { if(pre){ const pool = shuffleArray(picPool()).slice(0, [4, 5, 5, 6][t]); const dup = pool[0]; return shuffleArray(pool.concat([dup])).map(x => ({ k: x.n, h: qzPic(x.src) })); }
 if(t === 0){ const sh = shuffleArray(SHAPES.slice()).slice(0, 5), cols = shuffleArray(COLORS.slice()); const it = sh.map((s, i) => ({ k: s + cols[i], h: shapeSVG(s, cols[i]) })); return shuffleArray(it.concat([Object.assign({}, it[0])])); }
-if(t === 1){ const base = String(100 + Math.floor(Math.random() * 900)); const sims = new Set([base]); while(sims.size < 6){ const a = base.split(""); const i = Math.floor(Math.random() * 3), j = (i + 1 + Math.floor(Math.random() * 2)) % 3; [a[i], a[j]] = [a[j], a[i]]; if(Math.random() < 0.5) a[Math.floor(Math.random() * 3)] = String(Math.floor(Math.random() * 10)); sims.add(a.join("")); }
+if(t === 1 || t === 3){ const D = t === 3 ? 4 : 3, base = String(Math.pow(10, D - 1) + Math.floor(Math.random() * 9 * Math.pow(10, D - 1))); const sims = new Set([base]); while(sims.size < 6){ const a = base.split(""); const i = Math.floor(Math.random() * D), j = (i + 1 + Math.floor(Math.random() * (D - 1))) % D; [a[i], a[j]] = [a[j], a[i]]; if(Math.random() < 0.5) a[Math.floor(Math.random() * D)] = String(Math.floor(Math.random() * 10)); sims.add(a.join("")); }
 const arr = [...sims].slice(0, 6); return shuffleArray(arr.concat([base])).map(v => ({ k: v, h:`<b style="font-size:22px;letter-spacing:1px">${v}</b>` })); }
 const L = ["b","d","p","q","ğ","g"], mkw = () => Array.from({length:3}, () => randomItem(L)).join(""); const base = mkw(); const set = new Set([base]); while(set.size < 6) set.add(mkw());
 return shuffleArray([...set].concat([base])).map(v => ({ k: v, h:`<b style="font-size:24px;font-family:'Trebuchet MS',sans-serif">${v}</b>` })); };
@@ -10837,11 +10865,11 @@ if(!pre && Math.random() < 0.35) return Math.random() < 0.5 ? { sh:"circle", col
 return { sh: randomItem(["circle","square","triangle","heart"]), col: randomItem(["#2E6FD8","#1FA463","#F5A524","#8B5CF6"]) }; });
 if(!seq.some(x => x.tg)) seq[5] = { sh:"star", col:"#E5484D", tg:true }; return { seq, ms }; }
 // Konum N-Geri
-function pnbBuild(){ const t = currentCombo().t, pre = isPre(), n = pre ? 1 : [1, 2, 2][t], L = pre ? [10, 12, 14][t] : [14, 16, 20][t], seq = [];
+function pnbBuild(){ const t = currentCombo().t, pre = isPre(), n = pre ? [1, 1, 1, 2][t] : [1, 2, 2, 3][t], L = pre ? [10, 12, 14, 14][t] : [14, 16, 20, 22][t], seq = [];
 for(let i = 0; i < L; i++){ if(i >= n && Math.random() < 0.3) seq.push(seq[i - n]); else { let v; do{ v = Math.floor(Math.random() * 9); } while(i >= n && v === seq[i - n]); seq.push(v); } }
 return { n, seq, ms: pre ? 1900 : 1600 }; }
 // Say ve Hatırla (sayma aralığı)
-function cspTrials(){ const t = currentCombo().t, L = (isPre() ? [2, 2, 3] : [2, 3, 4])[t];
+function cspTrials(){ const t = currentCombo().t, L = (isPre() ? [2, 2, 3, 4] : [2, 3, 4, 5])[t];
 return Array.from({length:3}, () => ({ counts: Array.from({length:L}, () => 2 + Math.floor(Math.random() * (isPre() ? 3 : 5))) })); }
 
 // ===== 2. aşama yeni yöntemler (B): sözel bellek, görsel bellek, sözel organizasyon, sözel kavrama, görsel organizasyon, algısal =====
@@ -10856,7 +10884,7 @@ const im = (x, o) => `<div style="width:100%;height:100%;position:relative;${o.f
 const orig = im(a, {}); let lures = pre ? [im(a, { flip:true }), im(b, {})] : t === 0 ? [im(a, { flip:true }), im(b, {})] : t === 1 ? [im(a, { flip:true }), im(a, { hue:150 }), im(b, {})] : [im(a, { flip:true }), im(a, { hue:150 }), im(a, { patch:[30 + Math.random() * 20, 25 + Math.random() * 30] })];
 const opts = shuffleArray([orig].concat(lures)); return { study: orig, opts, ans: opts.indexOf(orig), ms: pre ? 2600 : [2200, 1800, 1500][t] }; }); }
 // Yolu Hatırla (sıralı uzamsal)
-function routeTrials(){ const t = currentCombo().t, pre = isPre(), n = pre ? [3, 4, 4][t] : [4, 5, 5][t], L = pre ? [3, 4, 5][t] : [4, 6, 8][t];
+function routeTrials(){ const t = currentCombo().t, pre = isPre(), n = pre ? [3, 4, 4, 5][t] : [4, 5, 5, 6][t], L = pre ? [3, 4, 5, 6][t] : [4, 6, 8, 10][t];
 return Array.from({length:3}, () => { let path; let g = 0; do{ path = [Math.floor(Math.random() * n * n)];
 while(path.length < L){ const c = path[path.length - 1], r = Math.floor(c / n), k = c % n, nb = [[r - 1, k], [r + 1, k], [r, k - 1], [r, k + 1]].filter(([y, x]) => y >= 0 && y < n && x >= 0 && x < n).map(([y, x]) => y * n + x).filter(x => !path.includes(x)); if(!nb.length) break; path.push(randomItem(nb)); } } while(path.length < L && g++ < 50);
 return { n, path }; }); }
@@ -10888,7 +10916,7 @@ function whTrials(){ const t = currentCombo().t, sc = pickScene(), N = [4, 5, 6]
 return shuffleArray(sc.q).slice(0, N).map(([q, a]) => { const near = shuffleArray(sc.q.map(x => x[1]).filter(x => x !== a)), far = shuffleArray(allA.filter(x => x !== a && !near.includes(x)));
 return qzMake(`<img class="wh-img" src="${SCENE_IMAGES[sc.k]}" alt="" style="display:block;width:100%;max-width:340px;border-radius:12px;margin:0 auto">`, [a].concat(near.slice(0, t >= 1 ? 2 : 1), far).slice(0, t === 0 ? 3 : 4).map(x => `<b style="font-size:16px">${x}</b>`), 0, { prompt:`<b>${WH_FIX(q)}</b>`, raw:true, fixed:true, text:true, say: WH_FIX(q), replay:true }); }); }
 // Farkları Bul (kodla çizilen iki sahne)
-function sdTrials(){ const t = currentCombo().t, pre = isPre(), slots = pre ? 6 : [8, 9, 12][t], D = pre ? [2, 3, 3][t] : [3, 4, 5][t], cols = slots <= 6 ? 3 : slots <= 9 ? 3 : 4;
+function sdTrials(){ const t = currentCombo().t, pre = isPre(), slots = pre ? [6, 6, 6, 9][t] : [8, 9, 12, 12][t], D = pre ? [2, 3, 3, 4][t] : [3, 4, 5, 6][t], cols = slots <= 6 ? 3 : slots <= 9 ? 3 : 4;
 return Array.from({length: pre ? 2 : 2}, () => { const base = Array.from({length:slots}, () => ({ sh: randomItem(["circle","square","triangle","star","heart"]), col: randomItem(COLORS) }));
 const diff = shuffleArray(base.map((_, i) => i)).slice(0, D), right = base.map((b, i) => { if(!diff.includes(i)) return Object.assign({}, b); const kind = randomItem(["col","sh","gone"]);
 if(kind === "col") return Object.assign({}, b, { col: randomItem(COLORS.filter(c => c !== b.col)) }); if(kind === "sh") return Object.assign({}, b, { sh: randomItem(["circle","square","triangle","star","heart"].filter(s => s !== b.sh)) }); return Object.assign({}, b, { gone:true }); });
@@ -10922,18 +10950,20 @@ return shuffleArray(stories.map((s, i) => i)).slice(0, pre ? 4 : 5).map(i => { c
 const img = (src) => `<img src="${src}" alt="" style="width:100%;height:100%;object-fit:contain">`;
 return qzMake(`<div class="wm-card" style="width:150px;height:110px;margin:0 auto;padding:3px">${img(stories[i][0])}</div>`, [i].concat(oth).map(k => img(stories[k][1])), 0, { prompt:"Bu olayın <b>sonunda</b> ne olur?", raw:true, fixed:true, cell:110 }); }); }
 // Resimli Sudoku (her satır ve sütunda her resim bir kez)
-function sdkTrials(){ const t = currentCombo().t, pre = isPre(), n = pre ? 3 : [3, 4, 4][t], blanks = pre ? [2, 3, 4][t] : [4, 6, 9][t];
+function sdkTrials(){ const t = currentCombo().t, pre = isPre(), n = pre ? [3, 3, 3, 4][t] : [3, 4, 4, 4][t], blanks = pre ? [2, 3, 4, 5][t] : [4, 6, 9, 12][t];
 const fr = shuffleArray([FRUIT_VEG_IMAGES.apple, FRUIT_VEG_IMAGES.banana, FRUIT_VEG_IMAGES.strawberry, FRUIT_VEG_IMAGES.grapes].filter(Boolean)).slice(0, n);
 return Array.from({length:2}, () => { const p = shuffleArray([...Array(n).keys()]), rows = shuffleArray([...Array(n).keys()]), cols = shuffleArray([...Array(n).keys()]);
 const sol = Array.from({length: n * n}, (_, i) => p[(rows[Math.floor(i / n)] + cols[i % n]) % n]); const hide = new Set(shuffleArray([...Array(n * n).keys()]).slice(0, blanks));
 return { n, sol, given: sol.map((v, i) => hide.has(i) ? null : v), pics: fr }; }); }
 // Sayı Örüntüsü (okul sonrası)
 function npTrials(){ const t = currentCombo().t;
-return Array.from({length:6}, () => { let seq, ty = t === 0 ? "add" : t === 1 ? randomItem(["sub","mul","add"]) : randomItem(["grow","alt","mul"]);
+return Array.from({length:6}, () => { let seq, ty = t === 0 ? "add" : t === 1 ? randomItem(["sub","mul","add"]) : t === 2 ? randomItem(["grow","alt","mul"]) : randomItem(["x2p1","fib","grow"]);
 if(ty === "add"){ const a = 1 + Math.floor(Math.random() * 9), d = 1 + Math.floor(Math.random() * 5); seq = [0, 1, 2, 3, 4].map(i => a + i * d); }
 else if(ty === "sub"){ const d = 1 + Math.floor(Math.random() * 4), a = 20 + Math.floor(Math.random() * 10); seq = [0, 1, 2, 3, 4].map(i => a - i * d); }
 else if(ty === "mul"){ const a = 1 + Math.floor(Math.random() * 3); seq = [0, 1, 2, 3, 4].map(i => a * Math.pow(2, i)); }
 else if(ty === "grow"){ const a = 1 + Math.floor(Math.random() * 5); seq = [a]; for(let i = 1; i < 5; i++) seq.push(seq[i - 1] + i); }
+else if(ty === "x2p1"){ const a = 1 + Math.floor(Math.random() * 3); seq = [a]; for(let i = 1; i < 5; i++) seq.push(seq[i - 1] * 2 + 1); }
+else if(ty === "fib"){ const a = 1 + Math.floor(Math.random() * 2), b = a + 1 + Math.floor(Math.random() * 2); seq = [a, b]; while(seq.length < 5) seq.push(seq[seq.length - 1] + seq[seq.length - 2]); }
 else { const a = 2 + Math.floor(Math.random() * 5), x = 2 + Math.floor(Math.random() * 3), y = 1; seq = [a]; for(let i = 1; i < 5; i++) seq.push(seq[i - 1] + (i % 2 ? x : -y)); }
 const ans = seq[4], opts = shuffleArray(Array.from(new Set([ans, ans + 1, ans - 1, ans + 2, seq[3] + (seq[3] - seq[2])]))).filter(v => v !== ans).slice(0, 3);
 return qzMake(`<div style="display:flex;gap:6px;justify-content:center;font-size:24px;font-weight:900">${seq.slice(0, 4).map(v => `<span class="anl-w">${v}</span>`).join("")}<span class="anl-w q">?</span></div>`, [ans].concat(opts).map(v => `<b style="font-size:22px">${v}</b>`), 0, { prompt:"<b>Sırada</b> hangi sayı var?", raw:true, fixed:true, text:true }); }); }
@@ -11032,10 +11062,10 @@ return Array.from({length:4}, () => { const pool = shuffleArray(picPool()), inBa
 const opts = askIn ? shuffleArray([inBag[0]].concat(out.slice(0, 2))) : shuffleArray(inBag.slice(0, Math.min(K, 3)).concat([out[0]]));
 return { inBag, opts, ans: askIn ? opts.indexOf(inBag[0]) : opts.indexOf(out[0]), askIn }; }); }
 // Renk Simon ve Deniz Feneri (giderek uzayan dizi)
-function smnCfg(){ const t = currentCombo().t, pre = isPre(); return { target: pre ? [3, 4, 5][t] : [5, 7, 9][t], ms: (pre ? [800, 700, 650] : [650, 550, 450])[t] }; }
-function lhCfg(){ const t = currentCombo().t, pre = isPre(); const K = pre ? 4 : [6, 7, 8][t], pts = []; let g = 0;
+function smnCfg(){ const t = currentCombo().t, pre = isPre(); return { target: pre ? [3, 4, 5, 6][t] : [5, 7, 9, 11][t], ms: (pre ? [800, 700, 650, 600] : [650, 550, 450, 400])[t] }; }
+function lhCfg(){ const t = currentCombo().t, pre = isPre(); const K = pre ? [4, 4, 4, 5][t] : [6, 7, 8, 9][t], pts = []; let g = 0;
 while(pts.length < K && g++ < 400){ const x = 12 + Math.random() * 76, y = 18 + Math.random() * 62; if(pts.every(p => Math.hypot(p[0] - x, p[1] - y) > 18)) pts.push([x, y]); }
-return { pts, target: pre ? [3, 4, 5][t] : [4, 6, 8][t], ms: (pre ? [900, 800, 700] : [750, 650, 550])[t] }; }
+return { pts, target: pre ? [3, 4, 5, 6][t] : [4, 6, 8, 10][t], ms: (pre ? [900, 800, 700, 650] : [750, 650, 550, 480])[t] }; }
 const LH_SVG = (on) => `<svg viewBox="0 0 40 60" width="100%" height="100%"><path d="M14 56 L17 20 H23 L26 56 Z" fill="#fff" stroke="#2B3A4A" stroke-width="2"/><path d="M15.5 34h9M15 46h10" stroke="#E5484D" stroke-width="4"/><rect x="14" y="12" width="12" height="9" rx="2" fill="${on ? "#FFE27A" : "#C9D3DE"}" stroke="#2B3A4A" stroke-width="2"/><path d="M13 12 L20 4 L27 12 Z" fill="#E5484D" stroke="#2B3A4A" stroke-width="2"/>${on ? `<path d="M26 16 L40 10 M26 17 L40 22 M14 16 L0 10 M14 17 L0 22" stroke="#FFD23F" stroke-width="3" stroke-linecap="round"/>` : ""}</svg>`;
 
 // ===== OYUN PARKI (2. grup): dil, mantık, görsel-uzamsal =====
@@ -11133,6 +11163,83 @@ else if(a === "go"){ showAdventure(advState().adv.ch); }
 else if(a === "frag"){ const g2 = advState(); g2.adv.frag.push(k); g2.adv.ch = Math.min(7, k + 1); g2.light = (g2.light || 0) + 3; gxSave(g2); gameSfx("correct"); b.classList.add("got"); speakText("Bir parça buldun! Üç ışık kazandın."); setTimeout(() => showAdventure(k), 900); }
 else if(a === "light"){ const g2 = advState(); g2.adv.lit = true; g2.light = (g2.light || 0) + 10; gxSave(g2); gameSfx("correct"); speakText("Fener yeniden yanıyor! On ışık kazandın!"); showAdventure(k); } });
 el.querySelectorAll("[data-adv-play]").forEach(b => b.onclick = () => { el.style.display = "none"; startGameStop(b.dataset.advPlay, "macera"); }); }
+
+// ===== KEŞİF TURU: yeni kişiler için alan alan başlangıç düzeyi (kişi + seviye başına saklanır) =====
+const PLACE_KEY = "wm_place_v1", PLACE_REDO_DAYS = 42;
+const PLACE_DOMS = [
+{ k:"hiz",    nm:"Hız",            cats:["islemleme-hizi","oyun-parki"], kind:"qz", q:"sem-decide", lim:[6000, 4000] },
+{ k:"dikkat", nm:"Dikkat",         cats:["yurutucu-islev"],               kind:"qz", q:"arrow-touch", lim:[6000, 4000] },
+{ k:"bellek", nm:"Bellek",         cats:["calisan-bellek","sozel-bellek"], kind:"span" },
+{ k:"resim",  nm:"Görsel bellek",  cats:["gorsel-bellek"],                kind:"vis" },
+{ k:"gorsel", nm:"Görsel düşünme", cats:["gorsel-organizasyon"],          kind:"qz", q:"mental-rot" },
+{ k:"mantik", nm:"Mantık",         cats:["algisal-akil-yurutme"],         kind:"qz", q:"matrix-fill" },
+{ k:"dil",    nm:"Sözcükler",      cats:["sozel-kavrama","sozel-organizasyon"], kind:"qz", q:"word-pic" } ];
+const PLACE_TIER = ["Başlangıç","Orta","Zor"];
+function placeAll(){ try{ return JSON.parse(localStorage.getItem(PLACE_KEY) || "{}"); }catch(e){ return {}; } }
+function placeGet(name, lvl){ const n = (name || "").trim(); if(!n || n === "Misafir") return null; return ((placeAll()[n] || {})[lvl || (readingLevel === "pre" ? "pre" : "post")]) || null; }
+function placeSave(name, lvl, rec){ const d = placeAll(), n = name.trim(); d[n] = d[n] || {}; d[n][lvl] = rec; try{ localStorage.setItem(PLACE_KEY, JSON.stringify(d)); }catch(e){} }
+function placeDue(name){ const p = placeGet(name); return !p || (Date.now() - p.t) > PLACE_REDO_DAYS * 864e5; }
+// bir çalışmanın yerleştirmeye göre başlangıç düzeyi (yoksa null)
+function placedTierFor(exId, name){ const p = placeGet(name != null ? name : currentPlayerName); if(!p) return null; const c = CATEGORIES.find(c => c.exerciseIds.includes(exId)); if(!c) return null;
+const d = PLACE_DOMS.find(d => d.cats.includes(c.id)); if(d) return p.dom[d.k] ?? null;
+if(c.id === "goz-takip") return null; const v = Object.values(p.dom); return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null; }
+function placeSummary(p){ if(!p) return ""; const e = Object.entries(p.dom), hi = e.filter(([, v]) => v === 2).map(([k]) => PLACE_DOMS.find(d => d.k === k).nm), lo = e.filter(([, v]) => v === 0).map(([k]) => PLACE_DOMS.find(d => d.k === k).nm);
+return [hi.length ? `Güçlü: ${hi.join(", ")}` : "", lo.length ? `Gelişen: ${lo.join(", ")}` : ""].filter(Boolean).join(" · ") || "Bütün alanlar dengeli"; }
+// soru üretimi: hazır üreticiler istenen düzeyde çağrılır
+function placeQz(q, tier){ const save = currentCombo; try{ currentCombo = () => Object.assign({}, save(), { t: tier }); const arr = QZ[q](); return randomItem(arr); } finally { currentCombo = save; } }
+let placeRun = null;
+function placePool(){ const C = qzCats(), seen = new Set(), out = []; const add = (arr) => (arr || []).forEach(x => { if(x && x.src && !seen.has(x.src)){ seen.add(x.src); out.push(x); } });
+add(picPool()); ["wild","vehicle","toy","meyve","sebze","clothes","kitchen"].forEach(k => add(C[k] && C[k].items));
+const R = placeRun, recent = (R && R.recent) || []; let pool = shuffleArray(out.filter(x => !recent.includes(x.src))); if(pool.length < 12) pool = shuffleArray(out);
+if(R){ R.recent = recent.concat(pool.slice(0, 9).map(x => x.src)).slice(-18); } return pool; }
+function placeOffer(name){ if(!name || name === "Misafir") return; let el = document.getElementById("placeSheet"); if(!el){ el = document.createElement("div"); el.id = "placeSheet"; document.body.appendChild(el); }
+el.innerHTML = `<div class="mola-card"><div style="width:90px;height:90px;margin:0 auto">${zihniSVG("happy")}</div><div class="mola-h">Keşif turu</div><div class="mola-s"><b>${escHTML(name)}</b> için Zihni ile 3–4 dakikalık bir keşif turu oynansın mı? Çalışmalar çocuğun düzeyine uygun yerden başlar.</div>
+<div class="mola-list"><button type="button" data-po="go"><span>🧭</span>Şimdi oyna</button><button type="button" data-po="later"><span>⏰</span>Sonra</button></div></div>`;
+el.style.display = "flex"; el.querySelector('[data-po="go"]').onclick = () => { el.style.display = "none"; placeStart(name); }; el.querySelector('[data-po="later"]').onclick = () => { el.style.display = "none"; }; }
+function placeStart(name){ const lvl = readingLevel === "pre" ? "pre" : "post"; placeRun = { name, lvl, di:0, tier:1, cnt:[0, 0, 0], n:[0, 0, 0], res:{}, items:0 };
+let el = document.getElementById("placeScreen"); if(!el){ el = document.createElement("div"); el.id = "placeScreen"; document.body.appendChild(el); }
+el.style.display = "flex"; el.innerHTML = `<div class="adv-wrap" style="text-align:center"><div style="width:110px;height:110px;margin:20px auto 6px">${zihniSVG("happy")}</div><div class="mola-h">Zihni ile keşif turu!</div><div class="mola-s">Yedi küçük oyun var. Elinden geldiğince dikkatli oyna, acele etmene gerek yok.</div><div class="mola-list" style="max-width:300px;margin:0 auto"><button type="button" id="placeGo"><span>▶️</span>Başla</button></div></div>`;
+speakText("Zihni ile keşif turuna hazır mısın?"); document.getElementById("placeGo").onclick = placeNext; }
+function placeNext(){ const R = placeRun; if(!R) return; if(R.di >= PLACE_DOMS.length) return placeFinish();
+const d = PLACE_DOMS[R.di]; R.items++; const myItem = R.item = (R.item || 0) + 1; const el = document.getElementById("placeScreen");
+const head = `<div class="place-top"><div class="place-dots">${PLACE_DOMS.map((_, i) => `<span class="${i < R.di ? "done" : i === R.di ? "cur" : ""}"></span>`).join("")}</div></div>`;
+const answer = (ok) => { if(placeRun !== R || R.item !== myItem || R.answered === myItem) return; R.answered = myItem; R.n[R.tier]++; if(ok) R.cnt[R.tier]++; gameSfx(ok ? "correct" : "pop");
+if(R.n[R.tier] < 2) return setTimeout(placeNext, 450);
+let lv = null; if(R.tier === 1){ if(R.cnt[1] === 2){ R.tier = 2; return setTimeout(placeNext, 450); } lv = R.cnt[1] === 1 ? 1 : 0; } else lv = R.cnt[2] === 2 ? 2 : 1;
+R.res[d.k] = lv; R.di++; R.tier = 1; R.cnt = [0, 0, 0]; R.n = [0, 0, 0]; setTimeout(placeNext, 550); };
+if(d.kind === "qz"){ const tr = placeQz(d.q, R.tier); R.cur = tr; const t0 = performance.now(), lim = d.lim ? d.lim[R.lvl === "pre" ? 0 : 1] : null;
+const cell = Math.min(tr.cell || 104, (window.innerWidth - 60) / Math.min(tr.opts.length, 3));
+el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q">${tr.prompt || ""}</div>${tr.say && tr.replay ? `<button type="button" class="qz-replay" id="placeRep">🔊 Bir daha dinle</button>` : ""}<div class="place-stim"><div class="ps-in">${tr.stim || ""}</div></div>
+<div class="place-opts" style="grid-template-columns:repeat(${Math.min(tr.opts.length, tr.text ? 2 : 3)}, ${tr.text ? "minmax(0,1fr)" : cell + "px"})">${tr.opts.map((o, i) => `<button type="button" class="wm-pic${tr.text ? " qz-txt" : ""}" data-po-a="${i}" style="${tr.text ? "min-height:64px" : `width:${cell}px;height:${cell}px`};padding:6px">${o}</button>`).join("")}</div></div>`;
+{ const st = el.querySelector(".place-stim"), c = st && st.querySelector(".ps-in"); if(c){ const maxH = window.innerHeight * 0.36, f = Math.min(1, st.clientWidth / Math.max(1, c.scrollWidth), maxH / Math.max(1, c.scrollHeight)); if(f < 1){ c.style.transform = `scale(${f})`; c.style.transformOrigin = "center top"; st.style.height = (c.scrollHeight * f) + "px"; } } }
+if(tr.say) speakText(tr.say); const rp = document.getElementById("placeRep"); if(rp) rp.onclick = () => speakText(tr.say);
+el.querySelectorAll("[data-po-a]").forEach(b => b.onclick = () => { if(R.answered === myItem) return; const ok = Number(b.dataset.poA) === tr.ans && (!lim || performance.now() - t0 <= lim); b.classList.add(ok ? "ok" : "bad"); answer(ok); }); return; }
+const pool = placePool();
+if(d.kind === "span"){ const K = (R.lvl === "pre" ? [2, 3, 4] : [3, 4, 5])[R.tier], seq = pool.slice(0, K), opts = shuffleArray(seq.concat(pool.slice(K, K + 2))); R.cur = { seq, opts }; let k = 0;
+const show = () => { if(k < seq.length){ el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q">Sırayı aklında tut…</div><div class="wm-card" style="width:170px;height:170px;margin:20px auto;padding:8px">${qzPic(seq[k].src)}</div></div>`; k++; setTimeout(show, R.lvl === "pre" ? 1300 : 1050); return; }
+let pos = 0; el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q">Gördüğün <b>sırayla</b> dokun</div><div class="place-opts" style="grid-template-columns:repeat(3, 96px)">${opts.map((x, i) => `<button type="button" class="wm-pic" data-po-s="${i}" style="width:96px;height:96px;padding:5px">${qzPic(x.src)}</button>`).join("")}</div></div>`;
+el.querySelectorAll("[data-po-s]").forEach(b => b.onclick = () => { if(pos < 0) return; const x = opts[Number(b.dataset.poS)]; if(x === seq[pos]){ b.classList.add("ok"); pos++; if(pos >= seq.length){ pos = -1; answer(true); } } else { b.classList.add("bad"); pos = -1; answer(false); } }); };
+show(); return; }
+// görsel bellek: resimleri birlikte gör, sonra hangisinin olduğunu bul
+const N = (R.lvl === "pre" ? [2, 3, 4] : [3, 5, 7])[R.tier], seen = pool.slice(0, N), tgt = randomItem(seen), opts = shuffleArray([tgt].concat(pool.slice(N, N + (R.lvl === "pre" ? 2 : 3)))); if(R.lastIdx != null && opts.indexOf(tgt) === R.lastIdx){ const j = (R.lastIdx + 1 + Math.floor(Math.random() * (opts.length - 1))) % opts.length; [opts[R.lastIdx], opts[j]] = [opts[j], opts[R.lastIdx]]; } R.lastIdx = opts.indexOf(tgt); R.cur = { tgt, opts };
+el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q">Resimlere iyi bak…</div><div class="place-opts" style="grid-template-columns:repeat(${Math.min(N, 4)}, 80px)">${seen.map(x => `<div class="wm-card" style="width:80px;height:80px;padding:5px">${qzPic(x.src)}</div>`).join("")}</div></div>`;
+setTimeout(() => { if(!placeRun) return; el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q">Bunlardan hangisi <b>vardı</b>?</div><div class="place-opts" style="grid-template-columns:repeat(${Math.min(opts.length, 3)}, 96px)">${opts.map((x, i) => `<button type="button" class="wm-pic" data-po-v="${i}" style="width:96px;height:96px;padding:5px">${qzPic(x.src)}</button>`).join("")}</div></div>`;
+el.querySelectorAll("[data-po-v]").forEach(b => b.onclick = () => { if(R.answered === myItem) return; const ok = opts[Number(b.dataset.poV)] === tgt; b.classList.add(ok ? "ok" : "bad"); answer(ok); }); }, (R.lvl === "pre" ? 1600 : 1100) * N); }
+function placeFinish(){ const R = placeRun; placeRun = null; const rec = { t: Date.now(), dom: R.res, items: R.items }; placeSave(R.name, R.lvl, rec);
+try{ if(gameProfile() === R.name){ const g = gxGet(); g.light = (g.light || 0) + 5; gxSave(g); } }catch(e){}
+const el = document.getElementById("placeScreen");
+el.innerHTML = `<div class="adv-wrap" style="text-align:center"><div style="width:110px;height:110px;margin:20px auto 6px">${zihniSVG("happy")}</div><div class="mola-h">Keşif turu bitti!</div><div class="mola-s">Harikaydın! +5 ışık</div>
+<div class="place-res">${PLACE_DOMS.map(d => `<div><b>${d.nm}</b><span class="t${R.res[d.k]}">${PLACE_TIER[R.res[d.k]]}</span></div>`).join("")}</div>
+<div class="fam-sub" style="font-weight:600;margin:6px 0 12px">Yetişkin için: çalışmalar bu düzeylerden başlar, sonra çocuğun performansına göre kendiliğinden ayarlanır. Bu bir test değil, başlangıç noktasıdır.</div>
+<div class="mola-list" style="max-width:300px;margin:0 auto"><button type="button" id="placeDone"><span>🗺️</span>Tamam</button></div></div>`;
+speakText("Keşif turu bitti! Harikaydın!");
+document.getElementById("placeDone").onclick = () => { el.style.display = "none"; try{ if(document.getElementById("islandScreen").style.display === "flex") showIslandMap(); }catch(e){} try{ renderPlaceSettings(); }catch(e){} }; }
+function renderPlaceSettings(){ const box = document.getElementById("placeSettingsBox"); if(!box) return; const nm = (currentPlayerName || "").trim();
+if(!nm || nm === "Misafir"){ box.innerHTML = `<span style="font-size:12px;font-weight:600;color:var(--ink-soft)">Önce bir kişi seçin.</span>`; return; }
+const p = placeGet(nm);
+box.innerHTML = `<div style="font-size:13px;font-weight:700">${escHTML(nm)} · ${readingLevel === "pre" ? "Okul Öncesi" : "Okul Sonrası"}</div>${p ? `<div class="place-res small">${PLACE_DOMS.map(d => `<div><b>${d.nm}</b><span class="t${p.dom[d.k]}">${PLACE_TIER[p.dom[d.k]]}</span></div>`).join("")}</div><div style="font-size:12px;font-weight:600;color:var(--ink-soft);margin:4px 0">${placeSummary(p)} · ${new Date(p.t).toLocaleDateString("tr-TR")}</div>` : `<div style="font-size:12px;font-weight:600;color:var(--ink-soft);margin:4px 0">Henüz keşif turu yapılmadı.</div>`}
+<button type="button" class="fam-chip" id="placeRunBtn">${p ? "Yeniden değerlendir" : "Keşif turunu başlat"}</button>`;
+document.getElementById("placeRunBtn").onclick = () => placeStart(nm); }
 
 const NEW_MT = {
 build: {
@@ -11350,7 +11457,7 @@ esc(){ const st = mtState, n = st.n; st.pos = 0; st.phase = "run"; st.cl = []; c
 for(let k = 0; k < st.clouds; k++){ let c; do{ c = Math.floor(Math.random() * n * n); } while(used.has(c)); used.add(c); st.cl.push(c); }
 renderMtBoard(); const my = mtState;
 const tick = () => { if(!pkAlive(st) || st.phase !== "run") return; st.cl = st.cl.map(c => { const W = st.walls[c], nb = []; if(!W.n) nb.push(c - n); if(!W.s) nb.push(c + n); if(!W.e) nb.push(c + 1); if(!W.w) nb.push(c - 1); return nb.length ? randomItem(nb.filter(x => x !== n * n - 1).concat([c])) : c; });
-if(st.cl.includes(st.pos)) escHit(); renderMtBoard(); mtLater(tick, st.ms); };
+if(st.cl.includes(st.pos)) escHit(); escPaint(); mtLater(tick, st.ms); };
 mtLater(tick, st.ms); },
 bln(){ const st = mtState, c = st.cfg; st.phase = "run"; renderMtBoard(); sayTask(`Yalnızca ${PK_COLS[st.tgt][0]} balonları patlat!`);
 const area = document.getElementById("pkArea"); if(!area) return; const total = c.N * 2, kinds = shuffleArray(Array.from({length: total}, (_, i) => i < c.N)); let made = 0, tgtMade = 0;
@@ -11527,8 +11634,8 @@ kopru(i){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "input") re
 if(!tr.two){ st.pick = i; const ok = tr.opts[i] === tr.gap; st.phase = "fb"; if(ok){ st.score++; gameSfx("correct"); } else mtErr(); renderMtBoard(); mtLater(NEW_MT.next, ok ? 1300 : 1300); return; }
 if(st.sel.includes(i)) return; st.sel.push(i); renderMtBoard(); if(st.sel.length === 2){ const ok = tr.opts[st.sel[0]] + tr.opts[st.sel[1]] === tr.gap; st.phase = "fb"; st.okTwo = ok; if(ok){ st.score++; gameSfx("correct"); } else mtErr(); renderMtBoard(); mtLater(NEW_MT.next, 1300); } },
 esc(i){ const st = mtState, n = st.n; if(st.phase !== "run") return; const c = st.pos, d = i - c; const dir = d === -n ? "n" : d === n ? "s" : (d === 1 && c % n < n - 1) ? "e" : (d === -1 && c % n > 0) ? "w" : null;
-if(!dir || st.walls[c][dir]) return; st.pos = i; gameSfx("pop"); if(st.cl.includes(i)){ escHit(); renderMtBoard(); return; }
-if(i === n * n - 1){ st.phase = "done"; gameSfx("correct"); mtFinish(" Yıldıza ulaştın!"); return; } renderMtBoard(); },
+if(!dir || st.walls[c][dir]) return; st.pos = i; gameSfx("pop"); if(st.cl.includes(i)){ escHit(); escPaint(); return; }
+if(i === n * n - 1){ st.phase = "done"; gameSfx("correct"); mtFinish(" Yıldıza ulaştın!"); return; } escPaint(); },
 bln(i){ const st = mtState; if(st.phase !== "run") return; const b = st.items.find(x => x.id === i); if(!b) return; if(b.col === st.tgt){ st.score++; gameSfx("pop"); } else mtErr();
 b.el.classList.add("pop"); st.items.splice(st.items.indexOf(b), 1); setTimeout(() => b.el.remove(), 160); const hd = document.getElementById("pkScore"); if(hd) hd.textContent = st.score; },
 mol(i){ const st = mtState; if(st.phase !== "run" || !st.cur || st.cur.hit || st.cur.h !== i) return; st.cur.hit = true; if(st.cur.hat){ mtErr(); } else { st.score++; gameSfx("pop"); } molDraw(); },
@@ -11823,8 +11930,8 @@ const n = st.n, w = Math.min(isLs ? H - 30 : 320, W - 20), c = w / n;
 info = `Zihni'yi <b>yıldıza</b> götür, bulutlara yakalanma`;
 let walls = ""; st.walls.forEach((wl, i) => { const x = (i % n) * c, y = Math.floor(i / n) * c; if(wl.n) walls += `<line x1="${x}" y1="${y}" x2="${x + c}" y2="${y}"/>`; if(wl.w) walls += `<line x1="${x}" y1="${y}" x2="${x}" y2="${y + c}"/>`; if(i % n === n - 1 && wl.e) walls += `<line x1="${x + c}" y1="${y}" x2="${x + c}" y2="${y + c}"/>`; if(Math.floor(i / n) === n - 1 && wl.s) walls += `<line x1="${x}" y1="${y + c}" x2="${x + c}" y2="${y + c}"/>`; });
 const ctr = (i) => [((i % n) + 0.5) * c, (Math.floor(i / n) + 0.5) * c], [gx, gy] = ctr(n * n - 1), [px, py] = ctr(st.pos);
-const taps = Array.from({length: n * n}, (_, i) => `<rect data-mt="${i}" x="${(i % n) * c}" y="${Math.floor(i / n) * c}" width="${c}" height="${c}" fill="${st.flash && i === 0 ? "#FCE3E3" : "transparent"}"/>`).join("");
-body = `<svg viewBox="-3 -3 ${w + 6} ${w + 6}" width="${w}" height="${w}" style="display:block;margin:0 auto;background:#fff;border-radius:12px;touch-action:none">${taps}<g stroke="#2B3A4A" stroke-width="${Math.max(2, c * 0.08)}" stroke-linecap="round" pointer-events="none">${walls}</g><text x="${gx}" y="${gy + c * 0.18}" text-anchor="middle" font-size="${c * 0.6}" pointer-events="none">⭐</text>${st.cl.map(k => { const [x, y] = ctr(k); return `<text x="${x}" y="${y + c * 0.18}" text-anchor="middle" font-size="${c * 0.62}" pointer-events="none">☁️</text>`; }).join("")}<circle cx="${px}" cy="${py}" r="${c * 0.3}" fill="#3CCFC0" stroke="#1E8F86" stroke-width="2" pointer-events="none"/></svg>`;
+const taps = Array.from({length: n * n}, (_, i) => `<rect data-mt="${i}" style="cursor:pointer" x="${(i % n) * c}" y="${Math.floor(i / n) * c}" width="${c}" height="${c}" fill="${st.flash && i === 0 ? "#FCE3E3" : "transparent"}"/>`).join("");
+body = `<svg id="escSvg" data-c="${c}" viewBox="-3 -3 ${w + 6} ${w + 6}" width="${w}" height="${w}" style="display:block;margin:0 auto;background:#fff;border-radius:12px;touch-action:manipulation">${taps}<g stroke="#2B3A4A" stroke-width="${Math.max(2, c * 0.08)}" stroke-linecap="round" pointer-events="none">${walls}</g><text x="${gx}" y="${gy + c * 0.18}" text-anchor="middle" font-size="${c * 0.6}" pointer-events="none">⭐</text>${st.cl.map((k, j) => { const [x, y] = ctr(k); return `<text id="escCl${j}" x="${x}" y="${y + c * 0.18}" text-anchor="middle" font-size="${c * 0.62}" pointer-events="none">☁️</text>`; }).join("")}<circle id="escMe" cx="${px}" cy="${py}" r="${c * 0.3}" fill="#3CCFC0" stroke="#1E8F86" stroke-width="2" pointer-events="none"/></svg>`;
 } else if(st.kind === "bln" || st.kind === "ctc"){
 const ah = isLs ? H - 20 : Math.min(H - 20, 460);
 info = st.kind === "bln" ? `Yalnızca <span id="pkTgt" class="pk-chip" style="background:${PK_COLS[st.tgt][1]}">${PK_COLS[st.tgt][0]}</span> balonları patlat · ⭐ <b id="pkScore">${st.score}</b>` : `Meyveleri yakala, taşları yakalama · ⭐ <b id="pkScore">${st.score}</b>`;
@@ -11934,7 +12041,7 @@ body = dots + `<div style="display:grid;grid-template-columns:repeat(2, ${kw}px)
 } else if(st.kind === "wseen"){
 const tr = st.trials[ti], sz = Math.min(isLs ? H - 50 : 200, W * 0.6);
 if(st.phase === "show"){ info = "<b>İyice bak!</b>"; body = dots + `<div class="wm-card" style="width:${sz}px;height:${sz}px;padding:6px;margin:0 auto">${tr.study}</div>`; }
-else if(st.phase === "gap"){ info = "…"; body = dots; }
+else if(st.phase === "gap"){ info = "…"; body = dots + `<div style="width:${sz}px;height:${sz}px;margin:0 auto"></div>`; }
 else { info = "Az önce <b>tam olarak hangisini</b> gördün?"; const d = wmGridDims(tr.opts.length, W, isLs ? H - 40 : H - 60, 120);
 body = dots + `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">${tr.opts.map((o, i) => `<div class="wm-pic${st.phase === "fb" ? (i === tr.ans ? " ok" : i === st.pick ? " bad" : "") : ""}" data-mt="${i}" style="width:${d.cell}px;height:${d.cell}px;padding:5px">${o}</div>`).join("")}</div>`; }
 } else if(st.kind === "route"){
@@ -11997,7 +12104,7 @@ const tr = st.trials[ti], n = tr.n, w = Math.min(isLs ? H - 30 : 320, W - 20), c
 info = st.phase === "fb" ? "<b>Çıkışı buldun!</b>" : "Topu <b>yıldıza</b> götür: gideceğin kareye dokun";
 let walls = ""; tr.walls.forEach((wl, i) => { const x = (i % n) * c, y = Math.floor(i / n) * c; if(wl.n) walls += `<line x1="${x}" y1="${y}" x2="${x + c}" y2="${y}"/>`; if(wl.w) walls += `<line x1="${x}" y1="${y}" x2="${x}" y2="${y + c}"/>`; if(i % n === n - 1 && wl.e) walls += `<line x1="${x + c}" y1="${y}" x2="${x + c}" y2="${y + c}"/>`; if(Math.floor(i / n) === n - 1 && wl.s) walls += `<line x1="${x}" y1="${y + c}" x2="${x + c}" y2="${y + c}"/>`; });
 const ctr = (i) => [((i % n) + 0.5) * c, (Math.floor(i / n) + 0.5) * c], path = st.path.map(ctr).map(p => p.map(v => v.toFixed(1)).join(",")).join(" ");
-const taps = Array.from({length: n * n}, (_, i) => `<rect data-mt="${i}" x="${(i % n) * c}" y="${Math.floor(i / n) * c}" width="${c}" height="${c}" fill="${st.bump === i ? "#FCE3E3" : "transparent"}"/>`).join("");
+const taps = Array.from({length: n * n}, (_, i) => `<rect data-mt="${i}" style="cursor:pointer" x="${(i % n) * c}" y="${Math.floor(i / n) * c}" width="${c}" height="${c}" fill="${st.bump === i ? "#FCE3E3" : "transparent"}"/>`).join("");
 const [px, py] = ctr(st.pos), [gx, gy] = ctr(n * n - 1);
 body = dots + `<svg viewBox="-3 -3 ${w + 6} ${w + 6}" width="${w}" height="${w}" style="display:block;margin:0 auto;background:#fff;border-radius:12px;touch-action:none">${taps}<polyline points="${path}" fill="none" stroke="#7FB3E8" stroke-width="${Math.max(4, c * 0.18)}" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/><g stroke="#2B3A4A" stroke-width="${Math.max(2, c * 0.08)}" stroke-linecap="round" pointer-events="none">${walls}</g><text x="${gx}" y="${gy + c * 0.18}" text-anchor="middle" font-size="${c * 0.6}" pointer-events="none">⭐</text><circle cx="${px}" cy="${py}" r="${c * 0.28}" fill="#F5A524" stroke="#C77800" stroke-width="2" pointer-events="none"/></svg>`;
 } else if(st.kind === "ssnd"){
@@ -13546,6 +13653,7 @@ renderHistory();
 }
 
 function newPage(){
+document.documentElement.classList.remove("board-run");
 setLsOpen(false);
 const ex = currentExercise();
 const {rows, cols} = currentTier();
@@ -14429,6 +14537,7 @@ input.value = "";
 updatePlayerAvatar(name);
 return true;
 }
+setTimeout(() => { try{ if(!placeGet(name)) placeOffer(name); }catch(e){} }, 600);
 if(firestoreReady && window.__fb){
 const { db, collection, addDoc } = window.__fb;
 addDoc(collection(db, "players"), withUid({ name, createdAt: Date.now() }))
@@ -14718,6 +14827,7 @@ document.getElementById("bsMascot").innerHTML = mascotSVG("happy");
 const em = document.querySelector('.mode-card[data-mode="cocuk"] .mode-emoji');
 if(em){ em.innerHTML = mascotSVG("happy"); em.classList.add("has-mascot"); }
 applyCalm();
+try{ renderPlaceSettings(); }catch(e){}
 const pt = document.getElementById("predToggle");
 if(pt){ pt.checked = predOn(); pt.addEventListener("change", e => { try{ localStorage.setItem(PRED_KEY, e.target.checked ? "1" : "0"); }catch(_){} }); }
 const ct = document.getElementById("captionToggle");
@@ -14802,7 +14912,7 @@ function lastTierFor(id){
 const ex = exerciseById(id); if(!ex) return 0;
 const names = [ex.label].concat(ex.oldLabels || []);
 const list = loadSessions().filter(r => r.player === famProfile() && names.includes(r.exerciseLabel)).sort((a, b) => b.t - a.t);
-if(!list.length) return 0;
+if(!list.length){ const pt = placedTierFor(id, famProfile()); return pt != null ? pt : 0; }
 const t = TIERS.findIndex(x => x.label === list[0].tier);
 return t < 0 ? 0 : t;
 }
@@ -14915,7 +15025,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.08-r";
+const APP_VERSION = "2026.10.08-u";
 const LINK_LOCAL_KEY = "wm_family_links_v1";   // aile cihazında: kişi|seviye → kod + program önbelleği
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -15461,6 +15571,8 @@ gameStoreSave(d);
 function gameStars(exId){ return gameRecord(exId).stars.filter(Boolean).length; }
 function gameNextTier(exId){
 const r = gameRecord(exId);
+{ const exU = exerciseById(exId); if(exU && exU.maxTier === 3 && r.stars.every(Boolean) && !r.crown) return 3; }
+if(!r.plays && !r.stars.some(Boolean)){ const pt = placedTierFor(exId, gameProfile()); if(pt != null){ const ex0 = exerciseById(exId); return Math.max(pt, (ex0 && ex0.minTier) || 0); } }
 const i = r.stars.findIndex(x => !x);
 let t = i < 0 ? 2 : i;
 const ex = exerciseById(exId);
@@ -15585,7 +15697,7 @@ const ex = exerciseById(id), r = gameRecord(id), t = gameNextTier(id);
 const done = r.stars.every(Boolean);
 return `<div class="isl-stop${done ? " complete" : ""}"><span class="num" style="background:${isl.color.replace(/^#/, "#")};color:#1C2B39;">${k + 1}</span><div class="tx"><div class="t1">${gameChildLabel(ex)}</div>
 <div class="t2">${done ? "Tüm yıldızlar tamam · yeniden oynayabilirsin" : "Sıradaki: " + GAME_TIER_NAMES[t]}</div>
-<div class="st">${r.stars.map(GAME_STAR_SVG).join("")}${(r.bolt || []).filter(Boolean).length ? `<span class="st-bolt" title="Şimşek rozeti">⚡${(r.bolt || []).filter(Boolean).length}</span>` : ""}</div></div>
+<div class="st">${r.stars.map(GAME_STAR_SVG).join("")}${r.crown ? `<span class="st-bolt" title="Usta tacı">👑</span>` : ""}${(r.bolt || []).filter(Boolean).length ? `<span class="st-bolt" title="Şimşek rozeti">⚡${(r.bolt || []).filter(Boolean).length}</span>` : ""}</div></div>
 <div style="display:flex;align-items:center"><button type="button" class="isl-play" data-play="${id}" data-isl="${islId}">Oyna</button>${COOP_IDS.includes(id) ? `<button type="button" class="isl-play coop" data-coop="${id}" data-isl="${islId}" title="Birlikte oyna">👥</button>` : ""}</div></div>`;
 }).join("");
 document.getElementById("islandStopsScreen").style.display = "flex";
@@ -15749,6 +15861,13 @@ const allowed = ex.isMotion ? 0 : Math.max(1, Math.floor(n * 0.1));
 const good = errors <= allowed;
 const t = currentCombo().t;
 const r = gameRecord(ex.id);
+if(t === 3){ r.plays = (r.plays || 0) + 1; const newCrown = good && !r.crown; if(good) r.crown = true; gameRecordSave(ex.id, r);
+let gxU = []; try{ gxU = gxAfterStop(ex.id, gameStop.islandId, { good, newStar:false, faster:false, hinted:false }); }catch(e){}
+if(newCrown){ try{ const g = gxGet(); g.light = (g.light || 0) + 3; gxSave(g); }catch(e){} gxU.unshift({ k:"crown", t:"👑 Usta tacı! Bu durağın ustası oldun. +3 ışık" }); }
+else if(!good) gxU.unshift({ k:"crown", t:"Usta düzeyi zorlu; bir daha dene!" });
+showGameReward({ ex, t: 2, good, newStar: false, faster: false, r, gx: gxU });
+setTimeout(() => { const c = document.getElementById("grCard"); if(c) c.innerHTML = c.innerHTML.replace(/Zor düzey(ini|i)?/g, "Usta düzeyini"); }, 30);
+return; }
 r.plays = (r.plays || 0) + 1;
 const newStar = good && !r.stars[t];
 if(good) r.stars[t] = true;
@@ -15860,7 +15979,7 @@ else showIslandMap();
 }
 function gameAddPlayer(name){
 name = cleanPersonName(name); if(!name) return;
-if(!playersList.includes(name)){
+if(!playersList.includes(name)){ setTimeout(() => { try{ if(!placeGet(name)) placeOffer(name); }catch(e){} }, 600);
 if(firestoreReady && window.__fb){ const { db, collection, addDoc } = window.__fb; addDoc(collection(db, "players"), withUid({ name, createdAt: Date.now() })).catch(e => console.error("Profil eklenemedi:", e)); playersList = playersList.concat([name]); }
 else { playersList.push(name); try{ renderPlayerOptions(); }catch(e){} queuePendingWrite("players", { name, createdAt: Date.now() }); }
 }
@@ -16082,6 +16201,10 @@ const I_SPARK = '<svg viewBox="0 0 24 24"><path d="M12 2.5l2.2 6.3 6.3 2.2-6.3 2
 function gxRenderMapExtras(){
 const box = document.getElementById("islandRoute"); if(!box) return;
 if(!(currentPlayerName || "").trim()){ box.innerHTML = ""; return; }
+setTimeout(() => { try{ let pc = document.getElementById("placeCard"); const nm = gameProfile(); const due = nm !== "Misafir" && placeDue(nm), had = !!placeGet(nm);
+if(!due){ if(pc) pc.remove(); return; } if(!pc){ pc = document.createElement("div"); pc.id = "placeCard"; box.parentNode.insertBefore(pc, box); }
+pc.innerHTML = `<div class="place-card"><span>🧭</span><div><b>${had ? "Yeniden keşif turu" : "Keşif turu"}</b><div>${had ? "6 hafta oldu, düzeyler güncellensin" : "Zihni ile başlangıç düzeyini bul"}</div></div><button type="button" class="gr-btn" id="placeCardBtn">Oyna</button></div>`;
+document.getElementById("placeCardBtn").onclick = () => placeStart(nm); }catch(e){} }, 0);
 const g = gxGet(), r = gxRoute(), days = gxWeekDays(g), ti = todayDayIdx();
 const allDone = r.done.every(Boolean), nx = gxRouteNext();
 const steps = r.steps.map((s, i) => { const ex = exerciseById(s.id), isl = GAME_ISLANDS.find(x => x.id === s.isl);
