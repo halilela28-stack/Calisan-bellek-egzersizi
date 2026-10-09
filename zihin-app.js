@@ -11626,7 +11626,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.09-e";
+const APP_VERSION = "2026.10.09-f";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -11887,7 +11887,7 @@ w.querySelectorAll("[data-t]").forEach(x => x.onclick = () => { p.target = x.dat
 { const sb = document.getElementById("exStartBtn"); if(sb) sb.onclick = () => { const nm = cleanPersonName(l.childName || ""); if(!nm) return; const lv = l.level === "pre" ? "pre" : "post";
 if(!playersList.includes(nm)){ playersList.push(nm); if(firestoreReady && window.__fb){ const { db, collection, addDoc } = window.__fb; addDoc(collection(db, "players"), withUid({ name: nm, createdAt: Date.now() })).catch(e => console.error(e)); } else { try{ queuePendingWrite("players", { name: nm, createdAt: Date.now() }); }catch(e){} } try{ renderPlayerOptions(); renderLevelPlayerOptions(); }catch(e){} }
 rememberPlayerLevel(nm, lv); hideLinkScreens(); try{ exitGameMode(); hideFamScreens(); }catch(e){}
-appMode = "uzman"; viaWho = false; readingLevel = lv; try{ applyLevelDefaultThresholds(lv); }catch(e){}
+appMode = "uzman"; viaWho = true; readingLevel = lv; try{ applyLevelDefaultThresholds(lv); }catch(e){}
 pendingLevelPlayerName = nm; pendingLevelPlayerIsNew = false; chooseReadingLevel(lv); showLevelFlash(`${nm} ile oturum başladı`, "levelup"); }; }
 const saveProg = async (msg) => { if(!fbOk()){ showLevelFlash("İnternet bağlantısı yok.", "down"); return false; } const { db, doc, updateDoc } = window.__fb;
 try{ await updateDoc(doc(db, "links", code), { program: { target: p.target, days: p.days, minutes: p.minutes, mains: p.mains, games: p.games, hw: p.hw, updatedAt: Date.now() } }); l.program = Object.assign({}, p); showLevelFlash(msg, "levelup"); return true; }catch(e){ console.error(e); showLevelFlash("Ödev kaydedilemedi.", "down"); return false; } };
@@ -14026,8 +14026,7 @@ document.getElementById("onboardScreen").style.display = "none";
 document.getElementById("returnSplashScreen").style.display = "none";
 if(localStorage.getItem(CONSENT_KEY) === "true"){
 modeScreenBackTarget = "onboardScreen";
-if(typeof showWho === "function" && !isExpertDevice()){ showWho(); return; }
-if(typeof isExpertDevice === "function" && isExpertDevice()){ viaWho = false; try{ setEtkinlikView("uzman"); }catch(e){} startApp("etkinlik"); return; }
+if(typeof showWho === "function"){ try{ if(isExpertDevice()) setEtkinlikView("uzman"); }catch(e){} showWho(); return; }
 document.getElementById("modeScreen").style.display = "flex";
 } else {
 document.getElementById("consentScreen").style.display = "flex";
@@ -14070,30 +14069,58 @@ keys.forEach(key => groups.filter(g => lab(g).startsWith(key)).forEach(g => d.ap
 }catch(e){ console.error(e); } })();
 // ===== KİM? ekranı: kişi merkezli giriş (seviye profilde saklı) =====
 const EXPERT_DEV_KEY = "wm_expert_device";
-let viaWho = false, whoNew = null;
+let viaWho = true, whoNew = null;
 function isExpertDevice(){ try{ return localStorage.getItem(EXPERT_DEV_KEY) === "1"; }catch(e){ return false; } }
 function whoNames(){ const bad = new Set(["Misafir","Oyuncu","Tarama",""]), set = new Set();
 [].concat(playersList || [], Object.keys(playerReadingLevels || {}), Object.keys(gameStoreAll() || {})).forEach(n => { n = String(n || "").trim(); if(!bad.has(n)) set.add(n); });
 const L = lastGet(), arr = [...set].sort((a, b) => a.localeCompare(b, "tr")); if(L && arr.includes(L.player)){ arr.splice(arr.indexOf(L.player), 1); arr.unshift(L.player); } return arr; }
 function whoStars(n){ const d = (gameStoreAll()[n] || {})[getPlayerLevel(n) || "post"] || {}; return Object.values(d).reduce((s, r) => s + ((r && r.stars) ? r.stars.filter(Boolean).length : 0), 0); }
 function whoHue(n){ let h = 0; for(const ch of n) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; }
-function showWho(){ viaWho = true; try{ const ov = document.getElementById("tourOverlay"); if(ov && getComputedStyle(ov).display !== "none") endTour(); }catch(e){} ["modeScreen","readingLevelScreen","childLevelScreen","categoryScreen","mainApp"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; });
-try{ hideGameScreens(); exitGameMode(); hideFamScreens(); }catch(e){}
+function whoSelGet(){ try{ const v = localStorage.getItem("wm_who_sel"); if(v !== null) return v; }catch(e){} const L = lastGet(); return L ? L.player : ""; }
+function whoSelSet(v){ try{ localStorage.setItem("wm_who_sel", v); }catch(e){} }
+function whoAvatar(n){ const keep = currentPlayerName, keepL = readingLevel; try{ currentPlayerName = n || ""; const lv = n ? getPlayerLevel(n) : null; if(lv) readingLevel = lv; return zihniSVG("happy"); }catch(e){ return ""; } finally { currentPlayerName = keep; readingLevel = keepL; } }
+function whoSelect(n){ whoSelSet(n); showWho(); }
+let whoListOpen = false;
+function showWho(openList){ viaWho = true; try{ const ov = document.getElementById("tourOverlay"); if(ov && getComputedStyle(ov).display !== "none") endTour(); }catch(e){}
+["modeScreen","readingLevelScreen","childLevelScreen","categoryScreen","mainApp","returnSplashScreen"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; });
+try{ hideGameScreens(); exitGameMode(); hideFamScreens(); hideLinkScreens(); }catch(e){}
+if(typeof openList === "boolean") whoListOpen = openList;
 let el = document.getElementById("whoScreen"); if(!el){ el = document.createElement("div"); el.id = "whoScreen"; document.body.appendChild(el); }
-const names = whoNames();
-el.innerHTML = `<div class="who-wrap"><div class="who-head"><div style="width:64px;height:64px">${zihniSVG("happy")}</div><div><div class="who-t1">Kim çalışacak?</div><div class="who-t2">Bir kişi seç ya da yeni çocuk ekle</div></div></div>
-<div class="who-grid">${names.map(n => { const lv = getPlayerLevel(n), P = placeGet(n, lv || "post"), st = whoStars(n);
-return `<div class="who-card" data-who="${escHTML(n)}"><button type="button" class="who-gear" data-wgear="${escHTML(n)}" aria-label="Seviye">⚙︎</button><div class="who-av" style="background:hsl(${whoHue(n)},70%,88%)">${zihniSVG("happy")}</div><b>${escHTML(n)}</b><span>${ageOf(n) ? `${ageOf(n)} yaş · ` : ""}${lv ? (lv === "pre" ? "Okul Öncesi" : "Okul Sonrası") : "Seviye seçilmedi"}${st ? ` · ⭐ ${st}` : ""}</span>${lv === "pre" && ageOf(n) >= 7 ? `<button type="button" class="age-up" data-wup="${escHTML(n)}">Okul Sonrası'na geçilsin mi?</button>` : ""}${P ? `<em>${placeSummary(P).split(" · ")[0]}</em>` : ""}</div>`; }).join("")}
-<button type="button" class="who-card who-add" data-wadd="1"><div class="who-av">＋</div><b>Yeni çocuk</b></button></div>
-<div class="who-links"><button type="button" data-wlink="guest">Misafir olarak oyna</button><button type="button" data-wlink="expert">Uzman girişi</button></div></div>`;
+const names = whoNames(), sel = whoSelGet(), guest = sel === "__guest__", cur = guest ? "" : (names.includes(sel) ? sel : ""), view = getEtkinlikView(), L = lastGet();
+const sub = (n) => { const a = ageOf(n), lv = getPlayerLevel(n), st = whoStars(n); return [a ? `${a} yaş` : "", lv ? (lv === "pre" ? "Okul Öncesi" : "Okul Sonrası") : "seviye seçilmedi", st ? `⭐ ${st}` : ""].filter(Boolean).join(" · "); };
+const row = (n, i) => `<div class="hm-row${n === cur ? " on" : ""}" data-hsel="${escHTML(n)}"><span class="hm-av" style="background:hsl(${whoHue(n)},70%,88%)">${whoAvatar(n)}</span><div class="hm-tx"><b>${escHTML(n)}</b><span>${sub(n)}</span></div>${n === cur ? `<i class="hm-ck">✓</i>` : ""}<button type="button" class="hm-gear" data-hgear="${escHTML(n)}" aria-label="Seviye ve yaş">⚙︎</button></div>`;
+el.innerHTML = `<div class="hm-wrap">
+<div class="hm-top"><div class="hm-brand"><span class="hm-logo">${zihniSVG("happy")}</span><b>Zihin Atölyesi</b></div><button type="button" class="hm-set" id="hmSet" aria-label="Ayarlar">⚙︎</button></div>
+<div class="hm-lab">Kim çalışacak?</div>
+<div class="hm-card hm-who">
+<div class="hm-row hm-head" id="hmHead">${cur ? `<span class="hm-av big" style="background:hsl(${whoHue(cur)},70%,88%)">${whoAvatar(cur)}</span><div class="hm-tx"><b>${escHTML(cur)}</b><span>${sub(cur)}</span></div>` : guest ? `<span class="hm-av big" style="background:#FDE5C2">${zihniSVG("happy")}</span><div class="hm-tx"><b>Misafir</b><span>kayıt tutulmaz</span></div>` : `<span class="hm-av big" style="background:#EEF4F4;font-size:24px;color:#0A847E">?</span><div class="hm-tx"><b>Kişi seç</b><span>${names.length ? "listeden seçin ya da yeni ekleyin" : "ilk çocuğu ekleyin"}</span></div>`}<i class="hm-chev">${whoListOpen ? "▴" : "▾"}</i></div>
+${whoListOpen ? `<div class="hm-list">${names.slice(0, 3).map(row).join("")}${names.length > 3 ? `<div class="hm-more">${names.slice(3).map(row).join("")}</div>` : ""}<button type="button" class="hm-add" id="hmAdd">＋ Yeni çocuk ekle</button></div>` : ""}
+</div>
+<div class="hm-guest"><button type="button" id="hmGuest">Misafir girişi</button></div>
+${L && L.player && names.includes(L.player) && MODE_NAMES[L.mode] ? `<button type="button" class="hm-resume" id="hmResume"><span class="hm-play">▶</span><span><b>Kaldığın yerden devam</b><span>${escHTML(L.player)} · ${L.mode === "cocuk" ? "Zihin Adaları" : "Bilişsel Etkinlik"}</span></span></button>` : ""}
+<div class="hm-card hm-mode" id="hmEtk"><div class="hm-mh"><span class="hm-ic etk">👥</span><div><b>Bilişsel Etkinlik</b><span>Uzmanla veya aileyle birlikte</span></div><i class="hm-go">›</i></div>
+<div class="hm-seg"><button type="button" data-hview="uzman" class="${view === "uzman" ? "on" : ""}">💼 Uzman girişi</button><button type="button" data-hview="aile" class="${view === "aile" ? "on" : ""}">🏡 Aile girişi</button></div>
+${view === "uzman" ? `<button type="button" class="hm-link" id="hmClients">Danışanlarım ve ödevler</button>` : ""}</div>
+<div class="hm-card hm-mode" id="hmGame"><div class="hm-mh"><span class="hm-ic oyun">${zihniSVG("happy")}</span><div><b>Bilişsel Oyun</b><span>Çocuk deneyimi · Zihin Adaları</span></div><i class="hm-go oy">›</i></div></div>
+</div>`;
 el.style.display = "flex";
-el.querySelectorAll("[data-who]").forEach(c => c.onclick = (ev) => { if(ev.target.closest("[data-wgear], [data-wup]")) return; whoPick(c.dataset.who); });
-el.querySelectorAll("[data-wup]").forEach(b => b.onclick = () => { const n = b.dataset.wup; const sh = whoSheet(`<div class="mola-h">${escHTML(n)}</div><div class="mola-s">${ageOf(n)} yaşına geldi. Okul Sonrası çalışmalarına geçilsin mi? Okul Öncesi ilerlemesi silinmez; istediğinizde geri dönebilirsiniz.</div><div class="mola-list"><button type="button" data-wy="1"><span>🎒</span>Evet, geçilsin</button><button type="button" data-wy="0"><span>🧸</span>Şimdilik kalsın</button></div>`);
-sh.querySelectorAll("[data-wy]").forEach(x => x.onclick = () => { if(x.dataset.wy === "1") rememberPlayerLevel(n, "post"); else ageSet(n, 6); sh.style.display = "none"; showWho(); }); });
-el.querySelectorAll("[data-wgear]").forEach(b => b.onclick = () => whoLevel(b.dataset.wgear, () => showWho()));   
-el.querySelector("[data-wadd]").onclick = whoAdd;
-el.querySelector('[data-wlink="guest"]').onclick = () => { el.style.display = "none"; appMode = "cocuk"; currentPlayerName = ""; document.getElementById("childLevelScreen").style.display = "flex"; };
-el.querySelector('[data-wlink="expert"]').onclick = () => { el.style.display = "none"; viaWho = false; try{ setEtkinlikView("uzman"); }catch(e){} startApp("etkinlik"); }; }
+const $ = (id) => document.getElementById(id);
+$("hmSet").onclick = () => { try{ openSettings(); }catch(e){} };
+$("hmHead").onclick = () => { whoListOpen = !whoListOpen; showWho(); };
+el.querySelectorAll("[data-hsel]").forEach(r => r.onclick = (ev) => { if(ev.target.closest("[data-hgear]")) return; whoListOpen = false; whoSelect(r.dataset.hsel); });
+el.querySelectorAll("[data-hgear]").forEach(b => b.onclick = (ev) => { ev.stopPropagation(); whoLevel(b.dataset.hgear, () => showWho()); });
+if($("hmAdd")) $("hmAdd").onclick = whoAdd;
+$("hmGuest").onclick = () => { whoListOpen = false; whoSelect("__guest__"); };
+if($("hmResume")) $("hmResume").onclick = () => { whoSelSet(L.player); document.getElementById("whoScreen").style.display = "none"; resumeLast(); };
+el.querySelectorAll("[data-hview]").forEach(b => b.onclick = (ev) => { ev.stopPropagation(); try{ setEtkinlikView(b.dataset.hview); }catch(e){} showWho(); });
+if($("hmClients")) $("hmClients").onclick = (ev) => { ev.stopPropagation(); el.style.display = "none"; appMode = "uzman"; try{ showExpert("list"); }catch(e){} };
+const need = (mode) => { if(guest) return whoGuestEnter(mode); if(!cur){ whoListOpen = true; showWho(); showLevelFlash(names.length ? "Önce kimin çalışacağını seçin" : "Önce bir çocuk ekleyin", "down"); return; } whoEnter(cur, mode); };
+$("hmEtk").onclick = () => need(getEtkinlikView() === "uzman" ? "uzman" : "aile");
+$("hmGame").onclick = () => need("cocuk"); }
+function whoGuestEnter(mode){ const sh = whoSheet(`<div class="mola-h">Misafir</div><div class="mola-s">Hangi seviyede?</div><div class="mola-list"><button type="button" data-gl="pre"><span>🧸</span>Okul Öncesi</button><button type="button" data-gl="post"><span>🎒</span>Okul Sonrası</button></div>`);
+sh.querySelectorAll("[data-gl]").forEach(b => b.onclick = () => { sh.style.display = "none"; const lv = b.dataset.gl; document.getElementById("whoScreen").style.display = "none"; readingLevel = lv; try{ applyLevelDefaultThresholds(lv); }catch(e){}
+if(mode === "cocuk"){ appMode = "cocuk"; currentPlayerName = ""; showIslandMap(); } else { try{ exitGameMode(); hideFamScreens(); setEtkinlikView(mode); }catch(e){} appMode = mode; pendingLevelPlayerName = ""; pendingLevelPlayerIsNew = false; chooseReadingLevel(lv); } }); }
+
 const AGE_KEY = "wm_ages_v1";   // yalnızca bu cihazda: { ad: doğum yılı (yaklaşık) }
 function agesAll(){ try{ return JSON.parse(localStorage.getItem(AGE_KEY) || "{}"); }catch(e){ return {}; } }
 function ageOf(n){ const y = agesAll()[n]; return y ? new Date().getFullYear() - y : null; }
@@ -14114,18 +14141,20 @@ setTimeout(() => { try{ document.getElementById("whoName").focus(); }catch(e){} 
 sh.querySelectorAll("[data-wnl], [data-wna]").forEach(b => b.onclick = () => { const n = cleanPersonName(document.getElementById("whoName").value); if(!n){ document.getElementById("whoErr").textContent = "Önce adı yazın."; return; }
 if(b.dataset.wna){ const v = Number(b.dataset.wna); ageSet(n, v); b.dataset.wnl = levelForAge(v); }
 if(!playersList.includes(n)){ if(firestoreReady && window.__fb){ const { db, collection, addDoc } = window.__fb; addDoc(collection(db, "players"), withUid({ name: n, createdAt: Date.now() })).catch(e => console.error(e)); playersList.push(n); } else { playersList.push(n); try{ queuePendingWrite("players", { name: n, createdAt: Date.now() }); }catch(e){} } try{ renderPlayerOptions(); }catch(e){} }
-rememberPlayerLevel(n, b.dataset.wnl); whoNew = n; sh.style.display = "none"; whoPick(n); }); }
+rememberPlayerLevel(n, b.dataset.wnl); whoNew = n; sh.style.display = "none"; whoListOpen = false; whoSelect(n); }); }
 function whoPick(n){ const lv = getPlayerLevel(n); if(!lv) return whoLevel(n, () => whoPick(n));
 const sh = whoSheet(`<div style="width:70px;height:70px;margin:0 auto">${zihniSVG("happy")}</div><div class="mola-h">${escHTML(n)}</div><div class="mola-s">Ne yapalım?</div><div class="mola-list"><button type="button" data-wgo="cocuk"><span>🏝️</span>Zihin Adaları<small>tek başına oyna</small></button><button type="button" data-wgo="aile"><span>👩‍👧</span>Birlikte çalışalım<small>yetişkinle etkinlik</small></button></div>`);
 sh.querySelectorAll("[data-wgo]").forEach(b => b.onclick = () => { sh.style.display = "none"; whoEnter(n, b.dataset.wgo); }); }
 function whoEnter(n, mode){ const lv = getPlayerLevel(n) || "post"; document.getElementById("whoScreen").style.display = "none"; viaWho = true;
 readingLevel = lv; try{ applyLevelDefaultThresholds(lv); }catch(e){}
 if(mode === "cocuk"){ appMode = "cocuk"; currentPlayerName = n; showIslandMap(); }
-else { try{ exitGameMode(); exitSessionMode(); exitRecMode(); hideFamScreens(); hideLinkScreens(); setEtkinlikView("aile"); }catch(e){} appMode = "aile"; pendingLevelPlayerName = n; pendingLevelPlayerIsNew = false; chooseReadingLevel(lv); }
+else { const vw = mode === "uzman" ? "uzman" : "aile"; try{ exitGameMode(); exitSessionMode(); exitRecMode(); hideFamScreens(); hideLinkScreens(); setEtkinlikView(vw); }catch(e){} appMode = vw; pendingLevelPlayerName = n; pendingLevelPlayerIsNew = false; chooseReadingLevel(lv); }
 if(whoNew === n){ whoNew = null; setTimeout(() => { try{ if(!placeGet(n)) placeOffer(n); }catch(e){} }, 700); } }
 
 
-if(localStorage.getItem(SEEN_ONBOARDING_KEY) === "true"){
+if(localStorage.getItem(SEEN_ONBOARDING_KEY) === "true" && localStorage.getItem(CONSENT_KEY) === "true"){
+onboardEntryScreen = "returnSplashScreen"; setTimeout(() => showWho(), 0);
+} else if(localStorage.getItem(SEEN_ONBOARDING_KEY) === "true"){
 onboardEntryScreen = "returnSplashScreen";
 document.getElementById("returnSplashScreen").style.display = "flex";
 } else {
