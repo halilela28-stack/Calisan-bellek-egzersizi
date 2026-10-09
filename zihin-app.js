@@ -11640,7 +11640,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.10-c";
+const APP_VERSION = "2026.10.10-d";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -14096,7 +14096,7 @@ syncReady = true; if(local > r.t) await syncUpload(); return "güncel"; }
 catch(e){ console.error("Senkron indirilemedi:", e); return "hata"; } }
 { const _set = Storage.prototype.setItem; Storage.prototype.setItem = function(k, v){ _set.call(this, k, v); try{ if(this === window.localStorage && !syncApplying && syncable(k)) syncSchedule(); }catch(e){} }; }
 document.addEventListener("visibilitychange", () => { if(document.visibilityState === "hidden" && syncTimer){ clearTimeout(syncTimer); syncUpload(); } });
-window.addEventListener("firebase-ready", async () => { if(!acctEmail()) return; const r = await syncDownload();
+window.addEventListener("firebase-ready", async () => { try{ renderAcctSettings(); }catch(e){} if(!acctEmail()) return; const r = await syncDownload();
 if(r === "indi" && !sessionStorage.getItem("wm_sync_reloaded")){ sessionStorage.setItem("wm_sync_reloaded", "1"); location.reload(); } });
 const AUTH_ERR = { "auth/email-already-in-use":"Bu e-postayla zaten bir hesap var. “Giriş yap”ı kullanın.", "auth/credential-already-in-use":"Bu e-postayla zaten bir hesap var. “Giriş yap”ı kullanın.", "auth/invalid-email":"E-posta adresi geçerli görünmüyor.",
 "auth/weak-password":"Şifre en az 6 karakter olmalı.", "auth/wrong-password":"E-posta ya da şifre hatalı.", "auth/invalid-credential":"E-posta ya da şifre hatalı.", "auth/user-not-found":"Bu e-postayla bir hesap bulunamadı.",
@@ -14409,6 +14409,7 @@ btn.addEventListener("click", ()=> setOn(box.style.display !== "block"));
 
 function openSettings(){
 renderPersonDataList();
+try{ renderAcctSettings(); }catch(e){ console.error(e); } try{ renderPlaceSettings(); }catch(e){}
 document.getElementById("settingsScreen").style.display = "block";
 }
 function closeSettings(){
