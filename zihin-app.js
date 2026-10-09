@@ -11626,7 +11626,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.09-f";
+const APP_VERSION = "2026.10.09-h";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -14038,7 +14038,9 @@ document.getElementById("returnSloganText").textContent = randomItem(RETURN_SLOG
 document.getElementById("returnSplashBtn").addEventListener("click", proceedAfterOnboarding);
 const LAST_KEY = "wm_last_v1";
 function lastGet(){ try{ return JSON.parse(localStorage.getItem(LAST_KEY) || "null"); }catch(e){ return null; } }
-function lastSave(mode, player){ const p = (player || "").trim(); if(!p || p === "Misafir" || p === "Oyuncu") return; try{ localStorage.setItem(LAST_KEY, JSON.stringify({ mode, level: readingLevel === "pre" ? "pre" : "post", player: p, t: Date.now() })); }catch(e){} }
+function lastSave(mode, player){ const p = (player || "").trim(); if(!p || p === "Misafir" || p === "Oyuncu") return; const rec = { mode, level: readingLevel === "pre" ? "pre" : "post", player: p, t: Date.now() };
+try{ localStorage.setItem(LAST_KEY, JSON.stringify(rec)); const m = JSON.parse(localStorage.getItem("wm_last_by") || "{}"); m[p] = rec; localStorage.setItem("wm_last_by", JSON.stringify(m)); }catch(e){} }
+function lastFor(n){ try{ const m = JSON.parse(localStorage.getItem("wm_last_by") || "{}"); if(m[n]) return m[n]; }catch(e){} const L = lastGet(); return L && L.player === n ? L : null; }
 const MODE_NAMES = { cocuk:"Zihin Adaları", aile:"Bilişsel Etkinlik · Aile", uzman:"Bilişsel Etkinlik · Uzman" };
 function renderResume(){ const L = lastGet(), btn = document.getElementById("returnSplashBtn"); let el = document.getElementById("resumeCard");
   const ok = L && L.player && localStorage.getItem(CONSENT_KEY) === "true" && MODE_NAMES[L.mode];
@@ -14046,7 +14048,7 @@ function renderResume(){ const L = lastGet(), btn = document.getElementById("ret
   if(!el){ el = document.createElement("button"); el.type = "button"; el.id = "resumeCard"; el.className = "resume-card"; btn.parentNode.insertBefore(el, btn); el.addEventListener("click", resumeLast); }
   el.innerHTML = `<span class="rc-play">▶</span><span class="rc-tx"><b>Kaldığın yerden devam</b><span>${escHTML(L.player)} · ${MODE_NAMES[L.mode]} · ${L.level === "pre" ? "Okul Öncesi" : "Okul Sonrası"}</span></span>`;
   btn.textContent = "Başka kişi ya da mod"; btn.classList.add("rc-alt"); }
-function resumeLast(){ const L = lastGet(); if(!L) return proceedAfterOnboarding();
+function resumeLast(rec){ const L = (rec && rec.mode) ? rec : lastGet(); if(!L) return proceedAfterOnboarding();
   localStorage.setItem(SEEN_ONBOARDING_KEY, "true"); document.getElementById("returnSplashScreen").style.display = "none";
   readingLevel = L.level; try{ applyLevelDefaultThresholds(readingLevel); }catch(e){}
   if(L.mode === "cocuk"){ appMode = "cocuk"; currentPlayerName = L.player; try{ showIslandMap(); }catch(e){ proceedAfterOnboarding(); } return; }
@@ -14073,29 +14075,33 @@ let viaWho = true, whoNew = null;
 function isExpertDevice(){ try{ return localStorage.getItem(EXPERT_DEV_KEY) === "1"; }catch(e){ return false; } }
 function whoNames(){ const bad = new Set(["Misafir","Oyuncu","Tarama",""]), set = new Set();
 [].concat(playersList || [], Object.keys(playerReadingLevels || {}), Object.keys(gameStoreAll() || {})).forEach(n => { n = String(n || "").trim(); if(!bad.has(n)) set.add(n); });
-const L = lastGet(), arr = [...set].sort((a, b) => a.localeCompare(b, "tr")); if(L && arr.includes(L.player)){ arr.splice(arr.indexOf(L.player), 1); arr.unshift(L.player); } return arr; }
+let T = {}; try{ T = JSON.parse(localStorage.getItem("wm_who_last") || "{}"); }catch(e){}
+try{ loadSessions().forEach(r => { const n = (r.player || "").trim(); if(n && (!T[n] || r.t > T[n])) T[n] = r.t; }); }catch(e){}
+return [...set].sort((a, b) => (T[b] || 0) - (T[a] || 0) || a.localeCompare(b, "tr")); }
+function whoTouch(n){ if(!n || n === "__guest__") return; try{ const T = JSON.parse(localStorage.getItem("wm_who_last") || "{}"); T[n] = Date.now(); localStorage.setItem("wm_who_last", JSON.stringify(T)); }catch(e){} }
 function whoStars(n){ const d = (gameStoreAll()[n] || {})[getPlayerLevel(n) || "post"] || {}; return Object.values(d).reduce((s, r) => s + ((r && r.stars) ? r.stars.filter(Boolean).length : 0), 0); }
 function whoHue(n){ let h = 0; for(const ch of n) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; }
 function whoSelGet(){ try{ const v = localStorage.getItem("wm_who_sel"); if(v !== null) return v; }catch(e){} const L = lastGet(); return L ? L.player : ""; }
 function whoSelSet(v){ try{ localStorage.setItem("wm_who_sel", v); }catch(e){} }
 function whoAvatar(n){ const keep = currentPlayerName, keepL = readingLevel; try{ currentPlayerName = n || ""; const lv = n ? getPlayerLevel(n) : null; if(lv) readingLevel = lv; return zihniSVG("happy"); }catch(e){ return ""; } finally { currentPlayerName = keep; readingLevel = keepL; } }
-function whoSelect(n){ whoSelSet(n); showWho(); }
+function whoSelect(n){ whoSelSet(n); whoTouch(n); showWho(); }
 let whoListOpen = false;
 function showWho(openList){ viaWho = true; try{ const ov = document.getElementById("tourOverlay"); if(ov && getComputedStyle(ov).display !== "none") endTour(); }catch(e){}
 ["modeScreen","readingLevelScreen","childLevelScreen","categoryScreen","mainApp","returnSplashScreen"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; });
 try{ hideGameScreens(); exitGameMode(); hideFamScreens(); hideLinkScreens(); }catch(e){}
 if(typeof openList === "boolean") whoListOpen = openList;
 let el = document.getElementById("whoScreen"); if(!el){ el = document.createElement("div"); el.id = "whoScreen"; document.body.appendChild(el); }
-const names = whoNames(), sel = whoSelGet(), guest = sel === "__guest__", cur = guest ? "" : (names.includes(sel) ? sel : ""), view = getEtkinlikView(), L = lastGet();
+const names = whoNames(), sel = whoSelGet(), guest = sel === "__guest__", cur = guest ? "" : (names.includes(sel) ? sel : ""), view = getEtkinlikView(), L = cur ? lastFor(cur) : null;
 const sub = (n) => { const a = ageOf(n), lv = getPlayerLevel(n), st = whoStars(n); return [a ? `${a} yaş` : "", lv ? (lv === "pre" ? "Okul Öncesi" : "Okul Sonrası") : "seviye seçilmedi", st ? `⭐ ${st}` : ""].filter(Boolean).join(" · "); };
 const row = (n, i) => `<div class="hm-row${n === cur ? " on" : ""}" data-hsel="${escHTML(n)}"><span class="hm-av" style="background:hsl(${whoHue(n)},70%,88%)">${whoAvatar(n)}</span><div class="hm-tx"><b>${escHTML(n)}</b><span>${sub(n)}</span></div>${n === cur ? `<i class="hm-ck">✓</i>` : ""}<button type="button" class="hm-gear" data-hgear="${escHTML(n)}" aria-label="Seviye ve yaş">⚙︎</button></div>`;
 el.innerHTML = `<div class="hm-wrap">
 <div class="hm-top"><div class="hm-brand"><span class="hm-logo">${zihniSVG("happy")}</span><b>Zihin Atölyesi</b></div><button type="button" class="hm-set" id="hmSet" aria-label="Ayarlar">⚙︎</button></div>
 <div class="hm-lab">Kim çalışacak?</div>
 <div class="hm-card hm-who">
-<div class="hm-row hm-head" id="hmHead">${cur ? `<span class="hm-av big" style="background:hsl(${whoHue(cur)},70%,88%)">${whoAvatar(cur)}</span><div class="hm-tx"><b>${escHTML(cur)}</b><span>${sub(cur)}</span></div>` : guest ? `<span class="hm-av big" style="background:#FDE5C2">${zihniSVG("happy")}</span><div class="hm-tx"><b>Misafir</b><span>kayıt tutulmaz</span></div>` : `<span class="hm-av big" style="background:#EEF4F4;font-size:24px;color:#0A847E">?</span><div class="hm-tx"><b>Kişi seç</b><span>${names.length ? "listeden seçin ya da yeni ekleyin" : "ilk çocuğu ekleyin"}</span></div>`}<i class="hm-chev">${whoListOpen ? "▴" : "▾"}</i></div>
-${whoListOpen ? `<div class="hm-list">${names.slice(0, 3).map(row).join("")}${names.length > 3 ? `<div class="hm-more">${names.slice(3).map(row).join("")}</div>` : ""}<button type="button" class="hm-add" id="hmAdd">＋ Yeni çocuk ekle</button></div>` : ""}
+<div class="hm-row hm-head" id="hmHead">${cur ? `<span class="hm-av big" style="background:hsl(${whoHue(cur)},70%,88%)">${whoAvatar(cur)}</span><div class="hm-tx"><span class="hm-cap">Daha önce çalışanlar</span><b>${escHTML(cur)}</b><span>${sub(cur)}</span></div>` : guest ? `<span class="hm-av big" style="background:#FDE5C2">${zihniSVG("happy")}</span><div class="hm-tx"><b>Misafir</b><span>kayıt tutulmaz</span></div>` : `<span class="hm-av big" style="background:#EEF4F4;font-size:24px;color:#0A847E">?</span><div class="hm-tx"><b>Kişi seç</b><span>${names.length ? "daha önce çalışanlardan seçin" : "aşağıdan kişi ekleyin"}</span></div>`}<i class="hm-chev">${whoListOpen ? "▴" : "▾"}</i></div>
+${whoListOpen ? `<div class="hm-list">${names.slice(0, 3).map(row).join("")}${names.length > 3 ? `<div class="hm-more">${names.slice(3).map(row).join("")}</div>` : ""}</div>` : ""}
 </div>
+<button type="button" class="hm-add hm-add-out" id="hmAdd">＋ Kişi ekle</button>
 <div class="hm-guest"><button type="button" id="hmGuest">Misafir girişi</button></div>
 ${L && L.player && names.includes(L.player) && MODE_NAMES[L.mode] ? `<button type="button" class="hm-resume" id="hmResume"><span class="hm-play">▶</span><span><b>Kaldığın yerden devam</b><span>${escHTML(L.player)} · ${L.mode === "cocuk" ? "Zihin Adaları" : "Bilişsel Etkinlik"}</span></span></button>` : ""}
 <div class="hm-card hm-mode" id="hmEtk"><div class="hm-mh"><span class="hm-ic etk">👥</span><div><b>Bilişsel Etkinlik</b><span>Uzmanla veya aileyle birlikte</span></div><i class="hm-go">›</i></div>
@@ -14111,10 +14117,10 @@ el.querySelectorAll("[data-hsel]").forEach(r => r.onclick = (ev) => { if(ev.targ
 el.querySelectorAll("[data-hgear]").forEach(b => b.onclick = (ev) => { ev.stopPropagation(); whoLevel(b.dataset.hgear, () => showWho()); });
 if($("hmAdd")) $("hmAdd").onclick = whoAdd;
 $("hmGuest").onclick = () => { whoListOpen = false; whoSelect("__guest__"); };
-if($("hmResume")) $("hmResume").onclick = () => { whoSelSet(L.player); document.getElementById("whoScreen").style.display = "none"; resumeLast(); };
+if($("hmResume")) $("hmResume").onclick = () => { whoSelSet(L.player); whoTouch(L.player); document.getElementById("whoScreen").style.display = "none"; resumeLast(L); };
 el.querySelectorAll("[data-hview]").forEach(b => b.onclick = (ev) => { ev.stopPropagation(); try{ setEtkinlikView(b.dataset.hview); }catch(e){} showWho(); });
 if($("hmClients")) $("hmClients").onclick = (ev) => { ev.stopPropagation(); el.style.display = "none"; appMode = "uzman"; try{ showExpert("list"); }catch(e){} };
-const need = (mode) => { if(guest) return whoGuestEnter(mode); if(!cur){ whoListOpen = true; showWho(); showLevelFlash(names.length ? "Önce kimin çalışacağını seçin" : "Önce bir çocuk ekleyin", "down"); return; } whoEnter(cur, mode); };
+const need = (mode) => { if(guest) return whoGuestEnter(mode); if(!cur){ whoListOpen = true; showWho(); showLevelFlash(names.length ? "Önce kimin çalışacağını seçin" : "Önce bir kişi ekleyin", "down"); return; } whoEnter(cur, mode); };
 $("hmEtk").onclick = () => need(getEtkinlikView() === "uzman" ? "uzman" : "aile");
 $("hmGame").onclick = () => need("cocuk"); }
 function whoGuestEnter(mode){ const sh = whoSheet(`<div class="mola-h">Misafir</div><div class="mola-s">Hangi seviyede?</div><div class="mola-list"><button type="button" data-gl="pre"><span>🧸</span>Okul Öncesi</button><button type="button" data-gl="post"><span>🎒</span>Okul Sonrası</button></div>`);
@@ -14135,17 +14141,18 @@ sh.querySelectorAll("[data-wl]").forEach(b => b.onclick = () => { rememberPlayer
 sh.querySelectorAll("[data-wa]").forEach(b => b.onclick = () => { const v = Number(b.dataset.wa); ageSet(n, v); rememberPlayerLevel(n, levelForAge(v)); sh.style.display = "none"; then && then(); });
 const m = sh.querySelector("[data-wman]"); if(m) m.onclick = () => whoLevel(n, then, true);
 const g = sh.querySelector("[data-wage]"); if(g) g.onclick = () => whoLevel(n, then, false); }
-function whoAdd(){ const sh = whoSheet(`<div class="mola-h">Yeni çocuk</div><input id="whoName" class="ex-input" placeholder="Adı" maxlength="40" style="width:100%;margin:8px 0"><div class="mola-s">Kaç yaşında?</div>${ageChips("data-wna")}<button type="button" class="age-link" data-wnman="1">Seviyeyi kendim seçeceğim</button><div class="mola-list" id="whoManual" style="display:none"><button type="button" data-wnl="pre"><span>🧸</span>Okul Öncesi</button><button type="button" data-wnl="post"><span>🎒</span>Okul Sonrası</button></div><div class="ex-err" id="whoErr"></div>`);
+function whoAdd(){ const sh = whoSheet(`<div class="mola-h">Kişi ekle</div><input id="whoName" class="ex-input" placeholder="Adı" maxlength="40" style="width:100%;margin:8px 0"><div class="mola-s">Kaç yaşında?</div>${ageChips("data-wna")}<button type="button" class="age-link" data-wnman="1">Seviyeyi kendim seçeceğim</button><div class="mola-list" id="whoManual" style="display:none"><button type="button" data-wnl="pre"><span>🧸</span>Okul Öncesi</button><button type="button" data-wnl="post"><span>🎒</span>Okul Sonrası</button></div><div class="ex-err" id="whoErr"></div>`);
 sh.querySelector("[data-wnman]").onclick = () => { document.getElementById("whoManual").style.display = ""; };
 setTimeout(() => { try{ document.getElementById("whoName").focus(); }catch(e){} }, 50);
 sh.querySelectorAll("[data-wnl], [data-wna]").forEach(b => b.onclick = () => { const n = cleanPersonName(document.getElementById("whoName").value); if(!n){ document.getElementById("whoErr").textContent = "Önce adı yazın."; return; }
 if(b.dataset.wna){ const v = Number(b.dataset.wna); ageSet(n, v); b.dataset.wnl = levelForAge(v); }
 if(!playersList.includes(n)){ if(firestoreReady && window.__fb){ const { db, collection, addDoc } = window.__fb; addDoc(collection(db, "players"), withUid({ name: n, createdAt: Date.now() })).catch(e => console.error(e)); playersList.push(n); } else { playersList.push(n); try{ queuePendingWrite("players", { name: n, createdAt: Date.now() }); }catch(e){} } try{ renderPlayerOptions(); }catch(e){} }
-rememberPlayerLevel(n, b.dataset.wnl); whoNew = n; sh.style.display = "none"; whoListOpen = false; whoSelect(n); }); }
+rememberPlayerLevel(n, b.dataset.wnl); whoNew = null; sh.style.display = "none"; whoListOpen = false; whoSelect(n);
+readingLevel = b.dataset.wnl; try{ applyLevelDefaultThresholds(readingLevel); }catch(e){} setTimeout(() => { try{ if(!placeGet(n, b.dataset.wnl)) placeStart(n); }catch(e){} }, 250); }); }
 function whoPick(n){ const lv = getPlayerLevel(n); if(!lv) return whoLevel(n, () => whoPick(n));
 const sh = whoSheet(`<div style="width:70px;height:70px;margin:0 auto">${zihniSVG("happy")}</div><div class="mola-h">${escHTML(n)}</div><div class="mola-s">Ne yapalım?</div><div class="mola-list"><button type="button" data-wgo="cocuk"><span>🏝️</span>Zihin Adaları<small>tek başına oyna</small></button><button type="button" data-wgo="aile"><span>👩‍👧</span>Birlikte çalışalım<small>yetişkinle etkinlik</small></button></div>`);
 sh.querySelectorAll("[data-wgo]").forEach(b => b.onclick = () => { sh.style.display = "none"; whoEnter(n, b.dataset.wgo); }); }
-function whoEnter(n, mode){ const lv = getPlayerLevel(n) || "post"; document.getElementById("whoScreen").style.display = "none"; viaWho = true;
+function whoEnter(n, mode){ whoTouch(n); const lv = getPlayerLevel(n) || "post"; document.getElementById("whoScreen").style.display = "none"; viaWho = true;
 readingLevel = lv; try{ applyLevelDefaultThresholds(lv); }catch(e){}
 if(mode === "cocuk"){ appMode = "cocuk"; currentPlayerName = n; showIslandMap(); }
 else { const vw = mode === "uzman" ? "uzman" : "aile"; try{ exitGameMode(); exitSessionMode(); exitRecMode(); hideFamScreens(); hideLinkScreens(); setEtkinlikView(vw); }catch(e){} appMode = vw; pendingLevelPlayerName = n; pendingLevelPlayerIsNew = false; chooseReadingLevel(lv); }

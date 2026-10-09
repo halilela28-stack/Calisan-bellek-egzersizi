@@ -414,7 +414,7 @@ html.hide-clock #timerDisplay{ visibility:hidden; }
 .hm-ck{ font-style:normal; color:#0A847E; font-weight:900; } .hm-chev{ font-style:normal; color:#0A847E; font-size:18px; } .hm-gear{ width:32px; height:32px; border-radius:50%; border:0; background:#F0F5F5; color:var(--ink-soft); cursor:pointer; flex:none; }
 .hm-list{ border-top:1.5px solid #EEF2F6; margin-top:4px; padding-top:4px; } .hm-more{ max-height:170px; overflow-y:auto; border-top:1.5px dashed #DDE6EE; margin-top:2px; }
 .hm-add{ display:block; width:calc(100% - 8px); margin:8px 4px 4px; background:#F7941D; color:#3D2B00; border:0; border-bottom:4px solid #C46F00; border-radius:14px; padding:11px; font-family:inherit; font-size:15px; font-weight:900; cursor:pointer; }
-.hm-guest{ text-align:center; } .hm-guest button{ border:0; background:none; font-family:inherit; font-weight:800; font-size:14px; color:#0A847E; text-decoration:underline; cursor:pointer; }
+.hm-add-out{ width:100%; margin:0; border-bottom-width:5px; border-radius:18px; padding:13px; font-size:16px; } .hm-cap{ font-size:11px !important; font-weight:700; color:#8A98A5 !important; } .hm-guest{ text-align:center; } .hm-guest button{ border:0; background:none; font-family:inherit; font-weight:800; font-size:14px; color:#0A847E; text-decoration:underline; cursor:pointer; }
 .hm-resume{ display:flex; align-items:center; gap:12px; background:#0A847E; color:#fff; border:0; border-bottom:5px solid #076A64; border-radius:20px; padding:12px 14px; font-family:inherit; text-align:left; cursor:pointer; } .hm-resume b{ display:block; font-size:16px; } .hm-resume span span{ display:block; font-size:13px; font-weight:700; color:#D6F2EF; }
 .hm-play{ width:44px; height:44px; border-radius:50%; background:#3A9E98; display:flex; align-items:center; justify-content:center; font-size:18px; flex:none; }
 .hm-mode{ cursor:pointer; } .hm-mh{ display:flex; align-items:center; gap:14px; } .hm-mh div{ flex:1; } .hm-mh b{ display:block; font-size:17px; } .hm-mh span{ display:block; font-size:13px; font-weight:700; color:var(--ink-soft); }
@@ -2800,7 +2800,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.09-f</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.09-h</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -3229,10 +3229,10 @@ dispatchFbReady();
 }
 </script>
 <script>setTimeout(function(){ if(window.__zaReady) return; var d=document.createElement('div'); d.style.cssText='position:fixed;inset:0;z-index:99999;background:#F6FBFA;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;text-align:center;color:#1D2B36'; d.innerHTML='<div style="max-width:420px"><div style="font-size:22px;font-weight:800;margin-bottom:10px">Uygulama dosyaları yüklenemedi</div><div style="font-size:15px;line-height:1.5">Bu sayfa yanındaki <b>zihin-app.js</b> ve <b>zihin-gorsel</b> dosyalarıyla birlikte çalışır. Beş dosyanın da aynı klasöre yüklendiğinden emin olun ve sayfayı yenileyin.<br><br><span style="color:#5B6B78">Claude içindeki önizlemede bu sürüm açılmaz; önizleme için zihin-atolyesi-onizleme.html dosyasını kullanın.</span></div><button onclick="location.reload()" style="margin-top:16px;padding:12px 22px;border:0;border-radius:14px;background:#0A847E;color:#fff;font-size:16px;font-weight:800">Yenile</button></div>'; document.body.appendChild(d); }, 9000);</script>
-<script src="zihin-gorsel-1.js?v=2026.10.09-f"></script>
-<script src="zihin-gorsel-2.js?v=2026.10.09-f"></script>
-<script src="zihin-gorsel-3.js?v=2026.10.09-f"></script>
-<script src="zihin-app.js?v=2026.10.09-f"></script>
+<script src="zihin-gorsel-1.js?v=2026.10.09-h"></script>
+<script src="zihin-gorsel-2.js?v=2026.10.09-h"></script>
+<script src="zihin-gorsel-3.js?v=2026.10.09-h"></script>
+<script src="zihin-app.js?v=2026.10.09-h"></script>
 <div id="printArea"></div>
 </body>
 </html>
