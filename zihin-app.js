@@ -7087,10 +7087,12 @@ const CP_FAM = { on:["on","under","next"], under:["on","under","next"], next:["o
 function cpApples(n){ const pts = [[30,40],[55,40],[80,40],[30,68],[55,68],[80,68],[42,54],[68,54]].slice(0, n); return `<svg viewBox="0 0 100 100" width="100%" height="100%"><rect x="10" y="22" width="80" height="66" rx="8" fill="none" stroke="#B9773A" stroke-width="4"/>${pts.map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="9" fill="#E5484D"/><rect x="${p[0] - 1}" y="${p[1] - 13}" width="2.5" height="6" fill="#2F7D32"/>`).join("")}</svg>`; }
 function cpGlass(f){ const h = 60 * f; return `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M30 18 L36 88 L64 88 L70 18" fill="none" stroke="#6B8AA6" stroke-width="4"/>${f > 0 ? `<path d="M${36 - 6 * f * 0} ${88 - h} L64 ${88 - h} L64 88 L36 88 Z" fill="#7CC4F2" opacity=".85"/>` : ""}</svg>`; }
 function cpTrials(){ const t = currentCombo().t, pre = isPre();
-const types = pre ? ["pos","pos","qty","size","fill"].concat(t > 0 ? ["pos"] : []) : ["pos","pos","pos","qty","size","fill","logic","logic"];
-const N = pre ? [5, 6, 6][t] : [6, 8, 8][t], out = [];
+const types = pre ? ["pos","pair","qty","pair","size","fill"].concat(t > 0 ? ["pos"] : []) : ["pos","pair","pos","qty","size","fill","logic","pair"];
+const N = pre ? [6, 7, 7][t] : [7, 8, 8][t], out = [], usedPair = new Set();
 for(let k = 0; k < N; k++){ const ty = types[k % types.length]; let opts, ans = 0, say, prompt;
-if(ty === "pos"){ const pool = pre ? (t === 0 ? ["on","under","in","out"] : ["on","under","next","in","out"]) : ["on","under","next","in","out","front","behind","between"];
+if(ty === "pair"){ const cand = CP_PAIRS.filter(x => !usedPair.has(x[0])), P = randomItem(cand.length ? cand : CP_PAIRS); usedPair.add(P[0]); const side = Math.random() < 0.5 ? 0 : 1;
+opts = [qzPic(CONCEPT_IMAGES[P[0]]), qzPic(CONCEPT_IMAGES[P[1]])]; ans = side; say = P[2 + side]; prompt = P[4 + side]; }
+else if(ty === "pos"){ const pool = pre ? (t === 0 ? ["on","under","in","out"] : ["on","under","next","in","out"]) : ["on","under","next","in","out","front","behind","between"];
 const rel = randomItem(pool), fam = CP_FAM[rel].slice(0, pre ? 3 : 3); opts = fam.map(r => cpDraw(r)); ans = fam.indexOf(rel); say = `Topun ${CP_PHRASE[rel]} olduğu resmi göster.`; prompt = `Top <b>${CP_PHRASE[rel]}</b>`; }
 else if(ty === "qty"){ const mode = pre ? randomItem(["most","least"]) : randomItem(["most","least","none"]); let ns = shuffleArray(pre ? [1, 3, 6] : [0, 2, 4, 7]);
 if(mode !== "none" && !pre) ns = shuffleArray([1, 3, 5, 7]); opts = ns.map(n => cpApples(n));
@@ -7383,7 +7385,18 @@ const choices = Array.from(new Set([ans, ans - 1, ans + 1, ans + 2, Math.max(1, 
 const opts = choices.map(n => `<div style="display:flex;flex-wrap:wrap;gap:2px;justify-content:center;align-items:center;width:100%;height:100%">${Array.from({length:n}, () => `<svg viewBox="0 0 20 20" width="18" height="18"><circle cx="10" cy="10" r="8" fill="#2E6FD8"/></svg>`).join("")}</div>`);
 out.push(qzMake(stim, opts, 0, { prompt:"Teraziyi <b>dengelemek</b> için kaç mavi daire gerekir?", raw:true, fixed:true, cell:84 })); }
 return out; }
+
+const CP_PAIRS = [ ["acik","kapali","Açık kapıyı göster.","Kapalı kapıyı göster.","<b>Açık</b> kapı","<b>Kapalı</b> kapı"], ["hizli","yavas","Hızlı olanı göster.","Yavaş olanı göster.","<b>Hızlı</b> olan","<b>Yavaş</b> olan"],
+["agir","hafif","Ağır olanı göster.","Hafif olanı göster.","<b>Ağır</b> olan","<b>Hafif</b> olan"], ["islak","kuru","Islak şemsiyeyi göster.","Kuru şemsiyeyi göster.","<b>Islak</b> şemsiye","<b>Kuru</b> şemsiye"],
+["temiz","kirli","Temiz tişörtü göster.","Kirli tişörtü göster.","<b>Temiz</b> tişört","<b>Kirli</b> tişört"], ["sert","yumusak","Sert olanı göster.","Yumuşak olanı göster.","<b>Sert</b> olan","<b>Yumuşak</b> olan"] ];
+const CI = CONCEPT_IMAGES;
 const OPP_PRE = () => [
+{ w:"açık", pic: CI.acik, opp: CI.kapali, same: CI.acik }, { w:"kapalı", pic: CI.kapali, opp: CI.acik, same: CI.kapali },
+{ w:"hızlı", pic: CI.hizli, opp: CI.yavas, same: CI.hizli }, { w:"yavaş", pic: CI.yavas, opp: CI.hizli, same: CI.yavas },
+{ w:"ağır", pic: CI.agir, opp: CI.hafif, same: CI.agir, g:"tas" }, { w:"hafif", pic: CI.hafif, opp: CI.agir, same: CI.hafif, g:"tas" },
+{ w:"ıslak", pic: CI.islak, opp: CI.kuru, same: CI.islak }, { w:"kuru", pic: CI.kuru, opp: CI.islak, same: CI.kuru },
+{ w:"temiz", pic: CI.temiz, opp: CI.kirli, same: CI.temiz }, { w:"kirli", pic: CI.kirli, opp: CI.temiz, same: CI.kirli },
+{ w:"sert", pic: CI.sert, opp: CI.yumusak, same: CI.sert, g:"tas" }, { w:"yumuşak", pic: CI.yumusak, opp: CI.sert, same: CI.yumusak, g:"tas" },
 { w:"gece", pic: DN_IMAGES.moon, opp: DN_IMAGES.sun, same: DN_IMAGES.moon },
 { w:"sıcak", pic: HOTCOLD_IMAGES.fire, opp: randomItem([HOTCOLD_IMAGES.snowman, HOTCOLD_IMAGES.ice, HOTCOLD_IMAGES.icecream]), same: randomItem([HOTCOLD_IMAGES.soup, HOTCOLD_IMAGES.iron, HOTCOLD_IMAGES.sun]) },
 { w:"soğuk", pic: HOTCOLD_IMAGES.penguin, opp: randomItem([HOTCOLD_IMAGES.fire, HOTCOLD_IMAGES.soup, HOTCOLD_IMAGES.sun]), same: randomItem([HOTCOLD_IMAGES.snowman, HOTCOLD_IMAGES.ice, HOTCOLD_IMAGES.icecream]) },
@@ -7393,7 +7406,7 @@ const OPP_PRE = () => [
 const OPP_POST = [["büyük","küçük","iri"],["hızlı","yavaş","çabuk"],["sıcak","soğuk","ılık"],["zengin","fakir","varlıklı"],["cesur","korkak","yürekli"],["erken","geç","sabah"],["kolay","zor","basit"],["genç","yaşlı","yeni"],["açık","kapalı","geniş"],["dolu","boş","kalabalık"],["uzun","kısa","yüksek"],["ağır","hafif","büyük"],["temiz","kirli","parlak"],["sert","yumuşak","katı"]];
 function oppTrials2(){ const t = currentCombo().t;
 if(isPre()){ const P = OPP_PRE(), N = [3, 4, 5][t];
-return shuffleArray(P).slice(0, N).map(x => { const other = randomItem(P.filter(y => y.w !== x.w && y.opp !== x.opp && y.opp !== x.same)).opp;
+return shuffleArray(P).slice(0, N).map(x => { const other = randomItem(P.filter(y => y.w !== x.w && y.opp !== x.opp && y.opp !== x.same && y.opp !== x.pic && !(x.g && y.g === x.g))).opp;
 return qzMake(`<div style="width:110px;height:110px;margin:0 auto">${qzPic(x.pic)}</div>`, [x.opp, x.same, other].map(src => qzPic(src)), 0, { prompt:`<b>${x.w}</b> · zıttı hangisi?`, raw:true, fixed:true, cell:96, say:`${cap(x.w)}. Bunun zıttı hangisi?`, replay:true }); }); }
 const N = [3, 4, 4][t];
 return shuffleArray(OPP_POST).slice(0, 6).map(([w, opp, near]) => { const un = randomItem(OPP_POST.filter(x => x[0] !== w))[0];
@@ -11626,7 +11639,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.09-h";
+const APP_VERSION = "2026.10.10-a";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
