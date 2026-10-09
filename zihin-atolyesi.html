@@ -139,6 +139,9 @@ display:none;
 .onboard-slide.active{
 display:block;
 }
+#onboardIcon0, #returnSplashIcon{ width:auto !important; height:auto !important; min-height:0 !important; font-size:0 !important; background:none !important; box-shadow:none !important; margin:0 auto 10px !important; }
+@keyframes logoBob{ 50%{ transform:translateY(-6px); } }
+.logo-zihni{ width:120px; height:120px; margin:0 auto; animation:logoBob 2.6s ease-in-out infinite; filter:drop-shadow(0 6px 8px rgba(10,132,120,.18)); }
 .onboard-emoji{
 width:52px;
 height:52px;
@@ -2747,7 +2750,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.08-q</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.08-r</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -14912,7 +14915,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.08-q";
+const APP_VERSION = "2026.10.08-r";
 const LINK_LOCAL_KEY = "wm_family_links_v1";   // aile cihazında: kişi|seviye → kod + program önbelleği
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -17275,7 +17278,7 @@ document.getElementById("consentScreen").style.display = "flex";
 }
 }
 
-document.getElementById("returnSplashIcon").innerHTML = uiIconSVG("brain");
+document.getElementById("returnSplashIcon").innerHTML = `<div class="logo-zihni">${zihniSVG("happy")}</div>`;
 document.getElementById("returnSloganText").textContent = randomItem(RETURN_SLOGANS);
 document.getElementById("returnSplashBtn").addEventListener("click", proceedAfterOnboarding);
 
@@ -17358,7 +17361,7 @@ document.getElementById("mainApp").style.display = "none";
 document.getElementById("modeScreen").style.display = "flex";
 });
 
-document.getElementById("onboardIcon0").innerHTML = uiIconSVG("brain");
+document.getElementById("onboardIcon0").innerHTML = `<div class="logo-zihni">${zihniSVG("happy")}</div>`;
 document.getElementById("onboardIcon1").innerHTML = uiIconSVG("bulb");
 document.getElementById("onboardIcon2").innerHTML = uiIconSVG("grid");
 document.getElementById("onboardIcon3").innerHTML = uiIconSVG("stopwatch");
