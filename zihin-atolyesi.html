@@ -396,7 +396,7 @@ html.hide-clock #timerDisplay{ visibility:hidden; }
 .who-av{ width:76px; height:76px; border-radius:50%; display:flex; align-items:center; justify-content:center; padding:6px; } .who-add .who-av{ background:#EEF4F4; font-size:36px; font-weight:900; color:var(--teal-dark); }
 .who-gear{ position:absolute; top:6px; right:6px; width:30px; height:30px; border-radius:50%; border:0; background:#F0F5F5; font-size:15px; cursor:pointer; color:var(--ink-soft); }
 .who-links{ display:flex; justify-content:center; gap:18px; margin:18px 0 6px; } .who-links button{ border:0; background:none; font-family:inherit; font-weight:800; color:var(--teal-dark); text-decoration:underline; cursor:pointer; font-size:14px; }
-#whoSheet{ position:fixed; inset:0; z-index:310; background:rgba(20,30,40,.45); display:none; align-items:center; justify-content:center; padding:16px; } #whoSheet small{ display:block; font-size:11px; font-weight:600; opacity:.75; }
+#whoSheet{ position:fixed; inset:0; z-index:420; background:rgba(20,30,40,.45); display:none; align-items:center; justify-content:center; padding:16px; } #whoSheet small{ display:block; font-size:11px; font-weight:600; opacity:.75; }
 .age-chips{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin:10px 0; } .age-chips button{ border:2px solid #CFE3E1; background:#fff; border-radius:14px; padding:12px 0; font-family:inherit; font-size:18px; font-weight:900; color:var(--ink); cursor:pointer; }
 .age-link{ border:0; background:none; font-family:inherit; font-weight:800; font-size:13px; color:var(--teal-dark); text-decoration:underline; cursor:pointer; margin:4px auto 8px; display:block; }
 .age-up{ margin-top:4px; border:0; border-radius:10px; background:#FFF1D6; color:#9A6B00; font-family:inherit; font-size:11px; font-weight:800; padding:5px 8px; cursor:pointer; }
@@ -2801,7 +2801,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.10-d</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.10-e</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -3236,10 +3236,10 @@ dispatchFbReady();
 }
 </script>
 <script>setTimeout(function(){ if(window.__zaReady) return; var d=document.createElement('div'); d.style.cssText='position:fixed;inset:0;z-index:99999;background:#F6FBFA;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;text-align:center;color:#1D2B36'; d.innerHTML='<div style="max-width:420px"><div style="font-size:22px;font-weight:800;margin-bottom:10px">Uygulama dosyaları yüklenemedi</div><div style="font-size:15px;line-height:1.5">Bu sayfa yanındaki <b>zihin-app.js</b> ve <b>zihin-gorsel</b> dosyalarıyla birlikte çalışır. Beş dosyanın da aynı klasöre yüklendiğinden emin olun ve sayfayı yenileyin.<br><br><span style="color:#5B6B78">Claude içindeki önizlemede bu sürüm açılmaz; önizleme için zihin-atolyesi-onizleme.html dosyasını kullanın.</span></div><button onclick="location.reload()" style="margin-top:16px;padding:12px 22px;border:0;border-radius:14px;background:#0A847E;color:#fff;font-size:16px;font-weight:800">Yenile</button></div>'; document.body.appendChild(d); }, 9000);</script>
-<script src="zihin-gorsel-1.js?v=2026.10.10-d"></script>
-<script src="zihin-gorsel-2.js?v=2026.10.10-d"></script>
-<script src="zihin-gorsel-3.js?v=2026.10.10-d"></script>
-<script src="zihin-app.js?v=2026.10.10-d"></script>
+<script src="zihin-gorsel-1.js?v=2026.10.10-e"></script>
+<script src="zihin-gorsel-2.js?v=2026.10.10-e"></script>
+<script src="zihin-gorsel-3.js?v=2026.10.10-e"></script>
+<script src="zihin-app.js?v=2026.10.10-e"></script>
 <div id="printArea"></div>
 </body>
 </html>
