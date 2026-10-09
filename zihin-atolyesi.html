@@ -379,7 +379,7 @@ html.hide-clock #timerDisplay{ visibility:hidden; }
 .place-res.small{ margin:6px 0; max-width:none; } .place-res.small div{ background:var(--panel); font-size:12px; padding:6px 8px; }
 .place-card{ display:flex; align-items:center; gap:10px; background:#fff; border-radius:18px; padding:10px 12px; margin:0 auto 10px; max-width:520px; box-shadow:0 4px 14px rgba(0,60,90,.12); } .place-card > span{ font-size:30px; } .place-card > div{ flex:1; font-size:13px; font-weight:600; color:var(--ink-soft); } .place-card b{ color:var(--ink); font-size:15px; } .place-card .gr-btn{ flex:none; padding:8px 16px; }
 [data-mt], [data-mtbtn], [data-judge]{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
-@media (orientation: portrait){ html.board-run #mainApp::after{ content:""; display:block; height:72vh; } }
+@media (orientation: portrait){ html.board-run #mainApp::after{ content:""; display:block; height:150px; } }
 .tier-btn.usta{ background:linear-gradient(#FFF3C4,#FFE27A); border-color:#E0A100; color:#7A5600; } .tier-btn.usta.active{ background:linear-gradient(#FFD23F,#F5A524); color:#3D2B00; }
 #growthScreen{ position:fixed; inset:0; z-index:420; background:linear-gradient(#F3FAF0,#FDFCF6); display:none; justify-content:center; overflow-y:auto; padding:12px 12px calc(16px + env(safe-area-inset-bottom)); }
 .gr-sum{ background:#fff; border-radius:16px; padding:12px 14px; font-weight:700; line-height:1.5; margin:6px 0 10px; } .gr-note{ background:#FFF8E5; border:2px solid #F1DFC2; border-radius:16px; padding:12px 14px; font-size:14px; font-weight:600; line-height:1.5; margin-bottom:10px; }
@@ -403,6 +403,7 @@ html.hide-clock #timerDisplay{ visibility:hidden; }
 .gr-primary{ order:-1; font-size:18px !important; padding:14px 18px !important; }
 .set-sec{ background:var(--panel); border-radius:18px; margin:0 0 10px; padding:2px 12px; } .set-sec > summary{ list-style:none; cursor:pointer; font-weight:900; font-size:17px; padding:12px 2px; display:flex; justify-content:space-between; align-items:center; }
 .set-sec > summary::-webkit-details-marker{ display:none; } .set-sec > summary::after{ content:"▾"; font-size:16px; color:var(--ink-soft); transition:transform .2s; } .set-sec[open] > summary::after{ transform:rotate(180deg); } .set-sec > .settings-group{ margin-bottom:10px; } .set-loose{ flex-direction:column; align-items:stretch; gap:8px; } .set-sec .settings-group{ gap:10px; } .set-sec .settings-group > .settings-label{ flex:1 1 auto; min-width:0; } .set-sec .settings-group > :not(.settings-label){ flex-shrink:0; } .settings-inner > .settings-divider{ display:none; }
+.cl-card{ position:relative; } .cl-x{ position:absolute; top:12px; right:12px; width:42px; height:42px; border-radius:50%; border:2px solid var(--line); background:#fff; font-size:18px; font-weight:900; color:var(--ink); cursor:pointer; z-index:2; }
 .rl-light{ width:110px; height:110px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:24px; color:#fff; box-shadow:0 6px 0 rgba(0,0,0,.2); } .rl-light.green{ background:#1FA463; } .rl-light.red{ background:#E5484D; }
 .rl-track{ position:relative; height:70px; background:#EAF4E4; border:3px solid #8BC56A; border-radius:18px; overflow:hidden; } .rl-prog{ position:absolute; left:0; top:0; bottom:0; background:#CFE8B8; } .rl-run{ position:absolute; top:10px; width:48px; height:48px; } .rl-flag{ position:absolute; right:6px; top:16px; font-size:30px; }
 .rl-track.caught{ animation:rlShake .4s; } @keyframes rlShake{ 25%{ transform:translateX(-8px); } 75%{ transform:translateX(8px); } }
@@ -423,7 +424,7 @@ html.hide-clock #timerDisplay{ visibility:hidden; }
 .pk-plank{ display:flex; gap:2px; height:22px; cursor:pointer; } .pk-plank span{ flex:1; background:#C98A4B; border:2px solid #7A4A1E; border-radius:4px; } .pk-plank.sel span{ background:#FFE27A; } .pk-plank.ok span{ background:#7FD3A8; } .pk-plank.bad span{ background:#F28B8B; } .pk-plank.laid{ cursor:default; }
 .pk-area{ position:relative; width:100%; background:linear-gradient(#BFE6FF, #E9F7FF); border:2px solid var(--line); border-radius:18px; overflow:hidden; touch-action:none; }
 .pk-bln{ position:absolute; width:56px; height:68px; border-radius:50% 50% 48% 48%; cursor:pointer; box-shadow:inset -6px -8px 0 rgba(0,0,0,.12); } .pk-bln::after{ content:""; position:absolute; left:50%; bottom:-14px; width:2px; height:14px; background:#7A8A99; }
-.pk-bln.pop{ transform:scale(1.4); opacity:0; transition:all .15s; } .pk-chip{ display:inline-block; color:#fff; font-weight:900; border-radius:10px; padding:1px 8px; }
+.pk-bln.pop{ opacity:0; transition:opacity .15s; } .pk-bln{ top:0; will-change:transform; } .pk-chip{ display:inline-block; color:#fff; font-weight:900; border-radius:10px; padding:1px 8px; }
 .pk-moles{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:0 auto; background:#8BC56A; border-radius:22px; padding:12px; }
 .pk-hole{ position:relative; border-radius:50%; background:radial-gradient(ellipse at 50% 70%, #4A2E14 55%, #6B4423 56%); cursor:pointer; overflow:hidden; }
 .pk-mole{ position:absolute; left:15%; right:15%; bottom:8%; height:72%; border-radius:46% 46% 30% 30%; background:#9C6B3E; animation:molUp .15s ease-out; } .pk-mole.hit{ filter:brightness(1.4); transform:scale(.9); }
@@ -2781,7 +2782,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.09-d</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.09-e</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -3048,7 +3049,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="cl-preview" id="closetPreview"></div>
 <div class="cl-name"><label for="mascotNameIn">Adı</label><input id="mascotNameIn" maxlength="12" placeholder="Zihni" autocomplete="off"><button type="button" class="btn-ghost" id="mascotNameBtn">Kaydet</button></div>
 <div class="cl-list" id="closetList"></div>
-<button type="button" class="pl-cancel" id="closetCloseBtn">Kapat</button>
+<button type="button" class="cl-x" id="closetCloseBtn" aria-label="Kapat">✕</button>
 </div>
 </div>
 <div class="parent-lock" id="parentLock" style="display:none;">
@@ -3210,10 +3211,10 @@ dispatchFbReady();
 }
 </script>
 <script>setTimeout(function(){ if(window.__zaReady) return; var d=document.createElement('div'); d.style.cssText='position:fixed;inset:0;z-index:99999;background:#F6FBFA;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;text-align:center;color:#1D2B36'; d.innerHTML='<div style="max-width:420px"><div style="font-size:22px;font-weight:800;margin-bottom:10px">Uygulama dosyaları yüklenemedi</div><div style="font-size:15px;line-height:1.5">Bu sayfa yanındaki <b>zihin-app.js</b> ve <b>zihin-gorsel</b> dosyalarıyla birlikte çalışır. Beş dosyanın da aynı klasöre yüklendiğinden emin olun ve sayfayı yenileyin.<br><br><span style="color:#5B6B78">Claude içindeki önizlemede bu sürüm açılmaz; önizleme için zihin-atolyesi-onizleme.html dosyasını kullanın.</span></div><button onclick="location.reload()" style="margin-top:16px;padding:12px 22px;border:0;border-radius:14px;background:#0A847E;color:#fff;font-size:16px;font-weight:800">Yenile</button></div>'; document.body.appendChild(d); }, 9000);</script>
-<script src="zihin-gorsel-1.js?v=2026.10.09-d"></script>
-<script src="zihin-gorsel-2.js?v=2026.10.09-d"></script>
-<script src="zihin-gorsel-3.js?v=2026.10.09-d"></script>
-<script src="zihin-app.js?v=2026.10.09-d"></script>
+<script src="zihin-gorsel-1.js?v=2026.10.09-e"></script>
+<script src="zihin-gorsel-2.js?v=2026.10.09-e"></script>
+<script src="zihin-gorsel-3.js?v=2026.10.09-e"></script>
+<script src="zihin-app.js?v=2026.10.09-e"></script>
 <div id="printArea"></div>
 </body>
 </html>

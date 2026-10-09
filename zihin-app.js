@@ -5541,8 +5541,11 @@ if(typeof gameMode !== "undefined" && gameMode){ sfx("go"); speakText(gameLine("
 const bd = document.getElementById("board");
 bd.style.scrollMarginTop = "8px";
 document.documentElement.classList.add("board-run");
-bd.scrollIntoView({ behavior: "smooth", block: "start" });
-[500, 1000].forEach(ms => setTimeout(() => { try{ if(!timerRunning || landscapeMQ.matches) return; const r = bd.getBoundingClientRect(); if(r.top > 60 || r.top < -40) bd.scrollIntoView({ behavior: ms === 500 ? "smooth" : "auto", block: "start" }); }catch(e){} }, ms));
+const reveal = (smooth, force) => { try{ if((!force && !timerRunning) || landscapeMQ.matches) return; const r = bd.getBoundingClientRect(), bar = document.querySelector(".controls"), barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0, avail = innerHeight - barH - 12;
+let dy = 0; if(r.height > avail - 8) dy = r.top - 8; else if(r.bottom > avail) dy = r.bottom - avail; else if(r.top < 8) dy = r.top - 8;
+if(Math.abs(dy) > 4){ let sc = bd.parentElement; while(sc && sc !== document.documentElement){ const cs = getComputedStyle(sc); if(/(auto|scroll)/.test(cs.overflowY) && sc.scrollHeight > sc.clientHeight + 2) break; sc = sc.parentElement; }
+if(!sc || sc === document.documentElement) sc = document.scrollingElement || document.documentElement; sc.scrollBy({ top: dy, behavior: smooth ? "smooth" : "auto" }); } }catch(e){} };
+reveal(true, true); [500, 1000].forEach(ms => setTimeout(() => reveal(ms === 500), ms));
 } }
 if(currentExercise().isRecall){
 clearTimeout(recallHideTimeout);
@@ -8061,7 +8064,7 @@ el.className = "pk-bln"; el.dataset.mt = id; el.style.background = `radial-gradi
 st.items.push({ id, col, y: 1.05, el, t0: performance.now() }); mtLater(spawn, c.gap); };
 spawn();
 const frame = (now) => { if(!pkAlive(st) || st.phase !== "run") return; const A = area.clientHeight;
-for(const b of st.items.slice()){ const u = (now - b.t0) / (c.rise * 1000 * (window.__wmSpeed || 1)); b.y = 1.05 - u * 1.25; b.el.style.top = (b.y * A) + "px";
+for(const b of st.items.slice()){ const u = (now - b.t0) / (c.rise * 1000 * (window.__wmSpeed || 1)); b.y = 1.05 - u * 1.25; b.el.style.transform = `translate3d(0,${(b.y * A).toFixed(1)}px,0)`;
 if(b.y < -0.2){ if(b.col === st.tgt) mtErr(); b.el.remove(); st.items.splice(st.items.indexOf(b), 1); } }
 if(made >= total && !st.items.length){ st.phase = "done"; mtFinish(` Patlatılan: ${st.score}`); return; } requestAnimationFrame(frame); };
 requestAnimationFrame(frame); },
@@ -8230,7 +8233,7 @@ esc(i){ const st = mtState, n = st.n; if(st.phase !== "run") return; const c = s
 if(!dir || st.walls[c][dir]) return; st.pos = i; gameSfx("pop"); if(st.cl.includes(i)){ escHit(); escPaint(); return; }
 if(i === n * n - 1){ st.phase = "done"; gameSfx("correct"); mtFinish(" Yıldıza ulaştın!"); return; } escPaint(); },
 bln(i){ const st = mtState; if(st.phase !== "run") return; const b = st.items.find(x => x.id === i); if(!b) return; if(b.col === st.tgt){ st.score++; gameSfx("pop"); } else mtErr();
-b.el.classList.add("pop"); st.items.splice(st.items.indexOf(b), 1); setTimeout(() => b.el.remove(), 160); const hd = document.getElementById("pkScore"); if(hd) hd.textContent = st.score; },
+b.el.style.transform += " scale(1.35)"; b.el.classList.add("pop"); st.items.splice(st.items.indexOf(b), 1); setTimeout(() => b.el.remove(), 160); const hd = document.getElementById("pkScore"); if(hd) hd.textContent = st.score; },
 mol(i){ const st = mtState; if(st.phase !== "run" || !st.cur || st.cur.hit || st.cur.h !== i) return; st.cur.hit = true; if(st.cur.hat){ mtErr(); } else { st.score++; gameSfx("pop"); } molDraw(); },
 bag(i){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "ask") return; st.pick = i; st.phase = "fb"; if(i === tr.ans){ st.score++; gameSfx("correct"); } else mtErr(); renderMtBoard(); mtLater(NEW_MT.next, i === tr.ans ? 600 : 1400); },
 smn(i){ const st = mtState; if(st.phase !== "input") return; smnFlash(i, 220); if(i === st.seq[st.pos]){ st.pos++; if(st.pos >= st.seq.length){ st.phase = "wait"; st.score = st.seq.length; gameSfx("correct"); mtLater(smnRound, 700); } }
@@ -11623,7 +11626,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.09-d";
+const APP_VERSION = "2026.10.09-e";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -12391,8 +12394,10 @@ function speakText(t, opts){
 try{
 if(!t || !("speechSynthesis" in window)) return;
 if(speechMuted()) return;
-speechSynthesis.cancel();
+if(!_ttsUnlocked) _ttsMissed = { t, opts, at: Date.now() };
+if(speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
 const u = new SpeechSynthesisUtterance(t);
+u.onstart = () => { if(_ttsMissed && _ttsMissed.t === t) _ttsMissed = null; };   // gerçekten çaldıysa tekrar okunmasın
 u.lang = "tr-TR";
 u.rate = (opts && opts.rate) || 1.0;
 u.pitch = (opts && opts.pitch) || 1.15;
@@ -12401,6 +12406,11 @@ if(_trVoice) u.voice = _trVoice;
 speechSynthesis.speak(u);
 }catch(e){}
 }
+let _ttsUnlocked = false, _ttsMissed = null;
+function ttsUnlock(){ if(_ttsUnlocked || !("speechSynthesis" in window)) return; _ttsUnlocked = true;
+try{ speechSynthesis.getVoices(); const m = _ttsMissed; _ttsMissed = null;
+if(m && Date.now() - m.at < 6000 && !speechMuted()) speakText(m.t, m.opts); else { const u = new SpeechSynthesisUtterance(" "); u.volume = 0; u.lang = "tr-TR"; speechSynthesis.speak(u); } }catch(e){} }
+["touchend","pointerup","click","keydown"].forEach(ev => document.addEventListener(ev, ttsUnlock, { capture: true, passive: true }));
 const GAME_LINES = {
 start:   ["Hadi başlayalım!", "Hazır mısın?", "Haydi bakalım!", "Yeni bir macera!"],
 go:      ["Başla!", "Hadi!", "Şimdi!"],
