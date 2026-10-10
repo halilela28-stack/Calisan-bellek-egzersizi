@@ -5770,9 +5770,11 @@ setTimeout(()=>{ piece.remove(); }, 1100);
 }
 }
 
+function showToast(text, type){ let t = document.getElementById("zaToast"); if(!t){ t = document.createElement("div"); t.id = "zaToast"; document.body.appendChild(t); }
+t.textContent = text; t.className = type === "down" ? "warn" : "ok"; t.style.display = "block"; clearTimeout(t._h); t._h = setTimeout(() => { t.style.display = "none"; }, 3200); }
 function showLevelFlash(text, type){
 const flash = document.getElementById("levelFlash");
-if(!flash) return;
+if(!flash || flash.offsetParent === null || ["settingsScreen","whoScreen","expertScreen","linkScreen"].some(id => { const e = document.getElementById(id); return e && getComputedStyle(e).display !== "none"; })) return showToast(text, type);
 flash.textContent = text;
 flash.className = "level-flash " + type;
 flash.style.display = "block";
@@ -11646,7 +11648,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.10-h";
+const APP_VERSION = "2026.10.10-i";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -11840,18 +11842,22 @@ ${fbOk() ? "" : needCloudHtml()}
 </div>`;
 let lvl = "post";
 w.querySelectorAll("[data-lvl]").forEach(b => b.onclick = () => { lvl = b.dataset.lvl; w.querySelectorAll("[data-lvl]").forEach(x => x.classList.toggle("on", x === b)); });
-document.getElementById("exCreateBtn").onclick = async () => {
+document.getElementById("exCreateBtn").onclick = async (ev) => {
+const btn = ev.currentTarget; if(btn.disabled) return;
 const err = document.getElementById("exNewErr"); err.textContent = "";
 const name = cleanPersonName(document.getElementById("exChildName").value);
 if(!name){ err.textContent = "Çocuğun adını yazın."; return; }
 if(!fbOk()){ err.textContent = "İnternet bağlantısı yok."; return; }
 const { db, doc, getDoc, setDoc } = window.__fb;
+btn.disabled = true; btn.textContent = "Oluşturuluyor…";
 try{
 let code, g = 0;
 do{ code = newLinkCode(); g++; } while(g < 5 && (await getDoc(doc(db, "links", code))).exists());
-await setDoc(doc(db, "links", code), { code, expertUid: window.__fb.uid, childName: name, level: lvl, createdAt: Date.now(), familyUid: null, consent: false, program: null, weekKey: "", weekDays: [], lastActivityAt: null });
-showExpert("client", code);
-}catch(e){ console.error(e); err.textContent = "Kod oluşturulamadı. Tekrar deneyin."; }
+const rec = { code, expertUid: window.__fb.uid, childName: name, level: lvl, createdAt: Date.now(), familyUid: null, consent: false, program: null, weekKey: "", weekDays: [], lastActivityAt: null };
+await setDoc(doc(db, "links", code), rec);
+if(!expertLinks.some(x => x.id === code)) expertLinks.unshift(Object.assign({ id: code }, rec));
+showExpert("client", code); showLevelFlash(`${name} için bağlantı kodu oluşturuldu ✓`, "levelup");
+}catch(e){ console.error(e); err.textContent = "Kod oluşturulamadı. Tekrar deneyin."; btn.disabled = false; btn.textContent = "Kod oluştur"; }
 };
 }
 function renderExpertClient(code){
@@ -14130,7 +14136,8 @@ if(!a){ box.innerHTML = `<div class="acct-note">Bulut bağlantısı yok. İntern
 if(em){ box.innerHTML = `<div class="acct-note"><b>${escHTML(em)}</b> ile giriş yapıldı.${a.verified === false ? `<br><span style="color:#B45309">E-posta adresi henüz doğrulanmadı. Gelen kutunuzdaki bağlantıya dokunun.</span> <button type="button" class="age-link" id="acctVerBtn" style="display:inline;margin:0">Tekrar gönder</button>` : ""}<br>Son eşitleme: ${t ? new Date(t).toLocaleString("tr-TR") : "henüz yok"}</div>
 <div class="acct-btns"><button type="button" class="fam-chip" id="acctSyncBtn">Şimdi eşitle</button><button type="button" class="fam-chip" id="acctOutBtn">Çıkış yap</button></div>`;
 document.getElementById("acctSyncBtn").onclick = async () => { const ok = await syncUpload(); showLevelFlash(ok ? "Eşitlendi ✓" : "Eşitlenemedi", ok ? "levelup" : "down"); renderAcctSettings(); };
-{ const vb = document.getElementById("acctVerBtn"); if(vb) vb.onclick = async () => { try{ await a.verify(); showLevelFlash("Doğrulama e-postası gönderildi", "levelup"); }catch(e){ showLevelFlash(authMsg(e), "down"); } }; }
+{ const vb = document.getElementById("acctVerBtn"); if(vb) vb.onclick = async () => { const note = document.createElement("div"); note.className = "acct-note"; note.style.marginTop = "6px"; note.textContent = "Gönderiliyor…"; vb.after(note); vb.disabled = true;
+try{ await a.verify(); note.innerHTML = "<b>Doğrulama e-postası gönderildi.</b> Gelen kutunuza ve <b>Gereksiz/Spam</b> klasörüne bakın; bağlantıya dokunduktan sonra bu ekrana dönün."; }catch(e){ note.textContent = authMsg(e); vb.disabled = false; } }; }
 document.getElementById("acctOutBtn").onclick = () => { const sh = whoSheet(`<div class="mola-h">Çıkış yap</div><div class="mola-s">Hesaptaki veriler bulutta güvende kalır. Bu cihazdaki kayıtlar ne olsun?</div><div class="mola-list"><button type="button" data-out="keep"><span>📱</span>Bu cihazda kalsın<small>kendi cihazınızsa</small></button><button type="button" data-out="wipe"><span>🧹</span>Bu cihazdan silinsin<small>ortak cihazsa önerilir</small></button></div>`);
 sh.querySelectorAll("[data-out]").forEach(b => b.onclick = async () => { const wipe = b.dataset.out === "wipe"; if(wipe && !confirm("Bu cihazdaki kişiler, ilerleme ve ayarlar silinecek. Hesaptaki veriler etkilenmez. Devam edilsin mi?")) return; await syncUpload(true); try{ await a.signOut(); }catch(e){} if(wipe) wipeDeviceData(); location.reload(); }); };
 return; }
@@ -14435,6 +14442,7 @@ btn.addEventListener("click", ()=> setOn(box.style.display !== "block"));
 function openSettings(){
 renderPersonDataList();
 try{ renderAcctSettings(); }catch(e){ console.error(e); } try{ renderPlaceSettings(); }catch(e){} try{ renderPinSettings(); }catch(e){}
+try{ const a = acct(); if(a && !a.isAnon && a.verified === false && a.refresh) a.refresh().then(() => { if(a.verified) try{ renderAcctSettings(); }catch(e){} }).catch(() => {}); }catch(e){}
 document.getElementById("settingsScreen").style.display = "block";
 }
 function closeSettings(){
