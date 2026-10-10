@@ -6804,7 +6804,7 @@ const ok = i === tr.ans; if(ok) gameSfx("correct"); else mtErr(); renderMtBoard(
 if(!ok && tr.after) mtLater(() => sayTask(tr.after), 300);
 mtLater(() => { st.ti++; if(st.ti >= st.trials.length){ mtFinish(); return; } qzStart(); }, ok ? 600 : 1500); }
 function qzRender(st, W, H, isLs){
-const tr = st.trials[Math.min(st.ti, st.trials.length - 1)], dots = `<div class="wm-dots">${st.trials.map((x, i) => `<i class="${i < st.ti ? "on" : ""}${st.warmN && i < st.warmN ? " w" : ""}"></i>`).join("")}</div>${st.warmN && st.ti < st.warmN && st.phase !== "idle" && st.phase !== "done" ? `<div class="qz-warm">🌱 Isınma</div>` : ""}`;
+const tr = st.trials[Math.min(st.ti, st.trials.length - 1)], dots = `<div class="wm-dots">${st.trials.map((x, i) => `<i class="${i < st.ti ? "on" : ""}${st.warmN && i < st.warmN ? " w" : ""}"></i>`).join("")}${st.warmN && st.ti < st.warmN && st.phase !== "idle" && st.phase !== "done" ? `<span class="qz-warm in">🌱 Isınma</span>` : ""}</div>`;
 if(st.phase === "idle") return { info:"▶ Başlat'a bas", body: dots };
 if(st.phase === "done") return { info:"Bitti!", body: dots };
 const stimH = tr.stim && tr.stimBig ? `<div class="wm-card" style="width:${Math.min(isLs ? H - 30 : 220, W * 0.6)}px;height:${Math.min(isLs ? H - 30 : 220, W * 0.6)}px;margin:0 auto 8px;padding:6px">${tr.stim}</div>` : tr.stim ? (tr.raw ? `<div style="margin:2px 0 8px">${tr.stim}</div>` : `<div class="wm-card" style="width:${Math.min(isLs ? H * 0.5 : 130, W * 0.4)}px;height:${Math.min(isLs ? H * 0.5 : 130, W * 0.4)}px;margin:0 auto 8px;padding:6px">${tr.stim}</div>`) : "";
@@ -11659,7 +11659,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.10-n";
+const APP_VERSION = "2026.10.10-o";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -12003,7 +12003,7 @@ box.innerHTML = expertResults.length ? expertResults.slice(0, 12).map(r => `<div
 (function initLinks(){
 document.getElementById("expertBackBtn").addEventListener("click", () => {
 if(expertResultsUnsub){ expertResultsUnsub(); expertResultsUnsub = null; }
-if(expertView.mode === "list") leaveToCategories(); else showExpert("list");
+if(expertView.mode === "list"){ if(window.__exFromHome){ window.__exFromHome = false; hideLinkScreens(); showWho(); } else leaveToCategories(); } else showExpert("list");
 });
 document.getElementById("linkBackBtn").addEventListener("click", leaveToCategories);
 window.addEventListener("firebase-ready", () => setTimeout(() => { try{ watchFamilyLink(); }catch(e){} }, 1500));
@@ -14248,7 +14248,7 @@ if($("hmAdd")) $("hmAdd").onclick = whoAdd;
 $("hmGuest").onclick = () => { whoListOpen = false; whoSelect("__guest__"); };
 if($("hmResume")) $("hmResume").onclick = () => { const go = () => { whoSelSet(L.player); whoTouch(L.player); document.getElementById("whoScreen").style.display = "none"; resumeLast(L); }; if(L.mode === "uzman") expertGate(go); else go(); };
 el.querySelectorAll("[data-hview]").forEach(b => b.onclick = (ev) => { ev.stopPropagation(); try{ setEtkinlikView(b.dataset.hview); }catch(e){} showWho(); });
-if($("hmClients")) $("hmClients").onclick = (ev) => { ev.stopPropagation(); expertGate(() => { el.style.display = "none"; appMode = "uzman"; try{ showExpert("list"); }catch(e){} }); };
+if($("hmClients")) $("hmClients").onclick = (ev) => { ev.stopPropagation(); expertGate(() => { el.style.display = "none"; appMode = "uzman"; window.__exFromHome = true; try{ showExpert("list"); }catch(e){} }); };
 const need = (mode) => { if(guest) return whoGuestEnter(mode); if(!cur){ whoListOpen = true; showWho(); showLevelFlash(names.length ? "Önce kimin çalışacağını seçin" : "Önce bir kişi ekleyin", "down"); return; } whoEnter(cur, mode); };
 $("hmEtk").onclick = () => { if(getEtkinlikView() === "uzman") expertGate(() => need("uzman")); else need("aile"); };
 $("hmGame").onclick = () => need("cocuk"); }
