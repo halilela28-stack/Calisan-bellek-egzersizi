@@ -2802,7 +2802,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.10-f</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.10-g</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -2826,6 +2826,10 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-group" style="flex-direction:column;align-items:stretch;gap:6px">
 <div class="settings-label">Hesap ve bulut eşitleme<br><span style="font-size:12px;font-weight:600;color:var(--ink-soft)">E-postayla giriş yapınca veriler cihazlar arasında eşitlenir.</span></div>
 <div id="acctBox"></div>
+</div>
+<div class="settings-group" style="flex-direction:column;align-items:stretch;gap:6px">
+<div class="settings-label">Uzman PIN'i<br><span style="font-size:12px;font-weight:600;color:var(--ink-soft)">Uzman girişini ve danışan bilgilerini bu cihazda PIN'le korur.</span></div>
+<div id="pinBox"></div>
 </div>
 <div class="settings-group" style="flex-direction:column;align-items:stretch;gap:6px">
 <div class="settings-label">Bu cihaz uzman cihazı<br><span style="font-size:12px;font-weight:600;color:var(--ink-soft)">Açıkken uygulama “Kim çalışacak?” ekranı yerine uzman akışıyla açılır.</span></div>
@@ -3193,7 +3197,7 @@ getFirestore, collection, addDoc, onSnapshot, query, where, orderBy, getDocs, wr
 doc, getDoc, setDoc, updateDoc, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import {
-getAuth, signInAnonymously, onAuthStateChanged, EmailAuthProvider, linkWithCredential, signInWithEmailAndPassword, sendPasswordResetEmail, signOut
+getAuth, signInAnonymously, onAuthStateChanged, EmailAuthProvider, linkWithCredential, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, sendEmailVerification
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -3222,6 +3226,8 @@ const authApi = (user) => ({ get email(){ return (auth.currentUser && auth.curre
 link: (em, pw) => linkWithCredential(auth.currentUser, EmailAuthProvider.credential(em, pw)),
 signIn: (em, pw) => signInWithEmailAndPassword(auth, em, pw),
 reset: (em) => sendPasswordResetEmail(auth, em),
+get verified(){ return !!(auth.currentUser && auth.currentUser.emailVerified); },
+verify: () => auth.currentUser ? sendEmailVerification(auth.currentUser) : Promise.resolve(),
 signOut: () => signOut(auth) });
 onAuthStateChanged(auth, (user)=>{
 if(user){
@@ -3237,10 +3243,10 @@ dispatchFbReady();
 }
 </script>
 <script>setTimeout(function(){ if(window.__zaReady) return; var d=document.createElement('div'); d.style.cssText='position:fixed;inset:0;z-index:99999;background:#F6FBFA;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;text-align:center;color:#1D2B36'; d.innerHTML='<div style="max-width:420px"><div style="font-size:22px;font-weight:800;margin-bottom:10px">Uygulama dosyaları yüklenemedi</div><div style="font-size:15px;line-height:1.5">Bu sayfa yanındaki <b>zihin-app.js</b> ve <b>zihin-gorsel</b> dosyalarıyla birlikte çalışır. Beş dosyanın da aynı klasöre yüklendiğinden emin olun ve sayfayı yenileyin.<br><br><span style="color:#5B6B78">Claude içindeki önizlemede bu sürüm açılmaz; önizleme için zihin-atolyesi-onizleme.html dosyasını kullanın.</span></div><button onclick="location.reload()" style="margin-top:16px;padding:12px 22px;border:0;border-radius:14px;background:#0A847E;color:#fff;font-size:16px;font-weight:800">Yenile</button></div>'; document.body.appendChild(d); }, 9000);</script>
-<script src="zihin-gorsel-1.js?v=2026.10.10-f"></script>
-<script src="zihin-gorsel-2.js?v=2026.10.10-f"></script>
-<script src="zihin-gorsel-3.js?v=2026.10.10-f"></script>
-<script src="zihin-app.js?v=2026.10.10-f"></script>
+<script src="zihin-gorsel-1.js?v=2026.10.10-g"></script>
+<script src="zihin-gorsel-2.js?v=2026.10.10-g"></script>
+<script src="zihin-gorsel-3.js?v=2026.10.10-g"></script>
+<script src="zihin-app.js?v=2026.10.10-g"></script>
 <div id="printArea"></div>
 </body>
 </html>
