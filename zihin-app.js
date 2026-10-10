@@ -6792,7 +6792,7 @@ const ok = i === tr.ans; if(ok) gameSfx("correct"); else mtErr(); renderMtBoard(
 if(!ok && tr.after) mtLater(() => sayTask(tr.after), 300);
 mtLater(() => { st.ti++; if(st.ti >= st.trials.length){ mtFinish(); return; } qzStart(); }, ok ? 600 : 1500); }
 function qzRender(st, W, H, isLs){
-const tr = st.trials[Math.min(st.ti, st.trials.length - 1)], dots = `<div class="wm-dots">${st.trials.map((x, i) => `<i class="${i < st.ti ? "on" : ""}"></i>`).join("")}</div>`;
+const tr = st.trials[Math.min(st.ti, st.trials.length - 1)], dots = `<div class="wm-dots">${st.trials.map((x, i) => `<i class="${i < st.ti ? "on" : ""}${st.warmN && i < st.warmN ? " w" : ""}"></i>`).join("")}</div>${st.warmN && st.ti < st.warmN && st.phase !== "idle" && st.phase !== "done" ? `<div class="qz-warm">🌱 Isınma</div>` : ""}`;
 if(st.phase === "idle") return { info:"▶ Başlat'a bas", body: dots };
 if(st.phase === "done") return { info:"Bitti!", body: dots };
 const stimH = tr.stim && tr.stimBig ? `<div class="wm-card" style="width:${Math.min(isLs ? H - 30 : 220, W * 0.6)}px;height:${Math.min(isLs ? H - 30 : 220, W * 0.6)}px;margin:0 auto 8px;padding:6px">${tr.stim}</div>` : tr.stim ? (tr.raw ? `<div style="margin:2px 0 8px">${tr.stim}</div>` : `<div class="wm-card" style="width:${Math.min(isLs ? H * 0.5 : 130, W * 0.4)}px;height:${Math.min(isLs ? H * 0.5 : 130, W * 0.4)}px;margin:0 auto 8px;padding:6px">${tr.stim}</div>`) : "";
@@ -7782,13 +7782,15 @@ let el = document.getElementById("placeScreen"); if(!el){ el = document.createEl
 el.style.display = "flex"; el.innerHTML = `<div class="adv-wrap" style="text-align:center"><div style="width:110px;height:110px;margin:20px auto 6px">${zihniSVG("happy")}</div><div class="mola-h">Zihni ile keşif turu!</div><div class="mola-s">Yedi küçük oyun var. Elinden geldiğince dikkatli oyna, acele etmene gerek yok.</div><div class="mola-list" style="max-width:300px;margin:0 auto"><button type="button" id="placeGo"><span>▶️</span>Başla</button></div></div>`;
 speakText("Zihni ile keşif turuna hazır mısın?"); document.getElementById("placeGo").onclick = placeNext; }
 function placeNext(){ const R = placeRun; if(!R) return; if(R.di >= PLACE_DOMS.length) return placeFinish();
-const d = PLACE_DOMS[R.di]; R.items++; const myItem = R.item = (R.item || 0) + 1; const el = document.getElementById("placeScreen");
-const head = `<div class="place-top"><div class="place-dots">${PLACE_DOMS.map((_, i) => `<span class="${i < R.di ? "done" : i === R.di ? "cur" : ""}"></span>`).join("")}</div></div>`;
-const answer = (ok) => { if(placeRun !== R || R.item !== myItem || R.answered === myItem) return; R.answered = myItem; R.n[R.tier]++; if(ok) R.cnt[R.tier]++; gameSfx(ok ? "correct" : "pop");
+const d = PLACE_DOMS[R.di]; R.items++; const myItem = R.item = (R.item || 0) + 1; const warm = !R.wd && R.tier === 1 && R.n[1] === 0, TT = warm ? 0 : R.tier; const el = document.getElementById("placeScreen");
+const head = `${warm ? `<div class="qz-warm" style="margin-top:calc(8px + env(safe-area-inset-top))">🌱 Isınma</div>` : ""}<div class="place-top"><div class="place-dots">${PLACE_DOMS.map((_, i) => `<span class="${i < R.di ? "done" : i === R.di ? "cur" : ""}"></span>`).join("")}</div></div>`;
+const answer = (ok) => { if(placeRun !== R || R.item !== myItem || R.answered === myItem) return; R.answered = myItem;
+if(warm){ R.wd = true; gameSfx(ok ? "correct" : "pop"); return setTimeout(placeNext, 450); }
+R.n[R.tier]++; if(ok) R.cnt[R.tier]++; gameSfx(ok ? "correct" : "pop");
 if(R.n[R.tier] < 2) return setTimeout(placeNext, 450);
 let lv = null; if(R.tier === 1){ if(R.cnt[1] === 2){ R.tier = 2; return setTimeout(placeNext, 450); } lv = R.cnt[1] === 1 ? 1 : 0; } else lv = R.cnt[2] === 2 ? 2 : 1;
-R.res[d.k] = lv; R.di++; R.tier = 1; R.cnt = [0, 0, 0]; R.n = [0, 0, 0]; setTimeout(placeNext, 550); };
-if(d.kind === "qz"){ const tr = placeQz(d.q, R.tier); R.cur = tr; const t0 = performance.now(), lim = d.lim ? d.lim[R.lvl === "pre" ? 0 : 1] : null;
+R.res[d.k] = lv; R.di++; R.tier = 1; R.cnt = [0, 0, 0]; R.n = [0, 0, 0]; R.wd = false; setTimeout(placeNext, 550); };
+if(d.kind === "qz"){ const tr = placeQz(d.q, TT); R.cur = tr; const t0 = performance.now(), lim = d.lim ? d.lim[R.lvl === "pre" ? 0 : 1] : null;
 const cell = Math.min(tr.cell || 104, (window.innerWidth - 60) / Math.min(tr.opts.length, 3));
 el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q">${tr.prompt || ""}</div>${tr.say && tr.replay ? `<button type="button" class="qz-replay" id="placeRep">🔊 Bir daha dinle</button>` : ""}<div class="place-stim"><div class="ps-in">${tr.stim || ""}</div></div>
 <div class="place-opts" style="grid-template-columns:repeat(${Math.min(tr.opts.length, tr.text ? 2 : 3)}, ${tr.text ? "minmax(0,1fr)" : cell + "px"})">${tr.opts.map((o, i) => `<button type="button" class="wm-pic${tr.text ? " qz-txt" : ""}" data-po-a="${i}" style="${tr.text ? "min-height:64px" : `width:${cell}px;height:${cell}px`};padding:6px">${o}</button>`).join("")}</div></div>`;
@@ -7796,12 +7798,12 @@ el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q">${tr.prompt ||
 if(tr.say) speakText(tr.say); const rp = document.getElementById("placeRep"); if(rp) rp.onclick = () => speakText(tr.say);
 el.querySelectorAll("[data-po-a]").forEach(b => b.onclick = () => { if(R.answered === myItem) return; const ok = Number(b.dataset.poA) === tr.ans && (!lim || performance.now() - t0 <= lim); b.classList.add(ok ? "ok" : "bad"); answer(ok); }); return; }
 const pool = placePool();
-if(d.kind === "span"){ const K = (R.lvl === "pre" ? [2, 3, 4] : [3, 4, 5])[R.tier], seq = pool.slice(0, K), opts = shuffleArray(seq.concat(pool.slice(K, K + 2))); R.cur = { seq, opts }; let k = 0;
+if(d.kind === "span"){ const K = (R.lvl === "pre" ? [2, 3, 4] : [3, 4, 5])[TT], seq = pool.slice(0, K), opts = shuffleArray(seq.concat(pool.slice(K, K + 2))); R.cur = { seq, opts }; let k = 0;
 const show = () => { if(k < seq.length){ el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q">Sırayı aklında tut…</div><div class="wm-card" style="width:170px;height:170px;margin:20px auto;padding:8px">${qzPic(seq[k].src)}</div></div>`; k++; setTimeout(show, R.lvl === "pre" ? 1300 : 1050); return; }
 let pos = 0; el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q">Gördüğün <b>sırayla</b> dokun</div><div class="place-opts" style="grid-template-columns:repeat(3, 96px)">${opts.map((x, i) => `<button type="button" class="wm-pic" data-po-s="${i}" style="width:96px;height:96px;padding:5px">${qzPic(x.src)}</button>`).join("")}</div></div>`;
 el.querySelectorAll("[data-po-s]").forEach(b => b.onclick = () => { if(pos < 0) return; const x = opts[Number(b.dataset.poS)]; if(x === seq[pos]){ b.classList.add("ok"); pos++; if(pos >= seq.length){ pos = -1; answer(true); } } else { b.classList.add("bad"); pos = -1; answer(false); } }); };
 show(); return; }
-const N = (R.lvl === "pre" ? [2, 3, 4] : [3, 5, 7])[R.tier], seen = pool.slice(0, N), tgt = randomItem(seen), opts = shuffleArray([tgt].concat(pool.slice(N, N + (R.lvl === "pre" ? 2 : 3)))); if(R.lastIdx != null && opts.indexOf(tgt) === R.lastIdx){ const j = (R.lastIdx + 1 + Math.floor(Math.random() * (opts.length - 1))) % opts.length; [opts[R.lastIdx], opts[j]] = [opts[j], opts[R.lastIdx]]; } R.lastIdx = opts.indexOf(tgt); R.cur = { tgt, opts };
+const N = (R.lvl === "pre" ? [2, 3, 4] : [3, 5, 7])[TT], seen = pool.slice(0, N), tgt = randomItem(seen), opts = shuffleArray([tgt].concat(pool.slice(N, N + (R.lvl === "pre" ? 2 : 3)))); if(R.lastIdx != null && opts.indexOf(tgt) === R.lastIdx){ const j = (R.lastIdx + 1 + Math.floor(Math.random() * (opts.length - 1))) % opts.length; [opts[R.lastIdx], opts[j]] = [opts[j], opts[R.lastIdx]]; } R.lastIdx = opts.indexOf(tgt); R.cur = { tgt, opts };
 el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q">Resimlere iyi bak…</div><div class="place-opts" style="grid-template-columns:repeat(${Math.min(N, 4)}, 80px)">${seen.map(x => `<div class="wm-card" style="width:80px;height:80px;padding:5px">${qzPic(x.src)}</div>`).join("")}</div></div>`;
 setTimeout(() => { if(!placeRun) return; el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q">Bunlardan hangisi <b>vardı</b>?</div><div class="place-opts" style="grid-template-columns:repeat(${Math.min(opts.length, 3)}, 96px)">${opts.map((x, i) => `<button type="button" class="wm-pic" data-po-v="${i}" style="width:96px;height:96px;padding:5px">${qzPic(x.src)}</button>`).join("")}</div></div>`;
 el.querySelectorAll("[data-po-v]").forEach(b => b.onclick = () => { if(R.answered === myItem) return; const ok = opts[Number(b.dataset.poV)] === tgt; b.classList.add(ok ? "ok" : "bad"); answer(ok); }); }, (R.lvl === "pre" ? 1600 : 1100) * N); }
@@ -8944,7 +8946,11 @@ setErrorCount(ex.ckScore()); renderBoard();
 let mtState = null, mtTimers = [];
 function mtClear(){ mtTimers.forEach(t => clearTimeout(t)); mtTimers = []; }
 function mtLater(fn, ms){ const st = mtState; mtTimers.push(setTimeout(() => { if(mtState === st && timerRunning) fn(); }, ms * (window.__wmSpeed || 1))); }
-function mtErr(){ mtState.wrong++; setErrorCount(currentErrorCount + 1); try{ vibrate(60); }catch(e){} gameSfx("wrong"); }
+function qzWarmup(id){ const st = mtState; if(!st || st.kind !== "quiz" || !Array.isArray(st.trials) || st.trials.length < 3 || st.warmN != null) return;
+const N = st.trials.length, W = Math.max(1, Math.round(N * 0.3)), t = currentCombo().t; st.warmN = W;
+if(t > 0){ const save = currentCombo; try{ currentCombo = () => Object.assign({}, save(), { t: t - 1 }); NEW_MT.build[id](); const E = (mtState && mtState.trials) || []; for(let i = 0; i < W && i < E.length; i++) st.trials[i] = E[i]; }catch(e){ console.error(e); } finally{ currentCombo = save; mtState = st; } } }
+function mtErr(){ if(mtState && mtState.kind === "quiz" && mtState.warmN && mtState.ti < mtState.warmN){ mtState.warmErr = (mtState.warmErr || 0) + 1; try{ vibrate(40); }catch(e){} gameSfx("wrong"); return; }
+mtState.wrong++; setErrorCount(currentErrorCount + 1); try{ vibrate(60); }catch(e){} gameSfx("wrong"); }
 function mtFinish(extra){
 const st = mtState; st.phase = "done"; renderMtBoard(); stopTimer();
 showLevelFlash((st.wrong ? `Bitti! ${st.wrong} hata.` : "Bitti! Hiç hata yok 🎉") + (extra || ""), st.wrong ? "down" : "levelup");
@@ -8978,7 +8984,7 @@ const L = (isPre() ? [2, 3, 4] : [3, 4, 5])[currentCombo().t];
 mtState = { kind: id === "pic-seq-say" ? "picsay" : "picseq", audio: id === "pic-seq-touch", trials: Array.from({length: isPre() ? 3 : 4}, () => shuffleArray(picPool()).slice(0, L)), ti:0, pos:0, wrong:0, phase:"idle" };
 return mtState.trials;
 }
-if(NEW_MT.build[id]) return NEW_MT.build[id]();
+if(NEW_MT.build[id]){ const r0 = NEW_MT.build[id](); try{ qzWarmup(id); }catch(e){ console.error(e); } return (mtState && mtState.trials) || r0; }
 if(id === "running"){
 const R = isPre() ? 3 : 4;
 mtState = { kind:id, trials: Array.from({length:R}, () => makeRunStream()), ti:0, pos:0, wrong:0, phase:"idle", L: runLast() };
@@ -11640,7 +11646,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.10-e";
+const APP_VERSION = "2026.10.10-f";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
