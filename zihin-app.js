@@ -11659,7 +11659,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.10-l";
+const APP_VERSION = "2026.10.10-n";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -14189,6 +14189,7 @@ try{ await acct().reset(em); err("Şifre sıfırlama bağlantısı e-postanıza 
 (function settingsSections(){ try{ const inner = document.querySelector("#settingsScreen .settings-inner");
 if(inner){ let wrap = null; [...inner.children].forEach(ch => { const isLab = ch.classList.contains("settings-label"), stop = ch.classList.contains("settings-group") || ch.tagName === "DETAILS";
 if(isLab){ wrap = document.createElement("div"); wrap.className = "settings-group set-loose"; inner.insertBefore(wrap, ch); wrap.appendChild(ch); } else if(stop){ wrap = null; } else if(wrap){ wrap.appendChild(ch); } }); }
+[...document.querySelectorAll("#settingsScreen .set-loose")].forEach(g => { if(g.children.length === 1 && (g.textContent || "").trim() === "Erişilebilirlik"){ const nx = g.nextElementSibling; const lab = nx && nx.querySelector(".settings-label"); if(lab){ lab.insertAdjacentHTML("afterbegin", "<b style=\"display:block;font-size:16px;color:var(--ink);margin-bottom:4px\">Erişilebilirlik</b>"); } g.remove(); } });
 const groups = [...document.querySelectorAll("#settingsScreen .settings-group")]; if(!groups.length) return;
 const S = [["👧 Çocuk", ["Günlük oyun süresi","Başlangıç değerlendirmesi","Tahmin et"]], ["🎯 Oyun ve zorluk", ["Adaptif zorluk","Uzman Modu'nda"]],
 ["🔊 Ses ve görünüm", ["Ses efektleri","Altyazı","Sade görünüm","Titreşim","Kutlama","Erişilebilirlik","Yazı boyutu"]], ["💾 Hesap, veri ve cihaz", ["Hesap ve bulut","Uzman PIN","Oyun ilerlemesi yedeği","Kişiler ve veriler","Bu cihaz uzman","Sorun giderme"]]];
