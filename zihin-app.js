@@ -355,6 +355,14 @@ const R = isPre() ? PRE_OS_ROWS_BY_TIER : OS_ROWS_BY_TIER;
 const D = isPre() ? PRE_OS_DISTRACT_BY_TIER : OS_DISTRACT_BY_TIER;
 return { rows: R[t] ?? R[R.length-1], distract: D[t] ?? D[D.length-1] };
 }
+let osProg = [], osProgGrid = null;
+document.addEventListener("click", (ev) => { const cell = ev.target.closest && ev.target.closest("[data-osr]"); if(!cell) return; try{ if(!currentExercise().isSeqRows) return; }catch(e){ return; }
+if(!timerRunning){ showLevelFlash("Önce Başlat'a basın", "down"); return; }
+const ri = Number(cell.dataset.osr), c = cell.dataset.osc, r = currentGrid[ri]; if(!r) return; const got = osProg[ri] || (osProg[ri] = []); if(got.length >= 2 || got.includes(c)) return;
+const want = got.length === 0 ? r.second : r.third;
+if(c === want){ got.push(c); try{ gameSfx("pop"); }catch(e){} renderOsBoard();
+  if(osProg.every(x => x.length >= 2)) setTimeout(() => { if(timerRunning){ const b = document.getElementById("timerBtn"); if(b) b.click(); } }, 450); }
+else { setErrorCount(currentErrorCount + 1); try{ gameSfx("wrong"); vibrate(40); }catch(e){} cell.classList.add("bad"); setTimeout(() => cell.classList.remove("bad"), 450); } });
 function makeOsRows(){
 const {rows, distract} = osConf();
 const seqs = shuffleArray(OS_SEQUENCES).slice(0, rows);
@@ -382,10 +390,11 @@ if(landscapeMQ.matches && currentGrid.length){
 const avail = (board.clientHeight || window.innerHeight * 0.6) - 16;
 maxW = Math.max(30, Math.min(maxW, Math.floor(avail / currentGrid.length) - 12));
 }
-board.innerHTML = `<div class="os-list">` + currentGrid.map(r =>
+if(osProgGrid !== currentGrid){ osProgGrid = currentGrid; osProg = currentGrid.map(() => []); }
+board.innerHTML = `<div class="os-list">` + currentGrid.map((r, ri) =>
 `<div class="os-row" style="grid-template-columns:repeat(${n}, minmax(0, ${maxW}px));justify-content:center;column-gap:${n > 6 ? 6 : 12}px;">` +
 `<div class="os-cell os-start"><img src="${OS_IMAGES[r.start]}" alt=""></div>` +
-r.choices.map(c => `<div class="os-cell"><img src="${OS_IMAGES[c]}" alt=""></div>`).join("") +
+r.choices.map(c => { const k = (osProg[ri] || []).indexOf(c); return `<div class="os-cell os-tap${k >= 0 ? " ok" : ""}" data-osr="${ri}" data-osc="${c}"><img src="${OS_IMAGES[c]}" alt="">${k >= 0 ? `<b class="os-n">${k + 1}</b>` : ""}</div>`; }).join("") +
 `</div>`).join("") + `</div>`;
 }
 
@@ -2299,7 +2308,7 @@ osRows: () => makeOsRows(),
 stages: [
 {
 label: "Göster",
-instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Her satırın başındaki çerçeveli resimden başla. Sonra o satırda ondan sonra ne olduğunu, en son da ne olduğunu parmağınla göster. Örneğin yumurta → civciv → tavuk. Olabildiğince hızlı yap"</b> deyin. Yanlış gösterilen her görseli hata sayısına ekleyin.`,
+instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Her satırın başındaki çerçeveli resimden başla. Sonra o satırda ondan sonra ne geldiğine, en son da ne geldiğine sırayla dokun. Örneğin yumurta → civciv → tavuk. Olabildiğince hızlı yap"</b> deyin. Yanlış gösterilen her görseli hata sayısına ekleyin.`,
 example: () => ``
 }
 ]
@@ -5797,6 +5806,7 @@ currentExercise().stages.forEach((stage, i)=>{
 const btn = document.createElement("button");
 btn.className = "stage-btn" + (i===currentStageIndex ? " active" : "") + (stage.strategyOf != null || /Strateji/.test(stage.label) ? " strat" : "");
 btn.textContent = stage.label;
+if(recCfgNow && recCfgNow.s === i && recCfgNow.id === currentExercise().id){ btn.textContent = stage.label + " · ⭐ Uzman"; btn.classList.add("rec-stage"); }
 btn.addEventListener("click", ()=>{
 currentStageIndex = i;
 renderStageRow();
@@ -11619,9 +11629,10 @@ sessionActive = { date: todayKey(), idx };
 document.documentElement.classList.add("session-mode");
 selectCategory(ci);
 const e = currentCategoryExercises().findIndex(x => x.id === id);
-let sidx = findSeqIndex(Math.max(lastTierFor(id), exerciseById(id).minTier || 0), e);
+const rc = recCfgFor(id);
+let sidx = findSeqIndex(Math.max(rc ? Math.min(rc.t, tierMax(exerciseById(id))) : lastTierFor(id), exerciseById(id).minTier || 0), e);
 if(sidx === undefined || sidx < 0) sidx = findSeqIndex(0, e);
-goToIndex(sidx); currentStageIndex = 0; renderStageRow(); newPage();
+goToIndex(sidx); currentStageIndex = rc ? Math.min(rc.s, currentExercise().stages.length - 1) : 0; recCfgNow = rc ? { id, s: currentStageIndex } : null; renderStageRow(); newPage();
 renderSessionBar(false);
 pinAssignedChild();
 document.getElementById("sessionBackBtn").lastChild.textContent = " Bugün";
@@ -11648,7 +11659,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.10-i";
+const APP_VERSION = "2026.10.10-l";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -11881,10 +11892,11 @@ ${(l.childName || "").trim() ? `<div class="fam-card" style="display:flex;flex-d
 ${!l.familyUid ? `<div class="fam-card" style="display:flex;flex-direction:column;gap:10px"><div style="font-weight:900">Bağlantı kodu</div><div class="ex-code">${fmtCode(code)}</div>
 <div class="fam-sub" style="font-weight:600">Aile, uygulamada <b>Bilişsel Etkinlik → Aile → Uzmana bağlan</b> bölümüne bu kodu girer.</div>
 <button type="button" class="fam-cta ghost" id="exShareBtn">Kodu paylaş</button></div>` : ""}
+${l.familyUid ? `<div class="fam-card"><div style="font-weight:900;font-size:16px">Son sonuçlar</div><div id="exResults"><div class="fam-sub" style="font-weight:600;margin-top:6px">Yükleniyor…</div></div></div>` : ""}
 ${(() => { const W = hwWeakPages(l.childName); const lv = readingLevel;
 return `<div class="fam-card" style="display:flex;flex-direction:column;gap:10px"><div style="font-weight:900;font-size:16px">Ödevlendirme</div>
 <div class="fam-sub" style="font-weight:600">Bu cihazda <b>${escHTML(l.childName || "danışan")}</b> adıyla yaptığınız son 45 günlük oturumlara göre zorlandığı sayfalar (son 3 denemenin yarısından fazlasında 2+ hata ya da son denemede 3+ hata).</div>
-${p.hw.length ? `<div><div style="font-weight:800;margin-bottom:6px">Verilen ödevler</div><div class="fam-chips">${p.hw.map(id => `<button type="button" class="fam-chip on" data-hwx="${id}">📌 ${famLabel(id)} ✕</button>`).join("")}</div></div>` : ""}
+${p.hw.length ? `<div><div style="font-weight:800;margin-bottom:6px">Verilen ödevler</div><div class="fam-chips">${p.hw.map(id => { const cf = expertCfgFor(l.childName, [id])[id]; return `<button type="button" class="fam-chip on" data-hwx="${id}">📌 ${famLabel(id)}${cf ? ` <small>(${escHTML(cfgLabel(id, cf))})</small>` : ""} ✕</button>`; }).join("")}</div><div class="fam-sub" style="font-weight:600;margin-top:4px">Ödevler, sizin bu çocukla en son çalıştığınız aşama ve düzeyde açılır.</div></div>` : ""}
 ${W.list.length ? `<div>${W.list.slice(0, 8).map(x => `<div class="ex-row" data-hws="${x.id}"><div class="tx"><div class="t1">${famLabel(x.id)}${p.hw.includes(x.id) ? " · 📌" : ""}</div><div class="fam-sub" style="font-weight:600">${famCatName(x.cat)} · son: ${x.err} hata, ${escHTML(x.tier || "")} · başarı %${x.rate} (${x.n} deneme)</div></div><span class="ex-check${hwSel.has(x.id) ? " on" : ""}">${hwSel.has(x.id) ? I_CHECK : ""}</span></div>`).join("")}</div>
 <div style="display:flex;gap:8px"><button type="button" class="fam-cta" id="hwAutoBtn" style="flex:1">Otomatik ödevlendir</button><button type="button" class="fam-cta ghost" id="hwManBtn" style="flex:1">Seçilenleri ödev yap${hwSel.size ? ` (${hwSel.size})` : ""}</button></div>
 <div class="fam-sub" style="font-weight:600">Otomatik: en çok zorlandığı 4 sayfa ödev olur. Manuel: listeden işaretlediklerinizi ekler. En fazla 4 ödev; aile bunları günlük oturumda öncelikli yapar.</div>`
@@ -11905,8 +11917,7 @@ return `<details class="ex-isl" data-isl="${i.id}"${gamesOpen === i.id ? " open"
 </div>
 ${l.familyUid ? `<div class="fam-card"><div style="font-weight:900;font-size:16px;margin-bottom:10px">Bu hafta</div>
 <div class="fam-days">${DAY_SHORT.map((n, i) => { const on = l.weekKey === weekKey() && (l.weekDays || []).includes(i); return `<div class="fam-day${on ? " on" : ""}${i === todayDayIdx() ? " today" : ""}"><span>${on ? I_CHECK : ""}</span>${n}</div>`; }).join("")}</div>
-<div class="fam-sub" style="font-weight:600;margin-top:10px">Programdan tamamlanan gün: <b style="color:var(--ink)">${b.n}/${b.total}</b>${l.lastActivityAt ? ` · son etkinlik: ${new Date(l.lastActivityAt).toLocaleDateString("tr-TR", { day:"numeric", month:"long" })}` : ""}</div></div>
-<div class="fam-card"><div style="font-weight:900;font-size:16px">Son sonuçlar</div><div id="exResults"><div class="fam-sub" style="font-weight:600;margin-top:6px">Yükleniyor…</div></div></div>` : ""}
+<div class="fam-sub" style="font-weight:600;margin-top:10px">Programdan tamamlanan gün: <b style="color:var(--ink)">${b.n}/${b.total}</b>${l.lastActivityAt ? ` · son etkinlik: ${new Date(l.lastActivityAt).toLocaleDateString("tr-TR", { day:"numeric", month:"long" })}` : ""}</div></div>` : ""}
 <button type="button" class="ex-danger" id="exDeleteBtn">Danışanı ve bağlantıyı sil</button>`;
 readingLevel = lvlSave;
 w.querySelectorAll("[data-t]").forEach(x => x.onclick = () => { p.target = x.dataset.t; p.mains = []; draw(); });
@@ -11916,7 +11927,7 @@ rememberPlayerLevel(nm, lv); hideLinkScreens(); try{ exitGameMode(); hideFamScre
 appMode = "uzman"; viaWho = true; readingLevel = lv; try{ applyLevelDefaultThresholds(lv); }catch(e){}
 pendingLevelPlayerName = nm; pendingLevelPlayerIsNew = false; chooseReadingLevel(lv); showLevelFlash(`${nm} ile oturum başladı`, "levelup"); }; }
 const saveProg = async (msg) => { if(!fbOk()){ showLevelFlash("İnternet bağlantısı yok.", "down"); return false; } const { db, doc, updateDoc } = window.__fb;
-try{ await updateDoc(doc(db, "links", code), { program: { target: p.target, days: p.days, minutes: p.minutes, mains: p.mains, games: p.games, hw: p.hw, updatedAt: Date.now() } }); l.program = Object.assign({}, p); showLevelFlash(msg, "levelup"); return true; }catch(e){ console.error(e); showLevelFlash("Ödev kaydedilemedi.", "down"); return false; } };
+try{ await updateDoc(doc(db, "links", code), { program: { target: p.target, days: p.days, minutes: p.minutes, mains: p.mains, games: p.games, hw: p.hw, cfg: expertCfgFor(l.childName, (p.mains || []).concat(p.hw || [])), updatedAt: Date.now() } }); l.program = Object.assign({}, p); showLevelFlash(msg, "levelup"); return true; }catch(e){ console.error(e); showLevelFlash("Ödev kaydedilemedi.", "down"); return false; } };
 w.querySelectorAll("[data-hws]").forEach(x => x.onclick = () => { const id = x.dataset.hws; if(hwSel.has(id)) hwSel.delete(id); else hwSel.add(id); draw(); });
 w.querySelectorAll("[data-hwx]").forEach(x => x.onclick = async () => { p.hw = p.hw.filter(v => v !== x.dataset.hwx); await saveProg("Ödev kaldırıldı ✓"); draw(); });
 const ha = document.getElementById("hwAutoBtn"); if(ha) ha.onclick = async () => { readingLevel = l.level || "post"; const W = hwWeakPages(l.childName); readingLevel = lvlSave; p.hw = W.list.filter(x => exerciseById(x.id).readingLevel.includes(l.level || "post")).slice(0, 4).map(x => x.id); hwSel.clear(); if(await saveProg(`${p.hw.length} sayfa ödev olarak gönderildi ✓`)) draw(); };
@@ -11938,7 +11949,7 @@ const err = document.getElementById("exProgErr"); err.textContent = "";
 if(!p.days.length){ err.textContent = "En az bir gün seçin."; return; }
 if(!fbOk()){ err.textContent = "İnternet bağlantısı yok."; return; }
 const { db, doc, updateDoc } = window.__fb;
-try{ await updateDoc(doc(db, "links", code), { program: { target: p.target, days: p.days, minutes: p.minutes, mains: p.mains, games: p.games, hw: p.hw, updatedAt: Date.now() } }); showLevelFlash(l.familyUid ? "Program aileye gönderildi ✓" : "Program kaydedildi; aile bağlanınca görecek ✓", "levelup"); }
+try{ await updateDoc(doc(db, "links", code), { program: { target: p.target, days: p.days, minutes: p.minutes, mains: p.mains, games: p.games, hw: p.hw, cfg: expertCfgFor(l.childName, (p.mains || []).concat(p.hw || [])), updatedAt: Date.now() } }); showLevelFlash(l.familyUid ? "Program aileye gönderildi ✓" : "Program kaydedildi; aile bağlanınca görecek ✓", "levelup"); }
 catch(e){ console.error(e); err.textContent = "Program kaydedilemedi."; }
 };
 document.getElementById("exRenameBtn").onclick = async () => {
@@ -11971,6 +11982,11 @@ const last = arr.sort((a, b) => b.t - a.t).slice(0, 3), bad = last.filter(r => (
 if(rate < 50 || (last[0].errors || 0) >= 3) list.push({ id: ex.id, cat: cat.id, rate, err: last[0].errors || 0, tier: last[0].tier, n: last.length, t: last[0].t }); }
 list.sort((a, b) => a.rate - b.rate || b.err - a.err || b.t - a.t);
 return { list, total: recs.length }; }
+function expertCfgFor(child, ids){ const nm = (child || "").trim().toLocaleLowerCase("tr"), out = {}; if(!nm) return out;
+const recs = loadSessions().filter(r => (r.player || "").trim().toLocaleLowerCase("tr") === nm).sort((a, b) => b.t - a.t);
+Array.from(new Set(ids || [])).forEach(id => { const ex = exerciseById(id); if(!ex) return; const r = recs.find(x => x.exerciseLabel === ex.label || (ex.oldLabels || []).includes(x.exerciseLabel)); if(!r) return;
+const t = Math.max(0, TIERS.findIndex(x => x.label === r.tier)); let st = ex.stages.findIndex(x => x.label === r.stageLabel); if(st < 0) st = 0; out[id] = { t, s: st }; }); return out; }
+function cfgLabel(id, cf){ const ex = exerciseById(id); if(!ex || !cf) return ""; return `${(ex.stages[cf.s] || ex.stages[0]).label} · ${(TIERS[cf.t] || TIERS[0]).label}`; }
 function watchExpertResults(code){
 if(!fbOk()) return;
 if(expertResultsUnsub){ expertResultsUnsub(); expertResultsUnsub = null; }
@@ -12008,7 +12024,7 @@ const prog = familyProgram(); if(!prog) return "";
 const ids = recommendedIds(); if(!ids.length) return "";
 const chosen = (prog.mains || []).length > 0 || (prog.hw || []).length > 0;
 const doneToday = new Set(loadSessions().filter(r => r.player === famProfile() && todayKey(new Date(r.t)) === todayKey()).map(r => r.exerciseLabel));
-return `<div class="fh-rec"><div class="fh-rec-h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg>Uzmanınızın önerdikleri<span>${chosen ? "uzman seçti" : famCatName(prog.target)}</span></div>` +
+return `<div class="fh-rec"><div class="fh-rec-h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg>Uzmanın önerdiği çalışmalar<span>${chosen ? "uzman seçti" : famCatName(prog.target)}</span></div>` +
 ids.map((id, i) => { const ex = exerciseById(id); const done = doneToday.has(ex.label);
 return `<button type="button" class="fh-rec-item" data-rec="${id}"><span class="fh-rec-num">${done ? I_CHECK.replace('stroke-width="3"', 'stroke-width="3" width="18" height="18"') : i + 1}</span><span class="fh-rec-tx"><div class="fh-rec-t1">${(prog.hw || []).includes(id) ? "📌 " : ""}${famLabel(id)}</div><div class="fh-rec-t2">${(prog.hw || []).includes(id) ? "Uzmanın ödevi · " : ""}${famCatName(CATEGORIES.find(c => c.exerciseIds.includes(id)).id)}${done ? " · bugün yapıldı" : ""}</div></span><span class="fh-rec-go">Aç</span></button>`; }).join("") + `</div>`;
 }
@@ -12034,6 +12050,8 @@ renderRecBar(true);
 const nx = recNextId();
 showLevelFlash(nx ? `Tamam! Sıradaki öneri: ${famLabel(nx)}` : "Son öneri de tamam! 🎉", "levelup");
 }
+let recCfgNow = null;
+function recCfgFor(id){ try{ const p = familyProgram(); return (p && p.cfg && p.cfg[id]) || null; }catch(e){ return null; } }
 function openRecommended(id){
 const ci = CATEGORIES.findIndex(c => c.exerciseIds.includes(id)); if(ci < 0) return;
 hideFamScreens(); hideLinkScreens();
@@ -12043,9 +12061,10 @@ recActive = id;
 document.documentElement.classList.add("rec-mode");
 selectCategory(ci);
 const e = currentCategoryExercises().findIndex(x => x.id === id);
-let sidx = findSeqIndex(Math.max(lastTierFor(id), exerciseById(id).minTier || 0), e);
+const rc = recCfgFor(id);
+let sidx = findSeqIndex(Math.max(rc ? Math.min(rc.t, tierMax(exerciseById(id))) : lastTierFor(id), exerciseById(id).minTier || 0), e);
 if(sidx === undefined || sidx < 0) sidx = findSeqIndex(0, e);
-goToIndex(sidx); currentStageIndex = 0; renderStageRow(); newPage();
+goToIndex(sidx); currentStageIndex = rc ? Math.min(rc.s, currentExercise().stages.length - 1) : 0; recCfgNow = rc ? { id, s: currentStageIndex } : null; renderStageRow(); newPage();
 pinAssignedChild();
 renderRecBar(false);
 document.getElementById("sessionBackBtn").lastChild.textContent = " Geri";
@@ -13634,10 +13653,14 @@ card.innerHTML = `
 <span class="category-card-text">
 <span class="category-card-title">${cat.label}</span>
 <span class="category-card-sub">${cat.sub}</span>
+<span class="cat-hint">Çalışmalara gitmek için tekrar dokun</span>
 ${badge}
 </span>
+<span class="cat-chev" aria-hidden="true">›</span>
 `;
-card.addEventListener("click", ()=> selectCategory(realIndex));
+card.addEventListener("click", ()=>{ if(card.classList.contains("open")) return selectCategory(realIndex);
+list.querySelectorAll(".category-card.open").forEach(c => c.classList.remove("open")); card.classList.add("open"); card.setAttribute("aria-expanded", "true");
+setTimeout(() => { try{ card.scrollIntoView({ block: "nearest", behavior: "smooth" }); }catch(e){} }, 50); });
 list.appendChild(card);
 });
 }
@@ -13665,7 +13688,7 @@ key: "wm_tour_category_seen_v2",
 steps: [
 {sel:"#aboutBtn", title:"Bilgi", text:"Uygulamayı ve her kategorinin neyi çalıştırdığını anlatan Hakkında sayfasını açar."},
 {sel:"#fhTodayBtn", title:"Bugünün oturumu", text:"Yaklaşık 12 dakikalık hazır oturum: ısınma, iki ana çalışma ve kapanış. Hangi çalışmayı seçeceğini düşünmene gerek kalmaz."},
-{sel:".fh-rec", title:"Uzmanınızın önerdikleri", text:"Uzman program atadıysa önerdiği çalışmalar burada; 'Aç' ile tek dokunuşta başlar."},
+{sel:".fh-rec", title:"Uzmanın önerdiği çalışmalar", text:"Uzman program atadıysa önerdiği çalışmalar burada; 'Aç' ile tek dokunuşta başlar."},
 {sel:"#fhWeekBtn", title:"Bu hafta", text:"Çalışılan günler ve rakam yerine anlamla yazılmış kısa gelişim özeti."},
 {sel:"#fhLinkBtn", title:"Uzmana bağlan", text:"Uzmanının verdiği kodu girersen program onun atadığına göre kurulur ve sonuçlar ona da gider."},
 {sel:"#exHomeBtn", title:"Danışanlarım", text:"Danışan ekle, aileye bağlantı kodu ver, haftalık program ata ve sonuçları uzaktan izle."},

@@ -432,6 +432,11 @@ html.hide-clock #timerDisplay{ visibility:hidden; }
 .hm-add-out{ background:#fff !important; color:#B35F00 !important; border:2px solid #DDE6EE !important; border-bottom-width:5px !important; }
 .hm-chev, .hm-go{ width:38px; height:38px; flex:none; border-radius:50%; display:inline-flex !important; align-items:center; justify-content:center; background:#DDF3F0; color:#0A847E !important; font-size:22px !important; font-weight:900; }
 .hm-go.oy{ background:#FDE5C2; color:#B35F00 !important; }
+.os-tap{ cursor:pointer; position:relative; } .os-tap.ok{ outline:4px solid #1FA463; outline-offset:-4px; border-radius:14px; background:#E7F6EC; } .os-tap.bad{ outline:4px solid #E5484D; outline-offset:-4px; border-radius:14px; } .os-n{ position:absolute; top:2px; right:4px; background:#1FA463; color:#fff; border-radius:50%; width:22px; height:22px; font-size:13px; display:flex; align-items:center; justify-content:center; }
+.stage-btn.rec-stage{ box-shadow:0 0 0 3px #F5A524 inset; }
+.category-card{ align-items:center; } .category-card .category-card-sub, .category-card .cat-hint{ display:none; } .category-card.open .category-card-sub{ display:block; margin-top:4px; } .category-card.open .cat-hint{ display:block; margin-top:8px; font-size:12px; font-weight:800; color:#0A847E; }
+.cat-chev{ flex:none; width:36px; height:36px; border-radius:50%; background:#DDF3F0; color:#0A847E; font-size:22px; font-weight:900; display:flex; align-items:center; justify-content:center; margin-left:auto; transition:transform .2s; } .category-card.open .cat-chev{ transform:rotate(90deg); background:#0A847E; color:#fff; }
+.category-card.open{ border-color:#5DCAA5 !important; }
 .rl-light{ width:110px; height:110px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:24px; color:#fff; box-shadow:0 6px 0 rgba(0,0,0,.2); } .rl-light.green{ background:#1FA463; } .rl-light.red{ background:#E5484D; }
 .rl-track{ position:relative; height:70px; background:#EAF4E4; border:3px solid #8BC56A; border-radius:18px; overflow:hidden; } .rl-prog{ position:absolute; left:0; top:0; bottom:0; background:#CFE8B8; } .rl-run{ position:absolute; top:10px; width:48px; height:48px; } .rl-flag{ position:absolute; right:6px; top:16px; font-size:30px; }
 .rl-track.caught{ animation:rlShake .4s; } @keyframes rlShake{ 25%{ transform:translateX(-8px); } 75%{ transform:translateX(8px); } }
@@ -2810,7 +2815,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.10-i</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.10-l</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -3255,10 +3260,10 @@ dispatchFbReady();
 }
 </script>
 <script>setTimeout(function(){ if(window.__zaReady) return; var d=document.createElement('div'); d.style.cssText='position:fixed;inset:0;z-index:99999;background:#F6FBFA;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;text-align:center;color:#1D2B36'; d.innerHTML='<div style="max-width:420px"><div style="font-size:22px;font-weight:800;margin-bottom:10px">Uygulama dosyaları yüklenemedi</div><div style="font-size:15px;line-height:1.5">Bu sayfa yanındaki <b>zihin-app.js</b> ve <b>zihin-gorsel</b> dosyalarıyla birlikte çalışır. Beş dosyanın da aynı klasöre yüklendiğinden emin olun ve sayfayı yenileyin.<br><br><span style="color:#5B6B78">Claude içindeki önizlemede bu sürüm açılmaz; önizleme için zihin-atolyesi-onizleme.html dosyasını kullanın.</span></div><button onclick="location.reload()" style="margin-top:16px;padding:12px 22px;border:0;border-radius:14px;background:#0A847E;color:#fff;font-size:16px;font-weight:800">Yenile</button></div>'; document.body.appendChild(d); }, 9000);</script>
-<script src="zihin-gorsel-1.js?v=2026.10.10-i"></script>
-<script src="zihin-gorsel-2.js?v=2026.10.10-i"></script>
-<script src="zihin-gorsel-3.js?v=2026.10.10-i"></script>
-<script src="zihin-app.js?v=2026.10.10-i"></script>
+<script src="zihin-gorsel-1.js?v=2026.10.10-l"></script>
+<script src="zihin-gorsel-2.js?v=2026.10.10-l"></script>
+<script src="zihin-gorsel-3.js?v=2026.10.10-l"></script>
+<script src="zihin-app.js?v=2026.10.10-l"></script>
 <div id="printArea"></div>
 </body>
 </html>
