@@ -465,6 +465,15 @@ html.text-xl .hm-brand b{ font-size:26px; } html.text-xl .hm-lab{ font-size:17px
 #settingsScreen .set-sec .settings-group{ min-height:0 !important; height:auto !important; }
 .rt-stars{ display:block; font-size:12px; color:#E0A100; letter-spacing:1px; margin-top:1px; } .ex-pick{ display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 8px; } .ex-pick .fam-chip.on{ background:#0A847E; color:#fff; }
 .unlink-btn{ display:block; margin:6px auto 0; padding:12px 18px; border-radius:14px; border:2px solid #F3B5B5; background:#fff; color:#C0392B; font-family:inherit; font-weight:900; font-size:15px; cursor:pointer; }
+#whoScreen{ background:linear-gradient(180deg,#CFEFEA 0%,#E4F5F2 22%,#F0F5FB 48%) !important; }
+.hm-card, .hm-resume, .hm-add-out, #hmEtk, #hmGame{ background:#fff !important; border:2px solid #DDE6EE !important; border-bottom-width:4px !important; box-shadow:none !important; }
+.hm-who{ border-color:#DDE6EE !important; } .hm-add-out{ color:#B35F00 !important; } .hm-resume span span{ color:var(--ink-soft) !important; }
+.hm-chev, .hm-go{ background:#E3F4F1 !important; color:#0A847E !important; box-shadow:none !important; } .hm-go.oy{ background:#FFF0DC !important; color:#B35F00 !important; }
+.hm-ic.etk{ background:#DDF3EF !important; } .hm-ic.oyun{ background:#FFF0DC !important; } .hm-seg{ background:#F0F5FB !important; }
+.home-btn{ position:absolute; top:calc(14px + env(safe-area-inset-top, 0px)); left:68px; width:44px; height:44px; border-radius:14px; border:2px solid #C9DDDB; background:#fff; box-shadow:0 3px 0 var(--edge); font-size:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:5; }
+.home-btn.inl{ position:static; width:40px; height:40px; margin-left:6px; flex:none; }
+#policyView{ position:fixed; inset:0; z-index:400; background:#fff; display:none; flex-direction:column; } #policyView .pv-bar{ display:flex; align-items:center; justify-content:space-between; padding:calc(10px + env(safe-area-inset-top)) 14px 10px; border-bottom:1px solid #E6EDF3; position:relative; } #policyView .pv-bar .sheet-x{ position:static; } #policyView iframe{ flex:1; border:0; width:100%; }
+.set-sec .settings-divider{ display:none !important; } .set-sec .settings-group > .settings-note:last-child{ margin-bottom:0 !important; }
 .rl-light{ width:110px; height:110px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:24px; color:#fff; box-shadow:0 6px 0 rgba(0,0,0,.2); } .rl-light.green{ background:#1FA463; } .rl-light.red{ background:#E5484D; }
 .rl-track{ position:relative; height:70px; background:#EAF4E4; border:3px solid #8BC56A; border-radius:18px; overflow:hidden; } .rl-prog{ position:absolute; left:0; top:0; bottom:0; background:#CFE8B8; } .rl-run{ position:absolute; top:10px; width:48px; height:48px; } .rl-flag{ position:absolute; right:6px; top:16px; font-size:30px; }
 .rl-track.caught{ animation:rlShake .4s; } @keyframes rlShake{ 25%{ transform:translateX(-8px); } 75%{ transform:translateX(8px); } }
@@ -2843,7 +2852,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.11-a</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.11-b</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -2873,7 +2882,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div id="pinBox"></div>
 </div>
 <div class="settings-group" style="flex-direction:column;align-items:stretch;gap:6px">
-<div class="settings-label">Bu cihaz uzman cihazı<br><span style="font-size:12px;font-weight:600;color:var(--ink-soft)">Açıkken uygulama “Kim çalışacak?” ekranı yerine uzman akışıyla açılır.</span></div>
+<div class="settings-label">Bu cihaz uzman cihazı<br><span style="font-size:12px;font-weight:600;color:var(--ink-soft)">Açıkken ana ekranda Uzman girişi seçili gelir.</span></div>
 <button type="button" class="fam-chip" id="expertDevBtn" style="align-self:flex-start"></button>
 </div>
 <div class="settings-group" style="flex-direction:column;align-items:stretch;gap:6px">
@@ -2935,7 +2944,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-divider"></div>
 
 <div class="settings-label" style="margin-bottom:8px;">Uyarlamalı zorluk eşikleri (Aile girişi)</div>
-<p class="settings-note" style="margin-bottom:10px;">Varsayılanlar, Düzey ekranında seçilen okul öncesi/sonrası düzeyine göre otomatik ayarlanır; buradan istediğin an değiştirebilirsin.</p>
+<p class="settings-note" style="margin-bottom:10px;">Varsayılanlar çocuğun seviyesine (Okul Öncesi / Okul Sonrası) göre ayarlanır; buradan istediğin an değiştirebilirsin.</p>
 
 <div class="settings-slider-row">
 <span class="settings-slider-label">Hızlı sayılma süresi (öğe başına sn)</span>
@@ -3288,10 +3297,10 @@ dispatchFbReady();
 }
 </script>
 <script>setTimeout(function(){ if(window.__zaReady) return; var d=document.createElement('div'); d.style.cssText='position:fixed;inset:0;z-index:99999;background:#F6FBFA;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;text-align:center;color:#1D2B36'; d.innerHTML='<div style="max-width:420px"><div style="font-size:22px;font-weight:800;margin-bottom:10px">Uygulama dosyaları yüklenemedi</div><div style="font-size:15px;line-height:1.5">Bu sayfa yanındaki <b>zihin-app.js</b> ve <b>zihin-gorsel</b> dosyalarıyla birlikte çalışır. Beş dosyanın da aynı klasöre yüklendiğinden emin olun ve sayfayı yenileyin.<br><br><span style="color:#5B6B78">Claude içindeki önizlemede bu sürüm açılmaz; önizleme için zihin-atolyesi-onizleme.html dosyasını kullanın.</span></div><button onclick="location.reload()" style="margin-top:16px;padding:12px 22px;border:0;border-radius:14px;background:#0A847E;color:#fff;font-size:16px;font-weight:800">Yenile</button></div>'; document.body.appendChild(d); }, 9000);</script>
-<script src="zihin-gorsel-1.js?v=2026.10.11-a"></script>
-<script src="zihin-gorsel-2.js?v=2026.10.11-a"></script>
-<script src="zihin-gorsel-3.js?v=2026.10.11-a"></script>
-<script src="zihin-app.js?v=2026.10.11-a"></script>
+<script src="zihin-gorsel-1.js?v=2026.10.11-b"></script>
+<script src="zihin-gorsel-2.js?v=2026.10.11-b"></script>
+<script src="zihin-gorsel-3.js?v=2026.10.11-b"></script>
+<script src="zihin-app.js?v=2026.10.11-b"></script>
 <div id="printArea"></div>
 </body>
 </html>

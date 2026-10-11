@@ -11663,7 +11663,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.11-a";
+const APP_VERSION = "2026.10.11-b";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -13618,10 +13618,7 @@ ${impactHTML}
 list.appendChild(row);
 });
 }
-function openAboutScreen(){
-renderAboutCategoryList();
-document.getElementById("aboutScreen").style.display = "block";
-}
+function openAboutScreen(){ renderAboutCategoryList(); const a = document.getElementById("aboutScreen"); a.style.zIndex = "380"; a.style.display = "block"; a.scrollTop = 0; }
 function closeAboutScreen(){
 document.getElementById("aboutScreen").style.display = "none";
 }
@@ -13958,10 +13955,9 @@ watchTourScreen("categoryScreen", "category");
 
 document.getElementById("settingsTourLink").addEventListener("click", (e)=>{
 e.preventDefault();
-closeSettings();
-["category","islands","today","expert","level"].forEach(k => { try{ localStorage.removeItem(TOURS[k].key); }catch(_){} });
-setTimeout(()=>startTour("main", true), 250);
-});
+closeSettings(); try{ endTour(); }catch(_){} ["category","islands","today","expert","level"].forEach(k => { try{ localStorage.removeItem(TOURS[k].key); }catch(_){} });
+if(document.getElementById("mainApp").style.display === "none"){ document.getElementById("whoScreen").style.display = "none"; if(appMode === "cocuk" || !appMode) appMode = "uzman"; if(!readingLevel) readingLevel = "post"; const ci = CATEGORIES.findIndex(c => !c.hidden && c.exerciseIds.length); selectCategory(ci); document.getElementById("categoryScreen").style.display = "none"; document.getElementById("mainApp").style.display = "block"; }
+setTimeout(()=>startTour("main", true), 450); });
 document.getElementById("settingsModeTourLink").addEventListener("click", (e)=>{
 e.preventDefault();
 closeSettings();
@@ -13977,10 +13973,7 @@ setTimeout(()=>startTour("level", true), 750);
 });
 document.getElementById("settingsCategoryTourLink").addEventListener("click", (e)=>{
 e.preventDefault();
-closeSettings();
-document.getElementById("categorySwitchBtn").click();
-setTimeout(()=>startTour("category", true), 450);
-});
+closeSettings(); try{ endTour(); }catch(_){} document.getElementById("whoScreen").style.display = "none"; ["mainApp"].forEach(id => document.getElementById(id).style.display = "none"); if(appMode === "cocuk" || !appMode) appMode = getEtkinlikView() === "uzman" ? "uzman" : "aile"; renderCategoryList(); document.getElementById("categoryScreen").style.display = "block"; setTimeout(()=>startTour("category", true), 450); });
 
 function selectCategory(i){
 currentCategoryIndex = i;
@@ -14132,6 +14125,27 @@ appMode = L.mode; pendingLevelPlayerName = L.player; pendingLevelPlayerIsNew = f
   try{ chooseReadingLevel(L.level); }catch(e){ console.error(e); proceedAfterOnboarding(); } }
 { const _crl = chooseReadingLevel; chooseReadingLevel = function(l){ const r = _crl.apply(this, arguments); try{ if(appMode === "aile" || appMode === "uzman") lastSave(appMode, currentPlayerName); }catch(e){} return r; }; }
 renderResume();
+// ===== Kalıcı cihaz tercihleri =====
+const PREF_KEY = "wm_prefs_v1";
+function prefsGet(){ try{ return JSON.parse(localStorage.getItem(PREF_KEY) || "{}"); }catch(e){ return {}; } }
+function prefsSet(k, v){ const p = prefsGet(); p[k] = v; try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} }
+(function prefsLoad(){ try{ const p = prefsGet(); if("sound" in p) soundEnabled = !!p.sound; if("haptic" in p) hapticEnabled = !!p.haptic; if("confetti" in p) confettiEnabled = !!p.confetti; expertAdaptiveEnabled = ("expAdapt" in p) ? !!p.expAdapt : true;
+const set = (id, v) => { const e = document.getElementById(id); if(e) e.checked = v; }; set("soundToggle", soundEnabled); set("hapticToggle", hapticEnabled); set("confettiToggle", confettiEnabled); set("expertAdaptiveToggle", expertAdaptiveEnabled);
+[["soundToggle","sound"],["hapticToggle","haptic"],["confettiToggle","confetti"],["expertAdaptiveToggle","expAdapt"]].forEach(([id, k]) => { const e = document.getElementById(id); if(e) e.addEventListener("change", () => prefsSet(k, e.checked)); });
+if(!("vibrate" in navigator)){ const h = document.getElementById("hapticToggle"); if(h){ h.checked = false; h.disabled = true; const g = h.closest(".settings-group"); const lab = g && g.querySelector(".settings-label"); if(lab && !lab.querySelector(".hap-note")) lab.insertAdjacentHTML("beforeend", `<span class="hap-note" style="display:block;font-size:12px;font-weight:600;color:var(--ink-soft)">Bu cihaz titreşimi desteklemiyor (iPhone'daki tarayıcılar izin vermez).</span>`); } }
+}catch(e){ console.error(e); } })();
+// ===== Ana menü =====
+function goHome(lock){ const go = () => { try{ resetTimer(); }catch(e){} try{ hideGameScreens(); exitGameMode(); }catch(e){} try{ hideFamScreens(); hideLinkScreens(); }catch(e){} ["mainApp","categoryScreen","growthScreen","aboutScreen"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; }); showWho(); };
+if(lock) showParentLock(go); else go(); }
+function addHomeBtn(afterId, lock, inline){ const ref = document.getElementById(afterId); if(!ref || ref.parentElement.querySelector(".home-btn")) return; const b = document.createElement("button"); b.type = "button"; b.className = "home-btn" + (inline ? " inl" : ""); b.setAttribute("aria-label", "Ana menü"); b.title = "Ana menü"; b.textContent = "🏠"; b.onclick = (e) => { e.stopPropagation(); goHome(lock); }; ref.insertAdjacentElement("afterend", b); }
+[["islandStopsBackBtn", true], ["expertBackBtn", false], ["todayBackBtn", false], ["weekBackBtn", false], ["linkBackBtn", false]].forEach(([id, lk]) => addHomeBtn(id, lk));
+addHomeBtn("gameMapBtn", true, true);
+// ===== Gizlilik politikası uygulama içinde =====
+function openPolicy(){ let v = document.getElementById("policyView"); if(!v){ v = document.createElement("div"); v.id = "policyView"; v.innerHTML = `<div class="pv-bar"><b>Gizlilik Politikası</b><button type="button" class="sheet-x" id="pvClose" aria-label="Kapat">✕</button></div><iframe src="gizlilik-politikasi.html" title="Gizlilik Politikası"></iframe>`; document.body.appendChild(v); document.getElementById("pvClose").onclick = () => { v.style.display = "none"; }; } v.style.display = "flex"; }
+document.addEventListener("click", (e) => { const a = e.target.closest && e.target.closest('a[href="gizlilik-politikasi.html"]'); if(!a) return; e.preventDefault(); openPolicy(); }, true);
+// ===== Ayarlar: tek başlık açık =====
+document.addEventListener("toggle", (e) => { const d = e.target; if(!(d instanceof HTMLDetailsElement) || !d.classList.contains("set-sec") || !d.open) return; document.querySelectorAll("#settingsScreen details.set-sec[open]").forEach(x => { if(x !== d) x.open = false; }); }, true);
+
 // ===== Uzman PIN'i (isteğe bağlı, yalnızca bu cihazda; özeti saklanır) =====
 const PIN_KEY = "wm_expert_pin";
 async function pinHash(p){ try{ const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("zihin|" + p)); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, "0")).join(""); }catch(e){ return "x" + p.split("").reverse().join(""); } }
@@ -14214,10 +14228,11 @@ if(isLab){ wrap = document.createElement("div"); wrap.className = "settings-grou
 [...document.querySelectorAll("#settingsScreen .set-loose")].forEach(g => { if(g.children.length === 1 && (g.textContent || "").trim() === "Erişilebilirlik"){ const nx = g.nextElementSibling; const lab = nx && nx.querySelector(".settings-label"); if(lab){ lab.insertAdjacentHTML("afterbegin", "<b style=\"display:block;font-size:16px;color:var(--ink);margin-bottom:4px\">Erişilebilirlik</b>"); } g.remove(); } });
 const groups = [...document.querySelectorAll("#settingsScreen .settings-group")]; if(!groups.length) return;
 const S = [["👧 Çocuk", ["Günlük oyun süresi","Başlangıç değerlendirmesi","Tahmin et"]], ["🎯 Oyun ve zorluk", ["Uyarlamalı zorluk","Uzman girişinde"]],
-["🔊 Ses ve görünüm", ["Ses efektleri","Altyazı","Sade görünüm","Titreşim","Kutlama","Erişilebilirlik","Yazı boyutu"]], ["💾 Hesap, veri ve cihaz", ["Hesap ve bulut","Uzman PIN","Oyun ilerlemesi yedeği","Kişiler ve veriler","Bu cihaz uzman","Sorun giderme"]]];
+["🔊 Ses ve görünüm", ["Ses efektleri","Altyazı","Sade görünüm","Titreşim","Kutlama","Erişilebilirlik","Yazı boyutu"]], ["💾 Hesap, veri ve cihaz", ["Hesap ve bulut","Uzman PIN","Oyun ilerlemesi yedeği","Kişiler ve veriler","Bu cihaz uzman"]]];
 const lab = (g) => ((g.querySelector(".settings-label") || {}).textContent || "").trim(); const host = groups[0].parentNode, mark = document.createElement("div"); host.insertBefore(mark, groups[0]);
 S.forEach(([title, keys], k) => { const d = document.createElement("details"); d.className = "set-sec"; if(k === 0) d.open = true; d.innerHTML = `<summary>${title}</summary>`;
 keys.forEach(key => groups.filter(g => lab(g).startsWith(key)).forEach(g => d.appendChild(g))); if(d.children.length > 1) host.insertBefore(d, mark); });
+groups.filter(g => lab(g).startsWith("Sorun giderme")).forEach(g => { g.style.display = "none"; });
 }catch(e){ console.error(e); } })();
 // ===== KİM? ekranı: kişi merkezli giriş (seviye profilde saklı) =====
 const EXPERT_DEV_KEY = "wm_expert_device";
