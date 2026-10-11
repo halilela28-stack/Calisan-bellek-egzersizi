@@ -11272,7 +11272,7 @@ if(list.length === 0){
 alert("Henüz dışa aktarılacak kayıt yok.");
 return;
 }
-const headers = ["Tarih","Kişi","Egzersiz","Aşama","Düzey","Süre (sn)","Hata Sayısı"];
+const headers = ["Tarih","Kişi","Çalışma","Aşama","Düzey","Süre (sn)","Hata Sayısı"];
 const rows = list.map(r => [
 new Date(r.t).toLocaleString("tr-TR"),
 r.player,
@@ -11663,7 +11663,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.10-r";
+const APP_VERSION = "2026.10.10-s";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -12441,12 +12441,14 @@ return vs.sort((a, b) => score(b) - score(a))[0];
 try{ if(window.speechSynthesis) speechSynthesis.onvoiceschanged = () => { _trVoice = pickTurkishVoice(); }; }catch(e){}
 function speakText(t, opts){
 try{
-if(!t || !("speechSynthesis" in window)) return;
-if(speechMuted()) return;
+if(!t) return;
+if(speechMuted() || captionOn() || !("speechSynthesis" in window) || !ttsUsable()) showCaption(t);   // altyazı: ayar açıkken, ses kapalıyken ya da Türkçe ses yokken
+if(!("speechSynthesis" in window) || speechMuted()) return;
 if(!_ttsUnlocked) _ttsMissed = { t, opts, at: Date.now() };
 if(speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
 const u = new SpeechSynthesisUtterance(t);
 u.onstart = () => { if(_ttsMissed && _ttsMissed.t === t) _ttsMissed = null; };   // gerçekten çaldıysa tekrar okunmasın
+u.onerror = () => showCaption(t);
 u.lang = "tr-TR";
 u.rate = (opts && opts.rate) || 1.0;
 u.pitch = (opts && opts.pitch) || 1.15;
@@ -12740,7 +12742,7 @@ document.getElementById("grRouteBtn").addEventListener("click", (e) => {
 const b = e.currentTarget; document.getElementById("gameReward").style.display = "none"; resetTimer(); sfx("go");
 startGameStop(b.dataset.play, b.dataset.isl);
 });
-document.getElementById("gsExitBtn").addEventListener("click", () => { document.getElementById("gameSleep").style.display = "none"; hideGameScreens(); exitGameMode(); document.getElementById("modeScreen").style.display = "flex"; });
+document.getElementById("gsExitBtn").addEventListener("click", () => { document.getElementById("gameSleep").style.display = "none"; hideGameScreens(); exitGameMode(); showWho(); });
 document.getElementById("gsMoreBtn").addEventListener("click", () => showParentLock(() => { const g = gxGet(), k = todayKey(); g.extra[k] = (g.extra[k] || 0) + 10; g.warned[k] = 0; gxSave(g); document.getElementById("gameSleep").style.display = "none"; showIslandMap(); }));
 document.getElementById("closetCloseBtn").addEventListener("click", () => { document.getElementById("closetSheet").style.display = "none"; showIslandMap(); });
 document.getElementById("grMapBtn").addEventListener("click", () => {
@@ -14207,7 +14209,7 @@ if(inner){ let wrap = null; [...inner.children].forEach(ch => { const isLab = ch
 if(isLab){ wrap = document.createElement("div"); wrap.className = "settings-group set-loose"; inner.insertBefore(wrap, ch); wrap.appendChild(ch); } else if(stop){ wrap = null; } else if(wrap){ wrap.appendChild(ch); } }); }
 [...document.querySelectorAll("#settingsScreen .set-loose")].forEach(g => { if(g.children.length === 1 && (g.textContent || "").trim() === "Erişilebilirlik"){ const nx = g.nextElementSibling; const lab = nx && nx.querySelector(".settings-label"); if(lab){ lab.insertAdjacentHTML("afterbegin", "<b style=\"display:block;font-size:16px;color:var(--ink);margin-bottom:4px\">Erişilebilirlik</b>"); } g.remove(); } });
 const groups = [...document.querySelectorAll("#settingsScreen .settings-group")]; if(!groups.length) return;
-const S = [["👧 Çocuk", ["Günlük oyun süresi","Başlangıç değerlendirmesi","Tahmin et"]], ["🎯 Oyun ve zorluk", ["Adaptif zorluk","Uzman Modu'nda"]],
+const S = [["👧 Çocuk", ["Günlük oyun süresi","Başlangıç değerlendirmesi","Tahmin et"]], ["🎯 Oyun ve zorluk", ["Uyarlamalı zorluk","Uzman girişinde"]],
 ["🔊 Ses ve görünüm", ["Ses efektleri","Altyazı","Sade görünüm","Titreşim","Kutlama","Erişilebilirlik","Yazı boyutu"]], ["💾 Hesap, veri ve cihaz", ["Hesap ve bulut","Uzman PIN","Oyun ilerlemesi yedeği","Kişiler ve veriler","Bu cihaz uzman","Sorun giderme"]]];
 const lab = (g) => ((g.querySelector(".settings-label") || {}).textContent || "").trim(); const host = groups[0].parentNode, mark = document.createElement("div"); host.insertBefore(mark, groups[0]);
 S.forEach(([title, keys], k) => { const d = document.createElement("details"); d.className = "set-sec"; if(k === 0) d.open = true; d.innerHTML = `<summary>${title}</summary>`;
@@ -14231,7 +14233,7 @@ function whoAvatar(n){ const keep = currentPlayerName, keepL = readingLevel; try
 function whoSelect(n){ whoSelSet(n); whoTouch(n); showWho(); }
 let whoListOpen = false;
 function showWho(openList){ viaWho = true; try{ const ov = document.getElementById("tourOverlay"); if(ov && getComputedStyle(ov).display !== "none") endTour(); }catch(e){}
-["modeScreen","readingLevelScreen","childLevelScreen","categoryScreen","mainApp","returnSplashScreen"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; });
+["modeScreen","readingLevelScreen","childLevelScreen","categoryScreen","mainApp","returnSplashScreen","familyHome"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; });
 try{ hideGameScreens(); exitGameMode(); hideFamScreens(); hideLinkScreens(); }catch(e){}
 if(typeof openList === "boolean") whoListOpen = openList;
 let el = document.getElementById("whoScreen"); if(!el){ el = document.createElement("div"); el.id = "whoScreen"; document.body.appendChild(el); }
@@ -14336,7 +14338,7 @@ addDoc(collection(db, "consents"), { uid: uid || "bilinmiyor", acceptedAt: Date.
 .catch(e=> console.error("Onay kaydedilemedi:", e));
 }
 document.getElementById("consentScreen").style.display = "none";
-document.getElementById("modeScreen").style.display = "flex";
+showWho();
 });
 
 showOnboardStep(0);

@@ -451,7 +451,7 @@ html.hide-clock #timerDisplay{ visibility:hidden; }
 .hm-seg{ margin-top:14px !important; background:#DDF3EF !important; } .hm-seg button{ padding:11px 4px !important; } .hm-link{ margin-top:12px !important; }
 html.text-lg #settingsScreen .settings-inner, html.text-lg #categoryList, html.text-lg #familyHome > *, html.text-lg #expertWrap{ zoom:1.1; }
 html.text-xl #settingsScreen .settings-inner, html.text-xl #categoryList, html.text-xl #familyHome > *, html.text-xl #expertWrap{ zoom:1.2; }
-.wm-dots .qz-warm.in{ display:inline-block; margin:0 0 0 8px; padding:0 8px; font-size:11px; line-height:18px; vertical-align:middle; }
+.wm-dots{ position:relative; } .wm-dots .qz-warm.in{ position:absolute; left:calc(100% + 6px); top:50%; transform:translateY(-50%); margin:0; padding:0 7px; font-size:10px; line-height:16px; white-space:nowrap; }
 #plKeys button:nth-child(10){ color:#B45309 !important; font-weight:900; } #plKeys button:nth-child(10)::before{ content:"⌫ "; }
 .sheet-x{ position:absolute; top:10px; right:10px; width:38px; height:38px; border-radius:50%; border:2px solid #C9DDDB; background:#fff; color:#0A5F5A; font-size:17px; font-weight:900; cursor:pointer; z-index:2; }
 .place-x{ position:fixed !important; top:calc(12px + env(safe-area-inset-top)); right:12px; z-index:468 !important; display:flex; align-items:center; justify-content:center; }
@@ -2841,7 +2841,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.10-r</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.10-s</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -2928,11 +2928,11 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <button class="text-size-btn" data-size="lg">Büyük</button>
 <button class="text-size-btn" data-size="xl">Çok Büyük</button>
 </div>
-<p class="settings-note">Renk kullanan egzersizler (Stroop, Renk N-Geri, Renk Hatırlama) renk körü dostu bir paletle çiziliyor; Stroop yine de renk görüşü gerektirir.</p>
+<p class="settings-note">Renk kullanan çalışmalar (Stroop, Renk N-Geri, Renk Hatırlama) renk körü dostu bir paletle çiziliyor; Stroop yine de renk görüşü gerektirir.</p>
 
 <div class="settings-divider"></div>
 
-<div class="settings-label" style="margin-bottom:8px;">Adaptif zorluk eşikleri (Aile Modu)</div>
+<div class="settings-label" style="margin-bottom:8px;">Uyarlamalı zorluk eşikleri (Aile girişi)</div>
 <p class="settings-note" style="margin-bottom:10px;">Varsayılanlar, Düzey ekranında seçilen okul öncesi/sonrası düzeyine göre otomatik ayarlanır; buradan istediğin an değiştirebilirsin.</p>
 
 <div class="settings-slider-row">
@@ -2948,7 +2948,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 </div>
 
 <div class="settings-group" style="margin-top:14px;">
-<div class="settings-label">Uzman Modu'nda da otomatik zorluk çalışsın</div>
+<div class="settings-label">Uzman girişinde de otomatik zorluk çalışsın</div>
 <label class="switch">
 <input type="checkbox" id="expertAdaptiveToggle">
 <span class="switch-track"><span class="switch-thumb"></span></span>
@@ -3286,10 +3286,10 @@ dispatchFbReady();
 }
 </script>
 <script>setTimeout(function(){ if(window.__zaReady) return; var d=document.createElement('div'); d.style.cssText='position:fixed;inset:0;z-index:99999;background:#F6FBFA;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;text-align:center;color:#1D2B36'; d.innerHTML='<div style="max-width:420px"><div style="font-size:22px;font-weight:800;margin-bottom:10px">Uygulama dosyaları yüklenemedi</div><div style="font-size:15px;line-height:1.5">Bu sayfa yanındaki <b>zihin-app.js</b> ve <b>zihin-gorsel</b> dosyalarıyla birlikte çalışır. Beş dosyanın da aynı klasöre yüklendiğinden emin olun ve sayfayı yenileyin.<br><br><span style="color:#5B6B78">Claude içindeki önizlemede bu sürüm açılmaz; önizleme için zihin-atolyesi-onizleme.html dosyasını kullanın.</span></div><button onclick="location.reload()" style="margin-top:16px;padding:12px 22px;border:0;border-radius:14px;background:#0A847E;color:#fff;font-size:16px;font-weight:800">Yenile</button></div>'; document.body.appendChild(d); }, 9000);</script>
-<script src="zihin-gorsel-1.js?v=2026.10.10-r"></script>
-<script src="zihin-gorsel-2.js?v=2026.10.10-r"></script>
-<script src="zihin-gorsel-3.js?v=2026.10.10-r"></script>
-<script src="zihin-app.js?v=2026.10.10-r"></script>
+<script src="zihin-gorsel-1.js?v=2026.10.10-s"></script>
+<script src="zihin-gorsel-2.js?v=2026.10.10-s"></script>
+<script src="zihin-gorsel-3.js?v=2026.10.10-s"></script>
+<script src="zihin-app.js?v=2026.10.10-s"></script>
 <div id="printArea"></div>
 </body>
 </html>
