@@ -6971,7 +6971,7 @@ return `<div class="aud-list"><div class="aud-note">Kelimeyi söyleyin (ya da �
 L.items.map((x, i) => `<div class="aud-row"><div class="aud-num">${i + 1}</div><div class="aud-body" style="display:flex;align-items:center;gap:8px;justify-content:space-between"><div><div class="aud-words" style="font-size:22px">${x[0]}</div><div class="aud-key">Örnek: ${x[1]}</div></div><div style="display:flex;gap:6px;align-items:center">${sayBtn(x[0])}${ckChip(0, i, "Doğru", ckMarks["0:" + i])}</div></div></div>`).join("") + `</div>`; }
 function rhsScore(){ const L = currentGrid[0]; return L.items.length - L.items.filter((x, i) => ckMarks["0:" + i]).length; }
 
-function dotTrials(){ const t = currentCombo().t, rng = isPre() ? [[1, 3], [1, 4], [2, 5]][t] : [[1, 5], [2, 7], [3, 9]][t], ms = (isPre() ? [1500, 1100, 850] : [800, 550, 380])[t];
+function dotTrials(){ const t = currentCombo().t, rng = isPre() ? [[1, 3], [1, 4], [2, 5]][t] : [[1, 5], [2, 7], [3, 9]][t], ms = (isPre() ? [2200, 1700, 1300] : [1600, 1200, 900])[t];
 return Array.from({length: isPre() ? 5 : 8}, () => { const n = rng[0] + Math.floor(Math.random() * (rng[1] - rng[0] + 1)), pts = [];
 let g = 0; while(pts.length < n && g++ < 500){ const x = 14 + Math.random() * 172, y = 14 + Math.random() * 172; if(pts.every(p => Math.hypot(p[0] - x, p[1] - y) > 34)) pts.push([x, y]); }
 return { n, pts, ms, max: rng[1] + 1, min: Math.max(1, rng[0] - 1) }; }); }
@@ -7002,7 +7002,7 @@ return { rule:"Şekiller sırayla bir o, bir bu gelmeli.", items, row:true }; }
 const N = isPre() ? [4, 6, 6][t] : [6, 8, 9][t], red = "#E5484D", bad = new Set(); while(bad.size < E) bad.add(Math.floor(Math.random() * N));
 const items = Array.from({length:N}, (_, i) => bad.has(i) ? { html: shapeSVG("circle", randomItem(["#CC79A7","#0072B2","#009E73"])), bad:true } : { html: shapeSVG("circle", red) });
 return { rule:"Bütün daireler kırmızıya boyanmalıydı.", items }; }); }
-function cupsTrials(){ const t = currentCombo().t, n = isPre() ? 3 : [3, 4, 5][t], swaps = (isPre() ? [2, 3, 4] : [3, 5, 7])[t], ms = (isPre() ? [900, 750, 650] : [700, 550, 420])[t];
+function cupsTrials(){ const t = currentCombo().t, n = isPre() ? 3 : [3, 4, 5][t], swaps = (isPre() ? [2, 3, 4] : [3, 5, 7])[t], ms = (isPre() ? [1200, 1000, 850] : [1000, 800, 650])[t];
 return Array.from({length: isPre() ? 3 : 4}, () => { const ball = Math.floor(Math.random() * n), seq = []; for(let k = 0; k < swaps; k++){ let a = Math.floor(Math.random() * n), b; do{ b = Math.floor(Math.random() * n); } while(b === a); seq.push([a, b]); }
 return { n, ball, seq, ms }; }); }
 const CUP_SVG = (c) => `<svg viewBox="0 0 100 110" style="width:100%;height:100%"><path d="M18 8 h64 l-8 92 a6 6 0 0 1 -6 5 h-36 a6 6 0 0 1 -6 -5 z" fill="${c}"/><path d="M14 4 h72 v10 h-72 z" fill="${c}" opacity=".75"/><path d="M30 26 l4 60" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".35"/></svg>`;
@@ -7488,10 +7488,10 @@ const SV_BANK = [ ["Kuşların kanadı vardır.",1],["Balıklar ağaçta yaşar.
 function svTrials(){ const t = currentCombo().t, N = [10, 14, 18][t]; const y = shuffleArray(SV_BANK.filter(x => x[1])), n = shuffleArray(SV_BANK.filter(x => !x[1])), out = [];
 for(let i = 0; i < N; i++){ const s = i % 2 ? y[Math.floor(i / 2) % y.length] : n[Math.floor(i / 2) % n.length]; out.push({ stim:`<div style="font-size:21px;font-weight:800;text-align:center">${s[0]}</div>`, raw:true, opts:[`<b style="font-size:20px">✓ Doğru</b>`, `<b style="font-size:20px">✗ Yanlış</b>`], ans: s[1] ? 0 : 1, fixed:true, text:true, prompt:"<b>Oku</b> ve hızlıca karar ver" }); }
 return shuffleArray(out); }
-function perTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 8 : 12, ms = (pre ? [1600, 1300, 1100] : [1200, 950, 750])[t];
+function perTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 8 : 12, ms = (pre ? [1600, 1300, 1100] : [1500, 1200, 1000])[t];
 return Array.from({length:N}, () => { const side = randomItem(["l","r","t","b"]), u = 8 + Math.random() * 84, pos = side === "l" ? [4 + Math.random() * 10, u] : side === "r" ? [86 + Math.random() * 10, u] : side === "t" ? [u, 5 + Math.random() * 10] : [u, 85 + Math.random() * 10];
 return { pos, ms, lure: !pre && t === 2 && Math.random() < 0.3 }; }); }
-function fixTrials(){ const t = currentCombo().t, s = (isPre() ? [5, 8, 10] : [10, 15, 20])[t]; return Array.from({length:3}, () => ({ secs: s, rate: (isPre() ? [900, 700, 600] : [700, 500, 380])[t] })); }
+function fixTrials(){ const t = currentCombo().t, s = (isPre() ? [5, 8, 10] : [10, 15, 20])[t]; return Array.from({length:3}, () => ({ secs: s, rate: (isPre() ? [1200, 1000, 850] : [1000, 800, 600])[t] })); }
 function dualTrials(){ const t = currentCombo().t, pre = isPre(), secs = pre ? [16, 20, 24][t] : [20, 26, 32][t];
 return Array.from({length:2}, () => { const beeps = 3 + Math.floor(Math.random() * (pre ? 3 : 5)), bt = [], st = []; let tt = 1500;
 while(tt < secs * 1000 - 1500){ st.push(tt); tt += (pre ? 2200 : 1700) + Math.random() * 600; }
@@ -7707,12 +7707,12 @@ return qzMake(`<div style="width:120px;height:120px;margin:0 auto">${qzPic(a.src
 function bkCfg(){ const t = currentCombo().t, pre = isPre(), n = pre ? [4, 5, 5][t] : [5, 6, 7][t], clouds = pre ? [1, 1, 2][t] : [1, 2, 3][t], ms = (pre ? [1300, 1100, 950] : [1000, 850, 700])[t];
 return { n, walls: mazeGen(n), clouds, ms }; }
 
-function rlCfg(){ const t = currentCombo().t, pre = isPre(); return { grace: (pre ? [800, 650, 550] : [550, 420, 320])[t], green: pre ? [1600, 3200] : [900, 2600], red: [1200, 2000], speed: (pre ? [16, 14, 12] : [13, 11, 10])[t] }; }
+function rlCfg(){ const t = currentCombo().t, pre = isPre(); return { grace: (pre ? [1000, 850, 700] : [800, 650, 500])[t], green: pre ? [1600, 3200] : [900, 2600], red: [1200, 2000], speed: (pre ? [16, 14, 12] : [13, 11, 10])[t] }; }
 function wtTrials(){ const t = currentCombo().t, pre = isPre(), kinds = pre ? [1, 2, 2][t] : [2, 3, 3][t], hide = !pre && t >= 1 || pre && t === 2;
 const fr = shuffleArray(qzCats().meyve.items.slice()).slice(0, 4);
 return Array.from({length:4}, () => { const pick = shuffleArray(fr.slice()).slice(0, kinds), order = pick.map(x => ({ x, n: 1 + Math.floor(Math.random() * (pre ? 2 : 3)) }));
 return { order, shelf: fr, hide, ms: (pre ? 4500 : [4500, 3800, 3200][t]) }; }); }
-function drCfg(){ const t = currentCombo().t, pre = isPre(); return { beat: (pre ? [900, 820, 750] : [700, 620, 560])[t], win: (pre ? [260, 230, 200] : [190, 160, 130])[t], demo: 4, taps: 12 }; }
+function drCfg(){ const t = currentCombo().t, pre = isPre(); return { beat: (pre ? [900, 820, 750] : [700, 620, 560])[t], win: (pre ? [320, 280, 240] : [260, 220, 180])[t], demo: 4, taps: 12 }; }
 const COOP_IDS = ["pk-mole","pk-simon","pk-slide","pk-redlight","pk-drum"];
 function coopScore(st){ if(st.kind === "slide") return { v: st.moves, unit:"hamle", low:true }; if(st.kind === "rl") return { v: st.caught, unit:"yakalanma", low:true }; return { v: st.score || 0, unit:"puan", low:false }; }
 function coopAfter(st, errors){ const c = gameStop.coop, sc = coopScore(st); c.res.push(Object.assign({ errors }, sc));
@@ -9885,7 +9885,7 @@ y: 0.5 + 0.38*Math.sin(t*2*Math.PI)
 depth: (t) => ({ x: 0.5, y: 0.5 })
 };
 
-const SAC_DWELL_BY_TIER = [1500, 1000, 700];
+const SAC_DWELL_BY_TIER = [1600, 1200, 900];
 function sacDwell(){ return Math.round((SAC_DWELL_BY_TIER[currentCombo().t] || 1000) * (isPre() ? 1.3 : 1)); }
 const SAC_TWO_POINTS = [{x:0.12, y:0.5}, {x:0.88, y:0.5}];
 const SAC_FOUR_POINTS = [{x:0.12, y:0.5}, {x:0.88, y:0.5}, {x:0.5, y:0.13}, {x:0.5, y:0.87}];
@@ -11663,7 +11663,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.10-s";
+const APP_VERSION = "2026.10.11-a";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -11747,8 +11747,10 @@ const p = l.program;
 w.innerHTML = `<div><h2 class="fam-h">Uzman bağlantısı</h2><div class="fam-sub">${escHTML(famProfile())} · bağlı</div></div>
 <div class="fam-card"><div style="font-weight:900;font-size:15px">Program</div>
 <div class="fam-sub" style="font-weight:600;margin-top:6px;line-height:1.6">${p ? `Hedef alan: <b style="color:var(--ink)">${famCatName(p.target)}</b><br>Günler: ${(p.days || []).map(d => DAY_SHORT[d]).join(", ") || "—"}<br>Günlük süre: ${p.minutes || 12} dakika` : "Uzmanınız henüz program atamadı. Atadığında burada ve “Bugün” ekranında görünecek."}</div></div>
-<div class="fam-note">Kaydettiğiniz sonuçlar uzmanınızla paylaşılır. Bağlantıyı kaldırırsanız paylaşım bu cihazdan durur.</div>
-<button type="button" class="ex-danger" id="unlinkBtn">Bağlantıyı bu cihazdan kaldır</button>`;
+${p && ((p.mains || []).length || (p.hw || []).length) ? `<div class="fam-card"><div style="font-weight:900;font-size:15px">Uzmanın önerdiği çalışmalar</div><div class="fam-chips" style="margin-top:8px">${(p.hw || []).map(id => `<span class="fam-chip on">📌 ${famLabel(id)}</span>`).join("")}${(p.mains || []).filter(id => !(p.hw || []).includes(id)).map(id => `<span class="fam-chip">${famLabel(id)}</span>`).join("")}</div><div class="fam-sub" style="font-weight:600;margin-top:6px">📌 işaretliler ödevdir; günlük oturumda önce bunlar gelir.</div></div>` : ""}
+<div class="fam-card"><div style="font-weight:900;font-size:15px">Uzmanla paylaşılanlar</div><div class="fam-sub" style="font-weight:600;margin-top:6px;line-height:1.6">Her çalışmadan sonra: çocuğun adı, çalışmanın adı, aşaması, düzeyi, süresi, hata sayısı ve tarihi.<br>Paylaşılmayanlar: oyun ilerlemesi, yıldızlar ve cihazdaki diğer kişiler.</div></div>
+<div class="fam-note">Bağlantıyı kaldırırsanız paylaşım bu cihazdan durur; daha önce gönderilen sonuçlar uzmanda kalır.</div>
+<button type="button" class="unlink-btn" id="unlinkBtn">Bağlantıyı bu cihazdan kaldır</button>`;
 document.getElementById("unlinkBtn").onclick = () => { if(confirm("Uzman bağlantısı bu cihazdan kaldırılsın mı?")){ setFamilyLinkLocal(null); leaveToCategories(); } };
 } else {
 w.innerHTML = `<div><h2 class="fam-h">Uzmana bağlan</h2><div class="fam-sub">${escHTML(famProfile())} için</div></div>
@@ -11850,20 +11852,21 @@ const opts = (typeof playersList !== "undefined" ? playersList : []);
 w.innerHTML = `<div><h2 class="fam-h">Danışan ekle</h2><div class="fam-sub">Aileye verilecek bağlantı kodu oluşturulur</div></div>
 ${fbOk() ? "" : needCloudHtml()}
 <div class="fam-card" style="display:flex;flex-direction:column;gap:14px">
-<div class="ex-field"><label for="exChildName">Çocuğun adı</label><input id="exChildName" class="ex-input" list="exChildList" placeholder="Ad" maxlength="40"><datalist id="exChildList">${opts.map(n => `<option value="${String(n).replace(/"/g, "&quot;")}">`).join("")}</datalist></div>
+<div class="ex-field"><label for="exChildName">Kişi seç ya da yeni ad yaz</label>${(() => { const linked = new Set((expertLinks || []).map(x => (x.childName || "").trim().toLocaleLowerCase("tr"))); const av = whoNames().filter(n => !linked.has(n.toLocaleLowerCase("tr"))); return av.length ? `<div class="ex-pick">${av.map(n => `<button type="button" class="fam-chip" data-pick="${escHTML(n)}">${escHTML(n)}</button>`).join("")}</div>` : ""; })()}<input id="exChildName" class="ex-input" placeholder="Yeni kişinin adı" maxlength="40"><div class="fam-sub" style="font-weight:600;margin-top:4px">Kayıtlı bir kişiyi seçerseniz, bu cihazda onunla yaptığınız çalışmalar ödevlendirmede de görünür.</div></div>
 <div class="ex-field"><label>Seviye</label><div class="ex-seg" style="grid-template-columns:1fr 1fr"><button type="button" data-lvl="pre">Okul Öncesi</button><button type="button" data-lvl="post" class="on">Okul Sonrası</button></div></div>
 <div class="ex-err" id="exNewErr"></div>
 <button type="button" class="fam-cta" id="exCreateBtn">Kod oluştur</button>
 </div>`;
 let lvl = "post";
 w.querySelectorAll("[data-lvl]").forEach(b => b.onclick = () => { lvl = b.dataset.lvl; w.querySelectorAll("[data-lvl]").forEach(x => x.classList.toggle("on", x === b)); });
+w.querySelectorAll("[data-pick]").forEach(b => b.onclick = () => { const n = b.dataset.pick; document.getElementById("exChildName").value = n; w.querySelectorAll("[data-pick]").forEach(x => x.classList.toggle("on", x === b)); const pl = getPlayerLevel(n); if(pl){ const lb = w.querySelector(`[data-lvl="${pl}"]`); if(lb) lb.click(); } });
 document.getElementById("exCreateBtn").onclick = async (ev) => {
 const btn = ev.currentTarget; if(btn.disabled) return;
 const err = document.getElementById("exNewErr"); err.textContent = "";
 const name = cleanPersonName(document.getElementById("exChildName").value);
 if(!name){ err.textContent = "Çocuğun adını yazın."; return; }
 if(!fbOk()){ err.textContent = "İnternet bağlantısı yok."; return; }
-const { db, doc, getDoc, setDoc } = window.__fb;
+const { db, doc, getDoc, setDoc, addDoc, collection } = window.__fb;
 btn.disabled = true; btn.textContent = "Oluşturuluyor…";
 try{
 let code, g = 0;
@@ -11871,6 +11874,7 @@ do{ code = newLinkCode(); g++; } while(g < 5 && (await getDoc(doc(db, "links", c
 const rec = { code, expertUid: window.__fb.uid, childName: name, level: lvl, createdAt: Date.now(), familyUid: null, consent: false, program: null, weekKey: "", weekDays: [], lastActivityAt: null };
 await setDoc(doc(db, "links", code), rec);
 if(!expertLinks.some(x => x.id === code)) expertLinks.unshift(Object.assign({ id: code }, rec));
+try{ if(!playersList.includes(name)){ playersList.push(name); if(addDoc && collection) addDoc(collection(db, "players"), withUid({ name, createdAt: Date.now() })).catch(() => {}); } if(!getPlayerLevel(name)) rememberPlayerLevel(name, lvl); }catch(e){}
 showExpert("client", code); showLevelFlash(`${name} için bağlantı kodu oluşturuldu ✓`, "levelup");
 }catch(e){ console.error(e); err.textContent = "Kod oluşturulamadı. Tekrar deneyin."; btn.disabled = false; btn.textContent = "Kod oluştur"; }
 };
@@ -12721,10 +12725,10 @@ showParentLock(() => { hideGameScreens(); exitGameMode(); if(viaWho) showWho(); 
 document.getElementById("islandStopsBackBtn").addEventListener("click", showIslandMap);
 document.getElementById("islandScreen").addEventListener("click", e => {
 if(e.target.closest("#closetBtn")){ sfx("pop"); gxOpenCloset(); return; }
-const p = e.target.closest("[data-play]"); if(p){ sfx("go"); startGameStop(p.dataset.play, p.dataset.isl); return; }
+const p = e.target.closest("[data-play]"); if(p){ sfx("go"); window.gxReturnTo = "map"; startGameStop(p.dataset.play, p.dataset.isl); return; }
 const b = e.target.closest(".isl-island"); if(b){ sfx("pop"); showIslandStops(b.dataset.isl); }
 });
-document.getElementById("islandStops").addEventListener("click", e => { const cp = e.target.closest("[data-coop]"); if(cp){ sfx("go"); startGameStop(cp.dataset.coop, cp.dataset.isl, { coop: { res:[] } }); return; } const p = e.target.closest("[data-play]"); if(p){ sfx("go"); startGameStop(p.dataset.play, p.dataset.isl); } });
+document.getElementById("islandStops").addEventListener("click", e => { const cp = e.target.closest("[data-coop]"); if(cp){ sfx("go"); startGameStop(cp.dataset.coop, cp.dataset.isl, { coop: { res:[] } }); return; } const p = e.target.closest("[data-play]"); if(p){ sfx("go"); window.gxReturnTo = "stops"; startGameStop(p.dataset.play, p.dataset.isl); } });
 document.getElementById("gamePlayerSelect").addEventListener("change", e => {
 const v = e.target.value;
 if(v === "__new__"){ renderGamePlayerSelect(); openGameWho(true); return; }
@@ -12734,12 +12738,12 @@ document.getElementById("gameMapBtn").addEventListener("click", () => {
 resetTimer();
 exitGameMode();
 document.getElementById("mainApp").style.display = "none";
-if(gameIsland) showIslandStops(gameIsland); else showIslandMap();
+if(gameIsland && window.gxReturnTo !== "map") showIslandStops(gameIsland); else showIslandMap();
 });
 document.getElementById("gameSpeakBtn").addEventListener("click", toggleSpeechMute);
 renderSpeakBtn();
 document.getElementById("grRouteBtn").addEventListener("click", (e) => {
-const b = e.currentTarget; document.getElementById("gameReward").style.display = "none"; resetTimer(); sfx("go");
+const b = e.currentTarget; document.getElementById("gameReward").style.display = "none"; resetTimer(); sfx("go"); window.gxReturnTo = "map";
 startGameStop(b.dataset.play, b.dataset.isl);
 });
 document.getElementById("gsExitBtn").addEventListener("click", () => { document.getElementById("gameSleep").style.display = "none"; hideGameScreens(); exitGameMode(); showWho(); });
@@ -12750,7 +12754,7 @@ if(gxOver()){ document.getElementById("gameReward").style.display = "none"; rese
 document.getElementById("gameReward").style.display = "none";
 resetTimer(); exitGameMode(); document.getElementById("mainApp").style.display = "none";
 if(gameIsland === "macera"){ showAdventure(); return; }
-if(gameIsland) showIslandStops(gameIsland); else showIslandMap();
+if(gameIsland && window.gxReturnTo !== "map") showIslandStops(gameIsland); else showIslandMap();
 });
 document.getElementById("grAgainBtn").addEventListener("click", () => {
 document.getElementById("gameReward").style.display = "none";
@@ -12895,7 +12899,7 @@ document.getElementById("placeCardBtn").onclick = () => placeStart(nm); }catch(e
 const g = gxGet(), r = gxRoute(), days = gxWeekDays(g), ti = todayDayIdx();
 const allDone = r.done.every(Boolean), nx = gxRouteNext();
 const steps = r.steps.map((s, i) => { const ex = exerciseById(s.id), isl = GAME_ISLANDS.find(x => x.id === s.isl);
-return `<button type="button" class="rt-step${r.done[i] ? " done" : ""}${nx && nx.id === s.id ? " now" : ""}" data-play="${s.id}" data-isl="${s.isl}"><span class="rt-dot" style="background:${isl ? isl.color : "#ccc"}">${r.done[i] ? I_CHECK : i + 1}</span><span class="rt-tx"><span class="rt-role">${s.expert ? I_LETTER + " " : ""}${s.role}</span><span class="rt-nm">${gameChildLabel(ex)}</span></span></button>`; }).join("");
+return `<button type="button" class="rt-step${r.done[i] ? " done" : ""}${nx && nx.id === s.id ? " now" : ""}" data-play="${s.id}" data-isl="${s.isl}"><span class="rt-dot" style="background:${isl ? isl.color : "#ccc"}">${r.done[i] ? I_CHECK : i + 1}</span><span class="rt-tx"><span class="rt-role">${s.expert ? I_LETTER + " " : ""}${s.role}</span><span class="rt-nm">${gameChildLabel(ex)}</span>${r.done[i] ? `<span class="rt-stars">${"★".repeat(gameStars(s.id))}${"☆".repeat(Math.max(0, 3 - gameStars(s.id)))}</span>` : ""}</span></button>`; }).join("");
 const L = gxLimitMin(), leftMin = L ? Math.max(0, Math.ceil((gxAllowedSec() - gxUsedSec()) / 60)) : null;
 box.innerHTML = `<div class="rt-card"><div class="rt-h"><span>Bugünün Rotası</span>${allDone ? `<span class="rt-ok">Tamam!</span>` : `<span class="rt-cnt">${r.done.filter(Boolean).length}/${r.steps.length}</span>`}</div>
 <div class="rt-steps">${steps}</div>
