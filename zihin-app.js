@@ -5647,6 +5647,8 @@ resetTimer();
 let audioCtx = null;
 let audioUnlocked = false;
 
+let _sfxBus = null;
+function sfxBus(ctx){ if(_sfxBus && _sfxBus.context === ctx) return _sfxBus; try{ const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -18; comp.knee.value = 12; comp.ratio.value = 6; comp.attack.value = 0.003; comp.release.value = 0.2; const master = ctx.createGain(); master.gain.value = 0.75; master.connect(comp); comp.connect(ctx.destination); _sfxBus = master; return master; }catch(e){ return ctx.destination; } }
 function getAudioCtx(){
 if(!audioCtx){
 try{
@@ -5670,7 +5672,7 @@ const osc = ctx.createOscillator();
 const gain = ctx.createGain();
 gain.gain.setValueAtTime(0.0001, ctx.currentTime);
 osc.connect(gain);
-gain.connect(ctx.destination);
+gain.connect(sfxBus(ctx));
 osc.start();
 osc.stop(ctx.currentTime + 0.05);
 }catch(e){}
@@ -5693,10 +5695,10 @@ const gain = ctx.createGain();
 osc.type = "sine";
 osc.frequency.setValueAtTime(freqStart, ctx.currentTime);
 osc.frequency.linearRampToValueAtTime(freqEnd, ctx.currentTime + durationMs/1000);
-gain.gain.setValueAtTime(volume, ctx.currentTime);
+gain.gain.setValueAtTime(0.0001, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, volume * 0.8), ctx.currentTime + 0.015);
 gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + durationMs/1000);
 osc.connect(gain);
-gain.connect(ctx.destination);
+gain.connect(sfxBus(ctx));
 osc.start();
 osc.stop(ctx.currentTime + durationMs/1000);
 }catch(e){}
@@ -6578,7 +6580,7 @@ function sayTask(t, rate){
 try{
 if(captionOn() || !ttsUsable()) showCaption(t);
 if(!("speechSynthesis" in window)) return;
-speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = "tr-TR"; u.rate = rate || 0.9; u.pitch = 1.1;
+speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = "tr-TR"; u.rate = rate || 0.92; u.pitch = 1.0;
 _trVoice = _trVoice || pickTurkishVoice(); if(_trVoice) u.voice = _trVoice; u.onerror = () => showCaption(t); speechSynthesis.speak(u);
 }catch(e){}
 }
@@ -11663,7 +11665,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.11-c";
+const APP_VERSION = "2026.10.11-d";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -12387,7 +12389,7 @@ if(glideTo) o.frequency.exponentialRampToValueAtTime(glideTo, t0 + dur);
 g.gain.setValueAtTime(0.0001, t0);
 g.gain.exponentialRampToValueAtTime(vol, t0 + 0.012);
 g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-o.connect(g); g.connect(ctx.destination);
+o.connect(g); g.connect(sfxBus(ctx));
 o.start(t0); o.stop(t0 + dur + 0.02);
 }
 function sfx(kind){
@@ -12454,7 +12456,7 @@ const u = new SpeechSynthesisUtterance(t);
 u.onstart = () => { if(_ttsMissed && _ttsMissed.t === t) _ttsMissed = null; };   // gerçekten çaldıysa tekrar okunmasın
 u.onerror = () => showCaption(t);
 u.lang = "tr-TR";
-u.rate = (opts && opts.rate) || 1.0;
+u.rate = (opts && opts.rate) || 0.95; u.pitch = 1.0;
 u.pitch = (opts && opts.pitch) || 1.15;
 _trVoice = _trVoice || pickTurkishVoice();
 if(_trVoice) u.voice = _trVoice;
@@ -13956,7 +13958,7 @@ watchTourScreen("categoryScreen", "category");
 document.getElementById("settingsTourLink").addEventListener("click", (e)=>{
 e.preventDefault();
 closeSettings(); try{ endTour(); }catch(_){} ["category","islands","today","expert","level"].forEach(k => { try{ localStorage.removeItem(TOURS[k].key); }catch(_){} });
-if(document.getElementById("mainApp").style.display === "none"){ document.getElementById("whoScreen").style.display = "none"; if(appMode === "cocuk" || !appMode) appMode = "uzman"; if(!readingLevel) readingLevel = "post"; const ci = CATEGORIES.findIndex(c => !c.hidden && c.exerciseIds.length); selectCategory(ci); document.getElementById("categoryScreen").style.display = "none"; document.getElementById("mainApp").style.display = "block"; }
+if(getComputedStyle(document.getElementById("mainApp")).display === "none" || getComputedStyle(document.getElementById("whoScreen")).display !== "none"){ document.getElementById("whoScreen").style.display = "none"; hideFamScreens(); if(appMode === "cocuk" || !appMode) appMode = "uzman"; if(!readingLevel) readingLevel = "post"; const ci = CATEGORIES.findIndex(c => !c.hidden && c.exerciseIds.length); selectCategory(ci); try{ goToIndex(findSeqIndex(0, 0)); newPage(); }catch(_){} document.getElementById("categoryScreen").style.display = "none"; document.getElementById("mainApp").style.display = "block"; }
 setTimeout(()=>startTour("main", true), 450); });
 document.getElementById("settingsModeTourLink").addEventListener("click", (e)=>{
 e.preventDefault();
@@ -14258,7 +14260,7 @@ try{ hideGameScreens(); exitGameMode(); hideFamScreens(); hideLinkScreens(); }ca
 if(typeof openList === "boolean") whoListOpen = openList;
 let el = document.getElementById("whoScreen"); if(!el){ el = document.createElement("div"); el.id = "whoScreen"; document.body.appendChild(el); }
 const names = whoNames(), sel = whoSelGet(), guest = sel === "__guest__", cur = guest ? "" : (names.includes(sel) ? sel : ""), view = getEtkinlikView(), L = cur ? lastFor(cur) : null;
-const sub = (n) => { const a = ageOf(n), lv = getPlayerLevel(n), st = whoStars(n); return [a ? `${a} yaş` : "", lv ? (lv === "pre" ? "Okul Öncesi" : "Okul Sonrası") : "seviye seçilmedi", st ? `⭐ ${st}` : ""].filter(Boolean).join(" · "); };
+const sub = (n) => { const a = ageOf(n), lv = getPlayerLevel(n), st = whoStars(n); return [a ? (a >= 12 ? "12+ yaş" : `${a} yaş`) : "", lv ? (lv === "pre" ? "Okul Öncesi" : "Okul Sonrası") : "seviye seçilmedi", st ? `⭐ ${st}` : ""].filter(Boolean).join(" · "); };
 const row = (n, i) => `<div class="hm-row${n === cur ? " on" : ""}" data-hsel="${escHTML(n)}"><span class="hm-av" style="background:hsl(${whoHue(n)},70%,88%)">${whoAvatar(n)}</span><div class="hm-tx"><b>${escHTML(n)}</b><span>${sub(n)}</span></div>${n === cur ? `<i class="hm-ck">✓</i>` : ""}<button type="button" class="hm-gear" data-hgear="${escHTML(n)}" aria-label="Seviye ve yaş">⚙︎</button></div>`;
 el.innerHTML = `<div class="hm-wrap">
 <div class="hm-top"><div class="hm-brand"><span class="hm-logo">${zihniSVG("happy")}</span><b>Zihin Atölyesi</b></div><button type="button" class="hm-set" id="hmSet" aria-label="Ayarlar">⚙︎</button></div>
@@ -14272,8 +14274,7 @@ ${L && L.player && names.includes(L.player) && MODE_NAMES[L.mode] ? `<button typ
 <div class="hm-guest"><button type="button" id="hmGuest">Misafir girişi</button></div>
 
 <div class="hm-card hm-mode" id="hmEtk"><div class="hm-mh"><span class="hm-ic etk">👥</span><div><b>Bilişsel Etkinlik</b><span>Uzmanla veya aileyle birlikte</span></div><i class="hm-go">›</i></div>
-<div class="hm-seg"><button type="button" data-hview="uzman" class="${view === "uzman" ? "on" : ""}">💼 Uzman girişi</button><button type="button" data-hview="aile" class="${view === "aile" ? "on" : ""}">🏡 Aile girişi</button></div>
-${view === "uzman" ? `<button type="button" class="hm-link" id="hmClients">Danışanlarım ve ödevler</button>` : ""}</div>
+<div class="hm-seg"><div class="hm-col"><button type="button" data-hview="uzman" class="${view === "uzman" ? "on" : ""}">💼 Uzman girişi</button><button type="button" class="hm-link hm-sub" id="hmClients">📋 Danışanlarım ve ödevler</button></div><div class="hm-col"><button type="button" data-hview="aile" class="${view === "aile" ? "on" : ""}">🏡 Aile girişi</button></div></div></div>
 <div class="hm-card hm-mode" id="hmGame"><div class="hm-mh"><span class="hm-ic oyun">${zihniSVG("happy")}</span><div><b>Bilişsel Oyun</b><span>Çocuk deneyimi · Zihin Adaları</span></div><i class="hm-go oy">›</i></div></div>
 </div>`;
 el.style.display = "flex"; try{ scheduleTour("home", "whoScreen"); }catch(e){}
