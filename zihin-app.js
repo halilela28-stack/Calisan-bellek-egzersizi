@@ -11663,7 +11663,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.11-b";
+const APP_VERSION = "2026.10.11-c";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -14132,6 +14132,7 @@ function prefsSet(k, v){ const p = prefsGet(); p[k] = v; try{ localStorage.setIt
 (function prefsLoad(){ try{ const p = prefsGet(); if("sound" in p) soundEnabled = !!p.sound; if("haptic" in p) hapticEnabled = !!p.haptic; if("confetti" in p) confettiEnabled = !!p.confetti; expertAdaptiveEnabled = ("expAdapt" in p) ? !!p.expAdapt : true;
 const set = (id, v) => { const e = document.getElementById(id); if(e) e.checked = v; }; set("soundToggle", soundEnabled); set("hapticToggle", hapticEnabled); set("confettiToggle", confettiEnabled); set("expertAdaptiveToggle", expertAdaptiveEnabled);
 [["soundToggle","sound"],["hapticToggle","haptic"],["confettiToggle","confetti"],["expertAdaptiveToggle","expAdapt"]].forEach(([id, k]) => { const e = document.getElementById(id); if(e) e.addEventListener("change", () => prefsSet(k, e.checked)); });
+{ const pt = document.getElementById("predToggle"); if(pt){ if("pred" in p && pt.checked !== !!p.pred){ pt.checked = !!p.pred; pt.dispatchEvent(new Event("change")); } pt.addEventListener("change", () => prefsSet("pred", pt.checked)); } }
 if(!("vibrate" in navigator)){ const h = document.getElementById("hapticToggle"); if(h){ h.checked = false; h.disabled = true; const g = h.closest(".settings-group"); const lab = g && g.querySelector(".settings-label"); if(lab && !lab.querySelector(".hap-note")) lab.insertAdjacentHTML("beforeend", `<span class="hap-note" style="display:block;font-size:12px;font-weight:600;color:var(--ink-soft)">Bu cihaz titreşimi desteklemiyor (iPhone'daki tarayıcılar izin vermez).</span>`); } }
 }catch(e){ console.error(e); } })();
 // ===== Ana menü =====
