@@ -6978,12 +6978,13 @@ return { n, pts, ms, max: rng[1] + 1, min: Math.max(1, rng[0] - 1) }; }); }
 const SEM_QS = [ { k:"canli", q:"Canlı mı?" }, { k:"yenir", q:"Yenir mi?" }, { k:"tasit", q:"Taşıt mı?" } ];
 let semQ = null;
 function semPick(force){ const pool = isPre() ? SEM_QS.slice(0, 2) : SEM_QS; if(force || !semQ || !pool.includes(semQ)){ let v; do{ v = randomItem(pool); } while(pool.length > 1 && v === semQ); semQ = v; } return semQ; }
-function semTrials(){ const Q = semPick(), C = qzCats(), ta = ["dog","cat","cow","rabbit","elephant","parrot"].map(k => ({ src: TA_ANIMALS[k]() }));
+function semTrials(){ const C = qzCats(), ta = ["dog","cat","cow","rabbit","elephant","parrot"].map(k => ({ src: TA_ANIMALS[k]() }));
 const living = ta.concat(C.wild.items, C.sea.items), food = C.meyve.items.concat(C.sebze.items, [{ src: OBJECT_IMAGES.bread }, { src: OBJECT_IMAGES.chocolate }]), veh = C.vehicle.items, obj = C.toy.items.concat(C.house.items);
-const yes = Q.k === "canli" ? living : Q.k === "yenir" ? food : veh, no = Q.k === "canli" ? obj.concat(veh, food) : Q.k === "yenir" ? obj.concat(veh, living) : obj.concat(living, food);
-const N = isPre() ? 8 : 12, out = [];
-for(let i = 0; i < N; i++){ const y = i % 2 === 0, it = randomItem(y ? yes : no); out.push({ stim: qzPic(it.src), opts:[`<b style="font-size:20px">✓ Evet</b>`, `<b style="font-size:20px">✗ Hayır</b>`], ans: y ? 0 : 1, prompt:`<b>${Q.q}</b>`, text:true }); }
-return shuffleArray(out); }
+const sets = (Q) => ({ yes: Q.k === "canli" ? living : Q.k === "yenir" ? food : veh, no: Q.k === "canli" ? obj.concat(veh, food) : Q.k === "yenir" ? obj.concat(veh, living) : obj.concat(living, food) });
+const pool = shuffleArray((isPre() ? SEM_QS.slice(0, 2) : SEM_QS).slice()), N = isPre() ? 8 : 12, out = [];
+for(let b = 0; b < N / 2; b++){ const Q = pool[b % pool.length], S = sets(Q), blk = shuffleArray([true, false]);
+blk.forEach((y, j) => { const it = randomItem(y ? S.yes : S.no); out.push({ stim: qzPic(it.src), opts:[`<b style="font-size:20px">✓ Evet</b>`, `<b style="font-size:20px">✗ Hayır</b>`], ans: y ? 0 : 1, prompt:`<b>${Q.q}</b>`, say: j === 0 ? Q.q : "", text:true }); }); }
+return out; }
 function chaseCfg(){ const t = currentCombo().t; return { need: isPre() ? [5, 6, 8][t] : [8, 10, 12][t], speed: (isPre() ? [0.45, 0.6, 0.75] : [0.6, 0.85, 1.1])[t], size: isPre() ? 70 : [64, 56, 48][t] }; }
 const ALT_OBJ = () => [ { n:"kova", src: HOUSE_IMAGES.bucket }, { n:"kaşık", src: PAL_EXTRA_IMAGES.spoon }, { n:"şemsiye", src: PAIR_IMAGES.umbrella }, { n:"yastık", src: HOUSE_IMAGES.pillow },
 { n:"kalem", src: PAIR_IMAGES.pencil }, { n:"fincan", src: HOUSE_IMAGES.cup }, { n:"zarf", src: PAIR_IMAGES.envelope }, { n:"tarak", src: HOUSE_IMAGES.comb } ];
@@ -7792,8 +7793,11 @@ el.style.display = "flex"; el.querySelector('[data-po="go"]').onclick = () => { 
 function placeStart(name){ const lvl = readingLevel === "pre" ? "pre" : "post"; placeRun = { name, lvl, di:0, tier:1, cnt:[0, 0, 0], n:[0, 0, 0], res:{}, items:0 };
 let el = document.getElementById("placeScreen"); if(!el){ el = document.createElement("div"); el.id = "placeScreen"; document.body.appendChild(el); }
 el.style.display = "flex"; el.innerHTML = `<div class="adv-wrap" style="text-align:center"><div style="width:110px;height:110px;margin:20px auto 6px">${zihniSVG("happy")}</div><div class="mola-h">Zihni ile keşif turu!</div><div class="mola-s">Yedi küçük oyun var. Elinden geldiğince dikkatli oyna, acele etmene gerek yok.</div><div class="mola-list" style="max-width:300px;margin:0 auto"><button type="button" id="placeGo"><span>▶️</span>Başla</button></div></div>`;
-speakText("Zihni ile keşif turuna hazır mısın?"); document.getElementById("placeGo").onclick = placeNext; }
-function placeNext(){ const R = placeRun; if(!R) return; if(R.di >= PLACE_DOMS.length) return placeFinish();
+speakText("Zihni ile keşif turuna hazır mısın?"); document.getElementById("placeGo").onclick = placeNext; placeExitBtn(); }
+function placeExitBtn(){ const el = document.getElementById("placeScreen"); let x = document.getElementById("placeX"); if(x){ x.style.display = "flex"; return; } x = document.createElement("button"); x.id = "placeX"; x.type = "button"; x.className = "place-x mola-x"; x.setAttribute("aria-label", "Keşif turundan çık"); x.textContent = "✕";
+x.onclick = () => { if(!confirm("Keşif turundan çıkılsın mı? Sonuçlar kaydedilmez; turu daha sonra yeniden başlatabilirsiniz.")) return; placeRun = null; el.style.display = "none"; x.style.display = "none"; try{ speechSynthesis.cancel(); }catch(e){} try{ if(document.getElementById("islandScreen").style.display === "flex") showIslandMap(); }catch(e){} };
+document.body.appendChild(x); }
+function placeNext(){ const R = placeRun; if(!R) return; if(R.di >= PLACE_DOMS.length) return placeFinish(); setTimeout(placeExitBtn, 0);
 const d = PLACE_DOMS[R.di]; R.items++; const myItem = R.item = (R.item || 0) + 1; const warm = !R.wd && R.tier === 1 && R.n[1] === 0, TT = warm ? 0 : R.tier; const el = document.getElementById("placeScreen");
 const head = `${warm ? `<div class="qz-warm" style="margin-top:calc(8px + env(safe-area-inset-top))">🌱 Isınma</div>` : ""}<div class="place-top"><div class="place-dots">${PLACE_DOMS.map((_, i) => `<span class="${i < R.di ? "done" : i === R.di ? "cur" : ""}"></span>`).join("")}</div></div>`;
 const answer = (ok) => { if(placeRun !== R || R.item !== myItem || R.answered === myItem) return; R.answered = myItem;
@@ -7819,7 +7823,7 @@ const N = (R.lvl === "pre" ? [2, 3, 4] : [3, 5, 7])[TT], seen = pool.slice(0, N)
 el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q">Resimlere iyi bak…</div><div class="place-opts" style="grid-template-columns:repeat(${Math.min(N, 4)}, 80px)">${seen.map(x => `<div class="wm-card" style="width:80px;height:80px;padding:5px">${qzPic(x.src)}</div>`).join("")}</div></div>`;
 setTimeout(() => { if(!placeRun) return; el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q">Bunlardan hangisi <b>vardı</b>?</div><div class="place-opts" style="grid-template-columns:repeat(${Math.min(opts.length, 3)}, 96px)">${opts.map((x, i) => `<button type="button" class="wm-pic" data-po-v="${i}" style="width:96px;height:96px;padding:5px">${qzPic(x.src)}</button>`).join("")}</div></div>`;
 el.querySelectorAll("[data-po-v]").forEach(b => b.onclick = () => { if(R.answered === myItem) return; const ok = opts[Number(b.dataset.poV)] === tgt; b.classList.add(ok ? "ok" : "bad"); answer(ok); }); }, (R.lvl === "pre" ? 1600 : 1100) * N); }
-function placeFinish(){ const R = placeRun; placeRun = null; const rec = { t: Date.now(), dom: R.res, items: R.items }; placeSave(R.name, R.lvl, rec);
+function placeFinish(){ const R = placeRun; placeRun = null; { const x = document.getElementById("placeX"); if(x) x.style.display = "none"; } const rec = { t: Date.now(), dom: R.res, items: R.items }; placeSave(R.name, R.lvl, rec);
 try{ if(gameProfile() === R.name){ const g = gxGet(); g.light = (g.light || 0) + 5; gxSave(g); } }catch(e){}
 const el = document.getElementById("placeScreen");
 el.innerHTML = `<div class="adv-wrap" style="text-align:center"><div style="width:110px;height:110px;margin:20px auto 6px">${zihniSVG("happy")}</div><div class="mola-h">Keşif turu bitti!</div><div class="mola-s">Harikaydın! +5 ışık</div>
@@ -9465,7 +9469,7 @@ const INSTR_SHORT = {
 "concept-touch":    [() => Q("Dinle. Söylenen resme dokun.")],
 "infer-touch":      [() => Q("Durumu oku ya da dinle. İpuçlarına göre en uygun cevaba dokun.")],
 "dot-count":        [() => Q("Noktalar bir an görünecek. Kaç tane olduğunu seç.")],
-"sem-decide":       [() => Q(`${semPick().q} Hızlıca Evet ya da Hayır'a dokun.`)],
+"sem-decide":       [() => Q("Sorular değişecek: her resim için soruyu dinle, hızlıca Evet ya da Hayır'a dokun.")],
 "eye-touch":        [() => Q("Kayan topu gözünle izle, yakalayınca dokun.")],
 "alt-uses":         [() => `Okuyun ve ▶'a basın: ${Q(fluPrompt("alt-uses").say)} Asıl kullanımı sayılmaz; farklı her fikir +1.`],
 "time-est":         [() => Q("Başla'ya bas, içinden say. Söylenen saniye olunca Dur'a bas.")],
@@ -11659,7 +11663,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.10-o";
+const APP_VERSION = "2026.10.10-r";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -11871,7 +11875,7 @@ showExpert("client", code); showLevelFlash(`${name} için bağlantı kodu oluşt
 }catch(e){ console.error(e); err.textContent = "Kod oluşturulamadı. Tekrar deneyin."; btn.disabled = false; btn.textContent = "Kod oluştur"; }
 };
 }
-function renderExpertClient(code){
+function renderExpertClient(code){ try{ hwSel.clear(); }catch(e){}
 const found = expertLinks.find(x => x.id === code);
 expertView.pendingData = !found;
 const l = found || { id: code, childName: "", level: "post" };
@@ -11897,7 +11901,7 @@ ${(() => { const W = hwWeakPages(l.childName); const lv = readingLevel;
 return `<div class="fam-card" style="display:flex;flex-direction:column;gap:10px"><div style="font-weight:900;font-size:16px">Ödevlendirme</div>
 <div class="fam-sub" style="font-weight:600">Bu cihazda <b>${escHTML(l.childName || "danışan")}</b> adıyla yaptığınız son 45 günlük oturumlara göre zorlandığı sayfalar (son 3 denemenin yarısından fazlasında 2+ hata ya da son denemede 3+ hata).</div>
 ${p.hw.length ? `<div><div style="font-weight:800;margin-bottom:6px">Verilen ödevler</div><div class="fam-chips">${p.hw.map(id => { const cf = expertCfgFor(l.childName, [id])[id]; return `<button type="button" class="fam-chip on" data-hwx="${id}">📌 ${famLabel(id)}${cf ? ` <small>(${escHTML(cfgLabel(id, cf))})</small>` : ""} ✕</button>`; }).join("")}</div><div class="fam-sub" style="font-weight:600;margin-top:4px">Ödevler, sizin bu çocukla en son çalıştığınız aşama ve düzeyde açılır.</div></div>` : ""}
-${W.list.length ? `<div>${W.list.slice(0, 8).map(x => `<div class="ex-row" data-hws="${x.id}"><div class="tx"><div class="t1">${famLabel(x.id)}${p.hw.includes(x.id) ? " · 📌" : ""}</div><div class="fam-sub" style="font-weight:600">${famCatName(x.cat)} · son: ${x.err} hata, ${escHTML(x.tier || "")} · başarı %${x.rate} (${x.n} deneme)</div></div><span class="ex-check${hwSel.has(x.id) ? " on" : ""}">${hwSel.has(x.id) ? I_CHECK : ""}</span></div>`).join("")}</div>
+${W.list.length ? `<div>${W.list.slice(0, 8).map(x => `<div class="ex-row" data-hws="${x.id}"><div class="tx"><div class="t1">${famLabel(x.id)}${p.hw.includes(x.id) ? " · 📌" : ""}</div><div class="fam-sub" style="font-weight:600">${famCatName(x.cat)} · son: ${x.err} hata, ${escHTML(x.tier || "")} · başarı %${x.rate} (${x.n} deneme)</div></div>${p.hw.includes(x.id) ? `<span class="hw-in">📌 ödevde</span>` : `<span class="ex-check${hwSel.has(x.id) ? " on" : ""}">${hwSel.has(x.id) ? I_CHECK : ""}</span>`}</div>`).join("")}</div>
 <div style="display:flex;gap:8px"><button type="button" class="fam-cta" id="hwAutoBtn" style="flex:1">Otomatik ödevlendir</button><button type="button" class="fam-cta ghost" id="hwManBtn" style="flex:1">Seçilenleri ödev yap${hwSel.size ? ` (${hwSel.size})` : ""}</button></div>
 <div class="fam-sub" style="font-weight:600">Otomatik: en çok zorlandığı 4 sayfa ödev olur. Manuel: listeden işaretlediklerinizi ekler. En fazla 4 ödev; aile bunları günlük oturumda öncelikli yapar.</div>`
 : `<div class="fam-sub" style="font-weight:700;color:var(--ink)">${W.total ? "Zorlandığı sayfa görünmüyor; son oturumlar başarılı. 👍" : "Bu cihazda bu danışanla kaydedilmiş oturum yok. Etkinlikte “Kim çalışıyor?” bölümünden danışanın adını seçerek çalışın."}</div>`}</div>`; })()}
@@ -11928,11 +11932,11 @@ appMode = "uzman"; viaWho = true; readingLevel = lv; try{ applyLevelDefaultThres
 pendingLevelPlayerName = nm; pendingLevelPlayerIsNew = false; chooseReadingLevel(lv); showLevelFlash(`${nm} ile oturum başladı`, "levelup"); }; }
 const saveProg = async (msg) => { if(!fbOk()){ showLevelFlash("İnternet bağlantısı yok.", "down"); return false; } const { db, doc, updateDoc } = window.__fb;
 try{ await updateDoc(doc(db, "links", code), { program: { target: p.target, days: p.days, minutes: p.minutes, mains: p.mains, games: p.games, hw: p.hw, cfg: expertCfgFor(l.childName, (p.mains || []).concat(p.hw || [])), updatedAt: Date.now() } }); l.program = Object.assign({}, p); showLevelFlash(msg, "levelup"); return true; }catch(e){ console.error(e); showLevelFlash("Ödev kaydedilemedi.", "down"); return false; } };
-w.querySelectorAll("[data-hws]").forEach(x => x.onclick = () => { const id = x.dataset.hws; if(hwSel.has(id)) hwSel.delete(id); else hwSel.add(id); draw(); });
+w.querySelectorAll("[data-hws]").forEach(x => x.onclick = () => { const id = x.dataset.hws; if(p.hw.includes(id)) return; if(hwSel.has(id)) hwSel.delete(id); else hwSel.add(id); draw(); });
 w.querySelectorAll("[data-hwx]").forEach(x => x.onclick = async () => { p.hw = p.hw.filter(v => v !== x.dataset.hwx); await saveProg("Ödev kaldırıldı ✓"); draw(); });
-const ha = document.getElementById("hwAutoBtn"); if(ha) ha.onclick = async () => { readingLevel = l.level || "post"; const W = hwWeakPages(l.childName); readingLevel = lvlSave; p.hw = W.list.filter(x => exerciseById(x.id).readingLevel.includes(l.level || "post")).slice(0, 4).map(x => x.id); hwSel.clear(); if(await saveProg(`${p.hw.length} sayfa ödev olarak gönderildi ✓`)) draw(); };
+const ha = document.getElementById("hwAutoBtn"); if(ha) ha.onclick = async () => { readingLevel = l.level || "post"; const W = hwWeakPages(l.childName); readingLevel = lvlSave; p.hw = W.list.filter(x => exerciseById(x.id).readingLevel.includes(l.level || "post")).slice(0, 4).map(x => x.id); hwSel.clear(); await saveProg(`${p.hw.length} sayfa ödev olarak gönderildi ✓`); draw(); };
 const hm = document.getElementById("hwManBtn"); if(hm) hm.onclick = async () => { if(!hwSel.size){ showLevelFlash("Önce listeden sayfa işaretleyin.", "down"); return; } const add = [...hwSel].filter(id => !p.hw.includes(id)); const next = p.hw.concat(add);
-if(next.length > 4){ showLevelFlash(`En fazla 4 ödev olabilir (şu an ${p.hw.length}).`, "down"); return; } p.hw = next; hwSel.clear(); if(await saveProg(`${add.length} sayfa ödev olarak eklendi ✓`)) draw(); };
+if(next.length > 4){ showLevelFlash(`En fazla 4 ödev olabilir (şu an ${p.hw.length}).`, "down"); return; } p.hw = next; hwSel.clear(); await saveProg(`${add.length} sayfa ödev olarak eklendi ✓`); draw(); };
 w.querySelectorAll("[data-d]").forEach(x => x.onclick = () => { const d = +x.dataset.d; p.days = p.days.includes(d) ? p.days.filter(v => v !== d) : p.days.concat([d]).sort(); draw(); });
 w.querySelectorAll("[data-m]").forEach(x => x.onclick = () => { p.minutes = +x.dataset.m; draw(); });
 w.querySelectorAll("[data-x]").forEach(x => x.onclick = () => { const id = x.dataset.x; if(p.mains.includes(id)) p.mains = p.mains.filter(v => v !== id); else if(p.mains.length < 4) p.mains = p.mains.concat([id]); draw(); });
@@ -12512,8 +12516,9 @@ const PRED_KEY = "wm_predict_v1";
 function predOn(){ try{ return localStorage.getItem(PRED_KEY) !== "0"; }catch(e){ return true; } }
 const PRED_TXT = ["Biraz zorlanırım", "Yaparım", "Çok iyi yaparım"], PRED_EMO = ["🙂", "😀", "🤩"];
 function showPredict(){ let el = document.getElementById("predSheet"); if(!el){ el = document.createElement("div"); el.id = "predSheet"; document.body.appendChild(el); }
-el.innerHTML = `<div class="pred-card"><div class="pred-h">Sence bu durak nasıl geçecek?</div><div class="pred-row">${PRED_TXT.map((t, i) => `<button type="button" data-pred="${i}"><span>${PRED_EMO[i]}</span>${t}</button>`).join("")}</div></div>`;
+el.innerHTML = `<div class="pred-card"><div class="pred-h">Sence bu durak nasıl geçecek?</div><div class="pred-row">${PRED_TXT.map((t, i) => `<button type="button" data-pred="${i}"><span>${PRED_EMO[i]}</span>${t}</button>`).join("")}</div><button type="button" class="age-link" id="predSkip" style="margin-top:10px">Geç</button></div>`;
 el.style.display = "flex"; setTimeout(() => speakText("Sence bu durak nasıl geçecek?"), 250);
+{ const sk = document.getElementById("predSkip"); if(sk) sk.onclick = () => { el.style.display = "none"; setTimeout(() => { if(gameMode) speakText(`${gameLine("start")} ${childInstructionText()}`); }, 250); }; }
 el.querySelectorAll("[data-pred]").forEach(b => b.onclick = () => { if(gameStop) gameStop.pred = Number(b.dataset.pred); el.style.display = "none"; setTimeout(() => { if(gameMode) speakText(`${gameLine("start")} ${childInstructionText()}`); }, 250); }); }
 function gameAfterStop(){
 if(!gameMode || !gameStop) return;
@@ -12698,6 +12703,7 @@ return;
 const card = document.querySelector("#parentLock .pl-card");
 card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake");
 showParentLock(plOnSuccess);
+{ const sub = document.querySelector("#parentLock .pl-sub"); if(sub){ sub.textContent = "Cevap yanlış. Yeni soruyu deneyin."; sub.style.color = "#B45309"; clearTimeout(sub._t); sub._t = setTimeout(() => { sub.textContent = "Oyun modundan çıkmak için cevabı yazın"; sub.style.color = ""; }, 2600); } }
 return;
 } else if(plAnswerVal.length < 4){ plAnswerVal += k; }
 document.getElementById("plAnswer").textContent = plAnswerVal;
@@ -13667,6 +13673,15 @@ list.appendChild(card);
 
 
 const TOURS = {
+home: { key: "wm_tour_home_seen_v1", steps: [
+{sel:"#hmHead", title:"Kim çalışacak?", text:"Çalışacak kişiyi buradan seç. Liste en son çalışandan başlar; yaşı ve seviyeyi listedeki ⚙︎ ile değiştirebilirsin."},
+{sel:"#hmResume", title:"Kaldığın yerden devam", text:"Seçili kişinin en son yaptığı çalışmaya tek dokunuşla döner."},
+{sel:"#hmAdd", title:"Kişi ekle", text:"Yeni bir çocuk ekle. Eklenince kısa bir Keşif Turu ile başlangıç düzeyleri belirlenir."},
+{sel:"#hmGuest", title:"Misafir girişi", text:"Kayıt tutmadan denemek için."},
+{sel:"#hmEtk .hm-seg", title:"Uzman ya da Aile girişi", text:"Bilişsel Etkinlik yetişkinle yapılır. Uzman girişi danışanlar, programlar ve ödevler içindir; Aile girişi günlük oturum ve uzmanın önerdiği çalışmalar içindir."},
+{sel:"#hmGame", title:"Bilişsel Oyun", text:"Çocuğun tek başına oynadığı Zihin Adaları. Oyundan çıkış ebeveyn kontrolüyle korunur."},
+{sel:"#hmSet", title:"Ayarlar", text:"Ses, görünüm ve yazı boyutu, hesap ve bulut eşitleme ile Uzman PIN'i burada."}
+] },
 modes: {
 key: "wm_tour_modes_seen_v2",
 steps: [
@@ -13700,7 +13715,7 @@ key: "wm_tour_islands_seen_v2",
 steps: [
 {sel:"#islandScreen .isl-head", title:"Zihin Adaları", text:"Çocuğun tek başına oynadığı harita. Toplam yıldız sağ üstte görünür; kıyas yalnızca çocuğun kendi önceki sonuçlarıyla yapılır."},
 {sel:"#islandScreen .isl-who", title:"Kim oynuyor?", text:"Oynamadan önce çocuğu seçin. Yıldızlar ve düzey her çocuğa özeldir; aynı cihazı kardeşler de kullanabilir."},
-{sel:"#islandMap .isl-island", title:"Adalar ve duraklar", text:"Her ada bir beceri alanı. Her durakta Başlangıç, Orta ve Zor için üç yıldız var; zorluk kazanılan yıldıza göre kendiliğinden seçilir. Plan Adası 3 yıldızla açılır."},
+{sel:"#islandMap .isl-island", title:"Adalar ve duraklar", text:"Her ada bir beceri alanı. Her durakta Başlangıç, Orta ve Zor için üç yıldız var; zorluk kazanılan yıldıza göre kendiliğinden seçilir. İlk günlerde birkaç ada açıktır; diğerleri toplam yıldız arttıkça keşfedilir. Kilitli adaya dokununca kaç yıldız gerektiği yazar."},
 {sel:"#islandRoute .rt-card", title:"Bugünün Rotası", text:"Her gün 3–4 duraklık rota: ısınma, haftanın hedef alanı (uzman seçtiyse 'özel görev') ve çocuğun sevdiği adadan kapanış. Zorlandığı durakta ipucu verilir; iki kez zorlanırsa bir alt düzeyle ısınır."},
 {sel:"#islandRoute .rt-row", title:"Işık, hafta ve dolap", text:"Işık; bitirmek, başarmak, kendini geçmek ve ipucunu kullanmak için verilir, adalar ışıkla büyür. Süre hedefi tutturulursa ayrıca ⚡ şimşek rozeti kazanılır; tutturulamazsa hiçbir şey kaybedilmez. Haftalık hedef 4 gün; kaçırılan gün sıfırlamaz. Aksesuarlar satın alınmaz, hedeflerle açılır. Günlük süre Ayarlar'dan değişir."},
 {sel:"#islandNext", title:"Sıradaki durak", text:"'Oyna' ile durak açılır. Yönerge sesli okunur; oyun ekranındaki hoparlörle konuşma kapatılabilir. Çalışma bitince kronometre kendiliğinden durur ve ödül ekranı çıkar."},
@@ -13727,14 +13742,14 @@ key: "wm_tour_seen_v2",
 steps: [
 {sel:"#lsToggleBtn",       title:"Menü",            text:"Ekran kısa olduğu için bazı düğmeler bu menünün içinde. Dokununca açılır; şimdi içindekileri sırayla anlatıyorum."},
 {sel:"#cloudBadge",        title:"Kayıt durumu",    text:"Bulut: sonuçlar çevrimiçi kaydediliyor. Yerel: bağlantı yok, sonuçlar bu cihazda bekliyor ve bağlantı gelince otomatik yüklenir.", menu:true},
-{sel:"#settingsBtn",       title:"Ayarlar",         text:"Ses, titreşim, sade görünüm, yazı boyutu, otomatik zorluk eşikleri, kayıtlı kişiler ve sürüm bilgisi burada.", menu:true},
-{sel:"#modeSwitchBtn",     title:"Görünüm",         text:"Bilişsel Etkinlik'te hangi görünümde olduğunu gösterir (Uzman ya da Aile). Dokununca mod seçimine dönersin.", menu:true},
+{sel:"#settingsBtn",       title:"Ayarlar",         text:"Ses, görünüm ve yazı boyutu, otomatik zorluk eşikleri, hesap ve bulut eşitleme, Uzman PIN\'i, kayıtlı kişiler ve sürüm bilgisi burada.", menu:true},
+{sel:"#modeSwitchBtn",     title:"Görünüm",         text:"Bilişsel Etkinlik'te hangi girişte olduğunu gösterir (Uzman ya da Aile). Dokununca ana ekrana dönersin; girişi oradan değiştirebilirsin.", menu:true},
 {sel:"#categorySwitchBtn", title:"Kategori",        text:"Şu an çalıştığın kategoriyi gösterir. Dokununca başka bir kategori seçebilirsin.", menu:true},
 {sel:"#pageIndicator",     title:"Sayfa",           text:"Hangi düzeyde olduğunu ve bu kategoride kaçıncı sayfada olduğunu gösterir.", menu:true},
 {sel:"#tierRow",           title:"Düzey",           text:"Başlangıç, Orta ya da Zor düzeyi buradan seç. Düzey yükseldikçe çalışma zorlaşır: daha çok öge, daha çok çeşit, daha hızlı hareket gibi.", menu:true},
 {sel:"#exerciseRow",       title:"Çalışmalar",      text:"Bu kategorideki çalışmalar burada; yana kaydırarak diğerlerini görebilirsin. Bazı kategorilerde başlıklar (Ketleme, Esneklik, Planlama) çalışmaları gruplar.", menu:true},
 {sel:"#stageRow",          title:"Aşamalar",        text:"Aynı çalışmanın aşamaları; genelde giderek zorlaşır (ör. önce ad, sonra ad + renk).", menu:true},
-{sel:"#playerRow",         title:"Kim çalışıyor?",  text:"Çalışan kişiyi seç ya da yeni kişi ekle. Başlamadan önce kişi seçmek gerekir; sonuçlar bu kişinin adına kaydedilir.", menu:true},
+{sel:"#playerRow",         title:"Kim çalışıyor?",  text:"Ana ekranda seçtiğin kişi burada görünür; gerekirse buradan değiştirebilir ya da yeni kişi ekleyebilirsin. Sonuçlar bu kişinin adına kaydedilir.", menu:true},
 {sel:"#instructionBox",    title:"Yönerge",         text:"Çocuğa ne söyleyeceğin ve varsa örnek cevap burada yazıyor.", menu:true},
 {sel:"#sessionBar",        title:"Oturum / Uzman önerisi", text:"Günlük oturumda ya da uzman önerisinde kaçıncı adımda olduğun ve çalışan çocuğun adı burada; adım bitince 'Sıradaki' düğmesi çıkar."},
 {sel:"#timerBtn",          title:"Başlat",          text:"Süreyi başlatır ve çalışma alanını ekrana getirir. Sözlü çalışmalarda bitince tekrar dokunup sonucu kaydet. Dokunmalı çalışmalarda çocuk ekrana dokunur; bitince kronometre kendiliğinden durur."},
@@ -13944,8 +13959,8 @@ setTimeout(()=>startTour("main", true), 250);
 document.getElementById("settingsModeTourLink").addEventListener("click", (e)=>{
 e.preventDefault();
 closeSettings();
-document.getElementById("modeSwitchBtn").click();
-setTimeout(()=>startTour("modes", true), 450);
+showWho();
+setTimeout(()=>startTour("home", true), 450);
 });
 document.getElementById("settingsLevelTourLink").addEventListener("click", (e)=>{
 e.preventDefault();
@@ -14106,7 +14121,8 @@ function resumeLast(rec){ const L = (rec && rec.mode) ? rec : lastGet(); if(!L) 
   readingLevel = L.level; try{ applyLevelDefaultThresholds(readingLevel); }catch(e){}
   if(L.mode === "cocuk"){ appMode = "cocuk"; currentPlayerName = L.player; try{ showIslandMap(); }catch(e){ proceedAfterOnboarding(); } return; }
   try{ exitGameMode(); exitSessionMode(); exitRecMode(); hideFamScreens(); hideLinkScreens(); }catch(e){}
-  appMode = L.mode; pendingLevelPlayerName = L.player; pendingLevelPlayerIsNew = false;
+  try{ setEtkinlikView(L.mode === "uzman" ? "uzman" : "aile"); }catch(e){}
+appMode = L.mode; pendingLevelPlayerName = L.player; pendingLevelPlayerIsNew = false;
   try{ chooseReadingLevel(L.level); }catch(e){ console.error(e); proceedAfterOnboarding(); } }
 { const _crl = chooseReadingLevel; chooseReadingLevel = function(l){ const r = _crl.apply(this, arguments); try{ if(appMode === "aile" || appMode === "uzman") lastSave(appMode, currentPlayerName); }catch(e){} return r; }; }
 renderResume();
@@ -14229,7 +14245,7 @@ el.innerHTML = `<div class="hm-wrap">
 <div class="hm-row hm-head" id="hmHead">${cur ? `<span class="hm-av big" style="background:hsl(${whoHue(cur)},70%,88%)">${whoAvatar(cur)}</span><div class="hm-tx"><span class="hm-cap">Daha önce çalışanlar</span><b>${escHTML(cur)}</b><span>${sub(cur)}</span></div>` : guest ? `<span class="hm-av big" style="background:#FDE5C2">${zihniSVG("happy")}</span><div class="hm-tx"><b>Misafir</b><span>kayıt tutulmaz</span></div>` : `<span class="hm-av big" style="background:#EEF4F4;font-size:24px;color:#0A847E">?</span><div class="hm-tx"><b>Kişi seç</b><span>${names.length ? "daha önce çalışanlardan seçin" : "aşağıdan kişi ekleyin"}</span></div>`}<i class="hm-chev">${whoListOpen ? "▴" : "▾"}</i></div>
 ${whoListOpen ? `<div class="hm-list">${names.slice(0, 3).map(row).join("")}${names.length > 3 ? `<div class="hm-more">${names.slice(3).map(row).join("")}</div>` : ""}</div>` : ""}
 </div>
-${L && L.player && names.includes(L.player) && MODE_NAMES[L.mode] ? `<button type="button" class="hm-resume" id="hmResume"><span class="hm-play">▶</span><span><b>Kaldığın yerden devam</b><span>${escHTML(L.player)} · ${L.mode === "cocuk" ? "Zihin Adaları" : "Bilişsel Etkinlik"}</span></span></button>` : ""}
+${L && L.player && names.includes(L.player) && MODE_NAMES[L.mode] ? `<button type="button" class="hm-resume" id="hmResume"><span class="hm-play">▶</span><span><b>Kaldığın yerden devam</b><span>${escHTML(L.player)} · ${L.mode === "cocuk" ? "Zihin Adaları" : L.mode === "uzman" ? "Bilişsel Etkinlik · Uzman" : "Bilişsel Etkinlik · Aile"}</span></span></button>` : ""}
 <button type="button" class="hm-add hm-add-out" id="hmAdd">＋ Kişi ekle</button>
 <div class="hm-guest"><button type="button" id="hmGuest">Misafir girişi</button></div>
 
@@ -14238,7 +14254,7 @@ ${L && L.player && names.includes(L.player) && MODE_NAMES[L.mode] ? `<button typ
 ${view === "uzman" ? `<button type="button" class="hm-link" id="hmClients">Danışanlarım ve ödevler</button>` : ""}</div>
 <div class="hm-card hm-mode" id="hmGame"><div class="hm-mh"><span class="hm-ic oyun">${zihniSVG("happy")}</span><div><b>Bilişsel Oyun</b><span>Çocuk deneyimi · Zihin Adaları</span></div><i class="hm-go oy">›</i></div></div>
 </div>`;
-el.style.display = "flex";
+el.style.display = "flex"; try{ scheduleTour("home", "whoScreen"); }catch(e){}
 const $ = (id) => document.getElementById(id);
 $("hmSet").onclick = () => { try{ openSettings(); }catch(e){} };
 $("hmHead").onclick = () => { whoListOpen = !whoListOpen; showWho(); };
@@ -14262,7 +14278,7 @@ function ageOf(n){ const y = agesAll()[n]; return y ? new Date().getFullYear() -
 function ageSet(n, age){ const d = agesAll(); d[n] = new Date().getFullYear() - age; try{ localStorage.setItem(AGE_KEY, JSON.stringify(d)); }catch(e){} }
 const levelForAge = (a) => a <= 6 ? "pre" : "post";
 function ageChips(attr){ return `<div class="age-chips">${[3,4,5,6,7,8,9,10,11,12].map(a => `<button type="button" ${attr}="${a}">${a === 12 ? "12+" : a}</button>`).join("")}</div>`; }
-function whoSheet(html){ let sh = document.getElementById("whoSheet"); if(!sh){ sh = document.createElement("div"); sh.id = "whoSheet"; document.body.appendChild(sh); } sh.innerHTML = `<div class="mola-card">${html}</div>`; sh.style.display = "flex"; sh.onclick = (e) => { if(e.target === sh) sh.style.display = "none"; }; return sh; }
+function whoSheet(html){ let sh = document.getElementById("whoSheet"); if(!sh){ sh = document.createElement("div"); sh.id = "whoSheet"; document.body.appendChild(sh); } sh.innerHTML = `<div class="mola-card" style="position:relative"><button type="button" class="sheet-x" aria-label="Kapat">✕</button>${html}</div>`; sh.querySelector(".sheet-x").onclick = () => { sh.style.display = "none"; }; sh.style.display = "flex"; sh.onclick = (e) => { if(e.target === sh) sh.style.display = "none"; }; return sh; }
 function whoLevel(n, then, manual){ const a = ageOf(n);
 const sh = whoSheet(manual ? `<div class="mola-h">${escHTML(n)}</div><div class="mola-s">Hangi seviyede çalışsın?</div><div class="mola-list"><button type="button" data-wl="pre"><span>🧸</span>Okul Öncesi</button><button type="button" data-wl="post"><span>🎒</span>Okul Sonrası</button></div><button type="button" class="age-link" data-wage="1">Yaşa göre seçilsin</button>`
 : `<div class="mola-h">${escHTML(n)}</div><div class="mola-s">Kaç yaşında?${a ? ` (şu an ${a})` : ""}</div>${ageChips("data-wa")}<button type="button" class="age-link" data-wman="1">Seviyeyi kendim seçeceğim</button>`);
@@ -14366,7 +14382,7 @@ updateLevelPlayerStatus();
 document.getElementById("modeSwitchBtn").addEventListener("click", ()=>{
 resetTimer();
 document.getElementById("mainApp").style.display = "none";
-document.getElementById("modeScreen").style.display = "flex";
+showWho();
 });
 
 document.getElementById("onboardIcon0").innerHTML = `<div class="logo-zihni">${zihniSVG("happy")}</div>`;

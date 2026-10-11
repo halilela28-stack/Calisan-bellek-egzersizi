@@ -449,9 +449,20 @@ html.hide-clock #timerDisplay{ visibility:hidden; }
 .hm-ic.etk{ background:linear-gradient(135deg,#9EE6DA,#CDF3EC) !important; } .hm-ic.oyun{ background:linear-gradient(135deg,#FFD79E,#FFEBCC) !important; }
 .hm-mh b{ color:#12313A; font-size:18px !important; } .hm-chev, .hm-go{ background:#BDEBE4 !important; color:#075E57 !important; box-shadow:0 2px 0 #9FD8CF; } .hm-go.oy{ background:#FFD79E !important; color:#8A4B00 !important; box-shadow:0 2px 0 #F2BE77; }
 .hm-seg{ margin-top:14px !important; background:#DDF3EF !important; } .hm-seg button{ padding:11px 4px !important; } .hm-link{ margin-top:12px !important; }
-html.text-lg .hm-wrap, html.text-lg #settingsScreen .settings-inner, html.text-lg #categoryList, html.text-lg #familyHome > *, html.text-lg #expertWrap{ zoom:1.1; }
-html.text-xl .hm-wrap, html.text-xl #settingsScreen .settings-inner, html.text-xl #categoryList, html.text-xl #familyHome > *, html.text-xl #expertWrap{ zoom:1.2; }
+html.text-lg #settingsScreen .settings-inner, html.text-lg #categoryList, html.text-lg #familyHome > *, html.text-lg #expertWrap{ zoom:1.1; }
+html.text-xl #settingsScreen .settings-inner, html.text-xl #categoryList, html.text-xl #familyHome > *, html.text-xl #expertWrap{ zoom:1.2; }
 .wm-dots .qz-warm.in{ display:inline-block; margin:0 0 0 8px; padding:0 8px; font-size:11px; line-height:18px; vertical-align:middle; }
+#plKeys button:nth-child(10){ color:#B45309 !important; font-weight:900; } #plKeys button:nth-child(10)::before{ content:"⌫ "; }
+.sheet-x{ position:absolute; top:10px; right:10px; width:38px; height:38px; border-radius:50%; border:2px solid #C9DDDB; background:#fff; color:#0A5F5A; font-size:17px; font-weight:900; cursor:pointer; z-index:2; }
+.place-x{ position:fixed !important; top:calc(12px + env(safe-area-inset-top)); right:12px; z-index:468 !important; display:flex; align-items:center; justify-content:center; }
+html.text-lg .hm-wrap, html.text-xl .hm-wrap{ gap:10px !important; } html.text-lg .hm-card, html.text-xl .hm-card{ padding:11px !important; } html.text-lg .hm-who, html.text-xl .hm-who{ padding:4px !important; }
+html.text-lg #hmEtk, html.text-lg #hmGame, html.text-xl #hmEtk, html.text-xl #hmGame{ padding:12px !important; } html.text-lg .hm-resume, html.text-xl .hm-resume, html.text-lg .hm-add-out, html.text-xl .hm-add-out{ padding:10px 14px !important; }
+html.text-lg .hm-ic, html.text-xl .hm-ic{ width:44px; height:44px; font-size:22px; } html.text-lg .hm-av.big, html.text-xl .hm-av.big{ width:44px; height:44px; } html.text-lg .hm-play, html.text-xl .hm-play{ width:38px; height:38px; }
+html.text-lg .hm-chev, html.text-lg .hm-go, html.text-xl .hm-chev, html.text-xl .hm-go{ width:34px; height:34px; } html.text-lg .hm-seg, html.text-xl .hm-seg{ margin-top:10px !important; } html.text-lg .hm-seg button, html.text-xl .hm-seg button{ padding:9px 4px !important; } html.text-lg .hm-link, html.text-xl .hm-link{ margin-top:8px !important; }
+html.text-lg .hm-brand b{ font-size:24px; } html.text-lg .hm-lab{ font-size:16px !important; } html.text-lg .hm-tx b{ font-size:19px; } html.text-lg .hm-tx span{ font-size:14px; } html.text-lg .hm-resume b{ font-size:19px; } html.text-lg .hm-resume span span{ font-size:15px; } html.text-lg .hm-add-out{ font-size:18px !important; } html.text-lg .hm-guest button{ font-size:17px !important; } html.text-lg .hm-mh b{ font-size:20px !important; } html.text-lg .hm-mh span{ font-size:15px; } html.text-lg .hm-seg button{ font-size:16px !important; } html.text-lg .hm-link{ font-size:15px !important; }
+html.text-xl .hm-brand b{ font-size:26px; } html.text-xl .hm-lab{ font-size:17px !important; } html.text-xl .hm-tx b{ font-size:21px; } html.text-xl .hm-tx span{ font-size:15px; } html.text-xl .hm-resume b{ font-size:21px; } html.text-xl .hm-resume span span{ font-size:16px; } html.text-xl .hm-add-out{ font-size:20px !important; } html.text-xl .hm-guest button{ font-size:18px !important; } html.text-xl .hm-mh b{ font-size:22px !important; } html.text-xl .hm-mh span{ font-size:16px; } html.text-xl .hm-seg button{ font-size:17px !important; } html.text-xl .hm-link{ font-size:16px !important; }
+.hw-in{ flex:none; font-size:12px; font-weight:900; color:#B45309; background:#FFF1DE; border-radius:10px; padding:4px 8px; }
+#settingsScreen .set-sec .settings-group{ min-height:0 !important; height:auto !important; }
 .rl-light{ width:110px; height:110px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:24px; color:#fff; box-shadow:0 6px 0 rgba(0,0,0,.2); } .rl-light.green{ background:#1FA463; } .rl-light.red{ background:#E5484D; }
 .rl-track{ position:relative; height:70px; background:#EAF4E4; border:3px solid #8BC56A; border-radius:18px; overflow:hidden; } .rl-prog{ position:absolute; left:0; top:0; bottom:0; background:#CFE8B8; } .rl-run{ position:absolute; top:10px; width:48px; height:48px; } .rl-flag{ position:absolute; right:6px; top:16px; font-size:30px; }
 .rl-track.caught{ animation:rlShake .4s; } @keyframes rlShake{ 25%{ transform:translateX(-8px); } 75%{ transform:translateX(8px); } }
@@ -2830,7 +2841,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.10-o</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.10-r</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -2951,7 +2962,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div id="personDataList" class="person-data-list"></div>
 <p class="settings-note" style="margin-top:8px;"><a href="gizlilik-politikasi.html" target="_blank" rel="noopener">Gizlilik Politikası</a></p>
 <p class="settings-note" style="margin-top:4px;"><a href="#" id="settingsAboutLink">Hakkında ve kategoriler</a></p>
-<p class="settings-note" style="margin-top:4px;">Tanıtımı tekrar göster: <a href="#" id="settingsModeTourLink">Mod seçimi</a> · <a href="#" id="settingsLevelTourLink">Düzey</a> · <a href="#" id="settingsCategoryTourLink">Kategori</a> · <a href="#" id="settingsTourLink">Çalışma ekranı</a></p>
+<p class="settings-note" style="margin-top:4px;">Tanıtımı tekrar göster: <a href="#" id="settingsModeTourLink">Ana ekran</a> <a href="#" id="settingsLevelTourLink" style="display:none">Düzey</a> · <a href="#" id="settingsCategoryTourLink">Kategori</a> · <a href="#" id="settingsTourLink">Çalışma ekranı</a></p>
 <p class="settings-note disclaimer-note" style="margin-top:10px;"><b>Önemli:</b> Zihin Atölyesi bir eğitim ve egzersiz uygulamasıdır. Tanı koymaz, tedavi veya klinik değerlendirme yerine geçmez. Süreler standart bir test değildir ve yaş veya sınıf normlarıyla karşılaştırılmaz.</p>
 
 <div class="settings-divider"></div>
@@ -3275,10 +3286,10 @@ dispatchFbReady();
 }
 </script>
 <script>setTimeout(function(){ if(window.__zaReady) return; var d=document.createElement('div'); d.style.cssText='position:fixed;inset:0;z-index:99999;background:#F6FBFA;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;text-align:center;color:#1D2B36'; d.innerHTML='<div style="max-width:420px"><div style="font-size:22px;font-weight:800;margin-bottom:10px">Uygulama dosyaları yüklenemedi</div><div style="font-size:15px;line-height:1.5">Bu sayfa yanındaki <b>zihin-app.js</b> ve <b>zihin-gorsel</b> dosyalarıyla birlikte çalışır. Beş dosyanın da aynı klasöre yüklendiğinden emin olun ve sayfayı yenileyin.<br><br><span style="color:#5B6B78">Claude içindeki önizlemede bu sürüm açılmaz; önizleme için zihin-atolyesi-onizleme.html dosyasını kullanın.</span></div><button onclick="location.reload()" style="margin-top:16px;padding:12px 22px;border:0;border-radius:14px;background:#0A847E;color:#fff;font-size:16px;font-weight:800">Yenile</button></div>'; document.body.appendChild(d); }, 9000);</script>
-<script src="zihin-gorsel-1.js?v=2026.10.10-o"></script>
-<script src="zihin-gorsel-2.js?v=2026.10.10-o"></script>
-<script src="zihin-gorsel-3.js?v=2026.10.10-o"></script>
-<script src="zihin-app.js?v=2026.10.10-o"></script>
+<script src="zihin-gorsel-1.js?v=2026.10.10-r"></script>
+<script src="zihin-gorsel-2.js?v=2026.10.10-r"></script>
+<script src="zihin-gorsel-3.js?v=2026.10.10-r"></script>
+<script src="zihin-app.js?v=2026.10.10-r"></script>
 <div id="printArea"></div>
 </body>
 </html>
