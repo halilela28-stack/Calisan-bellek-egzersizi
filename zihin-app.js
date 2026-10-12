@@ -1591,12 +1591,17 @@ document.getElementById("board").addEventListener("click", handleTrailTap);
 function isInteractiveExercise(ex){ return !!(ex && (ex.isTouch || ex.isSort || ex.isTrail || ex.isPlan || ex.isSearch || ex.isWm || ex.isChoice || ex.isRt || ex.isMt || ex.isDone)); }
 function pageComplete(){ try{ const ex = currentExercise(); if((ex.isMt || ex.isWm) && typeof mtState !== "undefined" && mtState && Array.isArray(mtState.trials) && (mtState.phase === "done" || mtState.ti >= mtState.trials.length)) return true; if(isInteractiveExercise(ex)) return interactiveIsDone(); if(ex.isMotion) return elapsedMs >= (motionDurationMs - 300); }catch(e){} return true; }
 
-// ===== Çalışma sırasında sayfa kaydırma kilidi (Başlat → Bitir) =====
-function boardFitsView(){ const bd = document.getElementById("board"); if(!bd) return true; const r = bd.getBoundingClientRect(); const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; return r.top >= -6 && r.bottom <= window.innerHeight - barH + 6; }
-function stopBtnVisible(){ const b = document.getElementById("timerBtn"); if(!b) return false; const r = b.getBoundingClientRect(); return r.height > 0 && r.top >= -2 && r.bottom <= window.innerHeight + 2; }
-function runScrollLocked(){ try{ return !!timerRunning && getComputedStyle(document.getElementById("mainApp")).display !== "none" && boardFitsView() && stopBtnVisible(); }catch(e){ return false; } }
-document.addEventListener("touchmove", (e) => { if(runScrollLocked() && e.cancelable) e.preventDefault(); }, { passive:false });
-document.addEventListener("wheel", (e) => { if(runScrollLocked() && e.cancelable) e.preventDefault(); }, { passive:false });
+// ===== Çalışma odak modu (Başlat → Bitir): ayar satırları gizlenir, sayfa sabitlenir, otomatik kaydırma yapılmaz =====
+function runFocusOn(){ const h = document.documentElement; h.classList.add("run-focus"); try{ window.scrollTo(0, 0); const sc = document.scrollingElement; if(sc) sc.scrollTop = 0; }catch(e){} runFocusSize(); }
+function runFocusSize(){ try{ const bd = document.getElementById("board"); if(!bd) return; const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; const top = bd.getBoundingClientRect().top; const mx = Math.max(160, Math.floor(window.innerHeight - barH - top - 10)); document.documentElement.style.setProperty("--boardMax", mx + "px");
+bd.style.zoom = ""; bd.style.maxHeight = ""; let ex = null; try{ ex = currentExercise(); }catch(e){}
+if(ex && isInteractiveExercise(ex) && bd.scrollHeight > mx + 2){ const z = Math.max(0.7, Math.floor((mx / bd.scrollHeight) * 100) / 100); bd.style.zoom = String(z); bd.style.maxHeight = Math.floor(mx / z) + "px"; } }catch(e){} }
+function runFocusOff(){ const h = document.documentElement; h.classList.remove("run-focus"); h.style.removeProperty("--boardMax"); const bd = document.getElementById("board"); if(bd){ bd.style.zoom = ""; bd.style.maxHeight = ""; } }
+function runScrollLocked(){ try{ return !!timerRunning && document.documentElement.classList.contains("run-focus"); }catch(e){ return false; } }
+function boardScrollable(){ const bd = document.getElementById("board"); return !!bd && bd.scrollHeight > bd.clientHeight + 2; }
+document.addEventListener("touchmove", (e) => { if(!runScrollLocked() || !e.cancelable) return; if(boardScrollable() && e.target && e.target.closest && e.target.closest("#board")) return; e.preventDefault(); }, { passive:false });
+document.addEventListener("wheel", (e) => { if(!runScrollLocked() || !e.cancelable) return; if(boardScrollable() && e.target && e.target.closest && e.target.closest("#board")) return; e.preventDefault(); }, { passive:false });
+window.addEventListener("resize", () => { if(document.documentElement.classList.contains("run-focus")) runFocusSize(); });
 function interactiveIsDone(){
 const ex = currentExercise();
 if(!isInteractiveExercise(ex) || !Array.isArray(currentGrid) || !currentGrid.length) return false;
@@ -5558,12 +5563,12 @@ if(typeof gameMode !== "undefined" && gameMode){ sfx("go"); speakText(gameLine("
 const bd = document.getElementById("board");
 bd.style.scrollMarginTop = "8px";
 try{ const r0 = bd.getBoundingClientRect(), below = document.documentElement.scrollHeight - (r0.top + window.scrollY); { const bar = document.querySelector(".controls"), barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; document.documentElement.style.setProperty("--runpad", Math.round(window.innerHeight) + "px"); } }catch(e){}
-document.documentElement.classList.add("board-run");
+document.documentElement.classList.add("board-run"); document.documentElement.style.setProperty("--runpad", "0px"); runFocusOn();
 const reveal = (smooth, force) => { try{ if((!force && !timerRunning) || landscapeMQ.matches) return; const r = bd.getBoundingClientRect(), bar = document.querySelector(".controls"), barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0, avail = innerHeight - barH - 12;
 let dy = 0; if(r.height > avail - 8) dy = r.top - 8; else dy = r.bottom - avail;   // sığan tahta: alt kenarı düğme çubuğunun hemen üstüne
 if(Math.abs(dy) > 4){ let sc = bd.parentElement; while(sc && sc !== document.documentElement){ const cs = getComputedStyle(sc); if(/(auto|scroll)/.test(cs.overflowY) && sc.scrollHeight > sc.clientHeight + 2) break; sc = sc.parentElement; }
 if(!sc || sc === document.documentElement) sc = document.scrollingElement || document.documentElement; sc.scrollBy({ top: dy, behavior: smooth ? "smooth" : "auto" }); } }catch(e){} };
-setTimeout(() => { try{ if(!timerRunning) return; const r1 = bd.getBoundingClientRect(), bar = document.querySelector(".controls"), barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0;  const below = document.documentElement.scrollHeight - (r1.top + window.scrollY); document.documentElement.style.setProperty("--runpad", Math.round(window.innerHeight) + "px"); }catch(e){} reveal(false, true); }, 300); setTimeout(() => { try{ if(timerRunning) reveal(false, true); }catch(e){} }, 900);
+ 
 } }
 if(currentExercise().isRecall){
 clearTimeout(recallHideTimeout);
@@ -5575,7 +5580,7 @@ recallHideTimeout = setTimeout(() => { showLevelFlash("Şimdi hatırlamaya çal�
 }
 }
 
-function stopTimer(){ window._lastStopAt = Date.now(); document.documentElement.classList.remove("board-run");   // süre bitimi zamanlayıcısı, son durağın ödül ekranını atlamasın
+function stopTimer(){ window._lastStopAt = Date.now(); document.documentElement.classList.remove("board-run"); runFocusOff();   // süre bitimi zamanlayıcısı, son durağın ödül ekranını atlamasın
 clearInterval(timerInterval);
 timerRunning = false;
 addTouchMissesOnStop();
@@ -5591,7 +5596,7 @@ if(gameMode){ setTimeout(gameAfterStop, 400); try{ renderGameWho(); }catch(e){} 
 }
 
 function resetTimer(){
-document.documentElement.classList.remove("board-run");
+document.documentElement.classList.remove("board-run"); runFocusOff();
 clearInterval(timerInterval);
 timerRunning = false;
 stopEyeMotion();
@@ -11667,7 +11672,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.12-f";
+const APP_VERSION = "2026.10.12-g";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
