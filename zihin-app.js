@@ -5550,13 +5550,13 @@ if(typeof gameMode !== "undefined" && gameMode){ sfx("go"); speakText(gameLine("
 { if(!landscapeMQ.matches){
 const bd = document.getElementById("board");
 bd.style.scrollMarginTop = "8px";
-try{ const r0 = bd.getBoundingClientRect(), below = document.documentElement.scrollHeight - (r0.top + window.scrollY); document.documentElement.style.setProperty("--runpad", Math.max(0, Math.round(window.innerHeight - below + 12)) + "px"); }catch(e){}
+try{ const r0 = bd.getBoundingClientRect(), below = document.documentElement.scrollHeight - (r0.top + window.scrollY); { const bar = document.querySelector(".controls"), barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; document.documentElement.style.setProperty("--runpad", Math.max(0, Math.round(Math.min(r0.height, window.innerHeight - barH) - below + barH + 8)) + "px"); } }catch(e){}
 document.documentElement.classList.add("board-run");
 const reveal = (smooth, force) => { try{ if((!force && !timerRunning) || landscapeMQ.matches) return; const r = bd.getBoundingClientRect(), bar = document.querySelector(".controls"), barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0, avail = innerHeight - barH - 12;
 let dy = 0; if(r.height > avail - 8) dy = r.top - 8; else if(r.bottom > avail) dy = r.bottom - avail; else if(r.top < 8) dy = r.top - 8;
 if(Math.abs(dy) > 4){ let sc = bd.parentElement; while(sc && sc !== document.documentElement){ const cs = getComputedStyle(sc); if(/(auto|scroll)/.test(cs.overflowY) && sc.scrollHeight > sc.clientHeight + 2) break; sc = sc.parentElement; }
 if(!sc || sc === document.documentElement) sc = document.scrollingElement || document.documentElement; sc.scrollBy({ top: dy, behavior: smooth ? "smooth" : "auto" }); } }catch(e){} };
-reveal(true, true); setTimeout(() => { try{ const r = bd.getBoundingClientRect(); if(r.top < -24 || r.top > 60) reveal(false); }catch(e){} }, 700);
+setTimeout(() => { try{ if(!timerRunning) return; const r1 = bd.getBoundingClientRect(), bar = document.querySelector(".controls"), barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; document.documentElement.style.setProperty("--runpad", "0px"); const below = document.documentElement.scrollHeight - (r1.top + window.scrollY); document.documentElement.style.setProperty("--runpad", Math.max(0, Math.round(Math.min(r1.height, window.innerHeight - barH) - below + barH + 8)) + "px"); }catch(e){} reveal(false, true); }, 300); setTimeout(() => { try{ if(!timerRunning) return; const r2 = bd.getBoundingClientRect(); if(r2.top > window.innerHeight * 0.55 || r2.bottom < 40){ document.documentElement.style.setProperty("--runpad", Math.round(window.innerHeight) + "px"); reveal(false, true); } }catch(e){} }, 900);
 } }
 if(currentExercise().isRecall){
 clearTimeout(recallHideTimeout);
@@ -11660,7 +11660,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.12-b";
+const APP_VERSION = "2026.10.12-c";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -14124,7 +14124,7 @@ appMode = L.mode; pendingLevelPlayerName = L.player; pendingLevelPlayerIsNew = f
 // ===== Uygulama içi onay ve uyarı pencereleri =====
 function zaDialog(msg, opts){ return new Promise(res => { let d = document.getElementById("zaDlg"); if(!d){ d = document.createElement("div"); d.id = "zaDlg"; document.body.appendChild(d); }
 const danger = opts && opts.danger, alertOnly = opts && opts.alert;
-d.innerHTML = `<div class="zd-card" role="dialog" aria-modal="true"><div class="zd-ic">${danger ? "⚠️" : alertOnly ? "ℹ️" : "❓"}</div><div class="zd-msg"></div><div class="zd-row">${alertOnly ? "" : `<button type="button" class="zd-no">Vazgeç</button>`}<button type="button" class="zd-yes${danger ? " danger" : ""}">${alertOnly ? "Tamam" : /kaldır/i.test(msg) ? "Evet, kaldır" : /sil/i.test(msg) ? "Evet, sil" : danger ? "Evet" : "Tamam"}</button></div></div>`;
+d.innerHTML = `<div class="zd-card" role="dialog" aria-modal="true"><div class="zd-ic ${danger ? "dg" : ""}">${hmIc(danger ? "warn" : alertOnly ? "info" : "ask")}</div><div class="zd-msg"></div><div class="zd-row">${alertOnly ? "" : `<button type="button" class="zd-no">Vazgeç</button>`}<button type="button" class="zd-yes${danger ? " danger" : ""}">${alertOnly ? "Tamam" : /kaldır/i.test(msg) ? "Evet, kaldır" : /sil/i.test(msg) ? "Evet, sil" : danger ? "Evet" : "Tamam"}</button></div></div>`;
 d.querySelector(".zd-msg").textContent = msg; d.style.display = "flex";
 const done = (v) => { d.style.display = "none"; res(v); };
 d.querySelector(".zd-yes").onclick = () => done(true); const no = d.querySelector(".zd-no"); if(no) no.onclick = () => done(false);
@@ -14136,9 +14136,13 @@ const HOME_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" st
 document.querySelectorAll(".home-btn").forEach(b => { b.innerHTML = HOME_SVG; });
 // ===== Ana ekran motivasyon cümleleri =====
 
-function hmIc(k){ const P = { user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>', users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.8 2.9-6 6.5-6s6.5 2.2 6.5 6"/><circle cx="17" cy="9" r="2.8"/><path d="M16.5 14.2c3 .2 5 2.2 5 5.3"/>', brief:'<rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8.5 7V5.5A1.5 1.5 0 0 1 10 4h4a1.5 1.5 0 0 1 1.5 1.5V7"/><path d="M3 12.5h18"/>', home:'<path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5.5h4V20"/>', clip:'<rect x="5" y="4.5" width="14" height="16.5" rx="2.5"/><path d="M9 4.5V3.5h6v1"/><path d="m8.8 13 2.2 2.2 4.4-4.4"/>' };
+function hmIc(k){ const P = { user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>', users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.8 2.9-6 6.5-6s6.5 2.2 6.5 6"/><circle cx="17" cy="9" r="2.8"/><path d="M16.5 14.2c3 .2 5 2.2 5 5.3"/>', brief:'<rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8.5 7V5.5A1.5 1.5 0 0 1 10 4h4a1.5 1.5 0 0 1 1.5 1.5V7"/><path d="M3 12.5h18"/>', home:'<path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5.5h4V20"/>', clip:'<rect x="5" y="4.5" width="14" height="16.5" rx="2.5"/><path d="M9 4.5V3.5h6v1"/><path d="m8.8 13 2.2 2.2 4.4-4.4"/>',
+star:'<path d="m12 3.5 2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/>', island:'<path d="M3 19c3-2 6-2 9 0s6 2 9 0"/><path d="M12 17V8"/><path d="M12 8c-2-3-6-3-7-1 2 0 4 .5 7 1zM12 8c2-3 6-3 7-1-2 0-4 .5-7 1z"/>', bulb:'<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>',
+hat:'<path d="M4 18h16"/><path d="M7 18V9a5 5 0 0 1 10 0v9"/><path d="M7 14h10"/>', smile:'<circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1.8 2 5.2 2 7 0"/><path d="M9 9.5h.01M15 9.5h.01"/>', heart:'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>', rocket:'<path d="M12 3c3 2 5 5.5 5 10l-2.5 3h-5L7 13c0-4.5 2-8 5-10z"/><circle cx="12" cy="10" r="1.6"/><path d="M9.5 16 8 20M14.5 16l1.5 4"/>',
+info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><path d="M12 7.5h.01"/>', warn:'<path d="M12 4 2.8 19.5h18.4z"/><path d="M12 10v4.5"/><path d="M12 17.3h.01"/>', ask:'<circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.6"/><path d="M12 16.8h.01"/>',
+phone:'<rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M11 18h2"/>', trash:'<path d="M4 7h16"/><path d="M9 7V4.5h6V7"/><path d="M6.5 7l1 13h9l1-13"/><path d="M10 11v5.5M14 11v5.5"/>', lock:'<rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>', unlock:'<rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/>' };
 return `<svg class="hm-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[k] || ""}</svg>`; }
-function hmMotto(){ const M = ["Zihni seninle oynamak için sabırsızlanıyor 🐙", "Zihni bugün yeni bir ada keşfetmek istiyor 🏝️", "Zihni senin için bir yıldız sakladı ⭐", "Zihni ile birlikte zihnini güçlendir 💪", "Zihni hata yapmaktan korkmuyor, sen de korkma 💡", "Zihni dolabına yeni bir şapka bekliyor 🎩", "Zihni seni görünce çok sevinecek 😊"]; const d = new Date(); return M[(d.getDate() + d.getHours()) % M.length]; }
+function hmMotto(){ const M = [["Zihni seninle oynamak için sabırsızlanıyor","smile"],["Zihni bugün yeni bir ada keşfetmek istiyor","island"],["Zihni senin için bir yıldız sakladı","star"],["Zihni ile birlikte zihnini güçlendir","rocket"],["Zihni hata yapmaktan korkmuyor, sen de korkma","bulb"],["Zihni dolabına yeni bir şapka bekliyor","hat"],["Zihni seni görünce çok sevinecek","heart"]]; const d = new Date(); const m = M[(d.getDate() + d.getHours()) % M.length]; return `${m[0]} <span class="hm-mic">${hmIc(m[1])}</span>`; }
 
 renderResume();
 // ===== Kalıcı cihaz tercihleri =====
@@ -14315,7 +14319,7 @@ function ageOf(n){ const y = agesAll()[n]; return y ? new Date().getFullYear() -
 function ageSet(n, age){ const d = agesAll(); d[n] = new Date().getFullYear() - age; try{ localStorage.setItem(AGE_KEY, JSON.stringify(d)); }catch(e){} }
 const levelForAge = (a) => a <= 6 ? "pre" : "post";
 function ageChips(attr){ return `<div class="age-chips">${[3,4,5,6,7,8,9,10,11,12].map(a => `<button type="button" ${attr}="${a}">${a === 12 ? "12+" : a}</button>`).join("")}</div>`; }
-function whoSheet(html){ let sh = document.getElementById("whoSheet"); if(!sh){ sh = document.createElement("div"); sh.id = "whoSheet"; document.body.appendChild(sh); } sh.innerHTML = `<div class="mola-card" style="position:relative"><button type="button" class="sheet-x" aria-label="Kapat">✕</button>${html}</div>`; sh.querySelector(".sheet-x").onclick = () => { sh.style.display = "none"; }; sh.style.display = "flex"; sh.onclick = (e) => { if(e.target === sh) sh.style.display = "none"; }; return sh; }
+function whoSheet(html){ html = String(html).replace(/<span>📱<\/span>/g, `<span class="ws-ic">${hmIc("phone")}</span>`).replace(/<span>🧹<\/span>/g, `<span class="ws-ic">${hmIc("trash")}</span>`).replace(/<span>🔒<\/span>/g, `<span class="ws-ic">${hmIc("lock")}</span>`).replace(/<span>🔓<\/span>/g, `<span class="ws-ic">${hmIc("unlock")}</span>`); let sh = document.getElementById("whoSheet"); if(!sh){ sh = document.createElement("div"); sh.id = "whoSheet"; document.body.appendChild(sh); } sh.innerHTML = `<div class="mola-card" style="position:relative"><button type="button" class="sheet-x" aria-label="Kapat">✕</button>${html}</div>`; sh.querySelector(".sheet-x").onclick = () => { sh.style.display = "none"; }; sh.style.display = "flex"; sh.onclick = (e) => { if(e.target === sh) sh.style.display = "none"; }; return sh; }
 function whoLevel(n, then, manual){ const a = ageOf(n);
 const sh = whoSheet(manual ? `<div class="mola-h">${escHTML(n)}</div><div class="mola-s">Hangi seviyede çalışsın?</div><div class="mola-list"><button type="button" data-wl="pre"><span>🧸</span>Okul Öncesi</button><button type="button" data-wl="post"><span>🎒</span>Okul Sonrası</button></div><button type="button" class="age-link" data-wage="1">Yaşa göre seçilsin</button>`
 : `<div class="mola-h">${escHTML(n)}</div><div class="mola-s">Kaç yaşında?${a ? ` (şu an ${a})` : ""}</div>${ageChips("data-wa")}<button type="button" class="age-link" data-wman="1">Seviyeyi kendim seçeceğim</button>`);
