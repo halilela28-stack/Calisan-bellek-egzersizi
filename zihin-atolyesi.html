@@ -515,11 +515,11 @@ svg.hm-svg{ width:20px; height:20px; flex:none; vertical-align:-4px; margin-righ
 span.hm-mic{ display:inline-flex; vertical-align:-4px; color:#C2853F; } span.hm-mic svg.hm-svg{ margin:0 0 0 4px; width:20px; height:20px; }
 #zaDlg .zd-ic{ display:flex; justify-content:center; color:#0A847E; margin-bottom:6px; } #zaDlg .zd-ic.dg{ color:#C0392B; } #zaDlg .zd-ic svg.hm-svg{ width:40px; height:40px; margin:0; }
 #whoSheet .ws-ic{ color:#0A847E; display:flex; } #whoSheet .ws-ic svg.hm-svg{ width:28px; height:28px; margin:0; }
-.hm-col{ position:relative; } .hm-col > button[data-hview]{ border-bottom-width:0 !important; } .hm-col > .hm-sub{ position:relative; border-top-width:0 !important; }
-.hm-col > .hm-sub::before{ content:""; position:absolute; top:0; left:14px; right:14px; height:2px; border-radius:2px; background:rgba(255,255,255,.0); }
-.hm-col.uz > .hm-sub::before{ background:#086E69; } .hm-col.ai > .hm-sub::before{ background:#D08A40; }
-.hm-col > .hm-sub::after{ content:""; position:absolute; top:-5px; left:-2px; right:-2px; height:8px; background:linear-gradient(90deg, #fff 0 9px, transparent 9px calc(100% - 9px), #fff calc(100% - 9px)); pointer-events:none; clip-path:polygon(0 0, 9px 50%, 0 100%, 100% 100%, calc(100% - 9px) 50%, 100% 0); }
-.hm-col > button:active, .hm-duo button:active, #hmGame:active, #hmEtk:active{ transform:translateY(3px) !important; filter:brightness(.82) saturate(1.1) !important; box-shadow:inset 0 3px 8px rgba(0,0,0,.18) !important; transition:transform .03s, filter .03s !important; }
+.hm-col{ gap:0 !important; }
+.hm-col > button[data-hview]{ border-width:2px !important; border-bottom-width:2px !important; border-radius:16px 16px 9px 9px !important; position:relative; z-index:1; }
+.hm-col > .hm-sub{ border-width:2px !important; border-top-width:2px !important; border-bottom-width:4px !important; border-radius:9px 9px 16px 16px !important; margin-top:-2px !important; position:relative; }
+.hm-col > button:active, .hm-duo button:active{ transform:translateY(2px) !important; filter:brightness(.88) !important; box-shadow:inset 0 2px 6px rgba(0,0,0,.18) !important; transition:transform .03s, filter .03s !important; }
+#hmEtk:active, #hmGame:active{ transform:none !important; filter:none !important; box-shadow:none !important; }
 .rl-light{ width:110px; height:110px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:24px; color:#fff; box-shadow:0 6px 0 rgba(0,0,0,.2); } .rl-light.green{ background:#1FA463; } .rl-light.red{ background:#E5484D; }
 .rl-track{ position:relative; height:70px; background:#EAF4E4; border:3px solid #8BC56A; border-radius:18px; overflow:hidden; } .rl-prog{ position:absolute; left:0; top:0; bottom:0; background:#CFE8B8; } .rl-run{ position:absolute; top:10px; width:48px; height:48px; } .rl-flag{ position:absolute; right:6px; top:16px; font-size:30px; }
 .rl-track.caught{ animation:rlShake .4s; } @keyframes rlShake{ 25%{ transform:translateX(-8px); } 75%{ transform:translateX(8px); } }
@@ -2898,7 +2898,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.12-c</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.12-d</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -3343,10 +3343,10 @@ dispatchFbReady();
 }
 </script>
 <script>setTimeout(function(){ if(window.__zaReady) return; var d=document.createElement('div'); d.style.cssText='position:fixed;inset:0;z-index:99999;background:#F6FBFA;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;text-align:center;color:#1D2B36'; d.innerHTML='<div style="max-width:420px"><div style="font-size:22px;font-weight:800;margin-bottom:10px">Uygulama dosyaları yüklenemedi</div><div style="font-size:15px;line-height:1.5">Bu sayfa yanındaki <b>zihin-app.js</b> ve <b>zihin-gorsel</b> dosyalarıyla birlikte çalışır. Beş dosyanın da aynı klasöre yüklendiğinden emin olun ve sayfayı yenileyin.<br><br><span style="color:#5B6B78">Claude içindeki önizlemede bu sürüm açılmaz; önizleme için zihin-atolyesi-onizleme.html dosyasını kullanın.</span></div><button onclick="location.reload()" style="margin-top:16px;padding:12px 22px;border:0;border-radius:14px;background:#0A847E;color:#fff;font-size:16px;font-weight:800">Yenile</button></div>'; document.body.appendChild(d); }, 9000);</script>
-<script src="zihin-gorsel-1.js?v=2026.10.12-c"></script>
-<script src="zihin-gorsel-2.js?v=2026.10.12-c"></script>
-<script src="zihin-gorsel-3.js?v=2026.10.12-c"></script>
-<script src="zihin-app.js?v=2026.10.12-c"></script>
+<script src="zihin-gorsel-1.js?v=2026.10.12-d"></script>
+<script src="zihin-gorsel-2.js?v=2026.10.12-d"></script>
+<script src="zihin-gorsel-3.js?v=2026.10.12-d"></script>
+<script src="zihin-app.js?v=2026.10.12-d"></script>
 <div id="printArea"></div>
 </body>
 </html>
