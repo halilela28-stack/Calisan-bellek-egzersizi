@@ -7797,7 +7797,7 @@ let el = document.getElementById("placeScreen"); if(!el){ el = document.createEl
 el.style.display = "flex"; el.innerHTML = `<div class="adv-wrap" style="text-align:center"><div style="width:110px;height:110px;margin:20px auto 6px">${zihniSVG("happy")}</div><div class="mola-h">Zihni ile keşif turu!</div><div class="mola-s">Yedi küçük oyun var. Elinden geldiğince dikkatli oyna, acele etmene gerek yok.</div><div class="mola-list" style="max-width:300px;margin:0 auto"><button type="button" id="placeGo"><span>▶️</span>Başla</button></div></div>`;
 speakText("Zihni ile keşif turuna hazır mısın?"); document.getElementById("placeGo").onclick = placeNext; placeExitBtn(); }
 function placeExitBtn(){ const el = document.getElementById("placeScreen"); let x = document.getElementById("placeX"); if(x){ x.style.display = "flex"; return; } x = document.createElement("button"); x.id = "placeX"; x.type = "button"; x.className = "place-x mola-x"; x.setAttribute("aria-label", "Keşif turundan çık"); x.textContent = "✕";
-x.onclick = () => { if(!confirm("Keşif turundan çıkılsın mı? Sonuçlar kaydedilmez; turu daha sonra yeniden başlatabilirsiniz.")) return; placeRun = null; el.style.display = "none"; x.style.display = "none"; try{ speechSynthesis.cancel(); }catch(e){} try{ if(document.getElementById("islandScreen").style.display === "flex") showIslandMap(); }catch(e){} };
+x.onclick = async () => { if(!await zaConfirm("Keşif turundan çıkılsın mı? Sonuçlar kaydedilmez; turu daha sonra yeniden başlatabilirsiniz.")) return; placeRun = null; el.style.display = "none"; x.style.display = "none"; try{ speechSynthesis.cancel(); }catch(e){} try{ if(document.getElementById("islandScreen").style.display === "flex") showIslandMap(); }catch(e){} };
 document.body.appendChild(x); }
 function placeNext(){ const R = placeRun; if(!R) return; if(R.di >= PLACE_DOMS.length) return placeFinish(); setTimeout(placeExitBtn, 0);
 const d = PLACE_DOMS[R.di]; R.items++; const myItem = R.item = (R.item || 0) + 1; const warm = !R.wd && R.tier === 1 && R.n[1] === 0, TT = warm ? 0 : R.tier; const el = document.getElementById("placeScreen");
@@ -10480,7 +10480,7 @@ dropKey("wm_gamex_v1", k => k === name);
 try{ Object.keys(localStorage).filter(k => /^wm_delay_[a-z]+_/.test(k) && k.replace(/^wm_delay_[a-z]+_/, "") === name).forEach(k => localStorage.removeItem(k)); }catch(e){}
 }
 async function deletePersonData(name){
-if(!confirm(`"${name}" kişisine ait tüm çalışma sonuçları, düzey değişiklikleri, kişi kaydı ve bu cihazdaki oyun ilerlemesi (yıldızlar, ışıklar, dolap) kalıcı olarak silinecek. Bu işlem geri alınamaz. Emin misin?`)) return;
+if(!await zaConfirm(`"${name}" kişisine ait tüm çalışma sonuçları, düzey değişiklikleri, kişi kaydı ve bu cihazdaki oyun ilerlemesi (yıldızlar, ışıklar, dolap) kalıcı olarak silinecek. Bu işlem geri alınamaz. Emin misin?`)) return;
 try{
 if(firestoreReady && window.__fb && window.__fb.uid){
 const { db, collection, getDocs, writeBatch, query, where, uid } = window.__fb;
@@ -10501,7 +10501,7 @@ playersList = playersList.filter(p=> p !== name);
 }
 }catch(e){
 console.error("Kişi verileri silinemedi:", e);
-alert("Silme sırasında bir sorun oluştu. Lütfen tekrar dene.");
+zaAlert("Silme sırasında bir sorun oluştu. Lütfen tekrar dene.");
 return;
 }
 try{ clearLocalPersonData(name); }catch(e){ console.error(e); }
@@ -11271,7 +11271,7 @@ document.getElementById("readingLevelScreen").style.display = "flex";
 function exportSessionsToCSV(){
 const list = loadSessions();
 if(list.length === 0){
-alert("Henüz dışa aktarılacak kayıt yok.");
+zaAlert("Henüz dışa aktarılacak kayıt yok.");
 return;
 }
 const headers = ["Tarih","Kişi","Çalışma","Aşama","Düzey","Süre (sn)","Hata Sayısı"];
@@ -11301,8 +11301,8 @@ URL.revokeObjectURL(url);
 
 document.getElementById("exportCsvBtn").addEventListener("click", exportSessionsToCSV);
 
-document.getElementById("historyClearBtn").addEventListener("click", ()=>{
-if(!confirm("Kayıtlı tüm oturum sonuçları silinecek. Bu işlem geri alınamaz. Emin misin?")) return;
+document.getElementById("historyClearBtn").addEventListener("click", async ()=>{
+if(!await zaConfirm("Kayıtlı tüm oturum sonuçları silinecek. Bu işlem geri alınamaz. Emin misin?")) return;
 try{
 clearAllSessions();
 }catch(e){}
@@ -11334,7 +11334,7 @@ void row.offsetWidth;
 row.classList.add("attn");
 if(landscapeMQ.matches) setLsOpen(true);
 awaitingPlayerChoice = true;
-alert("Başlamadan önce lütfen bir kişi seç veya yeni bir isim ekle.");
+zaAlert("Başlamadan önce lütfen bir kişi seç veya yeni bir isim ekle.");
 return;
 }
 if(playerPromptResolvedAt && Date.now() - playerPromptResolvedAt < 700){
@@ -11665,7 +11665,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.11-d";
+const APP_VERSION = "2026.10.11-e";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -11753,7 +11753,7 @@ ${p && ((p.mains || []).length || (p.hw || []).length) ? `<div class="fam-card">
 <div class="fam-card"><div style="font-weight:900;font-size:15px">Uzmanla paylaşılanlar</div><div class="fam-sub" style="font-weight:600;margin-top:6px;line-height:1.6">Her çalışmadan sonra: çocuğun adı, çalışmanın adı, aşaması, düzeyi, süresi, hata sayısı ve tarihi.<br>Paylaşılmayanlar: oyun ilerlemesi, yıldızlar ve cihazdaki diğer kişiler.</div></div>
 <div class="fam-note">Bağlantıyı kaldırırsanız paylaşım bu cihazdan durur; daha önce gönderilen sonuçlar uzmanda kalır.</div>
 <button type="button" class="unlink-btn" id="unlinkBtn">Bağlantıyı bu cihazdan kaldır</button>`;
-document.getElementById("unlinkBtn").onclick = () => { if(confirm("Uzman bağlantısı bu cihazdan kaldırılsın mı?")){ setFamilyLinkLocal(null); leaveToCategories(); } };
+document.getElementById("unlinkBtn").onclick = async () => { if(await zaConfirm("Uzman bağlantısı bu cihazdan kaldırılsın mı?")){ setFamilyLinkLocal(null); leaveToCategories(); } };
 } else {
 w.innerHTML = `<div><h2 class="fam-h">Uzmana bağlan</h2><div class="fam-sub">${escHTML(famProfile())} için</div></div>
 ${fbOk() ? "" : needCloudHtml()}
@@ -11969,7 +11969,7 @@ const { db, doc, updateDoc } = window.__fb;
 try{ await updateDoc(doc(db, "links", code), { childName: nv }); l.childName = nv; showLevelFlash("Ad güncellendi ✓", "levelup"); draw(); }catch(e){ console.error(e); }
 };
 document.getElementById("exDeleteBtn").onclick = async () => {
-if(!confirm(`${l.childName}, aile bağlantısı ve bu bağlantıyla gönderilmiş sonuçlar silinsin mi? Aile cihazındaki bağlantı da sona erer.`)) return;
+if(!await zaConfirm(`${l.childName}, aile bağlantısı ve bu bağlantıyla gönderilmiş sonuçlar silinsin mi? Aile cihazındaki bağlantı da sona erer.`)) return;
 if(!fbOk()) return;
 const { db, doc, deleteDoc, collection, getDocs, writeBatch } = window.__fb;
 try{
@@ -13006,9 +13006,9 @@ if(rb) rb.addEventListener("click", () => rf.click());
 if(rf) rf.addEventListener("change", () => {
 const f = rf.files && rf.files[0]; if(!f) return;
 const rd = new FileReader();
-rd.onload = () => { try{
+rd.onload = async () => { try{
 const d = JSON.parse(rd.result); if(!d || d.kind !== "game-progress" || !d.keys) throw 0;
-if(!confirm("Bu cihazdaki oyun ilerlemesi yedekteki ile birleştirilsin mi? Aynı kişinin kayıtlarında yedekteki geçerli olur.")) return;
+if(!await zaConfirm("Bu cihazdaki oyun ilerlemesi yedekteki ile birleştirilsin mi? Aynı kişinin kayıtlarında yedekteki geçerli olur.")) return;
 keys.forEach(k => { if(!d.keys[k]) return; let cur = {}; try{ cur = JSON.parse(localStorage.getItem(k) || "{}"); }catch(e){} localStorage.setItem(k, JSON.stringify(Object.assign(cur, d.keys[k]))); });
 showLevelFlash("Oyun ilerlemesi geri yüklendi ✓", "levelup");
 }catch(e){ showLevelFlash("Bu dosya bir oyun yedeği değil.", "down"); } rf.value = ""; };
@@ -14126,6 +14126,23 @@ function resumeLast(rec){ const L = (rec && rec.mode) ? rec : lastGet(); if(!L) 
 appMode = L.mode; pendingLevelPlayerName = L.player; pendingLevelPlayerIsNew = false;
   try{ chooseReadingLevel(L.level); }catch(e){ console.error(e); proceedAfterOnboarding(); } }
 { const _crl = chooseReadingLevel; chooseReadingLevel = function(l){ const r = _crl.apply(this, arguments); try{ if(appMode === "aile" || appMode === "uzman") lastSave(appMode, currentPlayerName); }catch(e){} return r; }; }
+// ===== Uygulama içi onay ve uyarı pencereleri =====
+function zaDialog(msg, opts){ return new Promise(res => { let d = document.getElementById("zaDlg"); if(!d){ d = document.createElement("div"); d.id = "zaDlg"; document.body.appendChild(d); }
+const danger = opts && opts.danger, alertOnly = opts && opts.alert;
+d.innerHTML = `<div class="zd-card" role="dialog" aria-modal="true"><div class="zd-ic">${danger ? "⚠️" : alertOnly ? "ℹ️" : "❓"}</div><div class="zd-msg"></div><div class="zd-row">${alertOnly ? "" : `<button type="button" class="zd-no">Vazgeç</button>`}<button type="button" class="zd-yes${danger ? " danger" : ""}">${alertOnly ? "Tamam" : /kaldır/i.test(msg) ? "Evet, kaldır" : /sil/i.test(msg) ? "Evet, sil" : danger ? "Evet" : "Tamam"}</button></div></div>`;
+d.querySelector(".zd-msg").textContent = msg; d.style.display = "flex";
+const done = (v) => { d.style.display = "none"; res(v); };
+d.querySelector(".zd-yes").onclick = () => done(true); const no = d.querySelector(".zd-no"); if(no) no.onclick = () => done(false);
+d.onclick = (e) => { if(e.target === d) done(false); }; }); }
+function zaConfirm(msg){ return zaDialog(msg, { danger: /sil|kaldır|geri alınamaz|birleştir/i.test(msg) }); }
+function zaAlert(msg){ return zaDialog(msg, { alert: true }); }
+// ===== Ana menü simgesi: daire içinde çizgi ev =====
+const HOME_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#0A847E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5.5h4V20"/></svg>';
+document.querySelectorAll(".home-btn").forEach(b => { b.innerHTML = HOME_SVG; });
+// ===== Ana ekran motivasyon cümleleri =====
+
+function hmMotto(){ const M = ["Bugün de bir yıldız seni bekliyor ⭐", "Zihni seninle oynamak için sabırsızlanıyor 🐙", "Her oyun zihnini biraz daha güçlendirir 💪", "Yeni bir ada keşfetmeye hazır mısın? 🏝️", "Denemek, başarmanın yarısıdır 🌱", "Dün yaptığından biraz fazlası yeter 🚀", "Hata yapmak öğrenmenin parçasıdır 💡"]; const d = new Date(); return M[(d.getDate() + d.getHours()) % M.length]; }
+
 renderResume();
 // ===== Kalıcı cihaz tercihleri =====
 const PREF_KEY = "wm_prefs_v1";
@@ -14140,7 +14157,7 @@ if(!("vibrate" in navigator)){ const h = document.getElementById("hapticToggle")
 // ===== Ana menü =====
 function goHome(lock){ const go = () => { try{ resetTimer(); }catch(e){} try{ hideGameScreens(); exitGameMode(); }catch(e){} try{ hideFamScreens(); hideLinkScreens(); }catch(e){} ["mainApp","categoryScreen","growthScreen","aboutScreen"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; }); showWho(); };
 if(lock) showParentLock(go); else go(); }
-function addHomeBtn(afterId, lock, inline){ const ref = document.getElementById(afterId); if(!ref || ref.parentElement.querySelector(".home-btn")) return; const b = document.createElement("button"); b.type = "button"; b.className = "home-btn" + (inline ? " inl" : ""); b.setAttribute("aria-label", "Ana menü"); b.title = "Ana menü"; b.textContent = "🏠"; b.onclick = (e) => { e.stopPropagation(); goHome(lock); }; ref.insertAdjacentElement("afterend", b); }
+function addHomeBtn(afterId, lock, inline){ const ref = document.getElementById(afterId); if(!ref || ref.parentElement.querySelector(".home-btn")) return; const b = document.createElement("button"); b.type = "button"; b.className = "home-btn" + (inline ? " inl" : ""); b.setAttribute("aria-label", "Ana menü"); b.title = "Ana menü"; b.innerHTML = HOME_SVG; b.onclick = (e) => { e.stopPropagation(); goHome(lock); }; ref.insertAdjacentElement("afterend", b); }
 [["islandStopsBackBtn", true], ["expertBackBtn", false], ["todayBackBtn", false], ["weekBackBtn", false], ["linkBackBtn", false]].forEach(([id, lk]) => addHomeBtn(id, lk));
 addHomeBtn("gameMapBtn", true, true);
 // ===== Gizlilik politikası uygulama içinde =====
@@ -14201,7 +14218,7 @@ document.getElementById("acctSyncBtn").onclick = async () => { const ok = await 
 { const vb = document.getElementById("acctVerBtn"); if(vb) vb.onclick = async () => { const note = document.createElement("div"); note.className = "acct-note"; note.style.marginTop = "6px"; note.textContent = "Gönderiliyor…"; vb.after(note); vb.disabled = true;
 try{ await a.verify(); note.innerHTML = "<b>Doğrulama e-postası gönderildi.</b> Gelen kutunuza ve <b>Gereksiz/Spam</b> klasörüne bakın; bağlantıya dokunduktan sonra bu ekrana dönün."; }catch(e){ note.textContent = authMsg(e); vb.disabled = false; } }; }
 document.getElementById("acctOutBtn").onclick = () => { const sh = whoSheet(`<div class="mola-h">Çıkış yap</div><div class="mola-s">Hesaptaki veriler bulutta güvende kalır. Bu cihazdaki kayıtlar ne olsun?</div><div class="mola-list"><button type="button" data-out="keep"><span>📱</span>Bu cihazda kalsın<small>kendi cihazınızsa</small></button><button type="button" data-out="wipe"><span>🧹</span>Bu cihazdan silinsin<small>ortak cihazsa önerilir</small></button></div>`);
-sh.querySelectorAll("[data-out]").forEach(b => b.onclick = async () => { const wipe = b.dataset.out === "wipe"; if(wipe && !confirm("Bu cihazdaki kişiler, ilerleme ve ayarlar silinecek. Hesaptaki veriler etkilenmez. Devam edilsin mi?")) return; await syncUpload(true); try{ await a.signOut(); }catch(e){} if(wipe) wipeDeviceData(); location.reload(); }); };
+sh.querySelectorAll("[data-out]").forEach(b => b.onclick = async () => { const wipe = b.dataset.out === "wipe"; if(wipe && !await zaConfirm("Bu cihazdaki kişiler, ilerleme ve ayarlar silinecek. Hesaptaki veriler etkilenmez. Devam edilsin mi?")) return; await syncUpload(true); try{ await a.signOut(); }catch(e){} if(wipe) wipeDeviceData(); location.reload(); }); };
 return; }
 box.innerHTML = `<div class="acct-note">Şu an ilerleme yalnızca bu cihazda. Bir hesap oluşturursanız kişiler, sonuçlar ve oyun ilerlemesi buluta kaydedilir; başka bir cihazdan aynı hesapla girdiğinizde kaldığınız yerden devam edersiniz.</div>
 <div class="acct-btns"><button type="button" class="fam-chip on" id="acctNewBtn">Hesap oluştur</button><button type="button" class="fam-chip" id="acctInBtn">Giriş yap</button></div>`;
@@ -14270,12 +14287,11 @@ el.innerHTML = `<div class="hm-wrap">
 ${whoListOpen ? `<div class="hm-list">${names.slice(0, 3).map(row).join("")}${names.length > 3 ? `<div class="hm-more">${names.slice(3).map(row).join("")}</div>` : ""}</div>` : ""}
 </div>
 ${L && L.player && names.includes(L.player) && MODE_NAMES[L.mode] ? `<button type="button" class="hm-resume" id="hmResume"><span class="hm-play">▶</span><span><b>Kaldığın yerden devam</b><span>${escHTML(L.player)} · ${L.mode === "cocuk" ? "Zihin Adaları" : L.mode === "uzman" ? "Bilişsel Etkinlik · Uzman" : "Bilişsel Etkinlik · Aile"}</span></span></button>` : ""}
-<button type="button" class="hm-add hm-add-out" id="hmAdd">＋ Kişi ekle</button>
-<div class="hm-guest"><button type="button" id="hmGuest">Misafir girişi</button></div>
+<div class="hm-duo"><button type="button" class="hm-add hm-add-out" id="hmAdd">＋ Kişi ekle</button><button type="button" class="hm-guest-b" id="hmGuest">👤 Misafir girişi</button></div>
 
 <div class="hm-card hm-mode" id="hmEtk"><div class="hm-mh"><span class="hm-ic etk">👥</span><div><b>Bilişsel Etkinlik</b><span>Uzmanla veya aileyle birlikte</span></div><i class="hm-go">›</i></div>
-<div class="hm-seg"><div class="hm-col"><button type="button" data-hview="uzman" class="${view === "uzman" ? "on" : ""}">💼 Uzman girişi</button><button type="button" class="hm-link hm-sub" id="hmClients">📋 Danışanlarım ve ödevler</button></div><div class="hm-col"><button type="button" data-hview="aile" class="${view === "aile" ? "on" : ""}">🏡 Aile girişi</button></div></div></div>
-<div class="hm-card hm-mode" id="hmGame"><div class="hm-mh"><span class="hm-ic oyun">${zihniSVG("happy")}</span><div><b>Bilişsel Oyun</b><span>Çocuk deneyimi · Zihin Adaları</span></div><i class="hm-go oy">›</i></div></div>
+<div class="hm-seg"><div class="hm-col"><button type="button" data-hview="uzman" class="${view === "uzman" ? "on" : ""}">💼 Uzman girişi</button><button type="button" class="hm-sub" id="hmClients">👥 Danışanlar</button></div><div class="hm-col"><button type="button" data-hview="aile" class="${view === "aile" ? "on" : ""}">🏡 Aile girişi</button><button type="button" class="hm-sub" id="hmHw">📌 Ödevler</button></div></div></div>
+<div class="hm-card hm-mode" id="hmGame"><div class="hm-mh"><span class="hm-ic oyun">${zihniSVG("happy")}</span><div><b>Bilişsel Oyun</b><span>Çocuk deneyimi · Zihin Adaları</span></div><i class="hm-go oy">›</i></div><div class="hm-motto">${hmMotto()}</div></div>
 </div>`;
 el.style.display = "flex"; try{ scheduleTour("home", "whoScreen"); }catch(e){}
 const $ = (id) => document.getElementById(id);
@@ -14287,6 +14303,7 @@ if($("hmAdd")) $("hmAdd").onclick = whoAdd;
 $("hmGuest").onclick = () => { whoListOpen = false; whoSelect("__guest__"); };
 if($("hmResume")) $("hmResume").onclick = () => { const go = () => { whoSelSet(L.player); whoTouch(L.player); document.getElementById("whoScreen").style.display = "none"; resumeLast(L); }; if(L.mode === "uzman") expertGate(go); else go(); };
 el.querySelectorAll("[data-hview]").forEach(b => b.onclick = (ev) => { ev.stopPropagation(); try{ setEtkinlikView(b.dataset.hview); }catch(e){} showWho(); });
+if($("hmHw")) $("hmHw").onclick = (ev) => { ev.stopPropagation(); if(guest || !cur){ showToast("Önce yukarıdan kişiyi seçin", "err"); whoListOpen = true; showWho(false); return; } setEtkinlikView("aile"); whoEnter(cur, "aile"); setTimeout(() => { try{ if(familyLinkLocal()) showLinkScreen(); else showToast("Henüz uzman bağlantısı yok. Aile ekranından \"Uzmana bağlan\" ile kodu girin.", "err"); }catch(e){} }, 350); };
 if($("hmClients")) $("hmClients").onclick = (ev) => { ev.stopPropagation(); expertGate(() => { el.style.display = "none"; appMode = "uzman"; window.__exFromHome = true; try{ showExpert("list"); }catch(e){} }); };
 const need = (mode) => { if(guest) return whoGuestEnter(mode); if(!cur){ whoListOpen = true; showWho(); showLevelFlash(names.length ? "Önce kimin çalışacağını seçin" : "Önce bir kişi ekleyin", "down"); return; } whoEnter(cur, mode); };
 $("hmEtk").onclick = () => { if(getEtkinlikView() === "uzman") expertGate(() => need("uzman")); else need("aile"); };
