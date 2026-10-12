@@ -1590,6 +1590,12 @@ document.getElementById("board").addEventListener("click", handleTrailTap);
 
 function isInteractiveExercise(ex){ return !!(ex && (ex.isTouch || ex.isSort || ex.isTrail || ex.isPlan || ex.isSearch || ex.isWm || ex.isChoice || ex.isRt || ex.isMt || ex.isDone)); }
 function pageComplete(){ try{ const ex = currentExercise(); if((ex.isMt || ex.isWm) && typeof mtState !== "undefined" && mtState && Array.isArray(mtState.trials) && (mtState.phase === "done" || mtState.ti >= mtState.trials.length)) return true; if(isInteractiveExercise(ex)) return interactiveIsDone(); if(ex.isMotion) return elapsedMs >= (motionDurationMs - 300); }catch(e){} return true; }
+
+// ===== Çalışma sırasında sayfa kaydırma kilidi (Başlat → Bitir) =====
+function boardFitsView(){ const bd = document.getElementById("board"); if(!bd) return true; const r = bd.getBoundingClientRect(); const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; return r.top >= -6 && r.bottom <= window.innerHeight - barH + 6; }
+function runScrollLocked(){ try{ return !!timerRunning && getComputedStyle(document.getElementById("mainApp")).display !== "none" && boardFitsView(); }catch(e){ return false; } }
+document.addEventListener("touchmove", (e) => { if(runScrollLocked() && e.cancelable) e.preventDefault(); }, { passive:false });
+document.addEventListener("wheel", (e) => { if(runScrollLocked() && e.cancelable) e.preventDefault(); }, { passive:false });
 function interactiveIsDone(){
 const ex = currentExercise();
 if(!isInteractiveExercise(ex) || !Array.isArray(currentGrid) || !currentGrid.length) return false;
@@ -5550,13 +5556,13 @@ if(typeof gameMode !== "undefined" && gameMode){ sfx("go"); speakText(gameLine("
 { if(!landscapeMQ.matches){
 const bd = document.getElementById("board");
 bd.style.scrollMarginTop = "8px";
-try{ const r0 = bd.getBoundingClientRect(), below = document.documentElement.scrollHeight - (r0.top + window.scrollY); { const bar = document.querySelector(".controls"), barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; document.documentElement.style.setProperty("--runpad", Math.max(0, Math.round(Math.min(r0.height, window.innerHeight - barH) - below + barH + 8)) + "px"); } }catch(e){}
+try{ const r0 = bd.getBoundingClientRect(), below = document.documentElement.scrollHeight - (r0.top + window.scrollY); { const bar = document.querySelector(".controls"), barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; document.documentElement.style.setProperty("--runpad", Math.round(window.innerHeight) + "px"); } }catch(e){}
 document.documentElement.classList.add("board-run");
 const reveal = (smooth, force) => { try{ if((!force && !timerRunning) || landscapeMQ.matches) return; const r = bd.getBoundingClientRect(), bar = document.querySelector(".controls"), barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0, avail = innerHeight - barH - 12;
 let dy = 0; if(r.height > avail - 8) dy = r.top - 8; else if(r.bottom > avail) dy = r.bottom - avail; else if(r.top < 8) dy = r.top - 8;
 if(Math.abs(dy) > 4){ let sc = bd.parentElement; while(sc && sc !== document.documentElement){ const cs = getComputedStyle(sc); if(/(auto|scroll)/.test(cs.overflowY) && sc.scrollHeight > sc.clientHeight + 2) break; sc = sc.parentElement; }
 if(!sc || sc === document.documentElement) sc = document.scrollingElement || document.documentElement; sc.scrollBy({ top: dy, behavior: smooth ? "smooth" : "auto" }); } }catch(e){} };
-setTimeout(() => { try{ if(!timerRunning) return; const r1 = bd.getBoundingClientRect(), bar = document.querySelector(".controls"), barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; document.documentElement.style.setProperty("--runpad", "0px"); const below = document.documentElement.scrollHeight - (r1.top + window.scrollY); document.documentElement.style.setProperty("--runpad", Math.max(0, Math.round(Math.min(r1.height, window.innerHeight - barH) - below + barH + 8)) + "px"); }catch(e){} reveal(false, true); }, 300); setTimeout(() => { try{ if(!timerRunning) return; const r2 = bd.getBoundingClientRect(); if(r2.top > window.innerHeight * 0.55 || r2.bottom < 40){ document.documentElement.style.setProperty("--runpad", Math.round(window.innerHeight) + "px"); reveal(false, true); } }catch(e){} }, 900);
+setTimeout(() => { try{ if(!timerRunning) return; const r1 = bd.getBoundingClientRect(), bar = document.querySelector(".controls"), barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0;  const below = document.documentElement.scrollHeight - (r1.top + window.scrollY); document.documentElement.style.setProperty("--runpad", Math.round(window.innerHeight) + "px"); }catch(e){} reveal(false, true); }, 300); setTimeout(() => { try{ if(!timerRunning) return; const r2 = bd.getBoundingClientRect(); if(r2.top > window.innerHeight * 0.55 || r2.bottom < 40){ document.documentElement.style.setProperty("--runpad", Math.round(window.innerHeight) + "px"); reveal(false, true); } }catch(e){} }, 900);
 } }
 if(currentExercise().isRecall){
 clearTimeout(recallHideTimeout);
@@ -11660,7 +11666,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.12-d";
+const APP_VERSION = "2026.10.12-e";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
