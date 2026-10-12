@@ -6580,8 +6580,8 @@ function sayTask(t, rate){
 try{
 if(captionOn() || !ttsUsable()) showCaption(t);
 if(!("speechSynthesis" in window)) return;
-speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = "tr-TR"; u.rate = rate || 0.92; u.pitch = 1.0;
-_trVoice = _trVoice || pickTurkishVoice(); if(_trVoice) u.voice = _trVoice; u.onerror = () => showCaption(t); speechSynthesis.speak(u);
+const u = new SpeechSynthesisUtterance(t); u.lang = "tr-TR"; u.rate = rate || 0.85; u.pitch = 1.0;
+_trVoice = _trVoice || pickTurkishVoice(); if(_trVoice) u.voice = _trVoice; u.onerror = () => showCaption(t); _ttsSpeak(u);
 }catch(e){}
 }
 const SPEAKER_HTML = (on) => `<div class="wm-card" style="width:150px;height:150px;font-size:70px;${on ? "animation:spkPulse .6s ease-in-out infinite alternate;" : ""}">🔊</div>`;
@@ -6985,7 +6985,7 @@ const living = ta.concat(C.wild.items, C.sea.items), food = C.meyve.items.concat
 const sets = (Q) => ({ yes: Q.k === "canli" ? living : Q.k === "yenir" ? food : veh, no: Q.k === "canli" ? obj.concat(veh, food) : Q.k === "yenir" ? obj.concat(veh, living) : obj.concat(living, food) });
 const pool = shuffleArray((isPre() ? SEM_QS.slice(0, 2) : SEM_QS).slice()), N = isPre() ? 8 : 12, out = [];
 for(let b = 0; b < N / 2; b++){ const Q = pool[b % pool.length], S = sets(Q), blk = shuffleArray([true, false]);
-blk.forEach((y, j) => { const it = randomItem(y ? S.yes : S.no); out.push({ stim: qzPic(it.src), opts:[`<b style="font-size:20px">✓ Evet</b>`, `<b style="font-size:20px">✗ Hayır</b>`], ans: y ? 0 : 1, prompt:`<b>${Q.q}</b>`, say: j === 0 ? Q.q : "", text:true }); }); }
+blk.forEach((y, j) => { const it = randomItem(y ? S.yes : S.no); out.push({ stim: qzPic(it.src), opts:[`<b style="font-size:20px">✓ Evet</b>`, `<b style="font-size:20px">✗ Hayır</b>`], ans: y ? 0 : 1, prompt:`<b>${Q.q}</b>`, say: Q.q, text:true }); }); }
 return out; }
 function chaseCfg(){ const t = currentCombo().t; return { need: isPre() ? [5, 6, 8][t] : [8, 10, 12][t], speed: (isPre() ? [0.45, 0.6, 0.75] : [0.6, 0.85, 1.1])[t], size: isPre() ? 70 : [64, 56, 48][t] }; }
 const ALT_OBJ = () => [ { n:"kova", src: HOUSE_IMAGES.bucket }, { n:"kaşık", src: PAL_EXTRA_IMAGES.spoon }, { n:"şemsiye", src: PAIR_IMAGES.umbrella }, { n:"yastık", src: HOUSE_IMAGES.pillow },
@@ -7813,7 +7813,7 @@ const cell = Math.min(tr.cell || 104, (window.innerWidth - 60) / Math.min(tr.opt
 el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q">${tr.prompt || ""}</div>${tr.say && tr.replay ? `<button type="button" class="qz-replay" id="placeRep">🔊 Bir daha dinle</button>` : ""}<div class="place-stim"><div class="ps-in">${tr.stim || ""}</div></div>
 <div class="place-opts" style="grid-template-columns:repeat(${Math.min(tr.opts.length, tr.text ? 2 : 3)}, ${tr.text ? "minmax(0,1fr)" : cell + "px"})">${tr.opts.map((o, i) => `<button type="button" class="wm-pic${tr.text ? " qz-txt" : ""}" data-po-a="${i}" style="${tr.text ? "min-height:64px" : `width:${cell}px;height:${cell}px`};padding:6px">${o}</button>`).join("")}</div></div>`;
 { const st = el.querySelector(".place-stim"), c = st && st.querySelector(".ps-in"); if(c){ const maxH = window.innerHeight * 0.36, f = Math.min(1, st.clientWidth / Math.max(1, c.scrollWidth), maxH / Math.max(1, c.scrollHeight)); if(f < 1){ c.style.transform = `scale(${f})`; c.style.transformOrigin = "center top"; st.style.height = (c.scrollHeight * f) + "px"; } } }
-if(tr.say) speakText(tr.say); const rp = document.getElementById("placeRep"); if(rp) rp.onclick = () => speakText(tr.say);
+if(tr.say) speakText(tr.say || String(tr.prompt || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()); const rp = document.getElementById("placeRep"); if(rp) rp.onclick = () => speakText(tr.say || String(tr.prompt || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim());
 el.querySelectorAll("[data-po-a]").forEach(b => b.onclick = () => { if(R.answered === myItem) return; const ok = Number(b.dataset.poA) === tr.ans && (!lim || performance.now() - t0 <= lim); b.classList.add(ok ? "ok" : "bad"); answer(ok); }); return; }
 const pool = placePool();
 if(d.kind === "span"){ const K = (R.lvl === "pre" ? [2, 3, 4] : [3, 4, 5])[TT], seq = pool.slice(0, K), opts = shuffleArray(seq.concat(pool.slice(K, K + 2))); R.cur = { seq, opts }; let k = 0;
@@ -11665,7 +11665,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.11-e";
+const APP_VERSION = "2026.10.12-a";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -12445,22 +12445,22 @@ return vs.sort((a, b) => score(b) - score(a))[0];
 }catch(e){ return null; }
 }
 try{ if(window.speechSynthesis) speechSynthesis.onvoiceschanged = () => { _trVoice = pickTurkishVoice(); }; }catch(e){}
+function _ttsSpeak(u){ try{ const busy = speechSynthesis.speaking || speechSynthesis.pending; if(busy) speechSynthesis.cancel(); try{ speechSynthesis.resume(); }catch(e){}
+if(busy) setTimeout(() => { try{ speechSynthesis.speak(u); }catch(e){} }, 120); else speechSynthesis.speak(u); }catch(e){} }
 function speakText(t, opts){
 try{
 if(!t) return;
 if(speechMuted() || captionOn() || !("speechSynthesis" in window) || !ttsUsable()) showCaption(t);   // altyazı: ayar açıkken, ses kapalıyken ya da Türkçe ses yokken
 if(!("speechSynthesis" in window) || speechMuted()) return;
 if(!_ttsUnlocked) _ttsMissed = { t, opts, at: Date.now() };
-if(speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
 const u = new SpeechSynthesisUtterance(t);
 u.onstart = () => { if(_ttsMissed && _ttsMissed.t === t) _ttsMissed = null; };   // gerçekten çaldıysa tekrar okunmasın
 u.onerror = () => showCaption(t);
 u.lang = "tr-TR";
-u.rate = (opts && opts.rate) || 0.95; u.pitch = 1.0;
-u.pitch = (opts && opts.pitch) || 1.15;
+u.rate = (opts && opts.rate) || 0.85; u.pitch = (opts && opts.pitch) || 1.0;
 _trVoice = _trVoice || pickTurkishVoice();
 if(_trVoice) u.voice = _trVoice;
-speechSynthesis.speak(u);
+_ttsSpeak(u);
 }catch(e){}
 }
 let _ttsUnlocked = false, _ttsMissed = null;
@@ -14141,7 +14141,9 @@ const HOME_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" st
 document.querySelectorAll(".home-btn").forEach(b => { b.innerHTML = HOME_SVG; });
 // ===== Ana ekran motivasyon cümleleri =====
 
-function hmMotto(){ const M = ["Bugün de bir yıldız seni bekliyor ⭐", "Zihni seninle oynamak için sabırsızlanıyor 🐙", "Her oyun zihnini biraz daha güçlendirir 💪", "Yeni bir ada keşfetmeye hazır mısın? 🏝️", "Denemek, başarmanın yarısıdır 🌱", "Dün yaptığından biraz fazlası yeter 🚀", "Hata yapmak öğrenmenin parçasıdır 💡"]; const d = new Date(); return M[(d.getDate() + d.getHours()) % M.length]; }
+function hmIc(k){ const P = { user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>', users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.8 2.9-6 6.5-6s6.5 2.2 6.5 6"/><circle cx="17" cy="9" r="2.8"/><path d="M16.5 14.2c3 .2 5 2.2 5 5.3"/>', brief:'<rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8.5 7V5.5A1.5 1.5 0 0 1 10 4h4a1.5 1.5 0 0 1 1.5 1.5V7"/><path d="M3 12.5h18"/>', home:'<path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5.5h4V20"/>', clip:'<rect x="5" y="4.5" width="14" height="16.5" rx="2.5"/><path d="M9 4.5V3.5h6v1"/><path d="m8.8 13 2.2 2.2 4.4-4.4"/>' };
+return `<svg class="hm-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[k] || ""}</svg>`; }
+function hmMotto(){ const M = ["Zihni seninle oynamak için sabırsızlanıyor 🐙", "Zihni bugün yeni bir ada keşfetmek istiyor 🏝️", "Zihni senin için bir yıldız sakladı ⭐", "Zihni ile birlikte zihnini güçlendir 💪", "Zihni hata yapmaktan korkmuyor, sen de korkma 💡", "Zihni dolabına yeni bir şapka bekliyor 🎩", "Zihni seni görünce çok sevinecek 😊"]; const d = new Date(); return M[(d.getDate() + d.getHours()) % M.length]; }
 
 renderResume();
 // ===== Kalıcı cihaz tercihleri =====
@@ -14287,10 +14289,10 @@ el.innerHTML = `<div class="hm-wrap">
 ${whoListOpen ? `<div class="hm-list">${names.slice(0, 3).map(row).join("")}${names.length > 3 ? `<div class="hm-more">${names.slice(3).map(row).join("")}</div>` : ""}</div>` : ""}
 </div>
 ${L && L.player && names.includes(L.player) && MODE_NAMES[L.mode] ? `<button type="button" class="hm-resume" id="hmResume"><span class="hm-play">▶</span><span><b>Kaldığın yerden devam</b><span>${escHTML(L.player)} · ${L.mode === "cocuk" ? "Zihin Adaları" : L.mode === "uzman" ? "Bilişsel Etkinlik · Uzman" : "Bilişsel Etkinlik · Aile"}</span></span></button>` : ""}
-<div class="hm-duo"><button type="button" class="hm-add hm-add-out" id="hmAdd">＋ Kişi ekle</button><button type="button" class="hm-guest-b" id="hmGuest">👤 Misafir girişi</button></div>
+<div class="hm-duo"><button type="button" class="hm-add hm-add-out" id="hmAdd">＋ Kişi ekle</button><button type="button" class="hm-guest-b" id="hmGuest">${hmIc("user")} Misafir girişi</button></div>
 
-<div class="hm-card hm-mode" id="hmEtk"><div class="hm-mh"><span class="hm-ic etk">👥</span><div><b>Bilişsel Etkinlik</b><span>Uzmanla veya aileyle birlikte</span></div><i class="hm-go">›</i></div>
-<div class="hm-seg"><div class="hm-col"><button type="button" data-hview="uzman" class="${view === "uzman" ? "on" : ""}">💼 Uzman girişi</button><button type="button" class="hm-sub" id="hmClients">👥 Danışanlar</button></div><div class="hm-col"><button type="button" data-hview="aile" class="${view === "aile" ? "on" : ""}">🏡 Aile girişi</button><button type="button" class="hm-sub" id="hmHw">📌 Ödevler</button></div></div></div>
+<div class="hm-card hm-mode" id="hmEtk"><div class="hm-mh"><span class="hm-ic etk">${hmIc("users")}</span><div><b>Bilişsel Etkinlik</b><span>Uzmanla veya aileyle birlikte</span></div><i class="hm-go">›</i></div>
+<div class="hm-seg"><div class="hm-col uz"><button type="button" data-hview="uzman" class="${view === "uzman" ? "on" : ""}">${hmIc("brief")} Uzman girişi</button><button type="button" class="hm-sub" id="hmClients">${hmIc("users")} Danışanlar</button></div><div class="hm-col ai"><button type="button" data-hview="aile" class="${view === "aile" ? "on" : ""}">${hmIc("home")} Aile girişi</button><button type="button" class="hm-sub" id="hmHw">${hmIc("clip")} Ödevlerim</button></div></div></div>
 <div class="hm-card hm-mode" id="hmGame"><div class="hm-mh"><span class="hm-ic oyun">${zihniSVG("happy")}</span><div><b>Bilişsel Oyun</b><span>Çocuk deneyimi · Zihin Adaları</span></div><i class="hm-go oy">›</i></div><div class="hm-motto">${hmMotto()}</div></div>
 </div>`;
 el.style.display = "flex"; try{ scheduleTour("home", "whoScreen"); }catch(e){}
