@@ -1589,6 +1589,7 @@ setTimeout(() => el.classList.remove("bad"), 500);
 document.getElementById("board").addEventListener("click", handleTrailTap);
 
 function isInteractiveExercise(ex){ return !!(ex && (ex.isTouch || ex.isSort || ex.isTrail || ex.isPlan || ex.isSearch || ex.isWm || ex.isChoice || ex.isRt || ex.isMt || ex.isDone)); }
+function pageComplete(){ try{ const ex = currentExercise(); if((ex.isMt || ex.isWm) && typeof mtState !== "undefined" && mtState && Array.isArray(mtState.trials) && (mtState.phase === "done" || mtState.ti >= mtState.trials.length)) return true; if(isInteractiveExercise(ex)) return interactiveIsDone(); if(ex.isMotion) return elapsedMs >= (motionDurationMs - 300); }catch(e){} return true; }
 function interactiveIsDone(){
 const ex = currentExercise();
 if(!isInteractiveExercise(ex) || !Array.isArray(currentGrid) || !currentGrid.length) return false;
@@ -5527,8 +5528,8 @@ const open = document.getElementById("recallCheck").open; renderRecallChecklist(
 });
 
 setInterval(() => { try{ ensureInteractiveStop(); }catch(e){} }, 400);
-function startTimer(){
-setLsOpen(false);
+function startTimer(){ if(!(typeof gameMode !== "undefined" && gameMode) && !(currentPlayerName || "").trim() && document.getElementById("mainApp").style.display !== "none" && !window.__qaNoPlayerGuard){ try{ const row = document.getElementById("playerRow"); row.scrollIntoView({ behavior:"smooth", block:"center" }); row.classList.remove("attn"); void row.offsetWidth; row.classList.add("attn"); }catch(e){} showToast("Başlamadan önce kimin çalıştığını seçin", "err"); return; }
+window._incomplete = false; setLsOpen(false);
 timerStartedAt = Date.now() - elapsedMs;
 timerInterval = setInterval(tickTimer, 100);
 timerRunning = true;
@@ -5549,12 +5550,13 @@ if(typeof gameMode !== "undefined" && gameMode){ sfx("go"); speakText(gameLine("
 { if(!landscapeMQ.matches){
 const bd = document.getElementById("board");
 bd.style.scrollMarginTop = "8px";
+try{ const r0 = bd.getBoundingClientRect(), below = document.documentElement.scrollHeight - (r0.top + window.scrollY); document.documentElement.style.setProperty("--runpad", Math.max(0, Math.round(window.innerHeight - below + 12)) + "px"); }catch(e){}
 document.documentElement.classList.add("board-run");
 const reveal = (smooth, force) => { try{ if((!force && !timerRunning) || landscapeMQ.matches) return; const r = bd.getBoundingClientRect(), bar = document.querySelector(".controls"), barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0, avail = innerHeight - barH - 12;
 let dy = 0; if(r.height > avail - 8) dy = r.top - 8; else if(r.bottom > avail) dy = r.bottom - avail; else if(r.top < 8) dy = r.top - 8;
 if(Math.abs(dy) > 4){ let sc = bd.parentElement; while(sc && sc !== document.documentElement){ const cs = getComputedStyle(sc); if(/(auto|scroll)/.test(cs.overflowY) && sc.scrollHeight > sc.clientHeight + 2) break; sc = sc.parentElement; }
 if(!sc || sc === document.documentElement) sc = document.scrollingElement || document.documentElement; sc.scrollBy({ top: dy, behavior: smooth ? "smooth" : "auto" }); } }catch(e){} };
-reveal(true, true); [500, 1000].forEach(ms => setTimeout(() => reveal(ms === 500), ms));
+reveal(true, true); setTimeout(() => { try{ const r = bd.getBoundingClientRect(); if(r.top < -24 || r.top > 60) reveal(false); }catch(e){} }, 700);
 } }
 if(currentExercise().isRecall){
 clearTimeout(recallHideTimeout);
@@ -5566,8 +5568,7 @@ recallHideTimeout = setTimeout(() => { showLevelFlash("Şimdi hatırlamaya çal�
 }
 }
 
-function stopTimer(){
-window._lastStopAt = Date.now();   // süre bitimi zamanlayıcısı, son durağın ödül ekranını atlamasın
+function stopTimer(){ window._lastStopAt = Date.now(); document.documentElement.classList.remove("board-run");   // süre bitimi zamanlayıcısı, son durağın ödül ekranını atlamasın
 clearInterval(timerInterval);
 timerRunning = false;
 addTouchMissesOnStop();
@@ -5576,10 +5577,9 @@ clearTimeout(recallHideTimeout);
 const btn = document.getElementById("timerBtn");
 btn.textContent = "▶ Başlat";
 btn.classList.remove("running");
-if(elapsedMs > 300){
-document.getElementById("saveResultBtn").style.display = "block";
-document.getElementById("saveHint").style.display = "block";
-}
+{ const manual = window._manualStop; window._manualStop = false; const hint = document.getElementById("saveHint"); window._incomplete = !!(manual && !gameMode && !pageComplete());
+if(window._incomplete){ document.getElementById("saveResultBtn").style.display = "none"; hint.style.display = "block"; hint.textContent = "Çalışma tamamlanmadan durduruldu; bu sonuç kaydedilemez. ↻ ile yeniden başlatabilirsin."; hint.classList.add("warn"); }
+else if(elapsedMs > 300){ document.getElementById("saveResultBtn").style.display = "block"; hint.style.display = "block"; hint.textContent = "Çalışmayı bitirdin — hata sayısını kontrol et ve kaydet."; hint.classList.remove("warn"); } }
 if(gameMode){ setTimeout(gameAfterStop, 400); try{ renderGameWho(); }catch(e){} }
 }
 
@@ -5634,8 +5634,7 @@ document.getElementById("saveResultBtn").style.display = "none";
 document.getElementById("saveHint").style.display = "none";
 }
 
-function confirmSaveResult(){
-if(elapsedMs <= 300) return;
+function confirmSaveResult(){ if(elapsedMs <= 300 || window._incomplete) return; if(!gameMode && !(currentPlayerName || "").trim()){ zaAlert("Kaydetmek için önce kimin çalıştığını seçin."); try{ const row = document.getElementById("playerRow"); row.scrollIntoView({ behavior:"smooth", block:"center" }); row.classList.remove("attn"); void row.offsetWidth; row.classList.add("attn"); }catch(e){} return; }
 recordSession(elapsedMs, currentErrorCount);
 playSound("save");
 if(!currentExercise().isMotion && !currentExercise().isRecall && !currentExercise().noAdaptive && (appMode === "aile" || (appMode === "uzman" && expertAdaptiveEnabled))){
@@ -6973,7 +6972,7 @@ return `<div class="aud-list"><div class="aud-note">Kelimeyi söyleyin (ya da �
 L.items.map((x, i) => `<div class="aud-row"><div class="aud-num">${i + 1}</div><div class="aud-body" style="display:flex;align-items:center;gap:8px;justify-content:space-between"><div><div class="aud-words" style="font-size:22px">${x[0]}</div><div class="aud-key">Örnek: ${x[1]}</div></div><div style="display:flex;gap:6px;align-items:center">${sayBtn(x[0])}${ckChip(0, i, "Doğru", ckMarks["0:" + i])}</div></div></div>`).join("") + `</div>`; }
 function rhsScore(){ const L = currentGrid[0]; return L.items.length - L.items.filter((x, i) => ckMarks["0:" + i]).length; }
 
-function dotTrials(){ const t = currentCombo().t, rng = isPre() ? [[1, 3], [1, 4], [2, 5]][t] : [[1, 5], [2, 7], [3, 9]][t], ms = (isPre() ? [2200, 1700, 1300] : [1600, 1200, 900])[t];
+function dotTrials(){ const t = currentCombo().t, rng = isPre() ? [[1, 3], [1, 4], [2, 5]][t] : [[1, 5], [2, 7], [3, 9]][t], ms = (isPre() ? [2800, 2200, 1700] : [2200, 1700, 1300])[t];
 return Array.from({length: isPre() ? 5 : 8}, () => { const n = rng[0] + Math.floor(Math.random() * (rng[1] - rng[0] + 1)), pts = [];
 let g = 0; while(pts.length < n && g++ < 500){ const x = 14 + Math.random() * 172, y = 14 + Math.random() * 172; if(pts.every(p => Math.hypot(p[0] - x, p[1] - y) > 34)) pts.push([x, y]); }
 return { n, pts, ms, max: rng[1] + 1, min: Math.max(1, rng[0] - 1) }; }); }
@@ -11311,11 +11310,7 @@ clearAllSessions();
 let playerPromptResolvedAt = 0;
 let awaitingPlayerChoice = false;
 
-document.getElementById("timerBtn").addEventListener("click", ()=>{
-if(timerRunning){
-stopTimer();
-return;
-}
+document.getElementById("timerBtn").addEventListener("click", ()=>{ if(timerRunning){ window._manualStop = true; stopTimer(); return; }
 if(typeof gameMode !== "undefined" && gameMode && !(currentPlayerName || "").trim()){ openGameWho(); return; }
 const famLocked = document.documentElement.classList.contains("session-mode") || document.documentElement.classList.contains("rec-mode");
 if(famLocked && !(currentPlayerName || "").trim()){ pickPerson(() => { try{ pinAssignedChild(); }catch(e){} }, { noGuest:true }); return; }
@@ -11344,7 +11339,7 @@ return;
 startTimer();
 });
 
-document.getElementById("timerResetBtn").addEventListener("click", ()=>{
+document.getElementById("timerResetBtn").addEventListener("click", ()=>{ if(timerRunning){ showToast("Yinelemek için önce Bitir'e basın", "err"); return; }
 resetTimer();
 });
 
@@ -11665,7 +11660,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.12-a";
+const APP_VERSION = "2026.10.12-b";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -14304,7 +14299,7 @@ el.querySelectorAll("[data-hgear]").forEach(b => b.onclick = (ev) => { ev.stopPr
 if($("hmAdd")) $("hmAdd").onclick = whoAdd;
 $("hmGuest").onclick = () => { whoListOpen = false; whoSelect("__guest__"); };
 if($("hmResume")) $("hmResume").onclick = () => { const go = () => { whoSelSet(L.player); whoTouch(L.player); document.getElementById("whoScreen").style.display = "none"; resumeLast(L); }; if(L.mode === "uzman") expertGate(go); else go(); };
-el.querySelectorAll("[data-hview]").forEach(b => b.onclick = (ev) => { ev.stopPropagation(); try{ setEtkinlikView(b.dataset.hview); }catch(e){} showWho(); });
+el.querySelectorAll("[data-hview]").forEach(b => b.onclick = (ev) => { ev.stopPropagation(); const v = b.dataset.hview; try{ setEtkinlikView(v); }catch(e){} if(v === "uzman") expertGate(() => need("uzman")); else need("aile"); });
 if($("hmHw")) $("hmHw").onclick = (ev) => { ev.stopPropagation(); if(guest || !cur){ showToast("Önce yukarıdan kişiyi seçin", "err"); whoListOpen = true; showWho(false); return; } setEtkinlikView("aile"); whoEnter(cur, "aile"); setTimeout(() => { try{ if(familyLinkLocal()) showLinkScreen(); else showToast("Henüz uzman bağlantısı yok. Aile ekranından \"Uzmana bağlan\" ile kodu girin.", "err"); }catch(e){} }, 350); };
 if($("hmClients")) $("hmClients").onclick = (ev) => { ev.stopPropagation(); expertGate(() => { el.style.display = "none"; appMode = "uzman"; window.__exFromHome = true; try{ showExpert("list"); }catch(e){} }); };
 const need = (mode) => { if(guest) return whoGuestEnter(mode); if(!cur){ whoListOpen = true; showWho(); showLevelFlash(names.length ? "Önce kimin çalışacağını seçin" : "Önce bir kişi ekleyin", "down"); return; } whoEnter(cur, mode); };
