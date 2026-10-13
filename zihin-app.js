@@ -1598,18 +1598,20 @@ function runFocusOn(){ const h = document.documentElement; try{ document.body.sc
 function runFocusSize(){ try{ const bd = document.getElementById("board"); if(!bd) return; const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; const top = bd.getBoundingClientRect().top;
 const mx = Math.max(160, Math.floor(window.innerHeight - barH - top - 10)); document.documentElement.style.setProperty("--boardMax", mx + "px"); window._rfMax = mx;
 let ex = null; try{ ex = currentExercise(); }catch(e){} window._rfTap = !!(ex && isInteractiveExercise(ex));
-document.documentElement.classList.toggle("run-tight", window._rfTap); bd.style.zoom = ""; bd.style.maxHeight = ""; runFocusFit(); }catch(e){} }
-function runFocusFit(){ try{ if(!document.documentElement.classList.contains("run-focus")) return; const bd = document.getElementById("board"); if(!bd) return; const mx = window._rfMax || 0; if(!mx) return;
-const z0 = parseFloat(bd.style.zoom || "1") || 1; if(bd.scrollHeight <= bd.clientHeight + 2 && bd.scrollHeight * z0 <= mx + 2) return;
-if(!window._rfTap){ if(!bd.style.maxHeight) bd.style.maxHeight = mx + "px"; return; }   // dokunmasız sayfa: küçültme yok (iPhone'da düzeni bozuyor), yalnızca tahta içi kaydırma
-const z = Math.min(z0, Math.max(0.6, Math.floor((mx / bd.scrollHeight) * 100) / 100)); if(z < z0 - 0.005){ bd.style.zoom = String(z); bd.style.maxHeight = Math.floor(mx / z) + "px"; } else if(!bd.style.maxHeight){ bd.style.maxHeight = Math.floor(mx / z0) + "px"; } }catch(e){} }
+document.documentElement.classList.toggle("run-tight", window._rfTap); bd.style.zoom = ""; bd.style.maxHeight = ""; bd.classList.remove("rf-scroll"); delete bd.dataset.rf; delete bd.dataset.rfs; runFocusFit(); }catch(e){} }
+function runFocusFit(){ try{ if(!document.documentElement.classList.contains("run-focus")) return; const bd = document.getElementById("board"); if(!bd) return;
+const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; const mx = Math.max(160, Math.floor(window.innerHeight - barH - bd.getBoundingClientRect().top - 10)); window._rfMax = mx; document.documentElement.style.setProperty("--boardMax", mx + "px");
+bd.style.zoom = "";   // küçültme kullanılmıyor (iPhone'da düzeni bozuyor)
+if(bd.dataset.rf !== "1" && bd.getBoundingClientRect().height > mx + 2) bd.dataset.rf = "1";   // sınır bir kez konunca çalışma boyunca kalır (gidip gelme olmasın)
+if(bd.dataset.rf === "1"){ const over = bd.scrollHeight > bd.clientHeight + 2; if(over && bd.dataset.rfs !== "1") bd.dataset.rfs = "1"; else if(!over && bd.dataset.rfs === "1" && bd.scrollHeight <= mx - 4) delete bd.dataset.rfs; } }catch(e){} }
 let _rfObs = null;
 function runFocusWatch(){ const bd = document.getElementById("board"); if(!bd || !window.MutationObserver) return; if(_rfObs) _rfObs.disconnect(); let pend = false;
-_rfObs = new MutationObserver(() => { if(pend) return; pend = true; requestAnimationFrame(() => { pend = false; runFocusFit(); }); }); _rfObs.observe(bd, { childList:true, subtree:true });
+_rfObs = new MutationObserver(() => { if(pend) return; pend = true; requestAnimationFrame(() => { pend = false; runFocusFit(); }); }); _rfObs.observe(bd, { childList:true, subtree:true, attributes:true, attributeFilter:["class","style"] });
+if(window.ResizeObserver){ if(window._rfRo) window._rfRo.disconnect(); window._rfRo = new ResizeObserver(() => { if(pend) return; pend = true; requestAnimationFrame(() => { pend = false; runFocusFit(); }); }); [...bd.children].forEach(c => window._rfRo.observe(c)); window._rfRo.observe(bd); }
 [80, 300, 700].forEach(ms => setTimeout(runFocusFit, ms)); }
-function runFocusOff(){ const h = document.documentElement; h.classList.remove("run-focus"); h.classList.remove("run-tight"); if(_rfObs){ _rfObs.disconnect(); _rfObs = null; } h.style.removeProperty("--boardMax"); const bd = document.getElementById("board"); if(bd){ bd.style.zoom = ""; bd.style.maxHeight = ""; } }
+function runFocusOff(){ const h = document.documentElement; h.classList.remove("run-focus"); h.classList.remove("run-tight"); if(_rfObs){ _rfObs.disconnect(); _rfObs = null; } if(window._rfRo){ window._rfRo.disconnect(); window._rfRo = null; } h.style.removeProperty("--boardMax"); const bd = document.getElementById("board"); if(bd){ bd.style.zoom = ""; bd.style.maxHeight = ""; bd.classList.remove("rf-scroll"); delete bd.dataset.rf; delete bd.dataset.rfs; } }
 function runScrollLocked(){ try{ return !!timerRunning && document.documentElement.classList.contains("run-focus"); }catch(e){ return false; } }
-function boardScrollable(){ const bd = document.getElementById("board"); return !!bd && bd.scrollHeight > bd.clientHeight + 2; }
+function boardScrollable(){ const bd = document.getElementById("board"); return !!bd && bd.dataset.rfs === "1" && bd.scrollHeight > bd.clientHeight + 2; }
 document.addEventListener("touchmove", (e) => { if(!runScrollLocked() || !e.cancelable) return; if(boardScrollable() && e.target && e.target.closest && e.target.closest("#board")) return; e.preventDefault(); }, { passive:false });
 document.addEventListener("wheel", (e) => { if(!runScrollLocked() || !e.cancelable) return; if(boardScrollable() && e.target && e.target.closest && e.target.closest("#board")) return; e.preventDefault(); }, { passive:false });
 window.addEventListener("resize", () => { if(document.documentElement.classList.contains("run-focus")) runFocusSize(); });
@@ -11684,7 +11686,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.13-b";
+const APP_VERSION = "2026.10.13-c";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
