@@ -1592,11 +1592,21 @@ function isInteractiveExercise(ex){ return !!(ex && (ex.isTouch || ex.isSort || 
 function pageComplete(){ try{ const ex = currentExercise(); if((ex.isMt || ex.isWm) && typeof mtState !== "undefined" && mtState && Array.isArray(mtState.trials) && (mtState.phase === "done" || mtState.ti >= mtState.trials.length)) return true; if(isInteractiveExercise(ex)) return interactiveIsDone(); if(ex.isMotion) return elapsedMs >= (motionDurationMs - 300); }catch(e){} return true; }
 
 // ===== Çalışma odak modu (Başlat → Bitir): ayar satırları gizlenir, sayfa sabitlenir, otomatik kaydırma yapılmaz =====
-function runFocusOn(){ const h = document.documentElement; h.classList.add("run-focus"); try{ window.scrollTo(0, 0); const sc = document.scrollingElement; if(sc) sc.scrollTop = 0; }catch(e){} runFocusSize(); }
-function runFocusSize(){ try{ const bd = document.getElementById("board"); if(!bd) return; const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; const top = bd.getBoundingClientRect().top; const mx = Math.max(160, Math.floor(window.innerHeight - barH - top - 10)); document.documentElement.style.setProperty("--boardMax", mx + "px");
-bd.style.zoom = ""; bd.style.maxHeight = ""; let ex = null; try{ ex = currentExercise(); }catch(e){}
-if(ex && isInteractiveExercise(ex) && bd.scrollHeight > mx + 2){ const z = Math.max(0.7, Math.floor((mx / bd.scrollHeight) * 100) / 100); bd.style.zoom = String(z); bd.style.maxHeight = Math.floor(mx / z) + "px"; } }catch(e){} }
-function runFocusOff(){ const h = document.documentElement; h.classList.remove("run-focus"); h.style.removeProperty("--boardMax"); const bd = document.getElementById("board"); if(bd){ bd.style.zoom = ""; bd.style.maxHeight = ""; } }
+function pageScroller(){ const b = document.body, cs = getComputedStyle(b); if(/(auto|scroll)/.test(cs.overflowY) && b.scrollHeight > b.clientHeight + 1) return b; return document.scrollingElement || document.documentElement; }
+function pageScrollTop(){ return Math.max(window.scrollY || 0, document.body.scrollTop || 0, (document.scrollingElement || document.documentElement).scrollTop || 0); }
+function runFocusOn(){ const h = document.documentElement; try{ document.body.scrollTop = 0; window.scrollTo(0, 0); const sc = document.scrollingElement; if(sc) sc.scrollTop = 0; }catch(e){} h.classList.add("run-focus"); try{ document.body.scrollTop = 0; window.scrollTo(0, 0); }catch(e){} runFocusSize(); runFocusWatch(); }
+function runFocusSize(){ try{ const bd = document.getElementById("board"); if(!bd) return; const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; const top = bd.getBoundingClientRect().top;
+const mx = Math.max(160, Math.floor(window.innerHeight - barH - top - 10)); document.documentElement.style.setProperty("--boardMax", mx + "px"); window._rfMax = mx;
+let ex = null; try{ ex = currentExercise(); }catch(e){} window._rfTap = !!(ex && isInteractiveExercise(ex));
+document.documentElement.classList.toggle("run-tight", window._rfTap); bd.style.zoom = ""; bd.style.maxHeight = ""; runFocusFit(); }catch(e){} }
+function runFocusFit(){ try{ if(!document.documentElement.classList.contains("run-focus")) return; const bd = document.getElementById("board"); if(!bd) return; const mx = window._rfMax || 0; if(!mx) return;
+const z0 = parseFloat(bd.style.zoom || "1") || 1; if(bd.scrollHeight <= bd.clientHeight + 2 && bd.scrollHeight * z0 <= mx + 2) return;
+const z = Math.min(z0, Math.max(window._rfTap ? 0.6 : 0.9, Math.floor((mx / bd.scrollHeight) * 100) / 100)); if(z < z0 - 0.005){ bd.style.zoom = String(z); bd.style.maxHeight = Math.floor(mx / z) + "px"; } else if(!bd.style.maxHeight){ bd.style.maxHeight = Math.floor(mx / z0) + "px"; } }catch(e){} }
+let _rfObs = null;
+function runFocusWatch(){ const bd = document.getElementById("board"); if(!bd || !window.MutationObserver) return; if(_rfObs) _rfObs.disconnect(); let pend = false;
+_rfObs = new MutationObserver(() => { if(pend) return; pend = true; requestAnimationFrame(() => { pend = false; runFocusFit(); }); }); _rfObs.observe(bd, { childList:true, subtree:true });
+[80, 300, 700].forEach(ms => setTimeout(runFocusFit, ms)); }
+function runFocusOff(){ const h = document.documentElement; h.classList.remove("run-focus"); h.classList.remove("run-tight"); if(_rfObs){ _rfObs.disconnect(); _rfObs = null; } h.style.removeProperty("--boardMax"); const bd = document.getElementById("board"); if(bd){ bd.style.zoom = ""; bd.style.maxHeight = ""; } }
 function runScrollLocked(){ try{ return !!timerRunning && document.documentElement.classList.contains("run-focus"); }catch(e){ return false; } }
 function boardScrollable(){ const bd = document.getElementById("board"); return !!bd && bd.scrollHeight > bd.clientHeight + 2; }
 document.addEventListener("touchmove", (e) => { if(!runScrollLocked() || !e.cancelable) return; if(boardScrollable() && e.target && e.target.closest && e.target.closest("#board")) return; e.preventDefault(); }, { passive:false });
@@ -5592,6 +5602,7 @@ btn.classList.remove("running");
 { const manual = window._manualStop; window._manualStop = false; const hint = document.getElementById("saveHint"); window._incomplete = !!(manual && !gameMode && !pageComplete());
 if(window._incomplete){ document.getElementById("saveResultBtn").style.display = "none"; hint.style.display = "block"; hint.textContent = "Çalışma tamamlanmadan durduruldu; bu sonuç kaydedilemez. ↻ ile yeniden başlatabilirsin."; hint.classList.add("warn"); }
 else if(elapsedMs > 300){ document.getElementById("saveResultBtn").style.display = "block"; hint.style.display = "block"; hint.textContent = "Çalışmayı bitirdin — hata sayısını kontrol et ve kaydet."; hint.classList.remove("warn"); } }
+if(!gameMode) requestAnimationFrame(() => { try{ const tg = document.getElementById(window._incomplete ? "saveHint" : "saveResultBtn"); if(!tg || getComputedStyle(tg).display === "none") return; const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; const r = tg.getBoundingClientRect(); if(r.bottom > window.innerHeight - barH - 8 || r.top < 0) pageScroller().scrollBy(0, r.bottom - (window.innerHeight - barH - 16)); }catch(e){} });
 if(gameMode){ setTimeout(gameAfterStop, 400); try{ renderGameWho(); }catch(e){} }
 }
 
@@ -11672,7 +11683,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.12-g";
+const APP_VERSION = "2026.10.13-a";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
