@@ -524,7 +524,7 @@ html.board-run, html.board-run body{ overscroll-behavior:none; }
 @media (orientation: portrait){
 html.run-focus #lsMore > .top, html.run-focus #tierRow, html.run-focus #exerciseRow, html.run-focus #stageRow, html.run-focus #playerRow, html.run-focus #historyToggle, html.run-focus #historyPanel, html.run-focus #dots{ display:none !important; }
 html.run-focus #board[data-rf="1"]{ max-height:var(--boardMax) !important; }
-html.run-focus #board{ -webkit-transform:translateZ(0); transform:translateZ(0); -webkit-backface-visibility:hidden; backface-visibility:hidden; margin-bottom:28px !important; }
+html.run-focus #board{ flex:0 0 auto !important; height:auto !important; min-height:0 !important; margin-bottom:28px !important; }
 html.run-focus #board[data-rfs="1"]{ overflow-y:auto !important; overscroll-behavior:contain; }
 html.run-focus #instructionBox{ padding:8px 12px !important; margin-bottom:6px !important; font-size:15px !important; line-height:1.35 !important; } html.run-focus #instructionBox *{ font-size:inherit !important; } html.run-focus .timer-row{ padding-top:6px !important; padding-bottom:6px !important; margin-bottom:6px !important; } html.run-focus #errorRow{ padding-top:4px !important; padding-bottom:4px !important; margin-bottom:6px !important; }
 }
@@ -2909,7 +2909,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.13-h</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.13-i</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -3354,10 +3354,10 @@ dispatchFbReady();
 }
 </script>
 <script>setTimeout(function(){ if(window.__zaReady) return; var d=document.createElement('div'); d.style.cssText='position:fixed;inset:0;z-index:99999;background:#F6FBFA;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;text-align:center;color:#1D2B36'; d.innerHTML='<div style="max-width:420px"><div style="font-size:22px;font-weight:800;margin-bottom:10px">Uygulama dosyaları yüklenemedi</div><div style="font-size:15px;line-height:1.5">Bu sayfa yanındaki <b>zihin-app.js</b> ve <b>zihin-gorsel</b> dosyalarıyla birlikte çalışır. Beş dosyanın da aynı klasöre yüklendiğinden emin olun ve sayfayı yenileyin.<br><br><span style="color:#5B6B78">Claude içindeki önizlemede bu sürüm açılmaz; önizleme için zihin-atolyesi-onizleme.html dosyasını kullanın.</span></div><button onclick="location.reload()" style="margin-top:16px;padding:12px 22px;border:0;border-radius:14px;background:#0A847E;color:#fff;font-size:16px;font-weight:800">Yenile</button></div>'; document.body.appendChild(d); }, 9000);</script>
-<script src="zihin-gorsel-1.js?v=2026.10.13-h"></script>
-<script src="zihin-gorsel-2.js?v=2026.10.13-h"></script>
-<script src="zihin-gorsel-3.js?v=2026.10.13-h"></script>
-<script src="zihin-app.js?v=2026.10.13-h"></script>
+<script src="zihin-gorsel-1.js?v=2026.10.13-i"></script>
+<script src="zihin-gorsel-2.js?v=2026.10.13-i"></script>
+<script src="zihin-gorsel-3.js?v=2026.10.13-i"></script>
+<script src="zihin-app.js?v=2026.10.13-i"></script>
 <div id="printArea"></div>
 </body>
 </html>
