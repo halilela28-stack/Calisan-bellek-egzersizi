@@ -1594,7 +1594,9 @@ function pageComplete(){ try{ const ex = currentExercise(); if((ex.isMt || ex.is
 // ===== Çalışma odak modu (Başlat → Bitir): ayar satırları gizlenir, sayfa sabitlenir, otomatik kaydırma yapılmaz =====
 function pageScroller(){ const ma = document.getElementById("mainApp"); if(ma && /(auto|scroll)/.test(getComputedStyle(ma).overflowY) && ma.scrollHeight > ma.clientHeight + 1) return ma; const b = document.body, cs = getComputedStyle(b); if(/(auto|scroll)/.test(cs.overflowY) && b.scrollHeight > b.clientHeight + 1) return b; return document.scrollingElement || document.documentElement; }
 function pageScrollTop(){ const ma = document.getElementById("mainApp"); return Math.max(window.scrollY || 0, document.body.scrollTop || 0, (document.scrollingElement || document.documentElement).scrollTop || 0, ma ? ma.scrollTop : 0); }
-function runFocusOn(){ if(window.__TANI_NOFOCUS) return; const h = document.documentElement; try{ const ma = document.getElementById("mainApp"); if(ma) ma.scrollTop = 0; document.body.scrollTop = 0; window.scrollTo(0, 0); const sc = document.scrollingElement; if(sc) sc.scrollTop = 0; }catch(e){} h.classList.add("run-focus"); try{ document.body.scrollTop = 0; window.scrollTo(0, 0); }catch(e){} runFocusSize(); runFocusWatch(); }
+function runFocusOn(){ if(window.__TANI_NOFOCUS) return; const h = document.documentElement; try{ const ma = document.getElementById("mainApp"); if(ma) ma.scrollTop = 0; document.body.scrollTop = 0; window.scrollTo(0, 0); const sc = document.scrollingElement; if(sc) sc.scrollTop = 0; }catch(e){} h.classList.add("run-focus"); try{ document.body.scrollTop = 0; window.scrollTo(0, 0); }catch(e){} runFocusSize(); runFocusWatch(); runFocusRepaint(); }
+// iPhone: düzen değişikliğinden sonra tahtayı zorla yeniden çizdir (çizilmeden kalan alanlar için)
+function runFocusRepaint(){ const bd = document.getElementById("board"); if(!bd) return; const kick = () => { try{ bd.style.visibility = "hidden"; void bd.offsetHeight; bd.style.visibility = ""; }catch(e){} }; requestAnimationFrame(() => { kick(); setTimeout(kick, 120); setTimeout(kick, 400); }); }
 function runFocusSize(){ try{ const bd = document.getElementById("board"); if(!bd) return; const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; const top = bd.getBoundingClientRect().top;
 const mx = Math.max(160, Math.floor(window.innerHeight - barH - top - 10)); document.documentElement.style.setProperty("--boardMax", mx + "px"); window._rfMax = mx;
 let ex = null; try{ ex = currentExercise(); }catch(e){} window._rfTap = !!(ex && isInteractiveExercise(ex));
@@ -11699,7 +11701,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.13-g";
+const APP_VERSION = "2026.10.13-h";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
