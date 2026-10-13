@@ -1601,7 +1601,8 @@ let ex = null; try{ ex = currentExercise(); }catch(e){} window._rfTap = !!(ex &&
 document.documentElement.classList.toggle("run-tight", window._rfTap); bd.style.zoom = ""; bd.style.maxHeight = ""; runFocusFit(); }catch(e){} }
 function runFocusFit(){ try{ if(!document.documentElement.classList.contains("run-focus")) return; const bd = document.getElementById("board"); if(!bd) return; const mx = window._rfMax || 0; if(!mx) return;
 const z0 = parseFloat(bd.style.zoom || "1") || 1; if(bd.scrollHeight <= bd.clientHeight + 2 && bd.scrollHeight * z0 <= mx + 2) return;
-const z = Math.min(z0, Math.max(window._rfTap ? 0.6 : 0.9, Math.floor((mx / bd.scrollHeight) * 100) / 100)); if(z < z0 - 0.005){ bd.style.zoom = String(z); bd.style.maxHeight = Math.floor(mx / z) + "px"; } else if(!bd.style.maxHeight){ bd.style.maxHeight = Math.floor(mx / z0) + "px"; } }catch(e){} }
+if(!window._rfTap){ if(!bd.style.maxHeight) bd.style.maxHeight = mx + "px"; return; }   // dokunmasız sayfa: küçültme yok (iPhone'da düzeni bozuyor), yalnızca tahta içi kaydırma
+const z = Math.min(z0, Math.max(0.6, Math.floor((mx / bd.scrollHeight) * 100) / 100)); if(z < z0 - 0.005){ bd.style.zoom = String(z); bd.style.maxHeight = Math.floor(mx / z) + "px"; } else if(!bd.style.maxHeight){ bd.style.maxHeight = Math.floor(mx / z0) + "px"; } }catch(e){} }
 let _rfObs = null;
 function runFocusWatch(){ const bd = document.getElementById("board"); if(!bd || !window.MutationObserver) return; if(_rfObs) _rfObs.disconnect(); let pend = false;
 _rfObs = new MutationObserver(() => { if(pend) return; pend = true; requestAnimationFrame(() => { pend = false; runFocusFit(); }); }); _rfObs.observe(bd, { childList:true, subtree:true });
@@ -11683,7 +11684,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.13-a";
+const APP_VERSION = "2026.10.13-b";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};

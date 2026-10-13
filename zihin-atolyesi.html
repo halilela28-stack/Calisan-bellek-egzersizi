@@ -531,10 +531,6 @@ html.run-focus, html.run-focus body{ overflow:hidden !important; height:100% !im
 html.run-focus body{ position:fixed !important; inset:0 !important; width:100% !important; }
 @media (orientation: portrait){
 html.run-focus #board{ padding-top:10px !important; padding-bottom:10px !important; }
-html.run-tight #board *{ row-gap:min(var(--rg, 8px), 8px); }
-html.run-tight #board [class*="row"], html.run-tight #board [class*="line"]{ margin-top:3px !important; margin-bottom:3px !important; padding-top:3px !important; padding-bottom:3px !important; }
-html.run-focus:not(.run-tight) #board{ line-height:1.3; }
-html.run-focus:not(.run-tight) #board li, html.run-focus:not(.run-tight) #board p{ margin-top:2px !important; margin-bottom:2px !important; }
 }
 .rl-light{ width:110px; height:110px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:24px; color:#fff; box-shadow:0 6px 0 rgba(0,0,0,.2); } .rl-light.green{ background:#1FA463; } .rl-light.red{ background:#E5484D; }
 .rl-track{ position:relative; height:70px; background:#EAF4E4; border:3px solid #8BC56A; border-radius:18px; overflow:hidden; } .rl-prog{ position:absolute; left:0; top:0; bottom:0; background:#CFE8B8; } .rl-run{ position:absolute; top:10px; width:48px; height:48px; } .rl-flag{ position:absolute; right:6px; top:16px; font-size:30px; }
@@ -2914,7 +2910,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.13-a</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.13-b</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -3359,10 +3355,10 @@ dispatchFbReady();
 }
 </script>
 <script>setTimeout(function(){ if(window.__zaReady) return; var d=document.createElement('div'); d.style.cssText='position:fixed;inset:0;z-index:99999;background:#F6FBFA;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;text-align:center;color:#1D2B36'; d.innerHTML='<div style="max-width:420px"><div style="font-size:22px;font-weight:800;margin-bottom:10px">Uygulama dosyaları yüklenemedi</div><div style="font-size:15px;line-height:1.5">Bu sayfa yanındaki <b>zihin-app.js</b> ve <b>zihin-gorsel</b> dosyalarıyla birlikte çalışır. Beş dosyanın da aynı klasöre yüklendiğinden emin olun ve sayfayı yenileyin.<br><br><span style="color:#5B6B78">Claude içindeki önizlemede bu sürüm açılmaz; önizleme için zihin-atolyesi-onizleme.html dosyasını kullanın.</span></div><button onclick="location.reload()" style="margin-top:16px;padding:12px 22px;border:0;border-radius:14px;background:#0A847E;color:#fff;font-size:16px;font-weight:800">Yenile</button></div>'; document.body.appendChild(d); }, 9000);</script>
-<script src="zihin-gorsel-1.js?v=2026.10.13-a"></script>
-<script src="zihin-gorsel-2.js?v=2026.10.13-a"></script>
-<script src="zihin-gorsel-3.js?v=2026.10.13-a"></script>
-<script src="zihin-app.js?v=2026.10.13-a"></script>
+<script src="zihin-gorsel-1.js?v=2026.10.13-b"></script>
+<script src="zihin-gorsel-2.js?v=2026.10.13-b"></script>
+<script src="zihin-gorsel-3.js?v=2026.10.13-b"></script>
+<script src="zihin-app.js?v=2026.10.13-b"></script>
 <div id="printArea"></div>
 </body>
 </html>
