@@ -6674,8 +6674,8 @@ const M = (isPre() ? [2, 3, 3] : [3, 4, 6])[t], ids = shuffleArray(FACE_ID_IMAGE
 const study = ids.slice(0, M); return { mode:"recog", study, opts: shuffleArray(ids.slice(0, M * 2)) };
 }
 const SCENES = [
-{ k:"room", objs:["ball","clock","cat","lamp"], not:["pencil"], q:[["Yerde ne vardı?","Kırmızı bir top"],["Sandalyede ne vardı?","Uyuyan bir kedi"],["Yatak ne renkti?","Mavi"],["Perdeler ne renkti?","Sarı"],["Duvarda ne asılıydı?","Saat"],["Masadaki lamba ne renkti?","Yeşil"],["Yastıkta ne resmi vardı?","Sarı yıldız"],["Rafta kaç kitap vardı?","5"]] },
-{ k:"kitchen", objs:["pot","apples","glass","bowl","flowers"], not:["plant"], q:[["Tabakta ne vardı?","Elma"],["Ocaktaki tencere ne renkti?","Kırmızı"],["Masada kaç bardak vardı?","2"],["Buzdolabının üstünde ne vardı?","Saksıda çiçek"],["Yerde ne vardı?","Kırmızı mama kabı"],["Pencereden ne görünüyordu?","Güneş (ve ağaçlar)"],["Tabakta kaç elma vardı?","4"],["Buzdolabı ne renkti?","Beyaz"]] },
+{ k:"room", objs:["ball","clock","cat","lamp"], not:["pencil"], q:[["Yerde ne vardı?","Kırmızı bir top"],["Sandalyede ne vardı?","Uyuyan bir kedi"],["Yatak ne renkti?","Mavi"],["Perdeler ne renkti?","Sarı"],["Duvarda ne asılıydı?","Saat"],["Masadaki lamba ne renkti?","Yeşil"],["Yastıkta ne resmi vardı?","Sarı yıldız"],["Halıda ne resmi vardı?","Yıldızlar"]] },
+{ k:"kitchen", objs:["pot","apples","glass","bowl","flowers"], not:["ball"], q:[["Tabakta ne vardı?","Elma"],["Ocaktaki tencere ne renkti?","Kırmızı"],["Masada kaç bardak vardı?","2"],["Buzdolabının üstünde ne vardı?","Saksıda çiçek"],["Yerde ne vardı?","Kırmızı mama kabı"],["Pencereden ne görünüyordu?","Güneş (ve ağaçlar)"],["Tabakta kaç elma vardı?","3"],["Buzdolabı ne renkti?","Beyaz"]] },
 { k:"park", objs:["balloon","bucket","bird","grandpa"], not:[], q:[["Salıncakta kim vardı?","Bir kız"],["Kaydıraktan kim kayıyordu?","Bir oğlan"],["Bankta kim oturuyordu?","Bir dede"],["Balon ne renkti?","Kırmızı"],["Ağaçta ne vardı?","Bir kuş"],["Yerde ne vardı?","Mavi bir kova"],["Kızın elbisesi ne renkti?","Pembe"],["Dedenin gözünde ne vardı?","Gözlük"]] },
 { k:"class", objs:["backpack","pencil","map","plant"], not:["apples","flowers"], q:[["Tahtada ne resmi vardı?","Güneş"],["Duvarda ne asılıydı?","Harita"],["Öğretmen masasında hangi meyve vardı?","Elma"],["Sandalyede ne vardı?","Mor bir çanta"],["Yerde ne vardı?","Kırmızı bir kalem"],["Öğretmenin hırkası ne renkti?","Mor"],["Masadaki kitap ne renkti?","Mavi"],["Pencerenin önünde ne vardı?","Saksıda bitki"]] }
 ];
@@ -11704,7 +11704,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.13-m";
+const APP_VERSION = "2026.10.13-n";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
