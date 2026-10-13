@@ -340,14 +340,16 @@ const OS_SEQUENCES = [
 ["seed","sprout","sunflower"],
 ["caterpillar","cocoon","butterfly"],
 ["frogspawn","tadpole","frog"],
-["apple","applebite","applecore"]
+["apple","applebite","applecore"],
+["seed","sprout","tree"],
+["baby","kid","adult"], ["wheat","flour","breadloaf"], ["snowpile","snowman2","snowmelt"], ["milk","yogurt","cheese"], ["batter","cakebaked","cakeslice"]
 ];
 const OS_NAMES = {egg:"yumurta", chick:"civciv", hen:"tavuk", seed:"tohum", sprout:"fide", sunflower:"ayçiçeği",
 caterpillar:"tırtıl", cocoon:"koza", butterfly:"kelebek", frogspawn:"kurbağa yumurtası", tadpole:"iribaş", frog:"kurbağa",
-apple:"elma", applebite:"ısırılmış elma", applecore:"elma koçanı"};
-const OS_ROWS_BY_TIER = [3, 4, 5];
+apple:"elma", applebite:"ısırılmış elma", applecore:"elma koçanı", tree:"ağaç", baby:"bebek", kid:"çocuk", adult:"yetişkin", wheat:"buğday", flour:"un", breadloaf:"ekmek", snowpile:"kar", snowman2:"kardan adam", snowmelt:"eriyen kardan adam", milk:"süt", yogurt:"yoğurt", cheese:"peynir", batter:"kek hamuru", cakebaked:"pişmiş kek", cakeslice:"dilimlenmiş kek"};
+const OS_ROWS_BY_TIER = [5, 6, 7];
 const OS_DISTRACT_BY_TIER = [2, 3, 4];
-const PRE_OS_ROWS_BY_TIER = [2, 2, 3];
+const PRE_OS_ROWS_BY_TIER = [2, 3, 3];
 const PRE_OS_DISTRACT_BY_TIER = [1, 2, 2];
 function osConf(){
 const t = currentCombo().t;
@@ -365,9 +367,9 @@ if(c === want){ got.push(c); try{ gameSfx("pop"); }catch(e){} renderOsBoard();
 else { setErrorCount(currentErrorCount + 1); try{ gameSfx("wrong"); vibrate(40); }catch(e){} cell.classList.add("bad"); setTimeout(() => cell.classList.remove("bad"), 450); } });
 function makeOsRows(){
 const {rows, distract} = osConf();
-const seqs = shuffleArray(OS_SEQUENCES).slice(0, rows);
+const seqs = []; const used = new Set(); for(const q of shuffleArray(OS_SEQUENCES)){ const key = q[0] + ">" + q[1]; if(used.has(key)) continue; used.add(key); seqs.push(q); if(seqs.length >= rows) break; }
 return seqs.map(seq => {
-const others = shuffleArray(OS_SEQUENCES.filter(q => q !== seq).flat()).slice(0, distract);
+const others = shuffleArray([...new Set(OS_SEQUENCES.filter(q => q !== seq && q[0] !== seq[0]).flat())].filter(x => !seq.includes(x))).slice(0, distract);   // aynı başlangıçlı dizilerin resimleri şaşırtıcı olmasın (iki doğru cevap)
 let choices, g = 0;
 do{
 choices = shuffleArray([seq[1], seq[2], ...others]);
@@ -376,6 +378,7 @@ g++;
 return { start: seq[0], second: seq[1], third: seq[2], choices };
 });
 }
+function osImgSrc(k){ try{ return OS_IMAGES[k] || (typeof LIVING_IMAGES !== "undefined" && LIVING_IMAGES[k]) || (typeof OBJECT_IMAGES !== "undefined" && OBJECT_IMAGES[k]) || ""; }catch(e){ return ""; } }
 function renderOsBoard(){
 const board = document.getElementById("board");
 board.style.display = "block";
@@ -393,8 +396,8 @@ maxW = Math.max(30, Math.min(maxW, Math.floor(avail / currentGrid.length) - 12))
 if(osProgGrid !== currentGrid){ osProgGrid = currentGrid; osProg = currentGrid.map(() => []); }
 board.innerHTML = `<div class="os-list">` + currentGrid.map((r, ri) =>
 `<div class="os-row" style="grid-template-columns:repeat(${n}, minmax(0, ${maxW}px));justify-content:center;column-gap:${n > 6 ? 6 : 12}px;">` +
-`<div class="os-cell os-start"><img src="${OS_IMAGES[r.start]}" alt=""></div>` +
-r.choices.map(c => { const k = (osProg[ri] || []).indexOf(c); return `<div class="os-cell os-tap${k >= 0 ? " ok" : ""}" data-osr="${ri}" data-osc="${c}"><img src="${OS_IMAGES[c]}" alt="">${k >= 0 ? `<b class="os-n">${k + 1}</b>` : ""}</div>`; }).join("") +
+`<div class="os-cell os-start"><img src="${osImgSrc(r.start)}" alt=""></div>` +
+r.choices.map(c => { const k = (osProg[ri] || []).indexOf(c); return `<div class="os-cell os-tap${k >= 0 ? " ok" : ""}" data-osr="${ri}" data-osc="${c}"><img src="${osImgSrc(c)}" alt="">${k >= 0 ? `<b class="os-n">${k + 1}</b>` : ""}</div>`; }).join("") +
 `</div>`).join("") + `</div>`;
 }
 
@@ -5620,7 +5623,7 @@ btn.classList.remove("running");
 { const manual = window._manualStop; window._manualStop = false; const hint = document.getElementById("saveHint"); window._incomplete = !!(manual && !gameMode && !pageComplete());
 if(window._incomplete){ document.getElementById("saveResultBtn").style.display = "none"; hint.style.display = "block"; hint.textContent = "Çalışma tamamlanmadan durduruldu; bu sonuç kaydedilemez. ↻ ile yeniden başlatabilirsin."; hint.classList.add("warn"); }
 else if(elapsedMs > 300){ document.getElementById("saveResultBtn").style.display = "block"; hint.style.display = "block"; hint.textContent = "Çalışmayı bitirdin — hata sayısını kontrol et ve kaydet."; hint.classList.remove("warn"); } }
-if(!gameMode) requestAnimationFrame(() => { try{ const tg = document.getElementById(window._incomplete ? "saveHint" : "saveResultBtn"); if(!tg || getComputedStyle(tg).display === "none") return; const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; const r = tg.getBoundingClientRect(); if(r.bottom > window.innerHeight - barH - 8 || r.top < 0) pageScroller().scrollBy(0, r.bottom - (window.innerHeight - barH - 16)); }catch(e){} });
+if(!gameMode) requestAnimationFrame(() => { try{ const hn = document.getElementById("saveHint"), sv = document.getElementById("saveResultBtn"); const tg = (hn && getComputedStyle(hn).display !== "none") ? hn : sv; if(!tg || getComputedStyle(tg).display === "none") return; const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; const r = tg.getBoundingClientRect(); if(r.bottom > window.innerHeight - barH - 8 || r.top < 0) pageScroller().scrollBy(0, r.bottom - (window.innerHeight - barH - 16)); }catch(e){} });
 if(gameMode){ setTimeout(gameAfterStop, 400); try{ renderGameWho(); }catch(e){} }
 }
 
@@ -11701,7 +11704,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.13-j";
+const APP_VERSION = "2026.10.13-l";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
