@@ -1615,6 +1615,20 @@ function boardScrollable(){ const bd = document.getElementById("board"); return 
 document.addEventListener("touchmove", (e) => { if(!runScrollLocked() || !e.cancelable) return; if(boardScrollable() && e.target && e.target.closest && e.target.closest("#board")) return; e.preventDefault(); }, { passive:false });
 document.addEventListener("wheel", (e) => { if(!runScrollLocked() || !e.cancelable) return; if(boardScrollable() && e.target && e.target.closest && e.target.closest("#board")) return; e.preventDefault(); }, { passive:false });
 window.addEventListener("resize", () => { if(document.documentElement.classList.contains("run-focus")) runFocusSize(); });
+
+// ===== Tanı paneli (yalnızca ?tani=1 ile) =====
+(function(){ try{ if(!/[?&]tani=1/.test(location.search)) return; const pn = document.createElement("div"); pn.id = "taniPanel";
+pn.style.cssText = "position:fixed;left:4px;right:4px;top:calc(4px + env(safe-area-inset-top,0px));z-index:99999;background:rgba(20,20,20,.82);color:#fff;font:11px/1.35 monospace;padding:6px 8px;border-radius:8px;pointer-events:none;white-space:pre-wrap;max-height:46vh;overflow:hidden";
+document.body.appendChild(pn); const R = e => { if(!e) return "yok"; const r = e.getBoundingClientRect(); return Math.round(r.top)+"→"+Math.round(r.bottom)+" h"+Math.round(r.height)+" w"+Math.round(r.width); };
+const nm = e => e ? ((e.id ? "#"+e.id : e.tagName.toLowerCase()) + (e.className && typeof e.className === "string" ? "."+e.className.split(" ").slice(0,2).join(".") : "")) : "-";
+setInterval(() => { try{ const bd = document.getElementById("board"), card = bd && bd.querySelector(".wm-card"), svg = card && card.querySelector("svg"), wrap = card && card.closest(".wm-wrap"), ma = document.getElementById("mainApp");
+const cs = bd ? getComputedStyle(bd) : null; const L = [];
+L.push("ekran "+innerWidth+"x"+innerHeight+" vv "+(window.visualViewport ? Math.round(visualViewport.height)+" ofs "+Math.round(visualViewport.offsetTop) : "-")+" dpr "+devicePixelRatio+" · sınıf: "+document.documentElement.className);
+L.push("kaydırma: win "+Math.round(scrollY)+" body "+document.body.scrollTop+" main "+(ma?ma.scrollTop:"-"));
+L.push("tahta "+R(bd)+(cs ? " · h "+cs.height+" minh "+cs.minHeight+" maxh "+cs.maxHeight+" ovf "+cs.overflowY+" zoom "+(bd.style.zoom||"-")+" rf "+(bd.dataset.rf||"-")+"/"+(bd.dataset.rfs||"-") : ""));
+L.push("kap "+R(wrap)+" · kart "+R(card)+" · svg "+R(svg)+(card ? " · kart stil "+card.getAttribute("style") : ""));
+if(card){ const r = card.getBoundingClientRect(), x = Math.round(r.left + r.width/2); const seen = []; for(let y = Math.round(r.top) + 10; y <= Math.round(r.bottom) + 30; y += 20){ const el = document.elementFromPoint(x, y); seen.push(y+":"+nm(el)); } L.push("kart ortasında yukarıdan aşağı: "+seen.join("  ")); }
+pn.textContent = L.join("\n"); }catch(e){ pn.textContent = "tanı hatası: "+e.message; } }, 400); }catch(e){} })();
 function interactiveIsDone(){
 const ex = currentExercise();
 if(!isInteractiveExercise(ex) || !Array.isArray(currentGrid) || !currentGrid.length) return false;
@@ -11686,7 +11700,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.13-e";
+const APP_VERSION = "2026.10.13-f";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
