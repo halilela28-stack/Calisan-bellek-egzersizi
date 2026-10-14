@@ -936,8 +936,8 @@ const SRH_LETTERS = ["A","B","C","Ç","D","E","F","G","H","I","İ","K","L","M","
 const SRH_SPECS = {
 "search-object": { rows:[5,6,7], size:[3,3,4], absent:false },
 "search-shape":  { rows:[5,6,7], size:[3,3,4], absent:false },
-"search-symbol": { rows:[8,10,12], size:[5,5,6], absent:false },
-"search-letter": { rows:[8,10,12], size:[5,5,6], absent:true }
+"search-symbol": { rows:[6,7,8], size:[5,5,6], absent:false },
+"search-letter": { rows:[6,7,8], size:[5,5,6], absent:true }
 };
 function srhFamilyOf(fams, k){ return Object.keys(fams).find(f => fams[f].includes(k)); }
 function srhPick(kind, t, size, present){
@@ -11709,7 +11709,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.14-x";
+const APP_VERSION = "2026.10.14-y";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
