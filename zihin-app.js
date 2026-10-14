@@ -7521,13 +7521,18 @@ const pick = t === 2 ? [allowed[0]].concat(shuffleArray(allowed.slice(1)).slice(
 return pick.map(si => { const imgs = PA_IMAGES[lvl][si]; return { si, lvl, n: imgs.length, cards: shuffleArray(imgs.map((x, i) => i)), given: pre && t === 0 ? 1 : 0 }; }); }
 const PART_PAIRS = [ ["araba","tekerlek"], ["kuş","kanat"], ["ağaç","yaprak"], ["ev","kapı"] ];
 
-function pmTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 5 : 8;
-const mk = () => { if(pre){ const pool = shuffleArray(picPool()).slice(0, [4, 5, 5, 6][t]); const dup = pool[0]; return shuffleArray(pool.concat([dup])).map(x => ({ k: x.n, h: qzPic(x.src) })); }
-if(t === 0){ const sh = shuffleArray(SHAPES.slice()).slice(0, 5), cols = shuffleArray(COLORS.slice()); const it = sh.map((s, i) => ({ k: s + cols[i], h: shapeSVG(s, cols[i]) })); return shuffleArray(it.concat([Object.assign({}, it[0])])); }
-if(t === 1 || t === 3){ const D = t === 3 ? 4 : 3, base = String(Math.pow(10, D - 1) + Math.floor(Math.random() * 9 * Math.pow(10, D - 1))); const sims = new Set([base]); while(sims.size < 6){ const a = base.split(""); const i = Math.floor(Math.random() * D), j = (i + 1 + Math.floor(Math.random() * (D - 1))) % D; [a[i], a[j]] = [a[j], a[i]]; if(Math.random() < 0.5) a[Math.floor(Math.random() * D)] = String(Math.floor(Math.random() * 10)); sims.add(a.join("")); }
-const arr = [...sims].slice(0, 6); return shuffleArray(arr.concat([base])).map(v => ({ k: v, h:`<b style="font-size:22px;letter-spacing:1px">${v}</b>` })); }
-const L = ["b","d","p","q","ğ","g"], mkw = () => Array.from({length:3}, () => randomItem(L)).join(""); const base = mkw(); const set = new Set([base]); while(set.size < 6) set.add(mkw());
-return shuffleArray([...set].concat([base])).map(v => ({ k: v, h:`<b style="font-size:24px;font-family:'Trebuchet MS',sans-serif">${v}</b>` })); };
+function pmTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 5 : 8; const D = [3, 4, 5, 6][Math.min(t, 3)] - 1;   // satırdaki öğe: 3/4/5/6 (ikiz dahil)
+const mk = () => {
+  if(pre){ let pool;
+    if(t >= 2){ const by = {}; picPool().forEach(x => (by[x.cat] = by[x.cat] || []).push(x)); const cats = Object.keys(by).filter(c => by[c].length >= D); pool = shuffleArray(by[randomItem(cats)].slice()).slice(0, D); }   // aynı kategori: ayırt etmek zorlaşır
+    else pool = shuffleArray(picPool()).slice(0, D);
+    return shuffleArray(pool.concat([pool[0]])).map(x => ({ k: x.n, h: qzPic(x.src) })); }
+  if(t === 0){ const sh = shuffleArray(SHAPES.slice()).slice(0, D), cols = shuffleArray(COLORS.slice()); const it = sh.map((s, i) => ({ k: s + cols[i], h: shapeSVG(s, cols[i]) })); return shuffleArray(it.concat([Object.assign({}, it[0])])); }
+  if(t === 1 || t === 2){ const L = t === 2 ? 4 : 3, base = String(Math.pow(10, L - 1) + Math.floor(Math.random() * 9 * Math.pow(10, L - 1))); const sims = new Set([base]); let g = 0;
+    while(sims.size < D && g++ < 200){ const a = base.split(""); const i = Math.floor(Math.random() * L), j = (i + 1 + Math.floor(Math.random() * (L - 1))) % L; [a[i], a[j]] = [a[j], a[i]]; if(Math.random() < 0.5) a[Math.floor(Math.random() * L)] = String(Math.floor(Math.random() * 10)); if(a[0] !== "0") sims.add(a.join("")); }
+    const arr = [...sims]; return shuffleArray(arr.concat([base])).map(v => ({ k: v, h:`<b style="font-size:22px;letter-spacing:1px">${v}</b>` })); }
+  const LT = ["b","d","p","q","ğ","g"], mkw = () => Array.from({length:3}, () => randomItem(LT)).join(""); const base = mkw(); const set = new Set([base]); while(set.size < D) set.add(mkw());
+  return shuffleArray([...set].concat([base])).map(v => ({ k: v, h:`<b style="font-size:20px;font-family:'Trebuchet MS',sans-serif">${v}</b>` })); };
 return Array.from({length:N}, () => { const items = mk(), cnt = {}; items.forEach(x => cnt[x.k] = (cnt[x.k] || 0) + 1); return { items, pk: Object.keys(cnt).find(k => cnt[k] === 2) }; }); }
 const SV_BANK = [ ["Kuşların kanadı vardır.",1],["Balıklar ağaçta yaşar.",0],["Kar soğuktur.",1],["Güneş geceleri doğar.",0],["İnekler süt verir.",1],["Taşlar yumuşaktır.",0],["Elma bir meyvedir.",1],["Arabalar uçar.",0],["Kışın hava soğuk olur.",1],["Kediler havlar.",0],["Su ıslaktır.",1],["Ateş soğuktur.",0],["Ayakkabı ayağa giyilir.",1],["Bir haftada beş gün vardır.",0],["Limon ekşidir.",1],["Filler çok küçüktür.",0],["Yağmur buluttan yağar.",1],["Buz sıcaktır.",0],["Doktorlar hastaları tedavi eder.",1],["Ağaçlar yürür.",0],["Ekmek fırında pişer.",1],["Çorba çatalla içilir.",0],["Kitaplar okunur.",1],["Tavuklar yüzer.",0] ];
 function svTrials(){ const t = currentCombo().t, N = [10, 14, 18][t]; const y = shuffleArray(SV_BANK.filter(x => x[1])), n = shuffleArray(SV_BANK.filter(x => !x[1])), out = [];
@@ -11704,7 +11709,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.14-w";
+const APP_VERSION = "2026.10.14-x";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
