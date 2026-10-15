@@ -5008,7 +5008,7 @@ readingLevel: ["pre","post"],
 label: "Rakam Dizisi (Digit Span)",
 isRecall: true,
 attrs: ["number"],
-dims: () => isPre() ? [{rows:2, cols:2}, {rows:2, cols:3}, {rows:2, cols:4}] : [{rows:2, cols:4}, {rows:3, cols:4}, {rows:4, cols:4}],
+dims: () => isPre() ? [{rows:2, cols:2}, {rows:2, cols:3}, {rows:2, cols:4}] : [{rows:2, cols:4}, {rows:2, cols:5}, {rows:2, cols:6}],
 randomItem: () => ({ number: isPre() ? randomInt(1,6) : randomInt(0,9), color: randomItem(COLORS) }),
 renderItem: (item) => numberHTML(item.number, item.color),
 stages: [
@@ -5935,7 +5935,7 @@ function wmClearTimers(){ wmTimers.forEach(t => clearTimeout(t)); wmTimers = [];
 function wmLater(fn, ms){ const st = wmState; wmTimers.push(setTimeout(() => { if(wmState === st && timerRunning) fn(); }, ms * (window.__wmSpeed || 1))); }
 const WM_SPECS = {
 "wm-same":  { trials:[14, 18, 22], preTrials:[9, 11, 13] },
-"wm-seq":   { pics:[6, 8, 8], prePics:[4, 5, 6], startLen:[3, 4, 5], preStartLen:[2, 3, 3], rounds:5, preRounds:4 },
+"wm-seq":   { pics:[6, 8, 8], prePics:[4, 5, 6], startLen:[3, 4, 5], preStartLen:[2, 3, 4], rounds:5, preRounds:4 },
 "wm-where": { boxes:[6, 6, 6], preBoxes:[4, 4, 4], animals:[2, 4, 6], preAnimals:[2, 3, 4], rounds:2 }
 };
 function wmTier(){ return currentCombo().t; }
@@ -6786,7 +6786,7 @@ if(t === 2 && !isPre() && QZ_CLOSE[a] && !others.some(o => C[QZ_CLOSE[a]].items.
 const opts = [qzPic(ans.src)].concat(others.map(o => qzPic(o.src)));
 const stim = `<div style="display:flex;gap:8px;justify-content:center">${shown.map(x => `<div class="wm-card" style="width:92px;height:92px">${qzPic(x.src)}</div>`).join("")}</div>`;
 return qzMake(stim, opts, 0, { prompt: shown.length > 1 ? "<b>Bunlara benzeyen</b> hangisi?" : "<b>Buna benzeyen</b> hangisi?", raw:true, after:`İkisi de ${C[a].n}.` }); }); },
-"def-touch": () => { const C = qzCats(), t = currentCombo().t, N = qzOpts([3, 4, 4][t], [3, 3, 3][t]);
+"def-touch": () => { const C = qzCats(), t = currentCombo().t, N = qzOpts([3, 4, 5][t], [3, 3, 4][t]);
 const all = Object.entries(C).filter(([k]) => ["wild","sea","meyve","sebze","vehicle"].includes(k)).flatMap(([k, c]) => c.items.filter(x => QZ_DEFS[x.k]).map(x => Object.assign({ cat:k }, x)));
 return shuffleArray(all).slice(0, qzTrials(6, 4)).map(x => {
 const sameCat = all.filter(y => y.cat === x.cat && y.k !== x.k), other = all.filter(y => y.cat !== x.cat);
@@ -7006,17 +7006,17 @@ for(let i = 0; i < N; i++){ const isYes = i % 2 === 0; const pr = isYes ? yes[i]
 return shuffleArray(out); }
 const SYN = [["büyük","iri"],["hızlı","çabuk"],["güzel","hoş"],["mutlu","sevinçli"],["cevap","yanıt"],["okul","mektep"],["öğrenci","talebe"],["siyah","kara"],["beyaz","ak"],["yaşlı","ihtiyar"],["doktor","hekim"],["sınav","imtihan"],["kelime","sözcük"],["kırmızı","al"],["zengin","varlıklı"],["akıllı","zeki"]];
 const SYN_OPP = { "büyük":"küçük", "hızlı":"yavaş", "güzel":"çirkin", "mutlu":"üzgün", "siyah":"beyaz", "beyaz":"siyah", "yaşlı":"genç", "zengin":"fakir", "akıllı":"aptal", "cevap":"soru" };
-function synBuild(){ const t = currentCombo().t, N = [3, 4, 4][t];
+function synBuild(){ const t = currentCombo().t, N = (isPre() ? [3, 3, 4] : [3, 4, 5])[t];
 return shuffleArray(SYN).slice(0, 6).map(([w, s]) => { const pool = SYN.filter(p => p[0] !== w).map(p => p[1]); let dis = shuffleArray(pool).slice(0, N - 1);
 if(t === 2 && SYN_OPP[w]) dis[0] = SYN_OPP[w];
 const opts = [`<b style="font-size:19px">${s}</b>`].concat(dis.map(d => `<b style="font-size:19px">${d}</b>`));
 return qzMake(`<div style="font-size:30px;font-weight:900;color:var(--teal-dark)">${w}</div>`, opts, 0, { prompt:"<b>Eş anlamlısı</b> hangisi?", fixed:true, text:true, raw:true }); }); }
 const PW = [["tekerlek","araba"],["yaprak","ağaç"],["sayfa","kitap"],["parmak","el"],["kanat","kuş"],["yelken","gemi"],["kulp","fincan"],["ekran","telefon"],["çatı","ev"],["bilye","rulman"],["yüzgeç","balık"],["dal","ağaç"],["tuş","piyano"]].filter(p => p[0] !== "bilye");
 function pwBuildPre(){ const t = currentCombo().t, N = [3, 4, 4][t];
-return shuffleArray([0, 1, 2, 3]).slice(0, N).map(i => { const rev = t === 2 && Math.random() < 0.5, others = shuffleArray([0, 1, 2, 3].filter(x => x !== i)).slice(0, 2);
+return shuffleArray([0, 1, 2, 3]).slice(0, N).map(i => { const rev = t === 2 && Math.random() < 0.5, others = shuffleArray([0, 1, 2, 3].filter(x => x !== i)).slice(0, [2, 2, 3][t]);
 if(!rev) return qzMake(`<div style="width:110px;height:110px;margin:0 auto">${qzPic(PART_IMAGES[i * 2 + 1])}</div>`, [i].concat(others).map(x => qzPic(PART_IMAGES[x * 2])), 0, { prompt:`<b>${cap(PART_PAIRS[i][1])}</b> neyin parçası?`, raw:true, fixed:true, cell:96, say:`${cap(PART_PAIRS[i][1])} neyin parçası?`, replay:true });
 return qzMake(`<div style="width:110px;height:110px;margin:0 auto">${qzPic(PART_IMAGES[i * 2])}</div>`, [i].concat(others).map(x => qzPic(PART_IMAGES[x * 2 + 1])), 0, { prompt:"Bunun <b>parçası</b> hangisi?", raw:true, fixed:true, cell:96, say:"Bunun parçası hangisi?", replay:true }); }); }
-function pwBuild(){ if(isPre()) return pwBuildPre(); const t = currentCombo().t, N = [3, 4, 4][t], wholes = Array.from(new Set(PW.map(p => p[1]))), parts = PW.map(p => p[0]);
+function pwBuild(){ if(isPre()) return pwBuildPre(); const t = currentCombo().t, N = [3, 4, 5][t], wholes = Array.from(new Set(PW.map(p => p[1]))), parts = PW.map(p => p[0]);
 return shuffleArray(PW).slice(0, 6).map(([pa, wh]) => {
 if(t < 2){ const dis = shuffleArray(wholes.filter(w => w !== wh)).slice(0, N - 1);
 return qzMake(`<div style="font-size:26px;font-weight:900;color:var(--teal-dark)">${pa}</div>`, [wh].concat(dis).map(x => `<b style="font-size:19px">${x}</b>`), 0, { prompt:`<b>${cap(pa)}</b> neyin parçası?`, fixed:true, text:true, raw:true }); }
@@ -7237,14 +7237,14 @@ const HOMONYM = { post:[ { t:0, q:"<b>yüz</b>", a:"surat · 100 sayısı" }, { 
 const YB = [ ["kedi","yavru kedi"], ["köpek","yavru köpek"], ["tavuk","civciv"], ["inek","buzağı"], ["koyun","kuzu"], ["at","tay"] ];
 const ybImg = (i, baby) => ANIM_YB_IMAGES[i * 2 + (baby ? 1 : 0)];
 const ANALOGY_TXT = [
-{ t:0, a:"kuş", b:"yuva", c:"arı", ans:"kovan", lure:["bal","çiçek","kanat"] }, { t:0, a:"göz", b:"görmek", c:"kulak", ans:"duymak", lure:["kulaklık","burun","konuşmak"] },
-{ t:0, a:"ayakkabı", b:"ayak", c:"eldiven", ans:"el", lure:["kış","parmak","çorap"] }, { t:0, a:"şoför", b:"otobüs", c:"pilot", ans:"uçak", lure:["gökyüzü","havalimanı","tren"] },
-{ t:0, a:"balık", b:"yüzgeç", c:"kuş", ans:"kanat", lure:["tüy","yuva","uçmak"] }, { t:1, a:"gece", b:"ay", c:"gündüz", ans:"güneş", lure:["yıldız","sabah","bulut"] },
-{ t:1, a:"un", b:"ekmek", c:"süt", ans:"peynir", lure:["inek","bardak","beyaz"] }, { t:1, a:"doktor", b:"hasta", c:"öğretmen", ans:"öğrenci", lure:["okul","kitap","ders"] },
-{ t:1, a:"yağmur", b:"şemsiye", c:"güneş", ans:"şapka", lure:["yaz","sıcak","bulut"] }, { t:1, a:"eczane", b:"ilaç", c:"kütüphane", ans:"kitap", lure:["sessizlik","okul","raf"] },
-{ t:2, a:"dakika", b:"saat", c:"gün", ans:"hafta", lure:["gece","takvim","saniye"] }, { t:2, a:"az", b:"çok", c:"küçük", ans:"büyük", lure:["minik","kısa","orta"] },
-{ t:2, a:"tohum", b:"ağaç", c:"yumurta", ans:"tavuk", lure:["kabuk","kahvaltı","yuva"] }, { t:2, a:"ressam", b:"tablo", c:"yazar", ans:"kitap", lure:["kalem","okumak","kütüphane"] },
-{ t:2, a:"susuzluk", b:"su", c:"yorgunluk", ans:"dinlenmek", lure:["koşmak","spor","esnemek"] } ];
+{ t:0, a:"kuş", b:"yuva", c:"arı", ans:"kovan", lure:["bal","çiçek","kanat","iğne"] }, { t:0, a:"göz", b:"görmek", c:"kulak", ans:"duymak", lure:["kulaklık","burun","konuşmak","koklamak"] },
+{ t:0, a:"ayakkabı", b:"ayak", c:"eldiven", ans:"el", lure:["kış","parmak","çorap","şapka"] }, { t:0, a:"şoför", b:"otobüs", c:"pilot", ans:"uçak", lure:["gökyüzü","havalimanı","tren","gemi"] },
+{ t:0, a:"balık", b:"yüzgeç", c:"kuş", ans:"kanat", lure:["tüy","yuva","uçmak","gaga"] }, { t:1, a:"gece", b:"ay", c:"gündüz", ans:"güneş", lure:["yıldız","sabah","bulut","gökyüzü"] },
+{ t:1, a:"un", b:"ekmek", c:"süt", ans:"peynir", lure:["inek","bardak","beyaz","çay"] }, { t:1, a:"doktor", b:"hasta", c:"öğretmen", ans:"öğrenci", lure:["okul","kitap","ders","tahta"] },
+{ t:1, a:"yağmur", b:"şemsiye", c:"güneş", ans:"şapka", lure:["yaz","sıcak","bulut","mont"] }, { t:1, a:"eczane", b:"ilaç", c:"kütüphane", ans:"kitap", lure:["sessizlik","okul","raf","ekmek"] },
+{ t:2, a:"dakika", b:"saat", c:"gün", ans:"hafta", lure:["gece","takvim","saniye","sabah"] }, { t:2, a:"az", b:"çok", c:"küçük", ans:"büyük", lure:["minik","kısa","orta","uzun"] },
+{ t:2, a:"tohum", b:"ağaç", c:"yumurta", ans:"tavuk", lure:["kabuk","kahvaltı","yuva","sepet"] }, { t:2, a:"ressam", b:"tablo", c:"yazar", ans:"kitap", lure:["kalem","okumak","kütüphane","sayfa"] },
+{ t:2, a:"susuzluk", b:"su", c:"yorgunluk", ans:"dinlenmek", lure:["koşmak","spor","esnemek","ter"] } ];
 let anlUsed = new Set();
 function anlTrials(){ const t = currentCombo().t;
 if(isPre()){ const N = [3, 4, 4][t]; anlUsed = new Set();
@@ -7253,10 +7253,9 @@ if(tool){ const pr = Math.random() < 0.5 ? [["nail","hammer"],["screw","screwdri
 const opts = [PAIR_IMAGES[pr[1][1]], PAIR_IMAGES[pr[0][1]], PAIR_IMAGES[pr[1][0]]].map(s => qzPic(s));
 return anlMake(PAIR_IMAGES[pr[0][0]], PAIR_IMAGES[pr[0][1]], PAIR_IMAGES[pr[1][0]], opts, "Üstteki ikili gibi eşleştir"); }
 let p, q, g2 = 0; do{ [p, q] = shuffleArray([0, 1, 2, 3, 4, 5]).slice(0, 2); } while((anlUsed.has(p + "-" + q) || anlUsed.has("q" + q)) && g2++ < 30); anlUsed.add(p + "-" + q); anlUsed.add("q" + q); const rev = t === 2 && Math.random() < 0.5;
-const other = shuffleArray([0, 1, 2, 3, 4, 5].filter(i => i !== p && i !== q))[0];
-const opts = [ybImg(q, !rev), ybImg(q, rev), ybImg(other, !rev)].map(s => qzPic(s));
+const oth = shuffleArray([0, 1, 2, 3, 4, 5].filter(i => i !== p && i !== q)), other = oth[0]; const opts = [ybImg(q, !rev), ybImg(q, rev), ybImg(other, !rev)].concat(t === 2 ? [ybImg(oth[1], rev)] : []).map(s => qzPic(s));
 return anlMake(ybImg(p, rev), ybImg(p, !rev), ybImg(q, rev), opts, rev ? "Yavrudan yetişkine: sıradaki hangisi?" : "Yetişkinden yavruya: sıradaki hangisi?", rev ? `${cap(YB[p][1])}, ${YB[p][0]}. ${cap(YB[q][1])}…?` : `${cap(YB[p][0])}, ${YB[p][1]}. ${cap(YB[q][0])}…?`); }); }
-const pool = shuffleArray(ANALOGY_TXT.filter(x => x.t <= t)).sort((a, b) => (b.t === t) - (a.t === t)).slice(0, 6), N = [3, 4, 4][t];
+const pool = shuffleArray(ANALOGY_TXT.filter(x => x.t <= t)).sort((a, b) => (b.t === t) - (a.t === t)).slice(0, 6), N = [3, 4, 5][t];
 return pool.map(x => qzMake(`<div style="display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;font-size:20px;font-weight:900"><span class="anl-w">${x.a}</span>→<span class="anl-w">${x.b}</span><span style="width:10px"></span><span class="anl-w">${x.c}</span>→<span class="anl-w q">?</span></div>`,
 [x.ans].concat(shuffleArray(x.lure).slice(0, N - 1)).map(w => `<b style="font-size:17px">${w}</b>`), 0, { prompt:"İlk ikili gibi: <b>soru işaretine</b> ne gelir?", fixed:true, text:true, raw:true, say:`${x.a}, ${x.b}. ${x.c}…?` })); }
 function anlMake(A, B, C, opts, prompt, say){ const card = (s) => `<div class="wm-card" style="width:64px;height:64px;padding:4px">${qzPic(s)}</div>`;
@@ -7723,7 +7722,7 @@ const CO_COL = [["kırmızı","#E5484D"],["mavi","#2E6FD8"],["sarı","#F5C518"],
 function coTrials(){ const t = currentCombo().t, pre = isPre(), K = pre ? [2, 3, 4][t] : [3, 4, 6][t], ms = (pre ? [4500, 5500, 6500] : [4000, 5000, 6500])[t];
 return Array.from({length: pre ? 2 : 3}, () => { const pics = shuffleArray(picPool()).slice(0, K), cols = shuffleArray(CO_COL.map((_, i) => i)).slice(0, Math.min(K, 5)); const items = pics.map((p, i) => ({ p, ci: cols[i % cols.length] }));
 return { items, ms, test: shuffleArray(items.slice()), nOpt: pre ? 3 : 4 }; }); }
-function poTrials(){ const t = currentCombo().t, pre = isPre(), K = pre ? [2, 3, 4][t] : [3, 5, 6][t], lures = (!pre && t === 2) ? 2 : (t === 2 ? 1 : 0);
+function poTrials(){ const t = currentCombo().t, pre = isPre(), K = pre ? [2, 3, 4][t] : [3, 4, 5][t], lures = (!pre && t === 2) ? 2 : (t === 2 ? 1 : 0);
 return Array.from({length:3}, () => { const pool = shuffleArray(picPool()), seq = pool.slice(0, K); return { seq, opts: shuffleArray(seq.concat(pool.slice(K, K + lures))), ms: pre ? 1300 : 1000 }; }); }
 function ftTrials(){ const t = currentCombo().t, pre = isPre(), dur = (pre ? [11, 9, 8] : [9, 7, 6])[t], R = pre ? 46 : [40, 34, 30][t];
 const paths = ["wave","loop","zig"].concat(!pre && t === 2 ? ["eight"] : []); return shuffleArray(paths).slice(0, 3).map(p => ({ p, dur, R })); }
@@ -9064,7 +9063,7 @@ const id = currentExercise().id, t = currentCombo().t, pre = isPre();
 mtClear();
 if(id === "corsi" || id === "corsi-verbal"){
 const N = pre ? [5, 6, 6][Math.min(t, 2)] : 9;   // öncesi: 5 blok → 6 blok → 6 blok + 3'lük dizi
-mtState = { kind: id, N, blocks: null, len: (pre ? [2, 2, 3] : [2, 3, 4])[t], maxLen: pre ? N : 9, tries: 0, okAtLen: 0, best: 0, wrong:0, phase:"idle", back: stIx() === 1, seq:[], pos:0, trials:0 };
+mtState = { kind: id, N, blocks: null, len: (pre ? [2, 3, 4] : [3, 4, 5])[t], maxLen: pre ? N : 9, tries: 0, okAtLen: 0, best: 0, wrong:0, phase:"idle", back: stIx() === 1, seq:[], pos:0, trials:0 };
 return Array.from({length: 12}, () => ({}));
 }
 if(id === "span-touch"){
@@ -11772,7 +11771,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.15-s";
+const APP_VERSION = "2026.10.16-a";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
