@@ -724,7 +724,7 @@ const isLs = landscapeMQ.matches;
 const colsOfGroups = isLs ? (n > 8 ? 3 : (n > 2 ? 2 : 1)) : (n > 1 ? 2 : 1);
 const rowsOfGroups = Math.ceil(n / colsOfGroups);
 const bw = (board.clientWidth || 360) - (isLs ? 20 : 24);
-let cell = Math.min(isLs ? 60 : 50, Math.floor((bw / colsOfGroups - (isLs ? 20 : 18)) / 5));
+let cell = Math.min(isLs ? 60 : 70 * tabletScale(), Math.floor((bw / colsOfGroups - (isLs ? 20 : 18)) / 5));
 if(isLs){
 const avail = (board.clientHeight || window.innerHeight * 0.6) - 16;
 cell = Math.max(26, Math.min(cell, Math.floor(avail / rowsOfGroups) - 22));
@@ -1176,7 +1176,7 @@ function plnSizes(board){
 const spec = PLN_SPECS[currentExercise().id];
 const isLs = landscapeMQ.matches;
 const W = ((board.clientWidth || 360) - 24) * (window._fitK || 1);
-const H = (isLs ? (board.clientHeight || 280) - 20 : Math.min(560, window.innerHeight - 260)) * (window._fitK || 1);
+const H = (isLs ? (board.clientHeight || 280) - 20 : Math.min(560 * tabletScale(), window.innerHeight - 260)) * (window._fitK || 1);
 const t = currentCombo().t, n = spec.items[t];
 if(spec.type === "swap"){
 const cube = Math.min(isLs ? 90 : 84, Math.floor((W * (isLs ? 0.55 : 1) - (n - 1) * 10) / n));
@@ -1607,8 +1607,8 @@ const bar = document.querySelector(".controls"); const barH = bar && getComputed
 const mx = Math.max(160, Math.floor(window.innerHeight - barH - top - 10)); document.documentElement.style.setProperty("--boardMax", mx + "px"); window._rfMax = mx;
 if(bd.style.maxHeight) bd.style.maxHeight = ""; delete bd.dataset.rf; delete bd.dataset.rfs; runFocusFit(); }catch(e){} }
 // Odak modunda sabit boyutlu çizen tahtalar: taşarsa öğeler adım adım küçültülüp yeniden çizilir (en fazla %40)
-const FIT_SHRINK = new Set(["what-do","symmetry","spot-diff","copy-design","vis-draw","class-table","sudoku","plan-cubes","plan-tol","plan-beads","plan-swap","plan-think","trail-animal-fruit","trail-color-shape","trail-numbers","trail-number-month","number-letter"]);
-function fitShrinkStep(){ try{ const ex = currentExercise(); if(!FIT_SHRINK.has(ex.id)) return false; const k = window._fitK || 1; if(k <= 0.61) return false;
+const FIT_SHRINK = new Set(["zihni","corsi","corsi-verbal","maze","what-do","symmetry","spot-diff","copy-design","vis-draw","class-table","sudoku","plan-cubes","plan-tol","plan-beads","plan-swap","plan-think","trail-animal-fruit","trail-color-shape","trail-numbers","trail-number-month","number-letter"]);
+function fitShrinkStep(){ try{ const ex = currentExercise(); if(!FIT_SHRINK.has(ex.id) && !QZ[ex.id] && !ex.isMt) return false; /* soru-cevap ve etkileşimli (isMt) tahtalar küçültülebilir */ const k = window._fitK || 1; if(k <= 0.61) return false;
   window._fitK = Math.max(0.6, +(k * 0.9).toFixed(3));
   if(ex.isTrail) renderTrailBoard(); else if(ex.isPlan) renderPlanBoard(); else renderMtBoard(); return true; }catch(e){ return false; } }
 function runFocusFit(){ try{ if(window.__TANI_NOFIT) return; if(!document.documentElement.classList.contains("run-focus")) return; const bd = document.getElementById("board"); if(!bd) return;
@@ -5972,10 +5972,12 @@ return Array.from({length:R}, (_, i) => ({ round:i }));
 }
 function wmSizes(board){
 const isLs = landscapeMQ.matches, W = (board.clientWidth || 360) - 24;
-const H = isLs ? (board.clientHeight || 280) - 20 : Math.min(560, window.innerHeight - 280);
+const H = isLs ? (board.clientHeight || 280) - 20 : Math.min(560 * tabletScale(), window.innerHeight - 280);
 return { W, H, isLs };
 }
-function wmGridDims(count, W, H, maxCell){
+/* Tablet katsayısı: ekranın kısa kenarı 700 noktayı geçiyorsa (iPad) resimler ve alanlar %50 büyür; telefonda 1 */
+function tabletScale(){ const m = Math.min(window.innerWidth, window.innerHeight); return m >= 700 ? 1.5 : m >= 600 ? 1.25 : 1; }
+function wmGridDims(count, W, H, maxCell){ maxCell = Math.min(170, Math.max(maxCell, 110) * tabletScale()) * (window._fitK || 1);   /* yer varsa hücreler en az 110 noktaya kadar büyüyebilir; genişlik/yükseklik yine sınırlar */
 const cands = [];
 for(let cols = 1; cols <= count; cols++){
 const rows = Math.ceil(count / cols);
@@ -6202,7 +6204,7 @@ board.style.display = "block"; board.style.minHeight = ""; board.style.padding =
 board.style.gridTemplateColumns = ""; board.style.gridTemplateRows = ""; board.classList.remove("wide-grid");
 if(!chState) return;
 const st = chState, sp = st.spec, isLs = landscapeMQ.matches;
-const W = (board.clientWidth || 360) - 24, H = isLs ? (board.clientHeight || 280) - 16 : Math.min(560, window.innerHeight - 280);
+const W = (board.clientWidth || 360) - 24, H = isLs ? (board.clientHeight || 280) - 16 : Math.min(560 * tabletScale(), window.innerHeight - 280);
 const stimSize = Math.floor(Math.min(isLs ? H - 20 : 220, W * (isLs ? 0.42 : 0.75)));
 const tr = st.trials[st.idx];
 const stim = st.phase === "idle" ? `<span class="hold">▶ Başlat'a bas</span>` : st.phase === "done" ? `<span class="hold">Bitti!</span>` : st.phase === "gap" ? "" : sp.stim(tr, stimSize, st.ctx);
@@ -6383,7 +6385,7 @@ board.style.display = "block"; board.style.minHeight = ""; board.style.padding =
 board.style.gridTemplateColumns = ""; board.style.gridTemplateRows = ""; board.classList.remove("wide-grid");
 if(!rtState) return;
 const st = rtState, isLs = landscapeMQ.matches;
-const W = (board.clientWidth || 360) - 24, H = isLs ? (board.clientHeight || 280) - 70 : Math.min(520, window.innerHeight - 320);
+const W = (board.clientWidth || 360) - 24, H = isLs ? (board.clientHeight || 280) - 70 : Math.min(520 * tabletScale(), window.innerHeight - 320);
 const dots = `<div class="wm-dots">${Array.from({length:st.R}, (_, i) => `<i class="${st.res[i] === true ? "on" : st.res[i] === false ? "off" : ""}"></i>`).join("")}</div>`;
 const info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "study" ? "<b>İyi bak, aklında tut…</b>" : st.phase === "answer" ? (st.id === "rt-colors" ? `<b>Aynı sırayla</b> seç · ${st.pos}/${st.seq.length}` : "<b>Gördüklerini bul</b>") : st.phase === "done" ? "Bitti!" : "";
 let body = "";
@@ -6399,7 +6401,7 @@ const mark = st.phase !== "study" && st.marks && st.marks[i];
 const fill = show ? st.colors[i] : (mark === "ok" ? st.colors[i] : null);
 return `<div data-rt="${i}" style="width:${d.cell}px;height:${d.cell}px;cursor:pointer;${mark === "bad" ? "animation:trlShake .3s;" : ""}">${fill ? litCircleHTML(true, fill) : `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="${mark === "bad" ? "#E5484D" : "#D9E2E2"}" stroke-width="5"/></svg>`}</div>`; }).join("") + `</div>`;
 } else {
-const sz = Math.min(64, Math.floor((W - 8 * 6) / Math.max(st.K, 5)), isLs ? Math.floor((H + 50) / 3.4) : 64);
+const sz = Math.min(100 * tabletScale(), Math.floor((W - 8 * 6) / Math.max(st.K, 5)), isLs ? Math.floor((H + 50) / 3.4) : 100 * tabletScale());
 const slots = st.phase === "study" || st.reveal
 ? st.seq.map(c => `<span class="rt-sw" style="width:${sz}px;height:${sz}px;background:${c};cursor:default"></span>`).join("")
 : st.phase === "idle" ? "" : (st.seq || []).map((c, i) => i < st.pos ? `<span class="rt-sw" style="width:${sz}px;height:${sz}px;background:${c};cursor:default"></span>` : `<span class="rt-slot" style="width:${sz}px;height:${sz}px"></span>`).join("");
@@ -6866,9 +6868,9 @@ function qzRender(st, W, H, isLs){
 const tr = st.trials[Math.min(st.ti, st.trials.length - 1)], dots = `<div class="wm-dots">${st.trials.map((x, i) => `<i class="${i < st.ti ? "on" : ""}${st.warmN && i < st.warmN ? " w" : ""}"></i>`).join("")}${st.warmN && st.ti < st.warmN && st.phase !== "idle" && st.phase !== "done" ? `<span class="qz-warm in">🌱 Isınma</span>` : ""}</div>`;
 if(st.phase === "idle") return { info:"▶ Başlat'a bas", body: dots };
 if(st.phase === "done") return { info:"Bitti!", body: dots };
-const stimH = tr.stim && tr.stimBig ? `<div class="wm-card" style="width:${Math.min(isLs ? H - 30 : 220, W * 0.6)}px;height:${Math.min(isLs ? H - 30 : 220, W * 0.6)}px;margin:0 auto 8px;padding:6px">${tr.stim}</div>` : tr.stim ? (tr.raw ? `<div style="margin:2px 0 8px">${tr.stim}</div>` : `<div class="wm-card" style="width:${Math.min(isLs ? H * 0.5 : 130, W * 0.4)}px;height:${Math.min(isLs ? H * 0.5 : 130, W * 0.4)}px;margin:0 auto 8px;padding:6px">${tr.stim}</div>`) : "";
+const stimH = tr.stim && tr.stimBig ? `<div class="wm-card" style="width:${Math.min(isLs ? H - 30 : 220 * tabletScale() * (window._fitK || 1), W * 0.6)}px;height:${Math.min(isLs ? H - 30 : 220 * tabletScale() * (window._fitK || 1), W * 0.6)}px;margin:0 auto 8px;padding:6px">${tr.stim}</div>` : tr.stim ? (tr.raw ? `<div style="margin:2px 0 8px">${tr.stim}</div>` : `<div class="wm-card" style="width:${Math.min(isLs ? H * 0.5 : 130 * tabletScale() * (window._fitK || 1), W * 0.4)}px;height:${Math.min(isLs ? H * 0.5 : 130 * tabletScale() * (window._fitK || 1), W * 0.4)}px;margin:0 auto 8px;padding:6px">${tr.stim}</div>`) : "";
 const replay = tr.replay ? `<button type="button" class="wm-btn diff qz-replay" data-mtbtn="qz-replay">🔊 Bir daha dinle</button>` : "";
-const n = tr.opts.length, d = wmGridDims(n, isLs ? W * (tr.stim ? 0.55 : tr.replay ? 0.7 : 0.9) : W, isLs ? H - 40 : Math.max(120, H - (tr.stim ? (tr.raw ? 120 : 150) : 30) - (tr.replay ? 50 : 0)), tr.cell || (tr.fixed ? 64 : 80));
+const n = tr.opts.length, d = wmGridDims(n, isLs ? W * (tr.stim ? 0.55 : tr.replay ? 0.7 : 0.9) : W, isLs ? H - 40 : Math.max(120, H - (tr.stim ? (tr.raw ? 120 : 150) : 30) - (tr.replay ? 50 : 0)), (tr.cell || (tr.fixed ? 80 : 120)) * (window._fitK || 1));   /* yer varsa seçenek resimleri 120 noktaya kadar büyür */
 const grid = tr.text ? `<div class="qz-txt-grid">` + tr.opts.map((o, i) => { const mk = st.phase === "fb" ? (i === tr.ans ? " ok" : (i === st.pick ? " bad" : "")) : "";
 return `<div class="wm-pic qz-txt${mk}" data-mt="${i}">${o}</div>`; }).join("") + `</div>`
 : `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + tr.opts.map((o, i) => {
@@ -7407,7 +7409,7 @@ while(st.length){ const c = st[st.length - 1], r = Math.floor(c / n), k = c % n,
 if(r > 0 && !seen.has(c - n)) nb.push(["n", c - n]); if(k < n - 1 && !seen.has(c + 1)) nb.push(["e", c + 1]); if(r < n - 1 && !seen.has(c + n)) nb.push(["s", c + n]); if(k > 0 && !seen.has(c - 1)) nb.push(["w", c - 1]);
 if(!nb.length){ st.pop(); continue; } const [d, x] = randomItem(nb), op = { n:"s", s:"n", e:"w", w:"e" }[d]; W[c][d] = 0; W[x][op] = 0; seen.add(x); st.push(x); }
 return W; }
-function mazeTrials(){ const t = currentCombo().t, n = isPre() ? [4, 5, 6, 7][t] : [6, 8, 10, 11][t]; return Array.from({length: isPre() ? 2 : 2}, () => ({ n, walls: mazeGen(n) })); }
+function mazeTrials(){ const t = currentCombo().t, n = isPre() ? [4, 5, 6, 7][t] : [6, 7, 8, 9][t]; /* 10×10 ve 11×11 telefonda 30 noktalık hücre veriyordu */ return Array.from({length: isPre() ? 2 : 2}, () => ({ n, walls: mazeGen(n) })); }
 
 const AA_SH = ["circle","square","triangle"], AA_COL = ["#E5484D","#2E6FD8","#F5C518","#1FA463"], AA_SHN = { circle:"daire", square:"kare", triangle:"üçgen" };
 function aaShape(sh, cx, cy, r, col, opt){ opt = opt || {}; const fill = opt.outline ? "none" : col, st = `stroke="${col}" stroke-width="${opt.outline ? 4 : 0}"`, rot = opt.rot ? ` transform="rotate(${opt.rot} ${cx} ${cy})"` : "";
@@ -8626,7 +8628,7 @@ info = `Heceleri sırayla takarak <b>treni</b> kur · ⭐ ${st.score}`;
 const train = `<div class="pk-train"><div class="pk-loco">🚂</div>${st.placed.map(k => `<div class="pk-car on">${tr.cars[k].s}</div>`).join("")}${Array.from({length: tr.sy.length - st.placed.length}, () => `<div class="pk-car empty"></div>`).join("")}</div>`;
 body = `<div style="display:flex;${isLs ? "" : "flex-direction:column;"}gap:10px;align-items:center;justify-content:center"><div class="wm-card" style="width:${sz}px;height:${sz}px;padding:5px"><img src="${tr.pic.src}" alt="" style="width:100%;height:100%;object-fit:contain"></div><div>${train}<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px">${tr.cars.map((c, i) => st.placed.includes(i) ? "" : `<div class="pk-car${st.bad[i] ? " bad" : ""}" data-mt="${i}">${c.s}</div>`).join("")}</div></div></div>`;
 } else if(st.kind === "slide"){
-const R = st.R, C = st.C, w = Math.min(isLs ? H - 30 : 300, W - 20), cw = w / C, ch = w * 0.75 / R;
+const R = st.R, C = st.C, w = Math.min(isLs ? H - 30 : 300 * tabletScale(), W - 20), cw = w / C, ch = w * 0.75 / R;
 info = st.peek ? "<b>Resme bak…</b>" : st.phase === "fb" ? "<b>Tamamlandı!</b>" : `Parçaları boşluğa kaydır · hamle ${st.moves} (en fazla ${st.limit})`;
 const tile = (v, k) => v === R * C - 1 && !st.peek && st.phase !== "fb" ? `<div data-mt="${k}" class="pk-tile empty"></div>` : `<div data-mt="${k}" class="pk-tile" style="background-image:url('${st.img}');background-size:${C * 100}% ${R * 100}%;background-position:${C > 1 ? (v % C) / (C - 1) * 100 : 0}% ${R > 1 ? Math.floor(v / C) / (R - 1) * 100 : 0}%"></div>`;
 const arr = st.peek ? Array.from({length: R * C}, (_, i) => i) : st.tiles;
@@ -8639,7 +8641,7 @@ const scene = `<div class="pk-bridge"><div class="pk-cliff l"></div><div class="
 const planks = `<div style="display:flex;flex-direction:column;gap:${isLs ? 6 : 8}px;align-items:center;margin-top:${isLs ? 0 : 12}px">${tr.opts.map((n, i) => bar(n, (st.sel.includes(i) ? "sel" : "") + (st.phase === "fb" && !tr.two && i === st.pick ? (ok ? " ok" : " bad") : ""), st.phase === "input" ? i : null)).join("")}</div>`;
 body = isLs ? `<div style="display:flex;gap:20px;align-items:center;justify-content:center"><div style="min-width:55%">${scene}</div>${planks}</div>` : scene + planks;
 } else if(st.kind === "esc"){
-const n = st.n, w = Math.min(isLs ? H - 30 : 320, W - 20), c = w / n;
+const n = st.n, w = (isLs ? Math.min(H - 30, W - 20) : W - 20) * (window._fitK || 1), c = w / n;
 info = `Zihni'yi <b>yıldıza</b> götür, bulutlara yakalanma`;
 let walls = ""; st.walls.forEach((wl, i) => { const x = (i % n) * c, y = Math.floor(i / n) * c; if(wl.n) walls += `<line x1="${x}" y1="${y}" x2="${x + c}" y2="${y}"/>`; if(wl.w) walls += `<line x1="${x}" y1="${y}" x2="${x}" y2="${y + c}"/>`; if(i % n === n - 1 && wl.e) walls += `<line x1="${x + c}" y1="${y}" x2="${x + c}" y2="${y + c}"/>`; if(Math.floor(i / n) === n - 1 && wl.s) walls += `<line x1="${x}" y1="${y + c}" x2="${x + c}" y2="${y + c}"/>`; });
 const ctr = (i) => [((i % n) + 0.5) * c, (Math.floor(i / n) + 0.5) * c], [gx, gy] = ctr(n * n - 1), [px, py] = ctr(st.pos);
@@ -8650,7 +8652,7 @@ const ah = isLs ? H - 20 : Math.min(H - 20, 460);
 info = st.kind === "bln" ? `Yalnızca <span id="pkTgt" class="pk-chip" style="background:${PK_COLS[st.tgt][1]}">${PK_COLS[st.tgt][0]}</span> balonları patlat · ⭐ <b id="pkScore">${st.score}</b>` : `Meyveleri yakala, taşları yakalama · ⭐ <b id="pkScore">${st.score}</b>`;
 body = `<div id="pkArea" class="pk-area" style="height:${ah}px">${st.kind === "ctc" ? `<div id="pkBasket" class="pk-basket" style="left:${st.bx * 100}%"></div>` : ""}</div>`;
 } else if(st.kind === "mol"){
-const sz = Math.min(isLs ? H - 30 : 320, W - 20);
+const sz = Math.min(isLs ? H - 30 : 320 * tabletScale(), W - 20);
 info = `Köstebeğe vur, <b>şapkalıya vurma</b> · ⭐ <b id="pkScore">${st.score}</b> · ${st.k}/${st.cfg.N}`;
 body = `<div id="pkMoles" class="pk-moles" style="width:${sz}px;height:${sz}px">${Array.from({length:9}, (_, k) => `<div class="pk-hole" data-mt="${k}"></div>`).join("")}</div>`;
 } else if(st.kind === "bag"){
@@ -8709,7 +8711,7 @@ else { const it = st.test[Math.min(st.qi, st.test.length - 1)], opts = st.learn.
 const d = wmGridDims(st._ord.length, W, isLs ? H - 40 : H - 60, 120); info = `Hangisi <b>${it.nm}</b>? · ${st.qi + 1}/${st.test.length}`;
 body = `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">${st._ord.map(ci => `<div class="wm-pic${st.phase === "fb" ? (ci === it.ci ? " ok" : ci === st.pick ? " bad" : "") : ""}" data-mt="${ci}" style="width:${d.cell}px;height:${d.cell}px;padding:5px"><img src="${CREATURE_IMAGES[ci]}" alt="" style="width:100%;height:100%;object-fit:contain"></div>`).join("")}</div>`; }
 } else if(st.kind === "pairm"){
-const tr = st.trials[ti], n = tr.items.length, cw = Math.min((W - 8 * n) / n, isLs ? 90 : 70);
+const tr = st.trials[ti], n = tr.items.length, cw = Math.min((W - 8 * n) / n, isLs ? 90 : 110 * tabletScale());
 info = "Satırda <b>aynı olan iki</b> taneyi bul";
 body = dots + `<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap">${tr.items.map((it, i) => `<div class="wm-pic${st.pk.includes(i) ? " ok" : st.bad[i] ? " bad" : ""}" data-mt="${i}" style="width:${cw}px;height:${cw}px;padding:4px">${it.h}</div>`).join("")}</div>`;
 } else if(st.kind === "per"){
@@ -8758,7 +8760,7 @@ else if(st.phase === "gap"){ info = "…"; body = dots + `<div style="width:${sz
 else { info = "Az önce <b>tam olarak hangisini</b> gördün?"; const d = wmGridDims(tr.opts.length, W, isLs ? H - 40 : H - 60, 120);
 body = dots + `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">${tr.opts.map((o, i) => `<div class="wm-pic${st.phase === "fb" ? (i === tr.ans ? " ok" : i === st.pick ? " bad" : "") : ""}" data-mt="${i}" style="width:${d.cell}px;height:${d.cell}px;padding:5px">${o}</div>`).join("")}</div>`; }
 } else if(st.kind === "route"){
-const tr = st.trials[ti], n = tr.n, w = Math.min(isLs ? H - 30 : 280, W - 20);
+const tr = st.trials[ti], n = tr.n, w = Math.min(isLs ? H - 30 : 280 * tabletScale(), W - 20);
 info = st.phase === "show" ? "<b>Yolu izle…</b>" : st.reveal ? "Yol buydu" : `Yolu <b>aynı sırayla</b> tekrarla: yeşilden başla · ${Math.max(0, st.pos - 1)}/${tr.path.length - 1}`;
 const cell = (i) => { const k = tr.path.indexOf(i); let bg = "#fff"; if(st.phase === "show" && k >= 0 && k <= st.step) bg = k === st.step ? "#F5A524" : "#FFE2A8";
 if(st.phase !== "show"){ if(i === tr.path[0]) bg = "#1FA463"; else if(k > 0 && k < st.pos) bg = "#7FD3A8"; if(st.reveal && k > 0) bg = "#FFE2A8"; }
@@ -8770,12 +8772,12 @@ info = "Kelimeleri <b>anlamlı bir cümle</b> olacak şekilde diz";
 const line = `<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;min-height:54px;margin-bottom:12px;padding:6px;border:2px dashed var(--line);border-radius:14px">${st.placed.map(k => `<span class="anl-w" style="font-size:19px;font-weight:900">${tr.w[tr.cards[k]]}</span>`).join("")}</div>`;
 body = dots + line + `<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${tr.cards.map((c, i) => st.placed.includes(i) ? "" : `<div class="wm-pic${st.bad[i] ? " bad" : ""}" data-mt="${i}" style="min-width:90px;height:52px;padding:4px 12px;font-weight:900;font-size:18px">${tr.w[c]}</div>`).join("")}</div>`;
 } else if(st.kind === "spotd"){
-const tr = st.trials[ti], cols = tr.cols, rows = Math.ceil(tr.base.length / cols), pw = isLs ? Math.min((W - 30) / 2, (H - 40) * cols / rows) : Math.min(W - 20, 300) * (window._fitK || 1), ph = pw * rows / cols;
+const tr = st.trials[ti], cols = tr.cols, rows = Math.ceil(tr.base.length / cols), side = isLs || W >= 600, pw = side ? Math.min((W - 30) / 2, (isLs ? H - 40 : 330 * tabletScale()) * cols / rows) * (window._fitK || 1) : Math.min(W - 20, 300 * tabletScale()) * (window._fitK || 1), ph = pw * rows / cols;
 const panel = (arr, tap) => `<div style="display:grid;grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rows},minmax(0,1fr));gap:4px;width:${pw}px;height:${ph}px;box-sizing:border-box;background:#FFF8E5;border:2px solid #E0A100;border-radius:12px;padding:6px">${arr.map((o, i) => `<div ${tap ? `data-mt="${i}"` : ""} style="min-height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:${tap ? "pointer" : "default"};border-radius:10px;${tap && st.found[i] ? "box-shadow:inset 0 0 0 3px #1FA463;background:#E3F6EC;" : tap && st.bad[i] ? "box-shadow:inset 0 0 0 3px #E5484D;" : ""}padding:4px">${o.gone ? "" : shapeSVG(o.sh, o.col)}</div>`).join("")}</div>`;
 info = `Sağdaki resimde <b>${tr.diff.length} fark</b> var · ${Object.keys(st.found).length}/${tr.diff.length}`;
-body = dots + `<div style="display:flex;${isLs ? "" : "flex-direction:column;"}gap:10px;align-items:center;justify-content:center">${panel(tr.base, false)}${panel(tr.right, true)}</div>`;
+body = dots + `<div style="display:flex;${side ? "" : "flex-direction:column;"}gap:10px;align-items:center;justify-content:center">${panel(tr.base, false)}${panel(tr.right, true)}</div>`;
 } else if(st.kind === "sdk"){
-const tr = st.trials[ti], n = tr.n, w = Math.min(isLs ? H - 30 : 280, W - 20) * (window._fitK || 1);
+const tr = st.trials[ti], n = tr.n, w = Math.min(isLs ? H - 30 : 280 * tabletScale(), W - 20) * (window._fitK || 1);
 info = st.phase === "fb" ? (st.bad && st.bad.size ? "Kırmızılar kurala uymuyor" : "<b>Tamam!</b>") : "Her satırda ve sütunda <b>her meyve bir kez</b> olsun";
 const grid = `<div style="display:grid;grid-template-columns:repeat(${n},1fr);gap:4px;width:${w}px;height:${w}px;background:#C9D3DE;padding:4px;border-radius:12px">${st.cells.map((v, i) => `<div ${tr.given[i] == null ? `data-mt="${i}"` : ""} style="background:${tr.given[i] != null ? "#EEF3F3" : "#fff"};border-radius:8px;padding:5px;cursor:${tr.given[i] == null ? "pointer" : "default"};${st.bad && st.bad.has && st.bad.has(i) ? "box-shadow:inset 0 0 0 3px #E5484D;" : ""}">${v != null ? `<img src="${tr.pics[v]}" alt="" style="width:100%;height:100%;object-fit:contain">` : ""}</div>`).join("")}</div>`;
 const pal = `<div style="display:flex;gap:8px;justify-content:center;margin:${isLs ? "0 0 8px" : "10px 0 0"}">${tr.pics.map((src, k) => `<button type="button" data-mtbtn="sdk-${k}" class="sdk-p${st.sel === k ? " on" : ""}"><img src="${src}" alt="" style="width:100%;height:100%;object-fit:contain"></button>`).join("")}</div>`;
@@ -8813,7 +8815,7 @@ const sdone = st.phase === "input" ? `<div class="wm-btns" style="margin:8px aut
 const sgrid = `<div style="position:relative;width:${w}px;height:${w}px;margin:0 auto"><div style="display:grid;grid-template-columns:repeat(${n},1fr);gap:2px;background:#C9D3DE;width:100%;height:100%;border:2px solid #C9D3DE">${cells}</div><div style="position:absolute;${tr.horiz ? `left:-6px;right:-6px;top:calc(50% - 2px);height:4px` : `top:-6px;bottom:-6px;left:calc(50% - 2px);width:4px`};background:#E5484D;border-radius:2px;pointer-events:none"></div></div>`;
 body = isLs ? `<div style="display:flex;gap:16px;align-items:center;justify-content:center">${sgrid}<div>${dots}${sdone}</div></div>` : dots + sgrid + sdone;
 } else if(st.kind === "maze"){
-const tr = st.trials[ti], n = tr.n, w = Math.min(isLs ? H - 30 : 320, W - 20), c = w / n;
+const tr = st.trials[ti], n = tr.n, w = Math.min(isLs ? H - 30 : 320 * tabletScale(), W - 20), c = w / n;
 info = st.phase === "fb" ? "<b>Çıkışı buldun!</b>" : "Topu <b>yıldıza</b> götür: gideceğin kareye dokun";
 let walls = ""; tr.walls.forEach((wl, i) => { const x = (i % n) * c, y = Math.floor(i / n) * c; if(wl.n) walls += `<line x1="${x}" y1="${y}" x2="${x + c}" y2="${y}"/>`; if(wl.w) walls += `<line x1="${x}" y1="${y}" x2="${x}" y2="${y + c}"/>`; if(i % n === n - 1 && wl.e) walls += `<line x1="${x + c}" y1="${y}" x2="${x + c}" y2="${y + c}"/>`; if(Math.floor(i / n) === n - 1 && wl.s) walls += `<line x1="${x}" y1="${y + c}" x2="${x + c}" y2="${y + c}"/>`; });
 const ctr = (i) => [((i % n) + 0.5) * c, (Math.floor(i / n) + 0.5) * c], path = st.path.map(ctr).map(p => p.map(v => v.toFixed(1)).join(",")).join(" ");
@@ -8930,7 +8932,7 @@ info = `<b>Hangisi resimdeydi?</b> · ${st.qi + 1}/${st.qs.length}`;
 body = grid(q.opts, (o, i, c) => `<div class="wm-pic${st.phase === "fb" ? (o === q.ans ? " ok" : (i === st.pick ? " bad" : "")) : ""}" data-mt="${i}" style="width:${c}px;height:${c}px;padding:3px"><img src="${SCENE_OBJ_IMAGES[o]}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:10px"></div>`, 100);
 }
 } else if(st.kind === "draw"){
-const n = st.n, want = st.trials[ti], area = Math.min(isLs ? H - 100 : 300, W - 20) * (window._fitK || 1), gap = area / n, rr = Math.max(14, gap * 0.16);
+const n = st.n, want = st.trials[ti], area = Math.min(isLs ? H - 100 : 300 * tabletScale(), W - 20) * (window._fitK || 1), gap = area / n, rr = Math.max(14, gap * 0.16);
 const show = st.phase === "study" ? want : st.mine, xy = (p) => [(p % n + 0.5) * gap, (Math.floor(p / n) + 0.5) * gap];
 const line = (k, col, w, dash) => { const [a, b] = k.split("-").map(Number), [x1, y1] = xy(a), [x2, y2] = xy(b); return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"${dash ? ' stroke-dasharray="6 7"' : ""}/>`; };
 let lines = [...show].map(k => line(k, st.phase === "study" ? "#2E6FD8" : "#1D2939", 9)).join("");
@@ -9288,11 +9290,11 @@ board.style.display = "block"; board.style.minHeight = ""; board.style.padding =
 board.style.gridTemplateColumns = ""; board.style.gridTemplateRows = ""; board.classList.remove("wide-grid");
 if(!mtState) return;
 const st = mtState, isLs = landscapeMQ.matches;
-const W = (board.clientWidth || 360) - 24, H = isLs ? (board.clientHeight || 280) - 60 : Math.min(460, window.innerHeight - 330);
+const W = (board.clientWidth || 360) - 24, H = isLs ? (board.clientHeight || 280) - 60 : Math.min(460 * tabletScale(), window.innerHeight - 330);
 let info = "", body = "";
 if(st.kind === "corsi" || st.kind === "corsi-verbal"){
 corsiLayout();
-const area = Math.min(W, isLs ? (st.kind === "corsi-verbal" && st.phase === "judge" ? H - 112 : H) : 420), bs = Math.round(area * 0.15);
+const area = Math.min(W, isLs ? (st.kind === "corsi-verbal" && st.phase === "judge" ? H - 112 : H) : 420 * tabletScale()) * (window._fitK || 1), bs = Math.round(area * 0.15);
 info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "show" ? "<b>İzle…</b>" : st.phase === "input" ? `<b>${st.back ? "Tersten" : "Aynı sırayla"}</b> dokun · ${st.pos}/${st.seq.length}` : st.phase === "judge" ? `Çocuk sırayı ${st.back ? "<b>tersten</b>" : ""} söylesin / göstersin:` : st.phase === "done" ? `Bitti · en uzun dizi <b>${st.best || "—"}</b>` : `Dizi uzunluğu: <b>${st.len}</b>`;
 body = `<div style="position:relative;width:${area}px;height:${area}px;margin:0 auto;background:#EEF2F6;border-radius:18px;">` + st.blocks.map((p, i) => {
 const lit = st.lit === i, mk = st.marks && st.marks[i];
@@ -9373,7 +9375,7 @@ return `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${d
 } else if(st.kind === "zihni"){
 const r = st.rounds[Math.min(st.ri, st.rounds.length - 1)], n = r.n;
 const dots = `<div class="wm-dots">${st.rounds.map((x, i) => `<i class="${st.res[i] === true ? "on" : st.res[i] === false ? "off" : ""}"></i>`).join("")}</div>`;
-const area = Math.min(W, isLs ? H - 20 : 320), cell = Math.floor((area - (n - 1) * 6) / n);
+const area = Math.min(W, isLs ? H - 20 : 320 * tabletScale()) * (window._fitK || 1), cell = Math.floor((area - (n - 1) * 6) / n);
 const showZ = st.phase === "start" ? r.sy * n + r.sx : st.phase === "reveal" ? r.ey * n + r.ex : -1;
 const cmd = st.phase === "cmds" && st.cmdIdx >= 0 ? r.cmds[st.cmdIdx] : null;
 info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "start" ? "<b>Zihni burada.</b> Aklında tut…" : st.phase === "cmds" ? `Komut ${Math.max(1, st.cmdIdx + 1)} / ${r.cmds.length}` : st.phase === "input" ? "<b>Zihni şimdi nerede?</b> Dokun." : st.phase === "done" ? "Bitti!" : "";
@@ -10275,6 +10277,16 @@ if(!best || score > best.score) best = {cols:c, rows:r, score};
 return best;
 }
 
+/* Dikey ekran (telefon ve tablet): öğe sayısını koruyup tahtanın genişlik ve yüksekliğine göre en büyük kare hücreyi veren satır/sütun düzenini seç.
+   Satırın anlam taşıdığı ya da tek satırlık dizi gösteren çalışmalar dışarıda. */
+const NO_REFLOW = new Set(["position-recall","digit-span","word-list-recall","sentence-repeat","color-recall","shape-recall","sequence-pattern","visual-analogy","odd-one-out","nback-shape","nback-color","nback-number"]);
+function pickPortraitDims(n, board, rows0, cols0){ try{ if(rows0 < 2 || cols0 < 2 || NO_REFLOW.has(currentExercise().id)) return null; const cs = getComputedStyle(board); const w = board.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0;
+  const focus = document.documentElement.classList.contains("run-focus") && window._rfMax; const availAll = focus ? window._rfMax : (window.innerHeight - board.getBoundingClientRect().top - barH - 12 - 90);   /* odak dışında "Geçmiş Sonuçları Gör" için yer kalsın */
+  const h = availAll - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 16; if(!(w > 0 && h > 120)) return null;
+  const gx = parseFloat(cs.columnGap) || 10, gy = parseFloat(cs.rowGap) || 26; const hasText = !!board.querySelector(".name-cell, .stroop-cell, .phrase-cell"); const hasPair = !!board.querySelector(".pair-cell"); const aspect = hasPair ? 2.1 : (hasText ? 1.7 : 1);
+  let best = null; for(let c = 2; c <= n; c++){ const r = Math.ceil(n / c); if(r < 1 || c * r - n > c - 1) continue; const cw = (w - (c - 1) * gx) / c, ch = (h - (r - 1) * gy) / r; if(cw <= 0 || ch <= 0) continue; const cell = Math.min(cw / aspect, ch); const score = cell - (c * r - n) * 0.5; if(!best || score > best.score) best = { cols:c, rows:r, cell:Math.floor(cell), cw:Math.floor(Math.min(cw, cell * aspect)), score }; }
+  return best; }catch(e){ return null; } }
 function applyBoardLayout(){
 if(applyingBoardLayout) return;
 const board = document.getElementById("board");
@@ -10283,13 +10295,13 @@ if(currentExercise().isMotion || currentExercise().isAuditory || currentExercise
 applyingBoardLayout = true;
 try{
 let {rows, cols} = currentTier();
-let track = "1fr";
+let track = "1fr", colTrack = null, rowTrack = null;
 if(landscapeMQ.matches){
 const best = pickLandscapeDims(currentGrid.length, board);
 if(best){ rows = best.rows; cols = best.cols; track = "minmax(0, 1fr)"; }
-}
-board.style.gridTemplateColumns = `repeat(${cols}, ${track})`;
-board.style.gridTemplateRows = `repeat(${rows}, ${track})`;
+} else { const best = pickPortraitDims(currentGrid.length, board, rows, cols); if(best){ rows = best.rows; cols = best.cols; colTrack = best.cw + "px"; rowTrack = best.cell + "px"; } }
+board.style.gridTemplateColumns = `repeat(${cols}, ${colTrack || track})`;
+board.style.gridTemplateRows = `repeat(${rows}, ${rowTrack || track})`; board.style.justifyContent = colTrack ? "center" : ""; board.style.alignContent = rowTrack ? "center" : "";
 board.classList.toggle("wide-grid", cols >= 5 || rows >= 5);
 renderRowDividers(board, rows, cols);
 fitTextCells(board);
@@ -11760,7 +11772,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.15-o";
+const APP_VERSION = "2026.10.15-s";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};

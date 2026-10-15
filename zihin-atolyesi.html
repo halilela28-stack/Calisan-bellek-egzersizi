@@ -522,7 +522,7 @@ span.hm-mic{ display:inline-flex; vertical-align:-4px; color:#C2853F; } span.hm-
 .hm-col > button:active, .hm-duo button:active{ transform:translateY(2px) !important; filter:brightness(.88) !important; box-shadow:inset 0 2px 6px rgba(0,0,0,.18) !important; transition:transform .03s, filter .03s !important; }
 #hmEtk:active, #hmGame:active{ transform:none !important; filter:none !important; box-shadow:none !important; }
 html.board-run, html.board-run body{ overscroll-behavior:none; }
-@media (orientation: portrait){
+@media (orientation: portrait), (orientation: landscape) and (min-height: 521px){ /* dikey ve tablet yatay: odak modu düzeni (telefon yatayının ayrı düzeni var) */
 html.run-focus #lsMore > .top, html.run-focus #tierRow, html.run-focus #exerciseRow, html.run-focus #stageRow, html.run-focus #playerRow, html.run-focus #historyToggle, html.run-focus #historyPanel, html.run-focus #dots{ display:none !important; }
 html.run-focus #board[data-rf="1"]{ max-height:var(--boardMax) !important; }
 html.run-focus #board{ flex:0 0 auto !important; height:auto !important; min-height:0 !important; margin-bottom:28px !important; }
@@ -2696,6 +2696,9 @@ html.calm .gb-who.unset{ animation:none; }
 .rt-pal{ display:grid; gap:10px; justify-content:center; }
 .rt-sw{ border-radius:50%; border:4px solid #fff; box-shadow:0 0 0 2px var(--line), 0 4px 0 var(--edge); cursor:pointer; }
 .rt-sw.ok{ box-shadow:0 0 0 4px var(--good); } .rt-sw.bad{ box-shadow:0 0 0 4px var(--bad); animation:trlShake .3s; }
+
+/* Tablet (kısa kenar 700+): daha geniş sütun, resimler büyür (bkz. tabletScale) */
+@media (min-width: 700px) and (min-height: 700px){ .app{ max-width:780px; } .controls{ max-width:780px; } }
 </style>
 </head>
 <body>
@@ -2917,7 +2920,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.15-o</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.15-s</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -3362,10 +3365,10 @@ dispatchFbReady();
 }
 </script>
 <script>setTimeout(function(){ if(window.__zaReady) return; var d=document.createElement('div'); d.style.cssText='position:fixed;inset:0;z-index:99999;background:#F6FBFA;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;text-align:center;color:#1D2B36'; d.innerHTML='<div style="max-width:420px"><div style="font-size:22px;font-weight:800;margin-bottom:10px">Uygulama dosyaları yüklenemedi</div><div style="font-size:15px;line-height:1.5">Bu sayfa yanındaki <b>zihin-app.js</b> ve <b>zihin-gorsel</b> dosyalarıyla birlikte çalışır. Beş dosyanın da aynı klasöre yüklendiğinden emin olun ve sayfayı yenileyin.<br><br><span style="color:#5B6B78">Claude içindeki önizlemede bu sürüm açılmaz; önizleme için zihin-atolyesi-onizleme.html dosyasını kullanın.</span></div><button onclick="location.reload()" style="margin-top:16px;padding:12px 22px;border:0;border-radius:14px;background:#0A847E;color:#fff;font-size:16px;font-weight:800">Yenile</button></div>'; document.body.appendChild(d); }, 9000);</script>
-<script src="zihin-gorsel-1.js?v=2026.10.15-o"></script>
-<script src="zihin-gorsel-2.js?v=2026.10.15-o"></script>
-<script src="zihin-gorsel-3.js?v=2026.10.15-o"></script>
-<script src="zihin-app.js?v=2026.10.15-o"></script>
+<script src="zihin-gorsel-1.js?v=2026.10.15-s"></script>
+<script src="zihin-gorsel-2.js?v=2026.10.15-s"></script>
+<script src="zihin-gorsel-3.js?v=2026.10.15-s"></script>
+<script src="zihin-app.js?v=2026.10.15-s"></script>
 <div id="printArea"></div>
 </body>
 </html>
