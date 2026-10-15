@@ -185,8 +185,8 @@ hotColdPool = pool;
 
 const AUD_WORDS = ["top","ev","kedi","elma","araba","balık","kuş","çiçek","ayı","süt","şapka","kalem","ay","masa","kapı","bardak","ağaç","bulut","ekmek","saat","kaşık","yıldız","tren","çanta"];
 const AUD_SIZE_WORDS = [["karınca",1],["fare",2],["kedi",3],["koyun",4],["at",5],["fil",6],["balina",7]];
-const AUD_LEN_BY_TIER = [2, 3, 4];
-const PRE_AUD_LEN_BY_TIER = [2, 2, 3];
+const AUD_LEN_BY_TIER = [3, 4, 5];   // okul sonrası: okul öncesinden bir adım uzun
+const PRE_AUD_LEN_BY_TIER = [2, 3, 4];
 const AUD_DELAY_MS = 4000;
 function audLen(){ const tb = isPre() ? PRE_AUD_LEN_BY_TIER : AUD_LEN_BY_TIER; return tb[currentCombo().t] || tb[tb.length-1]; }
 function audTrialCount(){ return isPre() ? 3 : 5; }
@@ -3647,7 +3647,7 @@ id: "span-listen",
 readingLevel: ["pre","post"],
 label: "Dinleme Aralığı",
 isAuditory: true, attrs: [], errorLabel: "Hatalı set sayısı",
-audTrials: () => makeSpanSets(isPre() ? 2 : 3),
+audTrials: () => makeSpanSets(isPre() ? SPAN_COUNT_PRE[Math.min(currentCombo().t, 2)] : 3),
 audRender: (sets) => renderSpanList(sets, false),
 randomItem: () => ({}),
 stages: [ { label: "Cümle + Nesne", instruction: () => ``, example: () => `` } ]
@@ -3814,8 +3814,8 @@ readingLevel: ["pre"],
 label: "Kısa Hikâye",
 isAuditory: true, attrs: [], errorLabel: "Yanlış cevap sayısı",
 audTrials: () => shuffleArray(STORIES_PRE).slice(0, 2),
-audRender: (tr) => `<div class="aud-list"><div class="aud-note">Çocuk resme bakarken hikâyeyi yavaşça okuyun, sonra soruları sorun. Yanlış ya da cevapsız soruları hata sayısına ekleyin.</div>` +
-tr.map((st, i) => `<div class="aud-row"><div class="aud-num">${i + 1}</div><div class="aud-body"><img src="${STORY_PRE_IMAGES[st.img]}" alt="" style="display:block;width:min(240px,70%);aspect-ratio:1;object-fit:contain;margin:2px auto 8px;border-radius:14px;background:#fff"><div style="font-size:20px;font-weight:800;line-height:1.45">${st.text}</div>${st.q.map(q => `<div style="margin-top:4px"><b>${q[0]}</b> <span class="aud-key" style="display:inline">→ ${q[1]}</span></div>`).join("")}</div></div>`).join("") + `</div>`,
+audRender: (tr) => `<div class="aud-list"><div class="aud-note">${ssNote()} Yanlış ya da cevapsız soruları hata sayısına ekleyin.</div>` +
+tr.map((st, i) => `<div class="aud-row"><div class="aud-num">${i + 1}</div><div class="aud-body">${ssShowImg() ? `<img src="${STORY_PRE_IMAGES[st.img]}" alt="" style="display:block;width:min(240px,70%);aspect-ratio:1;object-fit:contain;margin:2px auto 8px;border-radius:14px;background:#fff">` : ""}<div style="font-size:20px;font-weight:800;line-height:1.45">${st.text}</div>${st.q.map(q => `<div style="margin-top:4px"><b>${q[0]}</b> <span class="aud-key" style="display:inline">→ ${q[1]}</span></div>`).join("")}</div></div>`).join("") + `</div>`,
 randomItem: () => ({}),
 stages: [ { label: "Dinle ve Cevapla", instruction: () => ``, example: () => `` } ]
 },
@@ -5928,7 +5928,7 @@ function wmClearTimers(){ wmTimers.forEach(t => clearTimeout(t)); wmTimers = [];
 function wmLater(fn, ms){ const st = wmState; wmTimers.push(setTimeout(() => { if(wmState === st && timerRunning) fn(); }, ms * (window.__wmSpeed || 1))); }
 const WM_SPECS = {
 "wm-same":  { trials:[14, 18, 22], preTrials:[9, 11, 13] },
-"wm-seq":   { pics:[6, 8, 8], prePics:[4, 5, 5], startLen:[3, 4, 5], preStartLen:[2, 3, 3], rounds:5, preRounds:4 },
+"wm-seq":   { pics:[6, 8, 8], prePics:[4, 5, 6], startLen:[3, 4, 5], preStartLen:[2, 3, 3], rounds:5, preRounds:4 },
 "wm-where": { boxes:[6, 6, 6], preBoxes:[4, 4, 4], animals:[2, 4, 6], preAnimals:[2, 3, 4], rounds:2 }
 };
 function wmTier(){ return currentCombo().t; }
@@ -6303,9 +6303,9 @@ let rtState = null, rtTimers = [];
 function rtClear(){ rtTimers.forEach(t => clearTimeout(t)); rtTimers = []; }
 function rtLater(fn, ms){ const st = rtState; rtTimers.push(setTimeout(() => { if(rtState === st && timerRunning) fn(); }, ms * (window.__wmSpeed || 1))); }
 const RT_SPECS = {
-"rt-shapes":   { k:[3, 4, 5], preK:[2, 3, 3], rounds:3, preRounds:2 },
+"rt-shapes":   { k:[3, 4, 5], preK:[2, 3, 4], rounds:3, preRounds:2 },
 "rt-position": { cells:[8, 10, 12], preCells:[4, 6, 8], k:[3, 4, 5], preK:[2, 2, 3], rounds:3, preRounds:2 },
-"rt-colors":   { k:[3, 4, 5], preK:[2, 3, 3], rounds:3, preRounds:2 }
+"rt-colors":   { k:[3, 4, 5], preK:[2, 3, 4], rounds:3, preRounds:2 }
 };
 function rtBuild(){
 const id = currentExercise().id, sp = RT_SPECS[id], t = currentCombo().t, pre = isPre();
@@ -6448,7 +6448,7 @@ const SPAN_BANK = [
 { k:"carrot",   n:"havuç",       img:() => FRUIT_VEG_IMAGES.carrot, t:"Havuç bir sebzedir.",          f:"Havuç uçabilir.",               bt:"Bu bir sebzedir.",           bf:"Bu uçabilir." },
 { k:"strawberry", n:"çilek",     img:() => FRUIT_VEG_IMAGES.strawberry, t:"Çilek kırmızıdır.",        f:"Çilek mavidir.",                bt:"Bu kırmızıdır.",             bf:"Bu mavidir." }
 ];
-const SPAN_SETS = { post:[2, 3, 4], pre:[2, 2, 3] };
+const SPAN_SETS = { post:[2, 3, 4], pre:[2, 3, 3] }, SPAN_COUNT_PRE = [2, 2, 3];   // öncesi: 2 öğe×2 set → 3 öğe×2 set → 3 öğe×3 set
 const spanSetSize = () => (isPre() ? SPAN_SETS.pre : SPAN_SETS.post)[currentCombo().t];
 function makeSpanSets(count){
 const size = spanSetSize(), pool = shuffleArray(SPAN_BANK), sets = [];
@@ -6489,10 +6489,10 @@ return TOY_KEYS.map(k => ({ k:"t-" + k, n: TOY_NAMES[k], src: TOY_IMAGES[k], cat
 .concat(HOUSE_KEYS.map(k => ({ k:"h-" + k, n: HOUSE_NAMES[k], src: HOUSE_IMAGES[k], cat:"house" })))
 .concat(Object.keys(FRUIT_VEG_NAMES).map(k => ({ k:"f-" + k, n: FRUIT_VEG_NAMES[k], src: FRUIT_VEG_IMAGES[k], cat: FRUIT_VEG_CATEGORY[k] })));
 }
-const RUN_LAST = { post:[2, 3, 4], pre:[2, 2, 3] };
+const RUN_LAST = { post:[2, 3, 4], pre:[2, 2, 3] }, RUN_EXTRA = { pre:[0, 2, 2], post:[0, 0, 0] };
 const runLast = () => (isPre() ? RUN_LAST.pre : RUN_LAST.post)[currentCombo().t];
 function makeRunStream(){
-const L = runLast(), len = L + 2 + Math.floor(Math.random() * 4);
+const L = runLast(), len = L + 2 + Math.floor(Math.random() * 4) + (isPre() ? RUN_EXTRA.pre : RUN_EXTRA.post)[Math.min(currentCombo().t, 2)];   // öncesi Orta: aynı "son 2", daha uzun akış
 const pool = shuffleArray(picPool()); return pool.slice(0, len);
 }
 const ZH_SPEC = { post:{ n:[3, 4, 4], k:[2, 3, 4] }, pre:{ n:[3, 3, 3], k:[1, 2, 3] } };
@@ -6511,7 +6511,7 @@ return { n, sx, sy, cmds, ex: x, ey: y };
 function zhCellName(r){ const n = r.n; const col = ["sol", "orta", "sağ"], row = ["üst", "orta", "alt"];
 if(n === 3) return (r.ey === 1 && r.ex === 1) ? "tam orta" : `${row[r.ey]} ${col[r.ex]}`.replace("orta orta", "tam orta");
 return `${r.ey + 1}. satır, ${r.ex + 1}. sütun`; }
-const MK_K = { post:[3, 4, 5], pre:[2, 3, 3] };
+const MK_K = { post:[3, 4, 5], pre:[2, 3, 4] };
 const mkK = () => (isPre() ? MK_K.pre : MK_K.post)[currentCombo().t];
 function makeMarketRound(){
 const all = picPool(), K = mkK(), list = shuffleArray(all).slice(0, K);
@@ -6542,7 +6542,7 @@ const b = pool.find(x => !used.has(x.k) && x.k !== a.k && x.cat !== a.cat); if(!
 used.add(a.k); used.add(b.k); out.push({ a:{ src:a.src, n:a.n }, b:{ src:b.src, n:b.n }, id: a.k + "-" + b.k }); }
 return out;
 }
-const PAL_K = { post:[3, 4, 5], pre:[2, 3, 3] };
+const PAL_K = { post:[3, 4, 5], pre:[2, 3, 4] };
 const WP_WORDS = ["bulut","kitap","kalem","deniz","saat","ağaç","kapı","elma","bardak","yıldız","çanta","balık","masa","kuş","top","ayna","şapka","köprü","lamba","bisiklet","halı","tren","çorap","fener","bal","dağ","pencere","kaşık","ayakkabı","gemi"];
 const WP_NAMES = ["Ali","Ece","Can","Elif","Mert","Zeynep","Emre","Defne","Kerem","Ada","Burak","Duru"];
 const WP_PLACES = ["Ankara","Bursa","İzmir","Antalya","Trabzon","Konya","Van","Edirne","Samsun","Mardin","Kars","Muğla"];
@@ -6582,6 +6582,9 @@ q:[["Burak nerede bisiklet sürüyordu?","Parkta"],["Ne oldu?","Bisikletinin zin
 ];
 
 
+// Kısa Hikâye: zorluk görsel destekle ayarlanır (hikâyelerin uzunluğu birbirine yakın)
+function ssNote(){ return ["Çocuk resme bakarken hikâyeyi yavaşça okuyun; resim sorularda da açık kalsın.", "Çocuk resme bakarken hikâyeyi yavaşça okuyun; <b>soruları sormadan önce resmi kapatın</b> (ekranı kendinize çevirin).", "<b>Resim yok:</b> çocuk hikâyeyi yalnızca dinleyerek takip etsin; yavaşça okuyun, sonra soruları sorun."][Math.min(currentCombo().t, 2)]; }
+function ssShowImg(){ return currentCombo().t < 2; }
 const STORIES_PRE = [
 { img:"park", text:"Ali parka gitti. Topla oynadı. Sonra eve döndü.", q:[["Kim parka gitti?","Ali"],["Ne yaptı?","Topla oynadı"],["Sonra nereye gitti?","Eve"]] },
 { img:"apple", text:"Ece elmasını yıkadı. Elmayı yedi. Çöpünü attı.", q:[["Ece neyi yıkadı?","Elmayı"],["Sonra ne yaptı?","Yedi"],["En son ne yaptı?","Çöpünü attı"]] },
@@ -6601,7 +6604,7 @@ const total = st.units.length, got = st.units.filter((u, i) => storyChecked[i]).
 const ls = lastStory(), mins = ls ? Math.floor((Date.now() - ls.ts) / 60000) : 0;
 const head = delayed
 ? `<div class="aud-note">⏰ Hikâye <b>${mins} dakika</b> önce okundu. Hikâyeyi yeniden okumadan çocuktan anlatmasını isteyin ve hatırladığı ayrıntılara dokunun.${mins < 10 ? " <b>(10–15 dakika beklemeniz önerilir.)</b>" : ""}</div><details style="margin:6px 0"><summary style="font-weight:800;color:var(--teal-dark);cursor:pointer">Hikâyeyi göster (yalnızca yetişkin için)</summary><div style="font-size:15px;line-height:1.5;margin-top:6px">${st.text}</div></details>`
-: (strat ? `<div class="aud-note" style="border-color:#E0A100;background:#FFF8E5">💡 <b>Strateji · Soru sorarak dinle:</b> Okumadan önce söyleyin: <b>"Dinlerken şu soruların cevaplarını yakala: Kim? Nerede? Ne zaman? Ne oldu? Sonunda ne oldu?"</b> Anlatırken de bu sırayı izlemesine yardım edin. Sonucu Aşama 1 ile karşılaştırın.</div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:4px 0">${["Kim?","Nerede?","Ne zaman?","Ne oldu?","Sonunda?"].map(q => `<span style="background:#FFE7A3;border-radius:12px;padding:6px 12px;font-weight:900;font-size:17px">${q}</span>`).join("")}</div>` : "") + `<div class="aud-note">Hikâyeyi bir kez, doğal bir hızla okuyun. Çocuk kendi cümleleriyle anlatsın; hatırladığı her ayrıntıya dokunun. Sonra soruları sorun.</div><div style="font-size:19px;line-height:1.55;font-weight:700;background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:12px 14px;margin:8px 0">${st.text}</div>`;
+: (strat ? `<div class="aud-note" style="border-color:#E0A100;background:#FFF8E5">💡 <b>Strateji · Soru sorarak dinle:</b> Okumadan önce söyleyin: <b>"Dinlerken şu soruların cevaplarını yakala: Kim? Nerede? Ne zaman? Ne oldu? Sonunda ne oldu?"</b> Anlatırken de bu sırayı izlemesine yardım edin. Sonucu Aşama 1 ile karşılaştırın.</div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:4px 0">${["Kim?","Nerede?","Ne zaman?","Ne oldu?","Sonunda?"].map(q => `<span style="background:#FFE7A3;border-radius:12px;padding:6px 12px;font-weight:900;font-size:17px">${q}</span>`).join("")}</div>` : "") + `<div class="aud-note">${["Hikâyeyi <b>iki kez</b>, doğal bir hızla okuyun.", "Hikâyeyi <b>bir kez</b>, doğal bir hızla okuyun.", "Hikâyeyi <b>bir kez</b> okuyun; çocuk olayları <b>oluş sırasıyla</b> anlatsın (sıra karışırsa not edin)."][Math.min(currentCombo().t, 2)]} Çocuk kendi cümleleriyle anlatsın; hatırladığı her ayrıntıya dokunun. Sonra soruları sorun.</div><div style="font-size:19px;line-height:1.55;font-weight:700;background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:12px 14px;margin:8px 0">${st.text}</div>`;
 const chips = `<div style="font-weight:900;margin:6px 0">Hatırlanan ayrıntılar: <span style="color:var(--teal-dark)">${got} / ${total}</span></div><div style="display:flex;flex-wrap:wrap;gap:6px">` +
 st.units.map((u, i) => `<button type="button" data-unit="${i}" style="border:2px solid ${storyChecked[i] ? "#1FA463" : "var(--line)"};background:${storyChecked[i] ? "#E3F6EC" : "var(--panel)"};border-radius:999px;padding:6px 12px;font-family:inherit;font-weight:800;font-size:14px;color:var(--ink);cursor:pointer">${storyChecked[i] ? "✓ " : ""}${u}</button>`).join("") + `</div>`;
 const qs = delayed ? "" : `<div style="font-weight:900;margin:12px 0 4px">Sorular</div>` + st.q.map(q => `<div class="aud-row" style="padding:8px 10px"><div class="aud-body"><div style="font-weight:800">${q[0]}</div><div class="aud-key">Cevap: <b>${q[1]}</b></div></div></div>`).join("");
@@ -6643,7 +6646,7 @@ let pick; do{ pick = shuffleArray(all).slice(0, N); } while(!pick.some(a => pick
 return pick;
 }
 function dirTrial(){
-const t = currentCombo().t, items = dirItems(), steps = (isPre() ? [1, 2, 2] : [2, 3, 3])[t];
+const t = currentCombo().t, items = dirItems(), steps = (isPre() ? [1, 2, 3] : [2, 3, 3])[t];
 const ord = shuffleArray(items.map((x, i) => i)).slice(0, steps);
 let text;
 if(!isPre() && t === 2){   // "…dokunmadan önce …" : söylenen ile yapılacak sıra farklı
@@ -6671,10 +6674,10 @@ const FACE_GENDER = ["b","g","b","g","g","b","g","b","b","g","b","g"];
 const FACEID_NAMES = { b:["Can","Mert","Ali","Emre","Kerem","Burak","Efe","Arda"], g:["Elif","Zeynep","Defne","Ece","Ada","Duru","Nil","Su"] };
 function faceTrial(){
 const t = currentCombo().t;
-if(stIx() === 1){ const K = (isPre() ? [2, 2, 3] : [2, 3, 4])[t], ids = shuffleArray(FACE_ID_IMAGES.map((x, i) => i)).slice(0, K), used = new Set();
+if(stIx() === 1){ const K = (isPre() ? [2, 3, 4] : [3, 4, 5])[t], ids = shuffleArray(FACE_ID_IMAGES.map((x, i) => i)).slice(0, K), used = new Set();
 const ppl = ids.map(i => { const nm = shuffleArray(FACEID_NAMES[FACE_GENDER[i]]).find(n => !used.has(n)); used.add(nm); return { i, nm }; });
 return { mode:"name", ppl, order: shuffleArray(ppl.map((x, k) => k)) }; }
-const M = (isPre() ? [2, 3, 3] : [3, 4, 6])[t], ids = shuffleArray(FACE_ID_IMAGES.map((x, i) => i));
+const M = (isPre() ? [2, 3, 4] : [3, 4, 6])[t], ids = shuffleArray(FACE_ID_IMAGES.map((x, i) => i));
 const study = ids.slice(0, M); return { mode:"recog", study, opts: shuffleArray(ids.slice(0, M * 2)) };
 }
 const SCENES = [
@@ -6745,7 +6748,7 @@ const QZ_ARROW_ROT = { up:0, "up-right":45, right:90, "down-right":135, down:180
 const qzArrow = (d, col) => arrowSVG("up", col).replace("rotate(0deg)", `rotate(${QZ_ARROW_ROT[d]}deg)`);
 const QZ_OPP_FACE = { happy:"sad", sad:"happy" };
 const QZ = {
-"odd-cat": () => { const C = qzCats(), t = currentCombo().t, N = qzOpts([4, 4, 5][t], [3, 3, 4][t]);
+"odd-cat": () => { const C = qzCats(), t = currentCombo().t, N = qzOpts([4, 5, 5][t], [3, 4, 4][t]);
 return Array.from({length: qzTrials(6, 4)}, () => { const keys = Object.keys(C).filter(k => C[k].items.length >= N - 1); const a = randomItem(keys);
 const b = t === 2 && QZ_CLOSE[a] ? QZ_CLOSE[a] : randomItem(keys.filter(k => k !== a && QZ_CLOSE[a] !== k));
 const same = shuffleArray(C[a].items).slice(0, N - 1), odd = randomItem(C[b].items);
@@ -6761,12 +6764,12 @@ word = OPPOSITE_LABELS[st]; stim = oppositeSVG(ty, st, col); opts = [oppositeSVG
 if(t === 2 && !isPre()) opts = opts.slice(0, 3);
 return qzMake(stim, opts, 0, { prompt:`<b>${cap(word)}</b> · zıttı hangisi?`, say:`${cap(word)}. Zıttı hangisi?` }); }); },
 "syl-touch": () => { const t = currentCombo().t, C = qzCats();
-const pool = Object.values(C).flatMap(c => c.items).filter(x => !/\s/.test(x.n)).filter(x => { const s = trSyl(x.n); return isPre() ? s >= 1 && s <= 3 : (t === 0 ? s <= 2 : t === 1 ? s <= 3 : s >= 2); });
-const max = isPre() ? 3 : 4;
+const pool = Object.values(C).flatMap(c => c.items).filter(x => !/\s/.test(x.n)).filter(x => { const s = trSyl(x.n); return isPre() ? [s <= 2, s <= 3, s >= 2 && s <= 3][Math.min(t, 2)] : (t === 0 ? s <= 2 : t === 1 ? s <= 3 : s >= 2); });
+const max = isPre() ? [2, 3, 3][Math.min(t, 2)] : 4;
 return shuffleArray(pool).slice(0, qzTrials(6, 4)).map(x => { const s = Math.min(trSyl(x.n), max);
 const opts = Array.from({length:max}, (_, i) => `<span style="font-size:20px;letter-spacing:1px">${"👏".repeat(i + 1)}</span><span style="display:block;font-weight:900;font-size:18px">${i + 1}</span>`);
 return { stim: qzPic(x.src), opts, ans: s - 1, prompt:"Kaç hece? <b>El çırparak</b> say", say: x.n, replay:true, fixed:true }; }); },
-"sim-touch": () => { const C = qzCats(), t = currentCombo().t, N = qzOpts([3, 4, 5][t], [3, 3, 3][t]);
+"sim-touch": () => { const C = qzCats(), t = currentCombo().t, N = qzOpts([3, 4, 5][t], [3, 3, 4][t]);
 return Array.from({length: qzTrials(6, 4)}, () => { const keys = Object.keys(C); const a = randomItem(keys.filter(k => C[k].items.length >= 3));
 const ex = shuffleArray(C[a].items), shown = ex.slice(0, t === 0 ? 2 : 1), ans = ex[t === 0 ? 2 : 1];
 const others = shuffleArray(keys.filter(k => k !== a && (t === 2 && !isPre() ? true : QZ_CLOSE[a] !== k))).slice(0, N - 1).map(k => randomItem(C[k].items));
@@ -6781,12 +6784,12 @@ const sameCat = all.filter(y => y.cat === x.cat && y.k !== x.k), other = all.fil
 const dis = shuffleArray(t === 0 ? other : t === 1 ? sameCat.slice(0, 1).concat(other) : sameCat.concat(other)).slice(0, N - 1);
 const opts = [qzPic(x.src)].concat(dis.map(d => qzPic(d.src)));
 return qzMake("", opts, 0, { prompt:"<b>Dinle</b>, anlatılanı bul", say: QZ_DEFS[x.k], replay:true, showText: !isPre() && t === 2 ? false : false }); }); },
-"use-touch": () => { const t = currentCombo().t, N = qzOpts([3, 4, 4][t], [3, 3, 3][t]), items = qzUseItems();
+"use-touch": () => { const t = currentCombo().t, N = qzOpts([3, 4, 5][t], [2, 3, 4][t]), items = qzUseItems();
 return shuffleArray(items).slice(0, qzTrials(6, 4)).map(x => { const dis = shuffleArray(items.filter(y => y !== x)).slice(0, N - 1);
 const opts = [qzPic(x.src)].concat(dis.map(d => qzPic(d.src)));
 return qzMake("", opts, 0, { prompt: x.q, say: x.q, replay:true }); }); },
 "arrow-touch": () => { const t = currentCombo().t, dirs4 = ["up","down","left","right"], dirs8 = dirs4.concat(["up-left","up-right","down-left","down-right"]);
-const dirs = isPre() ? (t === 2 ? dirs4 : ["left","right"].concat(t ? ["up","down"] : [])) : (t === 2 ? dirs8 : dirs4);
+const dirs = isPre() ? [["left","right"], dirs4, dirs4.concat(["up-left","up-right"])][Math.min(t, 2)] : [dirs4, dirs4.concat(["up-left","up-right"]), dirs8][Math.min(t, 2)];
 return Array.from({length: qzTrials(8, 5)}, () => { const d = randomItem(dirs), col = randomItem(COLORS);
 const opts = dirs.map(x => qzArrow(x, "#5B6B7A")); return { stim: qzArrow(d, col), opts, ans: dirs.indexOf(d), prompt:"Ok <b>hangi yöne</b> bakıyor?", fixed:true }; }); },
 "edge-touch": () => { const t = currentCombo().t, sides = isPre() ? [[3, 4], [3, 4, 5], [3, 4, 5]][t] : [[3, 4, 5], [3, 4, 5, 6], [3, 4, 5, 6, 8]][t];
@@ -6867,7 +6870,7 @@ return `<div class="wm-pic${mk}" data-mt="${i}" style="width:${d.cell}px;height:
 const body = dots + (isLs && (tr.stim || tr.replay) ? `<div style="display:flex;gap:16px;align-items:center;justify-content:center"><div>${stimH}${replay}</div>${grid}</div>` : stimH + replay + grid);
 return { info: tr.prompt, body };
 }
-function szBuild(){ const t = currentCombo().t, N = (isPre() ? [3, 3, 4] : [3, 4, 5])[t], close = t === 2;
+function szBuild(){ const t = currentCombo().t, N = (isPre() ? [3, 4, 4] : [3, 4, 5])[t], close = t === 2;
 return Array.from({length: qzTrials(5, 3)}, () => { const p = randomItem(picPool()), base = close ? 0.5 : 0.35, step = (1 - base) / (N - 1);
 const sizes = Array.from({length:N}, (_, i) => +(base + step * i).toFixed(2)); return { src: p.src, sizes, order: shuffleArray(sizes.map((s, i) => i)) }; }); }
 
@@ -6875,7 +6878,7 @@ const sizes = Array.from({length:N}, (_, i) => +(base + step * i).toFixed(2)); r
 
 
 const MOVES = ["alkışla","elini kaldır","masaya vur","zıpla","başına dokun","ayağını yere vur","kollarını aç","yere otur"];
-function moveTrials(){ const t = currentCombo().t, L = (isPre() ? [2, 2, 3] : [2, 3, 4])[t];
+function moveTrials(){ const t = currentCombo().t, L = (isPre() ? [2, 3, 4] : [3, 4, 5])[t];
 return Array.from({length: isPre() ? 3 : 4}, () => { let seq; do{ seq = shuffleArray(MOVES.map((m, i) => i)).slice(0, L); } while(seq.slice(0, -1).includes(7)); return seq; }); }   // "yere otur" yalnızca sonda
 const STORY_SEQ_TEXT = [ ["Çocuk koşarken düştü.","Annesi ona yardım etti.","Çocuk kalkıp yine koşmaya başladı."],
 ["Kız elmayı yıkadı.","Elmayı yedi.","Elmanın koçanını çöpe attı."],
@@ -6895,19 +6898,20 @@ const WHATDO = [
 { img:5, q:"Arkadaşın düştü, dizi acıyor. Ne yapmalısın?", a:"Nasıl olduğunu sormalı, bir büyüğe haber vermeli.", why:"Yarası temizlenmeli; yardım gerekebilir." },
 { img:4, q:"Kapı zili çaldı, evde bir büyük var. Ne yapmalısın?", a:"Kapıyı kendisi açmamalı, bir büyüğe haber vermeli.", why:"Kapıdakini tanımıyor olabiliriz; güvenlik için." }
 ];
-function whatdoTrials(){ const t = currentCombo().t, N = (isPre() ? [3, 4, 4] : [4, 5, 6])[t];
+function whatdoTrials(){ const t = currentCombo().t, N = (isPre() ? [3, 4, 5] : [4, 5, 6])[t];
 const pool = isPre() ? (t === 0 ? WHATDO.slice(0, 4) : WHATDO) : WHATDO; return shuffleArray(pool).slice(0, N); }
 
-const FLU_CATS = { pre:[ { k:"hayvan", n:"HAYVANLAR", say:"Bildiğin hayvanları söyle." }, { k:"yiyecek", n:"YİYECEKLER", say:"Yenebilen şeylerden olabildiğince çok söyle." } ],
+const FLU_CATS = { pre:[ { k:"hayvan", n:"HAYVANLAR", say:"Bildiğin hayvanları söyle." }, { k:"yiyecek", n:"YİYECEKLER", say:"Yenebilen şeylerden olabildiğince çok söyle." }, { k:"giysi", n:"GİYSİLER", say:"Giyebileceğin şeylerden olabildiğince çok söyle." } ],
 post:[ { k:"hayvan", n:"HAYVANLAR", say:"Bildiğin bütün hayvanları söyle." }, { k:"meyve", n:"MEYVELER", say:"Bildiğin bütün meyveleri söyle." }, { k:"meslek", n:"MESLEKLER", say:"Bildiğin bütün meslekleri söyle." } ] };
-const FLU_LETTERS = { pre:["B","M","K","T","S"], post:[["K","S","B"], ["A","M","T"], ["D","E","Ç"]] };
-const FLU_SWITCH_PRE = [ [["HAYVAN","hayvan"],["YİYECEK","yiyecek"]], [["HAYVAN","hayvan"],["YİYECEK","yiyecek"]], [["RENK","renk"],["HAYVAN","hayvan"]] ];
+const FLU_CAT_TIER = { pre:[["hayvan"], ["yiyecek"], ["giysi"]], post:[["hayvan"], ["meyve"], ["meslek"]] };   // geniş kategori kolay, dar kategori zor
+const FLU_LETTERS = { pre:[["K","B"], ["S","T"], ["M"]], post:[["K","S","B"], ["A","M","T"], ["D","E","Ç"]] };
+const FLU_SWITCH_PRE = [ [["HAYVAN","hayvan"],["YİYECEK","yiyecek"]], [["RENK","renk"],["HAYVAN","hayvan"]], [["HAYVAN","hayvan"],["YİYECEK","yiyecek"],["RENK","renk"]] ];
 const FLU_SWITCH = [ [["HAYVAN","hayvan"],["YİYECEK","yiyecek"]], [["MEYVE","meyve"],["GİYSİ","giysi"]], [["HAYVAN","hayvan"],["YİYECEK","yiyecek"],["TAŞIT","taşıt"]] ];
 let fluTarget = {};
 function fluSecs(fid){ if(fid === "alt-uses") return (isPre() ? [45, 60, 60] : [60, 90, 90])[currentCombo().t]; return (isPre() ? [30, 45, 60] : [45, 60, 60])[currentCombo().t]; }
 function fluPick(fid, force){
 const lvl = isPre() ? "pre" : "post", t = currentCombo().t, key = fid + "|" + lvl + "|" + t;
-const pool = fid === "flu-cat" ? FLU_CATS[lvl].map(x => x.k) : fid === "flu-letter" ? (isPre() ? FLU_LETTERS.pre : FLU_LETTERS.post[t]) : fid === "alt-uses" ? ALT_OBJ().map(o => o.n) : [0];
+const pool = fid === "flu-cat" ? FLU_CAT_TIER[lvl][Math.min(t, 2)] : fid === "flu-letter" ? (isPre() ? FLU_LETTERS.pre : FLU_LETTERS.post)[Math.min(t, 2)] : fid === "alt-uses" ? ALT_BY_TIER[Math.min(t, 2)] : [0];
 if(force || !pool.includes(fluTarget[key])){ let v; do{ v = randomItem(pool); } while(pool.length > 1 && v === fluTarget[key]); fluTarget[key] = v; }
 return fluTarget[key];
 }
@@ -6921,7 +6925,7 @@ const sw = isPre() ? FLU_SWITCH_PRE[currentCombo().t] : FLU_SWITCH[currentCombo(
 const GS_BANK = { hayvan:["kedi","köpek","tavşan","kuş","inek","at","aslan"], meyve:["elma","muz","çilek","armut","kiraz","üzüm"], sebze:["havuç","patates","soğan","salatalık","ıspanak"],
 "taşıt":["araba","otobüs","tren","uçak","gemi","bisiklet"], giysi:["ceket","çorap","şapka","etek","pantolon","kazak"], mutfak:["kaşık","tabak","çatal","tencere","bardak"] };
 const GS_PLURAL = { hayvan:"hayvanlar", meyve:"meyveler", sebze:"sebzeler", "taşıt":"taşıtlar", giysi:"giysiler", mutfak:"mutfak eşyaları" };
-function gsBuild(){ const t = currentCombo().t, spec = isPre() ? [[2, 3], [2, 3], [2, 4]][t] : [[3, 3], [4, 3], [3, 4]][t];
+function gsBuild(){ const t = currentCombo().t, spec = isPre() ? [[2, 3], [3, 3], [3, 4]][t] : [[3, 3], [4, 3], [3, 4]][t];
 let cats = shuffleArray(isPre() ? ["hayvan","meyve","taşıt","giysi"] : Object.keys(GS_BANK).filter(k => k !== "sebze"));
 cats = cats.slice(0, spec[0]); if(!isPre() && t === 2){ cats = ["meyve","sebze"].concat(cats.filter(c => c !== "meyve").slice(0, 1)); }
 const groups = cats.map(c => ({ c, w: shuffleArray(GS_BANK[c]).slice(0, spec[1]) }));
@@ -6943,7 +6947,7 @@ oyuncak:{ n:"Oyuncaklar", items: C.toy.items },
 meyve:{ n:"Meyveler", items: C.meyve.items }, sebze:{ n:"Sebzeler", items: C.sebze.items }, kara:{ n:"Kara hayvanları", items: C.wild.items }, deniz:{ n:"Deniz canlıları", items: C.sea.items } };
 }
 function spBuild(){ const t = currentCombo().t, G = spGroups();
-const sets = isPre() ? [2, 3, 3] : [3, 4, 4], per = 2;
+const sets = isPre() ? [2, 3, 3] : [3, 4, 4], per = isPre() && t === 2 ? 3 : 2;
 let keys = (!isPre() && t === 2) ? ["meyve","sebze","kara","deniz"] : shuffleArray(isPre() ? ["hayvan","yiyecek","taşıt"] : ["hayvan","yiyecek","taşıt","giysi","oyuncak"]).slice(0, sets[t]);
 const bins = keys.map(k => { const its = shuffleArray(G[k].items); return { k, n: G[k].n, ex: its[0], items: its.slice(1, 1 + per) }; });
 return { bins, queue: shuffleArray(bins.flatMap((b, bi) => b.items.map(it => ({ it, bi })))) };
@@ -6958,7 +6962,7 @@ const FS_WORDS = { meyve:["elma","armut","kiraz","muz","üzüm"], "taşıt":["ot
 hayvan:["aslan","inek","kartal","balık","kedi"], meslek:["doktor","öğretmen","aşçı","pilot","berber"], renk:["mavi","sarı","kırmızı","yeşil","mor"] };
 const FS_COLORS = ["#E5484D","#2E6FD8","#1FA463","#F5A524","#8B5CF6"];
 function fsBuild(){ const t = currentCombo().t;
-if(isPre() || t === 0){ const F = FS_FAM(), spec = isPre() ? [[2, 3], [2, 3], [3, 3]][t] : [3, 3];
+if(isPre() || t === 0){ const F = FS_FAM(), spec = isPre() ? [[2, 2], [2, 3], [3, 3]][t] : [3, 3];
 const fams = shuffleArray(Object.keys(F)).slice(0, spec[0]);
 const items = shuffleArray(fams.flatMap(f => shuffleArray(F[f].pics).slice(0, spec[1]).map(src => ({ src, f }))));
 return { items, fams, names: Object.fromEntries(fams.map(f => [f, F[f].n])), pics:true }; }
@@ -6985,7 +6989,10 @@ const RHYME_SAY = { pre:[ ["el","gel, sel"], ["bal","dal, kal"], ["ev","sev, dev
 post:[ ["yastık","bastık, astık"], ["güneş","ateş, beş"], ["kitap","kebap, hitap"], ["masa","kasa, tasa"], ["kedi","yedi, dedi"], ["kalem","salem (uydurma da olur)"], ["tavşan","yavşan, mavşan"], ["çorap","dorap, borap"], ["simit","kimit, timit"], ["kuzu","buzu, muzu"], ["deniz","beniz, kendiniz"], ["bardak","kardak, yardak"] ] };
 const RHYME_PAIRS = { yes:[["kedi","yedi"],["el","gel"],["bal","dal"],["ev","sev"],["kar","dar"],["taş","baş"],["masa","kasa"],["güneş","ateş"],["yastık","bastık"],["ay","çay"],["top","hop"],["kuzu","buzu"]],
 no:[["kedi","kalem"],["el","ev"],["bal","bebek"],["masa","muz"],["güneş","göz"],["taş","top"],["ay","at"],["kar","kedi"],["yastık","yol"],["top","tavşan"],["ev","elma"],["kuzu","kale"]] };
-function rhBuild(){ const N = isPre() ? 5 : 8, yes = shuffleArray(RHYME_PAIRS.yes), no = shuffleArray(RHYME_PAIRS.no), out = [];
+const RHYME_NEAR = [["bal","bel"],["el","al"],["ev","av"],["kar","kır"],["taş","kuş"],["top","tip"]];   // yalnızca bir ünlü farklı: kulağa uyaklı gelir
+function rhNoPool(t){ if(t >= 2) return RHYME_NEAR.concat(RHYME_PAIRS.no); if(t === 1) return RHYME_PAIRS.no;
+  const ends = RHYME_PAIRS.no.map(p => p[1]); return RHYME_PAIRS.yes.map(([a]) => [a, randomItem(ends.filter(b => b[0] !== a[0] && b.slice(-2) !== a.slice(-2)))]); }   // Başlangıç: tamamen farklı kelimeler
+function rhBuild(){ const t = currentCombo().t, N = isPre() ? 5 : 8, yes = shuffleArray(RHYME_PAIRS.yes), no = shuffleArray(rhNoPool(t)), out = [];
 for(let i = 0; i < N; i++){ const isYes = i % 2 === 0; const pr = isYes ? yes[i] : no[i]; out.push({ stim:"", text:true, opts:[`<b style="font-size:20px">✓ Uyaklı</b>`, `<b style="font-size:20px">✗ Değil</b>`], ans: isYes ? 0 : 1, say:`${pr[0]}… ${pr[1]}`, replay:true, fixed:true, prompt:"Bu iki kelime <b>uyaklı</b> mı?", after: isYes ? "" : `${pr[0]} ve ${pr[1]} uyaklı değil.` }); }
 return shuffleArray(out); }
 const SYN = [["büyük","iri"],["hızlı","çabuk"],["güzel","hoş"],["mutlu","sevinçli"],["cevap","yanıt"],["okul","mektep"],["öğrenci","talebe"],["siyah","kara"],["beyaz","ak"],["yaşlı","ihtiyar"],["doktor","hekim"],["sınav","imtihan"],["kelime","sözcük"],["kırmızı","al"],["zengin","varlıklı"],["akıllı","zeki"]];
@@ -7045,9 +7052,10 @@ function semTrials(){ const C = qzCats(), I = (src) => ({ src }), t = Math.min(c
     out.push({ stim: qzPic(it.src), opts:[`<b style="font-size:20px">✓ Evet</b>`, `<b style="font-size:20px">✗ Hayır</b>`], ans: y ? 0 : 1, prompt:`<b>${Q.q}</b>`, say: Q.q, text:true, qk: Q.k }); }
   return out; }
 function chaseCfg(){ const t = currentCombo().t; return { need: isPre() ? [5, 6, 8][t] : [8, 10, 12][t], speed: (isPre() ? [0.45, 0.6, 0.75] : [0.6, 0.85, 1.1])[t], size: isPre() ? 70 : [64, 56, 48][t] }; }
+const ALT_BY_TIER = [ ["kova","yastık","şemsiye"], ["kalem","kaşık","fincan"], ["zarf","tarak"] ];   // Başlangıç: çok amaçlı nesneler · Zor: kullanım alanı dar nesneler
 const ALT_OBJ = () => [ { n:"kova", src: HOUSE_IMAGES.bucket }, { n:"kaşık", src: PAL_EXTRA_IMAGES.spoon }, { n:"şemsiye", src: PAIR_IMAGES.umbrella }, { n:"yastık", src: HOUSE_IMAGES.pillow },
 { n:"kalem", src: PAIR_IMAGES.pencil }, { n:"fincan", src: HOUSE_IMAGES.cup }, { n:"zarf", src: PAIR_IMAGES.envelope }, { n:"tarak", src: HOUSE_IMAGES.comb } ];
-function timeTrials(){ const t = currentCombo().t, secs = (isPre() ? [3, 5, 5] : [5, 10, 15])[t]; return Array.from({length: isPre() ? 3 : 4}, () => ({ secs, tol: isPre() ? 0.3 : 0.2 })); }
+function timeTrials(){ const t = currentCombo().t, secs = (isPre() ? [3, 5, 7] : [5, 10, 15])[t]; return Array.from({length: isPre() ? 3 : 4}, () => ({ secs, tol: isPre() ? 0.3 : 0.2 })); }
 function ferrTrials(){ const t = currentCombo().t, types = isPre() ? ["shape"] : ["shape","num","pattern"];
 return Array.from({length: isPre() ? 3 : 4}, () => { const ty = randomItem(types), E = isPre() ? [1, 1, 2][t] : [1, 2, 3][t];
 if(ty === "num"){ const N = [6, 8, 10][t], arr = Array.from({length:N}, (_, i) => i + 1), bad = new Set();
@@ -7070,11 +7078,11 @@ return Array.from({length: isPre() ? 3 : 5}, () => { let v = isPre() ? 1 + Math.
 for(let k = 0; k < steps; k++){ const maxAdd = (isPre() ? 5 : 9) - v; let d; if(v > 0 && (maxAdd <= 0 || Math.random() < 0.45)){ d = -(1 + Math.floor(Math.random() * Math.min(v, isPre() ? 2 : 4))); } else { d = 1 + Math.floor(Math.random() * Math.min(maxAdd, isPre() ? 2 : 4)); } v += d; ops.push(d); }
 const opts = shuffleArray(Array.from(new Set([v, v + 1, Math.max(0, v - 1), v + 2, Math.max(0, v - 2)])).slice(0, 4)); if(!opts.includes(v)) opts[0] = v;
 return { start, ops, res: v, opts: shuffleArray(opts), pic: randomItem(picPool()) }; }); }
-function whoTrial(){ const t = currentCombo().t, nP = !isPre() && t === 2 ? 3 : 2, nI = isPre() ? [4, 4, 6][t] : [4, 6, 8][t];
+function whoTrial(){ const t = currentCombo().t, nP = !isPre() && t === 2 ? 3 : 2, nI = isPre() ? [4, 5, 6][t] : [4, 6, 8][t];
 const fids = shuffleArray(FACE_ID_IMAGES.map((x, i) => i)).slice(0, nP), used = new Set(), ppl = fids.map(i => { const nm = shuffleArray(FACEID_NAMES[FACE_GENDER[i]]).find(n => !used.has(n)); used.add(nm); return { i, nm }; });
 const items = shuffleArray(picPool()).slice(0, nI).map((x, k) => ({ x, p: k % nP }));
 return { ppl, study: shuffleArray(items), test: shuffleArray(items.slice()) }; }
-function rhyTrials(){ const t = currentCombo().t, L = (isPre() ? [3, 3, 4] : [4, 5, 6])[t];
+function rhyTrials(){ const t = currentCombo().t, L = (isPre() ? [3, 4, 5] : [4, 5, 6])[t];
 return Array.from({length: isPre() ? 3 : 4}, () => { let iv; do{ iv = Array.from({length: L - 1}, () => Math.random() < 0.4 ? 2 : 1); } while(!(iv.includes(1) && iv.includes(2))); return { L, iv }; }); }
 function rhyBeep(){ try{ const ctx = getAudioCtx(); if(!ctx) return; if(ctx.state === "suspended") ctx.resume(); sfxTone(ctx, 660, ctx.currentTime + 0.005, 0.12, "triangle", 0.25); }catch(e){} }
 function memBuild(){ const t = currentCombo().t, P = (isPre() ? [2, 3, 4] : [4, 6, 8])[t], pics = shuffleArray(picPool()).slice(0, P);
@@ -7164,7 +7172,7 @@ const N = pre ? [6, 7, 7][t] : [7, 8, 8][t], out = [], usedPair = new Set();
 for(let k = 0; k < N; k++){ const ty = types[k % types.length]; let opts, ans = 0, say, prompt;
 if(ty === "pair"){ const cand = CP_PAIRS.filter(x => !usedPair.has(x[0])), P = randomItem(cand.length ? cand : CP_PAIRS); usedPair.add(P[0]); const side = Math.random() < 0.5 ? 0 : 1;
 opts = [qzPic(CONCEPT_IMAGES[P[0]]), qzPic(CONCEPT_IMAGES[P[1]])]; ans = side; say = P[2 + side]; prompt = P[4 + side]; }
-else if(ty === "pos"){ const pool = pre ? (t === 0 ? ["on","under","in","out"] : ["on","under","next","in","out"]) : ["on","under","next","in","out","front","behind","between"];
+else if(ty === "pos"){ const pool = pre ? [["on","under","in","out"], ["on","under","next","in","out"], ["on","under","next","in","out","front","behind"]][Math.min(t, 2)] : [["on","under","next","in","out"], ["on","under","next","in","out","front","behind"], ["on","under","next","in","out","front","behind","between"]][Math.min(t, 2)]; /* Zor: önünde/arkasında (öncesi), arasında (sonrası) */
 const rel = randomItem(pool), fam = CP_FAM[rel].slice(0, pre ? 3 : 3); opts = fam.map(r => cpDraw(r)); ans = fam.indexOf(rel); say = `Topun ${CP_PHRASE[rel]} olduğu resmi göster.`; prompt = `Top <b>${CP_PHRASE[rel]}</b>`; }
 else if(ty === "qty"){ const mode = pre ? randomItem(["most","least"]) : randomItem(["most","least","none"]); let ns = shuffleArray(pre ? [1, 3, 6] : [0, 2, 4, 7]);
 if(mode !== "none" && !pre) ns = shuffleArray([1, 3, 5, 7]); opts = ns.map(n => cpApples(n));
@@ -7207,7 +7215,7 @@ const INFER_MC = [ ["Mert sınıfa girince herkes 'Sürpriz!' diye bağırdı; m
 ["Kapının önünde çamurlu küçük pati izleri ve devrilmiş bir saksı var.", "Ne olmuş olabilir?", "Bir hayvan girip saksıyı devirmiş.", "Saksı kendi kendine yürümüş.", "Yağmur yağmamış."],
 ["Bahçedeki çamaşırlar ıslandı, toprak çamur oldu, gökyüzü griydi.", "Ne olmuş?", "Yağmur yağmış.", "Çamaşırlar yıkanmış.", "Güneş açmış."],
 ["Öğretmen 'Kitaplarınızı kapatın, kalemlerinizi alın' dedi ve kâğıt dağıttı.", "Ne olacak?", "Sınav yapılacak.", "Teneffüse çıkılacak.", "Resim boyanacak."] ];
-function imcBuild(){ const t = currentCombo().t, N = [3, 3, 4][t]; return shuffleArray(INFER_MC).slice(0, 5).map(([s, q, ok, a, b]) => qzMake(`<div style="font-size:17px;font-weight:800;text-align:center;max-width:360px;margin:0 auto;line-height:1.35">${s}</div><div style="text-align:center;font-weight:900;color:var(--teal-dark);margin-top:4px">${q}</div>`, [ok, a, b].slice(0, N).map(x => `<b style="font-size:16px">${x}</b>`), 0, { prompt:"<b>İpuçlarından</b> çıkar", fixed:true, text:true, raw:true, say:`${s} ${q}`, replay:true })); }
+function imcBuild(){ const t = currentCombo().t, N = [2, 3, 3][Math.min(t, 2)], listenOnly = t >= 2; /* Zor: cümle yazılı değil, yalnızca dinleyerek */ return shuffleArray(INFER_MC).slice(0, 5).map(([s, q, ok, a, b]) => qzMake(`<div style="font-size:17px;font-weight:800;text-align:center;max-width:360px;margin:0 auto;line-height:1.35">${listenOnly ? "🔊 <span style=\"color:var(--muted)\">Dinle</span>" : s}</div><div style="text-align:center;font-weight:900;color:var(--teal-dark);margin-top:4px">${q}</div>`, [ok, a, b].slice(0, N).map(x => `<b style="font-size:16px">${x}</b>`), 0, { prompt:"<b>İpuçlarından</b> çıkar", fixed:true, text:true, raw:true, say:`${s} ${q}`, replay:true })); }
 const HOMONYM = { post:[ { t:0, q:"<b>yüz</b>", a:"surat · 100 sayısı" }, { t:0, q:"<b>ay</b>", a:"gökteki ay · yılın ayları" }, { t:0, q:"<b>gül</b>", a:"çiçek · gülmek" }, { t:0, q:"<b>at</b>", a:"hayvan · atmak (topu at)" },
 { t:1, q:"<b>dil</b>", a:"ağızdaki organ · konuşulan lisan" }, { t:1, q:"<b>yaz</b>", a:"mevsim · yazmak" }, { t:1, q:"<b>kır</b>", a:"şehir dışı açık alan · kırmak" }, { t:1, q:"<b>bin</b>", a:"1000 sayısı · binmek" },
 { t:2, q:"<b>çay</b>", a:"içecek · küçük akarsu" }, { t:2, q:"<b>dolu</b>", a:"boş olmayan · buz yağışı" }, { t:2, q:"<b>kara</b>", a:"siyah · deniz olmayan yer (kara yolu)" }, { t:2, q:"<b>kaz</b>", a:"hayvan · kazmak (toprağı kaz)" } ] };
@@ -7283,7 +7291,7 @@ function blkFace(f, A, B){
 const tri = { 2:"0,0 100,0 0,100", 3:"0,0 100,0 100,100", 4:"100,0 100,100 0,100", 5:"0,0 100,100 0,100" }[f];
 return `<svg viewBox="0 0 100 100" width="100%" height="100%" preserveAspectRatio="none"><rect width="100" height="100" fill="${f === 1 ? A : B}"/>${tri ? `<polygon points="${tri}" fill="${A}"/>` : ""}<rect width="100" height="100" fill="none" stroke="#9AA9B8" stroke-width="3"/></svg>`; }
 function blkTrials(){ const t = currentCombo().t, pre = isPre();
-const cfg = pre ? [ { n:2, faces:[0, 1], A:BLK_COL.a, B:BLK_COL.c }, { n:2, faces:[0, 1], A:BLK_COL.a, B:BLK_COL.d }, { n:2, faces:[0, 1, 4, 5], A:BLK_COL.a, B:BLK_COL.d, house:true } ][t]
+const cfg = pre ? [ { n:2, faces:[0, 1], A:BLK_COL.a, B:BLK_COL.c }, { n:2, faces:[0, 1, 4, 5], A:BLK_COL.a, B:BLK_COL.d }, { n:2, faces:[0, 1, 4, 5], A:BLK_COL.a, B:BLK_COL.d, house:true } ][t]
 : [ { n:2, faces:[0, 1, 2, 3, 4, 5], A:BLK_COL.a, B:BLK_COL.b }, { n:3, faces:[0, 1, 2, 3, 4, 5], A:BLK_COL.a, B:BLK_COL.b }, { n:4, faces:[0, 1, 2, 3, 4, 5], A:BLK_COL.a, B:BLK_COL.b } ][t];
 return Array.from({length: pre ? 3 : 3}, () => { let model;
 if(cfg.house){ model = [4, 5, 1, 1]; }
@@ -7381,7 +7389,7 @@ else { const occ = Array.from({length:4}, () => `<div style="position:absolute;l
 stim = `<div style="position:relative;width:100%;height:100%;overflow:hidden">${full(a)}${occ}</div>`; opts = [full(a), full(b), full(c), full(d)]; prompt = "Önü kısmen <b>kapatılmış</b>: bu ne?"; }
 const o = shuffleArray(opts.map((h, i) => i)); out.push({ stim, opts: o.map(i => opts[i]), ans: o.indexOf(0), prompt, fixed:true, cell:100 }); }
 return out; }
-function symTrials(){ const t = currentCombo().t, pre = isPre(), n = pre ? [4, 4, 6][t] : [6, 6, 8][t], fill = pre ? 0.35 : 0.4;
+function symTrials(){ const t = currentCombo().t, pre = isPre(), n = pre ? [4, 4, 6][t] : [6, 6, 8][t], fill = [0.3, 0.45, 0.4][Math.min(t, 2)]; /* Orta: aynı ızgara, daha çok kare */
 return Array.from({length:3}, () => { const half = n / 2, cells = Array(n * n).fill(0), horiz = !pre && t === 2 && Math.random() < 0.5;
 for(let r = 0; r < n; r++) for(let c = 0; c < n; c++){ const given = horiz ? r < half : c < half; if(given && Math.random() < fill) cells[r * n + c] = 1; }
 if(!cells.some(Boolean)) cells[0] = 1; return { n, cells, horiz }; }); }
@@ -7427,8 +7435,9 @@ return out; }
 const RI_RULES = { pre:[ { k:"red", d:"hepsi kırmızı", ok:(c) => c.col === AA_COL[0] }, { k:"circle", d:"hepsi daire", ok:(c) => c.sh === "circle" }, { k:"big", d:"hepsi büyük", ok:(c) => (c.sz || 1) === 1 } ],
 post:[ { k:"outline", d:"hepsinin içi boş", ok:(c) => !!c.outline }, { k:"corner", d:"hepsinin köşesi var", ok:(c) => c.sh !== "circle" }, { k:"dot", d:"hepsinin içinde nokta var", ok:(c) => !!c.dot },
 { k:"two", d:"hepsinde iki şekil var", ok:(c) => (c.n || 1) === 2 }, { k:"red", d:"hepsi kırmızı", ok:(c) => c.col === AA_COL[0] } ] };
+const RI_TIER = { pre:[["red"], ["red","circle"], ["circle","big"]], post:[["red","corner"], ["outline","two"], ["dot","two","outline"]] };   // kolaydan zora
 function riRand(pre){ const c = { sh: randomItem(AA_SH), col: randomItem(AA_COL), sz: pre ? randomItem([0.6, 1]) : 1 }; if(!pre){ c.outline = Math.random() < 0.5; c.dot = Math.random() < 0.4; c.n = randomItem([1, 2, 3]); } return c; }
-function riTrials(){ const t = currentCombo().t, pre = isPre(), rules = pre ? RI_RULES.pre : RI_RULES.post, K = pre ? [3, 3, 4][t] : [3, 4, 4][t];
+function riTrials(){ const t = currentCombo().t, pre = isPre(), rules = (pre ? RI_RULES.pre : RI_RULES.post).filter(r => RI_TIER[pre ? "pre" : "post"][Math.min(t, 2)].includes(r.k)), K = pre ? [3, 3, 4][t] : [3, 4, 4][t];
 return Array.from({length: pre ? 4 : 5}, () => { const R = randomItem(rules), gen = (want) => { let c, g = 0; do{ c = riRand(pre); } while(R.ok(c) !== want && g++ < 200); return c; };
 let yes, g4 = 0; do{ yes = Array.from({length:K}, () => gen(true)); } while(g4++ < 60 && ((R.k !== "red" && new Set(yes.map(c => c.col)).size < 2) || (R.k !== "circle" && R.k !== "corner" && new Set(yes.map(c => c.sh)).size < 2)));
 const no = Array.from({length:K}, () => gen(false)), ans = gen(true), dis = [], used = new Set([aaKey(ans)]);
@@ -7440,9 +7449,10 @@ function balSVG(L, Rt, tilt){ const tr = tilt === "L" ? 9 : tilt === "R" ? -9 : 
 return `<svg viewBox="0 0 200 110" width="100%" height="100%"><polygon points="92,100 108,100 100,58" fill="#8B5A2B"/><g transform="rotate(${-tr} 100 58)"><rect x="18" y="55" width="164" height="5" rx="2" fill="#B9773A"/><line x1="40" y1="58" x2="40" y2="40" stroke="#8B5A2B" stroke-width="2"/><line x1="160" y1="58" x2="160" y2="40" stroke="#8B5A2B" stroke-width="2"/><path d="M14 40 h52 l-6 8 h-40 z" fill="#D9B26B"/><path d="M134 40 h52 l-6 8 h-40 z" fill="#D9B26B"/><g transform="translate(-60 0)">${icons(L, 100)}</g><g transform="translate(60 0)">${icons(Rt, 100)}</g></g></svg>`; }
 function balTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 4 : 5, out = [], W = { circle:1, triangle:2, square:4 };
 for(let q = 0; q < N; q++){
-if(pre){ if(t < 2){ const [a, b] = shuffleArray(AA_SH).slice(0, 2), heavy = W[a] > W[b] ? a : b, lightS = heavy === a ? b : a, sideL = Math.random() < 0.5;
+if(pre){ if(t < 2){ const light = t === 1 && q % 2 === 1;   // Orta: soru dönüşümlü "daha hafif?" (tersini düşünme)
+const [a, b] = shuffleArray(AA_SH).slice(0, 2), heavy = W[a] > W[b] ? a : b, lightS = heavy === a ? b : a, sideL = Math.random() < 0.5;
 const stim = `<div style="width:220px;height:120px;margin:0 auto">${balSVG(sideL ? [heavy] : [lightS], sideL ? [lightS] : [heavy], sideL ? "L" : "R")}</div>`;
-out.push(qzMake(stim, [aaCell({ sh:heavy, col:{ circle:"#2E6FD8", square:"#1FA463", triangle:"#E5484D" }[heavy] }), aaCell({ sh:lightS, col:{ circle:"#2E6FD8", square:"#1FA463", triangle:"#E5484D" }[lightS] })], 0, { prompt:"Hangisi <b>daha ağır</b>?", raw:true, fixed:true, cell:90 })); }
+out.push(qzMake(stim, [aaCell({ sh:heavy, col:{ circle:"#2E6FD8", square:"#1FA463", triangle:"#E5484D" }[heavy] }), aaCell({ sh:lightS, col:{ circle:"#2E6FD8", square:"#1FA463", triangle:"#E5484D" }[lightS] })], light ? 1 : 0, { prompt: light ? "Hangisi <b>daha hafif</b>?" : "Hangisi <b>daha ağır</b>?", say: light ? "Hangisi daha hafif?" : "Hangisi daha ağır?", raw:true, fixed:true, cell:90 })); }
 else { const ord = ["circle","triangle","square"];
 const stim = `<div style="display:flex;gap:6px;justify-content:center"><div style="width:150px;height:84px">${balSVG(["triangle"], ["circle"], "L")}</div><div style="width:150px;height:84px">${balSVG(["square"], ["triangle"], "L")}</div></div>`;
 out.push(qzMake(stim, ord.slice().reverse().map(sh => aaCell({ sh, col:{ circle:"#2E6FD8", square:"#1FA463", triangle:"#E5484D" }[sh] })), 0, { prompt:"<b>En ağır</b> hangisi?", raw:true, fixed:true, cell:84 })); }
@@ -7486,7 +7496,7 @@ const opts = [opp, near, un].concat(t >= 1 ? [randomItem(OPP_POST.filter(x => x[
 return qzMake(`<div style="font-size:30px;font-weight:900;color:var(--teal-dark);text-align:center">${w}</div>`, opts.map(x => `<b style="font-size:19px">${x}</b>`), 0, { prompt:"<b>Zıt anlamlısı</b> hangisi?", raw:true, fixed:true, text:true }); }); }
 function patTrials2(){ const t = currentCombo().t, pre = isPre(), N = pre ? 4 : 6, out = [];
 for(let q = 0; q < N; q++){ const [s1, s2, s3] = shuffleArray(AA_SH), [c1, c2, c3] = shuffleArray(AA_COL); let seq, muts;
-const ty = pre ? [["colorAB"], ["shapeAB","colorAB"], ["AAB","sizeGrow"]][t] : [["ABC","AAB"], ["countGrow","sizeGrow"], ["rotStep","twoAttr"]][t];
+const ty = pre ? [["colorAB"], ["shapeAB"], ["AAB","sizeGrow"]][t] : [["ABC","AAB"], ["countGrow","sizeGrow"], ["rotStep","twoAttr"]][t];
 const k = randomItem(ty);
 if(k === "colorAB") seq = [0, 1, 0, 1, 0, 1].map(i => ({ sh:"circle", col:[c1, c2][i] }));
 else if(k === "shapeAB") seq = [0, 1, 0, 1, 0, 1].map(i => ({ sh:[s1, s2][i], col:c1 }));
@@ -7530,9 +7540,11 @@ return out; }
 const PA_TEXT = { pre:[ ["Elma","bütün elma","elmayı ısırıyor","elma koçanı"], ["El yıkama","musluğu açıyor","ellerini sabunluyor","ellerini duruluyor","havluyla kuruluyor"], ["Çiçek","tohum ekiyor","suluyor","filiz çıkmış","çiçek açmış"] ],
 post:[ ["Kaybolan kalem","kalemini arıyor","çantasına bakıyor","sıranın altında buluyor","kalemi alıyor"], ["Yağmurlu gün","gökyüzü kararıyor","yağmur başlıyor","şemsiyesini açıyor","kuru varıyor"], ["Kırılan bardak","bardağı düşürüyor","bardak kırılmış","yardım istiyor","kırıklar toplanıyor","dikkatle taşıyor"] ] };
 function paTrials(){ const t = currentCombo().t, pre = isPre(), lvl = pre ? "pre" : "post";
-const allowed = pre ? [[0, 1], [1, 2], [1, 2, 0]][t] : [[0, 1], [0, 1, 2], [2, 0, 1]][t];
-const pick = t === 2 ? [allowed[0]].concat(shuffleArray(allowed.slice(1)).slice(0, 1)) : shuffleArray(allowed).slice(0, 2);
-return pick.map(si => { const imgs = PA_IMAGES[lvl][si]; return { si, lvl, n: imgs.length, cards: shuffleArray(imgs.map((x, i) => i)), given: pre && t === 0 ? 1 : 0 }; }); }
+// öncesi: 3–4 kare+ilk kare yerinde → 4 kare+ilk kare yerinde → 4 kare ipucusuz
+// sonrası: 4 kare+ilk kare yerinde → 4 kare ipucusuz → 5 karelik hikâye dahil
+const tt = Math.min(t, 2), allowed = pre ? [[0, 1], [1, 2], [1, 2]][tt] : [[0, 1], [0, 1], [2, 0, 1]][tt];
+const pick = (!pre && tt === 2) ? [2].concat(shuffleArray([0, 1]).slice(0, 1)) : shuffleArray(allowed).slice(0, 2), given = (pre ? tt < 2 : tt === 0) ? 1 : 0;
+return pick.map(si => { const imgs = PA_IMAGES[lvl][si]; return { si, lvl, n: imgs.length, cards: shuffleArray(imgs.map((x, i) => i)), given }; }); }
 const PART_PAIRS = [ ["araba","tekerlek"], ["kuş","kanat"], ["ağaç","yaprak"], ["ev","kapı"] ];
 
 function pmTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 5 : 8; const D = [3, 4, 5, 6][Math.min(t, 3)] - 1;   // satırdaki öğe: 3/4/5/6 (ikiz dahil)
@@ -7571,17 +7583,17 @@ if(!seq.some(x => x.tg)) seq[5] = { sh:"star", col:"#E5484D", tg:true }; return 
 function pnbBuild(){ const t = currentCombo().t, pre = isPre(), n = pre ? [1, 1, 1, 2][t] : [1, 2, 2, 3][t], L = pre ? [10, 12, 14, 14][t] : [14, 16, 20, 22][t], seq = [];
 for(let i = 0; i < L; i++){ if(i >= n && Math.random() < 0.3) seq.push(seq[i - n]); else { let v; do{ v = Math.floor(Math.random() * 9); } while(i >= n && v === seq[i - n]); seq.push(v); } }
 return { n, seq, ms: pre ? 1900 : 1600 }; }
-function cspTrials(){ const t = currentCombo().t, L = (isPre() ? [2, 2, 3, 4] : [2, 3, 4, 5])[t];
-return Array.from({length:3}, () => ({ counts: Array.from({length:L}, () => 2 + Math.floor(Math.random() * (isPre() ? 3 : 5))) })); }
+function cspTrials(){ const t = currentCombo().t, L = (isPre() ? [2, 3, 3, 4] : [2, 3, 4, 5])[t];
+return Array.from({length:3}, () => ({ counts: Array.from({length:L}, () => 2 + Math.floor(Math.random() * (isPre() ? (t >= 2 ? 4 : 3) : 5))) })); }   // öncesi Zor: aynı uzunluk, daha büyük sayılar
 
 const TONE_KEYS = [ { c:"#E5484D", f:392 }, { c:"#2E6FD8", f:494 }, { c:"#1FA463", f:587 }, { c:"#F5A524", f:698 } ];
 function toneBeep(f){ try{ const ctx = getAudioCtx(); if(!ctx) return; if(ctx.state === "suspended") ctx.resume(); sfxTone(ctx, f, ctx.currentTime + 0.005, 0.32, "sine", 0.28); }catch(e){} }
-function toneTrials(){ const t = currentCombo().t, L = (isPre() ? [2, 3, 3] : [3, 4, 5])[t]; return Array.from({length:4}, () => Array.from({length:L}, () => Math.floor(Math.random() * 4))); }
+function toneTrials(){ const t = currentCombo().t, L = (isPre() ? [2, 3, 4] : [3, 4, 5])[t]; return Array.from({length:4}, () => Array.from({length:L}, () => Math.floor(Math.random() * 4))); }
 function wsTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 5 : 6, pool = picPool();
-return Array.from({length:N}, () => { const [a, b] = shuffleArray(pool).slice(0, 2);
+return Array.from({length:N}, () => { const [a, b, c] = shuffleArray(pool).slice(0, 3);
 const im = (x, o) => `<div style="width:100%;height:100%;position:relative;${o.flip ? "transform:scaleX(-1);" : ""}${o.hue ? "filter:hue-rotate(" + o.hue + "deg) saturate(1.3);" : ""}">${qzPic(x.src)}${o.patch ? `<div style="position:absolute;left:${o.patch[0]}%;top:${o.patch[1]}%;width:30%;height:30%;background:var(--panel);border-radius:50%"></div>` : ""}</div>`;
-const orig = im(a, {}); let lures = pre ? [im(a, { flip:true }), im(b, {})] : t === 0 ? [im(a, { flip:true }), im(b, {})] : t === 1 ? [im(a, { flip:true }), im(a, { hue:150 }), im(b, {})] : [im(a, { flip:true }), im(a, { hue:150 }), im(a, { patch:[30 + Math.random() * 20, 25 + Math.random() * 30] })];
-const opts = shuffleArray([orig].concat(lures)); return { study: orig, opts, ans: opts.indexOf(orig), ms: pre ? 2600 : [2200, 1800, 1500][t] }; }); }
+const orig = im(a, {}); let lures = pre ? [[im(b, {}), im(c, {})], [im(a, { flip:true }), im(b, {})], [im(a, { flip:true }), im(a, { hue:150 })]][Math.min(t, 2)] : t === 0 ? [im(a, { flip:true }), im(b, {})] : t === 1 ? [im(a, { flip:true }), im(a, { hue:150 }), im(b, {})] : [im(a, { flip:true }), im(a, { hue:150 }), im(a, { patch:[30 + Math.random() * 20, 25 + Math.random() * 30] })];
+const opts = shuffleArray([orig].concat(lures)); return { study: orig, opts, ans: opts.indexOf(orig), ms: pre ? [3000, 2600, 2200][Math.min(t, 2)] : [2200, 1800, 1500][t] }; }); }
 function routeTrials(){ const t = currentCombo().t, pre = isPre(), n = pre ? [3, 4, 4, 5][t] : [4, 5, 5, 6][t], L = pre ? [3, 4, 5, 6][t] : [4, 6, 8, 10][t];
 return Array.from({length:3}, () => { let path; let g = 0; do{ path = [Math.floor(Math.random() * n * n)];
 while(path.length < L){ const c = path[path.length - 1], r = Math.floor(c / n), k = c % n, nb = [[r - 1, k], [r + 1, k], [r, k - 1], [r, k + 1]].filter(([y, x]) => y >= 0 && y < n && x >= 0 && x < n).map(([y, x]) => y * n + x).filter(x => !path.includes(x)); if(!nb.length) break; path.push(randomItem(nb)); } } while(path.length < L && g++ < 50);
@@ -7591,9 +7603,9 @@ function trSylSplit(w){ const s = []; let cur = ""; const isV = (ch) => TR_V.inc
 for(let i = 0; i < ch.length; i++){ cur += ch[i]; if(isV(ch[i])){ let j = i + 1, cons = 0; while(j < ch.length && !isV(ch[j])){ cons++; j++; } if(j >= ch.length){ cur += ch.slice(i + 1).join(""); s.push(cur); return s; }
 const take = cons <= 1 ? 0 : cons - 1; cur += ch.slice(i + 1, i + 1 + take).join(""); s.push(cur); cur = ""; i += take; } }
 if(cur) s.push(cur); return s; }
-function sbTrials(){ const t = currentCombo().t, pre = isPre(), pool = snPicPool().filter(x => trSylSplit(x.n).length >= 2 && trSylSplit(x.n).length <= (pre ? [2, 3, 3][t] : 4)), N = pre ? 5 : 6;
+function sbTrials(){ const t = currentCombo().t, pre = isPre(), pool = snPicPool().filter(x => trSylSplit(x.n).length >= 2 && trSylSplit(x.n).length <= (pre ? [2, 3, 4][t] : [3, 4, 4][t]) && (pre || t < 2 || trSylSplit(x.n).length >= 3)), N = pre ? 5 : 6;
 return shuffleArray(pool).slice(0, N).map(tg => { const sy = trSylSplit(tg.n), same = pool.filter(x => x !== tg && trSylSplit(x.n)[0] === sy[0]), oth = shuffleArray(pool.filter(x => x !== tg && !same.includes(x)));
-const opts = [tg].concat(shuffleArray(same).slice(0, t >= 1 ? 1 : 0), oth).slice(0, pre ? 3 : 4);
+const opts = [tg].concat(shuffleArray(same).slice(0, pre ? (t >= 1 ? 1 : 0) : [0, 1, 2][Math.min(t, 2)]), oth).slice(0, pre ? 3 : 4);
 return qzMake("", opts.map(x => qzPic(x.src)), 0, { prompt:"Heceleri <b>birleştir</b>: hangi resim?", say: sy.join("… ") + "…", replay:true, fixed:true, cell:100, rate:0.7 }); }); }
 const PHON = { pre:[ { t:0, q:"“Kar-puz” de. Şimdi <b>kar</b> demeden söyle.", a:"puz" }, { t:0, q:"“Çi-çek” de. Şimdi <b>çi</b> demeden söyle.", a:"çek" }, { t:0, q:"“Ka-lem” de. Şimdi <b>ka</b> demeden söyle.", a:"lem" },
 { t:1, q:"“Ma-sa” de. Şimdi <b>sa</b> demeden söyle.", a:"ma" }, { t:1, q:"“Ba-lık” de. Şimdi <b>lık</b> demeden söyle.", a:"ba" }, { t:1, q:"“Ke-di” de. Şimdi <b>di</b> demeden söyle.", a:"ke" },
@@ -7609,7 +7621,7 @@ const WH_FIX = (q) => q.replace(/vardı\?/g, "var?").replace(/asılıydı\?/g, "
 function whTrials(){ const t = currentCombo().t, sc = pickScene(), N = [4, 5, 6][t], allA = SCENES.flatMap(s => s.q.map(x => x[1]));
 return shuffleArray(sc.q).slice(0, N).map(([q, a]) => { const near = shuffleArray(sc.q.map(x => x[1]).filter(x => x !== a)), far = shuffleArray(allA.filter(x => x !== a && !near.includes(x)));
 return qzMake(`<img class="wh-img" src="${SCENE_IMAGES[sc.k]}" alt="" style="display:block;width:100%;max-width:340px;border-radius:12px;margin:0 auto">`, [a].concat(near.slice(0, t >= 1 ? 2 : 1), far).slice(0, t === 0 ? 3 : 4).map(x => `<b style="font-size:16px">${x}</b>`), 0, { prompt:`<b>${WH_FIX(q)}</b>`, raw:true, fixed:true, text:true, say: WH_FIX(q), replay:true }); }); }
-function sdTrials(){ const t = currentCombo().t, pre = isPre(), slots = pre ? [6, 6, 6, 9][t] : [8, 9, 12, 12][t], D = pre ? [2, 3, 3, 4][t] : [3, 4, 5, 6][t], cols = slots <= 6 ? 3 : slots <= 9 ? 3 : 4;
+function sdTrials(){ const t = currentCombo().t, pre = isPre(), slots = pre ? [6, 6, 6, 9][t] : [8, 9, 12, 12][t], D = pre ? [2, 3, 4, 4][t] : [3, 4, 5, 6][t], cols = slots <= 6 ? 3 : slots <= 9 ? 3 : 4;
 return Array.from({length: pre ? 2 : 2}, () => { const base = Array.from({length:slots}, () => ({ sh: randomItem(["circle","square","triangle","star","heart"]), col: randomItem(COLORS) }));
 const diff = shuffleArray(base.map((_, i) => i)).slice(0, D), right = base.map((b, i) => { if(!diff.includes(i)) return Object.assign({}, b); const kind = randomItem(["col","sh","gone"]);
 if(kind === "col") return Object.assign({}, b, { col: randomItem(COLORS.filter(c => c !== b.col)) }); if(kind === "sh") return Object.assign({}, b, { sh: randomItem(["circle","square","triangle","star","heart"].filter(s => s !== b.sh)) }); return Object.assign({}, b, { gone:true }); });
@@ -7636,7 +7648,7 @@ const seen = new Set([key(right)]), wr = []; cand.forEach(c => { if(!seen.has(ke
 return qzMake(`<div style="width:130px;height:130px;margin:0 auto">${cubeSVG(cs, "#7FB3E8")}</div>`, [grid(right)].concat(wr.slice(0, 3).map(grid)), 0, { prompt:`Bu yapıya <b>${view === "üst" ? "üstten" : view === "ön" ? "önden (sağ alt yüzden)" : "yandan (sol alt yüzden)"}</b> bakınca hangisini görürsün?`, raw:true, fixed:true, cell:80 }); }); }
 function ceTrials(){ const t = currentCombo().t, pre = isPre();
 const stories = (pre ? PA_IMAGES.pre : PA_IMAGES.post).map(s => [s[0], s[s.length - 1]]).concat(STORY_SEQ_IMAGES.map(s => [s[0], s[s.length - 1]]));
-return shuffleArray(stories.map((s, i) => i)).slice(0, pre ? 4 : 5).map(i => { const oth = shuffleArray(stories.map((s, k) => k).filter(k => k !== i)).slice(0, pre ? 2 : 3);
+return shuffleArray(stories.map((s, i) => i)).slice(0, pre ? 4 : 5).map(i => { const oth = shuffleArray(stories.map((s, k) => k).filter(k => k !== i)).slice(0, (pre ? [1, 2, 3] : [2, 3, 4])[Math.min(t, 2)]);   // seçenek: öncesi 2/3/4 · sonrası 3/4/5
 const img = (src) => `<img src="${src}" alt="" style="width:100%;height:100%;object-fit:contain">`;
 return qzMake(`<div class="wm-card" style="width:150px;height:110px;margin:0 auto;padding:3px">${img(stories[i][0])}</div>`, [i].concat(oth).map(k => img(stories[k][1])), 0, { prompt:"Bu olayın <b>sonunda</b> ne olur?", raw:true, fixed:true, cell:110 }); }); }
 function sdkTrials(){ const t = currentCombo().t, pre = isPre(), n = pre ? [3, 3, 3, 4][t] : [3, 4, 4, 4][t], blanks = pre ? [2, 3, 4, 5][t] : [4, 6, 9, 12][t];
@@ -7940,7 +7952,7 @@ mtState = { kind:"hear", trials: Array.from({length: isPre() ? 3 : 4}, () => { c
 "vis-miss": () => { const t = currentCombo().t, N = (isPre() ? [3, 4, 5] : [5, 6, 8])[t];
 mtState = { kind:"miss", trials: Array.from({length: isPre() ? 3 : 5}, () => { const p = shuffleArray(picPool()); const set = p.slice(0, N), gone = Math.floor(Math.random() * N);
 return { set, gone, opts: shuffleArray([set[gone]].concat(p.slice(N, N + 3))), shuffle: t > 0 }; }), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
-"vis-chg": () => { const t = currentCombo().t, N = (isPre() ? [3, 4, 4] : [4, 6, 8])[t];
+"vis-chg": () => { const t = currentCombo().t, N = (isPre() ? [3, 4, 5] : [4, 6, 8])[t];
 mtState = { kind:"chg", trials: Array.from({length: isPre() ? 3 : 5}, () => { const p = shuffleArray(picPool()); return { set: p.slice(0, N), at: Math.floor(Math.random() * N), neo: p[N] }; }), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
 "vis-recog": () => { const t = currentCombo().t, M = (isPre() ? [4, 5, 6] : [6, 8, 10])[t], pool = shuffleArray(picPool());
 let study = pool.slice(0, M), fresh = pool.slice(M, M * 2), delayed = false;
@@ -8024,10 +8036,10 @@ return mtState.test; },
 "free-sort": () => { const d = fsBuild(); mtState = Object.assign({ kind:"fsort", asg:{}, sel:0, wrong:0, phase:"idle", naming: stIx() === 1 && !gameMode }, d); return d.items; },
 "same-number": () => { const items = snBuild(); mtState = { kind:"samenum", T: snTarget, items, found:{}, bad:{}, wrong:0, phase:"idle" }; return items; },
 "vis-face": () => { mtState = { kind:"face", trials: Array.from({length: isPre() ? 2 : 3}, faceTrial), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
-"scene-mem": () => { const sc = pickScene(), N = (isPre() ? [3, 4, 4] : [4, 5, 6])[currentCombo().t];
+"scene-mem": () => { const sc = pickScene(), N = (isPre() ? [3, 4, 5] : [4, 5, 6])[currentCombo().t];
 mtState = { kind:"scene", sc, qs: sc.q.slice(0, N), qi:0, wrong:0, ok:0, phase:"idle" }; return [sc]; },
-"scene-touch": () => { const sc = pickScene(), N = isPre() ? 3 : 4, others = SCENES.filter(x => x !== sc).flatMap(x => x.objs).filter(o => !sc.not.includes(o));
-const qs = shuffleArray(sc.objs).slice(0, N).map(o => ({ ans:o, opts: shuffleArray([o].concat(shuffleArray(others).slice(0, 3))) }));
+"scene-touch": () => { const sc = pickScene(), N = (isPre() ? [2, 3, 4] : [3, 4, 4])[Math.min(currentCombo().t, 2)], D = (isPre() ? [2, 2, 3] : [3, 3, 4])[Math.min(currentCombo().t, 2)], others = SCENES.filter(x => x !== sc).flatMap(x => x.objs).filter(o => !sc.not.includes(o));
+const qs = shuffleArray(sc.objs).slice(0, N).map(o => ({ ans:o, opts: shuffleArray([o].concat(shuffleArray(others).slice(0, D))) }));
 mtState = { kind:"scenet", sc, qs, qi:0, wrong:0, phase:"idle" }; return [sc]; },
 "vis-draw": () => { const t = currentCombo().t, n = !isPre() && t === 2 ? 4 : 3, segs = (isPre() ? [2, 3, 4] : [3, 4, 6])[t];
 mtState = { kind:"draw", n, trials: Array.from({length: isPre() ? 3 : 4}, () => drawPattern(n, segs)), ti:0, wrong:0, phase:"idle", mine:new Set(), sel:-1 }; return mtState.trials; }
@@ -8513,7 +8525,8 @@ body = `<div class="wm-card${st.fb ? " " + st.fb : ""}" style="width:${sz}px;hei
 const r = qzRender(st, W, H, isLs); info = r.info; body = r.body;
 } else if(st.kind === "flu"){
 const P = st.P, t = `${Math.floor(st.left / 60)}:${String(st.left % 60).padStart(2, "0")}`;
-const card = `<div class="flu-card"><div class="flu-big" style="${P.big.length > 12 ? `font-size:${isLs ? 18 : 24}px` : ""}">${P.big}</div>${P.sub ? `<div class="flu-sub">${P.sub}</div>` : ""}${P.sw && st.phase === "run" ? `<div class="flu-next">Sıradaki: <b>${P.sw[st.exp][0]}</b></div>` : ""}</div>`;
+const fluTxt = `<div class="flu-big" style="${P.big.length > 12 ? `font-size:${isLs ? 18 : 24}px` : ""}">${P.big}</div>${P.sub ? `<div class="flu-sub">${P.sub}</div>` : ""}`;
+const card = `<div class="flu-card">${P.img && isPre() ? `<div style="display:flex;align-items:center;justify-content:center;gap:12px"><img class="flu-img" src="${P.img}" alt="" style="width:${isLs ? 64 : 84}px;height:${isLs ? 64 : 84}px;object-fit:contain;flex:0 0 auto"><div>${fluTxt}</div></div>` : fluTxt}${P.sw && st.phase === "run" ? `<div class="flu-next">Sıradaki: <b>${P.sw[st.exp][0]}</b></div>` : ""}</div>`;
 if(st.phase === "idle"){ info = "▶ Başlat'a basınca süre başlar"; body = card + `<div class="aud-key" style="text-align:center">Süre: ${st.secs} sn · geçerli her kelimede <b>+1</b>'e basın</div>`; }
 else { info = `Kalan süre: <b id="fluLeft">${t}</b>`;
 const okb = `<div class="flu-cnt">${st.ok}</div><button type="button" class="flu-ok" data-mtbtn="flu-ok">+1 kelime</button>`;
@@ -9039,12 +9052,12 @@ function mtBuild(){
 const id = currentExercise().id, t = currentCombo().t, pre = isPre();
 mtClear();
 if(id === "corsi" || id === "corsi-verbal"){
-const N = pre ? 6 : 9;
-mtState = { kind: id, N, blocks: null, len: (pre ? [2, 2, 3] : [2, 3, 4])[t], maxLen: pre ? 6 : 9, tries: 0, okAtLen: 0, best: 0, wrong:0, phase:"idle", back: stIx() === 1, seq:[], pos:0, trials:0 };
+const N = pre ? [5, 6, 6][Math.min(t, 2)] : 9;   // öncesi: 5 blok → 6 blok → 6 blok + 3'lük dizi
+mtState = { kind: id, N, blocks: null, len: (pre ? [2, 2, 3] : [2, 3, 4])[t], maxLen: pre ? N : 9, tries: 0, okAtLen: 0, best: 0, wrong:0, phase:"idle", back: stIx() === 1, seq:[], pos:0, trials:0 };
 return Array.from({length: 12}, () => ({}));
 }
 if(id === "span-touch"){
-const sets = makeSpanSets(pre ? 2 : 3);
+const sets = makeSpanSets(pre ? SPAN_COUNT_PRE[Math.min(t, 2)] : 3);
 mtState = { kind:id, sets, si:0, ii:0, wrong:0, phase:"idle" };
 return sets;
 }
@@ -9080,7 +9093,7 @@ mtState = { kind:id, rounds: Array.from({length:2}, () => makeMarketRound()), ri
 return mtState.rounds;
 }
 const n = 4;
-mtState = { kind:"animal-fruit", trials: Array.from({length:n}, () => { const L = [3, 4, 4][t]; const nA = Math.ceil(L / 2);
+mtState = { kind:"animal-fruit", trials: Array.from({length:n}, () => { const L = [3, 4, 5][t]; const nA = Math.ceil(L / 2);
 const a = shuffleArray(NB_ANIMALS).slice(0, nA).map(k => ({ k, g:"a", src: animalImg(k) })), f = shuffleArray(["apple","banana","grapes","strawberry","orange"]).slice(0, L - nA).map(k => ({ k, g:"f", src: FRUIT_VEG_IMAGES[k] }));
 return shuffleArray(a.concat(f)); }), ti:0, pos:0, wrong:0, phase:"idle" };
 return mtState.trials;
@@ -11738,7 +11751,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.15-b";
+const APP_VERSION = "2026.10.15-k";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
