@@ -132,9 +132,9 @@ return `<div class="number-cell" style="color:${color}">${number}</div>`;
 
 
 
-const TASTE_NAMES = {watermelon:"karpuz", lemon:"limon", chili:"biber", pasta:"makarna"};
-const TASTE_OF = {watermelon:"tatlı", lemon:"ekşi", chili:"acı", pasta:"tuzlu"};
-const TASTE_ALL = ["watermelon","lemon","chili","pasta"];
+const TASTE_NAMES = {watermelon:"karpuz", lemon:"limon", chili:"biber", pasta:"makarna", candy:"lolipop", simit:"simit"};
+const TASTE_OF = {watermelon:"tatlı", lemon:"ekşi", chili:"acı", pasta:"tuzlu", candy:"tatlı", simit:"tuzlu"};
+const TASTE_ALL = ["candy","lemon","chili","simit"];   // renkleri birbirinden çok farklı: pembe, sarı, kırmızı, kahverengi
 const TASTE_COUNT_BY_TIER = [2, 3, 4];
 const PRE_TASTE_COUNT_BY_TIER = [2, 2, 3];
 let tasteActivePool = null;
@@ -350,7 +350,7 @@ apple:"elma", applebite:"ısırılmış elma", applecore:"elma koçanı", tree:"
 const OS_ROWS_BY_TIER = [5, 6, 7];
 const OS_DISTRACT_BY_TIER = [2, 3, 4];
 const PRE_OS_ROWS_BY_TIER = [2, 3, 3];
-const PRE_OS_DISTRACT_BY_TIER = [1, 2, 2];
+const PRE_OS_DISTRACT_BY_TIER = [1, 2, 3];
 function osConf(){
 const t = currentCombo().t;
 const R = isPre() ? PRE_OS_ROWS_BY_TIER : OS_ROWS_BY_TIER;
@@ -2696,7 +2696,7 @@ label: "Hızlı Seç",
 isChoice: true, attrs: [], speedFactor: 1.5,
 isDone: () => !!chState && chState.phase === "done",
 randomItem: () => ({}),
-stages: [ { label: "Hayvan mı, Eşya mı?", instruction: () => ``, example: () => `` } ]
+stages: [ { label: "Hızla Ayır", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "stroop-touch",
@@ -6130,7 +6130,8 @@ const WILD_KEYS = Object.keys(WILD_NAMES), HOUSE_KEYS = Object.keys(HOUSE_NAMES)
 
 const CAT_TOUCH = {
 "cat-fruit": { groups:[["meyve","meyvelere"],["sebze","sebzelere"]], items:() => Object.keys(FRUIT_VEG_CATEGORY).map(k => ({ k, g: FRUIT_VEG_CATEGORY[k], src: FRUIT_VEG_IMAGES[k] })) },
-"cat-living": { groups:[["canlı","canlılara"],["cansız","cansızlara"]], items:() => WILD_KEYS.map(k => ({ k, g:"canlı", src: WILD_IMAGES[k] })).concat(HOUSE_KEYS.map(k => ({ k, g:"cansız", src: HOUSE_IMAGES[k] }))) },
+"cat-living": { groups:[["canlı","canlılara"],["cansız","cansızlara"]], items:() => WILD_KEYS.map(k => ({ k, g:"canlı", src: WILD_IMAGES[k] })).concat(HOUSE_KEYS.map(k => ({ k, g:"cansız", src: HOUSE_IMAGES[k] })),
+      isPre() ? [] : [["tree", LIVING_IMAGES.tree], ["sunflower", OS_IMAGES.sunflower], ["sprout", OS_IMAGES.sprout]].map(([k, src]) => ({ k, g:"canlı", src })).concat([["teddy", TOY_IMAGES.teddy], ["doll", TOY_IMAGES.doll]].map(([k, src]) => ({ k, g:"cansız", src })))) },   // okul sonrası: yanıltıcı öğeler
 "cat-cold": { groups:[["soğuk","soğuklara"],["sıcak","sıcaklara"]], items:() => HOTCOLD_COLD.map(k => ({ k, g:"soğuk", src: HOTCOLD_IMAGES[k] })).concat(HOTCOLD_HOT.map(k => ({ k, g:"sıcak", src: HOTCOLD_IMAGES[k] }))) }
 };
 const catTarget = {};
@@ -6255,11 +6256,14 @@ correct: (t) => t.dir, cols: 2, wideStim: true
 };
 
 
+function qsPools(){ const P = { animal: WILD_KEYS.map(k => WILD_IMAGES[k]), thing: HOUSE_KEYS.map(k => HOUSE_IMAGES[k]), trickA: [], trickT: [] }; if(isPre()) return P;
+  // okul sonrası: canlı / cansız; bitkiler canlı, oyuncak hayvanlar cansız (yanıltıcı öğeler)
+  P.thing = P.thing.concat([VEHICLE_IMAGES.bus_f, VEHICLE_IMAGES.train_f]); P.trickA = [LIVING_IMAGES.tree, OS_IMAGES.sunflower, OS_IMAGES.sprout, PART_IMAGES[4]]; P.trickT = [TOY_IMAGES.teddy, TOY_IMAGES.doll, TOY_IMAGES.train, TOY_IMAGES.car]; return P; }
 CHOICE["quick-sort"] = {
 setup: () => ({ sides: shuffleArray(["animal","thing"]) }),
-trials_make: (n) => { const a = []; while(a.length < n){ const an = Math.random() < 0.5; const k = an ? randomItem(WILD_KEYS) : randomItem(HOUSE_KEYS); if(!a.length || a[a.length-1].k !== k) a.push({ k, g: an ? "animal" : "thing" }); } return a; },
-stim: (t) => imgFill(t.g === "animal" ? WILD_IMAGES[t.k] : HOUSE_IMAGES[t.k]),
-buttons: (c) => c.sides.map(g => ({ id: g, html: g === "animal" ? '<span style="font-size:30px">🐾</span><b style="margin-left:6px">HAYVAN</b>' : '<span style="font-size:30px">🏠</span><b style="margin-left:6px">EŞYA</b>' })),
+trials_make: (n) => { const P = qsPools(), a = []; let g = 0; while(a.length < n && g++ < 500){ const an = Math.random() < 0.5, trick = !isPre() && Math.random() < 0.35; const src = randomItem(an ? (trick ? P.trickA : P.animal) : (trick ? P.trickT : P.thing)); if(!a.length || a[a.length-1].src !== src) a.push({ src, g: an ? "animal" : "thing" }); } return a; },
+stim: (t) => imgFill(t.src),
+buttons: (c) => c.sides.map(g => ({ id: g, html: isPre() ? (g === "animal" ? '<span style="font-size:30px">🐾</span><b style="margin-left:6px">HAYVAN</b>' : '<span style="font-size:30px">🏠</span><b style="margin-left:6px">EŞYA</b>') : (g === "animal" ? '<span style="font-size:30px">🌱</span><b style="margin-left:6px">CANLI</b>' : '<span style="font-size:30px">🪨</span><b style="margin-left:6px">CANSIZ</b>') })),
 correct: (t) => t.g, cols: 2
 };
 let fgStop = "angry";
@@ -7020,16 +7024,26 @@ function dotTrials(){ const t = currentCombo().t, rng = isPre() ? [[1, 3], [1, 4
 return Array.from({length: isPre() ? 5 : 8}, () => { const n = rng[0] + Math.floor(Math.random() * (rng[1] - rng[0] + 1)), pts = [];
 let g = 0; while(pts.length < n && g++ < 500){ const x = 14 + Math.random() * 172, y = 14 + Math.random() * 172; if(pts.every(p => Math.hypot(p[0] - x, p[1] - y) > 34)) pts.push([x, y]); }
 return { n, pts, ms, max: rng[1] + 1, min: Math.max(1, rng[0] - 1) }; }); }
-const SEM_QS = [ { k:"canli", q:"Canlı mı?" }, { k:"yenir", q:"Yenir mi?" }, { k:"tasit", q:"Taşıt mı?" } ];
+const SEM_QS = [ { k:"canli", q:"Canlı mı?" }, { k:"yenir", q:"Yenir mi?" }, { k:"tasit", q:"Taşıt mı?" }, { k:"kanat", q:"Kanatları var mı?" }, { k:"cep", q:"Cebine sığar mı?" }, { k:"elektrik", q:"Elektrikle mi çalışır?" } ];   // ilk ikisi okul öncesi; okul sonrası 3.–6.
 let semQ = null;
-function semPick(force){ const pool = isPre() ? SEM_QS.slice(0, 2) : SEM_QS; if(force || !semQ || !pool.includes(semQ)){ let v; do{ v = randomItem(pool); } while(pool.length > 1 && v === semQ); semQ = v; } return semQ; }
-function semTrials(){ const C = qzCats(), ta = ["dog","cat","cow","rabbit","elephant","parrot"].map(k => ({ src: TA_ANIMALS[k]() }));
-const living = ta.concat(C.wild.items, C.sea.items), food = C.meyve.items.concat(C.sebze.items, [{ src: OBJECT_IMAGES.bread }, { src: OBJECT_IMAGES.chocolate }]), veh = C.vehicle.items, obj = C.toy.items.concat(C.house.items);
-const sets = (Q) => ({ yes: Q.k === "canli" ? living : Q.k === "yenir" ? food : veh, no: Q.k === "canli" ? obj.concat(veh, food) : Q.k === "yenir" ? obj.concat(veh, living) : obj.concat(living, food) });
-const pool = shuffleArray((isPre() ? SEM_QS.slice(0, 2) : SEM_QS).slice()), N = isPre() ? 8 : 12, out = [];
-for(let b = 0; b < N / 2; b++){ const Q = pool[b % pool.length], S = sets(Q), blk = shuffleArray([true, false]);
-blk.forEach((y, j) => { const it = randomItem(y ? S.yes : S.no); out.push({ stim: qzPic(it.src), opts:[`<b style="font-size:20px">✓ Evet</b>`, `<b style="font-size:20px">✗ Hayır</b>`], ans: y ? 0 : 1, prompt:`<b>${Q.q}</b>`, say: Q.q, text:true }); }); }
-return out; }
+function semPick(force){ const pool = isPre() ? SEM_QS.slice(0, 2) : SEM_QS.slice(2); if(force || !semQ || !pool.includes(semQ)){ let v; do{ v = randomItem(pool); } while(pool.length > 1 && v === semQ); semQ = v; } return semQ; }
+function semTrials(){ const C = qzCats(), I = (src) => ({ src }), t = Math.min(currentCombo().t, 2);
+  const ta = ["dog","cat","cow","rabbit","elephant","parrot"].map(k => ({ src: TA_ANIMALS[k]() }));
+  const living = ta.concat(C.wild.items, C.sea.items), food = C.meyve.items.concat(C.sebze.items, [I(OBJECT_IMAGES.bread), I(OBJECT_IMAGES.chocolate)]), veh = C.vehicle.items, obj = C.toy.items.concat(C.house.items);
+  const SETS = {   // okul sonrası: cevabı resimden kesin anlaşılan öğeler
+    kanat:   { yes: [TA_ANIMALS.parrot(), PART_IMAGES[2], OS_IMAGES.butterfly, PAL_EXTRA_IMAGES.bee, VEHICLE_IMAGES.plane_f].map(I),
+               no:  [TA_ANIMALS.dog(), TA_ANIMALS.cat(), TA_ANIMALS.cow(), TA_ANIMALS.elephant(), TA_ANIMALS.rabbit(), VEHICLE_IMAGES.bus_f, VEHICLE_IMAGES.train_f, TOY_IMAGES.teddy, TOY_IMAGES.car].map(I) },
+    cep:     { yes: [PAIR_IMAGES.key, PAIR_IMAGES.pencil, PAIR_IMAGES.sharpener, PAL_EXTRA_IMAGES.spoon, HOUSE_IMAGES.comb, PAL_EXTRA_IMAGES.sock].map(I),
+               no:  [VEHICLE_IMAGES.bus_f, VEHICLE_IMAGES.fire_f, TA_ANIMALS.elephant(), TA_ANIMALS.cow(), HOUSE_IMAGES.pillow, HOUSE_IMAGES.bucket, HOUSE_IMAGES.broom, LIVING_IMAGES.tree].map(I) },
+    elektrik:{ yes: [HOUSE_IMAGES.lamp, PAIR_IMAGES.phone, PAIR_IMAGES.charger, VEHICLE_IMAGES.train_f].map(I),
+               no:  [PAIR_IMAGES.pencil, PAL_EXTRA_IMAGES.spoon, TOY_IMAGES.teddy, TOY_IMAGES.ball, HOUSE_IMAGES.broom, HOUSE_IMAGES.bucket, PAL_EXTRA_IMAGES.sock, FRUIT_VEG_IMAGES.apple].map(I) } };
+  const sets = (Q) => SETS[Q.k] || ({ yes: Q.k === "canli" ? living : Q.k === "yenir" ? food : veh, no: Q.k === "canli" ? obj.concat(veh, food) : Q.k === "yenir" ? obj.concat(veh, living) : obj.concat(living, food) });
+  const pool = shuffleArray((isPre() ? SEM_QS.slice(0, 2) : SEM_QS.slice(2)).slice()), N = isPre() ? 8 : 12;
+  const qAt = (i) => t === 0 ? pool[0] : t === 1 ? pool[Math.floor(i / 2) % 2] : pool[i % pool.length];   // Başlangıç tek soru · Orta iki resimde bir · Zor her resimde
+  const ans = shuffleArray(Array.from({length:N}, (_, i) => i % 2 === 0)); const out = []; let last = "";
+  for(let i = 0; i < N; i++){ const Q = qAt(i), S = sets(Q), y = ans[i]; let it, g = 0; do{ it = randomItem(y ? S.yes : S.no); } while(it.src === last && g++ < 20); last = it.src;
+    out.push({ stim: qzPic(it.src), opts:[`<b style="font-size:20px">✓ Evet</b>`, `<b style="font-size:20px">✗ Hayır</b>`], ans: y ? 0 : 1, prompt:`<b>${Q.q}</b>`, say: Q.q, text:true, qk: Q.k }); }
+  return out; }
 function chaseCfg(){ const t = currentCombo().t; return { need: isPre() ? [5, 6, 8][t] : [8, 10, 12][t], speed: (isPre() ? [0.45, 0.6, 0.75] : [0.6, 0.85, 1.1])[t], size: isPre() ? 70 : [64, 56, 48][t] }; }
 const ALT_OBJ = () => [ { n:"kova", src: HOUSE_IMAGES.bucket }, { n:"kaşık", src: PAL_EXTRA_IMAGES.spoon }, { n:"şemsiye", src: PAIR_IMAGES.umbrella }, { n:"yastık", src: HOUSE_IMAGES.pillow },
 { n:"kalem", src: PAIR_IMAGES.pencil }, { n:"fincan", src: HOUSE_IMAGES.cup }, { n:"zarf", src: PAIR_IMAGES.envelope }, { n:"tarak", src: HOUSE_IMAGES.comb } ];
@@ -9433,7 +9447,7 @@ const INSTR_SHORT = {
 "trail-numbers":    [() => Q(`BAŞLA'dan başla, sayılara sırayla dokun: 1, 2, 3 … ${currentGrid.length || ""}`)],
 "pairs-touch":      [() => Q("Birlikte kullanılan çiftlere hızlıca dokun; diğerlerine dokunma.")],
 "sdmt-touch":       [() => `Anahtarı birlikte inceleyin, sonra: ${Q("Gelen şeklin eşi olan resme hızlıca dokun.")}`],
-"quick-sort":       [() => Q("Hayvan gelirse HAYVAN'a, eşya gelirse EŞYA'ya hızlıca dokun.")],
+"quick-sort":       [() => isPre() ? Q("Hayvan gelirse HAYVAN'a, eşya gelirse EŞYA'ya hızlıca dokun.") : `${Q("Canlı gelirse CANLI'ya, cansız gelirse CANSIZ'a hızlıca dokun.")} Bitkiler de canlıdır; oyuncak hayvanlar cansızdır.`],
 "stroop-touch":     [() => Q("Kelimeyi okuma; yazının RENGİNDEKİ düğmeye dokun.")],
 "day-night-touch":  [() => Q("Güneş gelince AY'a, ay gelince GÜNEŞ'e dokun.")],
 "fish-flanker":     [() => Q("Yalnızca ORTADAKİ balığa bak; baktığı yönün okuna dokun.")],
@@ -9519,7 +9533,7 @@ const INSTR_SHORT = {
 "concept-touch":    [() => Q("Dinle. Söylenen resme dokun.")],
 "infer-touch":      [() => Q("Durumu oku ya da dinle. İpuçlarına göre en uygun cevaba dokun.")],
 "dot-count":        [() => Q("Noktalar bir an görünecek. Kaç tane olduğunu seç.")],
-"sem-decide":       [() => Q("Sorular değişecek: her resim için soruyu dinle, hızlıca Evet ya da Hayır'a dokun.")],
+"sem-decide":       [() => { const t = currentCombo().t; return Q(t === 0 ? "Soruyu dinle; her resim için hızlıca Evet ya da Hayır'a dokun." : t === 1 ? "Soru iki resimde bir değişecek: soruyu dinle, hızlıca Evet ya da Hayır'a dokun." : "Soru her resimde değişecek: soruyu dinle, hızlıca Evet ya da Hayır'a dokun."); }],
 "eye-touch":        [() => Q("Kayan topu gözünle izle, yakalayınca dokun.")],
 "alt-uses":         [() => `Okuyun ve ▶'a basın: ${Q(fluPrompt("alt-uses").say)} Asıl kullanımı sayılmaz; farklı her fikir +1.`],
 "time-est":         [() => Q("Başla'ya bas, içinden say. Söylenen saniye olunca Dur'a bas.")],
@@ -10067,12 +10081,27 @@ return { x: cur.x + (target.x-cur.x)*ff, y: cur.y + (target.y-cur.y)*ff };
 }
 
 
+// Göz takibi hızı: okul öncesi her düzeyde daha yavaş; düzeyler arası adımlar dengeli (~%30).
+const EYE_TURN_MS = { pre:[5500, 4000, 3000, 2400], post:[4500, 3200, 2300, 1800] };
+const EYE_REF = { w:358, h:280 };   // iPhone 13'teki takip alanı: hız buna göre ayarlı
+const eyePathCache = {};
+function eyePathLen(ex, w, h, waveAmp){ const key = (ex.motionPattern || ex.id) + "|" + w + "|" + h + "|" + waveAmp; if(eyePathCache[key] != null) return eyePathCache[key];
+  const fn = EYE_PATTERNS[ex.motionPattern]; let L = 0;
+  if(fn && !ex.statefulFn){ let p = fn(0, waveAmp); for(let i = 1; i <= 120; i++){ const q = fn(i / 120, waveAmp); L += Math.hypot((q.x - p.x) * w, (q.y - p.y) * h); p = q; } }
+  else L = (w / EYE_REF.w + h / EYE_REF.h) / 2;   // durum tutan desenler: alanın ortalama büyüme oranı
+  return (eyePathCache[key] = L); }
+function eyePeriod(ex, t, waveAmp){ const base = (isPre() ? EYE_TURN_MS.pre : EYE_TURN_MS.post)[Math.min(t, 3)] || 3000;
+  if(ex.sacKind) return base;   // sıçramalarda süre bekleme ile ayarlı
+  const mb = document.getElementById("motionBoard"); if(!mb || !mb.clientWidth) return base;
+  const w = mb.clientWidth, h = mb.clientHeight || EYE_REF.h; const r = eyePathLen(ex, w, h, waveAmp) / eyePathLen(ex, EYE_REF.w, EYE_REF.h, waveAmp);
+  return Math.round(base * Math.max(1, r));   // takip alanı büyükse süre o oranda uzar: göz her cihazda aynı hızda hareket eder
+}
 function positionMotionShape(elapsedMs){
 const shape = document.getElementById("motionShape");
 if(!shape) return;
 const ex = currentExercise();
 const t = currentCombo().t;
-const period = currentTier().eyeSpeedMs || 3000;
+const period = eyePeriod(ex, t, ex.waveAmpByTier ? ex.waveAmpByTier[t] : undefined);
 let pos;
 if(ex.statefulFn){
 pos = ex.statefulFn(elapsedMs, period);
@@ -11709,7 +11738,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.14-y";
+const APP_VERSION = "2026.10.15-b";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
