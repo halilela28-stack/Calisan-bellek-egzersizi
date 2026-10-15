@@ -469,14 +469,12 @@ el.classList.add("show");
 }
 
 
-const PAIR_SETS_PRE = [["door","key"],["foot","shoe"],["tooth","toothbrush"],["cloud","umbrella"],["flower","wateringcan"]];
-const PAIR_SETS_POST = [["nail","hammer"],["screw","screwdriver"],["letter","envelope"],["pencil","sharpener"],["phone","charger"]];
-const PAIR_BLOCKED = new Set([
-"pencil-envelope",
-"cloud-wateringcan"     // yağmur ve sulama kabı: ikisi de su verir
-]);
-const PAIR_COUNT_BY_TIER = [3, 4, 5];
-const PRE_PAIR_COUNT_BY_TIER = [2, 2, 3];
+/* Eşini Hatırla'nın çift resimleri de bu havuzda kullanılır (aynı fotoğraf stili) */
+try{ Object.assign(PAIR_IMAGES, { spoon: PAL_EXTRA_IMAGES.spoon, bowl: PAL_EXTRA_IMAGES.bowl, sock: PAL_EXTRA_IMAGES.sock, slipper: PAL_EXTRA_IMAGES.slipper, bee: PAL_EXTRA_IMAGES.bee, honey: PAL_EXTRA_IMAGES.honey, paldog: PAL_EXTRA_IMAGES.dog, bone: PAL_EXTRA_IMAGES.bone }); }catch(e){}
+const PAIR_SETS_PRE = [["door","key"],["foot","shoe"],["tooth","toothbrush"],["cloud","umbrella"],["flower","wateringcan"],["spoon","bowl"],["sock","slipper"],["paldog","bone"]];
+const PAIR_SETS_POST = [["nail","hammer"],["screw","screwdriver"],["pencil","sharpener"],["phone","charger"],["spoon","bowl"],["sock","slipper"],["bee","honey"]];   /* mektup–zarf çıkarıldı (artık yaygın değil) */
+const PAIR_BLOCKED = new Set([ "cloud-wateringcan", "sock-shoe", "foot-slipper", "flower-honey", "spoon-honey", "paldog-slipper", "paldog-shoe" ]);   /* "o da birlikte kullanılır" denebilecek karışımlar yanlış seçenek olarak gösterilmez */
+const PAIR_COUNT_BY_TIER = [4, 5, 6]; const PRE_PAIR_COUNT_BY_TIER = [2, 3, 4];
 const PAIR_DIMS_POST = [{rows:5, cols:3}, {rows:7, cols:3}, {rows:8, cols:3}];
 const PAIR_DIMS_PRE = [{rows:3, cols:3}, {rows:4, cols:3}, {rows:5, cols:3}];
 let pairPool = null;
@@ -502,25 +500,19 @@ break;
 pairLastKey = key;
 pairPool = pool;
 }
-function makePairItem(forceTruth){
-if(!pairPool || pairPool.length !== pairWantedCount()) pickPairPool();
-let truth = (typeof forceTruth === "boolean") ? forceTruth : Math.random() < 0.5;
-let i = Math.floor(Math.random() * pairPool.length);
-let j = i;
-if(!truth){
-const opts = [];
-pairPool.forEach((a, ai) => pairPool.forEach((b, bi) => {
-if(ai !== bi && !PAIR_BLOCKED.has(a[0] + "-" + b[1])) opts.push([ai, bi]);
-}));
-if(opts.length){ [i, j] = randomItem(opts); }
-else { i = 0; j = 1 % pairPool.length; }
-}
-const left = pairPool[i][0], right = pairPool[j][1];
+function makePairItem(forceTruth){ if(!pairPool || pairPool.length !== pairWantedCount()) pickPairPool();
+  let truth = (typeof forceTruth === "boolean") ? forceTruth : Math.random() < 0.5; let i = Math.floor(Math.random() * pairPool.length); let j = i;
+  /* dengeli seçim: tahtada en az kullanılan doğru çift / yanlış birleşim öncelikli (aynı birleşim üst üste yığılmasın) */
+  const used = pairUseCount || (pairUseCount = {}); const pick = (cands, keyOf) => { const mn = Math.min(...cands.map(c => used[keyOf(c)] || 0)); return randomItem(cands.filter(c => (used[keyOf(c)] || 0) === mn)); };
+  if(truth){ i = pick(pairPool.map((_, k) => k), k => pairPool[k][0] + "-" + pairPool[k][1]); j = i; }
+  else { const opts = []; pairPool.forEach((a, ai) => pairPool.forEach((b, bi) => { if(ai !== bi && !PAIR_BLOCKED.has(a[0] + "-" + b[1])) opts.push([ai, bi]); })); if(opts.length){ [i, j] = pick(opts, c => pairPool[c[0]][0] + "-" + pairPool[c[1]][1]); } else { i = 0; j = 1 % pairPool.length; } }
+  used[pairPool[i][0] + "-" + pairPool[j][1]] = (used[pairPool[i][0] + "-" + pairPool[j][1]] || 0) + 1;
+  const left = pairPool[i][0], right = pairPool[j][1];
 return { key: left + "-" + right, left, right, ok: truth };
 }
 
-function makePairGrid(n){
-pickPairPool();
+let pairUseCount = null;
+function makePairGrid(n){ pickPairPool(); pairUseCount = {};
 let truths, g = 0;
 do{
 const half = n % 2 ? (Math.random() < 0.5 ? Math.ceil(n/2) : Math.floor(n/2)) : n/2;
@@ -965,6 +957,7 @@ const items = shuffleArray(present ? dist.concat([target]) : dist);
 return { target, items, present };
 }
 let searchState = null;
+const srhPos = (r) => { try{ const ch = r.choices || r.items || []; return ch.findIndex(c => c === r.target || (c && r.target && c.k != null && c.k === r.target.k) || (c && c.src && r.target && c.src === r.target.src)); }catch(e){ return -1; } };
 function makeSearchRows(){
 const id = currentExercise().id, spec = SRH_SPECS[id], t = currentCombo().t;
 const nRows = spec.rows[t], size = spec.size[t];
@@ -980,7 +973,7 @@ if(ok) break; g++;
 const rows = [];
 pres.forEach((pr, i) => {
 let r, g = 0;
-do{ r = srhPick(id, t, size, pr); g++; } while(g < 40 && [rows[i-1], rows[i-2]].some(x => x && x.target === r.target));
+do{ r = srhPick(id, t, size, pr); g++; } while(g < 40 && ([rows[i-1], rows[i-2]].some(x => x && x.target === r.target) || (pr && rows[i-1] && srhPos(rows[i-1]) === srhPos(r) && Math.random() < 0.75)));
 rows.push(r);
 });
 searchState = { answered:0, wrong:0, ans: rows.map(() => null) };
@@ -6534,7 +6527,7 @@ const MK_DISTRACT = ["20'den geriye doğru ikişer ikişer say", "haftanın gün
 function palPairsPre(){
 const P = (a, b, na, nb) => ({ a:{ src: PAIR_IMAGES[a], n: na }, b:{ src: PAIR_IMAGES[b], n: nb }, id: a + "-" + b });
 return [P("door","key","kapı","anahtar"), P("foot","shoe","ayak","ayakkabı"), P("tooth","toothbrush","diş","diş fırçası"), P("cloud","umbrella","bulut","şemsiye"),
-P("flower","wateringcan","çiçek","sulama kabı"), P("nail","hammer","çivi","çekiç"), P("letter","envelope","mektup","zarf"), P("pencil","sharpener","kalem","kalemtıraş"),
+P("flower","wateringcan","çiçek","sulama kabı"), P("nail","hammer","çivi","çekiç"), P("letter","envelope","mektup","makas"), P("pencil","sharpener","kalem","kalemtıraş"),
 { a:{ src: TA_ANIMALS.rabbit(), n:"tavşan" }, b:{ src: FRUIT_VEG_IMAGES.carrot, n:"havuç" }, id:"rabbit-carrot" },
 { a:{ src: WILD_IMAGES.monkey, n:"maymun" }, b:{ src: FRUIT_VEG_IMAGES.banana, n:"muz" }, id:"monkey-banana" },
 { a:{ src: TA_ANIMALS.cat(), n:"kedi" }, b:{ src: SEA_IMAGES.fish, n:"balık" }, id:"cat-fish" },
@@ -6751,7 +6744,7 @@ return [ { q:"Saçımızı neyle tararız?", src: HOUSE_IMAGES.comb }, { q:"Kâ�
 { q:"Karanlıkta odayı neyle aydınlatırız?", src: HOUSE_IMAGES.lamp }, { q:"Uyurken başımızı neye koyarız?", src: HOUSE_IMAGES.pillow }, { q:"Suyu neyle taşırız?", src: HOUSE_IMAGES.bucket },
 { q:"Yeri neyle süpürürüz?", src: HOUSE_IMAGES.broom }, { q:"Çayı neyle içeriz?", src: HOUSE_IMAGES.cup }, { q:"Kapıyı neyle açarız?", src: PAIR_IMAGES.key },
 { q:"Yağmurda ıslanmamak için neyi açarız?", src: PAIR_IMAGES.umbrella }, { q:"Dişlerimizi neyle fırçalarız?", src: PAIR_IMAGES.toothbrush }, { q:"Çiviyi neyle çakarız?", src: PAIR_IMAGES.hammer },
-{ q:"Kalemimizi neyle açarız?", src: PAIR_IMAGES.sharpener }, { q:"Çiçekleri neyle sularız?", src: PAIR_IMAGES.wateringcan }, { q:"Mektubu neyin içine koyarız?", src: PAIR_IMAGES.envelope } ];
+{ q:"Kalemimizi neyle açarız?", src: PAIR_IMAGES.sharpener }, { q:"Çiçekleri neyle sularız?", src: PAIR_IMAGES.wateringcan }, { q:"Telefonu neyle şarj ederiz?", src: PAIR_IMAGES.charger } ];
 }
 const QZ_ARROW_ROT = { up:0, "up-right":45, right:90, "down-right":135, down:180, "down-left":225, left:270, "up-left":315 };
 const qzArrow = (d, col) => arrowSVG("up", col).replace("rotate(0deg)", `rotate(${QZ_ARROW_ROT[d]}deg)`);
@@ -6864,6 +6857,9 @@ function qzTap(i){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "a
 const ok = i === tr.ans; if(ok) gameSfx("correct"); else mtErr(); renderMtBoard();
 if(!ok && tr.after) mtLater(() => sayTask(tr.after), 300);
 mtLater(() => { st.ti++; if(st.ti >= st.trials.length){ mtFinish(); return; } qzStart(); }, ok ? 600 : 1500); }
+/* Art arda iki soruda doğru cevap aynı konumdaysa (%75 olasılıkla) ikincisinin konumunu kaydır: konum öngörülebilir olmasın */
+const QZ_SPREAD_SKIP = new Set(["arrow-touch","edge-touch","overlap-count","syl-touch","balance","sem-decide","absurd-touch","rhyme-touch","sent-verify"]);   // seçenek sırası anlamlı: Evet/Hayır, sayılar, yönler
+function qzSpreadAns(trials){ try{ if(QZ_SPREAD_SKIP.has(currentExercise().id)) return trials; for(let i = 1; i < trials.length; i++){ const q = trials[i], p = trials[i-1]; const plain = q && q.opts ? q.opts.map(o => String(o).replace(/<[^>]+>/g, "").trim()) : []; if(plain.length && plain.every(x => /^[\d\s👏]*$/.test(x))) continue; if(!q || !p || q.fixedPos || q.ans == null || p.ans == null || q.ans !== p.ans || q.opts.length < 3 || Math.random() > 0.75) continue; const j = (q.ans + 1 + Math.floor(Math.random() * (q.opts.length - 1))) % q.opts.length; [q.opts[q.ans], q.opts[j]] = [q.opts[j], q.opts[q.ans]]; q.ans = j; } }catch(e){} return trials; }
 function qzRender(st, W, H, isLs){
 const tr = st.trials[Math.min(st.ti, st.trials.length - 1)], dots = `<div class="wm-dots">${st.trials.map((x, i) => `<i class="${i < st.ti ? "on" : ""}${st.warmN && i < st.warmN ? " w" : ""}"></i>`).join("")}${st.warmN && st.ti < st.warmN && st.phase !== "idle" && st.phase !== "done" ? `<span class="qz-warm in">🌱 Isınma</span>` : ""}</div>`;
 if(st.phase === "idle") return { info:"▶ Başlat'a bas", body: dots };
@@ -7061,9 +7057,9 @@ function semTrials(){ const C = qzCats(), I = (src) => ({ src }), t = Math.min(c
     out.push({ stim: qzPic(it.src), opts:[`<b style="font-size:20px">✓ Evet</b>`, `<b style="font-size:20px">✗ Hayır</b>`], ans: y ? 0 : 1, prompt:`<b>${Q.q}</b>`, say: Q.q, text:true, qk: Q.k }); }
   return out; }
 function chaseCfg(){ const t = currentCombo().t; return { need: isPre() ? [5, 6, 8][t] : [8, 10, 12][t], speed: (isPre() ? [0.45, 0.6, 0.75] : [0.6, 0.85, 1.1])[t], size: isPre() ? 70 : [64, 56, 48][t] }; }
-const ALT_BY_TIER = [ ["kova","yastık","şemsiye"], ["kalem","kaşık","fincan"], ["zarf","tarak"] ];   // Başlangıç: çok amaçlı nesneler · Zor: kullanım alanı dar nesneler
+const ALT_BY_TIER = [ ["kova","yastık","şemsiye"], ["kalem","kaşık","fincan"], ["makas","tarak"] ];   // Başlangıç: çok amaçlı nesneler · Zor: kullanım alanı dar nesneler
 const ALT_OBJ = () => [ { n:"kova", src: HOUSE_IMAGES.bucket }, { n:"kaşık", src: PAL_EXTRA_IMAGES.spoon }, { n:"şemsiye", src: PAIR_IMAGES.umbrella }, { n:"yastık", src: HOUSE_IMAGES.pillow },
-{ n:"kalem", src: PAIR_IMAGES.pencil }, { n:"fincan", src: HOUSE_IMAGES.cup }, { n:"zarf", src: PAIR_IMAGES.envelope }, { n:"tarak", src: HOUSE_IMAGES.comb } ];
+{ n:"kalem", src: PAIR_IMAGES.pencil }, { n:"fincan", src: HOUSE_IMAGES.cup }, { n:"makas", src: HOUSE_IMAGES.scissors }, { n:"tarak", src: HOUSE_IMAGES.comb } ];
 function timeTrials(){ const t = currentCombo().t, secs = (isPre() ? [3, 5, 7] : [5, 10, 15])[t]; return Array.from({length: isPre() ? 3 : 4}, () => ({ secs, tol: isPre() ? 0.3 : 0.2 })); }
 function ferrTrials(){ const t = currentCombo().t, types = isPre() ? ["shape"] : ["shape","num","pattern"];
 return Array.from({length: isPre() ? 3 : 4}, () => { const ty = randomItem(types), E = isPre() ? [1, 1, 2][t] : [1, 2, 3][t];
@@ -7148,10 +7144,38 @@ post:[ ["Kerem karanlıkta kitap okumak için perdeleri sıkıca kapattı.", fal
 ["Islanmamak için yağmurluğunu giydi.", true], ["Daha iyi görmek için gözlüğünü çıkardı.", false], ["Erken uyanmak için alarm kurdu.", true],
 ["Ali, kardeşinden büyük; kardeşi de Ali'den büyük.", false], ["Susadığı için bir bardak su içti.", true], ["Buzlar erisin diye dondurucuya koydu.", false],
 ["Karanlıkta yolunu bulmak için el fenerini yaktı.", true], ["Pazartesiden sonra pazar gelir.", false], ["Çiçekleri solmasın diye suladı.", true] ] };
-function absBuild(){ const t = currentCombo().t, L = isPre() ? ABSURD.pre : ABSURD.post, N = isPre() ? [5, 6, 8][t] : [6, 8, 10][t];
+const ABSURD_POST = [
+[ /* Başlangıç: tek cümle, açık nesne–eylem uyumsuzluğu */
+["Ayşe çorbayı kaşıkla içti.", true], ["Ayşe çorbayı çatalla içti.", false],
+["Mert ayakkabılarını ayağına giydi.", true], ["Mert ayakkabılarını ellerine giydi.", false],
+["Kedi ağaca tırmanarak çıktı.", true], ["Kedi ağaca uçarak çıktı.", false],
+["Ali dişlerini diş fırçasıyla fırçaladı.", true], ["Ali dişlerini tarakla fırçaladı.", false],
+["Zeynep kitabı masada oturarak okudu.", true], ["Zeynep kitabı kulağıyla okudu.", false],
+["Kerem topu elleriyle yakaladı.", true], ["Kerem topu burnuyla yakaladı.", false],
+["Elif ekmeği fırında pişirdi.", true], ["Elif ekmeği buzdolabında pişirdi.", false],
+["Can yüzmeyi havuzda öğrendi.", true], ["Can yüzmeyi çölde öğrendi.", false],
+["Defne saçını tarakla taradı.", true], ["Defne saçını makasla taradı.", false],
+["Dede bahçeye çiçek dikti.", true], ["Dede elma ağacından armut topladı.", false] ],
+[ /* Orta: amaç–eylem uyumsuzluğu, çıkarım gerekir */
+["Islanmamak için yağmurluğunu giydi.", true], ["Erken uyanmak için alarm kurdu.", true], ["Susadığı için bir bardak su içti.", true], ["Karanlıkta yolunu bulmak için el fenerini yaktı.", true], ["Çiçekleri solmasın diye suladı.", true],
+["Üşüdüğü için pencereyi kapattı.", true], ["Daha iyi duymak için sesi biraz açtı.", true], ["Dişleri çürümesin diye her akşam fırçaladı.", true], ["Düşerse başı zarar görmesin diye bisiklette kask taktı.", true], ["Geç kalmamak için erken yola çıktı.", true],
+["Kerem karanlıkta kitap okumak için perdeleri sıkıca kapattı.", false], ["Mert su içmek için boş bardağı ağzına götürdü.", false], ["Ece sıcak çaya, soğusun diye kaynar su ekledi.", false], ["Daha iyi görmek için gözlüğünü çıkardı.", false], ["Ali, kardeşinden büyük; kardeşi de Ali'den büyük.", false],
+["Buzlar erisin diye dondurucuya koydu.", false], ["Pazartesiden sonra pazar gelir.", false], ["Zeynep üşüdüğü için pencereyi sonuna kadar açtı.", false], ["Can sessizlik istediği için müziği sonuna kadar açtı.", false], ["Deniz uykusu gelsin diye akşam kahve içti.", false] ],
+[ /* Zor: iki cümle; ilki amacı, ikincisi davranışı verir */
+["Ece serinlemek istiyordu. İnce bir tişört giyip gölgeye oturdu.", true], ["Ece serinlemek istiyordu. Kalın montunu giyip güneşin altına oturdu.", false],
+["Kerem'in karnı çok açtı. Tabağındaki yemeğin hepsini yedi.", true], ["Kerem'in karnı çok açtı. Yemeğe hiç dokunmadan masadan kalkıp 'doydum' dedi.", false],
+["Ali ödevini bitirmek istiyordu. Kalemini alıp masaya oturdu.", true], ["Ali ödevini bitirmek istiyordu. Kalemine hiç dokunmadı, akşam 'ödevim bitti' dedi.", false],
+["Zeynep karanlıkta göremiyordu. Lambayı açtı.", true], ["Zeynep karanlıkta göremiyordu. Daha iyi görmek için gözlerini sıkıca kapattı.", false],
+["Mert uyumak istiyordu. Işıkları kapatıp yatağına yattı.", true], ["Mert uyumak istiyordu. Işıkları açıp yüksek sesle müzik çaldı.", false],
+["Defne bisikletle geziye çıkacaktı. Tekerleklerin havasını kontrol edip kaskını taktı.", true], ["Defne bisikletle geziye çıkacaktı. Bisikletin tekerleklerini söküp yola çıktı.", false],
+["Can bitkisinin büyümesini istiyordu. Onu güneş gören pencerenin önüne koydu.", true], ["Can bitkisinin büyümesini istiyordu. Onu dolabın içine, karanlığa koydu.", false],
+["Elif ısınmak istiyordu. Sıcak çay içip battaniyeye sarıldı.", true], ["Elif ısınmak istiyordu. Soğuk suyla duş alıp balkona çıktı.", false],
+["Deniz denize girecekti. Mayosunu giyip havlusunu aldı.", true], ["Deniz denize girecekti. Mayosunu çıkarıp üstüne kalın kazak giydi.", false],
+["Ayşe sınıfta sessizlik istiyordu. Parmağını dudağına götürüp 'şşş' dedi.", true], ["Ayşe sınıfta sessizlik istiyordu. Davulu alıp olanca gücüyle çalmaya başladı.", false] ] ];
+function absBuild(){ const t = currentCombo().t, L = isPre() ? ABSURD.pre : ABSURD_POST[Math.min(t, 2)], N = isPre() ? [5, 6, 8][t] : [8, 10, 12][t];
 const yes = shuffleArray(L.filter(x => x[1])), no = shuffleArray(L.filter(x => !x[1])), out = [];
 for(let i = 0; i < N; i++){ const s = i % 2 ? yes[Math.floor(i / 2) % yes.length] : no[Math.floor(i / 2) % no.length];
-out.push({ stim: isPre() ? "" : `<div style="font-size:19px;font-weight:800;text-align:center;max-width:340px;margin:0 auto">${s[0]}</div>`, raw:true, opts:[`<b style="font-size:20px">✓ Doğru</b>`, `<b style="font-size:20px">✗ Saçma</b>`], ans: s[1] ? 0 : 1, say: s[0], replay:true, fixed:true, text:true, prompt:"Bu cümle <b>doğru mu, saçma mı?</b>" }); }
+out.push({ stim: isPre() ? "" : `<div style="font-size:${!isPre() && t === 2 ? 17 : 19}px;font-weight:800;text-align:center;max-width:340px;margin:0 auto;line-height:1.35">${s[0]}</div>`, raw:true, opts:[`<b style="font-size:20px">✓ Doğru</b>`, `<b style="font-size:20px">✗ Saçma</b>`], ans: s[1] ? 0 : 1, say: s[0], replay:true, fixed:true, text:true, prompt: !isPre() && t === 2 ? "İki cümleyi oku: <b>davranış amaca uyuyor mu?</b>" : "Bu cümle <b>doğru mu, saçma mı?</b>" }); }
 return shuffleArray(out); }
 const CP_BALL = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r || 9}" fill="#F5A524" stroke="#C77800" stroke-width="2"/>`;
 const CP_TABLE = `<rect x="22" y="50" width="56" height="7" rx="2" fill="#B9773A"/><rect x="26" y="57" width="5" height="33" fill="#8B5A2B"/><rect x="69" y="57" width="5" height="33" fill="#8B5A2B"/>`;
@@ -7569,10 +7593,22 @@ const mk = () => {
     const arr = [...sims]; return shuffleArray(arr.concat([base])).map(v => ({ k: v, h:`<b style="font-size:22px;letter-spacing:1px">${v}</b>` })); }
   const LT = ["b","d","p","q","ğ","g"], mkw = () => Array.from({length:3}, () => randomItem(LT)).join(""); const base = mkw(); const set = new Set([base]); while(set.size < D) set.add(mkw());
   return shuffleArray([...set].concat([base])).map(v => ({ k: v, h:`<b style="font-size:20px;font-family:'Trebuchet MS',sans-serif">${v}</b>` })); };
-return Array.from({length:N}, () => { const items = mk(), cnt = {}; items.forEach(x => cnt[x.k] = (cnt[x.k] || 0) + 1); return { items, pk: Object.keys(cnt).find(k => cnt[k] === 2) }; }); }
+/* İkizlerin arası: yan yana çıkma olasılığı rastgele karıştırmada %40'a varıyordu. Her denemede aralık (1 = yan yana … n-1 = iki uç) sırayla ve eşit sıklıkta kullanılır. */
+  const n = D + 1, gapCycle = []; while(gapCycle.length < N) gapCycle.push(...shuffleArray(Array.from({length: n - 1}, (_, i) => i + 1)));
+  return Array.from({length:N}, (_, k) => { const items = mk(), cnt = {}; items.forEach(x => cnt[x.k] = (cnt[x.k] || 0) + 1); const pk = Object.keys(cnt).find(k2 => cnt[k2] === 2);
+    const g = gapCycle[k], a = Math.floor(Math.random() * (n - g)), twins = items.filter(x => x.k === pk), rest = items.filter(x => x.k !== pk), placed = []; let ri = 0;
+    for(let pos = 0; pos < n; pos++) placed.push(pos === a || pos === a + g ? twins.shift() : rest[ri++]);
+    return { items: placed, pk }; }); }
 const SV_BANK = [ ["Kuşların kanadı vardır.",1],["Balıklar ağaçta yaşar.",0],["Kar soğuktur.",1],["Güneş geceleri doğar.",0],["İnekler süt verir.",1],["Taşlar yumuşaktır.",0],["Elma bir meyvedir.",1],["Arabalar uçar.",0],["Kışın hava soğuk olur.",1],["Kediler havlar.",0],["Su ıslaktır.",1],["Ateş soğuktur.",0],["Ayakkabı ayağa giyilir.",1],["Bir haftada beş gün vardır.",0],["Limon ekşidir.",1],["Filler çok küçüktür.",0],["Yağmur buluttan yağar.",1],["Buz sıcaktır.",0],["Doktorlar hastaları tedavi eder.",1],["Ağaçlar yürür.",0],["Ekmek fırında pişer.",1],["Çorba çatalla içilir.",0],["Kitaplar okunur.",1],["Tavuklar yüzer.",0] ];
-function svTrials(){ const t = currentCombo().t, N = [10, 14, 18][t]; const y = shuffleArray(SV_BANK.filter(x => x[1])), n = shuffleArray(SV_BANK.filter(x => !x[1])), out = [];
-for(let i = 0; i < N; i++){ const s = i % 2 ? y[Math.floor(i / 2) % y.length] : n[Math.floor(i / 2) % n.length]; out.push({ stim:`<div style="font-size:21px;font-weight:800;text-align:center">${s[0]}</div>`, raw:true, opts:[`<b style="font-size:20px">✓ Doğru</b>`, `<b style="font-size:20px">✗ Yanlış</b>`], ans: s[1] ? 0 : 1, fixed:true, text:true, prompt:"<b>Oku</b> ve hızlıca karar ver" }); }
+const SV_BANK_MID = [ /* Orta: çıkarım isteyen tek cümleler */
+["Kaplumbağalar tavşanlardan daha yavaş yürür.",1],["Pazartesiden iki gün sonra çarşamba gelir.",1],["Buz eriyince suya dönüşür.",1],["Karanlıkta görebilmek için ışığa ihtiyaç duyarız.",1],["Bir balina bir kediden daha büyüktür.",1],["Yazın günler kıştakinden daha uzundur.",1],["Islak bir havlu güneşte zamanla kurur.",1],["Bitkiler büyümek için suya ihtiyaç duyar.",1],["Bir saatte altmış dakika vardır.",1],["Dişlerimizi fırçalamazsak çürüyebilir.",1],["Ekmek undan yapılır.",1],
+["Pazartesiden bir gün sonra cuma gelir.",0],["Kar, hava çok sıcakken yağar.",0],["Bir kedi bir filden daha ağırdır.",0],["Güneş sabah batıdan doğar.",0],["Bir saat altı dakikadan oluşur.",0],["Yarın bugünden önce gelir.",0],["Bir hafta on gündür.",0],["Sıcak su buzdan daha soğuktur.",0],["Bir bisikletin dört tekerleği vardır.",0],["Ağır bir taş suya atılınca yüzer.",0],["Köpekler yumurtadan çıkar.",0] ];
+const SV_BANK_HARD = [ /* Zor: iki cümle; ikinci cümle ilkinin mantıklı sonucuysa Doğru, çelişiyorsa Yanlış */
+["Ayşe şemsiyesini açtı ve çizmelerini giydi. Dışarıda yağmur yağıyor.",1],["Mert bütün gece ders çalıştı. Sabah çok yorgundu.",1],["Kedi mama kabının başında miyavlıyor. Kedi acıkmış olabilir.",1],["Ali'nin ayakkabıları çamur içinde. Ali dışarıda oynamış.",1],["Zeynep üç elma aldı, birini yedi. Elinde iki elma kaldı.",1],["Bugün pazartesi. Yarın salı olacak.",1],["Cam bardak masadan yere düştü. Bardak kırılmış olabilir.",1],["Kerem kalın mont giydi ve eldivenlerini taktı. Hava soğuk.",1],["Deniz suyu tuzludur. Denizden alınan su içilmez.",1],["Elif koşarak geldi ve nefes nefeseydi. Elif acele etmişti.",1],["Saat gece on iki. Dışarısı karanlık.",1],
+["Ayşe şemsiyesini açtı ve çizmelerini giydi. Dışarıda güneş açmış, hava sıcak.",0],["Mert erkenden yattı ve sabaha kadar uyudu. Mert hiç uyumadı.",0],["Zeynep üç elma aldı, birini yedi. Elinde dört elma kaldı.",0],["Bugün pazartesi. Yarın cuma olacak.",0],["Ali ayakkabılarını hiç dışarı giymedi. Ayakkabıları çamur içinde.",0],["Kerem şort ve tişört giydi, terliyordu. Hava çok soğuktu.",0],["Kar yağıyor ve her yer bembeyaz. Mevsim yazın ortası.",0],["Elif sınıfa en son girdi. Elif sınıfa ilk gelen öğrenciydi.",0],["Saat öğlen on iki ve güneş tepede. Dışarısı zifiri karanlık.",0],["Deniz hiç yüzme bilmiyor. Deniz yüzme yarışını birinci bitirdi.",0],["Can'ın kalemi kırıldı ve başka kalemi yok. Can yazısını aynı kalemle bitirdi.",0] ];
+const SV_BANKS = [SV_BANK, SV_BANK_MID, SV_BANK_HARD];
+function svTrials(){ const t = currentCombo().t, N = [10, 14, 18][t], bank = SV_BANKS[Math.min(t, 2)]; const y = shuffleArray(bank.filter(x => x[1])), n = shuffleArray(bank.filter(x => !x[1])), out = [];
+for(let i = 0; i < N; i++){ const s = i % 2 ? y[Math.floor(i / 2) % y.length] : n[Math.floor(i / 2) % n.length]; out.push({ stim:`<div style="font-size:${t === 2 ? 18 : 21}px;font-weight:800;text-align:center;line-height:1.35">${s[0]}</div>`, raw:true, opts:[`<b style="font-size:20px">✓ Doğru</b>`, `<b style="font-size:20px">✗ Yanlış</b>`], ans: s[1] ? 0 : 1, fixed:true, text:true, prompt: t === 2 ? "<b>İki cümleyi oku:</b> ikincisi ilkine uyuyor mu?" : "<b>Oku</b> ve hızlıca karar ver" }); }
 return shuffleArray(out); }
 function perTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 8 : 12, ms = (pre ? [1600, 1300, 1100] : [1500, 1200, 1000])[t];
 return Array.from({length:N}, () => { const side = randomItem(["l","r","t","b"]), u = 8 + Math.random() * 84, pos = side === "l" ? [4 + Math.random() * 10, u] : side === "r" ? [86 + Math.random() * 10, u] : side === "t" ? [u, 5 + Math.random() * 10] : [u, 85 + Math.random() * 10];
@@ -7970,7 +8006,7 @@ if(currentStageIndex === 1){ const d = delayGet("recog"); if(d && d.keys){ const
 if(s2.length){ study = s2; fresh = shuffleArray(picPool().filter(x => !d.keys.includes(x.k))).slice(0, s2.length); delayed = true; } } }
 mtState = { kind:"recog", study, test: shuffleArray(study.map(x => ({ x, old:true })).concat(fresh.map(x => ({ x, old:false })))), qi:0, wrong:0, hits:0, fa:0, phase:"idle", delayed };
 return mtState.test; },
-...Object.fromEntries(Object.keys(QZ).map(id => [id, () => { mtState = { kind:"quiz", qid:id, trials: QZ[id](), ti:0, wrong:0, phase:"idle" }; return mtState.trials; }])),
+...Object.fromEntries(Object.keys(QZ).map(id => [id, () => { mtState = { kind:"quiz", qid:id, trials: qzSpreadAns(QZ[id]()), ti:0, wrong:0, phase:"idle" }; return mtState.trials; }])),
 "size-touch": () => { mtState = { kind:"size", trials: szBuild(), ti:0, pos:0, wrong:0, phase:"idle", marks:{} }; return mtState.trials; },
 "move-seq": () => { mtState = { kind:"movesay", trials: moveTrials(), ti:0, wrong:0, ok:0, phase:"idle" }; return mtState.trials; },
 "story-order": () => { mtState = { kind:"storyord", trials: storyOrderTrials(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
@@ -9509,7 +9545,7 @@ const INSTR_SHORT = {
 "new-word":         [() => Q("Yeni arkadaşlarla tanış, adlarını dinle. Sonra sorulan arkadaşı bul.")],
 "sent-pic":         [() => isPre() ? Q("Cümleyi dinle. Cümleye uyan resme dokun.") : Q("Cümleyi oku ve dinle. Cümleye tam uyan resme dokun.")],
 "pair-match":       [() => Q("Satıra bak. Birbirinin aynısı olan iki taneye dokun.")],
-"sent-verify":      [() => Q("Cümleyi oku. Doğruysa Doğru'ya, yanlışsa Yanlış'a hızlıca dokun.")],
+"sent-verify":      [() => Q(currentCombo().t === 2 ? "İki cümleyi oku. İkinci cümle ilkine uyuyorsa Doğru'ya, çelişiyorsa Yanlış'a dokun." : "Cümleyi oku. Doğruysa Doğru'ya, yanlışsa Yanlış'a hızlıca dokun.")],
 "periph":           [() => Q("Gözünü ortadaki kırmızı noktadan ayırma. Kenarda yıldız görünce ona dokun.") + (!isPre() && currentCombo().t === 2 ? " " + Q("Mavi daireye dokunma.") : "")],
 "fixation":         [() => `Çocuğa söyleyin: ${Q("Kırmızı noktaya bak, etrafta ne çıkarsa çıksın gözünü ayırma.")} Süre bitince gözlerini ayırıp ayırmadığını işaretleyin.`],
 "dual-task":        [() => Q("Çıkan yıldızlara dokun. Aynı anda bip seslerini say; sonunda kaç tane olduğunu söyleyeceksin.")],
@@ -9552,7 +9588,7 @@ const INSTR_SHORT = {
 "infer-say":        [() => `Okuyun: ${Q("Dinle. Sence ne olmuş olabilir?")}`],
 "homonym-say":      [() => `Okuyun: ${Q("Bu kelimenin iki farklı anlamını söyle.")}`],
 "proverb-touch":    [() => Q("Sözü oku. Asıl anlatmak istediği anlama dokun.")],
-"absurd-touch":     [() => Q("Cümleyi dinle. Doğruysa Doğru'ya, saçmaysa Saçma'ya dokun.")],
+"absurd-touch":     [() => Q(!isPre() && currentCombo().t === 2 ? "İki cümleyi dinle. Davranış amaca uyuyorsa Doğru'ya, uymuyorsa Saçma'ya dokun." : "Cümleyi dinle. Doğruysa Doğru'ya, saçmaysa Saçma'ya dokun.")],
 "concept-touch":    [() => Q("Dinle. Söylenen resme dokun.")],
 "infer-touch":      [() => Q("Durumu oku ya da dinle. İpuçlarına göre en uygun cevaba dokun.")],
 "dot-count":        [() => Q("Noktalar bir an görünecek. Kaç tane olduğunu seç.")],
@@ -11771,7 +11807,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.16-a";
+const APP_VERSION = "2026.10.16-e";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
