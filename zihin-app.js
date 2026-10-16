@@ -10416,8 +10416,7 @@ if(!(w > 0 && h > 0)) return null;
 const gx = parseFloat(cs.columnGap) || 8;
 const gy = parseFloat(cs.rowGap) || 6;
 const hasText = !!board.querySelector(".name-cell, .stroop-cell, .phrase-cell");
-const hasPair = !!board.querySelector(".pair-cell");
-const aspect = hasPair ? 2.1 : (hasText ? 1.7 : 1);
+const hasPair = !!board.querySelector(".pair-cell"), hasOdd = !!board.querySelector(".odd-group"); const aspect = hasPair ? 2.1 : hasOdd ? 2.4 : (hasText ? 1.7 : 1);
 let best = null;
 for(let c = 1; c <= n; c++){
 const r = Math.ceil(n / c);
@@ -10432,12 +10431,12 @@ return best;
 
 /* Dikey ekran (telefon ve tablet): öğe sayısını koruyup tahtanın genişlik ve yüksekliğine göre en büyük kare hücreyi veren satır/sütun düzenini seç.
    Satırın anlam taşıdığı ya da tek satırlık dizi gösteren çalışmalar dışarıda. */
-const NO_REFLOW = new Set(["position-recall","digit-span","word-list-recall","sentence-repeat","color-recall","shape-recall","sequence-pattern","visual-analogy","odd-one-out","nback-shape","nback-color","nback-number"]);
+const NO_REFLOW = new Set(["position-recall","digit-span","word-list-recall","sentence-repeat","color-recall","shape-recall","sequence-pattern","visual-analogy","nback-shape","nback-color","nback-number"]);
 function pickPortraitDims(n, board, rows0, cols0){ try{ if(rows0 < 2 || cols0 < 2 || NO_REFLOW.has(currentExercise().id)) return null; const cs = getComputedStyle(board); const w = board.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
   const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0;
-  const focus = document.documentElement.classList.contains("run-focus") && window._rfMax; const availAll = focus ? window._rfMax : (window.innerHeight - board.getBoundingClientRect().top - barH - 12 - 90);   /* odak dışında "Geçmiş Sonuçları Gör" için yer kalsın */
+  const focus = document.documentElement.classList.contains("run-focus") && window._rfMax; const availAll = focus ? window._rfMax : Math.max(window.innerHeight - board.getBoundingClientRect().top - barH - 12 - 90, window.innerHeight * 0.62); /* odak dışında sayfa kaydırılabilir: başlık uzun olsa da tahta ekranın en az %62'si kadar yer alabilir (aksi hâlde seçici ham sütuna düşüp hücreleri sıkıştırıyordu) */   /* odak dışında "Geçmiş Sonuçları Gör" için yer kalsın */
   const h = availAll - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 16; if(!(w > 0 && h > 120)) return null;
-  const gx = parseFloat(cs.columnGap) || 10, gy = parseFloat(cs.rowGap) || 26; const hasText = !!board.querySelector(".name-cell, .stroop-cell, .phrase-cell"); const hasPair = !!board.querySelector(".pair-cell"); const aspect = hasPair ? 2.1 : (hasText ? 1.7 : 1);
+  const gx = parseFloat(cs.columnGap) || 10, gy = parseFloat(cs.rowGap) || 26; const hasText = !!board.querySelector(".name-cell, .stroop-cell, .phrase-cell"); const hasPair = !!board.querySelector(".pair-cell"), hasOdd = !!board.querySelector(".odd-group"); const aspect = hasPair ? 2.1 : hasOdd ? 2.4 : (hasText ? 1.7 : 1);
   let best = null; for(let c = 2; c <= n; c++){ const r = Math.ceil(n / c); if(r < 1 || c * r - n > c - 1) continue; const cw = (w - (c - 1) * gx) / c, ch = (h - (r - 1) * gy) / r; if(cw <= 0 || ch <= 0) continue; const cell = Math.min(cw / aspect, ch); const score = cell - (c * r - n) * 0.5; if(!best || score > best.score) best = { cols:c, rows:r, cell:Math.floor(cell), cw:Math.floor(Math.min(cw, cell * aspect)), score }; }
   return best; }catch(e){ return null; } }
 function applyBoardLayout(){
@@ -10549,6 +10548,9 @@ renderHistory();
 }
 }
 
+/* Kaydırma konumunu koru (Karıştır gibi tahtayı yeniden çizen işlemlerde iOS Safari konumu yukarı çekebiliyor) */
+function keepScrollSnapshot(){ const els = [document.scrollingElement, document.documentElement, document.body, document.getElementById("mainApp")].filter(Boolean); return { els, tops: els.map(e => e.scrollTop), winY: window.scrollY }; }
+function restoreScrollSnapshot(snap){ if(!snap) return; const apply = () => { snap.els.forEach((e, i) => { if(e && Math.abs(e.scrollTop - snap.tops[i]) > 2) e.scrollTop = snap.tops[i]; }); if(Math.abs(window.scrollY - snap.winY) > 2) window.scrollTo(0, snap.winY); }; apply(); requestAnimationFrame(apply); setTimeout(apply, 60); setTimeout(apply, 180); }
 function newPage(){ if(qsRuleKey) qsRulePrev = qsRuleKey; qsRuleKey = null; /* Hızlı Seç: her yeni sayfada, bir önceki sayfadan farklı bir kural seçilir */
 document.documentElement.classList.remove("board-run");
 setLsOpen(false);
@@ -11622,18 +11624,14 @@ document.getElementById("saveResultBtn").addEventListener("click", ()=>{
 confirmSaveResult();
 });
 
-document.getElementById("reshuffleBtn").addEventListener("click", ()=>{ if(qsRuleKey) qsRulePrev = qsRuleKey; qsRuleKey = null; /* Karıştır: Hızlı Seç kuralı da yenilensin */
+document.getElementById("reshuffleBtn").addEventListener("click", ()=>{ const __keep = keepScrollSnapshot(); if(qsRuleKey) qsRulePrev = qsRuleKey; qsRuleKey = null; /* Karıştır: Hızlı Seç kuralı da yenilensin */
 const ex = currentExercise();
 if(ex.onShuffle) try{ ex.onShuffle(); }catch(e){}
 if(!ex.isMotion){
 const {rows, cols} = currentTier();
 currentGrid = generateGrid(ex, rows, cols);
 }
-renderBoard();
-renderInstruction();
-resetTimer();
-refreshHistoryIfVisible();
-});
+renderBoard(); renderInstruction(); resetTimer(); refreshHistoryIfVisible(); restoreScrollSnapshot(__keep); /* Karıştır: sayfa yukarı zıplamasın */ });
 
 document.getElementById("prevBtn").addEventListener("click", ()=>{
 goToIndex(currentIndex - 1);
@@ -11925,7 +11923,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.16-u";
+const APP_VERSION = "2026.10.16-y";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -13710,9 +13708,8 @@ const COMPREHENSION_QS = [
 {q:"Neden kitap okuruz?", hint:"öğrenmek / eğlenmek için"}
 ];
 
-function tripleShapeHTML(items){
-return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;gap:4%;">${
-items.map(it => `<div style="width:30%;height:75%;">${shapeSVG(it.shape, it.color)}</div>`).join('')
+function tripleShapeHTML(items){ return `<div class="odd-group" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;min-height:38px;aspect-ratio:2.4/1;gap:3%;box-sizing:border-box;padding:4% 5%;background:#F1F5F9;border:2px solid #E3E9F0;border-radius:14px;">${
+items.map(it => `<div style="width:31%;height:90%;">${shapeSVG(it.shape, it.color)}</div>`).join('')
 }</div>`;
 }
 
