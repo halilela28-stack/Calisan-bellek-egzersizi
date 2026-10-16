@@ -6452,8 +6452,31 @@ const SPAN_BANK = [
 ];
 const SPAN_SETS = { post:[2, 3, 4], pre:[2, 3, 3] }, SPAN_COUNT_PRE = [2, 2, 3];   // öncesi: 2 öğe×2 set → 3 öğe×2 set → 3 öğe×3 set
 const spanSetSize = () => (isPre() ? SPAN_SETS.pre : SPAN_SETS.post)[currentCombo().t];
-function makeSpanSets(count){
-const size = spanSetSize(), pool = shuffleArray(SPAN_BANK), sets = [];
+/* Okuma Aralığı (span-read) düzey cümleleri: t2/f2 = Orta (çıkarım isteyen tek cümle, nesne cümlenin içinde), t3/f3 = Zor (iki cümle: olay + çıkarım) */
+const SPAN_LEVELS = {
+dog:{ t2:"Hırsız gelince bahçedeki köpek havlayarak haber verir.", f2:"Evdeki köpek her sabah yumurtlayarak kahvaltıyı hazırlar.", t3:"Köpek kapıya koşup kuyruğunu salladı. Sahibi eve gelmiş olmalı.", f3:"Köpek kuyruğunu sallayıp havladı. Demek ki köpek derin uykudaydı." },
+cat:{ t2:"Fare görünce kedi sessizce ona yaklaşır.", f2:"Soğuk kış günlerinde kedi gölde yüzmeye gider.", t3:"Kedi mama kabının başında miyavlıyor. Acıkmış olmalı.", f3:"Kedi tabağındaki mamanın hepsini yedi. Demek ki hiç aç değildi." },
+cow:{ t2:"Çiftçi her sabah ineği sağar ve sütü kovaya doldurur.", f2:"Çiftçi ineğin sırtına binip ağaçlara tırmanır.", t3:"İneğin sütü kovaya dolduruldu. Çiftçi ineği sağmış.", f3:"İnek bütün gün ahırda uyudu. Demek ki tarlayı sürmüş." },
+fish:{ t2:"Akvaryumdaki balık suyun içinde yüzerek yaşar.", f2:"Balık susayınca sudan çıkıp çeşmeden su içer.", t3:"Balık suyun üstüne çıkıp ağzını açtı. Yem bekliyor olabilir.", f3:"Balık akvaryumda yüzüyor. Demek ki susuz kalmış." },
+elephant:{ t2:"Fil, hortumuyla su çekip üstüne püskürtür.", f2:"Fil küçücük olduğu için cebimize sığar.", t3:"Fil hortumunu göle daldırıp su çekti. Su içecek ya da serinleyecek.", f3:"Fil çalıları ezerek geçti. Demek ki çok küçük bir hayvan." },
+parrot:{ t2:"Papağan duyduğu kelimeleri tekrar edebilir.", f2:"Papağan tüyleri olmadığı için dört ayak üstünde koşar.", t3:"Papağan sabah 'günaydın' dedi. Birinden duyup öğrenmiş olmalı.", f3:"Papağan kafesinde sessizce uyuyor. Demek ki şarkı söylüyor." },
+penguin:{ t2:"Buzların üstünde yürüyen penguen soğuktan üşümez.", f2:"Çölde yaşayan penguen sıcak kumda yuva yapar.", t3:"Penguen buzun kenarından denize atladı. Balık avlayacak.", f3:"Penguen sıcak kumda ter içinde kaldı. Demek ki kutuplarda yaşıyor." },
+lion:{ t2:"Ormanda avlanan aslan et yer.", f2:"Aslan otla beslendiği için koyunlarla birlikte otlar.", t3:"Aslan uzun otların arasında usulca ilerledi. Avını gözetliyor.", f3:"Aslan karnı tok, gölgede uyuyor. Demek ki şu anda avlanıyor." },
+giraffe:{ t2:"Zürafa, uzun boynu sayesinde ağaçların tepesindeki yapraklara ulaşır.", f2:"Zürafa boynu kısa olduğu için yerdeki otları zor yer.", t3:"Zürafa boynunu uzatıp en yüksek dalı yedi. Boyu bu işe yetiyor.", f3:"Zürafa yerdeki otu zor yiyor. Demek ki boynu kısa." },
+zebra:{ t2:"Zebranın siyah beyaz çizgileri onu diğer atlardan ayırır.", f2:"Zebra tek renk mor olduğu için kolayca tanınır.", t3:"Zebralar birden sürü hâlinde koşmaya başladı. Bir tehlike görmüş olabilirler.", f3:"Zebra tek başına uyuyor. Demek ki arkadaşlarıyla koşuyor." },
+monkey:{ t2:"Maymun daldan dala atlayarak ağaçta dolaşır.", f2:"Maymun denizin dibinde yüzgeçleriyle yüzer.", t3:"Maymun muzu kaptı ve ağaca tırmandı. Muzu yukarıda yiyecek.", f3:"Maymun yerde uyuyor. Demek ki daldan dala atlıyor." },
+bear:{ t2:"Ayı kış gelince mağarasında uzun bir uykuya yatar.", f2:"Ayı yumurtadan çıktığı için tavuğa benzer.", t3:"Ayı sonbaharda bol bol yedi ve mağarasına girdi. Kış uykusuna hazırlanıyor.", f3:"Ayı karda oynuyor. Demek ki yaz tatilindeyiz." },
+squirrel:{ t2:"Sincap kış için fındıkları toplayıp saklar.", f2:"Sincap filden büyük olduğu için ağaca sığmaz.", t3:"Sincap fındıkları toprağa gömdü. Kışın bulup yiyecek.", f3:"Sincap yazın hiç fındık saklamadı. Demek ki kışın bol yiyeceği olacak." },
+hedgehog:{ t2:"Kirpi tehlike görünce dikenlerini kabartıp top olur.", f2:"Kirpi kanatlarını açıp gökyüzünde uçar.", t3:"Kirpi dikenlerini kabartıp top oldu. Bir tehlike hissetmiş.", f3:"Kirpi rahatça geziniyor. Demek ki çok korkmuş." },
+dolphin:{ t2:"Yunus denizde sudan zıplayarak oynar.", f2:"Yunus ormanda ağaçların arasında koşar.", t3:"Yunus sudan zıpladı ve yeniden daldı. Nefes almış olabilir.", f3:"Yunus denizde yüzüyor. Demek ki ormanda yaşıyor." },
+turtle:{ t2:"Kaplumbağa korkunca başını kabuğunun içine çeker.", f2:"Kaplumbağa tavşandan hızlı koştuğu için yarışı hep kazanır.", t3:"Kaplumbağa başını kabuğuna çekti. Korkmuş olmalı.", f3:"Kaplumbağa yavaşça yürüyor. Demek ki koşu yarışını kazandı." },
+ball:{ t2:"Çocuklar bahçede topu birbirlerine atarak oynar.", f2:"Top kare olduğu için yerde yuvarlanmaz.", t3:"Top çite çarpıp geri geldi. Biri topa sert vurmuş.", f3:"Top suya düşüp batmadı. Demek ki taştan yapılmış." },
+kite:{ t2:"Rüzgârlı günde uçurtma gökyüzünde yükselir.", f2:"Uçurtma rüzgâr olmayınca daha yükseğe uçar.", t3:"Uçurtma birden yere düştü. Rüzgâr kesilmiş olabilir.", f3:"Uçurtma gökyüzünde yükseldi. Demek ki hiç rüzgâr yok." },
+apple:{ t2:"Ağaçtan koparılan elma yıkanıp yenir.", f2:"Elma denizin dibinde yetişen bir balıktır.", t3:"Elma ağaçtan yere düştü. Olgunlaşmış olabilir.", f3:"Elma yemyeşil ve çok sert. Demek ki çürümüş." },
+carrot:{ t2:"Toprağın altında büyüyen havuç turuncu renklidir.", f2:"Havuç gökyüzünde bulutların üstünde yetişir.", t3:"Havuç topraktan çekilince üstü çamurluydu. Toprağın altında büyümüş.", f3:"Havuç ağacın tepesinden koparıldı. Demek ki toprakta yetişmiş." } };
+function spanLevel(){ try{ return currentExercise().id === "span-read" ? Math.min(currentCombo().t, 2) : 0; }catch(e){ return 0; } }
+function spanSentence(it){ const L = spanLevel(); if(L === 0 || !SPAN_LEVELS[it.b.k]) return it.truth ? it.b.t : it.b.f; const x = SPAN_LEVELS[it.b.k]; return L === 1 ? (it.truth ? x.t2 : x.f2) : (it.truth ? x.t3 : x.f3); }
+function makeSpanSets(count){ const size = spanSetSize(), L = spanLevel(), pool = shuffleArray(L ? SPAN_BANK.filter(b => SPAN_LEVELS[b.k]) : SPAN_BANK), sets = [];
 let k = 0;
 for(let s2 = 0; s2 < count; s2++){
 const items = [];
@@ -6463,9 +6486,9 @@ sets.push({ items });
 return sets;
 }
 function renderSpanList(sets, readMode){
-return `<div class="aud-list"><div class="aud-note">${readMode ? "Çocuk her cümleyi kendisi okusun ve doğru mu yanlış mı söylesin; set bitince cümlelerdeki nesneleri sırayla söylesin." : "Her cümleyi okuyun; çocuk doğru mu yanlış mı söylesin ve cümledeki nesneyi aklında tutsun. Set bitince nesneleri sırayla söylesin."} Nesneleri yanlış ya da eksik söylediği setleri hata sayısına ekleyin.</div>` +
+return `<div class="aud-list"><div class="aud-note">${readMode ? (spanLevel() === 2 ? "Çocuk iki cümleyi kendisi okusun: ikinci cümle ilkine uyan bir çıkarımsa <b>doğru</b>, uymuyorsa <b>yanlış</b> desin; set bitince cümlelerdeki nesneleri sırayla söylesin." : spanLevel() === 1 ? "Çocuk her cümleyi kendisi okusun ve doğru mu yanlış mı söylesin (nesne cümlenin içinde geçer); set bitince nesneleri sırayla söylesin." : "Çocuk her cümleyi kendisi okusun ve doğru mu yanlış mı söylesin; set bitince cümlelerdeki nesneleri sırayla söylesin.") : "Her cümleyi okuyun; çocuk doğru mu yanlış mı söylesin ve cümledeki nesneyi aklında tutsun. Set bitince nesneleri sırayla söylesin."} Nesneleri yanlış ya da eksik söylediği setleri hata sayısına ekleyin.</div>` +
 sets.map((st, i) => `<div class="aud-row" data-row="${i}"><div class="aud-num">${i + 1}</div><div class="aud-body">` +
-st.items.map(it => `<div class="${readMode ? "span-read" : "aud-words"}" style="${readMode ? "font-size:22px;font-weight:800;line-height:1.35;margin:4px 0" : "font-size:19px;margin:3px 0"}">${it.truth ? it.b.t : it.b.f} <span style="font-size:13px;font-weight:900;color:${it.truth ? "#1FA463" : "#E5484D"}">(${it.truth ? "doğru" : "yanlış"})</span></div>`).join("") +
+st.items.map(it => `<div class="${readMode ? "span-read" : "aud-words"}" style="${readMode ? "font-size:22px;font-weight:800;line-height:1.35;margin:4px 0" : "font-size:19px;margin:3px 0"}">${spanSentence(it)} <span style="font-size:13px;font-weight:900;color:${it.truth ? "#1FA463" : "#E5484D"}">(${it.truth ? "doğru" : "yanlış"})</span></div>`).join("") +
 `<div class="aud-key">Hatırlanacak: <b>${st.items.map(it => it.b.n).join(" – ")}</b></div></div></div>`).join("") + `</div>`;
 }
 
@@ -6792,11 +6815,10 @@ const opts = [qzPic(x.src)].concat(dis.map(d => qzPic(d.src)));
 return qzMake("", opts, 0, { prompt: x.q, say: x.q, replay:true }); }); },
 "arrow-touch": () => { const t = currentCombo().t, dirs4 = ["up","down","left","right"], dirs8 = dirs4.concat(["up-left","up-right","down-left","down-right"]);
 const dirs = isPre() ? [["left","right"], dirs4, dirs4.concat(["up-left","up-right"])][Math.min(t, 2)] : [dirs4, dirs4.concat(["up-left","up-right"]), dirs8][Math.min(t, 2)];
-return Array.from({length: qzTrials(8, 5)}, () => { const d = randomItem(dirs), col = randomItem(COLORS);
+const nextDir = mkCycle(dirs), nextCol = mkCycle(COLORS); return Array.from({length: qzTrials(8, 5)}, () => { const d = nextDir(), col = nextCol();
 const opts = dirs.map(x => qzArrow(x, "#5B6B7A")); return { stim: qzArrow(d, col), opts, ans: dirs.indexOf(d), prompt:"Ok <b>hangi yöne</b> bakıyor?", fixed:true }; }); },
 "edge-touch": () => { const t = currentCombo().t, sides = isPre() ? [[3, 4], [3, 4, 5], [3, 4, 5]][t] : [[3, 4, 5], [3, 4, 5, 6], [3, 4, 5, 6, 8]][t];
-return Array.from({length: qzTrials(6, 4)}, () => { const n = randomItem(sides), col = randomItem(COLORS);
-const rot = t === 0 ? 0 : Math.round(Math.random() * 60 - 30);
+const nextN = mkCycle(sides), nextCol = mkCycle(COLORS); return Array.from({length: qzTrials(6, 4)}, () => { const n = nextN(), col = nextCol(); const rot = t === 0 ? 0 : Math.round(Math.random() * 60 - 30);
 const opts = sides.map(x => `<span style="font-size:30px;font-weight:900">${x}</span>`);
 return { stim: `<div style="transform:rotate(${rot}deg);width:100%;height:100%">${polygonSVG(n, col)}</div>`, opts, ans: sides.indexOf(n), prompt:"Bu şeklin <b>kaç kenarı</b> var?", fixed:true }; }); },
 "odd-touch": () => { const t = currentCombo().t, N = qzOpts([4, 6, 9][t], [3, 4, 6][t]);
@@ -6860,6 +6882,8 @@ mtLater(() => { st.ti++; if(st.ti >= st.trials.length){ mtFinish(); return; } qz
 /* Art arda iki soruda doğru cevap aynı konumdaysa (%75 olasılıkla) ikincisinin konumunu kaydır: konum öngörülebilir olmasın */
 const QZ_SPREAD_SKIP = new Set(["arrow-touch","edge-touch","overlap-count","syl-touch","balance","sem-decide","absurd-touch","rhyme-touch","sent-verify"]);   // seçenek sırası anlamlı: Evet/Hayır, sayılar, yönler
 function qzSpreadAns(trials){ try{ if(QZ_SPREAD_SKIP.has(currentExercise().id)) return trials; for(let i = 1; i < trials.length; i++){ const q = trials[i], p = trials[i-1]; const plain = q && q.opts ? q.opts.map(o => String(o).replace(/<[^>]+>/g, "").trim()) : []; if(plain.length && plain.every(x => /^[\d\s👏]*$/.test(x))) continue; if(!q || !p || q.fixedPos || q.ans == null || p.ans == null || q.ans !== p.ans || q.opts.length < 3 || Math.random() > 0.75) continue; const j = (q.ans + 1 + Math.floor(Math.random() * (q.opts.length - 1))) % q.opts.length; [q.opts[q.ans], q.opts[j]] = [q.opts[j], q.opts[q.ans]]; q.ans = j; } }catch(e){} return trials; }
+/* Karıştırılmış döngü: havuzdaki her öğe bir kez gelmeden tekrar etmez (geri koyarak seçimin yerine) */
+function mkCycle(arr){ let order = shuffleArray(arr), i = 0, lastV = null; return () => { if(i >= order.length){ order = shuffleArray(arr); i = 0; if(order.length > 1 && order[0] === lastV){ order.push(order.shift()); } } lastV = order[i++]; return lastV; }; }
 function qzRender(st, W, H, isLs){
 const tr = st.trials[Math.min(st.ti, st.trials.length - 1)], dots = `<div class="wm-dots">${st.trials.map((x, i) => `<i class="${i < st.ti ? "on" : ""}${st.warmN && i < st.warmN ? " w" : ""}"></i>`).join("")}${st.warmN && st.ti < st.warmN && st.phase !== "idle" && st.phase !== "done" ? `<span class="qz-warm in">🌱 Isınma</span>` : ""}</div>`;
 if(st.phase === "idle") return { info:"▶ Başlat'a bas", body: dots };
@@ -7036,24 +7060,42 @@ function dotTrials(){ const t = currentCombo().t, rng = isPre() ? [[1, 3], [1, 4
 return Array.from({length: isPre() ? 5 : 8}, () => { const n = rng[0] + Math.floor(Math.random() * (rng[1] - rng[0] + 1)), pts = [];
 let g = 0; while(pts.length < n && g++ < 500){ const x = 14 + Math.random() * 172, y = 14 + Math.random() * 172; if(pts.every(p => Math.hypot(p[0] - x, p[1] - y) > 34)) pts.push([x, y]); }
 return { n, pts, ms, max: rng[1] + 1, min: Math.max(1, rng[0] - 1) }; }); }
-const SEM_QS = [ { k:"canli", q:"Canlı mı?" }, { k:"yenir", q:"Yenir mi?" }, { k:"tasit", q:"Taşıt mı?" }, { k:"kanat", q:"Kanatları var mı?" }, { k:"cep", q:"Cebine sığar mı?" }, { k:"elektrik", q:"Elektrikle mi çalışır?" } ];   // ilk ikisi okul öncesi; okul sonrası 3.–6.
+const SEM_QS = [ { k:"canli", q:"Canlı mı?" }, { k:"yenir", q:"Yenir mi?" },
+  { k:"tasit", q:"Taşıt mı?" }, { k:"kanat", q:"Kanatları var mı?" }, { k:"cep", q:"Cebine sığar mı?" }, { k:"elektrik", q:"Elektrikle mi çalışır?" },
+  { k:"su", q:"Suda yaşar mı?" }, { k:"dortayak", q:"Dört ayağı var mı?" }, { k:"yumusak", q:"Yumuşak mı?" }, { k:"yuvarlak", q:"Yuvarlak mı?" }, { k:"soguk", q:"Soğuk mu?" }, { k:"tatli", q:"Tatlı mı?" },
+  { k:"meyve", q:"Meyve mi?" }, { k:"sebze", q:"Sebze mi?" }, { k:"giyilir", q:"Giyilir mi?" }, { k:"ucar", q:"Uçabilir mi?" }, { k:"teker", q:"Tekerleği var mı?" }, { k:"kirmizi", q:"Kırmızı mı?" },
+  { k:"vahsi", q:"Vahşi hayvan mı?" }, { k:"evcil", q:"Evcil hayvan mı?" }, { k:"oyuncak", q:"Oyuncak mı?" }, { k:"okul", q:"Okulda kullanılır mı?" } ];   /* ilk ikisi okul öncesi; kalan 20 okul sonrası */   // ilk ikisi okul öncesi; okul sonrası 3.–6.
 let semQ = null;
 function semPick(force){ const pool = isPre() ? SEM_QS.slice(0, 2) : SEM_QS.slice(2); if(force || !semQ || !pool.includes(semQ)){ let v; do{ v = randomItem(pool); } while(pool.length > 1 && v === semQ); semQ = v; } return semQ; }
 function semTrials(){ const C = qzCats(), I = (src) => ({ src }), t = Math.min(currentCombo().t, 2);
   const ta = ["dog","cat","cow","rabbit","elephant","parrot"].map(k => ({ src: TA_ANIMALS[k]() }));
   const living = ta.concat(C.wild.items, C.sea.items), food = C.meyve.items.concat(C.sebze.items, [I(OBJECT_IMAGES.bread), I(OBJECT_IMAGES.chocolate)]), veh = C.vehicle.items, obj = C.toy.items.concat(C.house.items);
-  const SETS = {   // okul sonrası: cevabı resimden kesin anlaşılan öğeler
-    kanat:   { yes: [TA_ANIMALS.parrot(), PART_IMAGES[2], OS_IMAGES.butterfly, PAL_EXTRA_IMAGES.bee, VEHICLE_IMAGES.plane_f].map(I),
-               no:  [TA_ANIMALS.dog(), TA_ANIMALS.cat(), TA_ANIMALS.cow(), TA_ANIMALS.elephant(), TA_ANIMALS.rabbit(), VEHICLE_IMAGES.bus_f, VEHICLE_IMAGES.train_f, TOY_IMAGES.teddy, TOY_IMAGES.car].map(I) },
-    cep:     { yes: [PAIR_IMAGES.key, PAIR_IMAGES.pencil, PAIR_IMAGES.sharpener, PAL_EXTRA_IMAGES.spoon, HOUSE_IMAGES.comb, PAL_EXTRA_IMAGES.sock].map(I),
-               no:  [VEHICLE_IMAGES.bus_f, VEHICLE_IMAGES.fire_f, TA_ANIMALS.elephant(), TA_ANIMALS.cow(), HOUSE_IMAGES.pillow, HOUSE_IMAGES.bucket, HOUSE_IMAGES.broom, LIVING_IMAGES.tree].map(I) },
-    elektrik:{ yes: [HOUSE_IMAGES.lamp, PAIR_IMAGES.phone, PAIR_IMAGES.charger, VEHICLE_IMAGES.train_f].map(I),
-               no:  [PAIR_IMAGES.pencil, PAL_EXTRA_IMAGES.spoon, TOY_IMAGES.teddy, TOY_IMAGES.ball, HOUSE_IMAGES.broom, HOUSE_IMAGES.bucket, PAL_EXTRA_IMAGES.sock, FRUIT_VEG_IMAGES.apple].map(I) } };
-  const sets = (Q) => SETS[Q.k] || ({ yes: Q.k === "canli" ? living : Q.k === "yenir" ? food : veh, no: Q.k === "canli" ? obj.concat(veh, food) : Q.k === "yenir" ? obj.concat(veh, living) : obj.concat(living, food) });
-  const pool = shuffleArray((isPre() ? SEM_QS.slice(0, 2) : SEM_QS.slice(2)).slice()), N = isPre() ? 8 : 12;
-  const qAt = (i) => t === 0 ? pool[0] : t === 1 ? pool[Math.floor(i / 2) % 2] : pool[i % pool.length];   // Başlangıç tek soru · Orta iki resimde bir · Zor her resimde
-  const ans = shuffleArray(Array.from({length:N}, (_, i) => i % 2 === 0)); const out = []; let last = "";
-  for(let i = 0; i < N; i++){ const Q = qAt(i), S = sets(Q), y = ans[i]; let it, g = 0; do{ it = randomItem(y ? S.yes : S.no); } while(it.src === last && g++ < 20); last = it.src;
+  const A = (k) => I(TA_ANIMALS[k]()), V = VEHICLE_IMAGES, H = HOUSE_IMAGES, T = TOY_IMAGES, P = PAIR_IMAGES, X = PAL_EXTRA_IMAGES, O = OS_IMAGES, F = FRUIT_VEG_IMAGES, S = SRH_IMAGES, HC = HOTCOLD_IMAGES, TS = TASTE_IMAGES, SC = SCENE_OBJ_IMAGES, OB = OBJECT_IMAGES, CI = CONCEPT_IMAGES;
+    const wildOf = (names) => C.wild.items.filter(x => names.includes(x.n)), seaOf = (names) => C.sea.items.filter(x => names.includes(x.n));
+    const SETS = { /* okul sonrası: cevabı resimden kesin anlaşılan öğeler; her sorunun Evet ve Hayır havuzu en az 5 resim */
+      tasit:   { yes: veh.concat([I(LIVING_IMAGES.car)]), no: obj.concat(living, food) },
+      kanat:   { yes: [A("parrot"), A("penguin"), I(PART_IMAGES[2]), I(O.butterfly), I(X.bee), I(V.plane_f), I(SC.bird)], no: [A("dog"), A("cat"), A("cow"), A("elephant"), A("rabbit"), A("fish"), I(V.bus_f), I(V.train_f), I(T.teddy), I(T.car)] },
+      cep:     { yes: [I(P.key), I(P.pencil), I(P.sharpener), I(X.spoon), I(H.comb), I(X.sock), I(TS.candy), I(O.egg), I(X.bone)], no: [I(V.bus_f), I(V.fire_f), A("elephant"), A("cow"), I(H.pillow), I(H.bucket), I(H.broom), I(LIVING_IMAGES.tree), I(LIVING_IMAGES.chair)] },
+      elektrik:{ yes: [I(H.lamp), I(P.phone), I(P.charger), I(V.train_f), I(HC.iron), I(SC.lamp)], no: [I(P.pencil), I(X.spoon), I(T.teddy), I(T.ball), I(H.broom), I(H.bucket), I(X.sock), I(F.apple), I(P.hammer), I(H.comb)] },
+      su:      { yes: [A("fish")].concat(seaOf(["yunus","deniz yıldızı","kaplumbağa","yengeç","denizatı"]), [I(O.frog)]), no: [A("dog"), A("cat"), A("cow"), A("rabbit"), A("parrot")].concat(wildOf(["aslan","zürafa"]), [I(LIVING_IMAGES.tree), I(V.bus_f), I(F.apple)]) },
+      dortayak:{ yes: [A("dog"), A("cat"), A("cow"), A("elephant"), A("rabbit")].concat(wildOf(["aslan","zebra","zürafa","ayı","tilki"]), [I(O.frog)]), no: [A("parrot"), A("fish"), A("penguin"), I(O.butterfly), I(X.bee), I(O.hen), I(SC.bird), I(T.ball), I(V.bus_f)] },
+      yumusak: { yes: [I(T.teddy), I(H.pillow), I(X.sock), I(X.slipper), I(CI.yumusak), I(OB.bread), I(T.doll)], no: [I(P.hammer), I(P.screw), I(P.key), I(P.nail), I(H.scissors), I(H.clock), I(H.bucket), I(CI.sert), I(P.screwdriver)] },
+      yuvarlak:{ yes: [I(T.ball), I(S.ball_soccer), I(S.ball_basket), I(S.ball_beach), I(F.orange), I(H.clock), I(HC.sun), I(SC.balloon), I(TS.watermelon)], no: [I(P.pencil), I(V.train_f), I(V.bus_f), I(H.scissors), I(H.broom), I(H.comb), I(P.key), I(P.hammer), I(F.banana)] },
+      soguk:   { yes: [I(HC.snowman), I(HC.ice), I(HC.icecream), I(HC.penguin), I(O.snowpile), I(O.snowman2)], no: [I(HC.fire), I(HC.soup), I(HC.sun), I(HC.iron), I(OB.bread), I(X.sock), I(T.teddy), I(F.apple)] },
+      tatli:   { yes: [I(X.honey), I(OB.chocolate), I(HC.icecream), I(TS.candy), I(O.cakeslice), I(F.strawberry), I(F.banana), I(F.grapes), I(TS.watermelon)], no: [I(TS.lemon), I(TS.chili), I(TS.pasta), I(TS.simit), I(HC.soup), I(OB.bread), I(F.cucumber), I(F.broccoli), I(O.cheese), I(O.egg)] },
+      meyve:   { yes: [I(F.apple), I(F.banana), I(F.orange), I(F.grapes), I(F.strawberry), I(TS.watermelon), I(TS.lemon)], no: [I(F.carrot), I(F.cucumber), I(F.pepper), I(F.broccoli), I(OB.bread), I(O.cheese), I(T.teddy), A("dog"), I(H.cup)] },
+      sebze:   { yes: [I(F.carrot), I(F.cucumber), I(F.pepper), I(F.broccoli), I(TS.chili), I(F.tomato)], no: [I(F.apple), I(F.banana), I(F.orange), I(F.grapes), I(F.strawberry), I(OB.bread), I(O.cheese), I(TS.candy), I(T.ball)] },
+      giyilir: { yes: [I(P.shoe), I(X.sock), I(X.slipper), I(OB.jacket), I(OB.tshirt), I(OB.jeans), I(S.boots_yellow), I(S.beanie_red), I(S.cap_blue)], no: [I(H.comb), I(H.cup), I(T.ball), I(P.hammer), I(H.pillow), I(F.apple), I(P.phone), I(H.scissors), I(T.drum)] },
+      ucar:    { yes: [A("parrot"), I(O.butterfly), I(X.bee), I(V.plane_f), I(V.heli_f), I(SC.bird)], no: [A("dog"), A("cow"), A("fish"), A("penguin"), A("rabbit"), I(V.bus_f), I(V.train_f), I(LIVING_IMAGES.car), I(O.frog)] },
+      teker:   { yes: [I(V.bus_f), I(V.fire_f), I(V.train_f), I(LIVING_IMAGES.car), I(T.car), I(T.train)], no: [I(V.ship_f), A("dog"), A("cow"), I(T.ball), I(LIVING_IMAGES.chair), I(LIVING_IMAGES.tree), I(F.apple), I(T.kite), I(H.lamp)] },
+      kirmizi: { yes: [I(S.umbrella_red), I(S.boots_red), I(S.beanie_red), I(F.strawberry), I(F.tomato), I(V.fire_f), I(TS.chili)], no: [I(S.umbrella_blue), I(S.boots_yellow), I(S.cap_green), I(S.beanie_navy), I(F.banana), I(F.cucumber), I(F.broccoli), I(F.orange), I(S.pencil_blue)] },
+      vahsi:   { yes: wildOf(["aslan","zürafa","zebra","maymun","ayı","tilki"]), no: [A("dog"), A("cat"), A("cow"), A("rabbit"), I(O.hen), I(O.chick), I(X.dog)] },
+      evcil:   { yes: [A("dog"), A("cat"), A("rabbit"), A("parrot"), A("fish"), I(X.dog)], no: wildOf(["aslan","zebra","zürafa","ayı","tilki","maymun"]).concat(seaOf(["yunus","yengeç"])) },
+      oyuncak: { yes: [I(T.doll), I(T.teddy), I(T.ball), I(T.kite), I(T.puzzle), I(T.drum), I(T.train), I(T.car)], no: [I(H.cup), I(H.scissors), I(H.clock), I(H.lamp), I(H.comb), I(H.pillow), I(H.bucket), I(H.broom), I(F.apple), I(P.hammer)] },
+      okul:    { yes: [I(P.pencil), I(S.pencil_yellow), I(S.pencil_green), I(P.sharpener), I(H.scissors), I(SC.backpack), I(SC.map)], no: [I(P.hammer), I(H.pillow), I(X.spoon), I(T.teddy), I(X.sock), I(H.comb), I(X.slipper), I(H.cup), I(T.kite)] } };
+    const sets = (Q) => SETS[Q.k] || ({ yes: Q.k === "canli" ? living : Q.k === "yenir" ? food : veh, no: Q.k === "canli" ? obj.concat(veh, food) : Q.k === "yenir" ? obj.concat(veh, living) : obj.concat(living, food) });
+  const pool = shuffleArray((isPre() ? SEM_QS.slice(0, 2) : SEM_QS.slice(2)).slice()).slice(0, isPre() ? 2 : [1, 2, 4][t]), N = isPre() ? 8 : 12; const qAt = (i) => t === 0 ? pool[0] : t === 1 ? pool[Math.floor(i / 2) % 2] : pool[i % pool.length]; /* Başlangıç tek soru · Orta iki soru, iki resimde bir · Zor dört soru, her resimde değişir */   // Başlangıç tek soru · Orta iki resimde bir · Zor her resimde
+  const ans = shuffleArray(Array.from({length:N}, (_, i) => i % 2 === 0)); const out = [], used = new Set(); for(let i = 0; i < N; i++){ const Q = qAt(i), S = sets(Q), y = ans[i]; const cand = (y ? S.yes : S.no); const fresh = cand.filter(x => !used.has(x.src)); const it = randomItem(fresh.length ? fresh : cand); used.add(it.src); /* bir turda aynı resim tekrar gelmesin */
     out.push({ stim: qzPic(it.src), opts:[`<b style="font-size:20px">✓ Evet</b>`, `<b style="font-size:20px">✗ Hayır</b>`], ans: y ? 0 : 1, prompt:`<b>${Q.q}</b>`, say: Q.q, text:true, qk: Q.k }); }
   return out; }
 function chaseCfg(){ const t = currentCombo().t; return { need: isPre() ? [5, 6, 8][t] : [8, 10, 12][t], speed: (isPre() ? [0.45, 0.6, 0.75] : [0.6, 0.85, 1.1])[t], size: isPre() ? 70 : [64, 56, 48][t] }; }
@@ -7248,7 +7290,59 @@ const INFER_MC = [ ["Mert sınıfa girince herkes 'Sürpriz!' diye bağırdı; m
 ["Kapının önünde çamurlu küçük pati izleri ve devrilmiş bir saksı var.", "Ne olmuş olabilir?", "Bir hayvan girip saksıyı devirmiş.", "Saksı kendi kendine yürümüş.", "Yağmur yağmamış."],
 ["Bahçedeki çamaşırlar ıslandı, toprak çamur oldu, gökyüzü griydi.", "Ne olmuş?", "Yağmur yağmış.", "Çamaşırlar yıkanmış.", "Güneş açmış."],
 ["Öğretmen 'Kitaplarınızı kapatın, kalemlerinizi alın' dedi ve kâğıt dağıttı.", "Ne olacak?", "Sınav yapılacak.", "Teneffüse çıkılacak.", "Resim boyanacak."] ];
-function imcBuild(){ const t = currentCombo().t, N = [2, 3, 3][Math.min(t, 2)], listenOnly = t >= 2; /* Zor: cümle yazılı değil, yalnızca dinleyerek */ return shuffleArray(INFER_MC).slice(0, 5).map(([s, q, ok, a, b]) => qzMake(`<div style="font-size:17px;font-weight:800;text-align:center;max-width:360px;margin:0 auto;line-height:1.35">${listenOnly ? "🔊 <span style=\"color:var(--muted)\">Dinle</span>" : s}</div><div style="text-align:center;font-weight:900;color:var(--teal-dark);margin-top:4px">${q}</div>`, [ok, a, b].slice(0, N).map(x => `<b style="font-size:16px">${x}</b>`), 0, { prompt:"<b>İpuçlarından</b> çıkar", fixed:true, text:true, raw:true, say:`${s} ${q}`, replay:true })); }
+/* Çıkarım Seç düzeyleri: Başlangıç tek ipucu · Orta iki ipucu birleştirilir (mevcut 10 durum + 10) · Zor iki cümle, ilk cümle yanıltıcı izlenim verir */
+const INFER_MC_EASY = [["Ali'nin dişleri sızlıyor.","Ne yapmalı?","Dişçiye gitmeli.","Daha çok şeker yemeli.","Koşmalı."],
+["Zeynep esniyor ve gözlerini ovuşturuyor.","Ne istiyor?","Uyumak.","Yüzmek.","Resim yapmak."],
+["Kedi mama kabının başında miyavlıyor.","Ne istiyor?","Yemek.","Uyumak.","Banyo yapmak."],
+["Kerem'in karnı guruldadı.","Ne hissediyor?","Açlık.","Yorgunluk.","Korku."],
+["Ece titriyor ve ellerini ovuşturuyor.","Nasıl hissediyor?","Üşüyor.","Terliyor.","Gülüyor."],
+["Bahçedeki ağaçların yaprakları sarardı ve dökülüyor.","Hangi mevsim?","Sonbahar.","Yaz.","İlkbahar."],
+["Mert bavulunu hazırladı.","Ne yapacak?","Yolculuğa çıkacak.","Ders çalışacak.","Uyuyacak."],
+["Can'ın dizi kanıyor.","Ne olmuş?","Düşmüş.","Uyumuş.","Şarkı söylemiş."],
+["Elif'in gözleri doldu, dudakları titriyor.","Ne hissediyor?","Üzgün.","Mutlu.","Aç."],
+["Sokak lambaları yandı, gökyüzü karardı.","Günün hangi zamanı?","Akşam.","Öğle.","Sabah."],
+["Fırından mis gibi ekmek kokusu geliyor.","Ne olmuş?","Ekmek pişmiş.","Ekmek bozulmuş.","Fırın kapanmış."],
+["Deniz'in burnu akıyor ve hapşırıyor.","Ne olmuş?","Üşütmüş.","Çok gülmüş.","Koşmuş."],
+["Çocuklar formalarını giydi, hakem düdüğü çaldı.","Ne başlıyor?","Maç.","Ders.","Uyku."],
+["Köpek kapıya koşup kuyruğunu sallıyor.","Ne olmuş?","Sahibi gelmiş.","Köpek hastalanmış.","Kapı kilitlenmiş."],
+["Ayşe sabah alarmı duymadı ve geç uyandı.","Ne olacak?","Okula geç kalacak.","Okula erken gidecek.","Tatile çıkacak."],
+["Burak terden sırılsıklam, nefes nefese.","Ne yapmış?","Koşmuş.","Uyumuş.","Kitap okumuş."],
+["Mutfaktan tencere tıkırtısı ve güzel bir koku geliyor.","Ne oluyor?","Yemek pişiyor.","Bulaşık yıkanıyor.","Pencere açılıyor."],
+["Yoldaki arabalar durdu, ışık kırmızı yandı.","Neden durdular?","Kırmızı ışıkta beklemek gerekir.","Yol bitmiş.","Arabalar bozulmuş."],
+["Ece sobaya dokundu ve elini hemen çekti.","Neden?","Soba sıcaktı.","Soba soğuktu.","Ece eldiven giymişti."],
+["Zil çaldı, çocuklar sevinçle bahçeye koştu.","Ne oldu?","Teneffüs başladı.","Ders başladı.","Yağmur yağdı."]];
+const INFER_MC_MID_EXTRA = [["Masada boş bir süt bardağı ve ekmek kırıntıları var; kedi masanın altında uyuyor.","Ne olmuş?","Biri kahvaltı yapmış.","Kedi sütü dökmüş.","Masa yeni alınmış."],
+["Zeynep'in çantasında havlu ve mayo var, saçları ıslak.","Nereden geliyor?","Havuzdan.","Kütüphaneden.","Sinemadan."],
+["Dışarıda kar yağıyor; Kerem kısa kollu tişörtle çıktı ve hemen geri döndü.","Neden geri döndü?","Üşüdü.","Topunu unuttu.","Acıktı."],
+["Ece sınav kâğıdını aldı; yüzünde kocaman bir gülümseme, kâğıtta kırmızı bir yıldız var.","Ne olmuş?","Sınavı iyi geçmiş.","Sınava girmemiş.","Kâğıt yırtılmış."],
+["Mert'in kolunda alçı var; bisikleti garajda kırık duruyor.","Ne olmuş?","Bisikletten düşmüş.","Yüzmeyi öğrenmiş.","Bisikleti yeni almış."],
+["Köpek bütün gün havlamadı, mamasına dokunmadı, köşede yatıyor.","Ne olabilir?","Hasta olabilir.","Çok mutlu.","Oyun oynuyor."],
+["Elif saatine baktı, çantasını kaptı ve koşarak çıktı.","Neden koştu?","Geç kalıyor.","Yorgun.","Uyumak istiyor."],
+["Odada mum ışığı var; lambalar yanmıyor, buzdolabı sessiz.","Ne olmuş?","Elektrik kesilmiş.","Gece olmuş.","Buzdolabı dolmuş."],
+["Can'ın parmakları boyalı, önünde ıslak bir resim duruyor.","Ne yapmış?","Resim yapmış.","Ellerini yıkamış.","Yemek yemiş."],
+["Bahçedeki kuş yuvası boş; yerde kırık yumurta kabukları var, dalda cıvıldayan yavrular duyuluyor.","Ne olmuş?","Yavrular yumurtadan çıkmış.","Kuş yuvayı terk etmiş.","Yumurtalar pişmiş."]];
+const INFER_MC_HARD = [["Ayşe sabah güneşli havada evden çıktı. Eve döndüğünde saçları ıslaktı ve elinde yeni aldığı bir şemsiye vardı.","Ne olmuş?","Gün içinde yağmur yağmış.","Ayşe havuza girmiş.","Ayşe saçını yıkamış."],
+["Kerem'in kalemi yoktu, ödevine başlayamadı. Ertesi sabah defterinde ödev baştan sona yazılmıştı.","Ne olmuş olabilir?","Biri ona kalem vermiş.","Ödev kendiliğinden yazılmış.","Kerem ödevi unutmuş."],
+["Mutfakta kedinin mama kabı bomboş. Kedi yine de miyavlamıyor, köşesinde keyifle uyuyor.","Ne olmuş?","Kedi mamasını yemiş.","Kedi çok aç.","Mama kabı kaybolmuş."],
+["Zeynep koşu yarışında en arkada bitirdi. Bitiş çizgisinde herkes onu alkışladı.","Neden alkışlandı?","Pes etmeden yarışı bitirdiği için.","Birinci olduğu için.","Yarış iptal olduğu için."],
+["Dede bahçeye tohum ekti ve her gün suladı. Haftalar sonra bahçede yemyeşil fideler belirdi.","Ne olmuş?","Tohumlar filizlenmiş.","Dede fideleri satın almış.","Yağmur fideleri getirmiş."],
+["Mert'in odasının ışığı gece yarısı hâlâ yanıyordu. Sabah kahvaltıda masaya başını koyup uyuyakaldı.","Neden?","Gece geç yatmış.","Kahvaltıyı sevmemiş.","Sabah erken kalkmış."],
+["Ece'nin kardeşi okuldan ağlayarak geldi. Ece ona sıkıca sarıldı, sonra ikisi birlikte oyun oynadı.","Ece ne yapmış?","Kardeşini teselli etmiş.","Kardeşini ağlatmış.","Kardeşini okula götürmüş."],
+["Sabah bahçede hiç ayak izi yoktu. Öğleden sonra kapıdan bahçe kapısına kadar çamurlu büyük izler uzanıyordu.","Ne olmuş?","Biri bahçeye girmiş.","Hiç kimse gelmemiş.","Yağmur izleri silmiş."],
+["Ali bütün hafta yüzme dersine gitti. Cumartesi havuzda ilk kez kimse tutmadan karşıya yüzdü.","Ne olmuş?","Ali yüzmeyi öğrenmiş.","Ali havuzdan korkmuş.","Dersler iptal olmuş."],
+["Sınıfta herkes sessizce kâğıdına yazıyordu. Zil çalınca öğretmen kâğıtları topladı.","Ne olmuş?","Sınav yapılmış.","Resim dersi yapılmış.","Teneffüs olmuş."],
+["Can dondurmasını güneşin altında bankta bıraktı. Döndüğünde bankta yalnızca ıslak bir leke vardı.","Ne olmuş?","Dondurma erimiş.","Biri bankı yıkamış.","Dondurma donmuş."],
+["Elif'in kuşu kafesten uçup gitti. Elif pencereyi açık bıraktı, kafese yem koydu; sabah kuş kafesteydi.","Ne olmuş?","Kuş geri dönmüş.","Kuş hiç gitmemiş.","Kedi kuşu getirmiş."],
+["Burak sabah ateşli ve halsizdi. Doktorun verdiği ilacı içti; akşam oyun oynayacak kadar iyileşti.","Ne olmuş?","İlaç işe yaramış.","Burak hiç hastalanmamış.","Doktor hastalanmış."],
+["Market rafında tek bir ekmek kalmıştı. Önündeki kişi onu alınca Deniz boş eliyle eve döndü.","Neden ekmek alamadı?","Ekmek bitmişti.","Parası yoktu.","Market kapalıydı."],
+["Kuşlar yuvalarına dönüyor, gökyüzü turuncuya boyanıyor. Sokak lambaları birer birer yanmaya başladı.","Günün hangi zamanı?","Akşam.","Sabah.","Öğle."],
+["Zeynep arkadaşının doğum günü için pasta yaptı. Mutfağa döndüğünde pasta yoktu, kedinin bıyıkları kremalıydı.","Ne olmuş?","Kedi pastayı yemiş.","Pasta satılmış.","Zeynep pastayı yapmamış."],
+["Dışarıda rüzgâr çok sertti. Kerem uçurtmasını uçurmaya gitti; ipi koptu ve uçurtma gözden kayboldu.","Ne olmuş?","Rüzgâr uçurtmayı götürmüş.","Kerem uçurtmayı satmış.","Hava rüzgârsızdı."],
+["Ali sabah çok telaşlıydı, çantasını almadan evden çıktı. Okulda öğretmen defterini isteyince sessiz kaldı.","Neden sessiz kaldı?","Defteri evde kalmıştı.","Defterini okulda bitirmişti.","Öğretmen başkasına sormuştu."],
+["Mert'in yeni ayakkabıları sabah tertemizdi. Akşam ayakkabılar çamur içindeydi, pantolonunun dizi yırtılmıştı.","Ne olmuş olabilir?","Dışarıda oynarken düşmüş.","Ayakkabıları yıkamış.","Bütün gün evde oturmuş."],
+["Öğretmen sınıfa girince kimse yerinde değildi. Tahtada 'Bahçedeyiz, çiçek dikiyoruz' yazıyordu.","Çocuklar nerede?","Bahçede.","Evde.","Sinemada."]];
+const INFER_MC_TIERS = [INFER_MC_EASY, INFER_MC.concat(INFER_MC_MID_EXTRA), INFER_MC_HARD];
+function imcBuild(){ const t = currentCombo().t, N = 3, listenOnly = false, bank = INFER_MC_TIERS[Math.min(t, 2)]; return shuffleArray(bank).slice(0, [6, 7, 8][Math.min(t, 2)]).map(([s, q, ok, a, b]) => qzMake(`<div style="font-size:${t === 2 ? 16 : 17}px;font-weight:800;text-align:center;max-width:360px;margin:0 auto;line-height:1.35">${listenOnly ? "🔊 <span style=\"color:var(--muted)\">Dinle</span>" : s}</div><div style="text-align:center;font-weight:900;color:var(--teal-dark);margin-top:4px">${q}</div>`, [ok, a, b].slice(0, N).map(x => `<b style="font-size:16px">${x}</b>`), 0, { prompt:"<b>İpuçlarından</b> çıkar", fixed:true, text:true, raw:true, say:`${s} ${q}`, replay:true })); }
 const HOMONYM = { post:[ { t:0, q:"<b>yüz</b>", a:"surat · 100 sayısı" }, { t:0, q:"<b>ay</b>", a:"gökteki ay · yılın ayları" }, { t:0, q:"<b>gül</b>", a:"çiçek · gülmek" }, { t:0, q:"<b>at</b>", a:"hayvan · atmak (topu at)" },
 { t:1, q:"<b>dil</b>", a:"ağızdaki organ · konuşulan lisan" }, { t:1, q:"<b>yaz</b>", a:"mevsim · yazmak" }, { t:1, q:"<b>kır</b>", a:"şehir dışı açık alan · kırmak" }, { t:1, q:"<b>bin</b>", a:"1000 sayısı · binmek" },
 { t:2, q:"<b>çay</b>", a:"içecek · küçük akarsu" }, { t:2, q:"<b>dolu</b>", a:"boş olmayan · buz yağışı" }, { t:2, q:"<b>kara</b>", a:"siyah · deniz olmayan yer (kara yolu)" }, { t:2, q:"<b>kaz</b>", a:"hayvan · kazmak (toprağı kaz)" } ] };
@@ -7351,13 +7445,13 @@ const ord = C.slice().sort((a, b) => (a[0] + a[1]) - (b[0] + b[1]) || a[2] - b[2
 const pts = (arr) => arr.map(p => p.map(v => v.toFixed(1)).join(",")).join(" ");
 return `<svg viewBox="0 0 100 100" width="100%" height="100%">${ord.map(([x, y, z]) => { const top = [P(x, y, z + 1), P(x + 1, y, z + 1), P(x + 1, y + 1, z + 1), P(x, y + 1, z + 1)], left = [P(x, y + 1, z + 1), P(x + 1, y + 1, z + 1), P(x + 1, y + 1, z), P(x, y + 1, z)], right = [P(x + 1, y, z + 1), P(x + 1, y + 1, z + 1), P(x + 1, y + 1, z), P(x + 1, y, z)];
 return `<polygon points="${pts(top)}" fill="${col}" stroke="#2B3A4A" stroke-width="1"/><polygon points="${pts(left)}" fill="${col}" opacity=".75" stroke="#2B3A4A" stroke-width="1"/><polygon points="${pts(right)}" fill="${col}" opacity=".55" stroke="#2B3A4A" stroke-width="1"/>`; }).join("")}</svg>`; }
-function mrTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? [4, 4, 4][t] : [5, 5, 5][t], out = [];
+let mrPolyCycle = null, mrColCycle = null, mrCubeCycle = null;
+function mrTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? [4, 4, 4][t] : [5, 5, 5][t], out = []; mrPolyCycle = mrColCycle = mrCubeCycle = null;
 for(let k = 0; k < N; k++){ let stim, opts, ans = 0, prompt;
 if(pre && t === 0){ const pool = qzCats().sea.items.concat(qzCats().wild.items), [a, b, c] = shuffleArray(pool).slice(0, 3), r = [90, 180, 270];
 const im = (x, deg, fl) => `<div style="width:100%;height:100%;transform:rotate(${deg}deg)${fl ? " scaleX(-1)" : ""}">${qzPic(x.src)}</div>`;
 stim = im(a, 0); opts = [im(a, randomItem(r)), im(b, randomItem(r)), im(c, randomItem(r))]; prompt = "Aynı hayvan, başka yöne <b>dönmüş</b>: hangisi?"; }
-else if(pre){
-const base = randomItem(MR_POLY.slice(0, 3)), col = randomItem(COLORS); let rot = base; for(let i = 0; i < 1 + Math.floor(Math.random() * 3); i++) rot = mrRot(rot);
+else if(pre){ const base = (mrPolyCycle || (mrPolyCycle = mkCycle(MR_POLY.slice(0, 3))))(), col = (mrColCycle || (mrColCycle = mkCycle(COLORS)))(); let rot = base; for(let i = 0; i < 1 + Math.floor(Math.random() * 3); i++) rot = mrRot(rot);
 const mir = mrFlip(base); let mir2 = mrRot(mir);
 stim = t === 2 ? `<div style="width:100%;height:100%;border:3px dashed #9AA9B8;border-radius:10px;padding:6px">${mrShapeSVG(base, "#E6ECF2")}</div>` : mrShapeSVG(base, col);
 opts = [mrShapeSVG(rot, col), mrShapeSVG(mir, col), mrShapeSVG(mir2, col)]; prompt = t === 2 ? "Hangi parça <b>döndürülünce</b> boşluğa tam oturur?" : "Hangisi <b>aynı şeklin döndürülmüş</b> hâli?"; }
@@ -7366,7 +7460,7 @@ stim = lt(0); const dd = shuffleArray([90, 180, 270]); opts = [lt(dd[0]), lt(dd[
 else if(t === 1){ const base = randomItem(MR_POLY), col = randomItem(COLORS); let rot = mrRot(base); if(Math.random() < 0.5) rot = mrRot(rot);
 const mir = mrFlip(base), wrong = [mir, mrRot(mir), mrRot(mrRot(mir))].filter(m => mrKey(m) !== mrKey(rot));
 stim = mrShapeSVG(base, col); opts = [mrShapeSVG(rot, col)].concat(wrong.slice(0, 3).map(m => mrShapeSVG(m, col))); prompt = "Şeklin <b>90° ya da 180° döndürülmüş</b> hâli hangisi?"; }
-else { const base = randomItem(MR_CUBES), col = "#7FB3E8"; let rot = cubeRot(base); if(Math.random() < 0.5) rot = cubeRot(rot);
+else { const base = (mrCubeCycle || (mrCubeCycle = mkCycle(MR_CUBES)))(), col = "#7FB3E8"; let rot = cubeRot(base); if(Math.random() < 0.5) rot = cubeRot(rot);
 const mir = cubeFlip(base), wr = [mir, cubeRot(mir), cubeRot(cubeRot(mir))].filter(m => cubeKey(m) !== cubeKey(rot) && cubeKey(m) !== cubeKey(base));
 stim = cubeSVG(base, col); opts = [cubeSVG(rot, col)].concat(wr.slice(0, 2).map(m => cubeSVG(m, col))); prompt = "Hangisi <b>aynı yapının döndürülmüş</b> hâli?"; }
 const o = shuffleArray(opts.map((h, i) => i)); out.push({ stim, opts: o.map(i => opts[i]), ans: o.indexOf(ans), prompt, fixed:true, cell:100 }); }
@@ -7482,14 +7576,18 @@ return qzMake(stim, [ans].concat(dis).map(aaCell), 0, { prompt:"Hangisi <b>✓ g
 function balSVG(L, Rt, tilt){ const tr = tilt === "L" ? 9 : tilt === "R" ? -9 : 0, icons = (arr, x0) => arr.map((sh, i) => aaShape(sh, x0 + (i - (arr.length - 1) / 2) * 18, 29, 8.5, { circle:"#2E6FD8", square:"#1FA463", triangle:"#E5484D" }[sh])).join("");
 return `<svg viewBox="0 0 200 110" width="100%" height="100%"><polygon points="92,100 108,100 100,58" fill="#8B5A2B"/><g transform="rotate(${-tr} 100 58)"><rect x="18" y="55" width="164" height="5" rx="2" fill="#B9773A"/><line x1="40" y1="58" x2="40" y2="40" stroke="#8B5A2B" stroke-width="2"/><line x1="160" y1="58" x2="160" y2="40" stroke="#8B5A2B" stroke-width="2"/><path d="M14 40 h52 l-6 8 h-40 z" fill="#D9B26B"/><path d="M134 40 h52 l-6 8 h-40 z" fill="#D9B26B"/><g transform="translate(-60 0)">${icons(L, 100)}</g><g transform="translate(60 0)">${icons(Rt, 100)}</g></g></svg>`; }
 function balTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 4 : 5, out = [], W = { circle:1, triangle:2, square:4 };
+  const pairCombos = []; AA_SH.forEach((a, i) => AA_SH.forEach((b, j) => { if(i < j){ pairCombos.push([a, b, true]); pairCombos.push([b, a, false]); } })); const balPairCycle = mkCycle(pairCombos);   /* ikili + taraf birleşimleri tekrarsız */
 for(let q = 0; q < N; q++){
 if(pre){ if(t < 2){ const light = t === 1 && q % 2 === 1;   // Orta: soru dönüşümlü "daha hafif?" (tersini düşünme)
-const [a, b] = shuffleArray(AA_SH).slice(0, 2), heavy = W[a] > W[b] ? a : b, lightS = heavy === a ? b : a, sideL = Math.random() < 0.5;
+const [a, b, sideL] = balPairCycle(), heavy = W[a] > W[b] ? a : b, lightS = heavy === a ? b : a;
 const stim = `<div style="width:220px;height:120px;margin:0 auto">${balSVG(sideL ? [heavy] : [lightS], sideL ? [lightS] : [heavy], sideL ? "L" : "R")}</div>`;
 out.push(qzMake(stim, [aaCell({ sh:heavy, col:{ circle:"#2E6FD8", square:"#1FA463", triangle:"#E5484D" }[heavy] }), aaCell({ sh:lightS, col:{ circle:"#2E6FD8", square:"#1FA463", triangle:"#E5484D" }[lightS] })], light ? 1 : 0, { prompt: light ? "Hangisi <b>daha hafif</b>?" : "Hangisi <b>daha ağır</b>?", say: light ? "Hangisi daha hafif?" : "Hangisi daha ağır?", raw:true, fixed:true, cell:90 })); }
-else { const ord = ["circle","triangle","square"];
-const stim = `<div style="display:flex;gap:6px;justify-content:center"><div style="width:150px;height:84px">${balSVG(["triangle"], ["circle"], "L")}</div><div style="width:150px;height:84px">${balSVG(["square"], ["triangle"], "L")}</div></div>`;
-out.push(qzMake(stim, ord.slice().reverse().map(sh => aaCell({ sh, col:{ circle:"#2E6FD8", square:"#1FA463", triangle:"#E5484D" }[sh] })), 0, { prompt:"<b>En ağır</b> hangisi?", raw:true, fixed:true, cell:84 })); }
+else { /* ağırlık sırası her denemede rastgele; iki terazi sırayı gösterir; soru dönüşümlü en ağır / en hafif */
+          const w = shuffleArray(["circle","triangle","square"]), light = q % 2 === 1; const sideA = Math.random() < 0.5, sideB = Math.random() < 0.5;
+          const sc = (heavy, lt, left) => balSVG(left ? [heavy] : [lt], left ? [lt] : [heavy], left ? "L" : "R");
+          const stim = `<div style="display:flex;gap:6px;justify-content:center"><div style="width:150px;height:84px">${sc(w[1], w[0], sideA)}</div><div style="width:150px;height:84px">${sc(w[2], w[1], sideB)}</div></div>`;
+          const optsSh = shuffleArray(w.slice()), target = light ? w[0] : w[2];
+          out.push(qzMake(stim, optsSh.map(sh => aaCell({ sh, col:{ circle:"#2E6FD8", square:"#1FA463", triangle:"#E5484D" }[sh] })), optsSh.indexOf(target), { prompt: light ? "<b>En hafif</b> hangisi?" : "<b>En ağır</b> hangisi?", say: light ? "En hafif hangisi?" : "En ağır hangisi?", raw:true, fixed:true, cell:84 })); }
 continue; }
 const rows = [`<div style="width:150px;height:84px">${balSVG(["triangle"], ["circle","circle"], "")}</div>`]; let L, ans;
 if(t === 0){ const k = randomItem([1, 2]); L = Array(k).fill("triangle"); ans = 2 * k; }
@@ -7727,8 +7825,7 @@ const SP_PAIRS = [ { t:1, a:["Köpek kediyi kovalıyor.", 0], b:["Kedi köpeği 
 { t:1, a:["Anne bebeği yıkıyor.", 8], b:["Bebek anneyi yıkıyor.", 9] }, { t:0, a:["Çocuk ata biniyor.", 10], b:["At çocuğun yanında yürüyor.", 11] },
 { t:2, a:["Kız elmayı yiyor.", 12], b:["Kız elmayı yiyecek.", 13] } ];
 function spTrials(){ const t = currentCombo().t, pool = SP_PAIRS.filter(p => p.t <= t), N = isPre() ? [4, 5, 6][t] : [5, 6, 8][t], out = [];
-const order = shuffleArray(pool.filter(p => p.t === t)).concat(shuffleArray(pool.filter(p => p.t < t)));
-for(let k = 0; k < N; k++){ const pr = order[k % order.length], useA = Math.random() < 0.5, tg = useA ? pr.a : pr.b, foil = useA ? pr.b : pr.a;
+const order = shuffleArray(pool.filter(p => p.t === t)).concat(shuffleArray(pool.filter(p => p.t < t))); const combos = []; order.forEach(pr => { const sidesO = shuffleArray([true, false]); combos.push([pr, sidesO[0]]); }); order.forEach(pr => combos.push([pr, !combos.find(c => c[0] === pr)[1]])); /* önce her çiftin bir yüzü, sonra öbür yüzü: turda aynı cümle tekrarlanmaz */ for(let k = 0; k < N; k++){ const [pr, useA] = combos[k % combos.length], tg = useA ? pr.a : pr.b, foil = useA ? pr.b : pr.a;
 const extra = t === 2 ? [randomItem(SP_PAIRS.filter(p => p !== pr))[Math.random() < 0.5 ? "a" : "b"][1]] : [];
 const opts = [tg[1], foil[1]].concat(extra).map(i => qzPic(SENTPIC_IMAGES[i]));
 out.push(qzMake(isPre() ? "" : `<div style="font-size:20px;font-weight:900;text-align:center;color:var(--teal-dark)">${tg[0]}</div>`, opts, 0, { prompt:"Cümleye <b>uyan resim</b> hangisi?", raw:true, fixed:true, cell:120, say: tg[0], replay:true })); }
@@ -9590,7 +9687,7 @@ const INSTR_SHORT = {
 "proverb-touch":    [() => Q("Sözü oku. Asıl anlatmak istediği anlama dokun.")],
 "absurd-touch":     [() => Q(!isPre() && currentCombo().t === 2 ? "İki cümleyi dinle. Davranış amaca uyuyorsa Doğru'ya, uymuyorsa Saçma'ya dokun." : "Cümleyi dinle. Doğruysa Doğru'ya, saçmaysa Saçma'ya dokun.")],
 "concept-touch":    [() => Q("Dinle. Söylenen resme dokun.")],
-"infer-touch":      [() => Q("Durumu oku ya da dinle. İpuçlarına göre en uygun cevaba dokun.")],
+"infer-touch":      [() => Q(currentCombo().t === 2 ? "İki cümleyi oku ya da dinle. İkisindeki ipuçlarını birleştirip en uygun cevaba dokun." : currentCombo().t === 1 ? "Durumu oku ya da dinle. İki ipucunu birleştirip en uygun cevaba dokun." : "Durumu oku ya da dinle. İpucuna göre en uygun cevaba dokun.")],
 "dot-count":        [() => Q("Noktalar bir an görünecek. Kaç tane olduğunu seç.")],
 "sem-decide":       [() => { const t = currentCombo().t; return Q(t === 0 ? "Soruyu dinle; her resim için hızlıca Evet ya da Hayır'a dokun." : t === 1 ? "Soru iki resimde bir değişecek: soruyu dinle, hızlıca Evet ya da Hayır'a dokun." : "Soru her resimde değişecek: soruyu dinle, hızlıca Evet ya da Hayır'a dokun."); }],
 "eye-touch":        [() => Q("Kayan topu gözünle izle, yakalayınca dokun.")],
@@ -11807,7 +11904,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.16-e";
+const APP_VERSION = "2026.10.16-i";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
