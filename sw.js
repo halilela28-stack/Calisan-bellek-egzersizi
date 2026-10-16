@@ -5,7 +5,7 @@
    - Betikler (zihin-*.js) ve resim dosyaları: önce önbellek; yoksa ağdan alınıp saklanır; aynı dosyanın eski sürümleri silinir.
    - Diğer aynı kaynaklı istekler: önbellekten ver, arkada yenile.
    Sürüm değişince (SW_VERSION) eski önbellekler temizlenir. */
-const SW_VERSION = "2026.10.17-c";
+const SW_VERSION = "2026.10.17-e";
 const CACHE = "za-" + SW_VERSION;
 const CORE = ["./zihin-atolyesi.html", "./zihin-app.js", "./manifest.json"];
 const HTML_TIMEOUT_MS = 4000;
@@ -40,7 +40,7 @@ async function networkFirstHtml(req){
   const cache = await caches.open(CACHE);
   try{
     const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), HTML_TIMEOUT_MS);
-    const res = await fetch(req, { signal: ctrl.signal }); clearTimeout(t);
+    const res = await fetch(req.url, { signal: ctrl.signal, cache: "no-cache", credentials: "same-origin" }); clearTimeout(t); /* HTML her açılışta sunucuya sorulur (GitHub Pages'in 10 dakikalık önbelleği atlanır) */
     if(res && res.ok){ cache.put("./zihin-atolyesi.html", res.clone()); }
     return res;
   }catch(e){

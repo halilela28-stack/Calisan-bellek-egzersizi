@@ -6155,7 +6155,7 @@ const CAT_PHRASE = { HAYVAN:"hayvanlara", EŞYA:"eşyalara", CANLI:"canlılara",
 const catDyn = {};   // id → { key, groups }
 function catDynSpec(id){ const pool = (isPre() ? QS_TIER.pre : QS_TIER.post)[Math.min(currentCombo().t, 2)]; const prev = catDyn[id] ? catDyn[id].key : null; const key = pool.length > 1 ? pickDifferent(pool, prev) : pool[0]; const R = qsRules()[key];
   const groups = [[R.a.id + "_a", CAT_PHRASE[R.a.l] || R.a.l.toLocaleLowerCase("tr")], [R.b.id + "_b", CAT_PHRASE[R.b.l] || R.b.l.toLocaleLowerCase("tr")]]; catDyn[id] = { key, groups };
-  const mk = (arr, g) => (arr || []).map((src, i) => ({ k: g + i, g, src }));
+  const mk = (arr, g) => (arr || []).filter(Boolean).map((src, i) => ({ k: g + i, g, src }));   /* resmi olmayan öğe (eski resim dosyası) atlanır */
   return { groups, items: () => mk(R.a.pool, groups[0][0]).concat(mk(R.b.pool, groups[1][0]), isPre() ? [] : mk(R.a.trick, groups[0][0]).map(x => Object.assign(x, { k: "tA" + x.k })), isPre() ? [] : mk(R.b.trick, groups[1][0]).map(x => Object.assign(x, { k: "tB" + x.k }))) }; }
 function makeCatTouchGrid(n){ const id = currentExercise().id, spec = CAT_TOUCH[id].dyn ? catDynSpec(id) : CAT_TOUCH[id];
 const gi = catTarget[id] === undefined ? Math.floor(Math.random() * 2) : 1 - catTarget[id];   // her sayfada / Karıştır'da hedef değişir
@@ -11927,7 +11927,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.17-c";
+const APP_VERSION = "2026.10.17-e";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -14553,7 +14553,7 @@ ${L && L.player && names.includes(L.player) && MODE_NAMES[L.mode] ? `<button typ
 <div class="hm-duo"><button type="button" class="hm-add hm-add-out" id="hmAdd">＋ Kişi ekle</button><button type="button" class="hm-guest-b" id="hmGuest">${hmIc("user")} Misafir girişi</button></div>
 
 <div class="hm-card hm-mode" id="hmEtk"><div class="hm-mh"><span class="hm-ic etk">${hmIc("users")}</span><div><b>Bilişsel Etkinlik</b><span>Uzmanla veya aileyle birlikte</span></div><i class="hm-go">›</i></div>
-<div class="hm-seg"><div class="hm-col uz"><button type="button" data-hview="uzman" class="${view === "uzman" ? "on" : ""}">${hmIc("brief")} Uzman girişi</button><button type="button" class="hm-sub" id="hmClients">${hmIc("users")} Danışanlar</button></div><div class="hm-col ai"><button type="button" data-hview="aile" class="${view === "aile" ? "on" : ""}">${hmIc("home")} Aile girişi</button><button type="button" class="hm-sub" id="hmHw">${hmIc("clip")} Ödevlerim</button></div></div></div>
+<div class="hm-seg"><div class="hm-col uz"><button type="button" data-hview="uzman" class="${view === "uzman" ? "on" : ""}">${hmIc("brief")} Uzman</button><button type="button" class="hm-sub" id="hmClients">${hmIc("users")} Danışanlar</button></div><div class="hm-col ai"><button type="button" data-hview="aile" class="${view === "aile" ? "on" : ""}">${hmIc("home")} Aile</button><button type="button" class="hm-sub" id="hmHw">${hmIc("clip")} Ödevlerim</button></div></div></div>
 <div class="hm-card hm-mode" id="hmGame"><div class="hm-mh"><span class="hm-ic oyun">${zihniSVG("happy")}</span><div><b>Bilişsel Oyun</b><span>Çocuk deneyimi · Zihin Adaları</span></div><i class="hm-go oy">›</i></div><div class="hm-motto">${hmMotto()}</div></div>
 </div>`;
 el.style.display = "flex"; try{ scheduleTour("home", "whoScreen"); }catch(e){}
