@@ -480,7 +480,7 @@ function afterImagesLoaded(){ /* resimler gelince çift havuzunu birleştir; eks
   const pick = (fn) => { try{ return fn(); }catch(e){ return undefined; } };
   const add = { spoon: pick(() => PAL_EXTRA_IMAGES.spoon), bowl: pick(() => PAL_EXTRA_IMAGES.bowl), sock: pick(() => PAL_EXTRA_IMAGES.sock), slipper: pick(() => PAL_EXTRA_IMAGES.slipper), bee: pick(() => PAL_EXTRA_IMAGES.bee), honey: pick(() => PAL_EXTRA_IMAGES.honey), paldog: pick(() => PAL_EXTRA_IMAGES.dog), bone: pick(() => PAL_EXTRA_IMAGES.bone), scissors: pick(() => HOUSE_IMAGES.scissors), broom: pick(() => HOUSE_IMAGES.broom), bucket: pick(() => HOUSE_IMAGES.bucket), cup: pick(() => HOUSE_IMAGES.cup), paper: pick(() => NI(1).paper), dustpan: pick(() => NI(1).dustpan), shovel: pick(() => NI(1).shovel), paintbrush: pick(() => NI(1).paintbrush), paint: pick(() => NI(1).paint), straw: pick(() => NI(1).straw), notebook: pick(() => NI(1).notebook) };
   try{ Object.keys(add).forEach(k => { if(add[k]) PAIR_IMAGES[k] = add[k]; }); }catch(e){}
-  window.__imgReady = true; /* eksik dosya olsa da uygulama kilitlenmez; eksikler uyarıyla bildirilir */ const miss = (window.__imgMissing || []).slice(); ["PAIR_IMAGES","PAL_EXTRA_IMAGES","NEW_IMAGES_5"].forEach(n => { try{ if(eval("typeof " + n) === "undefined" && !miss.length) miss.push(n); }catch(e){} }); if(miss.length){ try{ const el = document.getElementById("imgWarn"); if(el){ el.style.display = "block"; el.textContent = "Resim dosyası güncellenemedi (" + miss.join(", ") + "). Sayfayı yenileyin; sorun sürerse tarayıcı önbelleğini temizleyin."; } }catch(e){} } }
+  window.__imgReady = true; /* eksik dosya olsa da uygulama kilitlenmez; eksikler uyarıyla bildirilir */ const miss = (window.__imgMissing || []).slice(); ["PAIR_IMAGES","PAL_EXTRA_IMAGES","NEW_IMAGES_5"].forEach(n => { try{ if(eval("typeof " + n) === "undefined" && !miss.length) miss.push(n); }catch(e){} }); if(miss.length){ try{ const el = document.getElementById("imgWarn"); if(el){ el.style.display = "block"; el.textContent = "Resim dosyası eski: " + miss.join(", ") + ". Önbellek temizlendi ve sayfa yenilendi; sorun sürüyorsa sunucudaki (GitHub) dosya güncellenmemiş demektir: zihin-gorsel-3.js dosyasını yeniden yükleyin."; } }catch(e){} } }
 if(typeof PAIR_IMAGES !== "undefined" && typeof NI(1) !== "undefined") afterImagesLoaded();
 let __imgWaiters = [];
 function imagesReady(){ return !!window.__imgReady; }
@@ -5472,6 +5472,14 @@ grid.push(item);
 return grid;
 }
 
+/* Sonraki/Önceki: sekme sırasını izler. navTier = gezilen düzey (bu düzeyi olmayan çalışma kendi en yüksek düzeyinde açılır);
+   satırın sonunda bir sonraki düzeyin ilk sekmesine, son düzeyin sonunda Başlangıç'ın ilk sekmesine geçilir. */
+let navTier = null;
+function navStep(dir){ const exs = currentCategoryExercises(), n = exs.length; if(!n) return; let e = currentCombo().e, t = (navTier == null ? currentCombo().t : navTier);
+  for(let i = 0; i < n * TIERS.length + 2; i++){ e += dir;
+    if(e >= n){ e = 0; t = (t + 1) % TIERS.length; } else if(e < 0){ e = n - 1; t = (t - 1 + TIERS.length) % TIERS.length; }
+    const ex = exs[e]; if((ex.minTier || 0) > t) continue; if(!exs.some(x => (x.minTier || 0) <= t && t <= tierMax(x))) continue;
+    navTier = t; goToIndex(findSeqIndex(Math.min(t, tierMax(ex)), e)); return; } }
 function goToIndex(newIndex){
 const prevExId = currentExercise().id;
 currentIndex = ((newIndex % SEQUENCE.length) + SEQUENCE.length) % SEQUENCE.length;
@@ -5492,10 +5500,7 @@ if(t > tierMax(currentExercise())) return;
 const btn = document.createElement("button");
 btn.className = "tier-btn" + (t===currentCombo().t ? " active" : "") + (t === 3 ? " usta" : "");
 btn.textContent = tier.label;
-btn.addEventListener("click", ()=>{
-goToIndex(findSeqIndex(t, currentCombo().e));
-});
-row.appendChild(btn);
+btn.addEventListener("click", ()=>{ navTier = t; goToIndex(findSeqIndex(t, currentCombo().e)); }); row.appendChild(btn);
 });
 }
 
@@ -11636,13 +11641,9 @@ currentGrid = generateGrid(ex, rows, cols);
 }
 renderBoard(); renderInstruction(); resetTimer(); refreshHistoryIfVisible(); restoreScrollSnapshot(__keep); /* Karıştır: sayfa yukarı zıplamasın */ });
 
-document.getElementById("prevBtn").addEventListener("click", ()=>{
-goToIndex(currentIndex - 1);
-});
+document.getElementById("prevBtn").addEventListener("click", ()=>{ navStep(-1); });
 
-document.getElementById("nextBtn").addEventListener("click", ()=>{
-goToIndex(currentIndex + 1);
-});
+document.getElementById("nextBtn").addEventListener("click", ()=>{ navStep(1); });
 
 function applyModeVisibility(){
 const isAile = appMode === "aile";
@@ -11926,7 +11927,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.17-a";
+const APP_VERSION = "2026.10.17-b";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -14243,9 +14244,7 @@ document.getElementById("emptyCategoryTitle").textContent = currentCategory().la
 document.getElementById("emptyCategoryScreen").style.display = "block";
 return;
 }
-SEQUENCE = buildSequenceForCategory();
-currentIndex = 0;
-currentStageIndex = 0;
+SEQUENCE = buildSequenceForCategory(); currentIndex = 0; currentStageIndex = 0; navTier = 0;
 document.getElementById("categoryScreen").style.display = "none";
 document.getElementById("mainApp").style.display = "flex";
 const catLabelEl = document.getElementById("categoryLabel");
