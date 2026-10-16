@@ -5506,8 +5506,7 @@ const exs = currentCategoryExercises();
 const t = currentCombo().t;
 const groups = currentCategory().exerciseGroups || [];
 const shownGroups = new Set();
-exs.forEach((ex, e)=>{
-if((ex.minTier || 0) > t || t > tierMax(ex)) return;
+exs.forEach((ex, e)=>{ if((ex.minTier || 0) > t) return; /* bu düzeyi olmayan çalışma da listelenir; dokununca kendi en yüksek düzeyine gider */
 const grp = groups.find(g => g[1].includes(ex.id));
 if(grp && !shownGroups.has(grp[0])){
 shownGroups.add(grp[0]);
@@ -5519,10 +5518,7 @@ row.appendChild(lbl);
 const btn = document.createElement("button");
 btn.className = "exercise-btn" + (e===currentCombo().e ? " active" : "");
 btn.textContent = ex.label;
-btn.addEventListener("click", ()=>{
-goToIndex(findSeqIndex(currentCombo().t, e));
-});
-row.appendChild(btn);
+btn.addEventListener("click", ()=>{ const tt = Math.min(currentCombo().t, tierMax(ex)); goToIndex(findSeqIndex(tt, e)); }); if(t > tierMax(ex)) btn.classList.add("dim"); row.appendChild(btn);
 });
 }
 function formatTime(ms){
@@ -11930,7 +11926,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.16-z";
+const APP_VERSION = "2026.10.17-a";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
