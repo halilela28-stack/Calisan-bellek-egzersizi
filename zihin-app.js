@@ -474,8 +474,14 @@ el.classList.add("show");
 
 /* Eşini Hatırla'nın çift resimleri de bu havuzda kullanılır (aynı fotoğraf stili) */
 /* Resim dosyaları arkada yüklenir (bkz. HTML yükleyici). Yükleme bitince çalışır; resimler zaten hazırsa hemen. */
-function afterImagesLoaded(){ try{ Object.assign(PAIR_IMAGES, { spoon: PAL_EXTRA_IMAGES.spoon, bowl: PAL_EXTRA_IMAGES.bowl, sock: PAL_EXTRA_IMAGES.sock, slipper: PAL_EXTRA_IMAGES.slipper, bee: PAL_EXTRA_IMAGES.bee, honey: PAL_EXTRA_IMAGES.honey, paldog: PAL_EXTRA_IMAGES.dog, bone: PAL_EXTRA_IMAGES.bone, scissors: HOUSE_IMAGES.scissors, broom: HOUSE_IMAGES.broom, bucket: HOUSE_IMAGES.bucket, cup: HOUSE_IMAGES.cup, paper: NEW_IMAGES_1.paper, dustpan: NEW_IMAGES_1.dustpan, shovel: NEW_IMAGES_1.shovel, paintbrush: NEW_IMAGES_1.paintbrush, paint: NEW_IMAGES_1.paint, straw: NEW_IMAGES_1.straw, notebook: NEW_IMAGES_1.notebook }); }catch(e){} window.__imgReady = true; }
-if(typeof PAIR_IMAGES !== "undefined" && typeof NEW_IMAGES_1 !== "undefined") afterImagesLoaded();
+/* Yeni resim sözlüklerine güvenli erişim: dosya eski/eksikse boş nesne döner, sayfa patlamaz */
+function NI(n){ try{ const o = eval("NEW_IMAGES_" + n); return o || {}; }catch(e){ return {}; } }
+function afterImagesLoaded(){ /* resimler gelince çift havuzunu birleştir; eksik bir sabit varsa yalnızca o anahtar atlanır */
+  const pick = (fn) => { try{ return fn(); }catch(e){ return undefined; } };
+  const add = { spoon: pick(() => PAL_EXTRA_IMAGES.spoon), bowl: pick(() => PAL_EXTRA_IMAGES.bowl), sock: pick(() => PAL_EXTRA_IMAGES.sock), slipper: pick(() => PAL_EXTRA_IMAGES.slipper), bee: pick(() => PAL_EXTRA_IMAGES.bee), honey: pick(() => PAL_EXTRA_IMAGES.honey), paldog: pick(() => PAL_EXTRA_IMAGES.dog), bone: pick(() => PAL_EXTRA_IMAGES.bone), scissors: pick(() => HOUSE_IMAGES.scissors), broom: pick(() => HOUSE_IMAGES.broom), bucket: pick(() => HOUSE_IMAGES.bucket), cup: pick(() => HOUSE_IMAGES.cup), paper: pick(() => NI(1).paper), dustpan: pick(() => NI(1).dustpan), shovel: pick(() => NI(1).shovel), paintbrush: pick(() => NI(1).paintbrush), paint: pick(() => NI(1).paint), straw: pick(() => NI(1).straw), notebook: pick(() => NI(1).notebook) };
+  try{ Object.keys(add).forEach(k => { if(add[k]) PAIR_IMAGES[k] = add[k]; }); }catch(e){}
+  window.__imgReady = true; /* eksik dosya olsa da uygulama kilitlenmez; eksikler uyarıyla bildirilir */ const miss = (window.__imgMissing || []).slice(); ["PAIR_IMAGES","PAL_EXTRA_IMAGES","NEW_IMAGES_5"].forEach(n => { try{ if(eval("typeof " + n) === "undefined" && !miss.length) miss.push(n); }catch(e){} }); if(miss.length){ try{ const el = document.getElementById("imgWarn"); if(el){ el.style.display = "block"; el.textContent = "Resim dosyası güncellenemedi (" + miss.join(", ") + "). Sayfayı yenileyin; sorun sürerse tarayıcı önbelleğini temizleyin."; } }catch(e){} } }
+if(typeof PAIR_IMAGES !== "undefined" && typeof NI(1) !== "undefined") afterImagesLoaded();
 let __imgWaiters = [];
 function imagesReady(){ return !!window.__imgReady; }
 function imgWait(cb){ if(imagesReady()){ cb(); return; } __imgWaiters.push(cb); const ov = document.getElementById("imgOverlay"); if(ov){ ov.style.display = "flex"; } }
@@ -494,7 +500,7 @@ const table = isPre() ? PRE_PAIR_COUNT_BY_TIER : PAIR_COUNT_BY_TIER;
 return table[currentCombo().t] || table[table.length-1];
 }
 function pickPairPool(){
-const sets = isPre() ? PAIR_SETS_PRE : PAIR_SETS_POST;
+const __avail = (p) => !!(PAIR_IMAGES[p[0]] && PAIR_IMAGES[p[1]]); const sets = (isPre() ? PAIR_SETS_PRE : PAIR_SETS_POST).filter(__avail); /* resmi olmayan çift havuza girmez */
 const n = pairWantedCount();
 let pool, key, tries = 0;
 while(true){
@@ -6282,14 +6288,14 @@ function qsRules(){ const W = WILD_IMAGES, H = HOUSE_IMAGES, V = VEHICLE_IMAGES,
     ucar:    { a:{ id:"yes", l:"UÇAR", e:"🐦", pool: [O.butterfly, X.bee, V.plane_f, V.heli_f, SC.bird, SC.balloon] }, b:{ id:"no", l:"UÇMAZ", e:"🐾", pool: [W.lion, W.zebra, W.bear, W.fox, W.giraffe, V.bus_f, V.train_f, V.ship_f, T.ball, HC.penguin] } },
     suda:    { a:{ id:"yes", l:"SUDA", e:"🌊", pool: qzCats().sea.items.map(x => x.src).concat([V.ship_f, O.frog]) }, b:{ id:"no", l:"KARADA", e:"🌳", pool: wild.concat([V.bus_f, V.train_f, LIVING_IMAGES.tree]) } },
     tasit:   { a:{ id:"yes", l:"TAŞIT", e:"🚌", pool: [V.bus_f, V.plane_f, V.ship_f, V.heli_f, V.fire_f, V.train_f, LIVING_IMAGES.car] }, b:{ id:"no", l:"DEĞİL", e:"❌", pool: wild.concat(house, [F.apple, T.teddy, T.ball, T.kite]) } },
-    sicak:   { a:{ id:"yes", l:"SICAK", e:"🔥", pool: [HC.fire, HC.soup, HC.sun, HC.iron, NEW_IMAGES_1.tea] }, b:{ id:"no", l:"SOĞUK", e:"❄️", pool: [HC.snowman, HC.ice, HC.icecream, HC.penguin, O.snowpile, O.snowman2] } },
+    sicak:   { a:{ id:"yes", l:"SICAK", e:"🔥", pool: [HC.fire, HC.soup, HC.sun, HC.iron, NI(1).tea] }, b:{ id:"no", l:"SOĞUK", e:"❄️", pool: [HC.snowman, HC.ice, HC.icecream, HC.penguin, O.snowpile, O.snowman2] } },
     meyve:   { a:{ id:"yes", l:"MEYVE", e:"🍎", pool: [F.apple, F.banana, F.orange, F.grapes, F.strawberry, TS.watermelon, TS.lemon] }, b:{ id:"no", l:"SEBZE", e:"🥕", pool: [F.carrot, F.cucumber, F.pepper, F.broccoli, F.tomato, TS.chili] } },
     giyilir: { a:{ id:"yes", l:"GİYİLİR", e:"👕", pool: [P.shoe, X.sock, X.slipper, OB.jacket, OB.tshirt, OB.jeans, S.boots_yellow, S.beanie_red, S.cap_blue] }, b:{ id:"no", l:"GİYİLMEZ", e:"🚫", pool: house.concat([T.ball, P.hammer, F.apple, P.phone, T.drum]) } } }; }
 const QS_TIER = { pre:[["animal"], ["animal","yenir","ucar"], ["animal","yenir","ucar","suda"]], post:[["canli"], ["canli","yenir","tasit"], ["canli","yenir","tasit","sicak","meyve","giyilir"]] };
 let qsRuleKey = null, qsRulePrev = null;
 function qsPools(){ const R = qsRules(); return isPre() ? { animal: R.animal.a.pool, thing: R.animal.b.pool, trickA: [], trickT: [] } : { animal: R.canli.a.pool, thing: R.canli.b.pool, trickA: R.canli.a.trick, trickT: R.canli.b.trick }; }   /* eski arayüz (testler ve olası dış kullanım) */
 function qsPickRule(){ const pool = (isPre() ? QS_TIER.pre : QS_TIER.post)[Math.min(currentCombo().t, 2)]; qsRuleKey = pool.length > 1 ? pickDifferent(pool, qsRulePrev) : pool[0]; return qsRuleKey; }
-function qsRule(){ return qsRules()[qsRuleKey || qsPickRule()]; }
+function qsRule(){ const R = qsRules()[qsRuleKey || qsPickRule()]; ["a","b"].forEach(sd => { R[sd].pool = (R[sd].pool || []).filter(Boolean); if(R[sd].trick) R[sd].trick = R[sd].trick.filter(Boolean); }); return R; }
 /* yönelme eki: büyük ünlü uyumu + ünlüyle bitiyorsa kaynaştırma y */
 function trDat(w){ const last = w[w.length - 1].toLocaleLowerCase("tr"), vowels = "aeıioöuü"; const back = [...w.toLocaleLowerCase("tr")].reverse().find(c => vowels.includes(c)); const front = "eiöü".includes(back || "a"); return w + "'" + (vowels.includes(last) ? "y" : "") + (front ? "e" : "a"); }
 const trCap = (w) => w.charAt(0) + w.slice(1).toLocaleLowerCase("tr");
@@ -7014,7 +7020,7 @@ const FS_FAM = () => ({
 giysi:{ n:"giysiler", pics:[OBJECT_IMAGES.jacket, OBJECT_IMAGES.tshirt, OBJECT_IMAGES.jeans, PAL_EXTRA_IMAGES.sock, PAL_EXTRA_IMAGES.slipper] },
 mutfak:{ n:"mutfak eşyaları", pics:[PAL_EXTRA_IMAGES.spoon, PAL_EXTRA_IMAGES.bowl, HOUSE_IMAGES.cup] },
 alet:{ n:"aletler", pics:[PAIR_IMAGES.hammer, PAIR_IMAGES.nail, PAIR_IMAGES.screw, PAIR_IMAGES.screwdriver] },
-okul:{ n:"okul eşyaları", pics:[PAIR_IMAGES.pencil, PAIR_IMAGES.sharpener, HOUSE_IMAGES.scissors, NEW_IMAGES_1.notebook] },
+okul:{ n:"okul eşyaları", pics:[PAIR_IMAGES.pencil, PAIR_IMAGES.sharpener, HOUSE_IMAGES.scissors, NI(1).notebook] },
 bahce:{ n:"bahçe", pics:[PAIR_IMAGES.flower, PAIR_IMAGES.wateringcan, HOUSE_IMAGES.bucket] } });
 const FS_WORDS = { meyve:["elma","armut","kiraz","muz","üzüm"], "taşıt":["otobüs","gemi","uçak","tren","kamyon"], giysi:["ceket","etek","çorap","şapka","kazak"], mutfak:["kaşık","tabak","tencere","çatal","bardak"],
 hayvan:["aslan","inek","kartal","balık","kedi"], meslek:["doktor","öğretmen","aşçı","pilot","berber"], renk:["mavi","sarı","kırmızı","yeşil","mor"] };
@@ -7104,16 +7110,16 @@ function semTrials(){ const C = qzCats(), I = (src) => ({ src }), t = Math.min(c
       tasit:   { yes: veh.concat([I(LIVING_IMAGES.car)]), no: obj.concat(living, food) },
       kanat:   { yes: [A("parrot"), A("penguin"), I(PART_IMAGES[2]), I(O.butterfly), I(X.bee), I(V.plane_f), I(SC.bird)], no: [A("dog"), A("cat"), A("cow"), A("elephant"), A("rabbit"), A("fish"), I(V.bus_f), I(V.train_f), I(T.teddy), I(T.car)] },
       cep:     { yes: [I(P.key), I(P.pencil), I(P.sharpener), I(X.spoon), I(H.comb), I(X.sock), I(TS.candy), I(O.egg), I(X.bone)], no: [I(V.bus_f), I(V.fire_f), A("elephant"), A("cow"), I(H.pillow), I(H.bucket), I(H.broom), I(LIVING_IMAGES.tree), I(LIVING_IMAGES.chair)] },
-      elektrik:{ yes: [I(H.lamp), I(P.phone), I(P.charger), I(V.train_f), I(HC.iron), I(SC.lamp), I(NEW_IMAGES_1.tv), I(NEW_IMAGES_1.fridge), I(NEW_IMAGES_1.fan)], no: [I(P.pencil), I(X.spoon), I(T.teddy), I(T.ball), I(H.broom), I(H.bucket), I(X.sock), I(F.apple), I(P.hammer), I(H.comb)] },
+      elektrik:{ yes: [I(H.lamp), I(P.phone), I(P.charger), I(V.train_f), I(HC.iron), I(SC.lamp), I(NI(1).tv), I(NI(1).fridge), I(NI(1).fan)], no: [I(P.pencil), I(X.spoon), I(T.teddy), I(T.ball), I(H.broom), I(H.bucket), I(X.sock), I(F.apple), I(P.hammer), I(H.comb)] },
       su:      { yes: [A("fish")].concat(seaOf(["yunus","deniz yıldızı","kaplumbağa","yengeç","denizatı"]), [I(O.frog)]), no: [A("dog"), A("cat"), A("cow"), A("rabbit"), A("parrot")].concat(wildOf(["aslan","zürafa"]), [I(LIVING_IMAGES.tree), I(V.bus_f), I(F.apple)]) },
       dortayak:{ yes: [A("dog"), A("cat"), A("cow"), A("elephant"), A("rabbit")].concat(wildOf(["aslan","zebra","zürafa","ayı","tilki"]), [I(O.frog)]), no: [A("parrot"), A("fish"), A("penguin"), I(O.butterfly), I(X.bee), I(O.hen), I(SC.bird), I(T.ball), I(V.bus_f)] },
       yumusak: { yes: [I(T.teddy), I(H.pillow), I(X.sock), I(X.slipper), I(CI.yumusak), I(OB.bread), I(T.doll)], no: [I(P.hammer), I(P.screw), I(P.key), I(P.nail), I(H.scissors), I(H.clock), I(H.bucket), I(CI.sert), I(P.screwdriver)] },
       yuvarlak:{ yes: [I(T.ball), I(S.ball_soccer), I(S.ball_basket), I(S.ball_beach), I(F.orange), I(H.clock), I(HC.sun), I(SC.balloon), I(TS.watermelon)], no: [I(P.pencil), I(V.train_f), I(V.bus_f), I(H.scissors), I(H.broom), I(H.comb), I(P.key), I(P.hammer), I(F.banana)] },
       soguk:   { yes: [I(HC.snowman), I(HC.ice), I(HC.icecream), I(HC.penguin), I(O.snowpile), I(O.snowman2)], no: [I(HC.fire), I(HC.soup), I(HC.sun), I(HC.iron), I(OB.bread), I(X.sock), I(T.teddy), I(F.apple)] },
-      sicak:   { yes: [I(HC.fire), I(HC.soup), I(HC.sun), I(HC.iron), I(NEW_IMAGES_1.tea)], no: [I(HC.snowman), I(HC.ice), I(HC.icecream), I(HC.penguin), I(O.snowpile), I(O.snowman2), I(F.apple), I(T.ball), I(H.comb)] },
+      sicak:   { yes: [I(HC.fire), I(HC.soup), I(HC.sun), I(HC.iron), I(NI(1).tea)], no: [I(HC.snowman), I(HC.ice), I(HC.icecream), I(HC.penguin), I(O.snowpile), I(O.snowman2), I(F.apple), I(T.ball), I(H.comb)] },
       tatli:   { yes: [I(X.honey), I(OB.chocolate), I(HC.icecream), I(TS.candy), I(O.cakeslice), I(F.strawberry), I(F.banana), I(F.grapes), I(TS.watermelon)], no: [I(TS.lemon), I(TS.chili), I(TS.pasta), I(TS.simit), I(HC.soup), I(OB.bread), I(F.cucumber), I(F.broccoli), I(O.cheese), I(O.egg)] },
       meyve:   { yes: [I(F.apple), I(F.banana), I(F.orange), I(F.grapes), I(F.strawberry), I(TS.watermelon), I(TS.lemon)], no: [I(F.carrot), I(F.cucumber), I(F.pepper), I(F.broccoli), I(OB.bread), I(O.cheese), I(T.teddy), A("dog"), I(H.cup)] },
-      sebze:   { yes: [I(F.carrot), I(F.cucumber), I(F.pepper), I(F.broccoli), I(TS.chili), I(F.tomato), I(NEW_IMAGES_1.potato), I(NEW_IMAGES_1.onion)], no: [I(F.apple), I(F.banana), I(F.orange), I(F.grapes), I(F.strawberry), I(OB.bread), I(O.cheese), I(TS.candy), I(T.ball)] },
+      sebze:   { yes: [I(F.carrot), I(F.cucumber), I(F.pepper), I(F.broccoli), I(TS.chili), I(F.tomato), I(NI(1).potato), I(NI(1).onion)], no: [I(F.apple), I(F.banana), I(F.orange), I(F.grapes), I(F.strawberry), I(OB.bread), I(O.cheese), I(TS.candy), I(T.ball)] },
       giyilir: { yes: [I(P.shoe), I(X.sock), I(X.slipper), I(OB.jacket), I(OB.tshirt), I(OB.jeans), I(S.boots_yellow), I(S.beanie_red), I(S.cap_blue)], no: [I(H.comb), I(H.cup), I(T.ball), I(P.hammer), I(H.pillow), I(F.apple), I(P.phone), I(H.scissors), I(T.drum)] },
       ucar:    { yes: [A("parrot"), I(O.butterfly), I(X.bee), I(V.plane_f), I(V.heli_f), I(SC.bird)], no: [A("dog"), A("cow"), A("fish"), A("penguin"), A("rabbit"), I(V.bus_f), I(V.train_f), I(LIVING_IMAGES.car), I(O.frog)] },
       teker:   { yes: [I(V.bus_f), I(V.fire_f), I(V.train_f), I(LIVING_IMAGES.car), I(T.car), I(T.train)], no: [I(V.ship_f), A("dog"), A("cow"), I(T.ball), I(LIVING_IMAGES.chair), I(LIVING_IMAGES.tree), I(F.apple), I(T.kite), I(H.lamp)] },
@@ -7122,6 +7128,7 @@ function semTrials(){ const C = qzCats(), I = (src) => ({ src }), t = Math.min(c
       evcil:   { yes: [A("dog"), A("cat"), A("rabbit"), A("parrot"), A("fish"), I(X.dog)], no: wildOf(["aslan","zebra","zürafa","ayı","tilki","maymun"]).concat(seaOf(["yunus","yengeç"])) },
       oyuncak: { yes: [I(T.doll), I(T.teddy), I(T.ball), I(T.kite), I(T.puzzle), I(T.drum), I(T.train), I(T.car)], no: [I(H.cup), I(H.scissors), I(H.clock), I(H.lamp), I(H.comb), I(H.pillow), I(H.bucket), I(H.broom), I(F.apple), I(P.hammer)] },
       okul:    { yes: [I(P.pencil), I(S.pencil_yellow), I(S.pencil_green), I(P.sharpener), I(H.scissors), I(SC.backpack), I(SC.map)], no: [I(P.hammer), I(H.pillow), I(X.spoon), I(T.teddy), I(X.sock), I(H.comb), I(X.slipper), I(H.cup), I(T.kite)] } };
+    Object.keys(SETS).forEach(k => { SETS[k].yes = SETS[k].yes.filter(x => x && x.src); SETS[k].no = SETS[k].no.filter(x => x && x.src); }); /* resmi olmayan öğe havuza girmez */
     const sets = (Q) => SETS[Q.k] || ({ yes: Q.k === "canli" ? living : Q.k === "yenir" ? food : veh, no: Q.k === "canli" ? obj.concat(veh, food) : Q.k === "yenir" ? obj.concat(veh, living) : obj.concat(living, food) });
   const pool = shuffleArray((isPre() ? SEM_QS.slice(0, 2) : SEM_QS.slice(2)).slice()).slice(0, isPre() ? 2 : [1, 2, 4][t]), N = isPre() ? 8 : 12; const qAt = (i) => t === 0 ? pool[0] : t === 1 ? pool[Math.floor(i / 2) % 2] : pool[i % pool.length]; /* Başlangıç tek soru · Orta iki soru, iki resimde bir · Zor dört soru, her resimde değişir */   // Başlangıç tek soru · Orta iki resimde bir · Zor her resimde
   const ans = shuffleArray(Array.from({length:N}, (_, i) => i % 2 === 0)); const out = [], used = new Set(); for(let i = 0; i < N; i++){ const Q = qAt(i), S = sets(Q), y = ans[i]; const cand = (y ? S.yes : S.no); const fresh = cand.filter(x => !used.has(x.src)); const it = randomItem(fresh.length ? fresh : cand); used.add(it.src); /* bir turda aynı resim tekrar gelmesin */
@@ -7412,14 +7419,14 @@ function absayTrials(){ const t = currentCombo().t;
 if(isPre()){ const N = [3, 4, 5][t]; return shuffleArray(ABS_PIC.map((x, i) => ({ img: i, q: x[0], a: x[1] }))).slice(0, N); }
 const N = [4, 5, 6][t]; return shuffleArray(ABS_SENT.map(x => ({ s: x[0], q:"Bu cümlede ne mantıksız? Neden?", a: x[1] }))).slice(0, N); }
 const WP_OBJ = ["pusula","dürbün","mikroskop","çapa","huni","kum saati","stetoskop","termometre","gözlük","fener","termos","yelpaze","ip","mıknatıs","kutu","kask","bilezik","kemer"];
-/* 9. nesneden itibaren resimler NEW_IMAGES_2 içinde */
-const WP_OBJ_SRC = (i) => i < 8 ? WP_OBJ_IMAGES[i] : NEW_IMAGES_2[["glasses","flashlight","thermos","handfan","rope","magnet","box","helmet","bracelet","belt"][i - 8]];
+/* 9. nesneden itibaren resimler NI(2) içinde */
+const WP_OBJ_SRC = (i) => i < 8 ? WP_OBJ_IMAGES[i] : NI(2)[["glasses","flashlight","thermos","handfan","rope","magnet","box","helmet","bracelet","belt"][i - 8]];
 const WP_EMO = ["Hangi çocuk tereddüt ediyor?","Hangi çocuk utanıyor?","Hangi çocuk gururlanıyor?","Hangi çocuk şaşırıyor?","Hangi çocuk hayal kırıklığına uğramış?","Hangi çocuk kıskanıyor?","Hangi çocuk merak ediyor?","Hangi çocuk sabırsızlanıyor?","Hangi çocuk üzgün?","Hangi çocuk mutlu?","Hangi çocuk korkuyor?","Hangi çocuk yorgun?","Hangi çocuk düşünüyor?","Hangi çocuk halinden memnun?","Hangi çocuk kızgın?","Hangi çocuk teşekkür ediyor?","Hangi çocuk endişeli?","Hangi çocuk rahatlamış?","Hangi çocuk sıkılmış?","Hangi çocuk heyecanlı?"];
-/* 9. duygudan itibaren resimler NEW_IMAGES_3 içinde */
-const WP_EMO_SRC = (i) => i < 8 ? NEW_IMAGES_5[["hesitant", "shy", "proud", "surprised", "disappointed", "jealous", "curious", "impatient"][i]] : NEW_IMAGES_3[["sad", "happy", "scared", "tired", "thoughtful", "content", "angry", "grateful", "worried", "relieved", "bored", "excited"][i - 8]];
+/* 9. duygudan itibaren resimler NI(3) içinde */
+const WP_EMO_SRC = (i) => i < 8 ? NI(5)[["hesitant", "shy", "proud", "surprised", "disappointed", "jealous", "curious", "impatient"][i]] : NI(3)[["sad", "happy", "scared", "tired", "thoughtful", "content", "angry", "grateful", "worried", "relieved", "bored", "excited"][i - 8]];
 const WP_VAL = ["Hangi resimde dayanışma var?","Hangi resimde paylaşma var?","Hangi resimde biri özür diliyor?","Hangi resimde biri teselli ediliyor?","Hangi resimde tartışma var?","Hangi resimde yarışma var?","Hangi resimde kutlama var?","Hangi resimde vedalaşma var?","Hangi resimde biri yardım ediyor?","Hangi resimde çocuklar sıra bekliyor?","Hangi resimde çocuk dürüst davranıyor?","Hangi resimde nezaket var?","Hangi resimde sorumluluk var?","Hangi resimde cesaret var?","Hangi resimde saygı var?","Hangi resimde tutumluluk var?","Hangi resimde temizlik var?","Hangi resimde dostluk var?","Hangi resimde çocuklar dinliyor?","Hangi resimde biri teşekkür ediyor?"];
-/* 9. değerden itibaren resimler NEW_IMAGES_4 içinde */
-const WP_VAL_SRC = (i) => i < 8 ? WP_VAL_IMAGES[i] : NEW_IMAGES_4[["helping", "patience", "honesty", "kindness", "responsibility", "courage", "respect", "thrift", "cleanliness", "friendship", "listening", "thanks"][i - 8]];
+/* 9. değerden itibaren resimler NI(4) içinde */
+const WP_VAL_SRC = (i) => i < 8 ? WP_VAL_IMAGES[i] : NI(4)[["helping", "patience", "honesty", "kindness", "responsibility", "courage", "respect", "thrift", "cleanliness", "friendship", "listening", "thanks"][i - 8]];
 function wpPool(){ const C = qzCats(); const ta = [["dog","köpek"],["cat","kedi"],["cow","inek"],["rabbit","tavşan"],["elephant","fil"],["parrot","papağan"]].map(([k, n]) => ({ n, src: TA_ANIMALS[k](), cat:"hayvan" }));
 return ta.concat(C.wild.items.slice(0, 4).map(x => Object.assign({ cat:"hayvan" }, x)), C.meyve.items.map(x => Object.assign({ cat:"meyve" }, x)), C.toy.items.map(x => Object.assign({ cat:"oyuncak" }, x)), C.house.items.map(x => Object.assign({ cat:"ev" }, x)), C.vehicle.items.map(x => Object.assign({ cat:"taşıt" }, x))).filter(x => !/\s/.test(x.n)); }
 function wpTrials(){ const t = currentCombo().t;
@@ -7431,7 +7438,7 @@ for(const tg of shuffleArray(P)){ if(out.length >= N) break; const same = P.filt
 let dis = t === 0 ? shuffleArray(far).slice(0, 2) : t === 1 ? shuffleArray(same).slice(0, 1).concat(shuffleArray(far).slice(0, 1)) : shuffleArray(same).slice(0, 1).concat(shuffleArray(snd).slice(0, 1), shuffleArray(far)).slice(0, 3);
 out.push({ opts: shuffleArray([tg].concat(dis)), ans: tg, say:`Hangisi ${tg.n}?` }); }
 return out.map(x => ({ stim:"", opts: x.opts.map(o => qzPic(o.src)), ans: x.opts.indexOf(x.ans), say: x.say, prompt:"<b>Dinle</b>, söyleneni göster", replay:true, fixed:true, cell:110 })); }
-const set = t === 0 ? WP_OBJ.map((n, i) => ({ src: WP_OBJ_SRC(i), say:`Hangisi ${n}?` })) : t === 1 ? WP_EMO.map((q, i) => ({ src: WP_EMO_SRC(i), say: q })) : WP_VAL.map((q, i) => ({ src: WP_VAL_SRC(i), say: q }));
+const set = t === 0 ? WP_OBJ.map((n, i) => ({ src: WP_OBJ_SRC(i), say:`Hangisi ${n}?` })) : t === 1 ? WP_EMO.map((q, i) => ({ src: WP_EMO_SRC(i), say: q })) : WP_VAL.map((q, i) => ({ src: WP_VAL_SRC(i), say: q })); { const okSet = set.filter(x => x && x.src); if(okSet.length >= 4 && okSet.length < set.length) set.splice(0, set.length, ...okSet); }
 return shuffleArray(set).slice(0, 6).map(tg => { const o = shuffleArray([tg].concat(shuffleArray(set.filter(x => x !== tg)).slice(0, 3)));
 return { stim:"", opts: o.map(x => qzPic(x.src)), ans: o.indexOf(tg), say: tg.say, prompt:`<b>${tg.say}</b>`, replay:true, fixed:true, cell:120 }; }); }
 
@@ -7638,7 +7645,7 @@ const OPP_PRE = () => [
 { w:"sıcak", pic: HOTCOLD_IMAGES.fire, opp: randomItem([HOTCOLD_IMAGES.snowman, HOTCOLD_IMAGES.ice, HOTCOLD_IMAGES.icecream]), same: randomItem([HOTCOLD_IMAGES.soup, HOTCOLD_IMAGES.iron, HOTCOLD_IMAGES.sun]) },
 { w:"soğuk", pic: HOTCOLD_IMAGES.penguin, opp: randomItem([HOTCOLD_IMAGES.fire, HOTCOLD_IMAGES.soup, HOTCOLD_IMAGES.sun]), same: randomItem([HOTCOLD_IMAGES.snowman, HOTCOLD_IMAGES.ice, HOTCOLD_IMAGES.icecream]) },
 { w:"gündüz", pic: DN_IMAGES.sun, opp: DN_IMAGES.moon, same: DN_IMAGES.sun },
-{ w:"mutlu", pic: NEW_IMAGES_3.happy, opp: NEW_IMAGES_3.sad, same: NEW_IMAGES_3.happy },
+{ w:"mutlu", pic: NI(3).happy, opp: NI(3).sad, same: NI(3).happy },
 { w:"yavru", pic: ANIM_YB_IMAGES[5], opp: ANIM_YB_IMAGES[4], same: ANIM_YB_IMAGES[1] } ];
 const OPP_POST = [["büyük","küçük","iri"],["hızlı","yavaş","çabuk"],["sıcak","soğuk","ılık"],["zengin","fakir","varlıklı"],["cesur","korkak","yürekli"],["erken","geç","sabah"],["kolay","zor","basit"],["genç","yaşlı","yeni"],["açık","kapalı","geniş"],["dolu","boş","kalabalık"],["uzun","kısa","yüksek"],["ağır","hafif","büyük"],["temiz","kirli","parlak"],["sert","yumuşak","katı"],["gece","gündüz","akşam"],["ıslak","kuru","nemli"],["tatlı","acı","şekerli"],["kalın","ince","geniş"],["aydınlık","karanlık","parlak"],["yukarı","aşağı","üst"],["eski","yeni","kullanılmış"],["mutlu","üzgün","neşeli"],["pahalı","ucuz","değerli"],["sessiz","gürültülü","sakin"],["derin","sığ","uzun"],["tok","aç","doymuş"],["ileri","geri","ön"],["doğru","yanlış","gerçek"],["güçlü","zayıf","kuvvetli"]];
 function oppTrials2(){ const t = currentCombo().t;
@@ -11923,7 +11930,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.16-y";
+const APP_VERSION = "2026.10.16-z";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};

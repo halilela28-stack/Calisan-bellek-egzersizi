@@ -5,7 +5,7 @@
    - Betikler (zihin-*.js) ve resim dosyaları: önce önbellek; yoksa ağdan alınıp saklanır; aynı dosyanın eski sürümleri silinir.
    - Diğer aynı kaynaklı istekler: önbellekten ver, arkada yenile.
    Sürüm değişince (SW_VERSION) eski önbellekler temizlenir. */
-const SW_VERSION = "2026.10.16-y";
+const SW_VERSION = "2026.10.16-z";
 const CACHE = "za-" + SW_VERSION;
 const CORE = ["./zihin-atolyesi.html", "./zihin-app.js", "./manifest.json"];
 const HTML_TIMEOUT_MS = 4000;
@@ -21,7 +21,7 @@ self.addEventListener("install", (ev) => {
 self.addEventListener("activate", (ev) => {
   ev.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(keys.filter(k => k.startsWith("za-") && k !== CACHE).map(k => caches.delete(k)));
+    await Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))); /* eski service worker önbellekleri dâhil hepsi temizlenir */
     await self.clients.claim();
   })());
 });
