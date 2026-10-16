@@ -480,7 +480,7 @@ function afterImagesLoaded(){ /* resimler gelince çift havuzunu birleştir; eks
   const pick = (fn) => { try{ return fn(); }catch(e){ return undefined; } };
   const add = { spoon: pick(() => PAL_EXTRA_IMAGES.spoon), bowl: pick(() => PAL_EXTRA_IMAGES.bowl), sock: pick(() => PAL_EXTRA_IMAGES.sock), slipper: pick(() => PAL_EXTRA_IMAGES.slipper), bee: pick(() => PAL_EXTRA_IMAGES.bee), honey: pick(() => PAL_EXTRA_IMAGES.honey), paldog: pick(() => PAL_EXTRA_IMAGES.dog), bone: pick(() => PAL_EXTRA_IMAGES.bone), scissors: pick(() => HOUSE_IMAGES.scissors), broom: pick(() => HOUSE_IMAGES.broom), bucket: pick(() => HOUSE_IMAGES.bucket), cup: pick(() => HOUSE_IMAGES.cup), paper: pick(() => NI(1).paper), dustpan: pick(() => NI(1).dustpan), shovel: pick(() => NI(1).shovel), paintbrush: pick(() => NI(1).paintbrush), paint: pick(() => NI(1).paint), straw: pick(() => NI(1).straw), notebook: pick(() => NI(1).notebook) };
   try{ Object.keys(add).forEach(k => { if(add[k]) PAIR_IMAGES[k] = add[k]; }); }catch(e){}
-  window.__imgReady = true; /* eksik dosya olsa da uygulama kilitlenmez; eksikler uyarıyla bildirilir */ const miss = (window.__imgMissing || []).slice(); ["PAIR_IMAGES","PAL_EXTRA_IMAGES","NEW_IMAGES_5"].forEach(n => { try{ if(eval("typeof " + n) === "undefined" && !miss.length) miss.push(n); }catch(e){} }); if(miss.length){ try{ const el = document.getElementById("imgWarn"); if(el){ el.style.display = "block"; el.textContent = "Resim dosyası eski: " + miss.join(", ") + ". Önbellek temizlendi ve sayfa yenilendi; sorun sürüyorsa sunucudaki (GitHub) dosya güncellenmemiş demektir: zihin-gorsel-3.js dosyasını yeniden yükleyin."; } }catch(e){} } }
+  window.__imgReady = true; /* eksik dosya olsa da uygulama kilitlenmez; eksikler uyarıyla bildirilir */ const miss = (window.__imgMissing || []).slice(); ["PAIR_IMAGES","PAL_EXTRA_IMAGES","NEW_IMAGES_5"].forEach(n => { try{ if(eval("typeof " + n) === "undefined" && !miss.length) miss.push(n); }catch(e){} }); if(miss.length){ try{ const el = document.getElementById("imgWarn"); if(el){ el.style.display = "block"; const dg = window.__imgDiag || {}; const dgTxt = Object.keys(dg).map(f => f + ": sunucudan gelen " + dg[f].kb + " KB, sözlükler: " + dg[f].consts).join(" · "); el.textContent = "Resim dosyası eski: " + miss.join(", ") + ". Önbellek temizlendi ve sayfa yenilendi; sorun sürüyorsa GitHub'daki dosya eski demektir, zihin-gorsel-3.js dosyasını yeniden yükleyin (güncel dosya 2.613 KB)." + (dgTxt ? " [" + dgTxt + "]" : ""); } }catch(e){} } }
 if(typeof PAIR_IMAGES !== "undefined" && typeof NI(1) !== "undefined") afterImagesLoaded();
 let __imgWaiters = [];
 function imagesReady(){ return !!window.__imgReady; }
@@ -11927,7 +11927,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.17-b";
+const APP_VERSION = "2026.10.17-c";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
