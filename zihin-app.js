@@ -183,23 +183,26 @@ hotColdLastKey = key;
 hotColdPool = pool;
 }
 
-const AUD_WORDS = ["top","ev","kedi","elma","araba","balık","kuş","çiçek","ayı","süt","şapka","kalem","ay","masa","kapı","bardak","ağaç","bulut","ekmek","saat","kaşık","yıldız","tren","çanta"];
+/* Kelime Sıralama / Kelime Tekrarı havuzları: okul öncesi kısa ve somut, okul sonrası 2–3 heceli; bir turda aynı kelime tekrar etmez (döngü) */
+const AUD_WORDS_PRE = ["top","ev","kedi","elma","araba","balık","kuş","çiçek","ayı","süt","şapka","kalem","ay","masa","kapı","bardak","ağaç","bulut","ekmek","saat","kaşık","yıldız","tren","çanta","köpek","at","inek","kuzu","ördek","tavuk","fil","muz","armut","çilek","üzüm","havuç","domates","peynir","yumurta","su","çay","bal","yatak","koltuk","lamba","tarak","sabun","havlu","terlik","çorap","ceket","eldiven","bebek","bisiklet","uçak","gemi","otobüs","güneş","yağmur","kar"];
+const AUD_WORDS_POST = ["kaplumbağa","zürafa","kelebek","karınca","sincap","kirpi","papağan","penguen","yunus","yengeç","salatalık","portakal","mandalina","karpuz","kiraz","fındık","ceviz","makarna","çorba","börek","sandalye","dolap","perde","halı","yastık","battaniye","mutfak","merdiven","pencere","bahçe","kütüphane","hastane","postane","sinema","orman","deniz","nehir","dağ","köprü","kamyon","helikopter","bisiklet","tramvay","öğretmen","doktor","itfaiyeci","terzi","berber","gitar","piyano","keman","defter","silgi","makas","cetvel","boya","harita","şemsiye","gözlük","anahtar"];
+const AUD_WORDS = AUD_WORDS_PRE;
+let audWordCycle = null, audWordCycleLvl = null;
+function audNextWords(n, used){ const lvl = isPre() ? "pre" : "post"; if(!audWordCycle || audWordCycleLvl !== lvl) { audWordCycle = mkCycle(lvl === "pre" ? AUD_WORDS_PRE : AUD_WORDS_POST); audWordCycleLvl = lvl; } const w = []; let g = 0; while(w.length < n && g++ < 400){ const x = audWordCycle(); if(!w.includes(x) && !(used && used.has(x) && g < 200)) w.push(x); } if(used) w.forEach(x => used.add(x)); return w; }
 const AUD_SIZE_WORDS = [["karınca",1],["fare",2],["kedi",3],["koyun",4],["at",5],["fil",6],["balina",7]];
 const AUD_LEN_BY_TIER = [3, 4, 5];   // okul sonrası: okul öncesinden bir adım uzun
 const PRE_AUD_LEN_BY_TIER = [2, 3, 4];
 const AUD_DELAY_MS = 4000;
 function audLen(){ const tb = isPre() ? PRE_AUD_LEN_BY_TIER : AUD_LEN_BY_TIER; return tb[currentCombo().t] || tb[tb.length-1]; }
 function audTrialCount(){ return isPre() ? 3 : 5; }
-function makeAudTrials(kind){
-const n = audLen(), trials = [];
-let prevKey = "";
+function makeAudTrials(kind){ const n = audLen(), trials = [], usedWords = new Set(); let prevKey = "";
 for(let i=0;i<audTrialCount();i++){
 let words, key, g = 0;
 do{
 if(kind === "size"){
 words = shuffleArray(AUD_SIZE_WORDS).slice(0, n);
 } else {
-words = shuffleArray(AUD_WORDS).slice(0, n).map(w => [w, 0]);
+words = audNextWords(n, usedWords).map(w => [w, 0]);
 }
 key = words.map(w => w[0]).join("|"); g++;
 } while(key === prevKey && g < 10);
@@ -2142,11 +2145,8 @@ const CATEGORY_WORDS = {
 "vücut bölümü": ["kol","bacak","burun","kulak","dirsek","diz"]
 };
 const WG_TIERS = [["meyve","hayvan","taşıt"], ["meyve","hayvan","taşıt","giysi","mobilya","renk"], Object.keys(CATEGORY_WORDS)];
-const SYLLABLE_WORDS = [
-{word:"el", syl:1}, {word:"kalem", syl:2}, {word:"kitaplık", syl:3}, {word:"bilgisayar", syl:4},
-{word:"top", syl:1}, {word:"masa", syl:2}, {word:"pencere", syl:3}, {word:"televizyon", syl:4},
-{word:"su", syl:1}, {word:"kapı", syl:2}, {word:"araba", syl:3}, {word:"otomobil", syl:4},
-];
+let sylWordCycle = null;
+const SYLLABLE_WORDS = [ {word:"el", syl:1}, {word:"kalem", syl:2}, {word:"kitaplık", syl:3}, {word:"bilgisayar", syl:4}, {word:"top", syl:1}, {word:"masa", syl:2}, {word:"pencere", syl:3}, {word:"televizyon", syl:4}, {word:"su", syl:1}, {word:"kapı", syl:2}, {word:"araba", syl:3}, {word:"otomobil", syl:4}, {word:"kol", syl:1}, {word:"kedi", syl:2}, {word:"elbise", syl:3}, {word:"helikopter", syl:4}, {word:"at", syl:1}, {word:"ördek", syl:2}, {word:"kaplumbağa", syl:4}, {word:"portakal", syl:3}, {word:"muz", syl:1}, {word:"tren", syl:1}, {word:"bahçe", syl:2}, {word:"salatalık", syl:4}, {word:"dondurma", syl:3}, {word:"bisiklet", syl:3}, {word:"ekmek", syl:2} ];
 const ANTONYM_PAIRS = [
 {word:"büyük", opp:"küçük"}, {word:"sıcak", opp:"soğuk"}, {word:"hızlı", opp:"yavaş"},
 {word:"açık", opp:"kapalı"}, {word:"uzun", opp:"kısa"}, {word:"temiz", opp:"kirli"},
@@ -3253,7 +3253,7 @@ id: "syllable-count",
 readingLevel: ["post"],
 label: "Hece Sayma",
 attrs: ["word"],
-randomItem: () => randomItem(SYLLABLE_WORDS),
+randomItem: () => (sylWordCycle || (sylWordCycle = mkCycle(SYLLABLE_WORDS)))(),
 renderItem: (item) => `<div class="name-cell">${item.word}</div>`,
 stages: [
 {
@@ -3930,7 +3930,7 @@ id: "sent-listen",
 readingLevel: ["pre","post"],
 label: "Cümleyi Tekrarla",
 isAuditory: true, attrs: [], errorLabel: "Yanlış tekrarlanan cümle",
-audTrials: () => shuffleArray(SENT_BANK[isPre() ? "pre" : "post"][currentCombo().t]).slice(0, isPre() ? 3 : 5),
+audTrials: () => sentNext(isPre() ? 3 : 5),
 audRender: (tr) => `<div class="aud-list"><div class="aud-note">Cümleyi <b>göstermeden</b>, doğal bir hızla bir kez okuyun ya da 🔊 ile dinletin; çocuk <b>aynen</b> tekrar etsin. Kelime ekleme, atlama, ek ya da sıra değişikliği yanlış sayılır.</div>` +
 tr.map((x, i) => `<div class="aud-row"><div class="aud-num">${i + 1}</div><div class="aud-body" style="display:flex;align-items:center;gap:10px;justify-content:space-between"><div style="font-size:19px;font-weight:800;line-height:1.4">${x}</div>${sayBtn(x)}</div></div>`).join("") + `</div>`,
 randomItem: () => ({}),
@@ -5023,7 +5023,7 @@ readingLevel: ["post"],
 label: "Cümle/Öbek Tekrarı",
 isRecall: true,
 attrs: ["phrase"],
-randomItem: () => ({ phrase: randomItem(["kırmızı top","büyük ev","hızlı araba","yeşil ağaç","tatlı elma","küçük kedi","uzun yol","soğuk su"]) }),
+randomItem: () => ({ phrase: randomItem(["kırmızı top","büyük ev","hızlı araba","yeşil ağaç","tatlı elma","küçük kedi","uzun yol","soğuk su","sıcak çorba","mavi deniz","yumuşak yastık","eski ayakkabı","yüksek dağ","parlak yıldız","ıslak havlu","sessiz orman","sarı balon","derin göl","temiz pencere","ağır çanta","kısa merdiven","beyaz bulut","dar sokak","taze ekmek"]) }),
 renderItem: (item) => `<div class="name-cell phrase-cell">${item.phrase}</div>`,
 stages: [
 {
@@ -5417,7 +5417,7 @@ function itemsFullyEqual(a, b, attrs){
 return attrs.every(k => a[k] === b[k]);
 }
 
-function generateGrid(exercise, rows, cols){
+function generateGrid(exercise, rows, cols){ if(exercise.id === "syllable-count"){ const pool = shuffleArray(SYLLABLE_WORDS); return Array.from({length: rows * cols}, (_, i) => Object.assign({}, pool[i % pool.length])); } /* Hece Sayma: ızgara karıştırılmış listeden kurulur, tekrar olmaz */
 if(exercise.isMt) return mtBuild();
 if(exercise.isRt) return rtBuild();
 if(exercise.isChoice) return chBuild();
@@ -6132,13 +6132,18 @@ const WILD_KEYS = Object.keys(WILD_NAMES), HOUSE_KEYS = Object.keys(HOUSE_NAMES)
 
 const CAT_TOUCH = {
 "cat-fruit": { groups:[["meyve","meyvelere"],["sebze","sebzelere"]], items:() => Object.keys(FRUIT_VEG_CATEGORY).map(k => ({ k, g: FRUIT_VEG_CATEGORY[k], src: FRUIT_VEG_IMAGES[k] })) },
-"cat-living": { groups:[["canlı","canlılara"],["cansız","cansızlara"]], items:() => WILD_KEYS.map(k => ({ k, g:"canlı", src: WILD_IMAGES[k] })).concat(HOUSE_KEYS.map(k => ({ k, g:"cansız", src: HOUSE_IMAGES[k] })),
-      isPre() ? [] : [["tree", LIVING_IMAGES.tree], ["sunflower", OS_IMAGES.sunflower], ["sprout", OS_IMAGES.sprout]].map(([k, src]) => ({ k, g:"canlı", src })).concat([["teddy", TOY_IMAGES.teddy], ["doll", TOY_IMAGES.doll]].map(([k, src]) => ({ k, g:"cansız", src })))) },   // okul sonrası: yanıltıcı öğeler
+"cat-living": { dyn: true, groups:[["canlı","canlılara"],["cansız","cansızlara"]], items:() => [] },   /* dinamik: kural tur başına değişir (catDynSpec) */
 "cat-cold": { groups:[["soğuk","soğuklara"],["sıcak","sıcaklara"]], items:() => HOTCOLD_COLD.map(k => ({ k, g:"soğuk", src: HOTCOLD_IMAGES[k] })).concat(HOTCOLD_HOT.map(k => ({ k, g:"sıcak", src: HOTCOLD_IMAGES[k] }))) }
 };
 const catTarget = {};
-function makeCatTouchGrid(n){
-const id = currentExercise().id, spec = CAT_TOUCH[id];
+/* Canlılara Dokun: hedef kuralı tur başına değişir (Hızlı Seç'in kural tablosu); düzey havuzu genişletir */
+const CAT_PHRASE = { HAYVAN:"hayvanlara", EŞYA:"eşyalara", CANLI:"canlılara", CANSIZ:"cansızlara", YENİR:"yenilebilenlere", YENMEZ:"yenmeyenlere", UÇAR:"uçabilenlere", UÇMAZ:"uçamayanlara", SUDA:"suda yaşayanlara", KARADA:"karada yaşayanlara", TAŞIT:"taşıtlara", DEĞİL:"taşıt olmayanlara", SICAK:"sıcaklara", SOĞUK:"soğuklara", MEYVE:"meyvelere", SEBZE:"sebzelere", GİYİLİR:"giyilenlere", GİYİLMEZ:"giyilmeyenlere" };
+const catDyn = {};   // id → { key, groups }
+function catDynSpec(id){ const pool = (isPre() ? QS_TIER.pre : QS_TIER.post)[Math.min(currentCombo().t, 2)]; const prev = catDyn[id] ? catDyn[id].key : null; const key = pool.length > 1 ? pickDifferent(pool, prev) : pool[0]; const R = qsRules()[key];
+  const groups = [[R.a.id + "_a", CAT_PHRASE[R.a.l] || R.a.l.toLocaleLowerCase("tr")], [R.b.id + "_b", CAT_PHRASE[R.b.l] || R.b.l.toLocaleLowerCase("tr")]]; catDyn[id] = { key, groups };
+  const mk = (arr, g) => (arr || []).map((src, i) => ({ k: g + i, g, src }));
+  return { groups, items: () => mk(R.a.pool, groups[0][0]).concat(mk(R.b.pool, groups[1][0]), isPre() ? [] : mk(R.a.trick, groups[0][0]).map(x => Object.assign(x, { k: "tA" + x.k })), isPre() ? [] : mk(R.b.trick, groups[1][0]).map(x => Object.assign(x, { k: "tB" + x.k }))) }; }
+function makeCatTouchGrid(n){ const id = currentExercise().id, spec = CAT_TOUCH[id].dyn ? catDynSpec(id) : CAT_TOUCH[id];
 const gi = catTarget[id] === undefined ? Math.floor(Math.random() * 2) : 1 - catTarget[id];   // her sayfada / Karıştır'da hedef değişir
 catTarget[id] = gi;
 const tg = spec.groups[gi][0];
@@ -6152,7 +6157,7 @@ const items = [];
 flags.forEach((f, i) => { let it, gg = 0; do{ it = randomItem(f ? T : O); gg++; } while(gg < 20 && items[i-1] && items[i-1].k === it.k); items.push({ k: it.k, src: it.src, go: f }); });
 return items;
 }
-const catTargetWord = (id) => { const sp = CAT_TOUCH[id]; const gi = catTarget[id] || 0; return sp.groups[gi]; };
+const catTargetWord = (id) => { const sp = (CAT_TOUCH[id].dyn && catDyn[id]) ? catDyn[id] : CAT_TOUCH[id]; const gi = catTarget[id] || 0; return sp.groups[gi]; };
 
 let chState = null, chTimers = [];
 function chClear(){ chTimers.forEach(t => clearTimeout(t)); chTimers = []; }
@@ -6258,16 +6263,33 @@ correct: (t) => t.dir, cols: 2, wideStim: true
 };
 
 
-function qsPools(){ const P = { animal: WILD_KEYS.map(k => WILD_IMAGES[k]), thing: HOUSE_KEYS.map(k => HOUSE_IMAGES[k]), trickA: [], trickT: [] }; if(isPre()) return P;
-  // okul sonrası: canlı / cansız; bitkiler canlı, oyuncak hayvanlar cansız (yanıltıcı öğeler)
-  P.thing = P.thing.concat([VEHICLE_IMAGES.bus_f, VEHICLE_IMAGES.train_f]); P.trickA = [LIVING_IMAGES.tree, OS_IMAGES.sunflower, OS_IMAGES.sprout, PART_IMAGES[4]]; P.trickT = [TOY_IMAGES.teddy, TOY_IMAGES.doll, TOY_IMAGES.train, TOY_IMAGES.car]; return P; }
-CHOICE["quick-sort"] = {
-setup: () => ({ sides: shuffleArray(["animal","thing"]) }),
-trials_make: (n) => { const P = qsPools(), a = []; let g = 0; while(a.length < n && g++ < 500){ const an = Math.random() < 0.5, trick = !isPre() && Math.random() < 0.35; const src = randomItem(an ? (trick ? P.trickA : P.animal) : (trick ? P.trickT : P.thing)); if(!a.length || a[a.length-1].src !== src) a.push({ src, g: an ? "animal" : "thing" }); } return a; },
-stim: (t) => imgFill(t.src),
-buttons: (c) => c.sides.map(g => ({ id: g, html: isPre() ? (g === "animal" ? '<span style="font-size:30px">🐾</span><b style="margin-left:6px">HAYVAN</b>' : '<span style="font-size:30px">🏠</span><b style="margin-left:6px">EŞYA</b>') : (g === "animal" ? '<span style="font-size:30px">🌱</span><b style="margin-left:6px">CANLI</b>' : '<span style="font-size:30px">🪨</span><b style="margin-left:6px">CANSIZ</b>') })),
-correct: (t) => t.g, cols: 2
-};
+/* Hızlı Seç: ayrım kuralları. Her tur bir kural seçilir (bir önceki turdan farklı); düzey, kural havuzunu genişletir.
+   Her kuralın iki yanı var: a (sol) ve b (sağ); a/b havuzları + yanıltıcı öğeler (trick). */
+function qsRules(){ const W = WILD_IMAGES, H = HOUSE_IMAGES, V = VEHICLE_IMAGES, T = TOY_IMAGES, F = FRUIT_VEG_IMAGES, O = OS_IMAGES, OB = OBJECT_IMAGES, X = PAL_EXTRA_IMAGES, HC = HOTCOLD_IMAGES, TS = TASTE_IMAGES, S = SRH_IMAGES, P = PAIR_IMAGES, SC = SCENE_OBJ_IMAGES;
+  const wild = WILD_KEYS.map(k => W[k]), house = HOUSE_KEYS.map(k => H[k]);
+  const food = [F.apple, F.banana, F.orange, F.grapes, F.strawberry, F.carrot, F.cucumber, F.tomato, OB.bread, OB.chocolate, TS.candy, TS.simit, O.cheese, O.egg, HC.soup];
+  return {
+    animal:  { a:{ id:"animal", l:"HAYVAN", e:"🐾", pool: wild }, b:{ id:"thing", l:"EŞYA", e:"🏠", pool: house } },
+    canli:   { a:{ id:"animal", l:"CANLI", e:"🌱", pool: wild, trick:[LIVING_IMAGES.tree, O.sunflower, O.sprout, PART_IMAGES[4]] }, b:{ id:"thing", l:"CANSIZ", e:"🪨", pool: house.concat([V.bus_f, V.train_f]), trick:[T.teddy, T.doll, T.train, T.car] } },
+    yenir:   { a:{ id:"yes", l:"YENİR", e:"🍎", pool: food }, b:{ id:"no", l:"YENMEZ", e:"🚫", pool: house.concat([T.ball, T.kite, T.drum, P.hammer, P.key, X.sock, V.bus_f]) } },
+    ucar:    { a:{ id:"yes", l:"UÇAR", e:"🐦", pool: [O.butterfly, X.bee, V.plane_f, V.heli_f, SC.bird, SC.balloon] }, b:{ id:"no", l:"UÇMAZ", e:"🐾", pool: [W.lion, W.zebra, W.bear, W.fox, W.giraffe, V.bus_f, V.train_f, V.ship_f, T.ball, HC.penguin] } },
+    suda:    { a:{ id:"yes", l:"SUDA", e:"🌊", pool: qzCats().sea.items.map(x => x.src).concat([V.ship_f, O.frog]) }, b:{ id:"no", l:"KARADA", e:"🌳", pool: wild.concat([V.bus_f, V.train_f, LIVING_IMAGES.tree]) } },
+    tasit:   { a:{ id:"yes", l:"TAŞIT", e:"🚌", pool: [V.bus_f, V.plane_f, V.ship_f, V.heli_f, V.fire_f, V.train_f, LIVING_IMAGES.car] }, b:{ id:"no", l:"DEĞİL", e:"❌", pool: wild.concat(house, [F.apple, T.teddy, T.ball, T.kite]) } },
+    sicak:   { a:{ id:"yes", l:"SICAK", e:"🔥", pool: [HC.fire, HC.soup, HC.sun, HC.iron] }, b:{ id:"no", l:"SOĞUK", e:"❄️", pool: [HC.snowman, HC.ice, HC.icecream, HC.penguin, O.snowpile, O.snowman2] } },
+    meyve:   { a:{ id:"yes", l:"MEYVE", e:"🍎", pool: [F.apple, F.banana, F.orange, F.grapes, F.strawberry, TS.watermelon, TS.lemon] }, b:{ id:"no", l:"SEBZE", e:"🥕", pool: [F.carrot, F.cucumber, F.pepper, F.broccoli, F.tomato, TS.chili] } },
+    giyilir: { a:{ id:"yes", l:"GİYİLİR", e:"👕", pool: [P.shoe, X.sock, X.slipper, OB.jacket, OB.tshirt, OB.jeans, S.boots_yellow, S.beanie_red, S.cap_blue] }, b:{ id:"no", l:"GİYİLMEZ", e:"🚫", pool: house.concat([T.ball, P.hammer, F.apple, P.phone, T.drum]) } } }; }
+const QS_TIER = { pre:[["animal"], ["animal","yenir","ucar"], ["animal","yenir","ucar","suda"]], post:[["canli"], ["canli","yenir","tasit"], ["canli","yenir","tasit","sicak","meyve","giyilir"]] };
+let qsRuleKey = null, qsRulePrev = null;
+function qsPools(){ const R = qsRules(); return isPre() ? { animal: R.animal.a.pool, thing: R.animal.b.pool, trickA: [], trickT: [] } : { animal: R.canli.a.pool, thing: R.canli.b.pool, trickA: R.canli.a.trick, trickT: R.canli.b.trick }; }   /* eski arayüz (testler ve olası dış kullanım) */
+function qsPickRule(){ const pool = (isPre() ? QS_TIER.pre : QS_TIER.post)[Math.min(currentCombo().t, 2)]; qsRuleKey = pool.length > 1 ? pickDifferent(pool, qsRulePrev) : pool[0]; return qsRuleKey; }
+function qsRule(){ return qsRules()[qsRuleKey || qsPickRule()]; }
+/* yönelme eki: büyük ünlü uyumu + ünlüyle bitiyorsa kaynaştırma y */
+function trDat(w){ const last = w[w.length - 1].toLocaleLowerCase("tr"), vowels = "aeıioöuü"; const back = [...w.toLocaleLowerCase("tr")].reverse().find(c => vowels.includes(c)); const front = "eiöü".includes(back || "a"); return w + "'" + (vowels.includes(last) ? "y" : "") + (front ? "e" : "a"); }
+const trCap = (w) => w.charAt(0) + w.slice(1).toLocaleLowerCase("tr");
+CHOICE["quick-sort"] = { setup: () => { const R = qsRule(); /* sayfa için kural zaten seçildiyse (yönerge) aynısını kullan */ return { rule: qsRuleKey, sides: shuffleArray([R.a, R.b]) }; },
+  trials_make: (n, c) => { const R = qsRules()[c.rule]; const a = []; const nextA = mkCycle(R.a.pool), nextB = mkCycle(R.b.pool); let g = 0;
+    while(a.length < n && g++ < 500){ const isA = Math.random() < 0.5, side = isA ? R.a : R.b, trick = !isPre() && side.trick && Math.random() < 0.35; const src = trick ? randomItem(side.trick) : (isA ? nextA() : nextB()); if(!a.length || a[a.length-1].src !== src) a.push({ src, g: side.id }); } return a; },
+  stim: (t) => imgFill(t.src), buttons: (c) => c.sides.map(sd => ({ id: sd.id, html: `<span style="font-size:30px">${sd.e}</span><b style="margin-left:6px">${sd.l}</b>` })), correct: (t) => t.g, cols: 2 };
 let fgStop = "angry";
 CHOICE["face-go"] = {
 setup: () => { fgStop = pickDifferent(FACE_KEYS, fgStop); return { stop: fgStop }; },
@@ -7016,16 +7038,15 @@ const hits = shuffleArray(by[s]).slice(0, K), rest = shuffleArray(pool.filter(x 
 return { s, opts: shuffleArray(hits.concat(rest)) }; }); }
 const RHYME_SAY = { pre:[ ["el","gel, sel"], ["bal","dal, kal"], ["ev","sev, dev"], ["at","kat, sat"], ["ay","çay, say"], ["top","hop, kop"], ["kar","dar, var"], ["taş","baş, kaş"], ["göz","söz, öz"], ["su","bu, şu"] ],
 post:[ ["yastık","bastık, astık"], ["güneş","ateş, beş"], ["kitap","kebap, hitap"], ["masa","kasa, tasa"], ["kedi","yedi, dedi"], ["kalem","salem (uydurma da olur)"], ["tavşan","yavşan, mavşan"], ["çorap","dorap, borap"], ["simit","kimit, timit"], ["kuzu","buzu, muzu"], ["deniz","beniz, kendiniz"], ["bardak","kardak, yardak"] ] };
-const RHYME_PAIRS = { yes:[["kedi","yedi"],["el","gel"],["bal","dal"],["ev","sev"],["kar","dar"],["taş","baş"],["masa","kasa"],["güneş","ateş"],["yastık","bastık"],["ay","çay"],["top","hop"],["kuzu","buzu"]],
-no:[["kedi","kalem"],["el","ev"],["bal","bebek"],["masa","muz"],["güneş","göz"],["taş","top"],["ay","at"],["kar","kedi"],["yastık","yol"],["top","tavşan"],["ev","elma"],["kuzu","kale"]] };
+const RHYME_PAIRS = { yes:[["kedi","yedi"],["el","gel"],["bal","dal"],["ev","sev"],["kar","dar"],["taş","baş"],["masa","kasa"],["güneş","ateş"],["yastık","bastık"],["ay","çay"],["top","hop"],["kuzu","buzu"],["gül","kül"],["yol","kol"],["diş","iş"],["kuş","tuş"],["saz","kaz"],["göz","söz"],["kapı","yapı"],["salı","halı"],["balon","salon"],["pasta","hasta"],["uçak","bıçak"],["şeker","çeker"]], no:[["kedi","kalem"],["el","ev"],["bal","bebek"],["masa","muz"],["güneş","göz"],["taş","top"],["ay","at"],["kar","kedi"],["yastık","yol"],["top","tavşan"],["ev","elma"],["kuzu","kale"],["gül","gemi"],["yol","yıldız"],["diş","dolap"],["kuş","kalem"],["saz","sabun"],["göz","gazete"],["kapı","kutu"],["salı","süt"],["balon","bisiklet"],["pasta","patates"],["uçak","uyku"],["şeker","şapka"]] };
 const RHYME_NEAR = [["bal","bel"],["el","al"],["ev","av"],["kar","kır"],["taş","kuş"],["top","tip"]];   // yalnızca bir ünlü farklı: kulağa uyaklı gelir
 function rhNoPool(t){ if(t >= 2) return RHYME_NEAR.concat(RHYME_PAIRS.no); if(t === 1) return RHYME_PAIRS.no;
   const ends = RHYME_PAIRS.no.map(p => p[1]); return RHYME_PAIRS.yes.map(([a]) => [a, randomItem(ends.filter(b => b[0] !== a[0] && b.slice(-2) !== a.slice(-2)))]); }   // Başlangıç: tamamen farklı kelimeler
 function rhBuild(){ const t = currentCombo().t, N = isPre() ? 5 : 8, yes = shuffleArray(RHYME_PAIRS.yes), no = shuffleArray(rhNoPool(t)), out = [];
 for(let i = 0; i < N; i++){ const isYes = i % 2 === 0; const pr = isYes ? yes[i] : no[i]; out.push({ stim:"", text:true, opts:[`<b style="font-size:20px">✓ Uyaklı</b>`, `<b style="font-size:20px">✗ Değil</b>`], ans: isYes ? 0 : 1, say:`${pr[0]}… ${pr[1]}`, replay:true, fixed:true, prompt:"Bu iki kelime <b>uyaklı</b> mı?", after: isYes ? "" : `${pr[0]} ve ${pr[1]} uyaklı değil.` }); }
 return shuffleArray(out); }
-const SYN = [["büyük","iri"],["hızlı","çabuk"],["güzel","hoş"],["mutlu","sevinçli"],["cevap","yanıt"],["okul","mektep"],["öğrenci","talebe"],["siyah","kara"],["beyaz","ak"],["yaşlı","ihtiyar"],["doktor","hekim"],["sınav","imtihan"],["kelime","sözcük"],["kırmızı","al"],["zengin","varlıklı"],["akıllı","zeki"]];
-const SYN_OPP = { "büyük":"küçük", "hızlı":"yavaş", "güzel":"çirkin", "mutlu":"üzgün", "siyah":"beyaz", "beyaz":"siyah", "yaşlı":"genç", "zengin":"fakir", "akıllı":"aptal", "cevap":"soru" };
+const SYN = [["büyük","iri"],["hızlı","çabuk"],["güzel","hoş"],["mutlu","sevinçli"],["cevap","yanıt"],["okul","mektep"],["öğrenci","talebe"],["siyah","kara"],["beyaz","ak"],["yaşlı","ihtiyar"],["doktor","hekim"],["sınav","imtihan"],["kelime","sözcük"],["kırmızı","al"],["zengin","varlıklı"],["akıllı","zeki"],["cümle","tümce"],["hikâye","öykü"],["misafir","konuk"],["sene","yıl"],["rüzgâr","yel"],["nehir","ırmak"],["şehir","kent"],["hediye","armağan"],["fikir","düşünce"],["kıymetli","değerli"],["kalp","yürek"],["kirli","pis"],["soru","sual"],["anı","hatıra"],["rüya","düş"],["komik","gülünç"]];
+const SYN_OPP = { "büyük":"küçük", "hızlı":"yavaş", "güzel":"çirkin", "mutlu":"üzgün", "siyah":"beyaz", "beyaz":"siyah", "yaşlı":"genç", "zengin":"fakir", "akıllı":"aptal", "cevap":"soru", "kirli":"temiz", "soru":"cevap", "kıymetli":"değersiz" };
 function synBuild(){ const t = currentCombo().t, N = (isPre() ? [3, 3, 4] : [3, 4, 5])[t];
 return shuffleArray(SYN).slice(0, 6).map(([w, s]) => { const pool = SYN.filter(p => p[0] !== w).map(p => p[1]); let dis = shuffleArray(pool).slice(0, N - 1);
 if(t === 2 && SYN_OPP[w]) dis[0] = SYN_OPP[w];
@@ -7157,27 +7178,17 @@ post:[ { t:0, q:"Kalem yazmak içinse, fırça ne içindir?", a:"boyamak" }, { t
 { t:2, q:"Yağmur ıslatırsa, güneş ne yapar?", a:"ısıtır / kurutur" }, { t:2, q:"Kocaman çok büyük demekse, minicik ne demektir?", a:"çok küçük" },
 { t:2, q:"Makas terzinin aletiyse, stetoskop kimin aletidir?", a:"doktorun" }, { t:2, q:"Ekmek fırında pişer; buz nerede oluşur?", a:"dondurucuda / soğukta" },
 { t:2, q:"Yorgunluk dinlenmeyle geçerse, açlık neyle geçer?", a:"yemek yemekle" } ] };
-const PROVERB = {
-pre:[ { t:0, q:"“Kaplumbağa gibi yürüyor.” Gerçekten kaplumbağa mı? Ne demek?", a:"çok yavaş yürüyor" }, { t:0, q:"“Pamuk gibi yumuşak.” Ne demek istiyor?", a:"çok yumuşak" },
-{ t:0, q:"“Arı gibi çalışıyor.” Arı mı oldu? Ne demek?", a:"çok çalışıyor" }, { t:0, q:"“Buz gibi soğuk.” Ne demek?", a:"çok soğuk" },
-{ t:1, q:"“Tavşan gibi koşuyor.” Ne demek?", a:"çok hızlı koşuyor" }, { t:1, q:"“Aslan gibi güçlü.” Ne demek?", a:"çok güçlü" },
-{ t:1, q:"“Kar gibi beyaz.” Ne demek?", a:"bembeyaz" }, { t:2, q:"“Kuş gibi hafif.” Ne demek?", a:"çok hafif" },
-{ t:2, q:"“Taş gibi sert.” Ne demek?", a:"çok sert" }, { t:2, q:"“Bal gibi tatlı.” Ne demek?", a:"çok tatlı" } ],
-post:[ { t:0, q:"“Etekleri zil çalıyor.” ne demek?", a:"çok seviniyor" }, { t:0, q:"“Ağzı kulaklarına vardı.” ne demek?", a:"çok sevindi, gülümsedi" },
-{ t:0, q:"“Söylenenlere kulak asmadı.” ne demek?", a:"dinlemedi, önemsemedi" }, { t:0, q:"“Dili tutuldu.” ne demek?", a:"şaşkınlıktan / heyecandan konuşamadı" },
-{ t:1, q:"“Damlaya damlaya göl olur.” ne anlatır?", a:"küçük birikimler zamanla büyür" }, { t:1, q:"“Acele işe şeytan karışır.” ne anlatır?", a:"acele edince hata yapılır" },
-{ t:1, q:"“Bir elin nesi var, iki elin sesi var.” ne anlatır?", a:"birlikte çalışmak daha etkilidir" }, { t:1, q:"“Dost kara günde belli olur.” ne anlatır?", a:"gerçek dost zor zamanda yanında olandır" },
-{ t:2, q:"“Sakla samanı, gelir zamanı.” ne anlatır?", a:"gereksiz görünen şey bir gün işe yarar" }, { t:2, q:"“Ayağını yorganına göre uzat.” ne anlatır?", a:"harcamanı gelirine göre ayarla" },
-{ t:2, q:"“Ağaç yaşken eğilir.” ne anlatır?", a:"eğitim küçük yaşta daha kolaydır" }, { t:2, q:"“İşleyen demir ışıldar.” ne anlatır?", a:"çalışan kişi gelişir, paslanmaz" } ] };
-const PROVERB_MC = [
-["Etekleri zil çalıyor.", "Çok seviniyor.", "Eteğinde zil var.", "Çok yorgun."], ["Ağzı kulaklarına vardı.", "Çok sevindi.", "Ağzı çok büyüdü.", "Acıktı."],
-["Dili tutuldu.", "Şaşkınlıktan konuşamadı.", "Dilini eliyle tuttu.", "Çok konuştu."], ["Kulak asmadı.", "Dinlemedi, önemsemedi.", "Kulağına bir şey asmadı.", "Çok iyi dinledi."],
-["Burnu havada.", "Kendini beğenmiş.", "Burnu yukarı bakıyor.", "Üşümüş."], ["Eli kulağında.", "Çok yakında olacak.", "Eli kulağına değiyor.", "Duyamıyor."],
-["Damlaya damlaya göl olur.", "Küçük birikimler zamanla büyür.", "Yağmur yağınca göl oluşur.", "Göller hızla kurur."], ["Acele işe şeytan karışır.", "Acele edince hata yapılır.", "Acele eden şeytanla karşılaşır.", "Hızlı çalışan kazanır."],
-["Bir elin nesi var, iki elin sesi var.", "Birlikte çalışmak daha etkilidir.", "İki el çırpınca ses çıkar.", "Tek el daha güçlüdür."], ["Dost kara günde belli olur.", "Gerçek dost zor zamanda yanındadır.", "Dostlar karanlıkta görünür.", "Dostlar sadece iyi günde gelir."],
-["Ağaç yaşken eğilir.", "Eğitim küçük yaşta daha kolaydır.", "Islak ağaç kolay bükülür.", "Yaşlı ağaçlar devrilir."], ["Ayağını yorganına göre uzat.", "Harcamanı gelirine göre ayarla.", "Uyurken ayağını yorgandan çıkarma.", "Uzun yorgan al."],
-["Sakla samanı, gelir zamanı.", "Gereksiz görünen şey bir gün işe yarar.", "Samanı ahırda sakla.", "Saman zamanla çürür."], ["İşleyen demir ışıldar.", "Çalışan kişi gelişir.", "Demir parlatılınca ışık verir.", "Demir çabuk paslanır."] ];
-function pmcBuild(){ const t = currentCombo().t, pool = t === 0 ? PROVERB_MC.slice(0, 6) : t === 1 ? PROVERB_MC.slice(0, 10) : PROVERB_MC;
+const PROVERB = { pre:[ { t:0, q:"“Kaplumbağa gibi yürüyor.” Gerçekten kaplumbağa mı? Ne demek?", a:"çok yavaş yürüyor" }, { t:0, q:"“Pamuk gibi yumuşak.” Ne demek istiyor?", a:"çok yumuşak" }, { t:0, q:"“Arı gibi çalışıyor.” Arı mı oldu? Ne demek?", a:"çok çalışıyor" }, { t:0, q:"“Buz gibi soğuk.” Ne demek?", a:"çok soğuk" }, { t:0, q:"“Fil gibi büyük.” Ne demek?", a:"çok büyük" }, { t:0, q:"“Ateş gibi sıcak.” Ne demek?", a:"çok sıcak" }, { t:0, q:"“Deniz gibi mavi.” Ne demek?", a:"masmavi" },
+  { t:1, q:"“Tavşan gibi koşuyor.” Ne demek?", a:"çok hızlı koşuyor" }, { t:1, q:"“Aslan gibi güçlü.” Ne demek?", a:"çok güçlü" }, { t:1, q:"“Kar gibi beyaz.” Ne demek?", a:"bembeyaz" }, { t:1, q:"“Tüy gibi hafif.” Ne demek?", a:"çok hafif" }, { t:1, q:"“Kurt gibi acıkmış.” Kurt mu oldu? Ne demek?", a:"çok acıkmış" }, { t:1, q:"“Kedi gibi sessiz.” Ne demek?", a:"hiç ses çıkarmıyor" }, { t:1, q:"“Çelik gibi sağlam.” Ne demek?", a:"çok sağlam" },
+  { t:2, q:"“Kuş gibi hafif.” Ne demek?", a:"çok hafif" }, { t:2, q:"“Taş gibi sert.” Ne demek?", a:"çok sert" }, { t:2, q:"“Bal gibi tatlı.” Ne demek?", a:"çok tatlı" }, { t:2, q:"“Sincap gibi çevik.” Ne demek?", a:"çok çevik, hareketli" }, { t:2, q:"“Baykuş gibi uyanık.” Ne demek?", a:"geceleri uyumuyor / çok dikkatli" }, { t:2, q:"“Güneş gibi parlak.” Ne demek?", a:"çok parlak, ışıl ışıl" } ],
+  post:[ { t:0, q:"“Etekleri zil çalıyor.” ne demek?", a:"çok seviniyor" }, { t:0, q:"“Ağzı kulaklarına vardı.” ne demek?", a:"çok sevindi, gülümsedi" }, { t:0, q:"“Söylenenlere kulak asmadı.” ne demek?", a:"dinlemedi, önemsemedi" }, { t:0, q:"“Dili tutuldu.” ne demek?", a:"şaşkınlıktan / heyecandan konuşamadı" }, { t:0, q:"“Burnu havada.” ne demek?", a:"kendini beğenmiş" }, { t:0, q:"“Eli kulağında.” ne demek?", a:"çok yakında olacak" }, { t:0, q:"“Gözü yolda.” ne demek?", a:"birini bekliyor" }, { t:0, q:"“Kulağına küpe olsun.” ne demek?", a:"bunu hiç unutma" },
+  { t:1, q:"“Damlaya damlaya göl olur.” ne anlatır?", a:"küçük birikimler zamanla büyür" }, { t:1, q:"“Acele işe şeytan karışır.” ne anlatır?", a:"acele edince hata yapılır" }, { t:1, q:"“Bir elin nesi var, iki elin sesi var.” ne anlatır?", a:"birlikte çalışmak daha etkilidir" }, { t:1, q:"“Dost kara günde belli olur.” ne anlatır?", a:"gerçek dost zor zamanda yanında olandır" }, { t:1, q:"“Taşıma suyla değirmen dönmez.” ne anlatır?", a:"başkasının yardımıyla iş uzun süre yürümez" }, { t:1, q:"“Sütten ağzı yanan yoğurdu üfleyerek yer.” ne anlatır?", a:"bir kez zarar gören çok dikkatli olur" }, { t:1, q:"“Vakit nakittir.” ne anlatır?", a:"zaman çok değerlidir" }, { t:1, q:"“Her koyun kendi bacağından asılır.” ne anlatır?", a:"herkes kendi davranışından sorumludur" },
+  { t:2, q:"“Sakla samanı, gelir zamanı.” ne anlatır?", a:"gereksiz görünen şey bir gün işe yarar" }, { t:2, q:"“Ayağını yorganına göre uzat.” ne anlatır?", a:"harcamanı gelirine göre ayarla" }, { t:2, q:"“Ağaç yaşken eğilir.” ne anlatır?", a:"eğitim küçük yaşta daha kolaydır" }, { t:2, q:"“İşleyen demir ışıldar.” ne anlatır?", a:"çalışan kişi gelişir, paslanmaz" }, { t:2, q:"“Dağ dağa kavuşmaz, insan insana kavuşur.” ne anlatır?", a:"insanlar bir gün yeniden karşılaşabilir" }, { t:2, q:"“Gülü seven dikenine katlanır.” ne anlatır?", a:"sevdiğin şeyin zorluklarını da kabul edersin" }, { t:2, q:"“Ne ekersen onu biçersin.” ne anlatır?", a:"ne yaparsan sonucunu görürsün" }, { t:2, q:"“Lafla peynir gemisi yürümez.” ne anlatır?", a:"konuşmak yetmez, iş yapmak gerekir" } ] };
+const PROVERB_MC = [ /* 0–9 deyimler (kolay) · 10–19 atasözleri (orta) · 20–27 atasözleri (zor); her soruda bir düz anlam tuzağı, bir alakasız seçenek */
+["Etekleri zil çalıyor.", "Çok seviniyor.", "Eteğinde zil var.", "Çok yorgun."], ["Ağzı kulaklarına vardı.", "Çok sevindi.", "Ağzı çok büyüdü.", "Acıktı."], ["Dili tutuldu.", "Şaşkınlıktan konuşamadı.", "Dilini eliyle tuttu.", "Çok konuştu."], ["Kulak asmadı.", "Dinlemedi, önemsemedi.", "Kulağına bir şey asmadı.", "Çok iyi dinledi."], ["Burnu havada.", "Kendini beğenmiş.", "Burnu yukarı bakıyor.", "Üşümüş."], ["Eli kulağında.", "Çok yakında olacak.", "Eli kulağına değiyor.", "Duyamıyor."], ["Gözü yolda.", "Birini bekliyor.", "Gözünü yola dikti.", "Yolda kayboldu."], ["Kulağına küpe olsun.", "Bunu hiç unutma.", "Kulağına küpe tak.", "Yeni küpe al."], ["Ağzında bakla ıslanmıyor.", "Sır tutamıyor.", "Ağzında bakla var.", "Çok aç."], ["Başının etini yedi.", "Sürekli ısrar edip bıktırdı.", "Başındaki eti yedi.", "Çok yemek yedi."],
+["Damlaya damlaya göl olur.", "Küçük birikimler zamanla büyür.", "Yağmur yağınca göl oluşur.", "Göller hızla kurur."], ["Acele işe şeytan karışır.", "Acele edince hata yapılır.", "Acele eden şeytanla karşılaşır.", "Hızlı çalışan kazanır."], ["Bir elin nesi var, iki elin sesi var.", "Birlikte çalışmak daha etkilidir.", "İki el çırpınca ses çıkar.", "Tek el daha güçlüdür."], ["Dost kara günde belli olur.", "Gerçek dost zor zamanda yanındadır.", "Dostlar karanlıkta görünür.", "Dostlar sadece iyi günde gelir."], ["Taşıma suyla değirmen dönmez.", "Başkasının yardımıyla iş uzun süre yürümez.", "Değirmene su taşınır.", "Su değirmeni hızlandırır."], ["Sütten ağzı yanan yoğurdu üfleyerek yer.", "Bir kez zarar gören çok dikkatli olur.", "Yoğurt üflenerek yenir.", "Süt sıcak içilmez."], ["Vakit nakittir.", "Zaman çok değerlidir.", "Saat satın alınır.", "Para zamanla kazanılır."], ["Her koyun kendi bacağından asılır.", "Herkes kendi davranışından sorumludur.", "Koyunlar bacağından asılır.", "Koyunlar birlikte yürür."], ["Bir çiçekle bahar olmaz.", "Tek bir iyi şey her şeyi değiştirmez.", "Baharda çiçekler açar.", "Çiçekler kışın solar."], ["Üzüm üzüme baka baka kararır.", "İnsan yanındakilerden etkilenir.", "Üzümler olgunlaşınca kararır.", "Üzüm güneşte kurur."],
+["Ağaç yaşken eğilir.", "Eğitim küçük yaşta daha kolaydır.", "Islak ağaç kolay bükülür.", "Yaşlı ağaçlar devrilir."], ["Ayağını yorganına göre uzat.", "Harcamanı gelirine göre ayarla.", "Uyurken ayağını yorgandan çıkarma.", "Uzun yorgan al."], ["Sakla samanı, gelir zamanı.", "Gereksiz görünen şey bir gün işe yarar.", "Samanı ahırda sakla.", "Saman zamanla çürür."], ["İşleyen demir ışıldar.", "Çalışan kişi gelişir.", "Demir parlatılınca ışık verir.", "Demir çabuk paslanır."], ["Dağ dağa kavuşmaz, insan insana kavuşur.", "İnsanlar bir gün yeniden karşılaşabilir.", "Dağlar yan yana durur.", "İnsanlar dağa tırmanır."], ["Gülü seven dikenine katlanır.", "Sevdiğin şeyin zorluklarına katlanırsın.", "Güllerin dikeni vardır.", "Diken ele batar."], ["Ne ekersen onu biçersin.", "Ne yaparsan sonucunu görürsün.", "Tarlaya tohum ekilir.", "Ekinler yazın biçilir."], ["Lafla peynir gemisi yürümez.", "Konuşmak yetmez, iş yapmak gerekir.", "Gemiyle peynir taşınır.", "Peynir gemide bozulur."] ];
+function pmcBuild(){ const t = currentCombo().t, pool = t === 0 ? PROVERB_MC.slice(0, 10) : t === 1 ? PROVERB_MC.slice(10, 20) : PROVERB_MC.slice(20);
 return shuffleArray(pool).slice(0, 6).map(([p, ok, lit, un]) => qzMake(`<div style="font-size:21px;font-weight:900;color:var(--teal-dark);text-align:center">“${p}”</div>`, [ok, lit, un].map(x => `<b style="font-size:16px">${x}</b>`), 0, { prompt:"<b>Ne anlama geliyor?</b>", fixed:true, text:true, raw:true })); }
 const ABSURD = { pre:[ ["Kedi miyavlar.", true], ["Balık ağaca çıktı.", false], ["Kuşlar uçar.", true], ["Ayakkabılarımı ellerime giydim.", false], ["Yağmur yağınca şemsiye açarız.", true],
 ["İnek havladı.", false], ["Elmayı yedim.", true], ["Güneş gece doğar.", false], ["Dondurma sıcak bir yiyecektir.", false], ["Dişlerimizi diş fırçasıyla fırçalarız.", true],
@@ -7343,9 +7354,7 @@ const INFER_MC_HARD = [["Ayşe sabah güneşli havada evden çıktı. Eve dönd�
 ["Öğretmen sınıfa girince kimse yerinde değildi. Tahtada 'Bahçedeyiz, çiçek dikiyoruz' yazıyordu.","Çocuklar nerede?","Bahçede.","Evde.","Sinemada."]];
 const INFER_MC_TIERS = [INFER_MC_EASY, INFER_MC.concat(INFER_MC_MID_EXTRA), INFER_MC_HARD];
 function imcBuild(){ const t = currentCombo().t, N = 3, listenOnly = false, bank = INFER_MC_TIERS[Math.min(t, 2)]; return shuffleArray(bank).slice(0, [6, 7, 8][Math.min(t, 2)]).map(([s, q, ok, a, b]) => qzMake(`<div style="font-size:${t === 2 ? 16 : 17}px;font-weight:800;text-align:center;max-width:360px;margin:0 auto;line-height:1.35">${listenOnly ? "🔊 <span style=\"color:var(--muted)\">Dinle</span>" : s}</div><div style="text-align:center;font-weight:900;color:var(--teal-dark);margin-top:4px">${q}</div>`, [ok, a, b].slice(0, N).map(x => `<b style="font-size:16px">${x}</b>`), 0, { prompt:"<b>İpuçlarından</b> çıkar", fixed:true, text:true, raw:true, say:`${s} ${q}`, replay:true })); }
-const HOMONYM = { post:[ { t:0, q:"<b>yüz</b>", a:"surat · 100 sayısı" }, { t:0, q:"<b>ay</b>", a:"gökteki ay · yılın ayları" }, { t:0, q:"<b>gül</b>", a:"çiçek · gülmek" }, { t:0, q:"<b>at</b>", a:"hayvan · atmak (topu at)" },
-{ t:1, q:"<b>dil</b>", a:"ağızdaki organ · konuşulan lisan" }, { t:1, q:"<b>yaz</b>", a:"mevsim · yazmak" }, { t:1, q:"<b>kır</b>", a:"şehir dışı açık alan · kırmak" }, { t:1, q:"<b>bin</b>", a:"1000 sayısı · binmek" },
-{ t:2, q:"<b>çay</b>", a:"içecek · küçük akarsu" }, { t:2, q:"<b>dolu</b>", a:"boş olmayan · buz yağışı" }, { t:2, q:"<b>kara</b>", a:"siyah · deniz olmayan yer (kara yolu)" }, { t:2, q:"<b>kaz</b>", a:"hayvan · kazmak (toprağı kaz)" } ] };
+const HOMONYM = { post:[ { t:0, q:"<b>yüz</b>", a:"surat · 100 sayısı" }, { t:0, q:"<b>ay</b>", a:"gökteki ay · yılın ayları" }, { t:0, q:"<b>gül</b>", a:"çiçek · gülmek" }, { t:0, q:"<b>at</b>", a:"hayvan · atmak (topu at)" }, { t:0, q:"<b>ben</b>", a:"kendim (ben, sen) · tendeki küçük kahverengi nokta" }, { t:0, q:"<b>kız</b>", a:"kız çocuk · kızmak (sinirlenmek)" }, { t:0, q:"<b>saç</b>", a:"başımızdaki saç · saçmak (etrafa dağıtmak)" }, { t:0, q:"<b>el</b>", a:"vücudumuzdaki el · başka insanlar (el âlem)" }, { t:1, q:"<b>dil</b>", a:"ağızdaki organ · konuşulan lisan" }, { t:1, q:"<b>yaz</b>", a:"mevsim · yazmak" }, { t:1, q:"<b>kır</b>", a:"şehir dışı açık alan · kırmak" }, { t:1, q:"<b>bin</b>", a:"1000 sayısı · binmek" }, { t:1, q:"<b>ocak</b>", a:"yemek pişirilen yer · yılın ilk ayı" }, { t:1, q:"<b>pazar</b>", a:"alışveriş yeri · haftanın günü" }, { t:1, q:"<b>sağ</b>", a:"solun karşıtı · canlı, sağlıklı (sağ olsun)" }, { t:1, q:"<b>yan</b>", a:"taraf, kenar · yanmak (ateşte)" }, { t:2, q:"<b>çay</b>", a:"içecek · küçük akarsu" }, { t:2, q:"<b>dolu</b>", a:"boş olmayan · buz yağışı" }, { t:2, q:"<b>kara</b>", a:"siyah · deniz olmayan yer (kara yolu)" }, { t:2, q:"<b>kaz</b>", a:"hayvan · kazmak (toprağı kaz)" }, { t:2, q:"<b>dal</b>", a:"ağaç dalı · dalmak (suya dal)" }, { t:2, q:"<b>bağ</b>", a:"üzüm bağı · bağlamak, düğüm" }, { t:2, q:"<b>ekmek</b>", a:"yiyecek · tohum ekmek" }, { t:2, q:"<b>kurt</b>", a:"ormandaki hayvan · meyvenin içindeki küçük kurt" } ] };
 
 
 
@@ -7576,14 +7585,14 @@ return qzMake(stim, [ans].concat(dis).map(aaCell), 0, { prompt:"Hangisi <b>✓ g
 function balSVG(L, Rt, tilt){ const tr = tilt === "L" ? 9 : tilt === "R" ? -9 : 0, icons = (arr, x0) => arr.map((sh, i) => aaShape(sh, x0 + (i - (arr.length - 1) / 2) * 18, 29, 8.5, { circle:"#2E6FD8", square:"#1FA463", triangle:"#E5484D" }[sh])).join("");
 return `<svg viewBox="0 0 200 110" width="100%" height="100%"><polygon points="92,100 108,100 100,58" fill="#8B5A2B"/><g transform="rotate(${-tr} 100 58)"><rect x="18" y="55" width="164" height="5" rx="2" fill="#B9773A"/><line x1="40" y1="58" x2="40" y2="40" stroke="#8B5A2B" stroke-width="2"/><line x1="160" y1="58" x2="160" y2="40" stroke="#8B5A2B" stroke-width="2"/><path d="M14 40 h52 l-6 8 h-40 z" fill="#D9B26B"/><path d="M134 40 h52 l-6 8 h-40 z" fill="#D9B26B"/><g transform="translate(-60 0)">${icons(L, 100)}</g><g transform="translate(60 0)">${icons(Rt, 100)}</g></g></svg>`; }
 function balTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 4 : 5, out = [], W = { circle:1, triangle:2, square:4 };
-  const pairCombos = []; AA_SH.forEach((a, i) => AA_SH.forEach((b, j) => { if(i < j){ pairCombos.push([a, b, true]); pairCombos.push([b, a, false]); } })); const balPairCycle = mkCycle(pairCombos);   /* ikili + taraf birleşimleri tekrarsız */
+  const pairCombos = []; AA_SH.forEach((a, i) => AA_SH.forEach((b, j) => { if(i < j){ pairCombos.push([a, b, true]); pairCombos.push([b, a, false]); } })); const balPairCycle = mkCycle(pairCombos);   /* ikili + taraf birleşimleri tekrarsız */ const perms = []; AA_SH.forEach(a => AA_SH.forEach(b => AA_SH.forEach(c => { if(a !== b && b !== c && a !== c) perms.push([a, b, c]); }))); const balOrderCycle = mkCycle(perms);
 for(let q = 0; q < N; q++){
 if(pre){ if(t < 2){ const light = t === 1 && q % 2 === 1;   // Orta: soru dönüşümlü "daha hafif?" (tersini düşünme)
 const [a, b, sideL] = balPairCycle(), heavy = W[a] > W[b] ? a : b, lightS = heavy === a ? b : a;
 const stim = `<div style="width:220px;height:120px;margin:0 auto">${balSVG(sideL ? [heavy] : [lightS], sideL ? [lightS] : [heavy], sideL ? "L" : "R")}</div>`;
 out.push(qzMake(stim, [aaCell({ sh:heavy, col:{ circle:"#2E6FD8", square:"#1FA463", triangle:"#E5484D" }[heavy] }), aaCell({ sh:lightS, col:{ circle:"#2E6FD8", square:"#1FA463", triangle:"#E5484D" }[lightS] })], light ? 1 : 0, { prompt: light ? "Hangisi <b>daha hafif</b>?" : "Hangisi <b>daha ağır</b>?", say: light ? "Hangisi daha hafif?" : "Hangisi daha ağır?", raw:true, fixed:true, cell:90 })); }
 else { /* ağırlık sırası her denemede rastgele; iki terazi sırayı gösterir; soru dönüşümlü en ağır / en hafif */
-          const w = shuffleArray(["circle","triangle","square"]), light = q % 2 === 1; const sideA = Math.random() < 0.5, sideB = Math.random() < 0.5;
+          const w = balOrderCycle(), light = q % 2 === 1; const sideA = Math.random() < 0.5, sideB = Math.random() < 0.5;
           const sc = (heavy, lt, left) => balSVG(left ? [heavy] : [lt], left ? [lt] : [heavy], left ? "L" : "R");
           const stim = `<div style="display:flex;gap:6px;justify-content:center"><div style="width:150px;height:84px">${sc(w[1], w[0], sideA)}</div><div style="width:150px;height:84px">${sc(w[2], w[1], sideB)}</div></div>`;
           const optsSh = shuffleArray(w.slice()), target = light ? w[0] : w[2];
@@ -7617,13 +7626,13 @@ const OPP_PRE = () => [
 { w:"gündüz", pic: DN_IMAGES.sun, opp: DN_IMAGES.moon, same: DN_IMAGES.sun },
 { w:"mutlu", pic: WP_EMO_IMAGES[2], opp: WP_EMO_IMAGES[4], same: WP_EMO_IMAGES[2] },
 { w:"yavru", pic: ANIM_YB_IMAGES[5], opp: ANIM_YB_IMAGES[4], same: ANIM_YB_IMAGES[1] } ];
-const OPP_POST = [["büyük","küçük","iri"],["hızlı","yavaş","çabuk"],["sıcak","soğuk","ılık"],["zengin","fakir","varlıklı"],["cesur","korkak","yürekli"],["erken","geç","sabah"],["kolay","zor","basit"],["genç","yaşlı","yeni"],["açık","kapalı","geniş"],["dolu","boş","kalabalık"],["uzun","kısa","yüksek"],["ağır","hafif","büyük"],["temiz","kirli","parlak"],["sert","yumuşak","katı"]];
+const OPP_POST = [["büyük","küçük","iri"],["hızlı","yavaş","çabuk"],["sıcak","soğuk","ılık"],["zengin","fakir","varlıklı"],["cesur","korkak","yürekli"],["erken","geç","sabah"],["kolay","zor","basit"],["genç","yaşlı","yeni"],["açık","kapalı","geniş"],["dolu","boş","kalabalık"],["uzun","kısa","yüksek"],["ağır","hafif","büyük"],["temiz","kirli","parlak"],["sert","yumuşak","katı"],["gece","gündüz","akşam"],["ıslak","kuru","nemli"],["tatlı","acı","şekerli"],["kalın","ince","geniş"],["aydınlık","karanlık","parlak"],["yukarı","aşağı","üst"],["eski","yeni","kullanılmış"],["mutlu","üzgün","neşeli"],["pahalı","ucuz","değerli"],["sessiz","gürültülü","sakin"],["derin","sığ","uzun"],["tok","aç","doymuş"],["ileri","geri","ön"],["doğru","yanlış","gerçek"],["güçlü","zayıf","kuvvetli"]];
 function oppTrials2(){ const t = currentCombo().t;
 if(isPre()){ const P = OPP_PRE(), N = [3, 4, 5][t];
 return shuffleArray(P).slice(0, N).map(x => { const other = randomItem(P.filter(y => y.w !== x.w && y.opp !== x.opp && y.opp !== x.same && y.opp !== x.pic && !(x.g && y.g === x.g))).opp;
 return qzMake(`<div style="width:110px;height:110px;margin:0 auto">${qzPic(x.pic)}</div>`, [x.opp, x.same, other].map(src => qzPic(src)), 0, { prompt:`<b>${x.w}</b> · zıttı hangisi?`, raw:true, fixed:true, cell:96, say:`${cap(x.w)}. Bunun zıttı hangisi?`, replay:true }); }); }
 const N = [3, 4, 4][t];
-return shuffleArray(OPP_POST).slice(0, 6).map(([w, opp, near]) => { const un = randomItem(OPP_POST.filter(x => x[0] !== w))[0];
+return shuffleArray(OPP_POST).slice(0, 6).map(([w, opp, near]) => { const un = randomItem(OPP_POST.filter(x => x[0] !== w && x[0] !== opp && x[0] !== near && x[1] !== near))[0];
 const opts = [opp, near, un].concat(t >= 1 ? [randomItem(OPP_POST.filter(x => x[0] !== w && x[0] !== un))[1]] : []).slice(0, N);
 return qzMake(`<div style="font-size:30px;font-weight:900;color:var(--teal-dark);text-align:center">${w}</div>`, opts.map(x => `<b style="font-size:19px">${x}</b>`), 0, { prompt:"<b>Zıt anlamlısı</b> hangisi?", raw:true, fixed:true, text:true }); }); }
 function patTrials2(){ const t = currentCombo().t, pre = isPre(), N = pre ? 4 : 6, out = [];
@@ -7751,12 +7760,12 @@ function sbTrials(){ const t = currentCombo().t, pre = isPre(), pool = snPicPool
 return shuffleArray(pool).slice(0, N).map(tg => { const sy = trSylSplit(tg.n), same = pool.filter(x => x !== tg && trSylSplit(x.n)[0] === sy[0]), oth = shuffleArray(pool.filter(x => x !== tg && !same.includes(x)));
 const opts = [tg].concat(shuffleArray(same).slice(0, pre ? (t >= 1 ? 1 : 0) : [0, 1, 2][Math.min(t, 2)]), oth).slice(0, pre ? 3 : 4);
 return qzMake("", opts.map(x => qzPic(x.src)), 0, { prompt:"Heceleri <b>birleştir</b>: hangi resim?", say: sy.join("… ") + "…", replay:true, fixed:true, cell:100, rate:0.7 }); }); }
-const PHON = { pre:[ { t:0, q:"“Kar-puz” de. Şimdi <b>kar</b> demeden söyle.", a:"puz" }, { t:0, q:"“Çi-çek” de. Şimdi <b>çi</b> demeden söyle.", a:"çek" }, { t:0, q:"“Ka-lem” de. Şimdi <b>ka</b> demeden söyle.", a:"lem" },
-{ t:1, q:"“Ma-sa” de. Şimdi <b>sa</b> demeden söyle.", a:"ma" }, { t:1, q:"“Ba-lık” de. Şimdi <b>lık</b> demeden söyle.", a:"ba" }, { t:1, q:"“Ke-di” de. Şimdi <b>di</b> demeden söyle.", a:"ke" },
-{ t:2, q:"“Ka-pı” de. <b>ka</b> yerine <b>ta</b> söyle.", a:"tapı" }, { t:2, q:"“Top” de. Sonuna <b>-lar</b> ekle.", a:"toplar" } ],
-post:[ { t:0, q:"“Kalem” de. Şimdi ilk sesi <b>k</b> olmadan söyle.", a:"alem" }, { t:0, q:"“Masa” de. Şimdi ilk sesi <b>m</b> olmadan söyle.", a:"asa" }, { t:0, q:"“Tarak” de. <b>t</b> olmadan söyle.", a:"arak" }, { t:0, q:"“Kuzu” de. <b>k</b> olmadan söyle.", a:"uzu" },
-{ t:1, q:"“Kitap” de. Son sesi <b>p</b> olmadan söyle.", a:"kita" }, { t:1, q:"“Balık” de. Son sesi <b>k</b> olmadan söyle.", a:"balı" }, { t:1, q:"“Dalga” de. <b>l</b> sesi olmadan söyle.", a:"daga" }, { t:1, q:"“Kurt” de. <b>r</b> sesi olmadan söyle.", a:"kut" },
-{ t:2, q:"“Kedi” de. <b>k</b> yerine <b>b</b> koy.", a:"bedi" }, { t:2, q:"“Masa” de. <b>m</b> yerine <b>k</b> koy.", a:"kasa" }, { t:2, q:"“Top” de. Sesleri tersten söyle.", a:"pot" }, { t:2, q:"“Ara” de. Başına <b>k</b> ekle.", a:"kara" } ] };
+const PHON = { pre:[ { t:0, q:"“Kar-puz” de. Şimdi <b>kar</b> demeden söyle.", a:"puz" }, { t:0, q:"“Çi-çek” de. Şimdi <b>çi</b> demeden söyle.", a:"çek" }, { t:0, q:"“Ka-lem” de. Şimdi <b>ka</b> demeden söyle.", a:"lem" }, { t:0, q:"“Ta-vuk” de. Şimdi <b>ta</b> demeden söyle.", a:"vuk" }, { t:0, q:"“Bar-dak” de. Şimdi <b>bar</b> demeden söyle.", a:"dak" }, { t:0, q:"“Si-mit” de. Şimdi <b>si</b> demeden söyle.", a:"mit" }, { t:0, q:"“El-ma” de. Şimdi <b>el</b> demeden söyle.", a:"ma" },
+  { t:1, q:"“Ma-sa” de. Şimdi <b>sa</b> demeden söyle.", a:"ma" }, { t:1, q:"“Ba-lık” de. Şimdi <b>lık</b> demeden söyle.", a:"ba" }, { t:1, q:"“Ke-di” de. Şimdi <b>di</b> demeden söyle.", a:"ke" }, { t:1, q:"“Ar-mut” de. Şimdi <b>mut</b> demeden söyle.", a:"ar" }, { t:1, q:"“Ka-pı” de. Şimdi <b>pı</b> demeden söyle.", a:"ka" }, { t:1, q:"“Yıl-dız” de. Şimdi <b>dız</b> demeden söyle.", a:"yıl" }, { t:1, q:"“Çan-ta” de. Şimdi <b>ta</b> demeden söyle.", a:"çan" },
+  { t:2, q:"“Ka-pı” de. <b>ka</b> yerine <b>ta</b> söyle.", a:"tapı" }, { t:2, q:"“Top” de. Sonuna <b>-lar</b> ekle.", a:"toplar" }, { t:2, q:"“Ma-sa” de. <b>ma</b> yerine <b>ka</b> söyle.", a:"kasa" }, { t:2, q:"“Ke-di” de. Sonuna <b>-ler</b> ekle.", a:"kediler" }, { t:2, q:"“Ka-le” de. <b>ka</b> yerine <b>ba</b> söyle.", a:"bale" }, { t:2, q:"“Top” de. Sonuna <b>-um</b> ekle.", a:"topum" } ],
+  post:[ { t:0, q:"“Kalem” de. Şimdi ilk sesi <b>k</b> olmadan söyle.", a:"alem" }, { t:0, q:"“Masa” de. Şimdi ilk sesi <b>m</b> olmadan söyle.", a:"asa" }, { t:0, q:"“Tarak” de. <b>t</b> olmadan söyle.", a:"arak" }, { t:0, q:"“Kuzu” de. <b>k</b> olmadan söyle.", a:"uzu" }, { t:0, q:"“Para” de. <b>p</b> olmadan söyle.", a:"ara" }, { t:0, q:"“Kaz” de. <b>k</b> olmadan söyle.", a:"az" }, { t:0, q:"“Bal” de. <b>b</b> olmadan söyle.", a:"al" }, { t:0, q:"“Saç” de. <b>s</b> olmadan söyle.", a:"aç" },
+  { t:1, q:"“Kitap” de. Son sesi <b>p</b> olmadan söyle.", a:"kita" }, { t:1, q:"“Balık” de. Son sesi <b>k</b> olmadan söyle.", a:"balı" }, { t:1, q:"“Dalga” de. <b>l</b> sesi olmadan söyle.", a:"daga" }, { t:1, q:"“Kurt” de. <b>r</b> sesi olmadan söyle.", a:"kut" }, { t:1, q:"“Kalem” de. Son sesi <b>m</b> olmadan söyle.", a:"kale" }, { t:1, q:"“Taş” de. Son sesi <b>ş</b> olmadan söyle.", a:"ta" }, { t:1, q:"“Yurt” de. <b>r</b> sesi olmadan söyle.", a:"yut" }, { t:1, q:"“Kart” de. <b>r</b> sesi olmadan söyle.", a:"kat" },
+  { t:2, q:"“Kedi” de. <b>k</b> yerine <b>b</b> koy.", a:"bedi" }, { t:2, q:"“Masa” de. <b>m</b> yerine <b>k</b> koy.", a:"kasa" }, { t:2, q:"“Top” de. Sesleri tersten söyle.", a:"pot" }, { t:2, q:"“Ara” de. Başına <b>k</b> ekle.", a:"kara" }, { t:2, q:"“Kaz” de. <b>k</b> yerine <b>s</b> koy.", a:"saz" }, { t:2, q:"“Bal” de. <b>b</b> yerine <b>d</b> koy.", a:"dal" }, { t:2, q:"“Kar” de. Sesleri tersten söyle.", a:"rak" }, { t:2, q:"“Al” de. Başına <b>k</b> ekle.", a:"kal" }, { t:2, q:"“At” de. Sesleri tersten söyle.", a:"ta" } ] };
 const SB_BANK = [ { t:0, w:["Kedi","süt","içti."], ok:[[0,1,2]] }, { t:0, w:["Ali","top","oynadı."], ok:[[0,1,2]] }, { t:0, w:["Annem","çay","demledi."], ok:[[0,1,2]] }, { t:0, w:["Kuşlar","gökyüzünde","uçar."], ok:[[0,1,2]] },
 { t:1, w:["Ece","parkta","ip","atladı."], ok:[[0,1,2,3],[0,2,1,3]] }, { t:1, w:["Babam","dün","araba","yıkadı."], ok:[[0,1,2,3],[1,0,2,3],[0,2,1,3]] }, { t:1, w:["Çocuklar","bahçede","kartopu","oynadı."], ok:[[0,1,2,3],[0,2,1,3]] },
 { t:2, w:["Küçük","kedi","mavi","yumağı","kovaladı."], ok:[[0,1,2,3,4]] }, { t:2, w:["Mert","sabah","okula","otobüsle","gitti."], ok:[[0,1,2,3,4],[0,1,3,2,4],[1,0,2,3,4],[1,0,3,2,4]] }, { t:2, w:["Yağmur","yağınca","sokaklar","ıslandı."], ok:[[0,1,2,3]] } ];
@@ -9130,12 +9139,15 @@ const T = isPre() ? LL_TRIALS.pre : LL_TRIALS.post, blocks = Array.from({length:
 const used = blocks.filter(b => Object.keys(ckMarks).some(k => k.startsWith(b + ":") && ckMarks[k])); const last = used.length ? used[used.length - 1] : "t0";
 return n - ckCount(last, n);
 }
-const CL_BANK = { "meyve":["elma","armut","muz","kiraz","çilek","üzüm","karpuz"], "hayvan":["kedi","inek","at","tavşan","aslan","kuş","koyun"],
-"taşıt":["araba","otobüs","tren","uçak","gemi","bisiklet","kamyon"], "giysi":["gömlek","pantolon","çorap","şapka","ceket","etek","eldiven"] };
-const CL_PLURAL = { "meyve":"meyveler", "hayvan":"hayvanlar", "taşıt":"taşıtlar", "giysi":"giysiler" };
+const CL_BANK = { "meyve":["elma","armut","muz","kiraz","çilek","üzüm","karpuz"], "hayvan":["kedi","inek","at","tavşan","aslan","kuş","koyun"], "taşıt":["araba","otobüs","tren","uçak","gemi","bisiklet","kamyon"], "giysi":["gömlek","pantolon","çorap","şapka","ceket","etek","eldiven"],
+  "sebze":["havuç","patates","soğan","salatalık","domates","biber","ıspanak"], "renk":["kırmızı","mavi","sarı","yeşil","mor","turuncu","pembe"], "mobilya":["masa","sandalye","dolap","koltuk","yatak","kitaplık","sehpa"], "mutfak eşyası":["kaşık","çatal","tabak","bardak","tencere","bıçak","tava"],
+  "okul eşyası":["kalem","defter","silgi","cetvel","çanta","kitap","makas"], "meslek":["doktor","öğretmen","aşçı","pilot","itfaiyeci","berber","polis"], "müzik aleti":["davul","gitar","piyano","keman","flüt","bağlama","zil"], "kuş":["serçe","kartal","güvercin","karga","baykuş","papağan","leylek"],
+  "deniz canlısı":["balık","yunus","yengeç","ahtapot","denizatı","balina","midye"], "vücut parçası":["el","ayak","burun","kulak","göz","diz","parmak"], "oyuncak":["top","bebek","yapboz","uçurtma","lego","ayıcık","balon"], "hava olayı":["yağmur","kar","rüzgâr","güneş","bulut","fırtına","sis"] };
+const CL_PLURAL = { "meyve":"meyveler", "hayvan":"hayvanlar", "taşıt":"taşıtlar", "giysi":"giysiler", "sebze":"sebzeler", "renk":"renkler", "mobilya":"mobilyalar", "mutfak eşyası":"mutfak eşyaları", "okul eşyası":"okul eşyaları", "meslek":"meslekler", "müzik aleti":"müzik aletleri", "kuş":"kuşlar", "deniz canlısı":"deniz canlıları", "vücut parçası":"vücut parçaları", "oyuncak":"oyuncaklar", "hava olayı":"hava olayları" };
+let clLastCats = [];
 function clBuild(){
 const spec = isPre() ? [[2, 2], [2, 3], [3, 3]] : [[3, 3], [3, 4], [4, 4]], [C, K] = spec[currentCombo().t];
-const cats = shuffleArray(Object.keys(CL_BANK)).slice(0, C), groups = cats.map(c => ({ c, w: shuffleArray(CL_BANK[c]).slice(0, K) }));
+const allCats = Object.keys(CL_BANK), fresh = shuffleArray(allCats.filter(c => !clLastCats.includes(c))), cats = fresh.concat(shuffleArray(clLastCats)).slice(0, C); clLastCats = cats.slice(); /* art arda turlarda aynı kategoriler gelmesin */ const groups = cats.map(c => ({ c, w: shuffleArray(CL_BANK[c]).slice(0, K) }));
 let flat; do{ flat = shuffleArray(groups.flatMap(g => g.w.map(w => ({ w, c: g.c })))); } while(flat.some((x, i) => i && flat[i - 1].c === x.c) && Math.random() < 0.97);
 return [{ groups, flat }];
 }
@@ -9161,14 +9173,9 @@ const t = currentCombo().t, lens = isPre() ? [[2, 2], [2, 3], [3, 4]][t] : [[2, 
 lens.forEach((L, k) => shuffleArray(NW_BANK[L]).slice(0, isPre() ? [3, 2][k] : 4).forEach(w => out.push({ w, L })));
 return out;
 }
-const SENT_BANK = {
-pre:[ ["Kedi süt içiyor.","Ben parka gittim.","Annem kek yaptı.","Top masanın altında.","Kuş ağaçta ötüyor.","Bebek şimdi uyuyor."],
-["Kırmızı top yatağın altına kaçtı.","Babam bana yeni bir kitap aldı.","Köpek bahçede kemiğini saklıyor.","Yağmur yağınca şemsiyemi açtım.","Kardeşim mavi kalemle resim yaptı.","Akşam yemekten sonra dişimi fırçaladım."],
-["Kedi uyurken fare sessizce kaçtı.","Parka gittik ama hava çok soğuktu.","Annem gelince hep birlikte yemek yedik.","Topu bulamadım çünkü dolabın arkasına düşmüştü.","Ali hem resim yaptı hem şarkı söyledi.","Kuşu gören kedi hızla ağaca tırmandı."] ],
-post:[ ["Okul çıkışında arkadaşımla dondurma yedik.","Kedi uyurken fare sessizce kaçtı.","Babam arabayı yıkadıktan sonra bahçeyi suladı.","Kitabımı okulda unuttuğum için ödevimi yapamadım.","Kardeşim hem resim yaptı hem şarkı söyledi.","Yağmur dinince çocuklar bahçeye koştu."],
-["Öğretmenimiz yarın müzeye gideceğimizi ve yanımıza su almamızı söyledi.","Kırmızı bisikletli çocuk, yolda düşen yaşlı adama yardım etti.","Annem markete gitmeden önce buzdolabındaki eksikleri bir kâğıda yazdı.","Dün akşam izlediğimiz film o kadar komikti ki herkes kahkahalarla güldü.","Bahçedeki elma ağacının dalları rüzgârda kırılınca babam onları topladı.","Kayıp kediyi bulan çocuk, onu sahibine götürüp ödül almayı reddetti."],
-["Kütüphaneden aldığım kitabı geri vermeyi unuttuğum için görevli bana nazikçe hatırlattı.","Tren istasyona geç geldiği için toplantıya yetişemeyen mühendis, yöneticisini telefonla aradı.","Okulun bahçesine dikilen fidanlar, öğrencilerin her hafta düzenli olarak sulamasıyla büyüdü.","Hava kararmadan eve dönmemizi isteyen annem, yine de bizi parkta biraz daha bekledi.","Yarışmayı kazanan takım, ödül olarak verilen kupayı okulun girişindeki dolaba koydu.","Arkadaşının doğum gününü unutan Mert, ertesi gün ona kendi yaptığı bir kart hediye etti."] ]
-};
+const sentCycles = {};
+function sentNext(n){ const key = (isPre() ? "pre" : "post") + currentCombo().t; if(!sentCycles[key]) sentCycles[key] = mkCycle(SENT_BANK[isPre() ? "pre" : "post"][currentCombo().t]); const out = []; while(out.length < n){ const x = sentCycles[key](); if(!out.includes(x)) out.push(x); } return out; }   /* art arda turlarda da tekrar etmez (30 cümlelik döngü) */
+const SENT_BANK = { pre:[ ["Kedi süt içiyor.","Ben parka gittim.","Annem kek yaptı.","Top masanın altında.","Kuş ağaçta ötüyor.","Bebek şimdi uyuyor.","Köpek kemik yiyor.","Babam gazete okuyor.","Kardeşim top oynuyor.","Çiçekler bahçede açtı.","Ali okula gitti.","Elma çok tatlı.","Araba hızlı gidiyor.","Ayşe resim yapıyor.","Balık suda yüzüyor.","Güneş sıcak parlıyor.","Dedem çay içiyor.","Kedi koltukta uyuyor.","Yağmur yağmaya başladı.","Mert süt döktü.","Kuş yuvasına uçtu.","Kapı sessizce kapandı.","Kelebek çiçeğe kondu.","Tavşan havuç yedi.","Çocuklar parkta koşuyor.","Annem ekmek aldı.","Top çok yüksek zıpladı.","Elif şarkı söylüyor.","Ördek gölde yüzüyor.","Bugün hava güzel."], ["Kırmızı top yatağın altına kaçtı.","Babam bana yeni bir kitap aldı.","Köpek bahçede kemiğini saklıyor.","Yağmur yağınca şemsiyemi açtım.","Kardeşim mavi kalemle resim yaptı.","Akşam yemekten sonra dişimi fırçaladım.","Annem sabah bize sıcak çorba pişirdi.","Küçük kedi ağacın tepesine tırmandı.","Ali bahçede sarı bir kelebek yakaladı.","Kuşlar sabah erkenden ötmeye başladı.","Dedem bana eski bir fotoğraf gösterdi.","Ayşe kırmızı bisikletiyle parka gitti.","Babam arabayı garajın önüne park etti.","Kardeşim en sevdiği oyuncağını kaybetti.","Mavi balon gökyüzüne doğru uçtu.","Anneannem tatlı kurabiyeler pişirdi.","Mert topunu komşunun bahçesine kaçırdı.","Öğretmen bize yeni bir şarkı öğretti.","Kedi pencereden kuşları seyrediyor.","Elif bahçeden taze çilek topladı.","Köpek kapının önünde sahibini bekliyor.","Çocuklar kumdan büyük bir kale yaptı.","Annem çamaşırları balkona astı.","Büyük kırmızı tren istasyona geldi.","Babam akşam bize masal okudu.","Tavşan havuçları kutunun içine sakladı.","Deniz yazın denizde yüzmeyi öğrendi.","Kuş yuvasına küçük dallar taşıdı.","Dolabın üstünde eski bir saat var.","Çocuklar bahçede saklambaç oynadı."], ["Kedi uyurken fare sessizce kaçtı.","Parka gittik ama hava çok soğuktu.","Annem gelince hep birlikte yemek yedik.","Topu bulamadım çünkü dolabın arkasına düşmüştü.","Ali hem resim yaptı hem şarkı söyledi.","Kuşu gören kedi hızla ağaca tırmandı.","Yağmur dinince çocuklar yeniden bahçeye çıktı.","Kardeşim ağladı çünkü balonu elinden kaçtı.","Dedem bahçeyi sularken ben çiçekleri topladım.","Ayşe ödevini bitirince arkadaşıyla oynamaya gitti.","Köpek kemiğini bulamayınca bütün bahçeyi kazdı.","Annem markete gitti ama ekmek almayı unuttu.","Hava karardığı için parktan erken döndük.","Mert düşünce dizi acıdı ama ağlamadı.","Kedi mamasını yedikten sonra koltukta uyudu.","Babam arabayı yıkadı sonra bahçede çay içti.","Elif uyandı ama pencereden kar yağdığını gördü.","Tavşan havucu yedi ve yuvasına geri döndü.","Çocuklar top oynarken top komşunun bahçesine kaçtı.","Kuş yuvadan uçtu ama hemen geri geldi.","Öğretmen içeri girince herkes yerine oturdu.","Anneannem kurabiye yaptı ve hepsini bize verdi.","Deniz denize girmek istedi ama su çok soğuktu.","Kapı çalınca köpek havlayarak kapıya koştu.","Balon patlayınca bebek birden ağlamaya başladı.","Eve gelir gelmez ellerimi sabunla yıkadım.","Kardeşim uyuyunca ben sessizce kitap okudum.","Hava güneşli olduğu için şapkamı taktım.","Kedi süt içti ama tabağı devirdi.","Annem seslenince hemen masaya oturduk."] ], post:[ ["Okul çıkışında arkadaşımla dondurma yedik.","Kedi uyurken fare sessizce kaçtı.","Babam arabayı yıkadıktan sonra bahçeyi suladı.","Kitabımı okulda unuttuğum için ödevimi yapamadım.","Kardeşim hem resim yaptı hem şarkı söyledi.","Yağmur dinince çocuklar bahçeye koştu.","Öğretmenimiz bugün bize yeni bir şarkı öğretti.","Annem akşam yemeğinden sonra bize meyve ikram etti.","Kütüphanede sessizce oturup kitabımı okudum.","Kuşlar sabah erkenden bahçedeki ağaçlara kondu.","Dedem her hafta sonu bizi parka götürür.","Kardeşim yeni bisikletiyle sokakta tur attı.","Bahçedeki elma ağacı bu yıl bol meyve verdi.","Sınıfımız gezi için sabah erkenden yola çıktı.","Ayşe kaybettiği anahtarı çantasının dibinde buldu.","Hafta sonu ailece sinemaya gitmeyi planlıyoruz.","Köpeğimiz kapının sesini duyunca hemen havladı.","Annem pazardan taze sebze ve meyve aldı.","Okulun bahçesine renkli çiçekler diktik.","Babam tamir ettiği saati duvara astı.","Mert yarışta ikinci olunca çok sevindi.","Kedi pencerede oturup dışarıyı seyretti.","Teneffüste arkadaşlarımla ip atladık.","Elif resim yarışmasında birincilik ödülü kazandı.","Yolda gördüğümüz yaşlı amcaya yardım ettik.","Deniz yüzme dersinde kulaç atmayı öğrendi.","Sabah kahvaltıda peynir, zeytin ve yumurta yedik.","Kardeşim uyumadan önce dişlerini fırçaladı.","Kuşlara balkonda küçük bir yemlik yaptık.","Müzik dersinde flüt çalmayı öğreniyoruz."], ["Öğretmenimiz yarın müzeye gideceğimizi ve yanımıza su almamızı söyledi.","Kırmızı bisikletli çocuk, yolda düşen yaşlı adama yardım etti.","Annem markete gitmeden önce buzdolabındaki eksikleri bir kâğıda yazdı.","Dün akşam izlediğimiz film o kadar komikti ki herkes kahkahalarla güldü.","Bahçedeki elma ağacının dalları rüzgârda kırılınca babam onları topladı.","Kayıp kediyi bulan çocuk, onu sahibine götürüp ödül almayı reddetti.","Hava kararmadan eve dönmemiz gerektiğini söyleyen annem bizi pencereden izledi.","Kütüphaneden aldığım kitabı okurken kardeşim yanıma gelip bana sorular sordu.","Sabah okula giderken yolda bulduğumuz küçük köpeğe su ve ekmek verdik.","Öğretmen sınıfa girince gürültü kesildi ve herkes defterini açtı.","Dedemin bahçesindeki kirazlar olgunlaşınca hep birlikte toplamaya gittik.","Yağmur çok şiddetli yağdığı için futbol maçı başka bir güne ertelendi.","Ayşe doğum günü için arkadaşlarına renkli davetiyeler hazırladı.","Kardeşim ödevini bitirmeden dışarı çıkmak istedi ama annem izin vermedi.","Parkta kaybolan çocuğu gören görevli, onu hemen annesinin yanına götürdü.","Pazar sabahı babamla balık tutmaya gittik ama hiç balık yakalayamadık.","Okul bahçesindeki fidanları her sabah sırayla sulamaya karar verdik.","Mert yeni aldığı kitabı bir günde bitirip arkadaşına ödünç verdi.","Annem kek yaparken ben de ona yumurtaları kırmakta yardım ettim.","Tren istasyona geç geldiği için dedemi yarım saat beklemek zorunda kaldık.","Elif resim dersinde çizdiği deniz manzarasını duvara astı.","Gece yarısı başlayan fırtına sabaha kadar devam etti ve ağaçları salladı.","Teneffüste oynadığımız oyunu kaybeden takım bir sonraki maçta kazanmaya çalıştı.","Deniz kenarında topladığımız kabukları kavanoza koyup eve getirdik.","Köpeğimiz topu getirmeyi öğrenince bütün gün bahçede onunla oynadık.","Sınıf başkanı seçilen Can, arkadaşlarına teşekkür etti.","Yaz tatilinde köye gidip dedemin ineklerini sağmayı öğrendim.","Hastaneye giden babamı beklerken annemle bulmaca çözdük.","Öğretmenimiz en güzel şiiri yazan öğrenciye bir kitap hediye etti.","Markete giderken yolda komşumuzla karşılaşıp bir süre sohbet ettik."], ["Kütüphaneden aldığım kitabı geri vermeyi unuttuğum için görevli bana nazikçe hatırlattı.","Tren istasyona geç geldiği için toplantıya yetişemeyen mühendis, yöneticisini telefonla aradı.","Okulun bahçesine dikilen fidanlar, öğrencilerin her hafta düzenli olarak sulamasıyla büyüdü.","Hava kararmadan eve dönmemizi isteyen annem, yine de bizi parkta biraz daha bekledi.","Yarışmayı kazanan takım, ödül olarak verilen kupayı okulun girişindeki dolaba koydu.","Arkadaşının doğum gününü unutan Ali, ertesi gün ona özür dileyerek küçük bir hediye verdi.","Sabah erkenden kalkıp otobüsü kaçırmamak için hızla hazırlanan Ayşe, çantasını evde unuttu.","Öğretmenimiz, projesini zamanında teslim edemeyen öğrencilere bir hafta daha süre verdi.","Dedemin anlattığı eski masalı dinlerken kardeşim koltukta uyuyakaldı ve biz onu yatağına taşıdık.","Fırtına yüzünden kapanan yolu açmaya çalışan görevliler, sabaha kadar kar küredi.","Kaybettiği köpeğini üç gün boyunca mahallede arayan Mert, onu sonunda parkın yanında buldu.","Bahçedeki kuş yuvasına dokunmamamızı tembihleyen annem, yavruların yakında uçacağını söyledi.","Yağmur dinince dışarı çıkan çocuklar, su birikintilerinde zıplayarak ayakkabılarını ıslattı.","Resim yarışmasına katılmak için haftalarca çalışan Elif, tablosunu son gün teslim edebildi.","Okul gezisinde müzeyi gezerken rehber bize eski çağlarda insanların nasıl yaşadığını anlattı.","Hastanede yatan komşumuzu ziyaret etmek için annemle birlikte ona çiçek ve meyve götürdük.","Deniz kenarında kumdan büyük bir kale yapan çocuklar, dalgalar gelince kaleyi korumaya çalıştı.","Her sabah erken kalkıp koşuya çıkan babam, bize de hafta sonları ona katılmamızı önerdi.","Kardeşim bisiklet sürmeyi öğrenirken birkaç kez düştü ama pes etmeden tekrar denedi.","Sınıfta okunan hikâyeyi dikkatle dinleyen öğrenciler, öğretmenin sorularını kolayca yanıtladı.","Pazar yerinde taze sebze alan annem, satıcıyla biraz pazarlık yaptıktan sonra hesabı ödedi.","Gece gökyüzündeki yıldızları seyrederken dedem bize takımyıldızların isimlerini öğretti.","Tatil için hazırladığımız bavulları arabaya yerleştirirken babam yol haritasını kontrol etti.","Okuldaki tiyatro gösterisinde başrol oynayan Can, repliklerini günlerce aynanın karşısında çalıştı.","Köyde tanıştığımız çoban, koyunlarını nasıl saydığını ve kurtlardan nasıl koruduğunu anlattı.","Yeni taşınan komşularımızı tanımak için annem bir tepsi börek yapıp onlara götürdü.","Kütüphanede bulduğu eski haritayı inceleyen Deniz, şehrin yıllar önce nasıl göründüğünü hayal etti.","Fırından yeni çıkan ekmeğin kokusu bütün sokağa yayılınca çocuklar birer dilim istedi.","Kar yağınca okulların tatil edildiğini öğrenen kardeşim, sevinçle kızağını almaya koştu.","Bahçedeki çiçeklerin solduğunu fark eden annem, onları her akşam düzenli olarak sulamaya başladı."] ] };
 const sayBtn = (t) => `<button type="button" data-say="${t.replace(/"/g, "&quot;")}" style="border:2px solid var(--line);background:var(--panel);border-radius:12px;padding:4px 10px;font-size:18px;cursor:pointer;flex:none">🔊</button>`;
 function chunkSeq(words){ const out = []; let i = 0; while(i < words.length){ const rem = words.length - i, sz = rem === 4 ? 2 : rem >= 3 ? 3 : rem; out.push(words.slice(i, i + sz)); i += sz; } return out; }
 document.getElementById("board").addEventListener("click", (ev) => {
@@ -9603,7 +9610,7 @@ const INSTR_SHORT = {
 "trail-numbers":    [() => Q(`BAŞLA'dan başla, sayılara sırayla dokun: 1, 2, 3 … ${currentGrid.length || ""}`)],
 "pairs-touch":      [() => Q("Birlikte kullanılan çiftlere hızlıca dokun; diğerlerine dokunma.")],
 "sdmt-touch":       [() => `Anahtarı birlikte inceleyin, sonra: ${Q("Gelen şeklin eşi olan resme hızlıca dokun.")}`],
-"quick-sort":       [() => isPre() ? Q("Hayvan gelirse HAYVAN'a, eşya gelirse EŞYA'ya hızlıca dokun.") : `${Q("Canlı gelirse CANLI'ya, cansız gelirse CANSIZ'a hızlıca dokun.")} Bitkiler de canlıdır; oyuncak hayvanlar cansızdır.`],
+"quick-sort":       [() => { const R = qsRule(); const tail = qsRuleKey === "canli" ? " Bitkiler de canlıdır; oyuncak hayvanlar cansızdır." : ""; return Q(`${trCap(R.a.l)} gelirse ${trDat(R.a.l)}, ${trCap(R.b.l).toLocaleLowerCase("tr")} gelirse ${trDat(R.b.l)} hızlıca dokun.`) + tail; }],
 "stroop-touch":     [() => Q("Kelimeyi okuma; yazının RENGİNDEKİ düğmeye dokun.")],
 "day-night-touch":  [() => Q("Güneş gelince AY'a, ay gelince GÜNEŞ'e dokun.")],
 "fish-flanker":     [() => Q("Yalnızca ORTADAKİ balığa bak; baktığı yönün okuna dokun.")],
@@ -10528,7 +10535,7 @@ renderHistory();
 }
 }
 
-function newPage(){
+function newPage(){ if(qsRuleKey) qsRulePrev = qsRuleKey; qsRuleKey = null; /* Hızlı Seç: her yeni sayfada, bir önceki sayfadan farklı bir kural seçilir */
 document.documentElement.classList.remove("board-run");
 setLsOpen(false);
 const ex = currentExercise();
@@ -11601,7 +11608,7 @@ document.getElementById("saveResultBtn").addEventListener("click", ()=>{
 confirmSaveResult();
 });
 
-document.getElementById("reshuffleBtn").addEventListener("click", ()=>{
+document.getElementById("reshuffleBtn").addEventListener("click", ()=>{ if(qsRuleKey) qsRulePrev = qsRuleKey; qsRuleKey = null; /* Karıştır: Hızlı Seç kuralı da yenilensin */
 const ex = currentExercise();
 if(ex.onShuffle) try{ ex.onShuffle(); }catch(e){}
 if(!ex.isMotion){
@@ -11904,7 +11911,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.16-i";
+const APP_VERSION = "2026.10.16-n";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -13665,9 +13672,7 @@ const COMP_PRE2 = [ {q:"Oyuncağın kırılsa ne yaparsın?", hint:"bir büyüğ
 const SIM_FUNC = [ {a:"kalem", b:"fırça", hint:"ikisiyle de çizilir / boyanır"}, {a:"bıçak", b:"makas", hint:"ikisi de keser"}, {a:"mum", b:"lamba", hint:"ikisi de ışık verir"},
 {a:"bardak", b:"kova", hint:"ikisine de sıvı konur"}, {a:"gözlük", b:"dürbün", hint:"ikisi de görmeye yardım eder"}, {a:"kaşık", b:"kürek", hint:"ikisi de bir şeyi alıp taşır"},
 {a:"palto", b:"eldiven", hint:"ikisi de soğuktan korur"}, {a:"telefon", b:"mektup", hint:"ikisiyle de haberleşilir"} ];
-const SIM_ABSTRACT = [ {a:"sevinç", b:"korku", hint:"ikisi de duygu"}, {a:"saat", b:"takvim", hint:"ikisi de zamanı gösterir"}, {a:"ağaç", b:"çocuk", hint:"ikisi de büyür / canlıdır"},
-{a:"harita", b:"pusula", hint:"ikisi de yön bulmaya yardım eder"}, {a:"kitap", b:"öğretmen", hint:"ikisi de bilgi verir"}, {a:"tohum", b:"yumurta", hint:"ikisi de yeni bir canlının başlangıcı"},
-{a:"ödül", b:"ceza", hint:"ikisi de bir davranışın sonucu"}, {a:"köprü", b:"tünel", hint:"ikisi de engeli aşıp karşıya geçirir"} ];
+const SIM_ABSTRACT = [ {a:"sevinç", b:"korku", hint:"ikisi de duygu"}, {a:"saat", b:"takvim", hint:"ikisi de zamanı gösterir"}, {a:"ağaç", b:"çocuk", hint:"ikisi de büyür / canlıdır"}, {a:"harita", b:"pusula", hint:"ikisi de yön bulmaya yardım eder"}, {a:"kitap", b:"öğretmen", hint:"ikisi de bilgi verir"}, {a:"tohum", b:"yumurta", hint:"ikisi de yeni bir canlının başlangıcı"}, {a:"ödül", b:"ceza", hint:"ikisi de bir davranışın sonucu"}, {a:"köprü", b:"tünel", hint:"ikisi de engeli aşıp karşıya geçirir"}, {a:"yağmur", b:"kar", hint:"ikisi de gökten yağar, sudan oluşur"}, {a:"gazete", b:"televizyon", hint:"ikisi de haber verir"}, {a:"anahtar", b:"şifre", hint:"ikisi de açmaya / girmeye yarar"}, {a:"öğretmen", b:"doktor", hint:"ikisi de insanlara yardım eden meslek"}, {a:"ayna", b:"fotoğraf", hint:"ikisi de görüntü gösterir"}, {a:"merdiven", b:"asansör", hint:"ikisi de yukarı çıkarır"}, {a:"söz", b:"yazı", hint:"ikisiyle de düşünce anlatılır"}, {a:"para", b:"zaman", hint:"ikisi de harcanır, ikisi de değerlidir"} ];
 const VOCAB_CONCRETE = [ {word:"şemsiye", def:"yağmurdan korunmak için açılan araç"}, {word:"köprü", def:"bir yerden karşıya geçmeyi sağlayan yapı"}, {word:"kütüphane", def:"kitapların bulunduğu, okunduğu yer"},
 {word:"merdiven", def:"yukarı-aşağı çıkıp inmeye yarayan basamaklar"}, {word:"cüzdan", def:"para ve kart taşınan küçük çanta"}, {word:"fırın", def:"yemek ve ekmek pişirilen yer / alet"},
 {word:"terzi", def:"elbise diken kişi"}, {word:"ada", def:"dört yanı suyla çevrili kara parçası"} ];
