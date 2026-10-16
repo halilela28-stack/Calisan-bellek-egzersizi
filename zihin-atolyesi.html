@@ -2920,7 +2920,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.16-r</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.16-u</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -3365,10 +3365,17 @@ dispatchFbReady();
 }
 </script>
 <script>setTimeout(function(){ if(window.__zaReady) return; var d=document.createElement('div'); d.style.cssText='position:fixed;inset:0;z-index:99999;background:#F6FBFA;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;text-align:center;color:#1D2B36'; d.innerHTML='<div style="max-width:420px"><div style="font-size:22px;font-weight:800;margin-bottom:10px">Uygulama dosyaları yüklenemedi</div><div style="font-size:15px;line-height:1.5">Bu sayfa yanındaki <b>zihin-app.js</b> ve <b>zihin-gorsel</b> dosyalarıyla birlikte çalışır. Beş dosyanın da aynı klasöre yüklendiğinden emin olun ve sayfayı yenileyin.<br><br><span style="color:#5B6B78">Claude içindeki önizlemede bu sürüm açılmaz; önizleme için zihin-atolyesi-onizleme.html dosyasını kullanın.</span></div><button onclick="location.reload()" style="margin-top:16px;padding:12px 22px;border:0;border-radius:14px;background:#0A847E;color:#fff;font-size:16px;font-weight:800">Yenile</button></div>'; document.body.appendChild(d); }, 9000);</script>
-<script src="zihin-gorsel-1.js?v=2026.10.16-r"></script>
-<script src="zihin-gorsel-2.js?v=2026.10.16-r"></script>
-<script src="zihin-gorsel-3.js?v=2026.10.16-r"></script>
-<script src="zihin-app.js?v=2026.10.16-r"></script>
+<script src="zihin-app.js?v=2026.10.16-u"></script>
+<div id="imgBar" style="position:fixed;left:0;top:0;height:3px;width:100%;background:rgba(0,0,0,.06);z-index:9999;pointer-events:none"><div id="imgProg" style="height:100%;width:0;background:#1FA463;transition:width .3s"></div></div>
+<div id="imgOverlay" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,.92);z-index:9998;align-items:center;justify-content:center;flex-direction:column;gap:14px;font-weight:800;color:#1F2A37;padding:24px;text-align:center"><div style="font-size:20px">Resimler yükleniyor…</div><div style="width:min(320px,80%);height:10px;background:#E6ECF2;border-radius:999px;overflow:hidden"><div id="imgProg2" style="height:100%;width:0;background:#1FA463;transition:width .3s"></div></div><div id="imgPct" style="font-size:15px;color:#5B6B7A">%0</div><div style="font-size:13px;color:#5B6B7A;font-weight:600">Yalnızca ilk açılışta sürer; sonraki açılışlarda resimler cihazdan gelir.</div></div>
+<script>
+(function(){ /* Resim dosyaları arkada, paralel yüklenir; uygulama beklemeden açılır */
+  const v = "2026.10.16-u", files = [["zihin-gorsel-1.js", 4.5], ["zihin-gorsel-2.js", 3.1], ["zihin-gorsel-3.js", 2.7]]; const total = files.reduce((a, f) => a + f[1], 0); let got = 0;
+  const show = () => { const pct = Math.round(got / total * 100); ["imgProg", "imgProg2"].forEach(id => { const el = document.getElementById(id); if(el) el.style.width = pct + "%"; }); const p = document.getElementById("imgPct"); if(p) p.textContent = "%" + pct; };
+  let done = 0; files.forEach(([f, mb]) => { const sc = document.createElement("script"); sc.src = f + "?v=" + v; sc.async = true; sc.onload = sc.onerror = () => { got += mb; done++; show(); if(done === files.length){ const bar = document.getElementById("imgBar"); if(bar) setTimeout(() => bar.style.display = "none", 600); if(window.__onImagesLoaded) window.__onImagesLoaded(); } }; document.head.appendChild(sc); });
+})();
+</script>
+
 <div id="printArea"></div>
 </body>
 </html>

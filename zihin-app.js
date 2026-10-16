@@ -473,7 +473,14 @@ el.classList.add("show");
 
 
 /* Eşini Hatırla'nın çift resimleri de bu havuzda kullanılır (aynı fotoğraf stili) */
-try{ Object.assign(PAIR_IMAGES, { spoon: PAL_EXTRA_IMAGES.spoon, bowl: PAL_EXTRA_IMAGES.bowl, sock: PAL_EXTRA_IMAGES.sock, slipper: PAL_EXTRA_IMAGES.slipper, bee: PAL_EXTRA_IMAGES.bee, honey: PAL_EXTRA_IMAGES.honey, paldog: PAL_EXTRA_IMAGES.dog, bone: PAL_EXTRA_IMAGES.bone, scissors: HOUSE_IMAGES.scissors, broom: HOUSE_IMAGES.broom, bucket: HOUSE_IMAGES.bucket, cup: HOUSE_IMAGES.cup, paper: NEW_IMAGES_1.paper, dustpan: NEW_IMAGES_1.dustpan, shovel: NEW_IMAGES_1.shovel, paintbrush: NEW_IMAGES_1.paintbrush, paint: NEW_IMAGES_1.paint, straw: NEW_IMAGES_1.straw, notebook: NEW_IMAGES_1.notebook }); }catch(e){}
+/* Resim dosyaları arkada yüklenir (bkz. HTML yükleyici). Yükleme bitince çalışır; resimler zaten hazırsa hemen. */
+function afterImagesLoaded(){ try{ Object.assign(PAIR_IMAGES, { spoon: PAL_EXTRA_IMAGES.spoon, bowl: PAL_EXTRA_IMAGES.bowl, sock: PAL_EXTRA_IMAGES.sock, slipper: PAL_EXTRA_IMAGES.slipper, bee: PAL_EXTRA_IMAGES.bee, honey: PAL_EXTRA_IMAGES.honey, paldog: PAL_EXTRA_IMAGES.dog, bone: PAL_EXTRA_IMAGES.bone, scissors: HOUSE_IMAGES.scissors, broom: HOUSE_IMAGES.broom, bucket: HOUSE_IMAGES.bucket, cup: HOUSE_IMAGES.cup, paper: NEW_IMAGES_1.paper, dustpan: NEW_IMAGES_1.dustpan, shovel: NEW_IMAGES_1.shovel, paintbrush: NEW_IMAGES_1.paintbrush, paint: NEW_IMAGES_1.paint, straw: NEW_IMAGES_1.straw, notebook: NEW_IMAGES_1.notebook }); }catch(e){} window.__imgReady = true; }
+if(typeof PAIR_IMAGES !== "undefined" && typeof NEW_IMAGES_1 !== "undefined") afterImagesLoaded();
+let __imgWaiters = [];
+function imagesReady(){ return !!window.__imgReady; }
+function imgWait(cb){ if(imagesReady()){ cb(); return; } __imgWaiters.push(cb); const ov = document.getElementById("imgOverlay"); if(ov){ ov.style.display = "flex"; } }
+window.__onImagesLoaded = function(){ try{ afterImagesLoaded(); }catch(e){} const ov = document.getElementById("imgOverlay"); if(ov) ov.style.display = "none"; const w = __imgWaiters; __imgWaiters = []; w.forEach(f => { try{ f(); }catch(e){} }); };
+
 const PAIR_SETS_PRE = [["door","key"],["foot","shoe"],["tooth","toothbrush"],["cloud","umbrella"],["flower","wateringcan"],["spoon","bowl"],["sock","slipper"],["paldog","bone"],["cup","straw"],["bucket","shovel"]];
 const PAIR_SETS_POST = [["nail","hammer"],["screw","screwdriver"],["pencil","sharpener"],["phone","charger"],["spoon","bowl"],["sock","slipper"],["bee","honey"],["scissors","paper"],["broom","dustpan"],["bucket","shovel"],["paintbrush","paint"],["cup","straw"]];   /* mektup–zarf çıkarıldı (artık yaygın değil) */
 const PAIR_BLOCKED = new Set([ "cloud-wateringcan", "sock-shoe", "foot-slipper", "flower-honey", "spoon-honey", "paldog-slipper", "paldog-shoe", "pencil-paper", "paintbrush-paper", "bucket-paint", "bucket-dustpan", "spoon-straw", "cup-honey" ]);   /* "o da birlikte kullanılır" denebilecek karışımlar yanlış seçenek olarak gösterilmez */
@@ -7407,9 +7414,9 @@ const N = [4, 5, 6][t]; return shuffleArray(ABS_SENT.map(x => ({ s: x[0], q:"Bu 
 const WP_OBJ = ["pusula","dürbün","mikroskop","çapa","huni","kum saati","stetoskop","termometre","gözlük","fener","termos","yelpaze","ip","mıknatıs","kutu","kask","bilezik","kemer"];
 /* 9. nesneden itibaren resimler NEW_IMAGES_2 içinde */
 const WP_OBJ_SRC = (i) => i < 8 ? WP_OBJ_IMAGES[i] : NEW_IMAGES_2[["glasses","flashlight","thermos","handfan","rope","magnet","box","helmet","bracelet","belt"][i - 8]];
-const WP_EMO = ["Hangi çocuk tereddüt ediyor?","Hangi çocuk utanıyor?","Hangi çocuk gururlanıyor?","Hangi çocuk şaşırıyor?","Hangi çocuk hayal kırıklığına uğramış?","Hangi resimde biri kıskanıyor?","Hangi çocuk merak ediyor?","Hangi çocuk sabırsızlanıyor?","Hangi çocuk üzgün?","Hangi çocuk mutlu?","Hangi çocuk korkuyor?","Hangi çocuk yorgun?","Hangi çocuk düşünüyor?","Hangi çocuk halinden memnun?","Hangi çocuk kızgın?","Hangi çocuk teşekkür ediyor?","Hangi çocuk endişeli?","Hangi çocuk rahatlamış?","Hangi çocuk sıkılmış?","Hangi çocuk heyecanlı?"];
+const WP_EMO = ["Hangi çocuk tereddüt ediyor?","Hangi çocuk utanıyor?","Hangi çocuk gururlanıyor?","Hangi çocuk şaşırıyor?","Hangi çocuk hayal kırıklığına uğramış?","Hangi çocuk kıskanıyor?","Hangi çocuk merak ediyor?","Hangi çocuk sabırsızlanıyor?","Hangi çocuk üzgün?","Hangi çocuk mutlu?","Hangi çocuk korkuyor?","Hangi çocuk yorgun?","Hangi çocuk düşünüyor?","Hangi çocuk halinden memnun?","Hangi çocuk kızgın?","Hangi çocuk teşekkür ediyor?","Hangi çocuk endişeli?","Hangi çocuk rahatlamış?","Hangi çocuk sıkılmış?","Hangi çocuk heyecanlı?"];
 /* 9. duygudan itibaren resimler NEW_IMAGES_3 içinde */
-const WP_EMO_SRC = (i) => i < 8 ? WP_EMO_IMAGES[i] : NEW_IMAGES_3[["sad", "happy", "scared", "tired", "thoughtful", "content", "angry", "grateful", "worried", "relieved", "bored", "excited"][i - 8]];
+const WP_EMO_SRC = (i) => i < 8 ? NEW_IMAGES_5[["hesitant", "shy", "proud", "surprised", "disappointed", "jealous", "curious", "impatient"][i]] : NEW_IMAGES_3[["sad", "happy", "scared", "tired", "thoughtful", "content", "angry", "grateful", "worried", "relieved", "bored", "excited"][i - 8]];
 const WP_VAL = ["Hangi resimde dayanışma var?","Hangi resimde paylaşma var?","Hangi resimde biri özür diliyor?","Hangi resimde biri teselli ediliyor?","Hangi resimde tartışma var?","Hangi resimde yarışma var?","Hangi resimde kutlama var?","Hangi resimde vedalaşma var?","Hangi resimde biri yardım ediyor?","Hangi resimde çocuklar sıra bekliyor?","Hangi resimde çocuk dürüst davranıyor?","Hangi resimde nezaket var?","Hangi resimde sorumluluk var?","Hangi resimde cesaret var?","Hangi resimde saygı var?","Hangi resimde tutumluluk var?","Hangi resimde temizlik var?","Hangi resimde dostluk var?","Hangi resimde çocuklar dinliyor?","Hangi resimde biri teşekkür ediyor?"];
 /* 9. değerden itibaren resimler NEW_IMAGES_4 içinde */
 const WP_VAL_SRC = (i) => i < 8 ? WP_VAL_IMAGES[i] : NEW_IMAGES_4[["helping", "patience", "honesty", "kindness", "responsibility", "courage", "respect", "thrift", "cleanliness", "friendship", "listening", "thanks"][i - 8]];
@@ -7619,7 +7626,7 @@ return out; }
 const CP_PAIRS = [ ["acik","kapali","Açık kapıyı göster.","Kapalı kapıyı göster.","<b>Açık</b> kapı","<b>Kapalı</b> kapı"], ["hizli","yavas","Hızlı olanı göster.","Yavaş olanı göster.","<b>Hızlı</b> olan","<b>Yavaş</b> olan"],
 ["agir","hafif","Ağır olanı göster.","Hafif olanı göster.","<b>Ağır</b> olan","<b>Hafif</b> olan"], ["islak","kuru","Islak şemsiyeyi göster.","Kuru şemsiyeyi göster.","<b>Islak</b> şemsiye","<b>Kuru</b> şemsiye"],
 ["temiz","kirli","Temiz tişörtü göster.","Kirli tişörtü göster.","<b>Temiz</b> tişört","<b>Kirli</b> tişört"], ["sert","yumusak","Sert olanı göster.","Yumuşak olanı göster.","<b>Sert</b> olan","<b>Yumuşak</b> olan"] ];
-const CI = CONCEPT_IMAGES;
+const CI = new Proxy({}, { get: (_, k) => (typeof CONCEPT_IMAGES !== "undefined" ? CONCEPT_IMAGES[k] : undefined) }); /* resimler sonradan yüklenir */
 const OPP_PRE = () => [
 { w:"açık", pic: CI.acik, opp: CI.kapali, same: CI.acik }, { w:"kapalı", pic: CI.kapali, opp: CI.acik, same: CI.kapali },
 { w:"hızlı", pic: CI.hizli, opp: CI.yavas, same: CI.hizli }, { w:"yavaş", pic: CI.yavas, opp: CI.hizli, same: CI.yavas },
@@ -7631,7 +7638,7 @@ const OPP_PRE = () => [
 { w:"sıcak", pic: HOTCOLD_IMAGES.fire, opp: randomItem([HOTCOLD_IMAGES.snowman, HOTCOLD_IMAGES.ice, HOTCOLD_IMAGES.icecream]), same: randomItem([HOTCOLD_IMAGES.soup, HOTCOLD_IMAGES.iron, HOTCOLD_IMAGES.sun]) },
 { w:"soğuk", pic: HOTCOLD_IMAGES.penguin, opp: randomItem([HOTCOLD_IMAGES.fire, HOTCOLD_IMAGES.soup, HOTCOLD_IMAGES.sun]), same: randomItem([HOTCOLD_IMAGES.snowman, HOTCOLD_IMAGES.ice, HOTCOLD_IMAGES.icecream]) },
 { w:"gündüz", pic: DN_IMAGES.sun, opp: DN_IMAGES.moon, same: DN_IMAGES.sun },
-{ w:"mutlu", pic: WP_EMO_IMAGES[2], opp: WP_EMO_IMAGES[4], same: WP_EMO_IMAGES[2] },
+{ w:"mutlu", pic: NEW_IMAGES_3.happy, opp: NEW_IMAGES_3.sad, same: NEW_IMAGES_3.happy },
 { w:"yavru", pic: ANIM_YB_IMAGES[5], opp: ANIM_YB_IMAGES[4], same: ANIM_YB_IMAGES[1] } ];
 const OPP_POST = [["büyük","küçük","iri"],["hızlı","yavaş","çabuk"],["sıcak","soğuk","ılık"],["zengin","fakir","varlıklı"],["cesur","korkak","yürekli"],["erken","geç","sabah"],["kolay","zor","basit"],["genç","yaşlı","yeni"],["açık","kapalı","geniş"],["dolu","boş","kalabalık"],["uzun","kısa","yüksek"],["ağır","hafif","büyük"],["temiz","kirli","parlak"],["sert","yumuşak","katı"],["gece","gündüz","akşam"],["ıslak","kuru","nemli"],["tatlı","acı","şekerli"],["kalın","ince","geniş"],["aydınlık","karanlık","parlak"],["yukarı","aşağı","üst"],["eski","yeni","kullanılmış"],["mutlu","üzgün","neşeli"],["pahalı","ucuz","değerli"],["sessiz","gürültülü","sakin"],["derin","sığ","uzun"],["tok","aç","doymuş"],["ileri","geri","ön"],["doğru","yanlış","gerçek"],["güçlü","zayıf","kuvvetli"]];
 function oppTrials2(){ const t = currentCombo().t;
@@ -7640,7 +7647,7 @@ return shuffleArray(P).slice(0, N).map(x => { const other = randomItem(P.filter(
 return qzMake(`<div style="width:110px;height:110px;margin:0 auto">${qzPic(x.pic)}</div>`, [x.opp, x.same, other].map(src => qzPic(src)), 0, { prompt:`<b>${x.w}</b> · zıttı hangisi?`, raw:true, fixed:true, cell:96, say:`${cap(x.w)}. Bunun zıttı hangisi?`, replay:true }); }); }
 const N = [3, 4, 4][t];
 return shuffleArray(OPP_POST).slice(0, 6).map(([w, opp, near]) => { const un = randomItem(OPP_POST.filter(x => x[0] !== w && x[0] !== opp && x[0] !== near && x[1] !== near))[0];
-const opts = [opp, near, un].concat(t >= 1 ? [randomItem(OPP_POST.filter(x => x[0] !== w && x[0] !== un))[1]] : []).slice(0, N);
+const base = [opp, near, un]; const extra = t >= 1 ? randomItem(OPP_POST.filter(x => x[0] !== w && x[0] !== un && !base.includes(x[1]) && x[1] !== w))[1] : null; const opts = base.concat(extra ? [extra] : []).slice(0, N); /* dördüncü seçenek üçüyle çakışmasın */
 return qzMake(`<div style="font-size:30px;font-weight:900;color:var(--teal-dark);text-align:center">${w}</div>`, opts.map(x => `<b style="font-size:19px">${x}</b>`), 0, { prompt:"<b>Zıt anlamlısı</b> hangisi?", raw:true, fixed:true, text:true }); }); }
 function patTrials2(){ const t = currentCombo().t, pre = isPre(), N = pre ? 4 : 6, out = [];
 for(let q = 0; q < N; q++){ const [s1, s2, s3] = shuffleArray(AA_SH), [c1, c2, c3] = shuffleArray(AA_COL); let seq, muts;
@@ -11878,7 +11885,7 @@ famTargetEditing = false; showToday();
 const sc = document.getElementById("famStartCta"); if(sc) sc.onclick = () => startSessionStep(cur);
 const wc = document.getElementById("famWeekCta"); if(wc) wc.onclick = showWeek;
 }
-function startSessionStep(idx){
+function startSessionStep(idx){ if(!imagesReady()){ imgWait(() => startSessionStep(idx)); return; }
 try{ exitRecMode(); }catch(e){}
 const plan = todayPlan(); const id = plan.steps[idx]; if(!id) return;
 const ci = CATEGORIES.findIndex(c => c.exerciseIds.includes(id)); if(ci < 0) return;
@@ -11918,7 +11925,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.16-r";
+const APP_VERSION = "2026.10.16-u";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -12738,7 +12745,7 @@ return (m ? m[1] : t).trim();
 }
 
 let gamePendingStart = null;
-function startGameStop(exId, islId, opts){
+function startGameStop(exId, islId, opts){ if(!imagesReady()){ imgWait(() => startGameStop(exId, islId, opts)); return; }
 const ci = CATEGORIES.findIndex(c => c.exerciseIds.includes(exId));
 if(ci < 0) return;
 if(!(currentPlayerName || "").trim()){ gamePendingStart = [exId, islId]; openGameWho(); return; }
@@ -13352,7 +13359,7 @@ const KID_ODD_ROUNDS_FULL = [4,4,6,6,9,9,12,12];
 const KID_ODD_ROUNDS_PRE = [3,3,4,5,7];
 function kidOddRounds(){ return isPre() ? KID_ODD_ROUNDS_PRE : KID_ODD_ROUNDS_FULL; }
 
-function startOddOneOut(){
+function startOddOneOut(){ if(!imagesReady()){ imgWait(() => startOddOneOut()); return; }
 hideAllKidScreens();
 document.getElementById("kidOddOneOutScreen").style.display = "flex";
 kidOddState = { round: 0, mistakes: 0, startTime: Date.now() };
@@ -13418,7 +13425,7 @@ replay: startOddOneOut
 let kidMemoryState = {};
 let kidMemoryTimerId = null;
 
-function startMemoryGame(){
+function startMemoryGame(){ if(!imagesReady()){ imgWait(() => startMemoryGame()); return; }
 hideAllKidScreens();
 document.getElementById("kidMemoryScreen").style.display = "flex";
 let icons;
@@ -13505,7 +13512,7 @@ let kidQuickTapState = {};
 let kidQuickTapActive = false;
 function kidQuickTapRounds(){ return isPre() ? 5 : 8; }
 
-function startQuickTap(){
+function startQuickTap(){ if(!imagesReady()){ imgWait(() => startQuickTap()); return; }
 hideAllKidScreens();
 document.getElementById("kidQuickTapScreen").style.display = "flex";
 kidQuickTapState = { round: 0, times: [] };
@@ -14228,7 +14235,7 @@ document.getElementById("settingsCategoryTourLink").addEventListener("click", (e
 e.preventDefault();
 closeSettings(); try{ endTour(); }catch(_){} document.getElementById("whoScreen").style.display = "none"; ["mainApp"].forEach(id => document.getElementById(id).style.display = "none"); if(appMode === "cocuk" || !appMode) appMode = getEtkinlikView() === "uzman" ? "uzman" : "aile"; renderCategoryList(); document.getElementById("categoryScreen").style.display = "block"; setTimeout(()=>startTour("category", true), 450); });
 
-function selectCategory(i){
+function selectCategory(i){ if(!imagesReady()){ imgWait(() => selectCategory(i)); return; }
 currentCategoryIndex = i;
 if(currentCategoryExercises().length === 0){
 document.getElementById("categoryScreen").style.display = "none";
