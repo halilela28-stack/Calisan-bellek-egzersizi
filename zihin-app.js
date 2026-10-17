@@ -143,16 +143,17 @@ function tasteWantedCount(){
 const table = isPre() ? PRE_TASTE_COUNT_BY_TIER : TASTE_COUNT_BY_TIER;
 return table[currentCombo().t] || table[table.length-1];
 }
+function tasteAll(){ const alt = { candy:"watermelon", simit:"pasta" }; return TASTE_ALL.map(k => (TASTE_IMAGES[k] ? k : (alt[k] && TASTE_IMAGES[alt[k]] ? alt[k] : null))).filter(Boolean); }   /* resim dosyası eskiyse aynı tattaki eski resim */
 function pickTastePool(){
-const n = tasteWantedCount();
+const ALL = tasteAll(), n = Math.min(tasteWantedCount(), ALL.length);
 let pool, key, tries = 0;
 do{
-pool = TASTE_ALL.slice();
+pool = ALL.slice();
 for(let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
 pool = pool.slice(0, n);
 key = pool.slice().sort().join("|");
 tries++;
-} while(n < TASTE_ALL.length && key === tasteLastKey && tries < 8);   // Karıştır'da mümkünse aynı takımı tekrar seçme
+} while(n < ALL.length && key === tasteLastKey && tries < 8);   // Karıştır'da mümkünse aynı takımı tekrar seçme
 tasteLastKey = key;
 tasteActivePool = pool;
 }
@@ -480,7 +481,7 @@ function afterImagesLoaded(){ /* resimler gelince çift havuzunu birleştir; eks
   const pick = (fn) => { try{ return fn(); }catch(e){ return undefined; } };
   const add = { spoon: pick(() => PAL_EXTRA_IMAGES.spoon), bowl: pick(() => PAL_EXTRA_IMAGES.bowl), sock: pick(() => PAL_EXTRA_IMAGES.sock), slipper: pick(() => PAL_EXTRA_IMAGES.slipper), bee: pick(() => PAL_EXTRA_IMAGES.bee), honey: pick(() => PAL_EXTRA_IMAGES.honey), paldog: pick(() => PAL_EXTRA_IMAGES.dog), bone: pick(() => PAL_EXTRA_IMAGES.bone), scissors: pick(() => HOUSE_IMAGES.scissors), broom: pick(() => HOUSE_IMAGES.broom), bucket: pick(() => HOUSE_IMAGES.bucket), cup: pick(() => HOUSE_IMAGES.cup), paper: pick(() => NI(1).paper), dustpan: pick(() => NI(1).dustpan), shovel: pick(() => NI(1).shovel), paintbrush: pick(() => NI(1).paintbrush), paint: pick(() => NI(1).paint), straw: pick(() => NI(1).straw), notebook: pick(() => NI(1).notebook) };
   try{ Object.keys(add).forEach(k => { if(add[k]) PAIR_IMAGES[k] = add[k]; }); }catch(e){}
-  window.__imgReady = true; /* eksik dosya olsa da uygulama kilitlenmez; eksikler uyarıyla bildirilir */ const miss = (window.__imgMissing || []).slice(); ["PAIR_IMAGES","PAL_EXTRA_IMAGES","NEW_IMAGES_5"].forEach(n => { try{ if(eval("typeof " + n) === "undefined" && !miss.length) miss.push(n); }catch(e){} }); if(miss.length){ try{ const el = document.getElementById("imgWarn"); if(el){ el.style.display = "block"; const dg = window.__imgDiag || {}; const dgTxt = Object.keys(dg).map(f => f + ": sunucudan gelen " + dg[f].kb + " KB, sözlükler: " + dg[f].consts).join(" · "); el.textContent = "Resim dosyası eski: " + miss.join(", ") + ". Önbellek temizlendi ve sayfa yenilendi; sorun sürüyorsa GitHub'daki dosya eski demektir, zihin-gorsel-3.js dosyasını yeniden yükleyin (güncel dosya 2.613 KB)." + (dgTxt ? " [" + dgTxt + "]" : ""); } }catch(e){} } }
+  window.__imgReady = true; /* eksik dosya olsa da uygulama kilitlenmez; eksikler uyarıyla bildirilir */ const miss = (window.__imgMissing || []).slice(); ["PAIR_IMAGES","PAL_EXTRA_IMAGES","NEW_IMAGES_5"].forEach(n => { try{ if(eval("typeof " + n) === "undefined" && !miss.length) miss.push(n); }catch(e){} }); if(miss.length){ try{ const el = document.getElementById("imgWarn"); if(el){ el.style.display = "block"; const dg = window.__imgDiag || {}; const dgTxt = Object.keys(dg).map(f => f + ": sunucudan gelen " + dg[f].kb + " KB, sözlükler: " + dg[f].consts).join(" · "); el.textContent = "Resim dosyası eski: " + miss.join(", ") + ". Önbellek temizlendi ve sayfa yenilendi; sorun sürüyorsa GitHub'daki bu dosya eski demektir: son teslimdeki " + [...new Set(miss.map(x => String(x).split(" ")[0]))].join(", ") + " dosyasını yeniden yükleyin." + (dgTxt ? " [" + dgTxt + "]" : ""); } }catch(e){} } }
 if(typeof PAIR_IMAGES !== "undefined" && typeof NI(1) !== "undefined") afterImagesLoaded();
 let __imgWaiters = [];
 function imagesReady(){ return !!window.__imgReady; }
@@ -2265,7 +2266,7 @@ label: "Tatlar",
 attrs: ["item"],
 beginGrid: () => { pickTastePool(); },
 randomItem: () => {
-if(!tasteActivePool || tasteActivePool.length !== tasteWantedCount()) pickTastePool();
+if(!tasteActivePool || tasteActivePool.length !== Math.min(tasteWantedCount(), tasteAll().length)) pickTastePool();
 return { item: randomItem(tasteActivePool) };
 },
 renderItem: (item) => `<img src="${TASTE_IMAGES[item.item]}" alt="" style="width:88%;height:88%;object-fit:contain;display:block;">`,
@@ -11969,7 +11970,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.18-a";
+const APP_VERSION = "2026.10.18-b";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
