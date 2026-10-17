@@ -11966,7 +11966,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.17-q";
+const APP_VERSION = "2026.10.17-r";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Yazı: bütün uygulamada Nunito; başlıklar 900, açıklama ve notlar en az 600 (uzman panosu ile aynı) (2026.10.17) */
@@ -12188,28 +12188,20 @@ const cur = (currentPlayerName || "").trim(), has = !!cur && cur !== "Misafir" &
 const P = has ? placeGet(cur) : null, L = (() => { try{ return lastGet(); }catch(e){ return null; } })(), canResume = !!(has && L && L.mode === "uzman" && L.player === cur);
 const sumTxt = P ? (() => { const v = Object.values(P.dom), post = v.filter(x => x >= 3).length; return post === v.length ? "Keşif: Okul Sonrası" : post === 0 ? "Keşif: Okul Öncesi" : `Keşif: ${post} alan Okul Sonrası`; })() : "Keşif turu henüz yapılmadı";
 const go = !has ? "Seç" : !P ? "Keşif" : canResume ? "Devam" : "Başla";
-const ic = (path, col) => `<span class="exq-ic" style="color:${col}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg></span>`;
+const ic = (path, col) => `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="${col}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`;
 const T = "#0A847E", K = "#A9632A";
 const I = { users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8"/><path d="M18 14.8c2 .7 3.2 2.4 3.6 5.2"/>', hw:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 3 3 5-6"/>', grow:'<path d="M12 21v-9"/><path d="M12 12c0-4 3-7 7-7 0 4-3 7-7 7z"/><path d="M12 14c0-3-2.5-5.5-6-5.5 0 3.5 2.5 5.5 6 5.5z"/>', week:'<path d="M4 20V11M10 20V5M16 20v-6M2 20h20"/>', compass:'<circle cx="12" cy="12" r="9.5"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>' };
-box.innerHTML = `<button type="button" class="fh-today ex-today" id="exTodayBtn"><span class="ex-av">${has ? escHTML(cur.charAt(0).toLocaleUpperCase("tr")) : "?"}</span>
-<span class="fh-tx"><div class="fh-t1">${has ? escHTML(cur) + " ile seans" : "Seansa başla"}</div><div class="fh-t2">${has ? sumTxt + (canResume ? " · kaldığı yer hazır" : "") : "Önce çalışacak kişiyi seçin"}</div></span><span class="fh-go">${go}</span></button>
-<div class="ex-quick">
-<button type="button" id="exHomeBtn">${ic(I.users, T)}<b>Danışanlar</b><small>${n ? `${n} danışan · ${linked} aile bağlı` : "Danışan ekle, aileye bağla"}</small></button>
-<button type="button" id="exHwBtn">${ic(I.hw, K)}<b>Ödevler</b><small>${n ? (() => { const k = expertLinks.filter(l => l.familyUid && (!l.program || !(l.program.hw || []).length || weekBars(l).n < Math.ceil(weekBars(l).total * 0.6))).length; return k ? `${k} danışan ilgi bekliyor` : "Hepsi yolunda"; })() : "Danışan ekleyince görünür"}</small></button>
-<button type="button" id="exGrowBtn">${ic(I.grow, T)}<b>Gelişim haritası</b><small>${has ? escHTML(cur) + " · güçlü ve gelişen" : "Kişi seçince açılır"}</small></button>
-<button type="button" id="exWeekBtn">${ic(I.week, K)}<b>Bu hafta</b><small>${has ? "Çalışılan günler, özet" : "Kişi seçince açılır"}</small></button>
-</div>
-${has ? `<button type="button" class="fh-week" id="exPlaceBtn">${ic(I.compass, T)}<span><div class="t1">Keşif turu</div><div class="t2">${P ? sumTxt.replace("Keşif: ", "") + " · " + new Date(P.t).toLocaleDateString("tr-TR") + " · yeniden değerlendir" : "On alanda başlangıç düzeyini belirle"}</div></span></button>` : ""}`;
+box.innerHTML = `<div class="fh-today ex-today" id="exTodayCard" style="cursor:default"><span class="ex-av">${has ? escHTML(cur.charAt(0).toLocaleUpperCase("tr")) : "?"}</span>
+<span class="fh-tx"><div class="fh-t1">${has ? escHTML(cur) + " ile seans" : "Seansa başla"}</div><div class="fh-t2">${has ? sumTxt : "Önce ana ekrandan çalışacak kişiyi seçin"}</div></span></div>
+<button type="button" class="fh-week" id="exHomeBtn"><span class="ic" style="background:var(--teal-tint);color:var(--teal-dark)">${ic(I.users, T)}</span><span><div class="t1">Danışanlar</div><div class="t2">${n ? `${n} danışan · ${linked} aile bağlı · ödevler danışan ekranında` : "Danışan ekle, aileye bağla, ödev gönder"}</div></span></button>
+<button type="button" class="fh-week" id="exGrowBtn"><span class="ic" style="background:#FFF3C4;color:#9A6B00">${ic(I.grow, "#9A6B00")}</span><span><div class="t1">Gelişim haritası</div><div class="t2">${has ? escHTML(cur) + " · güçlü yönler ve gelişen alanlar" : "Kişi seçince açılır"}</div></span></button>
+<button type="button" class="fh-week" id="exWeekBtn"><span class="ic">${ic(I.week, "#9A5A12")}</span><span><div class="t1">Bu hafta</div><div class="t2">${has ? "Çalışılan günler ve kısa gelişim özeti" : "Kişi seçince açılır"}</div></span></button>
+${has ? `<button type="button" class="fh-week" id="exPlaceBtn"><span class="ic" style="background:var(--teal-tint);color:var(--teal-dark)">${ic(I.compass, T)}</span><span><div class="t1">Keşif turu</div><div class="t2">${P ? sumTxt.replace("Keşif: ", "") + " · " + new Date(P.t).toLocaleDateString("tr-TR") + " · yeniden değerlendir" : "On alanda başlangıç düzeyini belirle"}</div></span></button>` : ""}`;
 box.style.display = "flex";
 const needPerson = (fn) => () => { if(!has){ pickPerson(() => renderCategoryList(), { noGuest:true }); return; } fn(); };
 document.getElementById("exHomeBtn").onclick = () => showExpert("list");
-document.getElementById("exHwBtn").onclick = () => showExpert("hw");
 document.getElementById("exGrowBtn").onclick = needPerson(showGrowth);
 document.getElementById("exWeekBtn").onclick = needPerson(showWeek);
-document.getElementById("exTodayBtn").onclick = needPerson(() => {
-  if(!P) return placeStart(cur);
-  if(canResume) return resumeLast(L);
-  /* en çok gelişmesi gereken alanla başla */ const d = PLACE_DOMS.slice().sort((a, b) => (P.dom[a.k] ?? 9) - (P.dom[b.k] ?? 9))[0]; const ci = CATEGORIES.findIndex(c => d.cats.includes(c.id) && !c.hidden); if(ci >= 0) selectCategory(ci); });
 const pb = document.getElementById("exPlaceBtn"); if(pb) pb.onclick = async () => { if(P && !await zaConfirm(cur + " için keşif turu yeniden yapılsın mı? Yeni sonuçlar eskisinin yerine geçer.")) return; placeStart(cur); };
 }
 const expertView = { mode:"list", code:null };
