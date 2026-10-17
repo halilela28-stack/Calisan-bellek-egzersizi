@@ -4767,7 +4767,7 @@ readingLevel: ["post"],
 label: "Harf Adı",
 attrs: ["letter"],
 randomItem: () => ({ letter: randomItem([["a","e","l","m","s","t"], ["a","e","l","m","s","t","k","n","r","y"], ["a","e","l","m","s","t","k","n","r","b","d","p","ğ","ş"]][currentCombo().t] || ["a","e","l","m"]) }),
-renderItem: (item) => `<div class="name-cell" style="font-size:34px;font-family:'Trebuchet MS',sans-serif">${item.letter}</div>`,
+renderItem: (item) => `<div class="name-cell" style="font-size:34px;font-family:inherit">${item.letter}</div>`,
 stages: [ { label: "Harfleri Oku", instruction: () => `"Ben başla dediğimde harflerin adını soldan sağa olabildiğince hızlı söyle" deyin.`, example: (item) => item.letter } ]
 },
 {
@@ -7721,7 +7721,7 @@ const mk = () => {
     while(sims.size < D && g++ < 200){ const a = base.split(""); const i = Math.floor(Math.random() * L), j = (i + 1 + Math.floor(Math.random() * (L - 1))) % L; [a[i], a[j]] = [a[j], a[i]]; if(Math.random() < 0.5) a[Math.floor(Math.random() * L)] = String(Math.floor(Math.random() * 10)); if(a[0] !== "0") sims.add(a.join("")); }
     const arr = [...sims]; return shuffleArray(arr.concat([base])).map(v => ({ k: v, h:`<b style="font-size:22px;letter-spacing:1px">${v}</b>` })); }
   const LT = ["b","d","p","q","ğ","g"], mkw = () => Array.from({length:3}, () => randomItem(LT)).join(""); const base = mkw(); const set = new Set([base]); while(set.size < D) set.add(mkw());
-  return shuffleArray([...set].concat([base])).map(v => ({ k: v, h:`<b style="font-size:20px;font-family:'Trebuchet MS',sans-serif">${v}</b>` })); };
+  return shuffleArray([...set].concat([base])).map(v => ({ k: v, h:`<b style="font-size:20px;font-family:inherit">${v}</b>` })); };
 /* İkizlerin arası: yan yana çıkma olasılığı rastgele karıştırmada %40'a varıyordu. Her denemede aralık (1 = yan yana … n-1 = iki uç) sırayla ve eşit sıklıkta kullanılır. */
   const n = D + 1, gapCycle = []; while(gapCycle.length < N) gapCycle.push(...shuffleArray(Array.from({length: n - 1}, (_, i) => i + 1)));
   return Array.from({length:N}, (_, k) => { const items = mk(), cnt = {}; items.forEach(x => cnt[x.k] = (cnt[x.k] || 0) + 1); const pk = Object.keys(cnt).find(k2 => cnt[k2] === 2);
@@ -11966,7 +11966,82 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.17-o";
+const APP_VERSION = "2026.10.17-q";
+/* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
+const RUNTIME_CSS = `
+/* Yazı: bütün uygulamada Nunito; başlıklar 900, açıklama ve notlar en az 600 (uzman panosu ile aynı) (2026.10.17) */
+html, body{ font-family:"Nunito", "Trebuchet MS", system-ui, -apple-system, sans-serif; }
+button, input, select, textarea, option{ font-family:inherit; }
+.t2, .category-sub, .fam-desc, .fam-note, .settings-note, .example, .ex-t2, .fh-rec-t2, [class$="-t2"]:not([style*="font-weight"]):not(.fh-t2):not(.adv-t2){ font-weight:600 !important; }   /* yalnızca ince (400) kalanlar ve bütün "-t2" alt satırları */
+.settings-label{ font-weight:700 !important; }
+/* Ana ekran · Bilişsel Etkinlik girişleri: beyaz kart, ince gri çerçeve, renkli çizgi simge, koyu yazı (2026.10.17) */
+#hmEtk .hm-seg{ display:grid !important; grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important; gap:12px !important; background:none !important; padding:0 !important; margin-top:14px !important; align-items:stretch !important; }
+#hmEtk .hm-col{ display:flex !important; flex-direction:column !important; gap:12px !important; min-width:0 !important; width:auto !important; }
+#hmEtk .hm-col > button, #hmEtk .hm-col > button.on, #hmEtk .hm-col > .hm-sub{ display:flex !important; align-items:center !important; justify-content:flex-start !important; gap:10px !important; width:100% !important; min-width:0 !important; height:64px !important; margin:0 !important; padding:0 12px !important; white-space:nowrap !important; overflow:hidden !important; box-sizing:border-box !important; background:#FFFFFF !important; color:#1E2A2A !important; border:2px solid #DDE3E1 !important; border-radius:18px !important; font-family:inherit !important; font-size:15px !important; letter-spacing:-.01em; font-weight:800 !important; text-align:left !important; box-shadow:none !important; cursor:pointer; }
+#hmEtk .hm-col > button svg{ width:22px !important; height:22px !important; flex:0 0 22px; }
+#hmEtk .hm-col.uz > button svg{ color:#0A847E !important; stroke:#0A847E !important; }   /* başlıktaki simgeyle aynı yeşil */
+#hmEtk .hm-col.ai > button svg{ color:#A9632A !important; stroke:#A9632A !important; }   /* 'Kişi ekle' ile aynı kiremit */
+#hmEtk .hm-col > button.on{ border-color:#DDE3E1 !important; }   /* seçili durum gösterilmez: her düğme kendi girişini açar */
+#hmEtk .hm-col > button:active{ background:#F5F8F7 !important; }
+html.text-lg #hmEtk .hm-col > button, html.text-xl #hmEtk .hm-col > button{ font-size:16px !important; height:68px !important; }
+@media (max-width:359px){ #hmEtk .hm-seg{ grid-template-columns:minmax(0,1fr) !important; } }
+@media (min-width:360px) and (max-width:389px){ #hmEtk .hm-col > button, #hmEtk .hm-col > .hm-sub{ padding:0 10px !important; gap:8px !important; font-size:14px !important; } #hmEtk .hm-col > button svg{ width:20px !important; height:20px !important; flex:0 0 20px; } #hmEtk .hm-seg, #hmEtk .hm-col{ gap:10px !important; } }   /* çok dar ekran: tek sütun, yazılar kırpılmaz */
+
+/* Keşif turu: Başla / Tamam düğmeleri — uygulama yeşili, çizgi simge (2026.10.17) */
+.mola-list button.place-cta{ flex-direction:row !important; justify-content:center !important; gap:12px !important; min-height:60px; padding:12px 18px !important; background:#FFFFFF !important; border:2px solid #CFE6E2 !important; border-bottom-width:4px !important; border-radius:18px !important; color:#05625D !important; font-size:19px !important; font-weight:900 !important; }
+.mola-list button.place-cta svg{ color:#0A847E; flex:0 0 30px; }
+.mola-list button.place-cta:active{ background:#F1F8F6 !important; transform:translateY(2px); border-bottom-width:2px !important; }
+
+/* Keşif turu sonuç ekranı: tek ekrana sığan özet (2026.10.17) */
+#placeScreen{ overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.place-done{ max-width:420px; margin:0 auto; padding-top:calc(6px + env(safe-area-inset-top)); padding-bottom:calc(8px + env(safe-area-inset-bottom)); }
+.place-done-top{ display:flex; align-items:center; justify-content:center; gap:12px; margin:4px 0 10px; }
+.place-sum{ display:flex; flex-direction:column; gap:8px; text-align:left; }
+.place-grp{ background:#FFFFFF; border-radius:16px; padding:6px 12px 4px; border:1.5px solid #E3ECEA; }
+.place-grp-h{ font-size:12px; font-weight:900; letter-spacing:.05em; text-transform:uppercase; color:#05625D; padding:4px 0 2px; }
+.place-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:5px 0; border-top:1px solid #EEF3F2; font-size:15px; }
+.place-grp-h + .place-row{ border-top:0; }
+.place-row b{ font-weight:800; color:#1C2B39; }
+.place-row span{ font-size:12.5px; font-weight:900; border-radius:8px; padding:3px 9px; white-space:nowrap; }
+.place-row .t0{ background:#FFF1D6; color:#9A6B00; } .place-row .t1{ background:#DDF1FF; color:#1E5FA8; } .place-row .t2{ background:#DDF5E7; color:#1B7A45; }
+.place-note{ font-weight:600 !important; font-size:13px !important; margin:8px 4px 10px !important; line-height:1.35; }
+.place-done .mola-list{ margin-top:0 !important; }
+
+/* Matris: hücreler ızgaradan taşmasın (iOS Safari'de 1fr sütunlar SVG'nin doğal boyutuyla genişliyordu) (2026.10.17) */
+.mx-g{ box-sizing:content-box; }
+.mx-g > .mx-c{ min-width:0; min-height:0; overflow:hidden; box-sizing:border-box; }
+.mx-c > svg{ display:block; width:100%; height:100%; max-width:100%; max-height:100%; }
+
+/* Uzman panosu (2026.10.17) */
+#expertHome{ flex-direction:column; gap:12px; }
+.ex-today .ex-av{ width:58px; height:58px; flex:0 0 58px; border-radius:50%; background:rgba(255,255,255,.18); border:3px solid rgba(255,255,255,.35); display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:900; color:#FFFFFF; }
+.ex-quick{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px; }
+.ex-quick > button{ display:flex; flex-direction:column; align-items:flex-start; gap:6px; min-height:112px; padding:14px; box-sizing:border-box; background:#FFFFFF; border:2px solid #DDE3E1; border-radius:20px; text-align:left; font-family:inherit; cursor:pointer; min-width:0; }
+.ex-quick > button:active{ background:#F5F8F7; }
+.ex-quick b{ font-size:16px; font-weight:900; color:#1C2B39; line-height:1.2; }
+.ex-quick small{ font-size:12.5px; font-weight:700; color:var(--ink-soft); line-height:1.3; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+.exq-ic{ width:40px; height:40px; border-radius:12px; background:#F1F6F5; display:flex; align-items:center; justify-content:center; }
+.exq-ic svg{ width:22px; height:22px; }
+#expertHome .fh-week .exq-ic{ flex:0 0 44px; width:44px; height:44px; }
+
+/* Panel ekranları: dokunma hedefleri ve taşma (2026.10.17) */
+.hm-gear{ width:44px !important; height:44px !important; }
+#closeSettingsBtn{ min-width:44px !important; min-height:44px !important; }
+.fam-chip{ min-height:42px; box-sizing:border-box; }
+#famTargetBtn{ min-height:40px; padding-top:8px !important; padding-bottom:8px !important; }
+#exRenameBtn, #placeRunBtn, #pinSetBtn{ min-height:42px; }
+#expertWrap > div:first-child{ flex-wrap:wrap; row-gap:10px; }
+#expertWrap > div:first-child > div{ min-width:0; }
+.place-row b{ min-width:0; overflow-wrap:anywhere; }
+.ex-seg{ gap:4px !important; } .ex-seg > button[data-d]{ min-height:44px; min-width:0; padding-left:0 !important; padding-right:0 !important; font-size:13px; }
+.person-delete-btn{ min-height:42px; }
+`;
+(function injectRuntimeCSS(){ try{ if(document.getElementById("za-rt-css")) return; const st = document.createElement("style"); st.id = "za-rt-css"; st.textContent = RUNTIME_CSS; (document.head || document.documentElement).appendChild(st); }catch(e){} })();
+/* Dosya sürümü denetimi: zihin-atolyesi.html ile zihin-app.js farklı sürümdeyse uyar */
+function checkFileVersions(){ try{ const hv = window.ZA_HTML_VERSION || null; if(hv === APP_VERSION) return; let el = document.getElementById("imgWarn"); if(!el){ el = document.createElement("div"); el.id = "imgWarn"; el.style.cssText = "display:none;position:fixed;left:12px;right:12px;bottom:92px;z-index:9997;background:#FFF4E5;color:#9A3412;border:2px solid #F59E0B;border-radius:14px;padding:10px 14px;font-weight:700;font-size:14px;text-align:center"; document.body.appendChild(el); }
+  el.style.display = "block"; el.textContent = "Dosyalar farklı sürümde: zihin-atolyesi.html " + (hv || "eski sürüm") + ", zihin-app.js " + APP_VERSION + ". GitHub'a son teslimdeki dosyaların hepsini birlikte yükleyin (özellikle zihin-atolyesi.html)."; el.onclick = () => { el.style.display = "none"; }; }catch(e){} }
+if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(checkFileVersions, 1500)); else setTimeout(checkFileVersions, 1500);
+
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -12113,7 +12188,7 @@ const cur = (currentPlayerName || "").trim(), has = !!cur && cur !== "Misafir" &
 const P = has ? placeGet(cur) : null, L = (() => { try{ return lastGet(); }catch(e){ return null; } })(), canResume = !!(has && L && L.mode === "uzman" && L.player === cur);
 const sumTxt = P ? (() => { const v = Object.values(P.dom), post = v.filter(x => x >= 3).length; return post === v.length ? "Keşif: Okul Sonrası" : post === 0 ? "Keşif: Okul Öncesi" : `Keşif: ${post} alan Okul Sonrası`; })() : "Keşif turu henüz yapılmadı";
 const go = !has ? "Seç" : !P ? "Keşif" : canResume ? "Devam" : "Başla";
-const ic = (path, col) => `<span class="exq-ic" style="color:${col}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg></span>`;
+const ic = (path, col) => `<span class="exq-ic" style="color:${col}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg></span>`;
 const T = "#0A847E", K = "#A9632A";
 const I = { users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8"/><path d="M18 14.8c2 .7 3.2 2.4 3.6 5.2"/>', hw:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 3 3 5-6"/>', grow:'<path d="M12 21v-9"/><path d="M12 12c0-4 3-7 7-7 0 4-3 7-7 7z"/><path d="M12 14c0-3-2.5-5.5-6-5.5 0 3.5 2.5 5.5 6 5.5z"/>', week:'<path d="M4 20V11M10 20V5M16 20v-6M2 20h20"/>', compass:'<circle cx="12" cy="12" r="9.5"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>' };
 box.innerHTML = `<button type="button" class="fh-today ex-today" id="exTodayBtn"><span class="ex-av">${has ? escHTML(cur.charAt(0).toLocaleUpperCase("tr")) : "?"}</span>
