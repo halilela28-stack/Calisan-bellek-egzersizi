@@ -6267,10 +6267,26 @@ stim: (t) => imgFill(DN_IMAGES[t.k]),
 buttons: (c) => c.order.map(k => ({ id: k, html: imgFill(DN_IMAGES[k]) })),
 correct: (t) => t.k === "sun" ? "moon" : "sun", cols: 2
 };
+/* Dengeli dizi: değerler mümkün olduğunca eşit sayıda; aynı değer en çok maxRun kez art arda */
+function balancedSeq(n, values, maxRun, counts){ const want = counts || values.map((v, i) => Math.floor(n / values.length) + (i < n % values.length ? 1 : 0)); let best = null;
+  for(let tries = 0; tries < 60; tries++){ const bag = []; shuffleArray(values.map((v, i) => [v, want[i]])).forEach(([v, c]) => { for(let k = 0; k < c; k++) bag.push(v); }); const a = shuffleArray(bag); let ok = true, run = 1; for(let k = 1; k < a.length; k++){ run = a[k] === a[k - 1] ? run + 1 : 1; if(run > maxRun){ ok = false; break; } } if(ok) return a; best = a; }
+  return best || []; }
+/* Balıklar Hangi Yöne?: canlıların hepsi resimde SAĞA bakar; L = aynalanmış. N = yönsüz çeldirici. */
+const FISH_KINDS_BY_TIER = [["fish"], ["fish","shark"], ["fish","shark","turtle","seahorse"]], FISH_NEUTRAL = ["octopus","starfish","crab"];
+let fishKindPrev = null;
+function fishSpec(){ const t = Math.min(currentCombo().t, 2); return isPre()
+  ? [{ side:1, cong:0.6, neu:0,   jitter:false }, { side:2, cong:0.5, neu:0,   jitter:false }, { side:2, cong:0.4, neu:0.2, jitter:true }][t]
+  : [{ side:2, cong:0.5, neu:0,   jitter:false }, { side:2, cong:0.4, neu:0.2, jitter:true }, { side:3, cong:0.35, neu:0.2, jitter:true }][t]; }
 CHOICE["fish-flanker"] = {
-trials_make: (n) => { const a = []; for(let i = 0; i < n; i++){ const dir = Math.random() < 0.5 ? "L" : "R"; const cong = Math.random() < 0.45; a.push({ dir, flank: cong ? dir : (dir === "L" ? "R" : "L") }); } return a; },
-stim: (t, sz) => { const one = (d) => `<img src="${SEA_IMAGES.fish}" alt="" style="width:19%;object-fit:contain;${d === "L" ? "transform:scaleX(-1);" : ""}">`;
-return `<div style="display:flex;align-items:center;justify-content:center;gap:1%;width:100%">${one(t.flank)}${one(t.flank)}${one(t.dir)}${one(t.flank)}${one(t.flank)}</div>`; },
+setup: () => { const t = Math.min(currentCombo().t, 2), kinds = FISH_KINDS_BY_TIER[isPre() ? Math.max(0, t - 1) : t].filter(k => SEA_IMAGES[k]); const kind = kinds.length > 1 ? pickDifferent(kinds, fishKindPrev) : (kinds[0] || "fish"); fishKindPrev = kind; return { kind, spec: fishSpec() }; },
+trials_make: (n, c) => { const sp = (c && c.spec) || fishSpec(), kind = (c && c.kind) || "fish";
+  const nNeu = Math.round(n * sp.neu), nCong = Math.round((n - nNeu) * sp.cong), nInc = n - nNeu - nCong;
+  const conds = balancedSeq(n, ["C","I","N"], 2, [nCong, nInc, nNeu]), dirs = balancedSeq(n, ["L","R"], 2);
+  return conds.map((cd, k) => { const dir = dirs[k]; return { dir, flank: cd === "C" ? dir : cd === "I" ? (dir === "L" ? "R" : "L") : "N", kind, side: sp.side, dy: sp.jitter ? randomItem([-22, 0, 22]) : 0, neu: randomItem(FISH_NEUTRAL) }; }); },
+stim: (t, sz) => { const items = (t.side || 2) * 2 + 1, w = Math.min(19, Math.floor(92 / items)); const src = (k) => SEA_IMAGES[k] || SEA_IMAGES.fish;
+  const one = (d) => d === "N" ? `<img src="${src(t.neu)}" alt="" style="width:${w}%;object-fit:contain">` : `<img src="${src(t.kind)}" alt="" style="width:${w}%;object-fit:contain;${d === "L" ? "transform:scaleX(-1);" : ""}">`;
+  const side = Array.from({ length: t.side || 2 }, () => one(t.flank)).join("");
+  return `<div style="display:flex;align-items:center;justify-content:center;gap:1%;width:100%;transform:translateY(${t.dy || 0}%)">${side}${one(t.dir)}${side}</div>`; },
 buttons: () => [{ id:"L", html:'<span style="font-size:34px;font-weight:900">◀</span>' }, { id:"R", html:'<span style="font-size:34px;font-weight:900">▶</span>' }],
 correct: (t) => t.dir, cols: 2, wideStim: true
 };
@@ -9673,7 +9689,7 @@ const INSTR_SHORT = {
 "quick-sort":       [() => { const R = qsRule(); const tail = qsRuleKey === "canli" ? " Bitkiler de canlıdır; oyuncak hayvanlar cansızdır." : ""; return Q(`${trCap(R.a.l)} gelirse ${trDat(R.a.l)}, ${trCap(R.b.l).toLocaleLowerCase("tr")} gelirse ${trDat(R.b.l)} hızlıca dokun.`) + tail; }],
 "stroop-touch":     [() => Q("Kelimeyi okuma; yazının RENGİNDEKİ düğmeye dokun.")],
 "day-night-touch":  [() => Q("Güneş gelince AY'a, ay gelince GÜNEŞ'e dokun.")],
-"fish-flanker":     [() => Q("Yalnızca ORTADAKİ balığa bak; baktığı yönün okuna dokun.")],
+"fish-flanker":     [() => Q("Yalnızca ORTADAKİ canlıya bak; baktığı yönün okuna dokun.")],
 "face-go":          [() => Q(`Her yüzde DOKUN'a bas. ${trUpper(FACE_NAMES[fgStop])} yüzde dokunma, bekle.`)],
 "switch-touch":     [() => Q("Yeşil çerçevede gördüğünü, turuncu çerçevede TERSİNİ seç: ön mü, arka mı?")],
 "plan-think":       [() => `${Q("Önce zihninde planla; birkaç saniye sonra dokunabilirsin. En az hamleyle hedefteki gibi yap.")} İsterseniz çocuk kaç hamlede çözeceğini önce söylesin.`],
@@ -11968,7 +11984,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.18-c";
+const APP_VERSION = "2026.10.18-d";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
