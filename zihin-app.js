@@ -1,5 +1,5 @@
 
-const COLORS = ["#D55E00","#CC79A7","#0072B2","#009E73","#E69F00"];
+const COLORS = ["#D62839","#CC79A7","#0072B2","#009E73","#E69F00"];
 const COLORS_BY_TIER = [
 [COLORS[0], COLORS[2], COLORS[4]],
 [COLORS[0], COLORS[1], COLORS[2], COLORS[4]],
@@ -10,7 +10,7 @@ const NUMBERS_BY_TIER = [
 [1,2,3,4,5,6],
 [1,2,3,4,5,6,7,8,9]
 ];
-const COLOR_NAMES = {"#D55E00":"kiremit","#CC79A7":"mor","#0072B2":"mavi","#009E73":"yeşil","#E69F00":"turuncu"};
+const COLOR_NAMES = {"#D62839":"kırmızı","#CC79A7":"pembe","#0072B2":"mavi","#009E73":"yeşil","#E69F00":"turuncu"};   /* adlar görünen renkle aynı: pembe, gerçek kırmızı */
 
 const TIERS = [
 {label:"Başlangıç", rows:4, cols:4, eyeDurationMs:25000, eyeSpeedMs:4500, studyDurationMs:8000},
@@ -298,7 +298,7 @@ const CRT_MOVES = [
 { color:"#0072B2", name:"mavi",    emoji:"👅", move:"dil çıkar" },
 { color:"#009E73", name:"yeşil",   emoji:"👏", move:"alkış yap" },
 { color:"#E69F00", name:"turuncu", emoji:"👋", move:"bay bay yap" },
-{ color:"#CC79A7", name:"mor",     emoji:"😉", move:"göz kırp" }
+{ color:"#CC79A7", name:"pembe",     emoji:"😉", move:"göz kırp" }
 ];
 const CRT_COUNT_BY_TIER = [3, 4, 5];
 const PRE_CRT_COUNT_BY_TIER = [2, 2, 3];
@@ -3065,7 +3065,7 @@ let inkColor;
 do{ inkColor = randomItem(COLORS); } while(COLOR_NAMES[inkColor] === word);
 return { word, inkColor };
 },
-renderItem: (item) => `<div class="name-cell stroop-cell" style="color:${item.inkColor}; font-weight:900;">${item.word.toUpperCase()}</div>`,
+renderItem: (item) => `<div class="name-cell stroop-cell" style="color:${item.inkColor}; font-weight:900;">${trUpper(item.word)}</div>`,
 stages: [
 {
 label: "Yazı Rengi",
@@ -10484,7 +10484,7 @@ function pickPortraitDims(n, board, rows0, cols0){ try{ if(rows0 < 2 || cols0 < 
   const focus = document.documentElement.classList.contains("run-focus") && window._rfMax; const availAll = focus ? window._rfMax : Math.max(window.innerHeight - board.getBoundingClientRect().top - barH - 12 - 90, window.innerHeight * 0.62); /* odak dışında sayfa kaydırılabilir: başlık uzun olsa da tahta ekranın en az %62'si kadar yer alabilir (aksi hâlde seçici ham sütuna düşüp hücreleri sıkıştırıyordu) */   /* odak dışında "Geçmiş Sonuçları Gör" için yer kalsın */
   const h = availAll - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 16; if(!(w > 0 && h > 120)) return null;
   const gx = parseFloat(cs.columnGap) || 10, gy = parseFloat(cs.rowGap) || 26; const hasText = !!board.querySelector(".name-cell, .stroop-cell, .phrase-cell"); const hasPair = !!board.querySelector(".pair-cell"), hasOdd = !!board.querySelector(".odd-group"); const aspect = hasPair ? 2.1 : hasOdd ? 2.4 : (hasText ? 1.7 : 1);
-  let best = null; for(let c = 2; c <= n; c++){ const r = Math.ceil(n / c); if(r < 1 || c * r - n > c - 1) continue; const cw = (w - (c - 1) * gx) / c, ch = (h - (r - 1) * gy) / r; if(cw <= 0 || ch <= 0) continue; const cell = Math.min(cw / aspect, ch); const score = cell - (c * r - n) * 0.5; if(!best || score > best.score) best = { cols:c, rows:r, cell:Math.floor(cell), cw:Math.floor(Math.min(cw, cell * aspect)), score }; }
+  let best = null; for(let c = 2; c <= n; c++){ const r = Math.ceil(n / c); if(r < 1 || c * r - n > c - 1) continue; const cw = (w - (c - 1) * gx) / c, ch = (h - (r - 1) * gy) / r; if(cw <= 0 || ch <= 0) continue; const cell = Math.min(cw / aspect, ch); const rem = n % c; const score = cell - (c * r - n) * 0.5 - (rem && rem <= Math.floor(c / 2) ? cell * 0.18 : 0);   /* son satırda yarıdan az kart kalan dizilim cezalı */ if(!best || score > best.score) best = { cols:c, rows:r, cell:Math.floor(cell), cw:Math.floor(Math.min(cw, cell * aspect)), score }; }
   return best; }catch(e){ return null; } }
 function applyBoardLayout(){
 if(applyingBoardLayout) return;
@@ -10501,8 +10501,7 @@ if(best){ rows = best.rows; cols = best.cols; track = "minmax(0, 1fr)"; }
 } else { const best = pickPortraitDims(currentGrid.length, board, rows, cols); if(best){ rows = best.rows; cols = best.cols; colTrack = best.cw + "px"; rowTrack = best.cell + "px"; } }
 board.style.gridTemplateColumns = `repeat(${cols}, ${colTrack || track})`;
 board.style.gridTemplateRows = `repeat(${rows}, ${rowTrack || track})`; board.style.justifyContent = colTrack ? "center" : ""; board.style.alignContent = rowTrack ? "center" : "";
-board.classList.toggle("wide-grid", cols >= 5 || rows >= 5);
-renderRowDividers(board, rows, cols);
+board.classList.toggle("wide-grid", cols >= 5 || rows >= 5); centerLastRow(board, cols); renderRowDividers(board, rows, cols);
 fitTextCells(board);
 const gridAtLayout = currentGrid;
 requestAnimationFrame(()=>{
@@ -10517,6 +10516,10 @@ applyingBoardLayout = false;
 }
 }
 
+/* Son satırı ortala: kart sayısı sütuna bölünmüyorsa kalan kartlar sola yığılmasın (sıra ve dokunma mantığı değişmez, yalnızca yerleşim) */
+function centerLastRow(board, cols){ try{ const items = [...board.children].filter(e => e.classList && e.classList.contains("cell")); items.forEach(e => { e.style.gridColumn = ""; e.style.gridColumnStart = ""; e.style.justifySelf = ""; e.style.width = ""; e.style.maxWidth = ""; }); const n = items.length, rem = n % cols; if(!cols || cols < 2 || !rem) return;
+  const last = items.slice(n - rem); if(rem === 1){ last[0].style.gridColumn = "1 / -1"; last[0].style.justifySelf = "center"; const w = items[0].getBoundingClientRect().width; last[0].style.width = w ? w + "px" : ""; last[0].style.maxWidth = w ? w + "px" : ""; return; }
+  if((cols - rem) % 2 === 0) last[0].style.gridColumnStart = String((cols - rem) / 2 + 1); }catch(e){} }
 function renderRowDividers(board, rows, cols){
 board.querySelectorAll(".row-divider").forEach(el => el.remove());
 if(rows <= 1 || cols <= 0) return;
@@ -11966,9 +11969,15 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.17-r";
+const APP_VERSION = "2026.10.18-a";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
+/* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
+.ex-today{ cursor:pointer; text-align:left; font-family:inherit; width:100%; }
+.ex-today .ex-play{ flex:0 0 44px; width:44px; height:44px; display:flex; align-items:center; justify-content:center; opacity:.95; }
+.ex-today .ex-go-txt{ opacity:.85; margin-top:2px; }
+.ex-today:active{ transform:translateY(2px); }
+
 /* Yazı: bütün uygulamada Nunito; başlıklar 900, açıklama ve notlar en az 600 (uzman panosu ile aynı) (2026.10.17) */
 html, body{ font-family:"Nunito", "Trebuchet MS", system-ui, -apple-system, sans-serif; }
 button, input, select, textarea, option{ font-family:inherit; }
@@ -12191,8 +12200,10 @@ const go = !has ? "Seç" : !P ? "Keşif" : canResume ? "Devam" : "Başla";
 const ic = (path, col) => `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="${col}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`;
 const T = "#0A847E", K = "#A9632A";
 const I = { users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8"/><path d="M18 14.8c2 .7 3.2 2.4 3.6 5.2"/>', hw:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 3 3 5-6"/>', grow:'<path d="M12 21v-9"/><path d="M12 12c0-4 3-7 7-7 0 4-3 7-7 7z"/><path d="M12 14c0-3-2.5-5.5-6-5.5 0 3.5 2.5 5.5 6 5.5z"/>', week:'<path d="M4 20V11M10 20V5M16 20v-6M2 20h20"/>', compass:'<circle cx="12" cy="12" r="9.5"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>' };
-box.innerHTML = `<div class="fh-today ex-today" id="exTodayCard" style="cursor:default"><span class="ex-av">${has ? escHTML(cur.charAt(0).toLocaleUpperCase("tr")) : "?"}</span>
-<span class="fh-tx"><div class="fh-t1">${has ? escHTML(cur) + " ile seans" : "Seansa başla"}</div><div class="fh-t2">${has ? sumTxt : "Önce ana ekrandan çalışacak kişiyi seçin"}</div></span></div>
+const goTxt = !has ? "Dokun: kişi seç" : canResume ? "Dokun: kaldığı yerden devam" : P ? "Dokun: gelişmesi gereken alanla başla" : "Dokun: ilk alandan başla";
+box.innerHTML = `<button type="button" class="fh-today ex-today" id="exTodayCard"><span class="ex-av">${has ? escHTML(cur.charAt(0).toLocaleUpperCase("tr")) : "?"}</span>
+<span class="fh-tx"><div class="fh-t1">${has ? escHTML(cur) + " ile seans" : "Seansa başla"}</div><div class="fh-t2">${has ? sumTxt : "Önce çalışacak kişiyi seçin"}</div><div class="fh-t2 ex-go-txt">${goTxt}</div></span>
+<span class="ex-play" aria-hidden="true"><svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M10 8.3v7.4l5.8-3.7z" fill="#FFFFFF"></path></svg></span></button>
 <button type="button" class="fh-week" id="exHomeBtn"><span class="ic" style="background:var(--teal-tint);color:var(--teal-dark)">${ic(I.users, T)}</span><span><div class="t1">Danışanlar</div><div class="t2">${n ? `${n} danışan · ${linked} aile bağlı · ödevler danışan ekranında` : "Danışan ekle, aileye bağla, ödev gönder"}</div></span></button>
 <button type="button" class="fh-week" id="exGrowBtn"><span class="ic" style="background:#FFF3C4;color:#9A6B00">${ic(I.grow, "#9A6B00")}</span><span><div class="t1">Gelişim haritası</div><div class="t2">${has ? escHTML(cur) + " · güçlü yönler ve gelişen alanlar" : "Kişi seçince açılır"}</div></span></button>
 <button type="button" class="fh-week" id="exWeekBtn"><span class="ic">${ic(I.week, "#9A5A12")}</span><span><div class="t1">Bu hafta</div><div class="t2">${has ? "Çalışılan günler ve kısa gelişim özeti" : "Kişi seçince açılır"}</div></span></button>
@@ -12202,6 +12213,10 @@ const needPerson = (fn) => () => { if(!has){ pickPerson(() => renderCategoryList
 document.getElementById("exHomeBtn").onclick = () => showExpert("list");
 document.getElementById("exGrowBtn").onclick = needPerson(showGrowth);
 document.getElementById("exWeekBtn").onclick = needPerson(showWeek);
+document.getElementById("exTodayCard").onclick = needPerson(() => {
+  if(canResume) return resumeLast(L);
+  if(P){ const d = PLACE_DOMS.slice().sort((a, b) => (P.dom[a.k] ?? 9) - (P.dom[b.k] ?? 9))[0]; const ci = CATEGORIES.findIndex(c => d.cats.includes(c.id) && !c.hidden); if(ci >= 0) return selectCategory(ci); }
+  const first = CATEGORIES.findIndex(c => !c.hidden && c.id === "islemleme-hizi"); selectCategory(first >= 0 ? first : 0); });
 const pb = document.getElementById("exPlaceBtn"); if(pb) pb.onclick = async () => { if(P && !await zaConfirm(cur + " için keşif turu yeniden yapılsın mı? Yeni sonuçlar eskisinin yerine geçer.")) return; placeStart(cur); };
 }
 const expertView = { mode:"list", code:null };
@@ -13712,7 +13727,7 @@ replay: startQuickTap
 });
 }
 
-const AVATAR_COLORS = ["#2E6F6E","#C97F32","#3A6EA5","#4F9D5A","#8A5A8C","#2E5F8A","#D55E00","#0072B2"];
+const AVATAR_COLORS = ["#2E6F6E","#C97F32","#3A6EA5","#4F9D5A","#8A5A8C","#2E5F8A","#D62839","#0072B2"];
 function avatarColor(name){
 let hash = 0;
 for(let i=0;i<name.length;i++) hash = name.charCodeAt(i) + ((hash<<5)-hash);
@@ -13720,7 +13735,7 @@ return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 function escHTML(v){ return String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
 function avatarHTML(name, size){
-const initial = (name||"?").trim().charAt(0).toUpperCase() || "?";
+const initial = (name||"?").trim().charAt(0).toLocaleUpperCase("tr-TR") || "?";
 const s = size || 26;
 return `<span class="avatar-chip" style="width:${s}px;height:${s}px;background:${avatarColor(name||"")};font-size:${Math.round(s*0.46)}px;">${initial}</span>`;
 }
