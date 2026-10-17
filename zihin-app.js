@@ -491,7 +491,7 @@ const PAIR_SETS_PRE = [["door","key"],["foot","shoe"],["tooth","toothbrush"],["c
 const PAIR_SETS_POST = [["nail","hammer"],["screw","screwdriver"],["pencil","sharpener"],["phone","charger"],["spoon","bowl"],["sock","slipper"],["bee","honey"],["scissors","paper"],["broom","dustpan"],["bucket","shovel"],["paintbrush","paint"],["cup","straw"]];   /* mektup–zarf çıkarıldı (artık yaygın değil) */
 const PAIR_BLOCKED = new Set([ "cloud-wateringcan", "sock-shoe", "foot-slipper", "flower-honey", "spoon-honey", "paldog-slipper", "paldog-shoe", "pencil-paper", "paintbrush-paper", "bucket-paint", "bucket-dustpan", "spoon-straw", "cup-honey" ]);   /* "o da birlikte kullanılır" denebilecek karışımlar yanlış seçenek olarak gösterilmez */
 const PAIR_COUNT_BY_TIER = [4, 5, 6]; const PRE_PAIR_COUNT_BY_TIER = [2, 3, 4];
-const PAIR_DIMS_POST = [{rows:5, cols:3}, {rows:7, cols:3}, {rows:8, cols:3}];
+const PAIR_DIMS_POST = [{rows:5, cols:3}, {rows:6, cols:3}, {rows:7, cols:3}];   /* 15 → 18 → 21 */
 const PAIR_DIMS_PRE = [{rows:3, cols:3}, {rows:4, cols:3}, {rows:5, cols:3}];
 let pairPool = null;
 let pairLastKey = "";
@@ -7092,7 +7092,7 @@ L.items.map((x, i) => `<div class="aud-row"><div class="aud-num">${i + 1}</div><
 function rhsScore(){ const L = currentGrid[0]; return L.items.length - L.items.filter((x, i) => ckMarks["0:" + i]).length; }
 
 function dotTrials(){ const t = currentCombo().t, rng = isPre() ? [[1, 3], [1, 4], [2, 5]][t] : [[1, 5], [2, 7], [3, 9]][t], ms = (isPre() ? [2800, 2200, 1700] : [2200, 1700, 1300])[t];
-return Array.from({length: isPre() ? 5 : 8}, () => { const n = rng[0] + Math.floor(Math.random() * (rng[1] - rng[0] + 1)), pts = [];
+return Array.from({length: isPre() ? [5, 6, 7][t] : [8, 10, 12][t]}, () => { const n = rng[0] + Math.floor(Math.random() * (rng[1] - rng[0] + 1)), pts = [];
 let g = 0; while(pts.length < n && g++ < 500){ const x = 14 + Math.random() * 172, y = 14 + Math.random() * 172; if(pts.every(p => Math.hypot(p[0] - x, p[1] - y) > 34)) pts.push([x, y]); }
 return { n, pts, ms, max: rng[1] + 1, min: Math.max(1, rng[0] - 1) }; }); }
 const SEM_QS = [ { k:"canli", q:"Canlı mı?" }, { k:"yenir", q:"Yenir mi?" },
@@ -7131,7 +7131,7 @@ function semTrials(){ const C = qzCats(), I = (src) => ({ src }), t = Math.min(c
       okul:    { yes: [I(P.pencil), I(S.pencil_yellow), I(S.pencil_green), I(P.sharpener), I(H.scissors), I(SC.backpack), I(SC.map)], no: [I(P.hammer), I(H.pillow), I(X.spoon), I(T.teddy), I(X.sock), I(H.comb), I(X.slipper), I(H.cup), I(T.kite)] } };
     Object.keys(SETS).forEach(k => { SETS[k].yes = SETS[k].yes.filter(x => x && x.src); SETS[k].no = SETS[k].no.filter(x => x && x.src); }); /* resmi olmayan öğe havuza girmez */
     const sets = (Q) => SETS[Q.k] || ({ yes: Q.k === "canli" ? living : Q.k === "yenir" ? food : veh, no: Q.k === "canli" ? obj.concat(veh, food) : Q.k === "yenir" ? obj.concat(veh, living) : obj.concat(living, food) });
-  const pool = shuffleArray((isPre() ? SEM_QS.slice(0, 2) : SEM_QS.slice(2)).slice()).slice(0, isPre() ? 2 : [1, 2, 4][t]), N = isPre() ? 8 : 12; const qAt = (i) => t === 0 ? pool[0] : t === 1 ? pool[Math.floor(i / 2) % 2] : pool[i % pool.length]; /* Başlangıç tek soru · Orta iki soru, iki resimde bir · Zor dört soru, her resimde değişir */   // Başlangıç tek soru · Orta iki resimde bir · Zor her resimde
+  const pool = shuffleArray((isPre() ? SEM_QS.slice(0, 2) : SEM_QS.slice(2)).slice()).slice(0, isPre() ? 2 : [1, 2, 4][t]), N = isPre() ? [8, 9, 10][t] : [12, 14, 16][t]; const qAt = (i) => t === 0 ? pool[0] : t === 1 ? pool[Math.floor(i / 2) % 2] : pool[i % pool.length]; /* Başlangıç tek soru · Orta iki soru, iki resimde bir · Zor dört soru, her resimde değişir */   // Başlangıç tek soru · Orta iki resimde bir · Zor her resimde
   const ans = shuffleArray(Array.from({length:N}, (_, i) => i % 2 === 0)); const out = [], used = new Set(); for(let i = 0; i < N; i++){ const Q = qAt(i), S = sets(Q), y = ans[i]; const cand = (y ? S.yes : S.no); const fresh = cand.filter(x => !used.has(x.src)); const it = randomItem(fresh.length ? fresh : cand); used.add(it.src); /* bir turda aynı resim tekrar gelmesin */
     out.push({ stim: qzPic(it.src), opts:[`<b style="font-size:20px">✓ Evet</b>`, `<b style="font-size:20px">✗ Hayır</b>`], ans: y ? 0 : 1, prompt:`<b>${Q.q}</b>`, say: Q.q, text:true, qk: Q.k }); }
   return out; }
@@ -7710,7 +7710,7 @@ const pick = (!pre && tt === 2) ? [2].concat(shuffleArray([0, 1]).slice(0, 1)) :
 return pick.map(si => { const imgs = PA_IMAGES[lvl][si]; return { si, lvl, n: imgs.length, cards: shuffleArray(imgs.map((x, i) => i)), given }; }); }
 const PART_PAIRS = [ ["araba","tekerlek"], ["kuş","kanat"], ["ağaç","yaprak"], ["ev","kapı"] ];
 
-function pmTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 5 : 8; const D = [3, 4, 5, 6][Math.min(t, 3)] - 1;   // satırdaki öğe: 3/4/5/6 (ikiz dahil)
+function pmTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? [5, 6, 7, 7][Math.min(t, 3)] : [8, 10, 12, 12][Math.min(t, 3)];   /* deneme sayısı düzeyle artar */ const D = [3, 4, 5, 6][Math.min(t, 3)] - 1;   // satırdaki öğe: 3/4/5/6 (ikiz dahil)
 const mk = () => {
   if(pre){ let pool;
     if(t >= 2){ const by = {}; picPool().forEach(x => (by[x.cat] = by[x.cat] || []).push(x)); const cats = Object.keys(by).filter(c => by[c].length >= D); pool = shuffleArray(by[randomItem(cats)].slice()).slice(0, D); }   // aynı kategori: ayırt etmek zorlaşır
@@ -11927,7 +11927,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.17-g";
+const APP_VERSION = "2026.10.17-i";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
