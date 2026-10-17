@@ -5505,9 +5505,9 @@ btn.addEventListener("click", ()=>{ navTier = t; goToIndex(findSeqIndex(t, curre
 });
 }
 
-function renderExerciseRow(){
-const row = document.getElementById("exerciseRow");
-row.innerHTML = "";
+/* Etkin çalışma sekmesini görünür (ortada) tut: Sonraki/Önceki ile sayfa değişince sekme satırı da birlikte kayar; sayfanın dikey konumu değişmez */
+function centerActiveChip(row, instant){ try{ const go = () => { const b = row.querySelector(".exercise-btn.active"); if(!b || row.scrollWidth <= row.clientWidth + 2) return; const rr = row.getBoundingClientRect(), br = b.getBoundingClientRect(); const rel = br.left - rr.left - row.clientLeft; /* satırın görünen kısmına göre konum */ const target = Math.max(0, Math.min(row.scrollWidth - row.clientWidth, row.scrollLeft + rel - (row.clientWidth - br.width) / 2)); if(Math.abs(row.scrollLeft - target) < 2) return; const vis = rel >= 4 && rel + br.width <= row.clientWidth - 4; if(vis && !instant && Math.abs(row.scrollLeft - target) < row.clientWidth * 0.25) return; try{ row.scrollTo({ left: target, behavior: instant ? "auto" : "smooth" }); }catch(e){ row.scrollLeft = target; } }; requestAnimationFrame(go); }catch(e){} }
+function renderExerciseRow(){ const row = document.getElementById("exerciseRow"); const prevScroll = row.scrollLeft; row.innerHTML = "";
 const exs = currentCategoryExercises();
 const t = currentCombo().t;
 const groups = currentCategory().exerciseGroups || [];
@@ -5524,9 +5524,7 @@ row.appendChild(lbl);
 const btn = document.createElement("button");
 btn.className = "exercise-btn" + (e===currentCombo().e ? " active" : "");
 btn.textContent = ex.label;
-btn.addEventListener("click", ()=>{ const tt = Math.min(currentCombo().t, tierMax(ex)); goToIndex(findSeqIndex(tt, e)); }); if(t > tierMax(ex)) btn.classList.add("dim"); row.appendChild(btn);
-});
-}
+btn.addEventListener("click", ()=>{ const tt = Math.min(currentCombo().t, tierMax(ex)); goToIndex(findSeqIndex(tt, e)); }); if(t > tierMax(ex)) btn.classList.add("dim"); row.appendChild(btn); }); row.scrollLeft = prevScroll; centerActiveChip(row); }
 function formatTime(ms){
 const totalMs = Math.max(0, ms);
 const totalSec = Math.floor(totalMs/1000);
@@ -11970,7 +11968,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.18-b";
+const APP_VERSION = "2026.10.18-c";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
