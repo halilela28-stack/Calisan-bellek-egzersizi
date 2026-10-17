@@ -8124,7 +8124,7 @@ document.getElementById("placeDone").onclick = () => { el.style.display = "none"
 function renderPlaceSettings(){ const box = document.getElementById("placeSettingsBox"); if(!box) return; const nm = (currentPlayerName || "").trim();
 if(!nm || nm === "Misafir"){ box.innerHTML = `<span style="font-size:12px;font-weight:600;color:var(--ink-soft)">Önce bir kişi seçin.</span>`; return; }
 const p = placeGet(nm);
-box.innerHTML = `<div style="font-size:13px;font-weight:700">${escHTML(nm)}</div>${p ? `<div class="place-res small">${PLACE_DOMS.map(d => `<div><b>${d.nm}</b><span class="t${stepTier(p.dom[d.k] ?? 0)}">${p.dom[d.k] != null ? stepName(p.dom[d.k]) : "—"}</span></div>`).join("")}</div><div style="font-size:12px;font-weight:600;color:var(--ink-soft);margin:4px 0">${placeSummary(p)} · ${new Date(p.t).toLocaleDateString("tr-TR")}</div>` : `<div style="font-size:12px;font-weight:600;color:var(--ink-soft);margin:4px 0">Henüz keşif turu yapılmadı.</div>`}
+box.innerHTML = `<div style="font-size:13px;font-weight:700">${escHTML(nm)}</div>${p ? `<div class="place-sum" style="margin:8px 0 4px">${[["Okul Sonrası", PLACE_DOMS.filter(d => (p.dom[d.k] ?? 0) >= 3)], ["Okul Öncesi", PLACE_DOMS.filter(d => (p.dom[d.k] ?? 0) < 3)]].filter(g => g[1].length).map(g => `<div class="place-grp"><div class="place-grp-h">${g[0]}</div>${g[1].map(d => `<div class="place-row"><b>${d.nm}</b><span class="t${stepTier(p.dom[d.k] ?? 0)}">${PLACE_TIER[stepTier(p.dom[d.k] ?? 0)]}</span></div>`).join("")}</div>`).join("")}</div><div style="font-size:12px;font-weight:600;color:var(--ink-soft);margin:4px 0">${placeSummary(p)} · ${new Date(p.t).toLocaleDateString("tr-TR")}</div>` : `<div style="font-size:12px;font-weight:600;color:var(--ink-soft);margin:4px 0">Henüz keşif turu yapılmadı.</div>`}
 <button type="button" class="fam-chip" id="placeRunBtn">${p ? "Yeniden değerlendir" : "Keşif turunu başlat"}</button>`;
 document.getElementById("placeRunBtn").onclick = () => placeStart(nm); }
 
@@ -11966,7 +11966,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.17-l";
+const APP_VERSION = "2026.10.17-o";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
@@ -12099,7 +12099,7 @@ if(!fbOk() || expertLinksUnsub) return;
 const { db, collection, query, where, onSnapshot } = window.__fb;
 expertLinksUnsub = onSnapshot(query(collection(db, "links"), where("expertUid", "==", window.__fb.uid)), snap => {
 expertLinks = snap.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => String(a.childName).localeCompare(String(b.childName), "tr"));
-if(document.getElementById("expertScreen").style.display !== "none" && expertView.mode === "list") renderExpertList();
+if(document.getElementById("expertScreen").style.display !== "none" && expertView.mode === "list") renderExpertList(); if(document.getElementById("expertScreen").style.display !== "none" && expertView.mode === "hw") renderExpertHw();
 if(document.getElementById("expertScreen").style.display !== "none" && expertView.mode === "client" && expertView.pendingData && expertLinks.some(x => x.id === expertView.code)){ expertView.pendingData = false; renderExpertClient(expertView.code); }
 if(document.getElementById("categoryScreen").style.display !== "none") renderExpertHome();
 }, e => console.error("Danışanlar okunamadı:", e));
@@ -12109,10 +12109,33 @@ const box = document.getElementById("expertHome"); if(!box) return;
 if(appMode !== "uzman"){ box.style.display = "none"; return; }
 watchExpertLinks();
 const n = expertLinks.length, linked = expertLinks.filter(l => l.familyUid).length;
-box.innerHTML = `<button type="button" class="fh-week" id="exHomeBtn"><span class="ic" style="background:var(--teal-tint);color:var(--teal-dark)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8"/><path d="M18 14.8c2 .7 3.2 2.4 3.6 5.2"/></svg></span>
-<span><div class="t1">Danışanlarım</div><div class="t2">${n ? `${n} danışan · ${linked} aile bağlı` : "Aileye program ata, sonuçları uzaktan izle"}</div></span></button>`;
+const cur = (currentPlayerName || "").trim(), has = !!cur && cur !== "Misafir" && cur !== "Oyuncu";
+const P = has ? placeGet(cur) : null, L = (() => { try{ return lastGet(); }catch(e){ return null; } })(), canResume = !!(has && L && L.mode === "uzman" && L.player === cur);
+const sumTxt = P ? (() => { const v = Object.values(P.dom), post = v.filter(x => x >= 3).length; return post === v.length ? "Keşif: Okul Sonrası" : post === 0 ? "Keşif: Okul Öncesi" : `Keşif: ${post} alan Okul Sonrası`; })() : "Keşif turu henüz yapılmadı";
+const go = !has ? "Seç" : !P ? "Keşif" : canResume ? "Devam" : "Başla";
+const ic = (path, col) => `<span class="exq-ic" style="color:${col}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg></span>`;
+const T = "#0A847E", K = "#A9632A";
+const I = { users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8"/><path d="M18 14.8c2 .7 3.2 2.4 3.6 5.2"/>', hw:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 3 3 5-6"/>', grow:'<path d="M12 21v-9"/><path d="M12 12c0-4 3-7 7-7 0 4-3 7-7 7z"/><path d="M12 14c0-3-2.5-5.5-6-5.5 0 3.5 2.5 5.5 6 5.5z"/>', week:'<path d="M4 20V11M10 20V5M16 20v-6M2 20h20"/>', compass:'<circle cx="12" cy="12" r="9.5"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>' };
+box.innerHTML = `<button type="button" class="fh-today ex-today" id="exTodayBtn"><span class="ex-av">${has ? escHTML(cur.charAt(0).toLocaleUpperCase("tr")) : "?"}</span>
+<span class="fh-tx"><div class="fh-t1">${has ? escHTML(cur) + " ile seans" : "Seansa başla"}</div><div class="fh-t2">${has ? sumTxt + (canResume ? " · kaldığı yer hazır" : "") : "Önce çalışacak kişiyi seçin"}</div></span><span class="fh-go">${go}</span></button>
+<div class="ex-quick">
+<button type="button" id="exHomeBtn">${ic(I.users, T)}<b>Danışanlar</b><small>${n ? `${n} danışan · ${linked} aile bağlı` : "Danışan ekle, aileye bağla"}</small></button>
+<button type="button" id="exHwBtn">${ic(I.hw, K)}<b>Ödevler</b><small>${n ? (() => { const k = expertLinks.filter(l => l.familyUid && (!l.program || !(l.program.hw || []).length || weekBars(l).n < Math.ceil(weekBars(l).total * 0.6))).length; return k ? `${k} danışan ilgi bekliyor` : "Hepsi yolunda"; })() : "Danışan ekleyince görünür"}</small></button>
+<button type="button" id="exGrowBtn">${ic(I.grow, T)}<b>Gelişim haritası</b><small>${has ? escHTML(cur) + " · güçlü ve gelişen" : "Kişi seçince açılır"}</small></button>
+<button type="button" id="exWeekBtn">${ic(I.week, K)}<b>Bu hafta</b><small>${has ? "Çalışılan günler, özet" : "Kişi seçince açılır"}</small></button>
+</div>
+${has ? `<button type="button" class="fh-week" id="exPlaceBtn">${ic(I.compass, T)}<span><div class="t1">Keşif turu</div><div class="t2">${P ? sumTxt.replace("Keşif: ", "") + " · " + new Date(P.t).toLocaleDateString("tr-TR") + " · yeniden değerlendir" : "On alanda başlangıç düzeyini belirle"}</div></span></button>` : ""}`;
 box.style.display = "flex";
+const needPerson = (fn) => () => { if(!has){ pickPerson(() => renderCategoryList(), { noGuest:true }); return; } fn(); };
 document.getElementById("exHomeBtn").onclick = () => showExpert("list");
+document.getElementById("exHwBtn").onclick = () => showExpert("hw");
+document.getElementById("exGrowBtn").onclick = needPerson(showGrowth);
+document.getElementById("exWeekBtn").onclick = needPerson(showWeek);
+document.getElementById("exTodayBtn").onclick = needPerson(() => {
+  if(!P) return placeStart(cur);
+  if(canResume) return resumeLast(L);
+  /* en çok gelişmesi gereken alanla başla */ const d = PLACE_DOMS.slice().sort((a, b) => (P.dom[a.k] ?? 9) - (P.dom[b.k] ?? 9))[0]; const ci = CATEGORIES.findIndex(c => d.cats.includes(c.id) && !c.hidden); if(ci >= 0) selectCategory(ci); });
+const pb = document.getElementById("exPlaceBtn"); if(pb) pb.onclick = async () => { if(P && !await zaConfirm(cur + " için keşif turu yeniden yapılsın mı? Yeni sonuçlar eskisinin yerine geçer.")) return; placeStart(cur); };
 }
 const expertView = { mode:"list", code:null };
 function showExpert(mode, code){
@@ -12120,9 +12143,7 @@ expertView.mode = mode; expertView.code = code || null;
 document.getElementById("categoryScreen").style.display = "none";
 hideFamScreens(); hideLinkScreens();
 watchExpertLinks();
-if(mode === "list") renderExpertList();
-else if(mode === "new") renderExpertNew();
-else renderExpertClient(code);
+if(mode === "list") renderExpertList(); else if(mode === "hw") renderExpertHw(); else if(mode === "new") renderExpertNew(); else renderExpertClient(code);
 document.getElementById("expertScreen").style.display = "flex";
 document.getElementById("expertScreen").scrollTop = 0;
 if(mode === "list"){ try{ scheduleTour("expert", "expertScreen"); }catch(e){} }
@@ -12149,6 +12170,22 @@ ${rows || `<div class="fam-card"><div style="font-weight:900">Henüz danışan y
 document.getElementById("exNewBtn").onclick = () => showExpert("new");
 w.querySelectorAll("[data-code]").forEach(b => b.onclick = () => showExpert("client", b.dataset.code));
 }
+/* Ödevler özeti: bütün danışanların ödev ve program durumu; önce ilgilenilmesi gerekenler üstte */
+function renderExpertHw(){ const w = document.getElementById("expertWrap");
+  const info = (l) => { const p = l.program || null, hw = p && Array.isArray(p.hw) ? p.hw.length : 0, b = weekBars(l), last = l.lastActivityAt ? Math.floor((Date.now() - l.lastActivityAt) / 864e5) : null;
+    let st, rank; if(!l.familyUid){ st = ["Kod bekleniyor", "var(--ink-soft)"]; rank = 3; } else if(!p){ st = ["Program yok", "#9A5A12"]; rank = 0; } else if(!hw){ st = ["Ödev yok", "#9A5A12"]; rank = 1; } else if(b.n < Math.ceil(b.total * 0.6)){ st = ["Geride", "#9A5A12"]; rank = 2; } else { st = ["Yolunda", "var(--teal-dark)"]; rank = 4; }
+    return { l, p, hw, b, last, st, rank }; };
+  const all = expertLinks.map(info).sort((a, b) => a.rank - b.rank || String(a.l.childName).localeCompare(String(b.l.childName), "tr")); const need = all.filter(x => x.rank <= 2).length;
+  const rows = all.map(x => `<button type="button" class="ex-client" data-code="${x.l.id}"><span class="ex-av">${String(x.l.childName || "?").charAt(0).toLocaleUpperCase("tr-TR")}</span>
+    <span class="ex-tx"><div class="ex-t1">${escHTML(x.l.childName)}</div><div class="ex-t2">${x.p ? famCatName(x.p.target) + " · " : ""}${x.hw ? x.hw + " ödev" : "ödev atanmadı"}${x.last != null ? " · son etkinlik " + (x.last === 0 ? "bugün" : x.last + " gün önce") : ""}</div>${x.l.familyUid && x.p ? `<div class="ex-bars">${x.b.html}</div>` : ""}</span>
+    <span class="ex-status" style="color:${x.st[1]}">${x.st[0]}</span></button>`).join("");
+  w.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><div><h2 class="fam-h">Ödevler</h2><div class="fam-sub">${all.length ? (need ? `${need} danışan ilgi bekliyor` : "Hepsi yolunda") : "Uzman paneli"}</div></div>
+    <button type="button" class="fam-cta ghost" id="exHwListBtn" style="width:auto;height:48px;padding:0 16px;font-size:15px">Danışanlar</button></div>
+    ${fbOk() ? "" : needCloudHtml()}
+    ${rows || `<div class="fam-card"><div style="font-weight:900">Henüz danışan yok</div><div class="fam-sub" style="font-weight:600;margin-top:4px">Önce Danışanlar'dan danışan ekleyin; ödevler danışan ekranında atanır.</div></div>`}
+    <div class="fam-note">Sıra: program yok → ödev yok → geride → yolunda. Ödev atamak ya da değiştirmek için danışana dokunun. Çubuk: bu haftaki programdan tamamlanan günler.</div>`;
+  document.getElementById("exHwListBtn").onclick = () => showExpert("list");
+  w.querySelectorAll("[data-code]").forEach(b => b.onclick = () => showExpert("client", b.dataset.code)); }
 function renderExpertNew(){
 const w = document.getElementById("expertWrap");
 const opts = (typeof playersList !== "undefined" ? playersList : []);

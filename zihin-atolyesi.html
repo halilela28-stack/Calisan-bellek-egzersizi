@@ -2738,6 +2738,30 @@ html.text-lg #hmEtk .hm-col > button, html.text-xl #hmEtk .hm-col > button{ font
 .mx-g{ box-sizing:content-box; }
 .mx-g > .mx-c{ min-width:0; min-height:0; overflow:hidden; box-sizing:border-box; }
 .mx-c > svg{ display:block; width:100%; height:100%; max-width:100%; max-height:100%; }
+
+/* Uzman panosu (2026.10.17) */
+#expertHome{ flex-direction:column; gap:12px; }
+.ex-today .ex-av{ width:58px; height:58px; flex:0 0 58px; border-radius:50%; background:rgba(255,255,255,.18); border:3px solid rgba(255,255,255,.35); display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:900; color:#FFFFFF; }
+.ex-quick{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px; }
+.ex-quick > button{ display:flex; flex-direction:column; align-items:flex-start; gap:6px; min-height:112px; padding:14px; box-sizing:border-box; background:#FFFFFF; border:2px solid #DDE3E1; border-radius:20px; text-align:left; font-family:inherit; cursor:pointer; min-width:0; }
+.ex-quick > button:active{ background:#F5F8F7; }
+.ex-quick b{ font-size:16px; font-weight:900; color:#1C2B39; line-height:1.2; }
+.ex-quick small{ font-size:12.5px; font-weight:700; color:var(--ink-soft); line-height:1.3; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+.exq-ic{ width:40px; height:40px; border-radius:12px; background:#F1F6F5; display:flex; align-items:center; justify-content:center; }
+.exq-ic svg{ width:22px; height:22px; }
+#expertHome .fh-week .exq-ic{ flex:0 0 44px; width:44px; height:44px; }
+
+/* Panel ekranları: dokunma hedefleri ve taşma (2026.10.17) */
+.hm-gear{ width:44px !important; height:44px !important; }
+#closeSettingsBtn{ min-width:44px !important; min-height:44px !important; }
+.fam-chip{ min-height:42px; box-sizing:border-box; }
+#famTargetBtn{ min-height:40px; padding-top:8px !important; padding-bottom:8px !important; }
+#exRenameBtn, #placeRunBtn, #pinSetBtn{ min-height:42px; }
+#expertWrap > div:first-child{ flex-wrap:wrap; row-gap:10px; }
+#expertWrap > div:first-child > div{ min-width:0; }
+.place-row b{ min-width:0; overflow-wrap:anywhere; }
+.ex-seg{ gap:4px !important; } .ex-seg > button[data-d]{ min-height:44px; min-width:0; padding-left:0 !important; padding-right:0 !important; font-size:13px; }
+.person-delete-btn{ min-height:42px; }
 </style>
 </head>
 <body>
@@ -2959,7 +2983,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.17-l</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.17-o</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -3404,13 +3428,13 @@ dispatchFbReady();
 }
 </script>
 <script>setTimeout(function(){ if(window.__zaReady) return; var d=document.createElement('div'); d.style.cssText='position:fixed;inset:0;z-index:99999;background:#F6FBFA;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;text-align:center;color:#1D2B36'; d.innerHTML='<div style="max-width:420px"><div style="font-size:22px;font-weight:800;margin-bottom:10px">Uygulama dosyaları yüklenemedi</div><div style="font-size:15px;line-height:1.5">Bu sayfa yanındaki <b>zihin-app.js</b> ve <b>zihin-gorsel</b> dosyalarıyla birlikte çalışır. Beş dosyanın da aynı klasöre yüklendiğinden emin olun ve sayfayı yenileyin.<br><br><span style="color:#5B6B78">Claude içindeki önizlemede bu sürüm açılmaz; önizleme için zihin-atolyesi-onizleme.html dosyasını kullanın.</span></div><button onclick="location.reload()" style="margin-top:16px;padding:12px 22px;border:0;border-radius:14px;background:#0A847E;color:#fff;font-size:16px;font-weight:800">Yenile</button></div>'; document.body.appendChild(d); }, 9000);</script>
-<script src="zihin-app.js?v=2026.10.17-l"></script>
+<script src="zihin-app.js?v=2026.10.17-o"></script>
 <div id="imgBar" style="position:fixed;left:0;top:0;height:3px;width:100%;background:rgba(0,0,0,.06);z-index:9999;pointer-events:none"><div id="imgProg" style="height:100%;width:0;background:#1FA463;transition:width .3s"></div></div>
 <div id="imgWarn" style="display:none;position:fixed;left:12px;right:12px;bottom:92px;z-index:9997;background:#FFF4E5;color:#9A3412;border:2px solid #F59E0B;border-radius:14px;padding:10px 14px;font-weight:700;font-size:14px;text-align:center"></div>
 <div id="imgOverlay" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,.92);z-index:9998;align-items:center;justify-content:center;flex-direction:column;gap:14px;font-weight:800;color:#1F2A37;padding:24px;text-align:center"><div id="imgTitle" style="font-size:20px">Resimler yükleniyor…</div><div style="width:min(320px,80%);height:10px;background:#E6ECF2;border-radius:999px;overflow:hidden"><div id="imgProg2" style="height:100%;width:0;background:#1FA463;transition:width .3s"></div></div><div id="imgPct" style="font-size:15px;color:#5B6B7A">%0</div><div style="font-size:13px;color:#5B6B7A;font-weight:600">Yalnızca ilk açılışta sürer; sonraki açılışlarda resimler cihazdan gelir.</div></div>
 <script>
 (function(){ /* Resim dosyaları arkada, paralel yüklenir; uygulama beklemeden açılır. Yüklenen dosya eski/eksikse (ör. eski service worker önbelleği) önbelleği atlayarak yeniden indirilir. */
-  const v = "2026.10.17-l"; const files = [["zihin-gorsel-1.js", 4.5, "STORY_PRE_IMAGES"], ["zihin-gorsel-2.js", 3.1, "PART_IMAGES"], ["zihin-gorsel-3.js", 2.7, "NEW_IMAGES_5"]]; const total = files.reduce((a, f) => a + f[1], 0); let got = 0, done = 0;
+  const v = "2026.10.17-o"; const files = [["zihin-gorsel-1.js", 4.5, "STORY_PRE_IMAGES"], ["zihin-gorsel-2.js", 3.1, "PART_IMAGES"], ["zihin-gorsel-3.js", 2.7, "NEW_IMAGES_5"]]; const total = files.reduce((a, f) => a + f[1], 0); let got = 0, done = 0;
   const show = () => { const pct = Math.round(got / total * 100); ["imgProg", "imgProg2"].forEach(id => { const el = document.getElementById(id); if(el) el.style.width = pct + "%"; }); const p = document.getElementById("imgPct"); if(p) p.textContent = "%" + pct; };
   const has = (name) => { try{ return eval("typeof " + name) !== "undefined"; }catch(e){ return false; } };
   const finish = async () => { const bar = document.getElementById("imgBar"); if(bar) setTimeout(() => bar.style.display = "none", 600); window.__imgMissing = files.filter(f => !has(f[2])).map(f => f[0] + " (" + f[2] + " yok)");
