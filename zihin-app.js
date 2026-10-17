@@ -7588,7 +7588,7 @@ else grid.push({ sh:s1, col:[c1, c2, c3][r], n:c + 1 }); }
 muts = [{ n:1 }, { n:2 }, { n:3 }, { sh:s1 }, { sh:s2 }, { sh:s3 }, { col:c1 }, { col:c2 }, { col:c3 }, { rot:0 }, { rot:90 }, { rot:270 }]; }
 const ans = grid[grid.length - 1], dis = aaDistract(ans, muts, pre ? 2 : 3);
 const cells = grid.map((c, i) => i === grid.length - 1 ? `<div class="mx-c q">?</div>` : `<div class="mx-c">${aaCell(c)}</div>`).join("");
-const stim = `<div class="mx-g" style="grid-template-columns:repeat(${size}, 1fr);width:${size === 2 ? 170 : 210}px">${cells}</div>`;
+const stim = `<div class="mx-g" style="grid-template-columns:repeat(${size}, minmax(0,1fr));width:${size === 2 ? 170 : 210}px">${cells}</div>`;
 const opts = [ans].concat(dis).map(aaCell); out.push(qzMake(stim, opts, 0, { prompt:"Matristeki <b>boş kutuya</b> ne gelir?", raw:true, fixed:true, cell:86 })); }
 return out; }
 const RI_RULES = { pre:[ { k:"red", d:"hepsi kırmızı", ok:(c) => c.col === AA_COL[0] }, { k:"circle", d:"hepsi daire", ok:(c) => c.sh === "circle" }, { k:"big", d:"hepsi büyük", ok:(c) => (c.sz || 1) === 1 } ],
@@ -8057,7 +8057,7 @@ el.style.display = "flex"; el.querySelector('[data-po="go"]').onclick = () => { 
 function placeStart(name){ let prof = null; try{ prof = getPlayerLevel(name); }catch(e){} const base = (prof || readingLevel) === "pre" ? 1 : 3;
 placeRun = { name, base, di:0, step: base, dir:0, hits:0, n:0, visits:0, res:{}, items:0, warmDone:{} };
 let el = document.getElementById("placeScreen"); if(!el){ el = document.createElement("div"); el.id = "placeScreen"; document.body.appendChild(el); }
-el.style.display = "flex"; el.innerHTML = `<div class="adv-wrap" style="text-align:center"><div style="width:110px;height:110px;margin:20px auto 6px">${zihniSVG("happy")}</div><div class="mola-h">Zihni ile keşif turu!</div><div class="mola-s">On küçük oyun var. Elinden geldiğince dikkatli oyna, acele etmene gerek yok.</div><div class="mola-list" style="max-width:300px;margin:0 auto"><button type="button" id="placeGo"><span>▶️</span>Başla</button></div></div>`;
+el.style.display = "flex"; el.innerHTML = `<div class="adv-wrap" style="text-align:center"><div style="width:110px;height:110px;margin:20px auto 6px">${zihniSVG("happy")}</div><div class="mola-h">Zihni ile keşif turu!</div><div class="mola-s">On küçük oyun var. Elinden geldiğince dikkatli oyna, acele etmene gerek yok.</div><div class="mola-list" style="max-width:300px;margin:0 auto"><button type="button" id="placeGo" class="place-cta"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M10 8.5v7l5.5-3.5z" fill="currentColor"></path></svg>Başla</button></div></div>`;
 speakText("Zihni ile keşif turuna hazır mısın?"); document.getElementById("placeGo").onclick = placeNext; placeExitBtn(); }
 function placeExitBtn(){ const el = document.getElementById("placeScreen"); let x = document.getElementById("placeX"); if(x){ x.style.display = "flex"; return; } x = document.createElement("button"); x.id = "placeX"; x.type = "button"; x.className = "place-x mola-x"; x.setAttribute("aria-label", "Keşif turundan çık"); x.textContent = "✕";
 x.onclick = async () => { if(!await zaConfirm("Keşif turundan çıkılsın mı? Sonuçlar kaydedilmez; turu daha sonra yeniden başlatabilirsiniz.")) return; placeRun = null; el.style.display = "none"; x.style.display = "none"; try{ speechSynthesis.cancel(); }catch(e){} try{ if(document.getElementById("islandScreen").style.display === "flex") showIslandMap(); }catch(e){} };
@@ -8115,10 +8115,10 @@ el.querySelectorAll("[data-po-v]").forEach(b => b.onclick = () => { if(R.answere
 function placeFinish(){ const R = placeRun; placeRun = null; { const x = document.getElementById("placeX"); if(x) x.style.display = "none"; } const rec = { t: Date.now(), dom: R.res, items: R.items, base: R.base }; placeSave(R.name, rec);
 try{ if(gameProfile() === R.name){ const g = gxGet(); g.light = (g.light || 0) + 5; gxSave(g); } }catch(e){}
 const el = document.getElementById("placeScreen");
-el.innerHTML = `<div class="adv-wrap" style="text-align:center"><div style="width:110px;height:110px;margin:20px auto 6px">${zihniSVG("happy")}</div><div class="mola-h">Keşif turu bitti!</div><div class="mola-s">Harikaydın! +5 ışık</div>
-<div class="place-res">${PLACE_DOMS.map(d => `<div><b>${d.nm}</b><span class="t${stepTier(R.res[d.k])}">${stepName(R.res[d.k])}</span></div>`).join("")}</div>
-<div class="fam-sub" style="font-weight:600;margin:6px 0 12px">Yetişkin için: Okul Öncesi / Okul Sonrası seviyesi yaşa göre değil, her alanda çocuğun yapabildiğine göre belirlendi. Çalışmalar bu noktalardan başlar ve performansa göre kendiliğinden ayarlanır. Bu bir test değil, başlangıç noktasıdır.</div>
-<div class="mola-list" style="max-width:300px;margin:0 auto"><button type="button" id="placeDone"><span>🗺️</span>Tamam</button></div></div>`;
+el.innerHTML = `<div class="adv-wrap place-done" style="text-align:center"><div class="place-done-top"><div style="width:64px;height:64px;flex:0 0 64px">${zihniSVG("happy")}</div><div style="text-align:left"><div class="mola-h" style="margin:0">Keşif turu bitti!</div><div class="mola-s" style="margin:2px 0 0">Harikaydın! +5 ışık</div></div></div>
+<div class="place-sum">${[["Okul Sonrası", PLACE_DOMS.filter(d => R.res[d.k] >= 3)], ["Okul Öncesi", PLACE_DOMS.filter(d => R.res[d.k] < 3)]].filter(g => g[1].length).map(g => `<div class="place-grp"><div class="place-grp-h">${g[0]}</div>${g[1].map(d => `<div class="place-row"><b>${d.nm}</b><span class="t${stepTier(R.res[d.k])}">${PLACE_TIER[stepTier(R.res[d.k])]}</span></div>`).join("")}</div>`).join("")}</div>
+<div class="fam-sub place-note">Yetişkin için: seviye yaşa göre değil, her alanda yapabildiğine göre belirlendi. Çalışmalar buradan başlar, sonra performansa göre kendiliğinden ayarlanır.</div>
+<div class="mola-list" style="max-width:300px;margin:0 auto"><button type="button" id="placeDone" class="place-cta"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="m7.5 12.5 3 3 6-6.5"></path></svg>Tamam</button></div></div>`;
 speakText("Keşif turu bitti! Harikaydın!");
 document.getElementById("placeDone").onclick = () => { el.style.display = "none"; try{ if(document.getElementById("islandScreen").style.display === "flex") showIslandMap(); }catch(e){} try{ renderPlaceSettings(); }catch(e){} }; }
 function renderPlaceSettings(){ const box = document.getElementById("placeSettingsBox"); if(!box) return; const nm = (currentPlayerName || "").trim();
@@ -11966,7 +11966,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.17-k";
+const APP_VERSION = "2026.10.17-l";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
