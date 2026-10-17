@@ -2646,32 +2646,32 @@ stages: [{ label: "Küp Taşıma", instruction: () => `Önce <b>▶ Başlat</b>'
 {
 id: "cat-fruit",
 readingLevel: ["pre","post"],
-label: "Meyvelere Dokun",
+label: "Meyve–Sebze: Dokun",
 isTouch: true, attrs: [],
 makeGrid: (n) => makeCatTouchGrid(n),
 randomItem: () => ({ go:true }),
 renderItem: (item) => imgFill(item.src),
-stages: [ { label: "Meyvelere Dokun", instruction: () => ``, example: () => `` } ]
+stages: [ { label: "Dokun", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "cat-living",
 readingLevel: ["pre","post"],
-label: "Canlılara Dokun",
+label: "Kurala Göre Dokun",
 isTouch: true, attrs: [],
 makeGrid: (n) => makeCatTouchGrid(n),
 randomItem: () => ({ go:true }),
 renderItem: (item) => imgFill(item.src),
-stages: [ { label: "Canlılara Dokun", instruction: () => ``, example: () => `` } ]
+stages: [ { label: "Dokun", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "cat-cold",
 readingLevel: ["pre","post"],
-label: "Soğuklara Dokun",
+label: "Sıcak–Soğuk: Dokun",
 isTouch: true, attrs: [],
 makeGrid: (n) => makeCatTouchGrid(n),
 randomItem: () => ({ go:true }),
 renderItem: (item) => imgFill(item.src),
-stages: [ { label: "Soğuklara Dokun", instruction: () => ``, example: () => `` } ]
+stages: [ { label: "Dokun", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "trail-numbers",
@@ -4423,7 +4423,7 @@ stages: [ { label: "İkiliyi Tamamla", instruction: () => ``, example: () => `` 
 {
 id: "word-pic",
 readingLevel: ["pre","post"],
-label: "Hangi Kelime?",
+label: "Söyleneni Göster",
 isMt: true, attrs: [], speedFactor: 5.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
@@ -11927,7 +11927,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.17-f";
+const APP_VERSION = "2026.10.17-g";
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
