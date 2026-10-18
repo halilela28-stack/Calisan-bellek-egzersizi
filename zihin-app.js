@@ -12054,7 +12054,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.18-v";
+const APP_VERSION = "2026.10.18-w";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -15121,5 +15121,57 @@ function perfSummary(player, opts){ opts = opts || {}; const nm = (player || "")
     const struggle = ev ? xs.reduce((s, x) => s + x.struggle * x.evidence, 0) / ev : 0, success = ev ? xs.reduce((s, x) => s + x.success * x.evidence, 0) / ev : 0;
     domains[c.id] = { id: c.id, evidence: ev, exercises: xs.length, struggle, success, state: ev < PERF_MIN_EVIDENCE ? "veri-az" : struggle > 0.5 ? "zorlaniyor" : success >= 0.75 ? "guclu" : "gelisiyor" }; });
   return { player: player, records: recs.length, exercises: exercises.sort((a, b) => b.struggle - a.struggle || b.evidence - a.evidence), domains }; }
+
+/* ===== Gelişim ödevleri · Aşama 2: öneri motoru ===== */
+const DEV_KEY = "wm_devhw_v1", DEV_RECENT_DAYS = 14, DEV_STALE_DAYS = 7, DEV_EASE_DAYS = 14, DEV_WEEK_DAYS = 7, DEV_MAX_TOTAL = 5;
+/* Alan → velinin göreceği kısa "neden" (Aşama 6'da birlikte gözden geçirilecek) */
+const DEV_REASON = { "islemleme-hizi":"Hızlı ve doğru çalışmayı destekler", "goz-takip":"Gözle takip etmeyi destekler", "yurutucu-islev":"Dikkati yönetmeyi ve kendini düzenlemeyi destekler", "calisan-bellek":"Bilgiyi akılda tutup kullanmayı destekler", "sozel-bellek":"Duyduğunu hatırlamayı destekler", "gorsel-bellek":"Gördüğünü hatırlamayı destekler", "sozel-organizasyon":"Düşüncelerini sözle düzenlemeyi destekler", "sozel-kavrama":"Dinlediğini ve okuduğunu anlamayı destekler", "gorsel-organizasyon":"Gördüğünü düzenleyip parçaları birleştirmeyi destekler", "algisal-akil-yurutme":"Örüntü ve kural bulmayı destekler" };
+function devStoreAll(){ try{ return JSON.parse(localStorage.getItem(DEV_KEY) || "{}"); }catch(e){ return {}; } }
+function devStoreSave(d){ try{ localStorage.setItem(DEV_KEY, JSON.stringify(d)); }catch(e){} }
+function devKey(player, lvl){ return (player || "").trim() + "|" + (lvl === "pre" ? "pre" : "post"); }
+function devPlanGet(player, lvl){ return devStoreAll()[devKey(player, lvl)] || null; }
+function devPlanSave(player, lvl, plan){ const d = devStoreAll(); d[devKey(player, lvl)] = plan; devStoreSave(d); }
+/* Ödev verildikten sonraki denemeler: kaç kez, kaç başarılı */
+function devAttempts(item, player, now){ const nm = (player || "").trim().toLocaleLowerCase("tr"); const ex = exerciseById(item.id); if(!ex) return { n:0, ok:0, last:0 }; const labels = [ex.label].concat(ex.oldLabels || []);
+  const recs = perfRecords().filter(r => (r.player || "").trim().toLocaleLowerCase("tr") === nm && (r.exId === item.id || labels.includes(r.exerciseLabel)) && r.t >= item.at && r.t <= (now || Date.now())).sort((a, b) => b.t - a.t);
+  return { n: recs.length, ok: recs.filter(r => perfOutcome(r) === "ok").length, last: recs.length ? recs[0].t : 0, lastOutcome: recs.length ? perfOutcome(recs[0]) : null }; }
+function devLevelOk(ex, lvl){ return !!ex && (!ex.readingLevel || ex.readingLevel.includes(lvl)); }
+/* Alanda verilecek çalışmayı seç: tercihen otomatik ölçülen, son 2 haftada verilmemiş; zorlandığı çalışma öncelikli */
+function devPickExercise(cat, lvl, S, recentIds, prefer){ const c = CATEGORIES.find(x => x.id === cat); if(!c) return null; const exs = c.exerciseIds.map(exerciseById).filter(e => devLevelOk(e, lvl));
+  const info = (id) => S.exercises.find(x => x.id === id); const score = (e) => { const i = info(e.id); let sc = 0; if(perfIsAuto(e)) sc += 4; if(recentIds.has(e.id)) sc -= 10; if(prefer === "hard" && i) sc += 3 * i.struggle; if(prefer === "strong" && i) sc += 3 * i.success - (i.lastOutcome === "ok" ? 0 : 2); if(prefer === "strong" && !i) sc -= 5; return sc + Math.random() * 0.5; };
+  const best = exs.slice().sort((a, b) => score(b) - score(a))[0]; return best || null; }
+function devTierFor(ex, S, mode){ const i = S.exercises.find(x => x.id === ex.id); let t; if(i && i.lastTi != null) t = mode === "strong" ? i.lastTi : i.lastTi - 1; else { const xs = S.exercises.filter(x => x.cat === (perfCatOf(ex.id) || {}).id && x.lastTi != null && x.struggle > 0.5); t = xs.length ? Math.min(...xs.map(x => x.lastTi)) - 1 : 0; } return Math.max((ex.minTier || 0), Math.min(2, Math.max(0, t))); }
+function devMakeItem(ex, cat, ti, kind, now, extra){ return Object.assign({ id: ex.id, cat, ti, kind, at: now, status: "open", reason: DEV_REASON[cat] || "" }, extra || {}); }
+/* Planı güncelle: biten ödevleri kapat, dokunulmayanları düşür, haftalık yenile, sınırları uygula */
+function devPlanRefresh(player, lvl, opts){ opts = opts || {}; const now = opts.now || Date.now(); lvl = lvl === "pre" ? "pre" : "post";
+  let plan = devPlanGet(player, lvl) || { genAt: 0, items: [], history: [] }; plan.items = plan.items || []; plan.history = plan.history || [];
+  const S = perfSummary(player, { lvl, now }); const expertN = opts.expertCount || 0; if(opts.off){ plan.items.forEach(it => { it.status = "off"; plan.history.push(it); }); plan.items = []; plan.off = true; devPlanSave(player, lvl, plan); return plan; } plan.off = false;
+  const devCap = expertN > 0 ? 1 : 2, strongCap = expertN > 0 ? 0 : 1, totalCap = Math.max(0, Math.min(devCap + strongCap, DEV_MAX_TOTAL - expertN));
+  const recentIds = new Set(plan.history.concat(plan.items).filter(it => now - it.at < DEV_RECENT_DAYS * 864e5).map(it => it.id));
+  /* 1) kapananlar ve süresi dolanlar */ const keep = [], nextSteps = [], easeSteps = [];
+  plan.items.forEach(it => { const A = devAttempts(it, player, now); it.tries = A.n; it.oks = A.ok; it.last = A.last;
+    if(A.ok >= 2){ it.status = "done"; it.doneAt = A.last; plan.history.push(it); if(it.kind === "dev") nextSteps.push(it); }
+    else if(A.n === 0 && now - it.at >= DEV_STALE_DAYS * 864e5){ it.status = "expired"; plan.history.push(it); }
+    else if(A.n > 0 && now - it.at >= DEV_EASE_DAYS * 864e5){ it.status = "eased"; plan.history.push(it); if(it.kind === "dev") easeSteps.push(it); }   /* 14 günde 2 başarı yoksa: bir alt düzeyde başka çalışma */
+    else keep.push(it); });
+  plan.items = keep;
+  /* 2) kapanan gelişim ödevinin bir sonraki adımı: aynı alan, farklı çalışma, bir üst düzey (alan hâlâ zorlanıyorsa ya da veri azsa) */
+  nextSteps.forEach(prev => { if(plan.items.filter(i => i.kind === "dev").length >= devCap || plan.items.length >= totalCap) return; const d = S.domains[prev.cat]; if(d && d.state === "guclu") return; recentIds.add(prev.id);
+    const ex = devPickExercise(prev.cat, lvl, S, recentIds, "hard"); if(!ex) return; const ti = Math.max(ex.minTier || 0, Math.min(2, (prev.ti || 0) + 1)); plan.items.push(devMakeItem(ex, prev.cat, ti, "dev", now, { step: (prev.step || 1) + 1, from: prev.id })); recentIds.add(ex.id); });
+  easeSteps.forEach(prev => { if(plan.items.filter(i => i.kind === "dev").length >= devCap || plan.items.length >= totalCap) return; recentIds.add(prev.id);
+    const ex = devPickExercise(prev.cat, lvl, S, recentIds, "hard"); if(!ex) return; const ti = Math.max(ex.minTier || 0, Math.max(0, (prev.ti || 0) - 1)); plan.items.push(devMakeItem(ex, prev.cat, ti, "dev", now, { step: prev.step || 1, from: prev.id, eased: true })); recentIds.add(ex.id); });
+  /* 3) haftalık yenileme: ilk kez ya da 7 gün geçtiyse eksikleri tamamla */
+  const weekly = !plan.genAt || now - plan.genAt >= DEV_WEEK_DAYS * 864e5;
+  if(weekly){ plan.genAt = now;
+    const hardDomains = Object.values(S.domains).filter(d => d.state === "zorlaniyor").sort((a, b) => b.struggle - a.struggle || b.evidence - a.evidence);
+    for(const d of hardDomains){ if(plan.items.filter(i => i.kind === "dev").length >= devCap || plan.items.length >= totalCap) break; if(plan.items.some(i => i.cat === d.id)) continue; const ex = devPickExercise(d.id, lvl, S, recentIds, "hard"); if(!ex) continue; plan.items.push(devMakeItem(ex, d.id, devTierFor(ex, S, "dev"), "dev", now, { step: 1 })); recentIds.add(ex.id); }
+    const nDev = plan.items.filter(i => i.kind === "dev").length;
+    if(nDev > 0 && strongCap > 0 && !plan.items.some(i => i.kind === "strong") && plan.items.length < totalCap){ const strong = Object.values(S.domains).filter(d => d.state === "guclu" && !plan.items.some(i => i.cat === d.id)).sort((a, b) => b.success - a.success || b.evidence - a.evidence)[0];
+      if(strong){ const ex = devPickExercise(strong.id, lvl, S, recentIds, "strong"); if(ex){ plan.items.push(devMakeItem(ex, strong.id, devTierFor(ex, S, "strong"), "strong", now)); recentIds.add(ex.id); } } } }
+  /* 4) sınır: uzman ödevi sonradan eklendiyse fazlası düşer (önce güçlü alan, sonra en yeni gelişim) */
+  while(plan.items.length > totalCap || plan.items.filter(i => i.kind === "dev").length > devCap){ const idx = plan.items.findIndex(i => i.kind === "strong"); const rm = idx >= 0 ? plan.items.splice(idx, 1)[0] : plan.items.pop(); rm.status = "trimmed"; plan.history.push(rm); }
+  plan.needData = !Object.values(S.domains).some(d => d.state !== "veri-az");
+  if(plan.history.length > 40) plan.history = plan.history.slice(-40);
+  devPlanSave(player, lvl, plan); return plan; }
 
 window.__zaReady = true;
