@@ -6247,7 +6247,7 @@ window.addEventListener("resize", () => { clearTimeout(window._chResizeT); windo
 const imgFill = (src, flip) => `<img src="${src}" alt="" style="width:82%;height:82%;object-fit:contain;display:block;${flip ? "transform:scaleX(-1);" : ""}">`;
 
 CHOICE["sdmt-touch"] = {
-setup: () => { const shapes = shuffleArray(["circle","triangle","square","star","heart"]); const pics = shuffleArray(HOUSE_KEYS).slice(0, isPre() ? 3 : 5);
+setup: () => { const shapes = shuffleArray(["circle","triangle","square","star","heart"]); const pics = shuffleArray(HOUSE_KEYS).slice(0, (isPre() ? [3, 3, 4] : [3, 4, 5])[Math.min(currentCombo().t, 2)]);   /* anahtar düzeyle büyür */
 const pairs = pics.map((p, i) => ({ shape: shapes[i], img: p })); return { pairs, order: shuffleArray(pairs.map(p => p.img)) }; },
 trials_make: (n, c) => { const a = []; while(a.length < n){ const p = randomItem(c.pairs); if(!a.length || a[a.length-1].shape !== p.shape) a.push(p); } return a; },
 stim: (t, sz) => `<svg viewBox="0 0 100 100" style="width:70%;height:70%">${sortShapeSVG(t.shape, "#1F2A33")}</svg>`,
@@ -12001,7 +12001,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.18-i";
+const APP_VERSION = "2026.10.18-j";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
