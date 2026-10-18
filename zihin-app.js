@@ -6182,11 +6182,19 @@ function chLater(fn, ms){ const st = chState; chTimers.push(setTimeout(() => { i
 const CH_TRIALS = { post:[16, 20, 26], pre:[8, 10, 14] };
 function chTrialCount(spec){ const tb = spec.trials || CH_TRIALS; return (isPre() ? tb.pre : tb.post)[currentCombo().t]; }
 const CHOICE = {};
+/* Aynı doğru cevap art arda en çok maxRun kez: sorular değişmez, yalnızca tur içindeki sırası düzenlenir */
+function limitRuns(arr, keyFn, maxRun){ if(!Array.isArray(arr) || arr.length < 3) return arr; const left = arr.map((x, i) => ({ x, i, k: String(keyFn(x)) })), out = [];
+  while(left.length){ let run = 0; const last = out.length ? out[out.length - 1].k : null; for(let q = out.length - 1; q >= 0 && out[q].k === last; q--) run++;
+    const cnt = {}; left.forEach(o => { cnt[o.k] = (cnt[o.k] || 0) + 1; }); const ok = left.filter(o => !(o.k === last && run >= maxRun)); const pool = ok.length ? ok : left;
+    const mx = Math.max(...pool.map(o => cnt[o.k])); const pick = pool.find(o => cnt[o.k] === mx); out.push(pick); left.splice(left.indexOf(pick), 1); }
+  return out.map(o => o.x); }
+const qzAnsKey = (q) => { if(q && q.res !== undefined) return String(q.res); if(!q || !q.opts || q.ans == null) return JSON.stringify(q && q.ans); const h = String(q.opts[q.ans]); return h.replace(/<[^>]+>/g, "").trim() || h; };
+const CH_NORUN = new Set(["switch-touch"]), QZ_NORUN = ["sem-decide","sent-verify","syl-touch","absurd-touch","rhyme-touch","overlap-count","mental-math"];
 function chBuild(){
 const id = currentExercise().id, spec = CHOICE[id];
 chClear();
 const ctx = spec.setup ? spec.setup() : {};
-const trials = spec.trials_make(chTrialCount(spec), ctx);
+const trials = spec.trials_make(chTrialCount(spec), ctx); if(CH_NORUN.has(id)){ const R = limitRuns(trials, x => String(spec.correct(x)), 2); trials.splice(0, trials.length, ...R); }   /* aynı doğru tepki art arda en çok 2 */
 chState = { id, spec, ctx, trials, idx:0, wrong:0, phase:"idle", flash:"", rts:[], picked:null };
 return trials;
 }
@@ -6256,13 +6264,16 @@ correct: (t) => t.img,
 key: (c) => `<div class="ch-key">${c.pairs.map(p => `<div class="ch-kp"><svg viewBox="0 0 100 100">${sortShapeSVG(p.shape, "#1F2A33")}</svg>${imgFill(HOUSE_IMAGES[p.img])}</div>`).join("")}</div>`,
 cols: 5, trials: { post:[16, 20, 26], pre:[8, 10, 14] }
 };
-const STROOP_T = [{ c:"#D32F2F", n:"KIRMIZI" }, { c:"#1E63D6", n:"MAVİ" }, { c:"#2E7D32", n:"YEŞİL" }, { c:"#F2B705", n:"SARI" }];
+const STROOP_T = [{ c:"#D32F2F", n:"KIRMIZI" }, { c:"#1E63D6", n:"MAVİ" }, { c:"#2E7D32", n:"YEŞİL" }, { c:"#F2B705", n:"SARI" }, { c:"#7B3FB0", n:"MOR" }];
 CHOICE["stroop-touch"] = {
-setup: () => ({ order: shuffleArray(STROOP_T) }),
-trials_make: (n) => { const a = []; for(let i = 0; i < n; i++){ const ink = randomItem(STROOP_T); let w = ink; if(Math.random() < 0.75){ do{ w = randomItem(STROOP_T); } while(w === ink); } a.push({ ink: ink.c, word: w.n }); } return a; },
+setup: () => { const k = (isPre() ? [3, 3, 4] : [3, 4, 5])[Math.min(currentCombo().t, 2)]; const set = shuffleArray(STROOP_T.slice(0, 4)).slice(0, Math.min(k, 4)).concat(k >= 5 ? [STROOP_T[4]] : []); return { order: shuffleArray(set), set }; },   /* renk sayısı düzeyle büyür */
+trials_make: (n, c) => { const set = (c && c.set) || STROOP_T.slice(0, 4); const inks = balancedSeq(n, set.map((x, i) => i), 1);   /* aynı mürekkep rengi art arda gelmez */
+  const nCong = Math.round(n * 0.25), cong = balancedSeq(n, [true, false], 1, [nCong, n - nCong]); const a = []; let pw = -1;
+  for(let i = 0; i < n; i++){ const ik = inks[i]; let wk = ik; if(!cong[i] || pw === ik){ const cand = set.map((x, j) => j).filter(j => j !== ik && j !== pw && (i === 0 || j !== inks[i - 1])); wk = cand.length ? randomItem(cand) : set.map((x, j) => j).find(j => j !== ik && j !== pw); if(wk === undefined) wk = set.map((x, j) => j).find(j => j !== ik); } pw = wk; a.push({ ink: set[ik].c, word: set[wk].n, cong: wk === ik }); }
+  return a; },
 stim: (t, sz) => `<span style="font-size:${Math.round(sz * 0.2)}px;font-weight:900;color:${t.ink};letter-spacing:1px">${t.word}</span>`,
 buttons: (c) => c.order.map(x => ({ id: x.c, html: "", style: `background:${x.c};min-height:64px;` })),
-correct: (t) => t.ink, cols: 4, wideStim: true
+correct: (t) => t.ink, cols: 0, wideStim: true   /* sütun = renk sayısı */
 };
 CHOICE["day-night-touch"] = {
 setup: () => ({ order: shuffleArray(["sun","moon"]) }),
@@ -6274,7 +6285,12 @@ correct: (t) => t.k === "sun" ? "moon" : "sun", cols: 2
 /* Dengeli dizi: değerler mümkün olduğunca eşit sayıda; aynı değer en çok maxRun kez art arda */
 function balancedSeq(n, values, maxRun, counts){ const want = counts || values.map((v, i) => Math.floor(n / values.length) + (i < n % values.length ? 1 : 0)); let best = null;
   for(let tries = 0; tries < 60; tries++){ const bag = []; shuffleArray(values.map((v, i) => [v, want[i]])).forEach(([v, c]) => { for(let k = 0; k < c; k++) bag.push(v); }); const a = shuffleArray(bag); let ok = true, run = 1; for(let k = 1; k < a.length; k++){ run = a[k] === a[k - 1] ? run + 1 : 1; if(run > maxRun){ ok = false; break; } } if(ok) return a; best = a; }
-  return best || []; }
+  /* rastgele denemeler tutmadıysa: kalan sayısı en çok olan ve sıra kuralını bozmayan değeri seçerek kesin kur */
+  const left = want.slice(), out = [];
+  for(let k = 0; k < n; k++){ let run = 1; for(let q = out.length - 1; q > 0 && out[q] === out[q - 1]; q--) run++; const last = out.length ? out[out.length - 1] : undefined;
+    const ok = values.map((v, i) => i).filter(i => left[i] > 0 && !(values[i] === last && run >= maxRun)); const pool = ok.length ? ok : values.map((v, i) => i).filter(i => left[i] > 0); if(!pool.length) break;
+    const mx = Math.max(...pool.map(i => left[i])); const pick = randomItem(pool.filter(i => left[i] === mx)); out.push(values[pick]); left[pick]--; }
+  return out.length === n ? out : (best || []); }
 /* Balıklar Hangi Yöne?: canlıların hepsi resimde SAĞA bakar; L = aynalanmış. N = yönsüz çeldirici. */
 const FISH_KINDS_BY_TIER = [["fish","turtle"], ["fish","shark","turtle","seahorse"], ["fish","shark","turtle","seahorse"]], FISH_NEUTRAL = ["octopus","starfish","crab"];   /* ortadaki canlı her denemede değişir */
 let fishKindPrev = null;
@@ -6340,7 +6356,9 @@ let fgStop = "angry";
 CHOICE["face-go"] = {
 setup: () => { fgStop = pickDifferent(FACE_KEYS, fgStop); return { stop: fgStop }; },
 trials_make: (n, c) => { const go = FACE_KEYS.filter(f => f !== c.stop); const a = []; const sN = Math.round(n * 0.28);
-let flags, g = 0; do{ flags = shuffleArray(Array.from({length:n}, (_, i) => i < sN)); let ok = !flags[0]; for(let i = 1; ok && i < n; i++) if(flags[i] && flags[i-1]) ok = false; if(ok) break; g++; } while(g < 300);
+let S = sN; while(n - S > 3 * (S + 1)) S++;   /* dur yüzleri aralıklara kesin yerleşir: art arda gelmez, aralarda 1–3 "dokun" */
+  const gaps = Array(S + 1).fill(0); for(let q = 0; q < S; q++) gaps[q] = 1; let rem = n - S - S; while(rem > 0){ const cand = gaps.map((x, q) => q).filter(q => gaps[q] < 3); if(!cand.length) break; gaps[randomItem(cand)]++; rem--; }
+  const flags = []; gaps.forEach((x, q) => { for(let z = 0; z < x; z++) flags.push(false); if(q < S) flags.push(true); });
 flags.forEach(f => a.push({ face: f ? c.stop : randomItem(go), stop: f })); return a; },
 stim: (t) => imgFill(FACE_IMAGES[t.face]),
 buttons: () => [{ id:"go", html:'<span style="font-size:30px">👆</span><b style="margin-left:8px;font-size:20px">DOKUN</b>' }],
@@ -6348,8 +6366,8 @@ correct: (t) => t.stop ? null : "go",
 window: () => isPre() ? 1600 : [1300, 1100, 950][currentCombo().t], gap: 300, cols: 1
 };
 CHOICE["switch-touch"] = {
-trials_make: (n) => { const a = []; let rule = Math.random() < 0.5 ? "same" : "flip";
-for(let i = 0; i < n; i++){ if(i && Math.random() < 0.4) rule = rule === "same" ? "flip" : "same"; const v = randomItem(["bus","plane","ship","heli","fire","train"]); a.push({ v, back: Math.random() < 0.5, rule }); } return a; },
+trials_make: (n) => { const a = []; let rule = Math.random() < 0.5 ? "same" : "flip"; const want = balancedSeq(n, ["front","back"], 2);   /* doğru tepki dengeli, en çok 2 kez art arda */
+  for(let i = 0; i < n; i++){ if(i && Math.random() < 0.4) rule = rule === "same" ? "flip" : "same"; const v = randomItem(["bus","plane","ship","heli","fire","train"]); const back = rule === "same" ? want[i] === "back" : want[i] === "front"; a.push({ v, back, rule }); } return a; },
 stim: (t, sz) => `<div style="width:100%;height:100%;border-radius:20px;box-shadow:inset 0 0 0 ${Math.round(sz * 0.05)}px ${t.rule === "same" ? "#1FA463" : "#FF9500"};display:flex;align-items:center;justify-content:center">${imgFill(VEHICLE_IMAGES[t.v + (t.back ? "_b" : "_f")])}</div>`,
 buttons: () => [{ id:"front", html: imgFill(VEHICLE_IMAGES.bus_f) + '<b style="margin-left:4px">ÖN</b>' }, { id:"back", html: imgFill(VEHICLE_IMAGES.bus_b) + '<b style="margin-left:4px">ARKA</b>' }],
 correct: (t) => { const seen = t.back ? "back" : "front"; return t.rule === "same" ? seen : (seen === "front" ? "back" : "front"); },
@@ -6866,7 +6884,8 @@ return qzMake(stim, opts, 0, { prompt:`<b>${cap(word)}</b> · zıttı hangisi?`,
 "syl-touch": () => { const t = currentCombo().t, C = qzCats();
 const pool = Object.values(C).flatMap(c => c.items).filter(x => !/\s/.test(x.n)).filter(x => { const s = trSyl(x.n); return isPre() ? [s <= 2, s <= 3, s >= 2 && s <= 3][Math.min(t, 2)] : (t === 0 ? s <= 2 : t === 1 ? s <= 3 : s >= 2); });
 const max = isPre() ? [2, 3, 3][Math.min(t, 2)] : 4;
-return shuffleArray(pool).slice(0, qzTrials(6, 4)).map(x => { const s = Math.min(trSyl(x.n), max);
+const N = qzTrials(6, 4), groups = {}; pool.forEach(x => { const s = Math.min(trSyl(x.n), max); (groups[s] = groups[s] || []).push(x); }); const keys = Object.keys(groups).map(Number); const seq = balancedSeq(N, keys, 2); const used = new Set(); const picks = seq.map(s => { const c = shuffleArray(groups[s]).find(x => !used.has(x.n)) || randomItem(groups[s]); used.add(c.n); return c; });   /* cevaplar (hece sayıları) turda dengeli */
+  return picks.map(x => { const s = Math.min(trSyl(x.n), max);
 const opts = Array.from({length:max}, (_, i) => `<span style="display:block;white-space:nowrap;line-height:1;font-size:${[18, 15, 12, 10][i]}px">${"👏".repeat(i + 1)}</span><span style="display:block;font-weight:900;font-size:18px;line-height:1.2">${i + 1}</span>`);   // simgeler tek satırda, karta sığacak boyutta
 return { stim: qzPic(x.src), opts, ans: s - 1, prompt:"Kaç hece? <b>El çırparak</b> say", say: x.n, replay:true, fixed:true }; }); },
 "sim-touch": () => { const C = qzCats(), t = currentCombo().t, N = qzOpts([3, 4, 5][t], [3, 3, 4][t]);
@@ -7221,6 +7240,7 @@ return Array.from({length: isPre() ? 3 : 5}, () => { let v = isPre() ? 1 + Math.
 for(let k = 0; k < steps; k++){ const maxAdd = (isPre() ? 5 : 9) - v; let d; if(v > 0 && (maxAdd <= 0 || Math.random() < 0.45)){ d = -(1 + Math.floor(Math.random() * Math.min(v, isPre() ? 2 : 4))); } else { d = 1 + Math.floor(Math.random() * Math.min(maxAdd, isPre() ? 2 : 4)); } v += d; ops.push(d); }
 const opts = shuffleArray(Array.from(new Set([v, v + 1, Math.max(0, v - 1), v + 2, Math.max(0, v - 2)])).slice(0, 4)); if(!opts.includes(v)) opts[0] = v;
 return { start, ops, res: v, opts: shuffleArray(opts), pic: randomItem(picPool()) }; }); }
+const mmathTrials0 = mmathTrials; mmathTrials = function(){ let T = mmathTrials0(); for(let g = 0; g < 25 && T.some((q, i) => i && q.res === T[i - 1].res); g++){ const i = T.findIndex((q, i) => i && q.res === T[i - 1].res); const R = mmathTrials0(); T[i] = R.find(q => q.res !== T[i - 1].res && (!T[i + 1] || q.res !== T[i + 1].res)) || T[i]; } return T; };   /* ardışık iki soru aynı sonucu vermez */
 function whoTrial(){ const t = currentCombo().t, nP = !isPre() && t === 2 ? 3 : 2, nI = isPre() ? [4, 5, 6][t] : [4, 6, 8][t];
 const fids = shuffleArray(FACE_ID_IMAGES.map((x, i) => i)).slice(0, nP), used = new Set(), ppl = fids.map(i => { const nm = shuffleArray(FACEID_NAMES[FACE_GENDER[i]]).find(n => !used.has(n)); used.add(nm); return { i, nm }; });
 const items = shuffleArray(picPool()).slice(0, nI).map((x, k) => ({ x, p: k % nP }));
@@ -7570,7 +7590,8 @@ const OV_SHAPES = { daire:(cx, cy, r) => `<circle cx="${cx}" cy="${cy}" r="${r}"
 "beşgen":(cx, cy, r) => `<polygon points="${Array.from({length:5}, (_, i) => { const a = -Math.PI / 2 + i * 2 * Math.PI / 5; return (cx + r * Math.cos(a)).toFixed(1) + "," + (cy + r * Math.sin(a)).toFixed(1); }).join(" ")}"/>` };
 const OV_PLURAL = { daire:"daire", kare:"kare", "üçgen":"üçgen", "beşgen":"beşgen" };
 function ovTrials(){ const t = currentCombo().t, pre = isPre(), target = pre ? "daire" : "beşgen", others = pre ? ["kare","üçgen"] : ["daire","kare","üçgen"];
-return Array.from({length: pre ? 4 : 5}, () => { const n = pre ? [3, 4, 5][t] : [7, 8, 10][t], k = 1 + Math.floor(Math.random() * (pre ? 3 : 4));
+const nextK = mkCycle(pre ? [1, 2, 3] : [1, 2, 3, 4]);   /* hedef sayısı turda dengeli */
+  return Array.from({length: pre ? 4 : 5}, () => { const n = pre ? [3, 4, 5][t] : [7, 8, 10][t], k = nextK();
 const kinds = shuffleArray(Array(k).fill(target).concat(Array.from({length: n - k}, () => randomItem(others))));
 const shapes = kinds.map(kd => OV_SHAPES[kd](22 + Math.random() * 56, 22 + Math.random() * 56, (pre ? 18 : 14) + Math.random() * 8)).join("");
 const stim = `<svg viewBox="0 0 100 100" width="100%" height="100%"><g fill="none" stroke="${pre ? "#2E6FD8" : "#3A4A5C"}" stroke-width="${pre ? 2.6 : 2}">${shapes}</g></svg>`;
@@ -12032,7 +12053,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.18-p";
+const APP_VERSION = "2026.10.18-r";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -15036,5 +15057,8 @@ document.getElementById("failThresholdInput").addEventListener("input", (e)=>{
 FAIL_SEC_PER_ITEM = parseFloat(e.target.value);
 document.getElementById("failThresholdValue").textContent = FAIL_SEC_PER_ITEM.toFixed(1) + " sn";
 });
+
+/* Soru-cevap: aynı doğru cevap art arda en çok 2 kez (oluşturucu sarılır; ısınma da aynı yoldan geçer) */
+try{ QZ_NORUN.forEach(id => { const f = NEW_MT.build[id]; if(typeof f !== "function") return; NEW_MT.build[id] = function(){ const T = f.apply(this, arguments); try{ if(Array.isArray(T) && T.length && T[0] && T[0].opts){ const R = limitRuns(T, qzAnsKey, 2); T.splice(0, T.length, ...R); } }catch(e){} return T; }; }); }catch(e){}
 
 window.__zaReady = true;
