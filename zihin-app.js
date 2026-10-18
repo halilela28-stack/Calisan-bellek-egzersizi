@@ -834,7 +834,7 @@ return items;
 let tcTarget = "#1E63D6";
 function makeTouchCardGrid(n){
 tcTarget = pickDifferent(CARD_COLORS.map(c => c.color), tcTarget);
-const others = shuffleArray(CARD_COLORS.map(c => c.color).filter(c => c !== tcTarget)).slice(0, isPre() ? 3 : 5);
+const others = shuffleArray(CARD_COLORS.map(c => c.color).filter(c => c !== tcTarget)).slice(0, (isPre() ? [2, 3, 3] : [3, 4, 5])[Math.min(currentCombo().t, 2)]);   /* çeldirici renk sayısı düzeyle artar */
 const tCount = Math.round(n * 0.4);
 let flags, g0 = 0;
 do{
@@ -6949,6 +6949,24 @@ if(!ok && tr.after) mtLater(() => sayTask(tr.after), 300);
 mtLater(() => { st.ti++; if(st.ti >= st.trials.length){ mtFinish(); return; } qzStart(); }, ok ? 600 : 1500); }
 /* Art arda iki soruda doğru cevap aynı konumdaysa (%75 olasılıkla) ikincisinin konumunu kaydır: konum öngörülebilir olmasın */
 const QZ_SPREAD_SKIP = new Set(["arrow-touch","edge-touch","overlap-count","syl-touch","balance","sem-decide","absurd-touch","rhyme-touch","sent-verify"]);   // seçenek sırası anlamlı: Evet/Hayır, sayılar, yönler
+/* Seçenek sayısı düzeyle büyür (Okul Öncesi 3-3-4, Okul Sonrası 3-4-5): fazlası atılır, eksiği aynı turdan ya da yakın sayılarla tamamlanır */
+const QZ_D = { pre:[3,3,4], post:[3,4,5] }, QZ_D2 = { pre:[3,4,4], post:[3,4,5] };
+const QZ_TIER_OPTS = { "pattern-touch":QZ_D, "analogy-touch":QZ_D, "pk-shadow":QZ_D, "matrix-fill":QZ_D, "rule-induce":QZ_D, "closure":QZ_D, "syl-blend":QZ_D, "embedded":QZ_D, "proverb-touch":QZ_D, "infer-touch":QZ_D, "listen-answer":QZ_D,
+  "opp-touch":{ pre:[3,3,4] }, "mental-rot":{ pre:[3,3,4] }, "word-pic":{ post:[3,4,5] }, "syl-touch":{ post:[3,4,5] }, "balance":{ post:[3,4,4] },
+  "paper-fold":QZ_D2, "num-pattern":QZ_D2, "overlap-count":QZ_D2, "concept-touch":{ pre:[2,3,3], post:[2,3,4], capOnly:true } };
+function qzTierOpts(id, trials){ const cfg = QZ_TIER_OPTS[id]; if(!cfg || !Array.isArray(trials)) return trials; const tab = isPre() ? cfg.pre : cfg.post; if(!tab) return trials; const want = tab[Math.min(currentCombo().t, 2)];
+  const plain = (o) => String(o).replace(/<[^>]+>/g, "").trim(); const numVal = (o) => { const m = plain(o).match(/^(?:👏\s*)*(\d+)$/); return m ? +m[1] : NaN; }; const isNum = (q) => q.opts.every(o => !isNaN(numVal(o))); const ordinal = (q) => q.opts.every(o => /^[\d\s👏]+$/.test(plain(o)) && plain(o) !== "");
+  const poolAll = []; trials.forEach(q => (q && q.opts || []).forEach(o => { if(!poolAll.includes(o)) poolAll.push(o); }));
+  trials.forEach(q => { if(!q || !Array.isArray(q.opts) || q.ans == null || q.ans < 0) return; const ansHtml = q.opts[q.ans]; let opts = q.opts.slice();
+    if(opts.length > want){ const wrong = opts.map((o, i) => i).filter(i => i !== q.ans); const drop = new Set(shuffleArray(wrong).slice(0, opts.length - want)); opts = opts.filter((o, i) => !drop.has(i)); }
+    else if(opts.length < want && !cfg.capOnly){
+      if(isNum(q)){ const a = numVal(ansHtml), have = new Set(opts.map(numVal)), cands = []; for(let d = 1; d <= 6; d++) [a + d, a - d].forEach(v => { if(v >= 1 && !have.has(v) && !cands.includes(v)) cands.push(v); });
+        const bare = String(ansHtml).trim() === plain(ansHtml); const claps = (String(ansHtml).match(/👏/g) || []).length; const tmpl = (v) => bare ? String(v) : String(ansHtml).replace(new RegExp(">(\\s*)" + a + "(\\s*)<"), ">$1" + v + "$2<").replace("👏".repeat(claps), "👏".repeat(claps ? v : 0));
+        while(opts.length < want && cands.length) opts.push(tmpl(cands.shift())); }
+      else if(!ordinal(q)){ const seen = new Set(opts.map(String)); const cands = shuffleArray(poolAll.filter(o => !seen.has(String(o)) && plain(o) !== plain(ansHtml) || (!plain(o) && !seen.has(String(o))))); for(const o of cands){ if(opts.length >= want) break; if(seen.has(String(o))) continue; opts.push(o); seen.add(String(o)); } if(opts.length < want && /src="[^"]+"/.test(String(ansHtml))){ const used = new Set(poolAll.concat(opts).map(o => (String(o).match(/src="([^"]+)"/) || [])[1]).filter(Boolean)); for(const pp of shuffleArray(picPool())){ if(opts.length >= want) break; if(!pp || !pp.src || used.has(pp.src)) continue; const h = String(ansHtml).replace(/src="[^"]+"/, `src="${pp.src}"`); if(!seen.has(h)){ opts.push(h); seen.add(h); used.add(pp.src); } } }   /* resimli seçenek: ödünç bulunamazsa resim havuzundan */ if(opts.length < want && id === "closure" && /^<svg/.test(String(ansHtml))){ const fill = (String(ansHtml).match(/fill="([^"]+)"/) || [])[1] || "#2E6FD8"; const extra = [`<rect x="8" y="8" width="84" height="84" fill="${fill}"/>`, `<polygon points="50,4 96,50 50,96 4,50" fill="${fill}"/>`, `<polygon points="27,8 73,8 96,50 73,92 27,92 4,50" fill="${fill}"/>`, `<ellipse cx="50" cy="50" rx="46" ry="30" fill="${fill}"/>`].map(x => `<svg viewBox="0 0 100 100">${x}</svg>`); for(const h of shuffleArray(extra)){ if(opts.length >= want) break; const tag = h.match(/<(rect|polygon points="[^"]+"|ellipse)/)[0]; if(opts.some(o => String(o).includes(tag)) || seen.has(h)) continue; opts.push(h); seen.add(h); } }   /* Görsel Tamamlama: aynı renkte yedek şekiller */ const order = shuffleArray(opts.map((o, i) => i)); opts = order.map(i => opts[i]); } }
+    if(isNum({ opts })) opts.sort((x, y) => numVal(x) - numVal(y));   /* sayısal seçenekler hep küçükten büyüğe */
+    q.opts = opts; q.ans = opts.indexOf(ansHtml); });
+  return trials; }
 function qzSpreadAns(trials){ try{ if(QZ_SPREAD_SKIP.has(currentExercise().id)) return trials; for(let i = 1; i < trials.length; i++){ const q = trials[i], p = trials[i-1]; const plain = q && q.opts ? q.opts.map(o => String(o).replace(/<[^>]+>/g, "").trim()) : []; if(plain.length && plain.every(x => /^[\d\s👏]*$/.test(x))) continue; if(!q || !p || q.fixedPos || q.ans == null || p.ans == null || q.ans !== p.ans || q.opts.length < 3 || Math.random() > 0.75) continue; const j = (q.ans + 1 + Math.floor(Math.random() * (q.opts.length - 1))) % q.opts.length; [q.opts[q.ans], q.opts[j]] = [q.opts[j], q.opts[q.ans]]; q.ans = j; } }catch(e){} return trials; }
 /* Karıştırılmış döngü: havuzdaki her öğe bir kez gelmeden tekrar etmez (geri koyarak seçimin yerine) */
 function mkCycle(arr){ let order = shuffleArray(arr), i = 0, lastV = null; return () => { if(i >= order.length){ order = shuffleArray(arr); i = 0; if(order.length > 1 && order[0] === lastV){ order.push(order.shift()); } } lastV = order[i++]; return lastV; }; }
@@ -7839,7 +7857,7 @@ let hole; do{ hole = [Math.floor(Math.random() * 4), Math.floor(Math.random() * 
 const mir = (p, ax) => ax === "v" ? [3 - p[0], p[1]] : ax === "h" ? [p[0], 3 - p[1]] : [p[1], p[0]];
 let holes = [hole]; if(fold === "q"){ holes = [hole, mir(hole, "v"), mir(hole, "h"), mir(mir(hole, "v"), "h")]; } else holes = [hole, mir(hole, fold)];
 const key = (H) => H.map(p => p.join(",")).sort().join(";"); const right = holes;
-const wrongs = [[hole], fold === "v" ? [hole, mir(hole, "h")] : [hole, mir(hole, "v")], holes.concat([[ (hole[0] + 2) % 4, (hole[1] + 1) % 4 ]])].filter(w => key(w) !== key(right));
+const wrongs = [[hole], fold === "v" ? [hole, mir(hole, "h")] : [hole, mir(hole, "v")], holes.concat([[ (hole[0] + 2) % 4, (hole[1] + 1) % 4 ]]), holes.map(p => mir(p, fold === "h" ? "v" : "h")), [[ hole[0], (hole[1] + 2) % 4 ]]].filter((w, k, A) => key(w) !== key(right) && A.findIndex(z => key(z) === key(w)) === k);   /* 5 seçeneğe yetecek kadar farklı çeldirici */
 const paper = (H, w) => `<svg viewBox="0 0 100 100" width="100%" height="100%"><rect x="6" y="6" width="88" height="88" fill="#FFF8E5" stroke="#B9773A" stroke-width="2"/>${H.map(([x, y]) => `<circle cx="${17 + x * 22}" cy="${17 + y * 22}" r="6" fill="#3A4A5C"/>`).join("")}</svg>`;
 const foldPic = `<svg viewBox="0 0 100 100" width="100%" height="100%"><rect x="6" y="6" width="${fold === "v" || fold === "q" ? 44 : 88}" height="${fold === "h" || fold === "q" ? 44 : 88}" fill="#FFE9B8" stroke="#B9773A" stroke-width="2"/>${fold === "d" ? `<polygon points="6,6 94,94 94,6" fill="#FFE9B8" stroke="#B9773A" stroke-width="2"/><rect x="6" y="6" width="88" height="88" fill="none" stroke="#B9773A" stroke-width="1" stroke-dasharray="4 3"/>` : `<rect x="6" y="6" width="88" height="88" fill="none" stroke="#B9773A" stroke-width="1" stroke-dasharray="4 3"/>`}<circle cx="${17 + hole[0] * 22}" cy="${17 + hole[1] * 22}" r="6" fill="#3A4A5C"/></svg>`;
 const opts = [paper(right)].concat(wrongs.slice(0, 3).map(w => paper(w)));
@@ -8205,7 +8223,7 @@ if(currentStageIndex === 1){ const d = delayGet("recog"); if(d && d.keys){ const
 if(s2.length){ study = s2; fresh = shuffleArray(picPool().filter(x => !d.keys.includes(x.k))).slice(0, s2.length); delayed = true; } } }
 mtState = { kind:"recog", study, test: shuffleArray(study.map(x => ({ x, old:true })).concat(fresh.map(x => ({ x, old:false })))), qi:0, wrong:0, hits:0, fa:0, phase:"idle", delayed };
 return mtState.test; },
-...Object.fromEntries(Object.keys(QZ).map(id => [id, () => { mtState = { kind:"quiz", qid:id, trials: qzSpreadAns(QZ[id]()), ti:0, wrong:0, phase:"idle" }; return mtState.trials; }])),
+...Object.fromEntries(Object.keys(QZ).map(id => [id, () => { mtState = { kind:"quiz", qid:id, trials: qzSpreadAns(qzTierOpts(id, QZ[id]())), ti:0, wrong:0, phase:"idle" }; return mtState.trials; }])),
 "size-touch": () => { mtState = { kind:"size", desc: stIx() === 1, trials: szBuild(), ti:0, pos:0, wrong:0, phase:"idle", marks:{} }; return mtState.trials; },   /* Aşama 2: büyükten küçüğe */
 "move-seq": () => { mtState = { kind:"movesay", trials: moveTrials(), ti:0, wrong:0, ok:0, phase:"idle" }; return mtState.trials; },
 "story-order": () => { mtState = { kind:"storyord", trials: storyOrderTrials(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
@@ -8221,19 +8239,19 @@ return mtState.test; },
 "who-said": () => { const tr = whoTrial(); mtState = Object.assign({ kind:"who", wrong:0, phase:"idle", si:-1, qi:0 }, tr); return tr.test; },
 "rhythm": () => { mtState = { kind:"rhy", trials: rhyTrials(), ti:0, wrong:0, phase:"idle", taps:[] }; return mtState.trials; },
 "memory-cards": () => { const d = memBuild(); mtState = Object.assign({ kind:"mem", open:[], done:{}, miss:0, wrong:0, phase:"idle", lock:false }, d); return d.cards; },
-...Object.fromEntries([["proverb-touch", pmcBuild], ["absurd-touch", absBuild], ["concept-touch", cpTrials], ["infer-touch", imcBuild]].map(([id, f]) => [id, () => { mtState = { kind:"quiz", qid:id, trials: f(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; }])),
-...Object.fromEntries([["vanalogy-touch", anlTrials], ["word-pic", wpTrials]].map(([id, f]) => [id, () => { mtState = { kind:"quiz", qid:id, trials: f(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; }])),
+...Object.fromEntries([["proverb-touch", pmcBuild], ["absurd-touch", absBuild], ["concept-touch", cpTrials], ["infer-touch", imcBuild]].map(([id, f]) => [id, () => { mtState = { kind:"quiz", qid:id, trials: qzTierOpts(id, f()), ti:0, wrong:0, phase:"idle" }; return mtState.trials; }])),
+...Object.fromEntries([["vanalogy-touch", anlTrials], ["word-pic", wpTrials]].map(([id, f]) => [id, () => { mtState = { kind:"quiz", qid:id, trials: qzTierOpts(id, f()), ti:0, wrong:0, phase:"idle" }; return mtState.trials; }])),
 "absurd-say": () => { mtState = { kind:"absay", trials: absayTrials(), ti:0, wrong:0, okN:0, phase:"idle" }; return mtState.trials; },
-...Object.fromEntries([["mental-rot", mrTrials], ["overlap-count", ovTrials], ["embedded", embTrials], ["closure", clsTrials]].map(([id, f]) => [id, () => { mtState = { kind:"quiz", qid:id, trials: f(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; }])),
+...Object.fromEntries([["mental-rot", mrTrials], ["overlap-count", ovTrials], ["embedded", embTrials], ["closure", clsTrials]].map(([id, f]) => [id, () => { mtState = { kind:"quiz", qid:id, trials: qzTierOpts(id, f()), ti:0, wrong:0, phase:"idle" }; return mtState.trials; }])),
 "block-design": () => { mtState = { kind:"blk", trials: blkTrials(), ti:0, wrong:0, phase:"idle", cells:[] }; return mtState.trials; },
 "clutter-find": () => { const d = clutBuild(); mtState = Object.assign({ kind:"clut", wrong:0, phase:"idle" }, d); return d.items; },
 "copy-design": () => { const t = currentCombo().t, n = !isPre() && t === 2 ? 4 : 3, segs = (isPre() ? [2, 3, 4] : [3, 5, 7])[t]; mtState = { kind:"draw", copy:true, n, trials: Array.from({length:3}, () => drawPattern(n, segs)), ti:0, wrong:0, phase:"idle", mine:new Set(), sel:-1 }; return mtState.trials; },
 "symmetry": () => { mtState = { kind:"sym", trials: symTrials(), ti:0, wrong:0, phase:"idle", mine:{} }; return mtState.trials; },
 "maze": () => { mtState = { kind:"maze", trials: mazeTrials(), ti:0, wrong:0, phase:"idle", pos:0, path:[0] }; return mtState.trials; },
-...Object.fromEntries([["matrix-fill", mxTrials], ["rule-induce", riTrials], ["balance", balTrials]].map(([id, f]) => [id, () => { mtState = { kind:"quiz", qid:id, trials: f(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; }])),
+...Object.fromEntries([["matrix-fill", mxTrials], ["rule-induce", riTrials], ["balance", balTrials]].map(([id, f]) => [id, () => { mtState = { kind:"quiz", qid:id, trials: qzTierOpts(id, f()), ti:0, wrong:0, phase:"idle" }; return mtState.trials; }])),
 "pic-arrange": () => { mtState = { kind:"parr", trials: paTrials(), ti:0, wrong:0, phase:"idle", placed:[], bad:{}, telling: stIx() === 1 && !gameMode }; return mtState.trials; },
-...Object.fromEntries([["sent-verify", svTrials], ["syl-blend", sbTrials], ["wh-scene", whTrials], ["paper-fold", pfTrials], ["view-from", vfTrials], ["cause-effect", ceTrials], ["num-pattern", npTrials]].map(([id, f]) => [id, () => { mtState = { kind:"quiz", qid:id, trials: f(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; }])),
-"listen-answer": () => { mtState = { kind:"quiz", qid:"listen-answer", trials: laTrials(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
+...Object.fromEntries([["sent-verify", svTrials], ["syl-blend", sbTrials], ["wh-scene", whTrials], ["paper-fold", pfTrials], ["view-from", vfTrials], ["cause-effect", ceTrials], ["num-pattern", npTrials]].map(([id, f]) => [id, () => { mtState = { kind:"quiz", qid:id, trials: qzTierOpts(id, f()), ti:0, wrong:0, phase:"idle" }; return mtState.trials; }])),
+"listen-answer": () => { mtState = { kind:"quiz", qid:"listen-answer", trials: qzTierOpts("listen-answer", laTrials()), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
 "clue-find": () => { mtState = { kind:"clue", trials: cfTrials(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
 "class-table": () => { mtState = { kind:"ctab", trials: ctTrials(), ti:0, wrong:0, phase:"idle", placed:{}, sel:null }; return mtState.trials; },
 "color-obj": () => { mtState = { kind:"cobj", trials: coTrials(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
@@ -8243,7 +8261,7 @@ return mtState.test; },
 "pk-redlight": () => { const c = rlCfg(); mtState = { kind:"rl", cfg:c, phase:"idle", wrong:0, prog:0, light:"green", hold:false, caught:0 }; return Array.from({length:10}, () => ({})); },
 "pk-waiter": () => { mtState = { kind:"wt", trials: wtTrials(), ti:0, wrong:0, phase:"idle", score:0, tray:[] }; return mtState.trials; },
 "pk-drum": () => { const c = drCfg(); mtState = { kind:"dr", cfg:c, phase:"idle", wrong:0, score:0, beats:[], hits:{} }; return Array.from({length:20}, () => ({})); },
-"pk-shadow": () => { mtState = { kind:"quiz", qid:"pk-shadow", trials: geTrials(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
+"pk-shadow": () => { mtState = { kind:"quiz", qid:"pk-shadow", trials: qzTierOpts("pk-shadow", geTrials()), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
 "pk-word": () => { const c = kaCfg(), P = kaPools(), keys = Object.keys(P); const tg = randomItem(keys); mtState = { kind:"kav", cfg:c, P, keys, tg, phase:"idle", score:0, wrong:0, items:[], next:0 }; return Array.from({length: c.N}, () => ({})); },
 "pk-rhyme": () => { mtState = { kind:"ubal", trials: ubTrials(), ti:0, wrong:0, phase:"idle", score:0 }; return mtState.trials; },
 "pk-train": () => { mtState = { kind:"htrn", trials: htTrials(), ti:0, wrong:0, phase:"idle", score:0, placed:[] }; return mtState.trials; },
@@ -12001,7 +12019,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.18-j";
+const APP_VERSION = "2026.10.18-k";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
