@@ -9271,7 +9271,7 @@ function mtClear(){ mtTimers.forEach(t => clearTimeout(t)); mtTimers = []; }
 function mtLater(fn, ms){ const st = mtState; mtTimers.push(setTimeout(() => { if(mtState === st && timerRunning) fn(); }, ms * (window.__wmSpeed || 1))); }
 function qzWarmup(id){ const st = mtState; if(!st || st.kind !== "quiz" || !Array.isArray(st.trials) || st.trials.length < 3 || st.warmN != null) return;
 const N = st.trials.length, W = Math.max(1, Math.round(N * 0.3)), t = currentCombo().t; st.warmN = W;
-if(t > 0){ const save = currentCombo; try{ currentCombo = () => Object.assign({}, save(), { t: t - 1 }); NEW_MT.build[id](); const E = (mtState && mtState.trials) || []; for(let i = 0; i < W && i < E.length; i++) st.trials[i] = E[i]; }catch(e){ console.error(e); } finally{ currentCombo = save; mtState = st; } } }
+if(t > 0){ const save = currentCombo; try{ currentCombo = () => Object.assign({}, save(), { t: t - 1 }); NEW_MT.build[id](); const E = (mtState && mtState.trials) || []; const sc = (q) => (String((q && (q.stim || q.prompt)) || "").replace(/<[^>]+>/g, " ").match(/[.!?](\s|$)/g) || []).length; const med = (A) => { const v = A.map(sc).sort((x, y) => x - y); return v.length ? v[Math.floor(v.length / 2)] : 0; }; if(E.length && med(E.slice(0, W)) === med(st.trials.slice(W))) for(let i = 0; i < W && i < E.length; i++) st.trials[i] = E[i];   /* soru biçimi (cümle sayısı) aynıysa alt düzeyden ısın; farklıysa (Zor: iki cümle) bu düzeyin sorularıyla ısın */ }catch(e){ console.error(e); } finally{ currentCombo = save; mtState = st; } } }
 function mtErr(){ if(mtState && mtState.kind === "quiz" && mtState.warmN && mtState.ti < mtState.warmN){ mtState.warmErr = (mtState.warmErr || 0) + 1; try{ vibrate(40); }catch(e){} gameSfx("wrong"); return; }
 mtState.wrong++; setErrorCount(currentErrorCount + 1); try{ vibrate(60); }catch(e){} gameSfx("wrong"); }
 function mtFinish(extra){
@@ -11988,7 +11988,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.18-g";
+const APP_VERSION = "2026.10.18-h";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
