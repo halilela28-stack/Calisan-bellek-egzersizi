@@ -807,7 +807,7 @@ function makeTouchAnimalGrid(n){
 const t = currentCombo().t;
 taStopColor = pickDifferent(CARD_COLORS.map(c => c.color), taStopColor);
 const k = (isPre() ? PRE_TA_COUNT_BY_TIER : TA_COUNT_BY_TIER)[t] || 3;
-const animals = shuffleArray(WILD_KEYS).slice(0, k);
+const useObj = stIx() === 1, animals = shuffleArray(useObj ? HOUSE_KEYS.filter(x => HOUSE_IMAGES[x]) : WILD_KEYS).slice(0, k);   /* Aşama 2: eşyalar */
 const lureColors = CARD_COLORS.map(c => c.color).filter(c => c !== taStopColor);
 const sCount = Math.max(1, Math.round(n * 0.25));
 const lCount = Math.round(n * (TA_LURE_BY_TIER[t] || 0));
@@ -826,7 +826,7 @@ else if(f === "L") items.push({ kind:"stop", color: randomItem(lureColors), go:t
 else {
 let a, c = 0;
 do{ a = randomItem(animals); c++; } while(c < 30 && animals.length > 1 && items[i-1] && items[i-1].a === a);
-items.push({ kind:"animal", a, go:true });
+items.push({ kind:"animal", a, src: useObj ? HOUSE_IMAGES[a] : null, go:true });
 }
 });
 return items;
@@ -1406,8 +1406,7 @@ if(it.t === "shape") return blackShapeSVG(it.k);
 return `<span>${it.s}</span>`;
 }
 let trailState = null;
-function makeTrail(kind){
-const seq = trlSequence(kind);
+function makeTrail(kind, rev){ const seq = trlSequence(kind); if(rev) seq.reverse();   /* tersten: BAŞLA en büyük sayıda */
 trailState = { kind, next:0, wrong:0, perm: shuffleArray(Array.from({length:80}, (_, i) => i)) };
 return seq.map((it, i) => Object.assign({}, it, { order:i, jx: Math.random()*2-1, jy: Math.random()*2-1 }));
 }
@@ -2535,18 +2534,23 @@ example: (g) => isPre() ? FLK_NAMES[g.target] : g.target
 {
 id: "touch-animal",
 readingLevel: ["pre","post"],
-label: "Hayvana Dokun",
+label: "Hayvan–Eşya: Dokun",
 isTouch: true,
 attrs: [],
 makeGrid: (n) => makeTouchAnimalGrid(n),
 randomItem: () => ({ kind:"animal", a:"lion", go:true }),
 renderItem: (item) => item.kind === "animal"
-? `<img src="${WILD_IMAGES[item.a] || (TA_ANIMALS[item.a] ? TA_ANIMALS[item.a]() : "")}" alt="" style="width:86%;height:86%;object-fit:contain;display:block;">`
+? `<img src="${item.src || WILD_IMAGES[item.a] || (TA_ANIMALS[item.a] ? TA_ANIMALS[item.a]() : "")}" alt="" style="width:86%;height:86%;object-fit:contain;display:block;">`
 : stopSignSVG(item.color),
 stages: [
 {
-label: "Hayvana Dokun",
+label: "Aşama 1 · Hayvanlara Dokun",
 instruction: () => `Önce <b>▶ Başlat</b>'a basın, sonra çocuk ekrana dokunsun. Çocuğa <b>"Hayvan resimlerine olabildiğince hızlı dokun. AMA ${trUpper(cardName(taStopColor))} ${swatch(taStopColor)} DUR kartına dokunma${currentCombo().t > 0 ? "; başka renkteki DUR kartlarına dokunabilirsin" : ""}"</b> deyin. Dokunmaları uygulama sayar. <i>Dur rengi her sayfada ve Karıştır'da değişir.</i>`,
+example: () => ``
+},
+{
+label: "Aşama 2 · Eşyalara Dokun",
+instruction: () => `Önce <b>▶ Başlat</b>'a basın, sonra çocuk ekrana dokunsun. Çocuğa <b>"Bu kez eşya resimlerine olabildiğince hızlı dokun. AMA ${trUpper(cardName(taStopColor))} ${swatch(taStopColor)} DUR kartına dokunma${currentCombo().t > 0 ? "; başka renkteki DUR kartlarına dokunabilirsin" : ""}"</b> deyin. Dokunmaları uygulama sayar.`,
 example: () => ``
 }
 ]
@@ -2652,7 +2656,7 @@ isTouch: true, attrs: [],
 makeGrid: (n) => makeCatTouchGrid(n),
 randomItem: () => ({ go:true }),
 renderItem: (item) => imgFill(item.src),
-stages: [ { label: "Dokun", instruction: () => ``, example: () => `` } ]
+stages: [ { label: "Aşama 1 · Meyvelere Dokun", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Sebzelere Dokun", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "cat-living",
@@ -2662,7 +2666,7 @@ isTouch: true, attrs: [],
 makeGrid: (n) => makeCatTouchGrid(n),
 randomItem: () => ({ go:true }),
 renderItem: (item) => imgFill(item.src),
-stages: [ { label: "Dokun", instruction: () => ``, example: () => `` } ]
+stages: [ { label: "Aşama 1 · Kurala Uyanlar", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Karşı Taraf", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "cat-cold",
@@ -2672,16 +2676,16 @@ isTouch: true, attrs: [],
 makeGrid: (n) => makeCatTouchGrid(n),
 randomItem: () => ({ go:true }),
 renderItem: (item) => imgFill(item.src),
-stages: [ { label: "Dokun", instruction: () => ``, example: () => `` } ]
+stages: [ { label: "Aşama 1 · Sıcaklara Dokun", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Soğuklara Dokun", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "trail-numbers",
 readingLevel: ["pre","post"],
 label: "Sayılara Sırayla Dokun",
 isTrail: true, attrs: [], speedFactor: 1.5,
-trail: () => makeTrail("numbers"),
+trail: () => makeTrail("numbers", stIx() === 1),
 randomItem: () => ({}),
-stages: [ { label: "1'den Sona", instruction: () => ``, example: () => `` } ]
+stages: [ { label: "Aşama 1 · 1'den Sona", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Sondan 1'e", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "pairs-touch",
@@ -2689,10 +2693,10 @@ readingLevel: ["pre","post"],
 label: "Doğru Çiftleri Bul",
 isTouch: true, attrs: [], speedFactor: 1.5,
 dims: () => (isPre() ? PAIR_DIMS_PRE : PAIR_DIMS_POST),
-makeGrid: (n) => makePairGrid(n).map(it => Object.assign(it, { go: it.ok })),
+makeGrid: (n) => makePairGrid(n).map(it => Object.assign(it, { go: stIx() === 1 ? !it.ok : it.ok })),   /* Aşama 2: birlikte kullanılMAYAN çiftler hedef */
 randomItem: () => ({ go:true }),
 renderItem: (item) => `<div class="pair-cell"><img src="${PAIR_IMAGES[item.left]}" alt=""><img src="${PAIR_IMAGES[item.right]}" alt=""></div>`,
-stages: [ { label: "Doğru Çiftler", instruction: () => ``, example: () => `` } ]
+stages: [ { label: "Aşama 1 · Doğru Çiftler", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Yanlış Çiftler", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "sdmt-touch",
@@ -4034,11 +4038,11 @@ stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
 {
 id: "size-touch",
 readingLevel: ["pre","post"],
-label: "Küçükten Büyüğe Dokun",
+label: "Boyut Sırasıyla Dokun",
 isMt: true, attrs: [], speedFactor: 7,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
-stages: [ { label: "Dokun ve Seç", instruction: () => ``, example: () => `` } ]
+stages: [ { label: "Aşama 1 · Küçükten Büyüğe", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Büyükten Küçüğe", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "arrow-touch",
@@ -6144,9 +6148,9 @@ const WILD_NAMES = { lion:"aslan", giraffe:"zürafa", zebra:"zebra", monkey:"may
 const WILD_KEYS = Object.keys(WILD_NAMES), HOUSE_KEYS = Object.keys(HOUSE_NAMES);
 
 const CAT_TOUCH = {
-"cat-fruit": { groups:[["meyve","meyvelere"],["sebze","sebzelere"]], items:() => Object.keys(FRUIT_VEG_CATEGORY).map(k => ({ k, g: FRUIT_VEG_CATEGORY[k], src: FRUIT_VEG_IMAGES[k] })) },
-"cat-living": { dyn: true, groups:[["canlı","canlılara"],["cansız","cansızlara"]], items:() => [] },   /* dinamik: kural tur başına değişir (catDynSpec) */
-"cat-cold": { groups:[["soğuk","soğuklara"],["sıcak","sıcaklara"]], items:() => HOTCOLD_COLD.map(k => ({ k, g:"soğuk", src: HOTCOLD_IMAGES[k] })).concat(HOTCOLD_HOT.map(k => ({ k, g:"sıcak", src: HOTCOLD_IMAGES[k] }))) }
+"cat-fruit": { stageOrder:[0, 1], groups:[["meyve","meyvelere"],["sebze","sebzelere"]], items:() => Object.keys(FRUIT_VEG_CATEGORY).map(k => ({ k, g: FRUIT_VEG_CATEGORY[k], src: FRUIT_VEG_IMAGES[k] })) },
+"cat-living": { dyn: true, stageOrder:[0, 1], groups:[["canlı","canlılara"],["cansız","cansızlara"]], items:() => [] },   /* dinamik: kural tur başına değişir (catDynSpec) */
+"cat-cold": { stageOrder:[1, 0], groups:[["soğuk","soğuklara"],["sıcak","sıcaklara"]], items:() => HOTCOLD_COLD.map(k => ({ k, g:"soğuk", src: HOTCOLD_IMAGES[k] })).concat(HOTCOLD_HOT.map(k => ({ k, g:"sıcak", src: HOTCOLD_IMAGES[k] }))) }
 };
 const catTarget = {};
 /* Canlılara Dokun: hedef kuralı tur başına değişir (Hızlı Seç'in kural tablosu); düzey havuzu genişletir */
@@ -6157,7 +6161,7 @@ function catDynSpec(id){ const pool = (isPre() ? QS_TIER.pre : QS_TIER.post)[Mat
   const mk = (arr, g) => (arr || []).filter(Boolean).map((src, i) => ({ k: g + i, g, src }));   /* resmi olmayan öğe (eski resim dosyası) atlanır */
   return { groups, items: () => mk(R.a.pool, groups[0][0]).concat(mk(R.b.pool, groups[1][0]), isPre() ? [] : mk(R.a.trick, groups[0][0]).map(x => Object.assign(x, { k: "tA" + x.k })), isPre() ? [] : mk(R.b.trick, groups[1][0]).map(x => Object.assign(x, { k: "tB" + x.k }))) }; }
 function makeCatTouchGrid(n){ const id = currentExercise().id, spec = CAT_TOUCH[id].dyn ? catDynSpec(id) : CAT_TOUCH[id];
-const gi = catTarget[id] === undefined ? Math.floor(Math.random() * 2) : 1 - catTarget[id];   // her sayfada / Karıştır'da hedef değişir
+const gi = CAT_TOUCH[id].stageOrder ? CAT_TOUCH[id].stageOrder[Math.min(stIx(), 1)] : (catTarget[id] === undefined ? Math.floor(Math.random() * 2) : 1 - catTarget[id]);   /* aşamalı çalışmada hedef aşamadan gelir (Aşama 1 / Aşama 2) */   // her sayfada / Karıştır'da hedef değişir
 catTarget[id] = gi;
 const tg = spec.groups[gi][0];
 let all = spec.items();
@@ -6170,7 +6174,7 @@ const items = [];
 flags.forEach((f, i) => { let it, gg = 0; do{ it = randomItem(f ? T : O); gg++; } while(gg < 20 && items[i-1] && items[i-1].k === it.k); items.push({ k: it.k, src: it.src, go: f }); });
 return items;
 }
-const catTargetWord = (id) => { const sp = (CAT_TOUCH[id].dyn && catDyn[id]) ? catDyn[id] : CAT_TOUCH[id]; const gi = catTarget[id] || 0; return sp.groups[gi]; };
+const catTargetWord = (id) => { const sp = (CAT_TOUCH[id].dyn && catDyn[id]) ? catDyn[id] : CAT_TOUCH[id]; const gi = CAT_TOUCH[id].stageOrder ? CAT_TOUCH[id].stageOrder[Math.min(stIx(), 1)] : (catTarget[id] || 0); return sp.groups[gi]; };
 
 let chState = null, chTimers = [];
 function chClear(){ chTimers.forEach(t => clearTimeout(t)); chTimers = []; }
@@ -8189,7 +8193,7 @@ if(s2.length){ study = s2; fresh = shuffleArray(picPool().filter(x => !d.keys.in
 mtState = { kind:"recog", study, test: shuffleArray(study.map(x => ({ x, old:true })).concat(fresh.map(x => ({ x, old:false })))), qi:0, wrong:0, hits:0, fa:0, phase:"idle", delayed };
 return mtState.test; },
 ...Object.fromEntries(Object.keys(QZ).map(id => [id, () => { mtState = { kind:"quiz", qid:id, trials: qzSpreadAns(QZ[id]()), ti:0, wrong:0, phase:"idle" }; return mtState.trials; }])),
-"size-touch": () => { mtState = { kind:"size", trials: szBuild(), ti:0, pos:0, wrong:0, phase:"idle", marks:{} }; return mtState.trials; },
+"size-touch": () => { mtState = { kind:"size", desc: stIx() === 1, trials: szBuild(), ti:0, pos:0, wrong:0, phase:"idle", marks:{} }; return mtState.trials; },   /* Aşama 2: büyükten küçüğe */
 "move-seq": () => { mtState = { kind:"movesay", trials: moveTrials(), ti:0, wrong:0, ok:0, phase:"idle" }; return mtState.trials; },
 "story-order": () => { mtState = { kind:"storyord", trials: storyOrderTrials(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
 "what-do": () => { mtState = { kind:"whatdo", trials: whatdoTrials(), ti:0, wrong:0, part:0, okN:0, phase:"idle" }; return mtState.trials; },
@@ -8539,7 +8543,7 @@ if(!c.extra && c.k === st.placed.length){ st.placed.push(i); gameSfx("correct");
 if(st.placed.length === 3){ st.phase = "fb"; mtLater(NEW_MT.next, 900); } }
 else { st.bad[i] = 1; mtErr(); renderMtBoard(); mtLater(() => { delete st.bad[i]; renderMtBoard(); }, 700); } },
 size(i){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "input" || st.marks[i]) return;
-if(tr.order[i] === st.pos){ st.marks[i] = "ok"; st.pos++; gameSfx("correct"); renderMtBoard(); if(st.pos >= tr.sizes.length){ st.phase = "fb"; mtLater(() => { st.marks = {}; st.pos = 0; NEW_MT.next(); }, 600); } }
+if(tr.order[i] === (st.desc ? tr.sizes.length - 1 - st.pos : st.pos)){ st.marks[i] = "ok"; st.pos++; gameSfx("correct"); renderMtBoard(); if(st.pos >= tr.sizes.length){ st.phase = "fb"; mtLater(() => { st.marks = {}; st.pos = 0; NEW_MT.next(); }, 600); } }
 else { st.marks[i] = "bad"; mtErr(); renderMtBoard(); mtLater(() => { if(st.marks[i] === "bad"){ delete st.marks[i]; renderMtBoard(); } }, 600); } },
 samenum(i){ const st = mtState; if(st.phase !== "input" || st.found[i] || st.bad[i]) return; const it = st.items[i];
 if(it.tgt){ st.found[i] = 1; gameSfx("correct"); renderMtBoard(); if(Object.keys(st.found).length >= st.items.filter(x => x.tgt).length){ st.phase = "fb"; mtLater(() => mtFinish(), 500); } }
@@ -9112,8 +9116,8 @@ body = dots + `<div style="display:flex;${isLs ? "" : "flex-direction:column;"}g
 `<div class="wm-btns${isLs ? " wd-compact" : ""}" style="margin:${isLs ? 6 : 10}px 0 0;flex-wrap:wrap"><button type="button" class="wm-btn same" data-judge="1">✓ Uygun</button><button type="button" class="wm-btn diff" data-judge="2">◐ Kısmen</button><button type="button" class="wm-btn diff" style="background:#E5484D;box-shadow:0 5px 0 #A9262B" data-judge="0">✗ Uygun değil</button></div></div></div>`;
 } else if(st.kind === "size"){
 const tr = st.trials[ti];
-info = "<b>Küçükten büyüğe</b> dokun";
-body = dots + grid(tr.order, (o, i, c) => `<div class="wm-pic${st.marks[i] ? " " + st.marks[i] : ""}" data-mt="${i}" style="width:${c}px;height:${c}px;">${qzPic(tr.src, tr.sizes[o])}${st.marks[i] === "ok" ? `<span class="num">${tr.order[i] + 1}</span>` : ""}</div>`, 80);
+info = st.desc ? "<b>Büyükten küçüğe</b> dokun" : "<b>Küçükten büyüğe</b> dokun";
+body = dots + grid(tr.order, (o, i, c) => `<div class="wm-pic${st.marks[i] ? " " + st.marks[i] : ""}" data-mt="${i}" style="width:${c}px;height:${c}px;">${qzPic(tr.src, tr.sizes[o])}${st.marks[i] === "ok" ? `<span class="num">${st.desc ? tr.sizes.length - tr.order[i] : tr.order[i] + 1}</span>` : ""}</div>`, 80);
 } else if(st.kind === "samenum"){
 const total = st.items.filter(x => x.tgt).length;
 const head = `<div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px"><span style="font-weight:800">Bul:</span><span style="font:900 40px 'Trebuchet MS',Verdana,sans-serif;color:var(--ink);background:var(--panel);border:3px solid var(--teal);border-radius:14px;padding:0 16px;line-height:56px">${st.T}</span><span style="font-weight:800">${Object.keys(st.found).length}/${total}</span></div>`;
@@ -9665,29 +9669,29 @@ const Q = (t) => `<b>"${t}"</b>`;
 const EYE = (d) => `${Q("Başını sabit tut, gözünle topu takip et.")} ${d}`;
 const INSTR_SHORT = {
 "shape-color":      [() => Q("Şekillerin adını hızlıca söyle."), () => Q("Şekillerin rengini ve adını hızlıca söyle.")],
-"number-color":     [() => Q("Rakamları hızlıca söyle."), () => Q("Rakamın rengini ve kendisini hızlıca söyle.")],
-"object-name":      [() => Q("Resimlerin adını hızlıca söyle."), () => Q("Resmin adını ve grubunu söyle: hayvan, giysi, yiyecek.")],
-"fruit-veg":        [() => Q("Meyve mi, sebze mi? Hızlıca söyle."), () => Q("Boyunu ve meyve mi sebze mi olduğunu söyle.")],
+"number-color":     [() => Q("Rakamları hızlıca söyle."), () => Q("Rakamı ve rengini hızlıca söyle.")],
+"object-name":      [() => Q("Resimdeki görsellerin adını hızlıca söyle."), () => Q("Resmin adını ve grubunu söyle: hayvan, giysi, yiyecek.")],
+"fruit-veg":        [() => Q("Meyve mi, sebze mi? Hızlıca söyle."), () => Q("Boyutunu (büyük–küçük) ve meyve mi sebze mi olduğunu söyle.")],
 "taste-name":       [() => Q("Tadını söyle: tatlı, ekşi, acı, tuzlu."), () => Q("Önce tadını, sonra adını söyle.")],
-"hot-cold":         [() => Q("Soğuk mu, sıcak mı? Hızlıca söyle."), () => Q("Önce adını, sonra soğuk mu sıcak mı söyle.")],
-"living-nonliving": [() => Q("Canlı mı, cansız mı? Hızlıca söyle."), () => Q("Önce adını, sonra canlı mı cansız mı söyle.")],
+"hot-cold":         [() => Q("Soğuk mu, sıcak mı? Hızlıca söyle."), () => Q("Önce adını, sonra soğuk mu sıcak mı olduğunu söyle.")],
+"living-nonliving": [() => Q("Canlı mı, cansız mı? Hızlıca söyle."), () => Q("Önce adını, sonra canlı mı cansız mı olduğunu söyle.")],
 "choice-reaction":  [() => `Eşleşmeleri birlikte deneyin, sonra: ${Q("Her rengin hareketini hızlıca yap.")}` + crtLegendHTML(),
 () => `${Q("Önce rengin adını söyle, sonra hareketini yap.")}` + crtLegendHTML()],
 "origin-order":     [() => `${Q("Satır başındaki resimden sonra ne gelir, en son ne gelir? Sırayla göster.")} (yumurta → civciv → tavuk)`],
 "symbol-image":     [() => `Anahtarı birlikte okuyun, sonra: ${Q("Her şeklin eşi olan resmin adını söyle.")}`],
-"related-pairs":    [() => Q("Kutudaki ikisi birlikte kullanılıyorsa 'doğru', değilse 'yanlış' de.")],
-"search-object":    [() => Q("Soldaki resmin aynısını bul, dokun.")],
-"search-shape":     [() => Q("Soldaki şeklin aynısını bul, dokun.")],
+"related-pairs":    [() => Q("Kutudaki iki şey birlikte kullanılıyorsa 'doğru', kullanılmıyorsa 'yanlış' de.")],
+"search-object":    [() => Q("Soldaki resmin aynısını bul ve ona dokun.")],
+"search-shape":     [() => Q("Soldaki şeklin aynısını bul ve ona dokun.")],
 "search-symbol":    [() => `${Q("Soldaki sembolün tıpatıp aynısına dokun.")} İçi dolu ile boş farklıdır.`],
-"search-letter":    [() => Q("Soldaki harf sırada varsa ona, yoksa YOK'a dokun.")],
-"cat-fruit":        [() => Q(`Yalnızca ${trUpper(catTargetWord("cat-fruit")[1])} hızlıca dokun.`)],
-"cat-living":       [() => Q(`Yalnızca ${trUpper(catTargetWord("cat-living")[1])} hızlıca dokun.`)],
-"cat-cold":         [() => Q(`Yalnızca ${trUpper(catTargetWord("cat-cold")[1])} hızlıca dokun.`)],
-"trail-numbers":    [() => Q(`BAŞLA'dan başla, sayılara sırayla dokun: 1, 2, 3 … ${currentGrid.length || ""}`)],
-"pairs-touch":      [() => Q("Birlikte kullanılan çiftlere hızlıca dokun; diğerlerine dokunma.")],
+"search-letter":    [() => Q("Soldaki harf satırda varsa ona, yoksa YOK'a dokun.")],
+"cat-fruit":        [() => Q(`Yalnızca ${trUpper(catTargetWord("cat-fruit")[1])} hızlıca dokun.`), () => Q(`Bu kez yalnızca ${trUpper(catTargetWord("cat-fruit")[1])} hızlıca dokun.`)],
+"cat-living":       [() => Q(`Yalnızca ${trUpper(catTargetWord("cat-living")[1])} hızlıca dokun.`), () => Q(`Bu kez yalnızca ${trUpper(catTargetWord("cat-living")[1])} hızlıca dokun.`)],
+"cat-cold":         [() => Q(`Yalnızca ${trUpper(catTargetWord("cat-cold")[1])} hızlıca dokun.`), () => Q(`Bu kez yalnızca ${trUpper(catTargetWord("cat-cold")[1])} hızlıca dokun.`)],
+"trail-numbers":    [() => Q(`BAŞLA'dan başla, sayılara sırayla dokun: 1, 2, 3 … ${currentGrid.length || ""}`), () => Q(`Bu kez tersten: BAŞLA'dan başla, sayılara büyükten küçüğe dokun: ${currentGrid.length || ""}, ${(currentGrid.length || 2) - 1} … 1`)],
+"pairs-touch":      [() => Q("Birlikte kullanılan çiftlere hızlıca dokun; diğerlerine dokunma."), () => Q("Bu kez birlikte KULLANILMAYAN çiftlere hızlıca dokun; birlikte kullanılanlara dokunma.")],
 "sdmt-touch":       [() => `Anahtarı birlikte inceleyin, sonra: ${Q("Gelen şeklin eşi olan resme hızlıca dokun.")}`],
 "quick-sort":       [() => { const R = qsRule(); const tail = qsRuleKey === "canli" ? " Bitkiler de canlıdır; oyuncak hayvanlar cansızdır." : ""; return Q(`${trCap(R.a.l)} gelirse ${trDat(R.a.l)}, ${trCap(R.b.l).toLocaleLowerCase("tr")} gelirse ${trDat(R.b.l)} hızlıca dokun.`) + tail; }],
-"stroop-touch":     [() => Q("Kelimeyi okuma; yazının RENGİNDEKİ düğmeye dokun.")],
+"stroop-touch":     [() => Q("Kelimeyi okuma; yazının rengini gösteren düğmeye dokun.")],
 "day-night-touch":  [() => Q("Güneş gelince AY'a, ay gelince GÜNEŞ'e dokun.")],
 "fish-flanker":     [() => Q("Yalnızca ORTADAKİ canlıya bak; baktığı yönün okuna dokun.")],
 "face-go":          [() => Q(`Her yüzde DOKUN'a bas. ${trUpper(FACE_NAMES[fgStop])} yüzde dokunma, bekle.`)],
@@ -9699,14 +9703,14 @@ const INSTR_SHORT = {
 "vis-chg":          [() => Q("Resimlere iyi bak. Biri değişecek; değişene dokun.")],
 "vis-recog":        [() => Q("Resimlere iyi bak. Sonra her resim için Gördüm ya da Görmedim'e dokun."), () => `10–15 dk sonra açın: ${Q("Az önce gördüğün resimleri hatırlıyor musun? Gördüm ya da Görmedim'e dokun.")}`],
 "pk-redlight":      [() => Q("Işık yeşilken düğmeye basılı tut, Zihni koşsun. Kırmızı olunca hemen bırak!")],
-"pk-waiter":        [() => Q("Siparişi dinle ve aklında tut. Tepsiye doğru sayıda meyve koy, sonra Servis et.")],
+"pk-waiter":        [() => Q("Siparişi dinle ve aklında tut. Tepsiye doğru sayıda meyve koy, sonra Servis Et'e bas.")],
 "pk-drum":          [() => Q("Önce ritmi dinle. Sonra her vuruşla aynı anda davula vur.")],
 "pk-word":          [() => Q(isPre() ? "Akan resimlerden yalnızca söylenen gruptakilere dokun." : "Akan kelimelerden yalnızca söylenen gruba girenlere dokun.")],
 "pk-rhyme":         [() => Q("Söylenen kelimeyle uyaklı kelimeyi taşıyan balığı yakala.")],
 "pk-train":         [() => Q("Resmin adını dinle. Hece vagonlarını sırayla takarak treni kur.")],
 "pk-slide":         [() => Q("Resme bak. Parçaları boşluğa kaydırarak resmi yeniden tamamla.")],
 "pk-bridge":        [() => Q("Zihni karşıya geçsin. Boşluğa tam uyan tahtayı seç.")],
-"pk-shadow":        [() => Q("Resme bak. Onun gölgesi hangisi, bul.")],
+"pk-shadow":        [() => Q("Resme bak ve onun gölgesini bul.")],
 "pk-escape":        [() => Q("Zihni'yi yıldıza götür. Gideceğin kareye dokun, bulutlara yakalanma.")],
 "pk-balloon":       [() => Q("Yalnızca söylenen renkteki balonları patlat. Renk değişirse dikkat et!")],
 "pk-mole":          [() => Q("Delikten çıkan köstebeğe hızlıca dokun. Şapkalı köstebeğe dokunma!")],
@@ -9716,7 +9720,7 @@ const INSTR_SHORT = {
 "pk-light":         [() => Q("Fenerlerin yanma sırasını izle, sonra aynı sırayla dokun. Her turda bir fener daha yanar.")],
 "clue-find":        [() => Q("İpuçlarını dinle. Hepsine uyan tek şekle dokun.")],
 "class-table":      [() => Q("Aşağıdan bir parça seç. Rengi satıra, şekli sütuna uyan kutuya koy.")],
-"color-obj":        [() => Q("Resimlere ve kartlarının rengine iyi bak. Sonra her resmin hangi renk karttaydığını seç.")],
+"color-obj":        [() => Q("Resimlere ve kartlarının rengine iyi bak. Sonra her resmin hangi renk kartta olduğunu seç.")],
 "pic-order":        [() => Q("Resimler tek tek gelecek, sırasına iyi bak. Sonra aynı sırayla dokun.")],
 "finger-trace":     [() => Q("Parmağını topun üstüne koy. Top nereye giderse parmağınla onu izle, kaldırma.")],
 "eye-count":        [() => `Çocuğa söyleyin: ${Q(!isPre() && currentCombo().t === 2 ? "Parmağını kullanmadan, yalnızca yıldızları gözünle soldan sağa say." : "Parmağını kullanmadan, gözünle soldan sağa say.")} Sayıyı söyleyince değerlendirin.`],
@@ -9729,7 +9733,7 @@ const INSTR_SHORT = {
 "periph":           [() => Q("Gözünü ortadaki kırmızı noktadan ayırma. Kenarda yıldız görünce ona dokun.") + (!isPre() && currentCombo().t === 2 ? " " + Q("Mavi daireye dokunma.") : "")],
 "fixation":         [() => `Çocuğa söyleyin: ${Q("Kırmızı noktaya bak, etrafta ne çıkarsa çıksın gözünü ayırma.")} Süre bitince gözlerini ayırıp ayırmadığını işaretleyin.`],
 "dual-task":        [() => Q("Çıkan yıldızlara dokun. Aynı anda bip seslerini say; sonunda kaç tane olduğunu söyleyeceksin.")],
-"stop-signal":      [() => Q("Ok hangi yönü gösteriyorsa o düğmeye hızlıca bas. Ok kırmızıya dönerse basma, dur.")],
+"stop-signal":      [() => Q("Ok hangi yönü gösteriyorsa o yöndeki düğmeye hızlıca bas. Ok kırmızıya dönerse basma, dur.")],
 "vigilance":        [() => Q("Şekiller tek tek gelecek. Yalnızca kırmızı yıldız gelince Gördüm'e bas.")],
 "pos-nback":        [() => Q(mtState && mtState.n === 2 ? "Mavi kare iki önceki kareyle aynı yerdeyse Aynı yer'e bas." : "Mavi kare bir öncekiyle aynı yerdeyse Aynı yer'e bas.")],
 "count-span":       [() => Q("Her karttaki noktaları say, Saydım'a bas. Sonunda sayıları sırayla seç.")],
@@ -9758,9 +9762,9 @@ const INSTR_SHORT = {
 "embedded":         [() => Q("Kırmızı şekli bul: hangi çizimin içinde aynen gizli?")],
 "closure":          [() => Q("Resmin yalnızca bir kısmı görünüyor. Bütünü hangisi?")],
 "copy-design":      [() => Q("Modele bak. Noktalara dokunarak aynısını çiz, bitince Bitti'ye bas.")],
-"symmetry":         [() => Q("Kırmızı çizgi ayna. Öbür yanı aynı gibi boya, bitince Bitti'ye bas.")],
+"symmetry":         [() => Q("Kırmızı çizgi bir ayna. Öbür yanı aynısı olacak şekilde boya, bitince Bitti'ye bas.")],
 "maze":             [() => Q("Topu yıldıza götür. Gideceğin kareye dokun; duvardan geçemezsin.")],
-"vanalogy-touch":   [() => isPre() ? Q("Üstteki ikiliye bak. Soru işaretine gelecek resme dokun.") : Q("İlk ikili gibi: soru işaretine gelecek kelimeye dokun.")],
+"vanalogy-touch":   [() => isPre() ? Q("Üstteki ikiliye bak. Soru işaretinin yerine gelecek resme dokun.") : Q("İlk ikilideki gibi düşün: soru işaretinin yerine gelecek kelimeye dokun.")],
 "word-pic":         [() => Q("Dinle. Söylenen resme dokun.")],
 "absurd-say":       [() => isPre() ? `Resmi gösterin, sorun: ${Q("Bu resimde yanlış olan ne?")}` : `Cümleyi okuyun (uygulama da okur): ${Q("Bu cümlede ne mantıksız? Neden?")}`],
 "analogy-say":      [() => `Okuyun: ${Q("Dinle, ilk ikilideki gibi ikinciyi tamamla.")}`],
@@ -9803,12 +9807,12 @@ const INSTR_SHORT = {
 "sim-touch":        [() => Q("Üstteki resimlere bak. Onlara benzeyen resme dokun.")],
 "def-touch":        [() => Q("Dinle. Anlatılan resme dokun.")],
 "use-touch":        [() => Q("Soruyu dinle. Doğru resme dokun.")],
-"size-touch":       [() => Q("Resimlere küçükten büyüğe doğru dokun.")],
+"size-touch":       [() => Q("Resimlere küçükten büyüğe doğru dokun."), () => Q("Bu kez resimlere büyükten küçüğe doğru dokun.")],
 "arrow-touch":      [() => Q("Üstteki ok hangi yöne bakıyorsa, aynı yöne bakan oka dokun.")],
 "edge-touch":       [() => Q("Şeklin kenarlarını say. Doğru sayıya dokun.")],
 "odd-touch":        [() => Q("Şekillere bak. Farklı olana dokun.")],
-"pattern-touch":    [() => Q("Sırayı incele: tekrar mı ediyor, büyüyor mu, dönüyor mu? Soru işaretine gelecek olana dokun.")],
-"analogy-touch":    [() => Q("İlk ikilide ne değişti? Aynısını yap; soru işaretine geleni seç.")],
+"pattern-touch":    [() => Q("Sırayı incele: tekrar mı ediyor, büyüyor mu, dönüyor mu? Soru işaretinin yerine gelecek olana dokun.")],
+"analogy-touch":    [() => Q("İlk ikilide ne değişti? Aynısını yap; soru işaretinin yerine geleni seç.")],
 "same-number":      [() => Q(`Bütün ${SN_PLURAL[snValid()]} bul ve dokun. Rengi, boyu, eğikliği farklı olabilir.`) ],
 "vis-face":         [() => Q("Yüzlere iyi bak. Sonra gördüğün yüzlere dokun, bitince Bitti'ye bas."), () => Q("Yüzleri ve adlarını aklında tut. Adını duyunca o yüze dokun.")],
 "scene-mem":        [() => `Resme birlikte bakın; kapanınca soruları sorun: ${Q("Resme iyi bak, sonra sorularıma cevap ver.")}`],
@@ -9869,7 +9873,7 @@ const INSTR_SHORT = {
 "go-no-go":         [() => Q(`Yüzün duygusunu söyle. ${stopFaceText()} yüzde sus.`), () => Q(`Yüzün duygusunu söyle. ${stopFaceText()} yüzde sus.`)],
 "flanker":          [() => Q(isPre() ? "Her çerçevede yalnızca ORTADAKİ resmin adını söyle." : "Her çerçevede yalnızca ORTADAKİ rakamı söyle."),
 () => `${Q("Yine yalnızca ORTADAKİNİ söyle.")} Bazen beşi de aynıdır.`],
-"touch-animal":     [() => `<b>"Hayvanlara hızlıca dokun. ${trUpper(cardName(taStopColor))}</b> ${swatch(taStopColor)} <b>DUR kartına dokunma.${currentCombo().t > 0 ? " Başka renk DUR kartlarına dokunabilirsin." : ""}"</b>`],
+"touch-animal":     [() => `<b>"Hayvanlara hızlıca dokun. ${trUpper(cardName(taStopColor))}</b> ${swatch(taStopColor)} <b>DUR kartına dokunma.${currentCombo().t > 0 ? " Başka renk DUR kartlarına dokunabilirsin." : ""}"</b>`, () => `<b>"Bu kez eşyalara hızlıca dokun. ${trUpper(cardName(taStopColor))}</b> ${swatch(taStopColor)} <b>DUR kartına dokunma.${currentCombo().t > 0 ? " Başka renk DUR kartlarına dokunabilirsin." : ""}"</b>`],
 "touch-card":       [() => `<b>"Yalnızca ${trUpper(cardName(tcTarget))}</b> ${swatch(tcTarget)} <b>kartlara hızlıca dokun."</b>`],
 "sort-color-shape":       [() => sortShort()],
 "sort-animal-size":       [() => sortShort()],
@@ -11984,7 +11988,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.18-d";
+const APP_VERSION = "2026.10.18-g";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
