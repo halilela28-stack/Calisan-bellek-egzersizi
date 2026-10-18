@@ -7151,7 +7151,7 @@ function rhsScore(){ const L = currentGrid[0]; return L.items.length - L.items.f
 
 function dotTrials(){ const t = currentCombo().t, rng = isPre() ? [[1, 3], [1, 4], [2, 5]][t] : [[1, 5], [2, 7], [3, 9]][t], ms = (isPre() ? [2800, 2200, 1700] : [2200, 1700, 1300])[t];
 /* Orta: aynı resimden n tane · Zor: hedef resim + farklı çeldirici resimler (yalnızca hedef sayılır) */ const named = t >= 1 ? placeNamedPool().filter(x => x.n && x.src && x.n.length <= 12) : []; const nextPic = named.length ? mkCycle(named) : null;
-return Array.from({length: isPre() ? [5, 6, 7][t] : [8, 10, 12][t]}, () => { const n = rng[0] + Math.floor(Math.random() * (rng[1] - rng[0] + 1)), pts = []; const pic = nextPic ? nextPic() : null; let dis = null, nd = 0; if(pic && t === 2){ let g2 = 0; do{ dis = nextPic(); } while(dis.n === pic.n && g2++ < 10); nd = isPre() ? 2 : randomItem([2, 3]); }
+return Array.from({length: isPre() ? [5, 6, 7][t] : [8, 10, 12][t]}, () => { const n = rng[0] + Math.floor(Math.random() * (rng[1] - rng[0] + 1)), pts = []; const pic = nextPic ? nextPic() : null; let dis = null, nd = 0; /* çeldirici resim yok: Zor da tek tür resimle; zorluk sayı aralığı ve gösterim süresinden gelir */
 const gap = pic ? 40 : 34, lo = pic ? 20 : 14, span = pic ? 160 : 172; let g = 0; while(pts.length < n + nd && g++ < 900){ const x = lo + Math.random() * span, y = lo + Math.random() * span; if(pts.every(p => Math.hypot(p[0] - x, p[1] - y) > gap)) pts.push([x, y]); }
 const tp = pts.slice(0, n), dp = pts.slice(n, n + nd); return { n: tp.length, pts: tp, dpts: dp, pic: pic ? pic.src : null, name: pic ? pic.n : null, dis: dis ? dis.src : null, ms, max: rng[1] + 1, min: Math.max(1, rng[0] - 1) }; }); }
 const SEM_QS = [ { k:"canli", q:"Canlı mı?" }, { k:"yenir", q:"Yenir mi?" },
@@ -9819,7 +9819,7 @@ const INSTR_SHORT = {
 "absurd-touch":     [() => Q(!isPre() && currentCombo().t === 2 ? "İki cümleyi dinle. Davranış amaca uyuyorsa Doğru'ya, uymuyorsa Saçma'ya dokun." : "Cümleyi dinle. Doğruysa Doğru'ya, saçmaysa Saçma'ya dokun.")],
 "concept-touch":    [() => Q("Dinle. Söylenen resme dokun.")],
 "infer-touch":      [() => Q(currentCombo().t === 2 ? "İki cümleyi oku ya da dinle. İkisindeki ipuçlarını birleştirip en uygun cevaba dokun." : currentCombo().t === 1 ? "Durumu oku ya da dinle. İki ipucunu birleştirip en uygun cevaba dokun." : "Durumu oku ya da dinle. İpucuna göre en uygun cevaba dokun.")],
-"dot-count":        [() => Q(Math.min(currentCombo().t, 2) === 0 ? "Noktalar bir an görünecek. Kaç tane olduğunu seç." : Math.min(currentCombo().t, 2) === 1 ? "Resimler bir an görünecek. Kaç tane olduğunu seç." : "Resimler bir an görünecek. Yalnızca sorulan resmi say; ötekilere aldırma.")],
+"dot-count":        [() => Q(Math.min(currentCombo().t, 2) === 0 ? "Noktalar bir an görünecek. Kaç tane olduğunu seç." : Math.min(currentCombo().t, 2) === 1 ? "Resimler bir an görünecek. Kaç tane olduğunu seç." : "Resimler bir an görünecek. Kaç tane olduğunu seç.")],
 "sem-decide":       [() => { const t = currentCombo().t; return Q(t === 0 ? "Soruyu dinle; her resim için hızlıca Evet ya da Hayır'a dokun." : t === 1 ? "Soru iki resimde bir değişecek: soruyu dinle, hızlıca Evet ya da Hayır'a dokun." : "Soru her resimde değişecek: soruyu dinle, hızlıca Evet ya da Hayır'a dokun."); }],
 "eye-touch":        [() => Q("Kayan topu gözünle izle, yakalayınca dokun.")],
 "alt-uses":         [() => `Okuyun ve ▶'a basın: ${Q(fluPrompt("alt-uses").say)} Asıl kullanımı sayılmaz; farklı her fikir +1.`],
@@ -12032,7 +12032,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.18-o";
+const APP_VERSION = "2026.10.18-p";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
