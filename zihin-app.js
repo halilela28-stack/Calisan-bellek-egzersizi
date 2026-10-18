@@ -12053,7 +12053,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.18-s";
+const APP_VERSION = "2026.10.18-t";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -12440,8 +12440,8 @@ if(!playersList.includes(nm)){ playersList.push(nm); if(firestoreReady && window
 rememberPlayerLevel(nm, lv); hideLinkScreens(); try{ exitGameMode(); hideFamScreens(); }catch(e){}
 appMode = "uzman"; viaWho = true; readingLevel = lv; try{ applyLevelDefaultThresholds(lv); }catch(e){}
 pendingLevelPlayerName = nm; pendingLevelPlayerIsNew = false; chooseReadingLevel(lv); showLevelFlash(`${nm} ile oturum başladı`, "levelup"); }; }
-const saveProg = async (msg) => { if(!fbOk()){ showLevelFlash("İnternet bağlantısı yok.", "down"); return false; } const { db, doc, updateDoc } = window.__fb;
-try{ await updateDoc(doc(db, "links", code), { program: { target: p.target, days: p.days, minutes: p.minutes, mains: p.mains, games: p.games, hw: p.hw, cfg: expertCfgFor(l.childName, (p.mains || []).concat(p.hw || [])), updatedAt: Date.now() } }); l.program = Object.assign({}, p); showLevelFlash(msg, "levelup"); return true; }catch(e){ console.error(e); showLevelFlash("Ödev kaydedilemedi.", "down"); return false; } };
+const saveProg = async (msg) => { if(!fbOk()){ showLevelFlash("İnternet bağlantısı yok.", "down"); return false; } hwStamp(p); const { db, doc, updateDoc } = window.__fb;
+try{ await updateDoc(doc(db, "links", code), { program: { target: p.target, days: p.days, minutes: p.minutes, mains: p.mains, games: p.games, hw: p.hw, hwLog: p.hwLog, cfg: expertCfgFor(l.childName, (p.mains || []).concat(p.hw || [])), updatedAt: Date.now() } }); l.program = Object.assign({}, p); showLevelFlash(msg, "levelup"); return true; }catch(e){ console.error(e); showLevelFlash("Ödev kaydedilemedi.", "down"); return false; } };
 w.querySelectorAll("[data-hws]").forEach(x => x.onclick = () => { const id = x.dataset.hws; if(p.hw.includes(id)) return; if(hwSel.has(id)) hwSel.delete(id); else hwSel.add(id); draw(); });
 w.querySelectorAll("[data-hwx]").forEach(x => x.onclick = async () => { p.hw = p.hw.filter(v => v !== x.dataset.hwx); await saveProg("Ödev kaldırıldı ✓"); draw(); });
 const ha = document.getElementById("hwAutoBtn"); if(ha) ha.onclick = async () => { readingLevel = l.level || "post"; const W = hwWeakPages(l.childName); readingLevel = lvlSave; p.hw = W.list.filter(x => exerciseById(x.id).readingLevel.includes(l.level || "post")).slice(0, 4).map(x => x.id); hwSel.clear(); await saveProg(`${p.hw.length} sayfa ödev olarak gönderildi ✓`); draw(); };
@@ -14802,7 +14802,7 @@ if($("hmAdd")) $("hmAdd").onclick = whoAdd;
 $("hmGuest").onclick = () => { whoListOpen = false; whoSelect("__guest__"); };
 if($("hmResume")) $("hmResume").onclick = () => { const go = () => { whoSelSet(L.player); whoTouch(L.player); document.getElementById("whoScreen").style.display = "none"; resumeLast(L); }; if(L.mode === "uzman") expertGate(go); else go(); };
 el.querySelectorAll("[data-hview]").forEach(b => b.onclick = (ev) => { ev.stopPropagation(); const v = b.dataset.hview; try{ setEtkinlikView(v); }catch(e){} if(v === "uzman") expertGate(() => need("uzman")); else need("aile"); });
-if($("hmHw")) $("hmHw").onclick = (ev) => { ev.stopPropagation(); if(guest || !cur){ showToast("Önce yukarıdan kişiyi seçin", "err"); whoListOpen = true; showWho(false); return; } setEtkinlikView("aile"); whoEnter(cur, "aile"); setTimeout(() => { try{ if(familyLinkLocal()) showLinkScreen(); else showToast("Henüz uzman bağlantısı yok. Aile ekranından \"Uzmana bağlan\" ile kodu girin.", "err"); }catch(e){} }, 350); };
+if($("hmHw")) $("hmHw").onclick = (ev) => { ev.stopPropagation(); if(guest || !cur){ showToast("Önce yukarıdan kişiyi seçin", "err"); whoListOpen = true; showWho(false); return; } setEtkinlikView("aile"); whoEnter(cur, "aile"); setTimeout(() => { try{ showHwScreen(); }catch(e){ console.error(e); } }, 350); };   /* Ödevlerim: tarih tarih ödevler ve başarı durumu */
 if($("hmClients")) $("hmClients").onclick = (ev) => { ev.stopPropagation(); expertGate(() => { el.style.display = "none"; appMode = "uzman"; window.__exFromHome = true; try{ showExpert("list"); }catch(e){} }); };
 const need = (mode) => { if(guest) return whoGuestEnter(mode); if(!cur){ whoListOpen = true; showWho(); showLevelFlash(names.length ? "Önce kimin çalışacağını seçin" : "Önce bir kişi ekleyin", "down"); return; } whoEnter(cur, mode); };
 $("hmEtk").onclick = () => { if(getEtkinlikView() === "uzman") expertGate(() => need("uzman")); else need("aile"); };
@@ -15060,5 +15060,33 @@ document.getElementById("failThresholdValue").textContent = FAIL_SEC_PER_ITEM.to
 
 /* Soru-cevap: aynı doğru cevap art arda en çok 2 kez (oluşturucu sarılır; ısınma da aynı yoldan geçer) */
 try{ QZ_NORUN.forEach(id => { const f = NEW_MT.build[id]; if(typeof f !== "function") return; NEW_MT.build[id] = function(){ const T = f.apply(this, arguments); try{ if(Array.isArray(T) && T.length && T[0] && T[0].opts){ const R = limitRuns(T, qzAnsKey, 2); T.splice(0, T.length, ...R); } }catch(e){} return T; }; }); }catch(e){}
+
+/* ===== Ödevlerim (aile) ===== */
+/* Uzman ödev verdiğinde/kaldırdığında tarih damgası: hwLog = [{ id, at, end? }] */
+function hwStamp(p){ if(!p) return; const now = Date.now(); p.hwLog = Array.isArray(p.hwLog) ? p.hwLog : []; const active = (id) => p.hwLog.find(e => e.id === id && !e.end);
+  (p.hw || []).forEach(id => { if(!active(id)) p.hwLog.push({ id, at: now }); });
+  p.hwLog.forEach(e => { if(!e.end && !(p.hw || []).includes(e.id)) e.end = now; });
+  if(p.hwLog.length > 80) p.hwLog = p.hwLog.slice(-80); }
+function hwEntries(prog){ if(!prog) return []; const log = Array.isArray(prog.hwLog) ? prog.hwLog.slice() : []; (prog.hw || []).forEach(id => { if(!log.some(e => e.id === id && !e.end)) log.push({ id, at: prog.updatedAt || Date.now(), noDate: !prog.updatedAt }); }); return log.filter(e => exerciseById(e.id)); }
+function hwStatus(e, player){ const ex = exerciseById(e.id); const nm = (player || "").trim().toLocaleLowerCase("tr"); const labels = [ex.label].concat(ex.oldLabels || []);
+  const recs = loadSessions().filter(r => (r.player || "").trim().toLocaleLowerCase("tr") === nm && labels.includes(r.exerciseLabel) && r.t >= e.at && (!e.end || r.t <= e.end)).sort((a, b) => b.t - a.t);
+  if(!recs.length) return { k:"none", n:0 }; const er = recs[0].errors || 0; return { k: er <= 1 ? "ok" : er === 2 ? "mid" : "hard", n: recs.length, last: recs[0].t, err: er }; }
+const HW_ST = { none:["Henüz yapılmadı","#EEF2F6","#5B6B7A"], ok:["Başarılı ✓","#E3F6EA","#1B7A3D"], mid:["Gelişiyor","#FFF6D6","#8A6400"], hard:["Zorlandı","#FDEBDD","#A9632A"] };
+function showHwScreen(){ hideFamScreens(); hideLinkScreens(); ["categoryScreen","familyHome","mainApp","readingLevelScreen","returnSplashScreen"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; });
+  const l = familyLinkLocal(), player = famProfile(), list = hwEntries(l && l.program).sort((a, b) => b.at - a.at); const w = document.getElementById("linkWrap");
+  const dk = (t) => { const d = new Date(t); return d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate(); }; const dLong = (t) => new Date(t).toLocaleDateString("tr-TR", { day:"numeric", month:"long", year:"numeric", weekday:"long" }); const dShort = (t) => new Date(t).toLocaleDateString("tr-TR", { day:"numeric", month:"short" });
+  let body = "";
+  if(!list.length){ body = `<div class="fam-card" style="text-align:center;padding:28px 18px"><div style="font-size:34px;line-height:1">📋</div><div style="font-weight:900;font-size:18px;margin-top:10px">Henüz ödeviniz yok.</div><div class="fam-sub" style="font-weight:600;margin-top:6px">${l ? "Uzmanınız ödev verdiğinde tarihleriyle burada görünecek." : "Uzmanınıza bağlandığınızda verdiği ödevler tarihleriyle burada görünecek."}</div>${l ? "" : `<button type="button" class="fam-cta" id="hwLinkBtn" style="margin-top:14px">Uzmana bağlan</button>`}</div>`; }
+  else { const groups = []; list.forEach(e => { const g = groups.find(x => x.k === dk(e.at)); if(g) g.items.push(e); else groups.push({ k: dk(e.at), at: e.at, items:[e] }); });
+    const done = list.filter(e => hwStatus(e, player).k !== "none").length;
+    body = `<div class="fam-sub" style="font-weight:700;margin:-4px 0 2px">${list.length} ödevin ${done} tanesi çalışıldı</div>` + groups.map(g => `<div><div style="font-weight:900;font-size:14px;color:#5B6B7A;margin:8px 2px 6px">${g.items[0].noDate ? "Tarihi kayıtlı olmayan ödevler" : escHTML(dLong(g.at))}</div>${g.items.map(e => { const st = hwStatus(e, player), c = HW_ST[st.k], cat = CATEGORIES.find(x => !x.hidden && x.exerciseIds.includes(e.id));
+      return `<button type="button" class="fam-card" data-hwopen="${e.id}" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;margin-bottom:8px;cursor:pointer;font:inherit;color:inherit"><span style="flex:1;min-width:0"><span style="display:block;font-weight:900;font-size:15px">📌 ${escHTML(famLabel(e.id))}</span><span class="fam-sub" style="display:block;font-weight:600;margin-top:2px">${cat ? escHTML(cat.label || cat.title || "") : ""}${e.end ? " · ödev kapandı" : ""}</span><span class="fam-sub" style="display:block;font-weight:600;margin-top:2px">${st.n ? `${st.n} kez çalışıldı · son: ${escHTML(dShort(st.last))} · ${st.err} hata` : "Bu ödev henüz çalışılmadı"}</span></span><span style="flex:none;padding:6px 10px;border-radius:999px;font-weight:900;font-size:13px;background:${c[1]};color:${c[2]}">${c[0]}</span></button>`; }).join("")}</div>`).join("")
+      + `<div class="fam-note">Başarılı: son denemede en çok 1 hata · Gelişiyor: 2 hata · Zorlandı: 3 ve üzeri hata. Ödeve dokununca çalışma açılır.</div>`; }
+  w.innerHTML = `<div><h2 class="fam-h">Ödevlerim</h2><div class="fam-sub">${escHTML(player)}</div></div>${body}`;
+  const lb = document.getElementById("hwLinkBtn"); if(lb) lb.onclick = () => { try{ showLinkScreen(); }catch(e){} };
+  w.querySelectorAll("[data-hwopen]").forEach(b => b.onclick = () => hwOpen(b.dataset.hwopen, l));
+  document.getElementById("linkScreen").style.display = "flex"; document.getElementById("linkScreen").scrollTop = 0; }
+function hwOpen(id, l){ hideLinkScreens(); hideFamScreens(); appMode = "aile"; try{ applyModeVisibility(); }catch(e){} const ci = CATEGORIES.findIndex(c => !c.hidden && c.exerciseIds.includes(id)); if(ci < 0) return; selectCategory(ci);
+  const k = currentCategoryExercises().findIndex(x => x.id === id); if(k < 0) return; const cf = l && l.program && l.program.cfg ? l.program.cfg[id] : null; const t = cf && cf.t != null ? cf.t : currentCombo().t; const si = findSeqIndex(t, k); goToIndex(si >= 0 ? si : findSeqIndex(0, k)); }
 
 window.__zaReady = true;
