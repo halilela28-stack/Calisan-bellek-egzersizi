@@ -11773,8 +11773,8 @@ document.getElementById("nextBtn").addEventListener("click", ()=>{ navStep(1); }
 
 function applyModeVisibility(){
 const isAile = appMode === "aile";
-document.getElementById("tierRow").style.display = isAile ? "none" : "flex";
-document.getElementById("exerciseRow").style.display = isAile ? "none" : "flex";
+document.getElementById("tierRow").style.display = "flex";   /* düzeyler ve çalışma şeridi Aile görünümünde de: ödev ve egzersiz takibi için */
+document.getElementById("exerciseRow").style.display = "flex";
 document.getElementById("modeLabel").textContent = isAile ? "Aile" : "Uzman";
 document.getElementById("exportCsvBtn").style.display = isAile ? "none" : "inline-block";
 }
@@ -11786,7 +11786,7 @@ function renderViewSwitch(){
 const v = getEtkinlikView();
 document.querySelectorAll("#viewSwitch .view-btn").forEach(b => b.classList.toggle("active", b.dataset.view === v));
 const d = document.getElementById("viewDesc");
-if(d) d.textContent = v === "aile" ? "Aile: çalışmalar sırayla ilerler, zorluk kendiliğinden ayarlanır." : "Uzman: düzeyi, çalışmayı ve aşamayı kendin seçersin.";
+if(d) d.textContent = v === "aile" ? "Aile: çalışmalar sırayla ilerler; istersen düzeyi ve çalışmayı kendin de seçebilirsin." : "Uzman: düzeyi, çalışmayı ve aşamayı kendin seçersin.";
 }
 
 function startApp(mode){
@@ -12053,7 +12053,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.18-r";
+const APP_VERSION = "2026.10.18-s";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
