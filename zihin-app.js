@@ -12054,7 +12054,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.18-x";
+const APP_VERSION = "2026.10.18-y";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -12138,7 +12138,7 @@ if(document.readyState === "loading") document.addEventListener("DOMContentLoade
 
 const LINK_LOCAL_KEY = "wm_family_links_v1";
 const CODE_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], linkDocUnsubs = {};
+let expertLinks = [], expertLinksUnsub = null, expertResultsUnsub = null, expertResults = [], expertDevPlan = null, linkDocUnsubs = {};
 const fbOk = () => !!(firestoreReady && window.__fb && window.__fb.doc && window.__fb.uid);
 function newLinkCode(){ let c = ""; const a = new Uint32Array(8); (window.crypto || {}).getRandomValues ? crypto.getRandomValues(a) : a.forEach((_, i) => a[i] = Math.random() * 1e9); a.forEach(v => c += CODE_ALPHA[v % CODE_ALPHA.length]); return c; }
 function fmtCode(c){ return c ? c.slice(0, 4) + " " + c.slice(4) : ""; }
@@ -12412,10 +12412,11 @@ ${(() => { const W = hwWeakPages(l.childName); const lv = readingLevel;
 return `<div class="fam-card" style="display:flex;flex-direction:column;gap:10px"><div style="font-weight:900;font-size:16px">Ödevlendirme</div>
 <div class="fam-sub" style="font-weight:600">Bu cihazda <b>${escHTML(l.childName || "danışan")}</b> adıyla yaptığınız son 45 günlük oturumlara göre zorlandığı sayfalar (son 3 denemenin yarısından fazlasında 2+ hata ya da son denemede 3+ hata).</div>
 ${p.hw.length ? `<div><div style="font-weight:800;margin-bottom:6px">Verilen ödevler</div><div class="fam-chips">${p.hw.map(id => { const cf = expertCfgFor(l.childName, [id])[id]; return `<button type="button" class="fam-chip on" data-hwx="${id}">${icI("pin", 15, "#0A847E")} ${famLabel(id)}${cf ? ` <small>(${escHTML(cfgLabel(id, cf))})</small>` : ""} ✕</button>`; }).join("")}</div><div class="fam-sub" style="font-weight:600;margin-top:4px">Ödevler, sizin bu çocukla en son çalıştığınız aşama ve düzeyde açılır.</div></div>` : ""}
-${W.list.length ? `<div>${W.list.slice(0, 8).map(x => `<div class="ex-row" data-hws="${x.id}"><div class="tx"><div class="t1">${famLabel(x.id)}${p.hw.includes(x.id) ? " · " + icI("pin", 14, "#0A847E") : ""}</div><div class="fam-sub" style="font-weight:600">${famCatName(x.cat)} · son: ${x.err} hata, ${escHTML(x.tier || "")} · başarı %${x.rate} (${x.n} deneme)</div></div>${p.hw.includes(x.id) ? `<span class="hw-in">📌 ödevde</span>` : `<span class="ex-check${hwSel.has(x.id) ? " on" : ""}">${hwSel.has(x.id) ? I_CHECK : ""}</span>`}</div>`).join("")}</div>
+${W.list.length ? `<div>${W.list.slice(0, 8).map(x => `<div class="ex-row" data-hws="${x.id}"><div class="tx"><div class="t1">${famLabel(x.id)}${p.hw.includes(x.id) ? " · " + icI("pin", 14, "#0A847E") : ""}</div><div class="fam-sub" style="font-weight:600">${famCatName(x.cat)} · son: ${x.err} hata, ${escHTML(x.tier || "")} · başarı %${x.rate} (${x.n} deneme)</div></div>${p.hw.includes(x.id) ? `<span class="hw-in">${icI("pin", 13, "#0A847E")} ödevde</span>` : `<span class="ex-check${hwSel.has(x.id) ? " on" : ""}">${hwSel.has(x.id) ? I_CHECK : ""}</span>`}</div>`).join("")}</div>
 <div style="display:flex;gap:8px"><button type="button" class="fam-cta" id="hwAutoBtn" style="flex:1">Otomatik ödevlendir</button><button type="button" class="fam-cta ghost" id="hwManBtn" style="flex:1">Seçilenleri ödev yap${hwSel.size ? ` (${hwSel.size})` : ""}</button></div>
 <div class="fam-sub" style="font-weight:600">Otomatik: en çok zorlandığı 4 sayfa ödev olur. Manuel: listeden işaretlediklerinizi ekler. En fazla 4 ödev; aile bunları günlük oturumda öncelikli yapar.</div>`
 : `<div class="fam-sub" style="font-weight:700;color:var(--ink)">${W.total ? "Zorlandığı sayfa görünmüyor; son oturumlar başarılı. 👍" : "Bu cihazda bu danışanla kaydedilmiş oturum yok. Etkinlikte “Kim çalışıyor?” bölümünden danışanın adını seçerek çalışın."}</div>`}</div>`; })()}
+<div class="fam-card" id="exDevCard" style="display:flex;flex-direction:column;gap:10px"></div>
 <div class="fam-card" style="display:flex;flex-direction:column;gap:14px">
 <div style="font-weight:900;font-size:16px">Haftalık program</div>
 <div class="ex-field"><label>Hedef alan</label><div class="fam-chips">${targets.map(c => `<button type="button" class="fam-chip${c.id === p.target ? " on" : ""}" data-t="${c.id}">${famCatName(c.id)}</button>`).join("")}</div></div>
@@ -12442,10 +12443,10 @@ rememberPlayerLevel(nm, lv); hideLinkScreens(); try{ exitGameMode(); hideFamScre
 appMode = "uzman"; viaWho = true; readingLevel = lv; try{ applyLevelDefaultThresholds(lv); }catch(e){}
 pendingLevelPlayerName = nm; pendingLevelPlayerIsNew = false; chooseReadingLevel(lv); showLevelFlash(`${nm} ile oturum başladı`, "levelup"); }; }
 const saveProg = async (msg) => { if(!fbOk()){ showLevelFlash("İnternet bağlantısı yok.", "down"); return false; } hwStamp(p); const { db, doc, updateDoc } = window.__fb;
-try{ await updateDoc(doc(db, "links", code), { program: { target: p.target, days: p.days, minutes: p.minutes, mains: p.mains, games: p.games, hw: p.hw, hwLog: p.hwLog, cfg: expertCfgFor(l.childName, (p.mains || []).concat(p.hw || [])), updatedAt: Date.now() } }); l.program = Object.assign({}, p); showLevelFlash(msg, "levelup"); return true; }catch(e){ console.error(e); showLevelFlash("Ödev kaydedilemedi.", "down"); return false; } };
+try{ await updateDoc(doc(db, "links", code), { program: { target: p.target, days: p.days, minutes: p.minutes, mains: p.mains, games: p.games, hw: p.hw, hwLog: p.hwLog, devOff: !!p.devOff, cfg: expertCfgFor(l.childName, (p.mains || []).concat(p.hw || [])), updatedAt: Date.now() } }); l.program = Object.assign({}, p); showLevelFlash(msg, "levelup"); return true; }catch(e){ console.error(e); showLevelFlash("Ödev kaydedilemedi.", "down"); return false; } };
 w.querySelectorAll("[data-hws]").forEach(x => x.onclick = () => { const id = x.dataset.hws; if(p.hw.includes(id)) return; if(hwSel.has(id)) hwSel.delete(id); else hwSel.add(id); draw(); });
 w.querySelectorAll("[data-hwx]").forEach(x => x.onclick = async () => { p.hw = p.hw.filter(v => v !== x.dataset.hwx); await saveProg("Ödev kaldırıldı ✓"); draw(); });
-const ha = document.getElementById("hwAutoBtn"); if(ha) ha.onclick = async () => { readingLevel = l.level || "post"; const W = hwWeakPages(l.childName); readingLevel = lvlSave; p.hw = W.list.filter(x => exerciseById(x.id).readingLevel.includes(l.level || "post")).slice(0, 4).map(x => x.id); hwSel.clear(); await saveProg(`${p.hw.length} sayfa ödev olarak gönderildi ✓`); draw(); };
+const devBox = document.getElementById("exDevCard"); const devFill = () => { const bx = document.getElementById("exDevCard"); if(!bx) return; bx.innerHTML = exDevCardHtml(p, expertDevPlan); exDevCardWire(bx, p, saveProg, devFill); }; window.__exDevDraw = devFill; if(devBox) devFill();   /* Aşama 4: gelişim ödevleri kartı */ const ha = document.getElementById("hwAutoBtn"); if(ha) ha.onclick = async () => { readingLevel = l.level || "post"; const W = hwWeakPages(l.childName); readingLevel = lvlSave; p.hw = W.list.filter(x => exerciseById(x.id).readingLevel.includes(l.level || "post")).slice(0, 4).map(x => x.id); hwSel.clear(); await saveProg(`${p.hw.length} sayfa ödev olarak gönderildi ✓`); draw(); };
 const hm = document.getElementById("hwManBtn"); if(hm) hm.onclick = async () => { if(!hwSel.size){ showLevelFlash("Önce listeden sayfa işaretleyin.", "down"); return; } const add = [...hwSel].filter(id => !p.hw.includes(id)); const next = p.hw.concat(add);
 if(next.length > 4){ showLevelFlash(`En fazla 4 ödev olabilir (şu an ${p.hw.length}).`, "down"); return; } p.hw = next; hwSel.clear(); await saveProg(`${add.length} sayfa ödev olarak eklendi ✓`); draw(); };
 w.querySelectorAll("[data-d]").forEach(x => x.onclick = () => { const d = +x.dataset.d; p.days = p.days.includes(d) ? p.days.filter(v => v !== d) : p.days.concat([d]).sort(); draw(); });
@@ -12507,7 +12508,7 @@ if(!fbOk()) return;
 if(expertResultsUnsub){ expertResultsUnsub(); expertResultsUnsub = null; }
 const { db, collection, onSnapshot } = window.__fb;
 expertResultsUnsub = onSnapshot(collection(db, "links", code, "results"), snap => {
-expertResults = snap.docs.map(d => d.data()).sort((a, b) => b.t - a.t);
+const allR = snap.docs.map(d => d.data()); expertDevPlan = allR.filter(r => r && r.kind === "devplan").sort((a, b) => b.t - a.t)[0] || null; expertResults = allR.filter(r => !r || r.kind !== "devplan").sort((a, b) => b.t - a.t); try{ const dc = document.getElementById("exDevCard"); if(dc && typeof window.__exDevDraw === "function") window.__exDevDraw(); }catch(e){}
 const box = document.getElementById("exResults"); if(!box) return;
 const short = (l) => { const i = String(l).indexOf(": "); return i >= 0 ? l.slice(i + 2) : l; };
 box.innerHTML = expertResults.length ? expertResults.slice(0, 12).map(r => `<div class="ex-row"><div class="tx"><div class="t1">${escHTML(short(String(r.exerciseLabel || "")))}</div>
@@ -15076,7 +15077,7 @@ function hwStatus(e, player){ const ex = exerciseById(e.id); const nm = (player 
 const HW_ST = { none:["Henüz yapılmadı","#EEF2F6","#5B6B7A"], ok:["Başarılı ✓","#E3F6EA","#1B7A3D"], mid:["Gelişiyor","#FFF6D6","#8A6400"], hard:["Zorlandı","#FDEBDD","#A9632A"] };
 function showHwScreen(){ hideFamScreens(); hideLinkScreens(); ["categoryScreen","familyHome","mainApp","readingLevelScreen","returnSplashScreen"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; });
   const l = familyLinkLocal(), player = famProfile(), lvl = famLvl(), now = Date.now(), list = hwEntries(l && l.program).sort((a, b) => b.at - a.at); const w = document.getElementById("linkWrap");
-  const activeExpert = list.filter(e => !e.end).length; let plan = null; try{ plan = devPlanRefresh(player, lvl, { now, expertCount: activeExpert, off: !!(l && l.program && l.program.devOff) }); }catch(e){ console.error(e); }
+  const activeExpert = list.filter(e => !e.end).length; let plan = null; try{ plan = devPlanRefresh(player, lvl, { now, expertCount: activeExpert, off: !!(l && l.program && l.program.devOff), excludeIds: list.filter(e => !e.end).map(e => e.id) }); if(l) devPlanSync(plan, l); }catch(e){ console.error(e); }
   const devItems = plan ? plan.items.slice().sort((a, b) => (a.snooze > now ? 1 : 0) - (b.snooze > now ? 1 : 0) || (a.kind === "strong") - (b.kind === "strong")) : [];
   const devDone = plan ? (plan.history || []).filter(h => h.status === "done" && now - (h.doneAt || h.at) < 14 * 864e5).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0)) : [];
   const dk = (t) => { const d = new Date(t); return d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate(); }; const dLong = (t) => new Date(t).toLocaleDateString("tr-TR", { day:"numeric", month:"long", year:"numeric", weekday:"long" }); const dShort = (t) => new Date(t).toLocaleDateString("tr-TR", { day:"numeric", month:"short" });
@@ -15168,9 +15169,9 @@ function devMakeItem(ex, cat, ti, kind, now, extra){ return Object.assign({ id: 
 /* Planı güncelle: biten ödevleri kapat, dokunulmayanları düşür, haftalık yenile, sınırları uygula */
 function devPlanRefresh(player, lvl, opts){ opts = opts || {}; const now = opts.now || Date.now(); lvl = lvl === "pre" ? "pre" : "post";
   let plan = devPlanGet(player, lvl) || { genAt: 0, items: [], history: [] }; plan.items = plan.items || []; plan.history = plan.history || [];
-  const S = perfSummary(player, { lvl, now }); const expertN = opts.expertCount || 0; if(opts.off){ plan.items.forEach(it => { it.status = "off"; plan.history.push(it); }); plan.items = []; plan.off = true; devPlanSave(player, lvl, plan); return plan; } plan.off = false;
+  const S = perfSummary(player, { lvl, now }); const expertN = opts.expertCount || 0; const exclude = new Set(opts.excludeIds || []); plan.items = plan.items.filter(it => { if(exclude.has(it.id)){ it.status = "promoted"; plan.history.push(it); return false; } return true; }); if(opts.off){ plan.items.forEach(it => { it.status = "off"; plan.history.push(it); }); plan.items = []; plan.off = true; devPlanSave(player, lvl, plan); return plan; } plan.off = false;
   const devCap = expertN > 0 ? 1 : 2, strongCap = expertN > 0 ? 0 : 1, totalCap = Math.max(0, Math.min(devCap + strongCap, DEV_MAX_TOTAL - expertN));
-  const recentIds = new Set(plan.history.concat(plan.items).filter(it => now - it.at < DEV_RECENT_DAYS * 864e5).map(it => it.id));
+  const recentIds = new Set(plan.history.concat(plan.items).filter(it => now - it.at < DEV_RECENT_DAYS * 864e5).map(it => it.id).concat([...exclude]));
   /* 1) kapananlar ve süresi dolanlar */ const keep = [], nextSteps = [], easeSteps = [];
   plan.items.forEach(it => { const A = devAttempts(it, player, now); it.tries = A.n; it.oks = A.ok; it.last = A.last;
     if(A.ok >= 2){ it.status = "done"; it.doneAt = A.last; plan.history.push(it); if(it.kind === "dev") nextSteps.push(it); }
@@ -15196,5 +15197,26 @@ function devPlanRefresh(player, lvl, opts){ opts = opts || {}; const now = opts.
   plan.needData = !Object.values(S.domains).some(d => d.state !== "veri-az");
   if(plan.history.length > 40) plan.history = plan.history.slice(-40);
   devPlanSave(player, lvl, plan); return plan; }
+
+/* ===== Gelişim ödevleri · Aşama 4: uzman tarafı ===== */
+/* Aile cihazı: plan değiştiğinde (en çok saatte bir) özetini bulutta bağlantının sonuçlar listesine yazar */
+function devPlanSync(plan, l){ try{ if(!plan || !l || !l.code) return; const items = (plan.items || []).map(it => ({ id: it.id, cat: it.cat, ti: it.ti, kind: it.kind, at: it.at, snooze: it.snooze || 0, tries: it.tries || 0, oks: it.oks || 0 })); const done = (plan.history || []).filter(h => h.status === "done").slice(-8).map(h => ({ id: h.id, cat: h.cat, ti: h.ti, doneAt: h.doneAt || h.at }));
+  const body = { kind: "devplan", items, done, needData: !!plan.needData, off: !!plan.off }; const hash = JSON.stringify(body); const k = "wm_devsync_" + l.code; let last = {}; try{ last = JSON.parse(localStorage.getItem(k) || "{}"); }catch(e){}
+  if(last.h === hash && Date.now() - (last.t || 0) < 6 * 3600e3) return; if(last.h !== hash && Date.now() - (last.t || 0) < 600e3 && last.h) return;   /* değiştiyse en çok 10 dakikada bir */
+  const rec = Object.assign({ t: Date.now(), player: linkedChildName(l) || famProfile() }, body); localStorage.setItem(k, JSON.stringify({ h: hash, t: Date.now() }));
+  if(!fbOk()){ queuePendingWrite("links/" + l.code + "/results", rec); return; } const { db, collection, addDoc } = window.__fb; addDoc(collection(db, "links", l.code, "results"), Object.assign({ uid: window.__fb.uid }, rec)).catch(() => {}); }catch(e){} }
+/* Uzman danışan sayfası: ailenin cihazındaki gelişim planı + çevir / kapat */
+function exDevCardHtml(p, dp){ const tl = (t) => (TIERS[t] || TIERS[0]).label; const ago = (t) => { const d = Math.round((Date.now() - t) / 864e5); return d <= 0 ? "bugün" : d === 1 ? "dün" : d + " gün önce"; };
+  let h = `<div style="display:flex;align-items:center;gap:8px">${icI("sprout", 20, "#1B7A3D")}<div style="font-weight:900;font-size:16px">Gelişim ödevleri</div></div><div class="fam-sub" style="font-weight:600">Aile cihazındaki uygulama, çalışma sonuçlarına göre zorlandığı alanlardan ödev hazırlar. Uzman ödevi varken en fazla 1 gelişim ödevi verilir.</div>`;
+  h += `<div class="ex-seg" style="grid-template-columns:1fr 1fr"><button type="button" data-devoff="0" class="${p.devOff ? "" : "on"}">Açık</button><button type="button" data-devoff="1" class="${p.devOff ? "on" : ""}">Kapalı</button></div>`;
+  if(p.devOff) return h + `<div class="fam-sub" style="font-weight:600">Kapalı: aile yalnızca sizin verdiğiniz ödevleri görür.</div>`;
+  if(!dp) return h + `<div class="fam-sub" style="font-weight:600">Aile cihazından henüz gelişim planı gelmedi. Aile uygulamayı güncelleyip Ödevlerim ekranını açtığında burada görünür.</div>`;
+  if(dp.off) h += `<div class="fam-sub" style="font-weight:600">Aile cihazı en son kapalı durumu bildirdi; açık olarak kaydettiğinizde yeniden hazırlanır.</div>`;
+  if(!(dp.items || []).length) h += `<div class="fam-sub" style="font-weight:600">${dp.needData ? "Aile cihazında henüz yeterli çalışma yok; gelişim ödevi hazırlanmadı." : "Şu an açık gelişim ödevi yok."}</div>`;
+  else h += (dp.items || []).map(it => { const inHw = (p.hw || []).includes(it.id); return `<div class="ex-row"><div class="tx"><div class="t1">${icI(it.kind === "strong" ? "star" : "sprout", 15, it.kind === "strong" ? "#A9632A" : "#1B7A3D")} ${famLabel(it.id)}</div><div class="fam-sub" style="font-weight:600">${famCatName(it.cat)} · ${escHTML(tl(it.ti))}${it.kind === "strong" ? " · güçlü yön" : ""} · ${it.oks || 0}/2 başarı${it.snooze > Date.now() ? " · ertelendi" : ""}</div></div>${inHw ? `<span class="hw-in">${icI("pin", 13, "#0A847E")} ödevde</span>` : it.kind === "strong" ? "" : `<button type="button" class="fam-cta ghost" data-devhw="${it.id}" style="width:auto;min-height:40px;padding:6px 10px;font-size:13px">Uzman ödevine çevir</button>`}</div>`; }).join("");
+  if((dp.done || []).length) h += `<div class="fam-sub" style="font-weight:600">${icI("star", 14, "#1B7A3D")} Tamamlananlar: ${dp.done.slice(-5).reverse().map(d => famLabel(d.id)).join(", ")}</div>`;
+  return h + `<div class="fam-sub" style="font-weight:600">Son güncelleme: ${ago(dp.t)}</div>`; }
+function exDevCardWire(box, p, saveProg, redraw){ box.querySelectorAll("[data-devoff]").forEach(b => b.onclick = async () => { const v = b.dataset.devoff === "1"; if(!!p.devOff === v) return; p.devOff = v; await saveProg(v ? "Gelişim ödevleri kapatıldı ✓" : "Gelişim ödevleri açıldı ✓"); redraw(); });
+  box.querySelectorAll("[data-devhw]").forEach(b => b.onclick = async () => { const id = b.dataset.devhw; p.hw = p.hw || []; if(p.hw.includes(id)) return; if(p.hw.length >= 4){ showLevelFlash("En fazla 4 ödev olabilir.", "down"); return; } p.hw = p.hw.concat([id]); await saveProg("Uzman ödevine çevrildi ✓"); redraw(); }); }
 
 window.__zaReady = true;
