@@ -2737,11 +2737,11 @@ stages: [ { label: "Tersine Dokun", instruction: () => ``, example: () => `` } ]
 {
 id: "fish-flanker",
 readingLevel: ["pre","post"],
-label: "Balıklar Hangi Yöne?",
+label: "Ortadakinin Yönü",
 isChoice: true, attrs: [], speedFactor: 1.5,
 isDone: () => !!chState && chState.phase === "done",
 randomItem: () => ({}),
-stages: [ { label: "Ortadaki Balık", instruction: () => ``, example: () => `` } ]
+stages: [ { label: "Ortadaki Canlı", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "face-go",
@@ -6276,21 +6276,21 @@ function balancedSeq(n, values, maxRun, counts){ const want = counts || values.m
   for(let tries = 0; tries < 60; tries++){ const bag = []; shuffleArray(values.map((v, i) => [v, want[i]])).forEach(([v, c]) => { for(let k = 0; k < c; k++) bag.push(v); }); const a = shuffleArray(bag); let ok = true, run = 1; for(let k = 1; k < a.length; k++){ run = a[k] === a[k - 1] ? run + 1 : 1; if(run > maxRun){ ok = false; break; } } if(ok) return a; best = a; }
   return best || []; }
 /* Balıklar Hangi Yöne?: canlıların hepsi resimde SAĞA bakar; L = aynalanmış. N = yönsüz çeldirici. */
-const FISH_KINDS_BY_TIER = [["fish"], ["fish","shark"], ["fish","shark","turtle","seahorse"]], FISH_NEUTRAL = ["octopus","starfish","crab"];
+const FISH_KINDS_BY_TIER = [["fish","turtle"], ["fish","shark","turtle","seahorse"], ["fish","shark","turtle","seahorse"]], FISH_NEUTRAL = ["octopus","starfish","crab"];   /* ortadaki canlı her denemede değişir */
 let fishKindPrev = null;
 function fishSpec(){ const t = Math.min(currentCombo().t, 2); return isPre()
   ? [{ side:1, cong:0.6, neu:0,   jitter:false }, { side:2, cong:0.5, neu:0,   jitter:false }, { side:2, cong:0.4, neu:0.2, jitter:true }][t]
   : [{ side:2, cong:0.5, neu:0,   jitter:false }, { side:2, cong:0.4, neu:0.2, jitter:true }, { side:3, cong:0.35, neu:0.2, jitter:true }][t]; }
 CHOICE["fish-flanker"] = {
-setup: () => { const t = Math.min(currentCombo().t, 2), kinds = FISH_KINDS_BY_TIER[isPre() ? Math.max(0, t - 1) : t].filter(k => SEA_IMAGES[k]); const kind = kinds.length > 1 ? pickDifferent(kinds, fishKindPrev) : (kinds[0] || "fish"); fishKindPrev = kind; return { kind, spec: fishSpec() }; },
-trials_make: (n, c) => { const sp = (c && c.spec) || fishSpec(), kind = (c && c.kind) || "fish";
+setup: () => { const t = Math.min(currentCombo().t, 2), kinds = FISH_KINDS_BY_TIER[t].filter(k => SEA_IMAGES[k]); return { kinds: kinds.length ? kinds : ["fish"], mix: t === 2, spec: fishSpec() }; },   /* Zor: yanlardaki canlı ortadakinden farklı tür */
+trials_make: (n, c) => { const sp = (c && c.spec) || fishSpec(), kinds = (c && c.kinds) || ["fish"]; let prevK = null;
   const nNeu = Math.round(n * sp.neu), nCong = Math.round((n - nNeu) * sp.cong), nInc = n - nNeu - nCong;
   const conds = balancedSeq(n, ["C","I","N"], 2, [nCong, nInc, nNeu]), dirs = balancedSeq(n, ["L","R"], 2);
-  return conds.map((cd, k) => { const dir = dirs[k]; return { dir, flank: cd === "C" ? dir : cd === "I" ? (dir === "L" ? "R" : "L") : "N", kind, side: sp.side, dy: sp.jitter ? randomItem([-22, 0, 22]) : 0, neu: randomItem(FISH_NEUTRAL) }; }); },
+  return conds.map((cd, k) => { const dir = dirs[k]; const kind = kinds.length > 1 ? pickDifferent(kinds, prevK) : kinds[0]; prevK = kind; const fkind = c && c.mix && kinds.length > 1 ? pickDifferent(kinds, kind) : kind; return { dir, flank: cd === "C" ? dir : cd === "I" ? (dir === "L" ? "R" : "L") : "N", kind, fkind, side: sp.side, dy: sp.jitter ? randomItem([-22, 0, 22]) : 0, neu: randomItem(FISH_NEUTRAL) }; }); },
 stim: (t, sz) => { const items = (t.side || 2) * 2 + 1, w = Math.min(19, Math.floor(92 / items)); const src = (k) => SEA_IMAGES[k] || SEA_IMAGES.fish;
-  const one = (d) => d === "N" ? `<img src="${src(t.neu)}" alt="" style="width:${w}%;object-fit:contain">` : `<img src="${src(t.kind)}" alt="" style="width:${w}%;object-fit:contain;${d === "L" ? "transform:scaleX(-1);" : ""}">`;
-  const side = Array.from({ length: t.side || 2 }, () => one(t.flank)).join("");
-  return `<div style="display:flex;align-items:center;justify-content:center;gap:1%;width:100%;transform:translateY(${t.dy || 0}%)">${side}${one(t.dir)}${side}</div>`; },
+  const one = (d, k) => d === "N" ? `<img src="${src(t.neu)}" alt="" style="width:${w}%;object-fit:contain">` : `<img src="${src(k || t.kind)}" alt="" style="width:${w}%;object-fit:contain;${d === "L" ? "transform:scaleX(-1);" : ""}">`;
+  const side = Array.from({ length: t.side || 2 }, () => one(t.flank, t.fkind)).join("");
+  return `<div style="display:flex;align-items:center;justify-content:center;gap:1%;width:100%;transform:translateY(${t.dy || 0}%)">${side}${one(t.dir, t.kind)}${side}</div>`; },
 buttons: () => [{ id:"L", html:'<span style="font-size:34px;font-weight:900">◀</span>' }, { id:"R", html:'<span style="font-size:34px;font-weight:900">▶</span>' }],
 correct: (t) => t.dir, cols: 2, wideStim: true
 };
@@ -6839,6 +6839,13 @@ return [ { q:"Saçımızı neyle tararız?", src: HOUSE_IMAGES.comb }, { q:"Kâ�
 }
 const QZ_ARROW_ROT = { up:0, "up-right":45, right:90, "down-right":135, down:180, "down-left":225, left:270, "up-left":315 };
 const qzArrow = (d, col) => arrowSVG("up", col).replace("rotate(0deg)", `rotate(${QZ_ARROW_ROT[d]}deg)`);
+/* Ok biçimleri (Okun Yönüne Dokun): hepsi YUKARI çizilir, yön döndürmeyle verilir */
+const QZ_ARROW_STYLES = { arrow: null,
+  chevron: (c) => `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M22 52 L50 24 L78 52 M22 78 L50 50 L78 78" fill="none" stroke="${c}" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  head: (c) => `<svg viewBox="0 0 100 100" width="100%" height="100%"><polygon points="50,10 90,84 50,64 10,84" fill="${c}" stroke="${c}" stroke-width="4" stroke-linejoin="round"/></svg>`,
+  hand: () => `<div style="font-size:min(30vw,120px);line-height:1;text-align:center">☝️</div>` };
+function qzArrowStyled(d, col, style){ if(!style || style === "arrow" || !QZ_ARROW_STYLES[style]) return qzArrow(d, col); return `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;transform:rotate(${QZ_ARROW_ROT[d]}deg)">${QZ_ARROW_STYLES[style](col)}</div>`; }
+
 const QZ_OPP_FACE = { happy:"sad", sad:"happy" };
 const QZ = {
 "odd-cat": () => { const C = qzCats(), t = currentCombo().t, N = qzOpts([4, 5, 5][t], [3, 4, 4][t]);
@@ -6883,8 +6890,9 @@ const opts = [qzPic(x.src)].concat(dis.map(d => qzPic(d.src)));
 return qzMake("", opts, 0, { prompt: x.q, say: x.q, replay:true }); }); },
 "arrow-touch": () => { const t = currentCombo().t, dirs4 = ["up","down","left","right"], dirs8 = dirs4.concat(["up-left","up-right","down-left","down-right"]);
 const dirs = isPre() ? [["left","right"], dirs4, dirs4.concat(["up-left","up-right"])][Math.min(t, 2)] : [dirs4, dirs4.concat(["up-left","up-right"]), dirs8][Math.min(t, 2)];
-const nextDir = mkCycle(dirs), nextCol = mkCycle(COLORS); return Array.from({length: qzTrials(8, 5)}, () => { const d = nextDir(), col = nextCol();
-const opts = dirs.map(x => qzArrow(x, "#5B6B7A")); return { stim: qzArrow(d, col), opts, ans: dirs.indexOf(d), prompt:"Ok <b>hangi yöne</b> bakıyor?", fixed:true }; }); },
+const nextDir = mkCycle(dirs), nextCol = mkCycle(COLORS), tt = Math.min(t, 2); const nextSty = mkCycle(tt === 0 ? ["arrow"] : ["arrow","chevron","head"]);   /* el emojisi çıkarıldı: parmağın yönü belirsiz */ return Array.from({length: qzTrials(8, 5)}, () => { const d = nextDir(), col = nextCol(), sty = nextSty(); const opts = dirs.map(x => qzArrow(x, "#5B6B7A")); let stim = qzArrowStyled(d, col, sty);
+  if(tt === 2){ /* Zor: ortadaki büyük okun çevresinde başka yönlere bakan küçük gri oklar */ const others = dirs8.filter(x => x !== d); const sm = [0, 1, 2, 3].map(() => qzArrow(randomItem(others), "#B8C2CC")); const cell = (h) => `<div style="width:100%;height:100%">${h}</div>`; stim = `<div style="display:grid;grid-template-columns:1fr 2fr 1fr;grid-template-rows:1fr 2fr 1fr;width:100%;height:100%;align-items:center;justify-items:center"><div style="width:70%;height:70%">${cell(sm[0])}</div><div></div><div style="width:70%;height:70%">${cell(sm[1])}</div><div></div><div style="width:100%;height:100%">${stim}</div><div></div><div style="width:70%;height:70%">${cell(sm[2])}</div><div></div><div style="width:70%;height:70%">${cell(sm[3])}</div></div>`; }
+  return { stim, opts, ans: dirs.indexOf(d), prompt: tt === 2 ? "<b>Ortadaki büyük ok</b> hangi yöne bakıyor?" : "Ok <b>hangi yöne</b> bakıyor?", fixed:true }; }); },
 "edge-touch": () => { const t = currentCombo().t, sides = isPre() ? [[3, 4], [3, 4, 5], [3, 4, 5]][t] : [[3, 4, 5], [3, 4, 5, 6], [3, 4, 5, 6, 8]][t];
 const nextN = mkCycle(sides), nextCol = mkCycle(COLORS); return Array.from({length: qzTrials(6, 4)}, () => { const n = nextN(), col = nextCol(); const rot = t === 0 ? 0 : Math.round(Math.random() * 60 - 30);
 const opts = sides.map(x => `<span style="font-size:30px;font-weight:900">${x}</span>`);
@@ -7142,9 +7150,10 @@ L.items.map((x, i) => `<div class="aud-row"><div class="aud-num">${i + 1}</div><
 function rhsScore(){ const L = currentGrid[0]; return L.items.length - L.items.filter((x, i) => ckMarks["0:" + i]).length; }
 
 function dotTrials(){ const t = currentCombo().t, rng = isPre() ? [[1, 3], [1, 4], [2, 5]][t] : [[1, 5], [2, 7], [3, 9]][t], ms = (isPre() ? [2800, 2200, 1700] : [2200, 1700, 1300])[t];
-return Array.from({length: isPre() ? [5, 6, 7][t] : [8, 10, 12][t]}, () => { const n = rng[0] + Math.floor(Math.random() * (rng[1] - rng[0] + 1)), pts = [];
-let g = 0; while(pts.length < n && g++ < 500){ const x = 14 + Math.random() * 172, y = 14 + Math.random() * 172; if(pts.every(p => Math.hypot(p[0] - x, p[1] - y) > 34)) pts.push([x, y]); }
-return { n, pts, ms, max: rng[1] + 1, min: Math.max(1, rng[0] - 1) }; }); }
+/* Orta: aynı resimden n tane · Zor: hedef resim + farklı çeldirici resimler (yalnızca hedef sayılır) */ const named = t >= 1 ? placeNamedPool().filter(x => x.n && x.src && x.n.length <= 12) : []; const nextPic = named.length ? mkCycle(named) : null;
+return Array.from({length: isPre() ? [5, 6, 7][t] : [8, 10, 12][t]}, () => { const n = rng[0] + Math.floor(Math.random() * (rng[1] - rng[0] + 1)), pts = []; const pic = nextPic ? nextPic() : null; let dis = null, nd = 0; if(pic && t === 2){ let g2 = 0; do{ dis = nextPic(); } while(dis.n === pic.n && g2++ < 10); nd = isPre() ? 2 : randomItem([2, 3]); }
+const gap = pic ? 40 : 34, lo = pic ? 20 : 14, span = pic ? 160 : 172; let g = 0; while(pts.length < n + nd && g++ < 900){ const x = lo + Math.random() * span, y = lo + Math.random() * span; if(pts.every(p => Math.hypot(p[0] - x, p[1] - y) > gap)) pts.push([x, y]); }
+const tp = pts.slice(0, n), dp = pts.slice(n, n + nd); return { n: tp.length, pts: tp, dpts: dp, pic: pic ? pic.src : null, name: pic ? pic.n : null, dis: dis ? dis.src : null, ms, max: rng[1] + 1, min: Math.max(1, rng[0] - 1) }; }); }
 const SEM_QS = [ { k:"canli", q:"Canlı mı?" }, { k:"yenir", q:"Yenir mi?" },
   { k:"tasit", q:"Taşıt mı?" }, { k:"kanat", q:"Kanatları var mı?" }, { k:"cep", q:"Cebine sığar mı?" }, { k:"elektrik", q:"Elektrikle mi çalışır?" },
   { k:"su", q:"Suda yaşar mı?" }, { k:"dortayak", q:"Dört ayağı var mı?" }, { k:"yumusak", q:"Yumuşak mı?" }, { k:"yuvarlak", q:"Yuvarlak mı?" }, { k:"soguk", q:"Soğuk mu?" }, { k:"tatli", q:"Tatlı mı?" },
@@ -7517,7 +7526,7 @@ const mrNorm = (cells) => { const mx = Math.min(...cells.map(c => c[0])), my = M
 const mrRot = (cells) => mrNorm(cells.map(([x, y]) => [-y, x])), mrFlip = (cells) => mrNorm(cells.map(([x, y]) => [-x, y]));
 const mrKey = (c) => JSON.stringify(mrNorm(c));
 const MR_POLY = [ [[0,0],[0,1],[0,2],[1,2]], [[0,0],[1,0],[1,1],[1,2],[2,2]], [[0,0],[0,1],[1,1],[1,2],[1,3]], [[1,0],[0,1],[1,1],[2,1],[2,2]], [[0,0],[1,0],[2,0],[2,1],[0,1],[0,2]] ];
-const MR_CUBES = [ [[0,0,0],[1,0,0],[2,0,0],[2,1,0],[2,1,1]], [[0,0,0],[0,1,0],[1,1,0],[1,1,1],[1,2,1]], [[0,0,0],[1,0,0],[1,1,0],[1,1,1],[0,0,1]] ];
+const MR_CUBES = [ [[0,0,0],[1,0,0],[2,0,0],[2,1,0],[2,1,1]], [[0,0,0],[0,1,0],[1,1,0],[1,1,1],[1,2,1]], [[0,0,0],[0,1,0],[0,2,0],[1,2,0],[1,2,1]], [[0,0,0],[0,0,1],[1,0,1],[1,1,1],[2,1,1]], [[0,0,0],[1,0,0],[2,0,0],[0,1,0],[0,1,1]], [[0,0,0],[1,0,0],[1,0,1],[1,1,1],[1,2,1]] ], MR_CUBE_COLS = ["#7FB3E8","#F2A65A","#8FD19E","#E59AC9","#F5D76E","#A99BE8"];
 const cubeRot = (cs) => cs.map(([x, y, z]) => [-y, x, z]), cubeFlip = (cs) => cs.map(([x, y, z]) => [-x, y, z]);
 const cubeKey = (cs) => { const mx = Math.min(...cs.map(c => c[0])), my = Math.min(...cs.map(c => c[1])); return JSON.stringify(cs.map(([x, y, z]) => [x - mx, y - my, z]).sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2])); };
 function cubeSVG(cs, col){ const mx = Math.min(...cs.map(c => c[0])), my = Math.min(...cs.map(c => c[1])); const C = cs.map(([x, y, z]) => [x - mx, y - my, z]);
@@ -7541,7 +7550,7 @@ stim = lt(0); const dd = shuffleArray([90, 180, 270]); opts = [lt(dd[0]), lt(dd[
 else if(t === 1){ const base = randomItem(MR_POLY), col = randomItem(COLORS); let rot = mrRot(base); if(Math.random() < 0.5) rot = mrRot(rot);
 const mir = mrFlip(base), wrong = [mir, mrRot(mir), mrRot(mrRot(mir))].filter(m => mrKey(m) !== mrKey(rot));
 stim = mrShapeSVG(base, col); opts = [mrShapeSVG(rot, col)].concat(wrong.slice(0, 3).map(m => mrShapeSVG(m, col))); prompt = "Şeklin <b>90° ya da 180° döndürülmüş</b> hâli hangisi?"; }
-else { const base = (mrCubeCycle || (mrCubeCycle = mkCycle(MR_CUBES)))(), col = "#7FB3E8"; let rot = cubeRot(base); if(Math.random() < 0.5) rot = cubeRot(rot);
+else { const base = (mrCubeCycle || (mrCubeCycle = mkCycle(MR_CUBES)))(), col = (mrColCycle || (mrColCycle = mkCycle(MR_CUBE_COLS)))();   /* her soruda farklı yapı ve renk */ let rot = cubeRot(base); if(Math.random() < 0.5) rot = cubeRot(rot);
 const mir = cubeFlip(base), wr = [mir, cubeRot(mir), cubeRot(cubeRot(mir))].filter(m => cubeKey(m) !== cubeKey(rot) && cubeKey(m) !== cubeKey(base));
 stim = cubeSVG(base, col); opts = [cubeSVG(rot, col)].concat(wr.slice(0, 2).map(m => cubeSVG(m, col))); prompt = "Hangisi <b>aynı yapının döndürülmüş</b> hâli?"; }
 const o = shuffleArray(opts.map((h, i) => i)); out.push({ stim, opts: o.map(i => opts[i]), ans: o.indexOf(ans), prompt, fixed:true, cell:100 }); }
@@ -7654,21 +7663,25 @@ let g3 = 0; while(dis.length < (pre ? 2 : 3) && g3++ < 300){ const d = gen(false
 const box = (arr, ok) => `<div class="ri-box ${ok ? "ok" : "no"}"><div class="ri-h">${ok ? "✓ Bunlar" : "✗ Bunlar değil"}</div><div class="ri-items">${arr.map(c => `<div class="ri-i">${aaCell(c)}</div>`).join("")}</div></div>`;
 const stim = `<div style="display:flex;gap:8px;justify-content:center">${box(yes, true)}${box(no, false)}</div>`;
 return qzMake(stim, [ans].concat(dis).map(aaCell), 0, { prompt:"Hangisi <b>✓ grubuna</b> girer?", raw:true, fixed:true, cell:80, rule: R.d }); }); }
-function balSVG(L, Rt, tilt){ const tr = tilt === "L" ? 9 : tilt === "R" ? -9 : 0, icons = (arr, x0) => arr.map((sh, i) => aaShape(sh, x0 + (i - (arr.length - 1) / 2) * 18, 29, 8.5, { circle:"#2E6FD8", square:"#1FA463", triangle:"#E5484D" }[sh])).join("");
+/* Terazi renk takımları: soru içinde terazi ve seçenekler aynı takımı kullanır */
+const BAL_PALS = [{ circle:"#2E6FD8", square:"#1FA463", triangle:"#E5484D" }, { circle:"#E8894C", square:"#7B4FB8", triangle:"#0A847E" }, { circle:"#D6336C", square:"#1C3D7A", triangle:"#E0A800" }, { circle:"#2B8A3E", square:"#C2410C", triangle:"#5C7CFA" }];
+let balPal = BAL_PALS[0];
+const BAL_COLN = { "#2E6FD8":"mavi", "#E8894C":"turuncu", "#D6336C":"pembe", "#2B8A3E":"yeşil" };   /* dairenin renk adı (soruda) */
+function balSVG(L, Rt, tilt){ const tr = tilt === "L" ? 9 : tilt === "R" ? -9 : 0, icons = (arr, x0) => arr.map((sh, i) => aaShape(sh, x0 + (i - (arr.length - 1) / 2) * 18, 29, 8.5, balPal[sh])).join("");
 return `<svg viewBox="0 0 200 110" width="100%" height="100%"><polygon points="92,100 108,100 100,58" fill="#8B5A2B"/><g transform="rotate(${-tr} 100 58)"><rect x="18" y="55" width="164" height="5" rx="2" fill="#B9773A"/><line x1="40" y1="58" x2="40" y2="40" stroke="#8B5A2B" stroke-width="2"/><line x1="160" y1="58" x2="160" y2="40" stroke="#8B5A2B" stroke-width="2"/><path d="M14 40 h52 l-6 8 h-40 z" fill="#D9B26B"/><path d="M134 40 h52 l-6 8 h-40 z" fill="#D9B26B"/><g transform="translate(-60 0)">${icons(L, 100)}</g><g transform="translate(60 0)">${icons(Rt, 100)}</g></g></svg>`; }
 function balTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 4 : 5, out = [], W = { circle:1, triangle:2, square:4 };
   const pairCombos = []; AA_SH.forEach((a, i) => AA_SH.forEach((b, j) => { if(i < j){ pairCombos.push([a, b, true]); pairCombos.push([b, a, false]); } })); const balPairCycle = mkCycle(pairCombos);   /* ikili + taraf birleşimleri tekrarsız */ const perms = []; AA_SH.forEach(a => AA_SH.forEach(b => AA_SH.forEach(c => { if(a !== b && b !== c && a !== c) perms.push([a, b, c]); }))); const balOrderCycle = mkCycle(perms);
-for(let q = 0; q < N; q++){
+const palOff = Math.floor(Math.random() * BAL_PALS.length); for(let q = 0; q < N; q++){ balPal = BAL_PALS[(q + palOff) % BAL_PALS.length];   /* her soruda farklı renk takımı */
 if(pre){ if(t < 2){ const light = t === 1 && q % 2 === 1;   // Orta: soru dönüşümlü "daha hafif?" (tersini düşünme)
 const [a, b, sideL] = balPairCycle(), heavy = W[a] > W[b] ? a : b, lightS = heavy === a ? b : a;
 const stim = `<div style="width:220px;height:120px;margin:0 auto">${balSVG(sideL ? [heavy] : [lightS], sideL ? [lightS] : [heavy], sideL ? "L" : "R")}</div>`;
-out.push(qzMake(stim, [aaCell({ sh:heavy, col:{ circle:"#2E6FD8", square:"#1FA463", triangle:"#E5484D" }[heavy] }), aaCell({ sh:lightS, col:{ circle:"#2E6FD8", square:"#1FA463", triangle:"#E5484D" }[lightS] })], light ? 1 : 0, { prompt: light ? "Hangisi <b>daha hafif</b>?" : "Hangisi <b>daha ağır</b>?", say: light ? "Hangisi daha hafif?" : "Hangisi daha ağır?", raw:true, fixed:true, cell:90 })); }
+out.push(qzMake(stim, [aaCell({ sh:heavy, col:balPal[heavy] }), aaCell({ sh:lightS, col:balPal[lightS] })], light ? 1 : 0, { prompt: light ? "Hangisi <b>daha hafif</b>?" : "Hangisi <b>daha ağır</b>?", say: light ? "Hangisi daha hafif?" : "Hangisi daha ağır?", raw:true, fixed:true, cell:90 })); }
 else { /* ağırlık sırası her denemede rastgele; iki terazi sırayı gösterir; soru dönüşümlü en ağır / en hafif */
           const w = balOrderCycle(), light = q % 2 === 1; const sideA = Math.random() < 0.5, sideB = Math.random() < 0.5;
           const sc = (heavy, lt, left) => balSVG(left ? [heavy] : [lt], left ? [lt] : [heavy], left ? "L" : "R");
           const stim = `<div style="display:flex;gap:6px;justify-content:center"><div style="width:150px;height:84px">${sc(w[1], w[0], sideA)}</div><div style="width:150px;height:84px">${sc(w[2], w[1], sideB)}</div></div>`;
           const optsSh = shuffleArray(w.slice()), target = light ? w[0] : w[2];
-          out.push(qzMake(stim, optsSh.map(sh => aaCell({ sh, col:{ circle:"#2E6FD8", square:"#1FA463", triangle:"#E5484D" }[sh] })), optsSh.indexOf(target), { prompt: light ? "<b>En hafif</b> hangisi?" : "<b>En ağır</b> hangisi?", say: light ? "En hafif hangisi?" : "En ağır hangisi?", raw:true, fixed:true, cell:84 })); }
+          out.push(qzMake(stim, optsSh.map(sh => aaCell({ sh, col:balPal[sh] })), optsSh.indexOf(target), { prompt: light ? "<b>En hafif</b> hangisi?" : "<b>En ağır</b> hangisi?", say: light ? "En hafif hangisi?" : "En ağır hangisi?", raw:true, fixed:true, cell:84 })); }
 continue; }
 const rows = [`<div style="width:150px;height:84px">${balSVG(["triangle"], ["circle","circle"], "")}</div>`]; let L, ans;
 if(t === 0){ const k = randomItem([1, 2]); L = Array(k).fill("triangle"); ans = 2 * k; }
@@ -7677,8 +7690,8 @@ else { rows.push(`<div style="width:150px;height:84px">${balSVG(["square"], ["tr
 const q2 = `<div style="width:150px;height:84px">${balSVG(L, ["?"], "")}</div>`.replace("", "");
 const stim = `<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">${rows.join("")}<div style="width:150px;height:84px;position:relative">${balSVG(L, [], "")}<b style="position:absolute;right:26px;top:6px;font-size:22px">?</b></div></div>`;
 const choices = Array.from(new Set([ans, ans - 1, ans + 1, ans + 2, Math.max(1, ans - 2)])).slice(0, 4);
-const opts = choices.map(n => `<div style="display:flex;flex-wrap:wrap;gap:2px;justify-content:center;align-items:center;width:100%;height:100%">${Array.from({length:n}, () => `<svg viewBox="0 0 20 20" width="18" height="18"><circle cx="10" cy="10" r="8" fill="#2E6FD8"/></svg>`).join("")}</div>`);
-out.push(qzMake(stim, opts, 0, { prompt:"Teraziyi <b>dengelemek</b> için kaç mavi daire gerekir?", raw:true, fixed:true, cell:84 })); }
+const opts = choices.map(n => `<div style="display:flex;flex-wrap:wrap;gap:2px;justify-content:center;align-items:center;width:100%;height:100%">${Array.from({length:n}, () => `<svg viewBox="0 0 20 20" width="18" height="18"><circle cx="10" cy="10" r="8" fill="${balPal.circle}"/></svg>`).join("")}</div>`);
+out.push(qzMake(stim, opts, 0, { prompt:`Teraziyi <b>dengelemek</b> için kaç ${BAL_COLN[balPal.circle] || ""} daire gerekir?`.replace("kaç  daire", "kaç daire"), raw:true, fixed:true, cell:84 })); }
 return out; }
 
 const CP_PAIRS = [ ["acik","kapali","Açık kapıyı göster.","Kapalı kapıyı göster.","<b>Açık</b> kapı","<b>Kapalı</b> kapı"], ["hizli","yavas","Hızlı olanı göster.","Yavaş olanı göster.","<b>Hızlı</b> olan","<b>Yavaş</b> olan"],
@@ -7857,20 +7870,20 @@ let hole; do{ hole = [Math.floor(Math.random() * 4), Math.floor(Math.random() * 
 const mir = (p, ax) => ax === "v" ? [3 - p[0], p[1]] : ax === "h" ? [p[0], 3 - p[1]] : [p[1], p[0]];
 let holes = [hole]; if(fold === "q"){ holes = [hole, mir(hole, "v"), mir(hole, "h"), mir(mir(hole, "v"), "h")]; } else holes = [hole, mir(hole, fold)];
 const key = (H) => H.map(p => p.join(",")).sort().join(";"); const right = holes;
-const wrongs = [[hole], fold === "v" ? [hole, mir(hole, "h")] : [hole, mir(hole, "v")], holes.concat([[ (hole[0] + 2) % 4, (hole[1] + 1) % 4 ]]), holes.map(p => mir(p, fold === "h" ? "v" : "h")), [[ hole[0], (hole[1] + 2) % 4 ]]].filter((w, k, A) => key(w) !== key(right) && A.findIndex(z => key(z) === key(w)) === k);   /* 5 seçeneğe yetecek kadar farklı çeldirici */
+const wrongs = [[hole], fold === "v" ? [hole, mir(hole, "h")] : [hole, mir(hole, "v")], holes.concat([[ (hole[0] + 2) % 4, (hole[1] + 1) % 4 ]]), holes.map(p => mir(p, fold === "h" ? "v" : "h")), [[ hole[0], (hole[1] + 2) % 4 ]]].filter((w, k, A) => key(w) !== key(right) && A.findIndex(z => key(z) === key(w)) === k);   /* 5 seçeneğe yetecek kadar farklı çeldirici */ { let g = 0; while(wrongs.length < 4 && g++ < 40){ const w = holes.map(p => [(p[0] + 1 + Math.floor(Math.random() * 3)) % 4, p[1]]); if(key(w) !== key(right) && !wrongs.some(z => key(z) === key(w))) wrongs.push(w); } }   /* her zaman en az 4 farklı çeldirici */
 const paper = (H, w) => `<svg viewBox="0 0 100 100" width="100%" height="100%"><rect x="6" y="6" width="88" height="88" fill="#FFF8E5" stroke="#B9773A" stroke-width="2"/>${H.map(([x, y]) => `<circle cx="${17 + x * 22}" cy="${17 + y * 22}" r="6" fill="#3A4A5C"/>`).join("")}</svg>`;
 const foldPic = `<svg viewBox="0 0 100 100" width="100%" height="100%"><rect x="6" y="6" width="${fold === "v" || fold === "q" ? 44 : 88}" height="${fold === "h" || fold === "q" ? 44 : 88}" fill="#FFE9B8" stroke="#B9773A" stroke-width="2"/>${fold === "d" ? `<polygon points="6,6 94,94 94,6" fill="#FFE9B8" stroke="#B9773A" stroke-width="2"/><rect x="6" y="6" width="88" height="88" fill="none" stroke="#B9773A" stroke-width="1" stroke-dasharray="4 3"/>` : `<rect x="6" y="6" width="88" height="88" fill="none" stroke="#B9773A" stroke-width="1" stroke-dasharray="4 3"/>`}<circle cx="${17 + hole[0] * 22}" cy="${17 + hole[1] * 22}" r="6" fill="#3A4A5C"/></svg>`;
-const opts = [paper(right)].concat(wrongs.slice(0, 3).map(w => paper(w)));
+const opts = [paper(right)].concat(wrongs.slice(0, 4).map(w => paper(w)));   /* 5 seçenek; düzeye göre ortak katman kırpar */
 const stim = `<div style="display:flex;gap:6px;align-items:center;justify-content:center"><div class="wm-card" style="width:96px;height:96px;padding:2px">${foldPic}</div><b style="font-size:13px;max-width:110px">Kâğıt ${fold === "q" ? "iki kez" : "bir kez"} katlandı ve delindi. Açınca?</b></div>`;
 return qzMake(stim, opts, 0, { prompt:"Kâğıt <b>açılınca</b> nasıl görünür?", raw:true, fixed:true, cell:90 }); }); }
-function vfTrials(){ const t = currentCombo().t;
-return Array.from({length:4}, () => { const cs = randomItem(MR_CUBES.concat([[[0,0,0],[1,0,0],[0,1,0],[0,0,1]], [[0,0,0],[1,0,0],[2,0,0],[1,1,0],[1,1,1]]])), view = t === 0 ? "üst" : t === 1 ? randomItem(["üst","ön"]) : randomItem(["üst","ön","yan"]);
+function vfTrials(){ const t = currentCombo().t, vfPool = MR_CUBES.concat([[[0,0,0],[1,0,0],[0,1,0],[0,0,1]], [[0,0,0],[1,0,0],[2,0,0],[1,1,0],[1,1,1]]]); const nextCs = mkCycle(t === 2 ? vfPool.filter(c => c.length >= 5) : vfPool), nextCol = mkCycle(MR_CUBE_COLS);   /* tur içinde yapı tekrarsız, her soruda farklı renk; Zor: 5 küplü yapılar */
+return Array.from({length:4}, () => { const cs = nextCs(), col = nextCol(), view = t === 0 ? "üst" : t === 1 ? randomItem(["üst","ön"]) : randomItem(["üst","ön","yan"]);
 const proj = (C) => { const set = new Set(C.map(([x, y, z]) => view === "üst" ? x + "," + y : view === "ön" ? x + "," + (2 - z) : y + "," + (2 - z))); return [...set].map(s => s.split(",").map(Number)); };
-const grid = (P) => { const xs = P.map(p => p[0]), ys = P.map(p => p[1]), mx = Math.min(...xs), my = Math.min(...ys); return `<svg viewBox="-1 -1 5 5" width="100%" height="100%">${P.map(([x, y]) => `<rect x="${x - mx + 0.05}" y="${y - my + 0.05}" width="0.9" height="0.9" fill="#7FB3E8" stroke="#2B3A4A" stroke-width="0.05"/>`).join("")}</svg>`; };
+const grid = (P) => { const xs = P.map(p => p[0]), ys = P.map(p => p[1]), mx = Math.min(...xs), my = Math.min(...ys); return `<svg viewBox="-1 -1 5 5" width="100%" height="100%">${P.map(([x, y]) => `<rect x="${x - mx + 0.05}" y="${y - my + 0.05}" width="0.9" height="0.9" fill="${col}" stroke="#2B3A4A" stroke-width="0.05"/>`).join("")}</svg>`; };
 const key = (P) => { const xs = P.map(p => p[0]), ys = P.map(p => p[1]), mx = Math.min(...xs), my = Math.min(...ys); return P.map(([x, y]) => (x - mx) + "," + (y - my)).sort().join(";"); };
 const right = proj(cs), cand = [right.map(([x, y]) => [-x, y]), right.map(([x, y]) => [y, x]), right.slice(0, -1), right.concat([[Math.max(...right.map(p => p[0])) + 1, right[0][1]]])].filter(c => c.length && key(c) !== key(right));
 const seen = new Set([key(right)]), wr = []; cand.forEach(c => { if(!seen.has(key(c))){ seen.add(key(c)); wr.push(c); } });
-return qzMake(`<div style="width:130px;height:130px;margin:0 auto">${cubeSVG(cs, "#7FB3E8")}</div>`, [grid(right)].concat(wr.slice(0, 3).map(grid)), 0, { prompt:`Bu yapıya <b>${view === "üst" ? "üstten" : view === "ön" ? "önden (sağ alt yüzden)" : "yandan (sol alt yüzden)"}</b> bakınca hangisini görürsün?`, raw:true, fixed:true, cell:80 }); }); }
+return qzMake(`<div style="width:130px;height:130px;margin:0 auto">${cubeSVG(cs, col)}</div>`, [grid(right)].concat(wr.slice(0, 3).map(grid)), 0, { prompt:`Bu yapıya <b>${view === "üst" ? "üstten" : view === "ön" ? "önden (sağ alt yüzden)" : "yandan (sol alt yüzden)"}</b> bakınca hangisini görürsün?`, raw:true, fixed:true, cell:80 }); }); }
 function ceTrials(){ const t = currentCombo().t, pre = isPre();
 const stories = (pre ? PA_IMAGES.pre : PA_IMAGES.post).map(s => [s[0], s[s.length - 1]]).concat(STORY_SEQ_IMAGES.map(s => [s[0], s[s.length - 1]]));
 return shuffleArray(stories.map((s, i) => i)).slice(0, pre ? 4 : 5).map(i => { const oth = shuffleArray(stories.map((s, k) => k).filter(k => k !== i)).slice(0, (pre ? [1, 2, 3] : [2, 3, 4])[Math.min(t, 2)]);   // seçenek: öncesi 2/3/4 · sonrası 3/4/5
@@ -8797,8 +8810,8 @@ const errb = `<div class="wm-btns${isLs ? " wd-compact" : ""}" style="margin:8px
 body = isLs ? `<div style="display:flex;gap:16px;align-items:center;justify-content:center;width:100%"><div style="width:56%;max-width:420px">${card}${errb}</div><div style="width:38%;max-width:320px">${okb}</div></div>` : card + okb + errb; }
 } else if(st.kind === "dots"){
 const tr = st.trials[ti], sz = Math.min(isLs ? H - 50 : 230, W * 0.7);
-if(st.phase === "show"){ info = "<b>Bak!</b>"; body = dots + `<div class="wm-card" style="width:${sz}px;height:${sz}px"><svg viewBox="0 0 200 200" width="100%" height="100%">${tr.pts.map(p => `<circle cx="${p[0].toFixed(0)}" cy="${p[1].toFixed(0)}" r="13" fill="#2E6FD8"/>`).join("")}</svg></div>`; }
-else { const nums = Array.from({length: tr.max - tr.min + 1}, (_, k) => tr.min + k); info = "<b>Kaç nokta</b> vardı?";
+if(st.phase === "show"){ info = tr.name && tr.dis ? `<b>Bak!</b> Yalnızca <b>${escHTML(tr.name)}</b> resimlerini say` : "<b>Bak!</b>"; body = dots + `<div class="wm-card" style="width:${sz}px;height:${sz}px"><svg viewBox="0 0 200 200" width="100%" height="100%">${tr.pic ? tr.pts.map(p => `<image href="${tr.pic}" x="${(p[0] - 18).toFixed(0)}" y="${(p[1] - 18).toFixed(0)}" width="36" height="36" preserveAspectRatio="xMidYMid meet"/>`).join("") + (tr.dpts || []).map(p => `<image href="${tr.dis}" x="${(p[0] - 18).toFixed(0)}" y="${(p[1] - 18).toFixed(0)}" width="36" height="36" preserveAspectRatio="xMidYMid meet"/>`).join("") : tr.pts.map(p => `<circle cx="${p[0].toFixed(0)}" cy="${p[1].toFixed(0)}" r="13" fill="#2E6FD8"/>`).join("")}</svg></div>`; }
+else { const nums = Array.from({length: tr.max - tr.min + 1}, (_, k) => tr.min + k); info = tr.name ? `<b>Kaç ${escHTML(tr.name)}</b> vardı?` : "<b>Kaç nokta</b> vardı?";
 body = dots + `<div class="qz-txt-grid" style="grid-template-columns:repeat(${Math.min(nums.length, 5)}, minmax(0, 1fr))">${nums.map(n => `<div class="wm-pic qz-txt${st.phase === "fb" ? (n === tr.n ? " ok" : (n === st.pick ? " bad" : "")) : ""}" data-mt="${n}" style="font-size:24px;font-weight:900">${n}</div>`).join("")}</div>`; }
 } else if(st.kind === "chase"){
 const bh = isLs ? H - 30 : Math.min(H - 20, 420);
@@ -9785,7 +9798,7 @@ const INSTR_SHORT = {
 "pic-arrange":      [() => Q("Resimlere bak. Önce olandan sonra olana doğru sırala."), () => `Sıraladıktan sonra sorun: ${Q("Şimdi bu hikâyeyi bana anlat.")}`],
 "matrix-fill":      [() => Q("Satırlara ve sütunlara bak. Boş kutuya gelecek olanı seç.")],
 "rule-induce":      [() => Q("Yeşil kutudakilerin ortak kuralını bul. Hangisi o gruba girer?")],
-"balance":          [() => isPre() ? Q("Terazinin aşağı inen tarafı daha ağırdır. Soruya göre seç.") : Q("Üstteki teraziler dengede. Son teraziyi dengelemek için kaç mavi daire gerekir?")],
+"balance":          [() => isPre() ? Q("Terazinin aşağı inen tarafı daha ağırdır. Soruya göre seç.") : Q("Üstteki teraziler dengede. Son teraziyi dengelemek için kaç daire gerekir? Dairelerin rengi her soruda değişir.")],
 "block-design":     [() => Q("Modele bak. Bloklara dokunarak aynı deseni yap, bitince Bitti'ye bas."), () => Q("Model döndürülmüş. Ok yukarıyı gösteriyor; deseni düz hâliyle yap.")],
 "mental-rot":       [() => Q("Üstteki şekle bak. Döndürülmüş aynısını seç.")],
 "clutter-find":     [() => Q(`Kalabalığın içinde bütün ${clutTarget || "hedef"} resimlerini bul ve dokun.`)],
@@ -9806,7 +9819,7 @@ const INSTR_SHORT = {
 "absurd-touch":     [() => Q(!isPre() && currentCombo().t === 2 ? "İki cümleyi dinle. Davranış amaca uyuyorsa Doğru'ya, uymuyorsa Saçma'ya dokun." : "Cümleyi dinle. Doğruysa Doğru'ya, saçmaysa Saçma'ya dokun.")],
 "concept-touch":    [() => Q("Dinle. Söylenen resme dokun.")],
 "infer-touch":      [() => Q(currentCombo().t === 2 ? "İki cümleyi oku ya da dinle. İkisindeki ipuçlarını birleştirip en uygun cevaba dokun." : currentCombo().t === 1 ? "Durumu oku ya da dinle. İki ipucunu birleştirip en uygun cevaba dokun." : "Durumu oku ya da dinle. İpucuna göre en uygun cevaba dokun.")],
-"dot-count":        [() => Q("Noktalar bir an görünecek. Kaç tane olduğunu seç.")],
+"dot-count":        [() => Q(Math.min(currentCombo().t, 2) === 0 ? "Noktalar bir an görünecek. Kaç tane olduğunu seç." : Math.min(currentCombo().t, 2) === 1 ? "Resimler bir an görünecek. Kaç tane olduğunu seç." : "Resimler bir an görünecek. Yalnızca sorulan resmi say; ötekilere aldırma.")],
 "sem-decide":       [() => { const t = currentCombo().t; return Q(t === 0 ? "Soruyu dinle; her resim için hızlıca Evet ya da Hayır'a dokun." : t === 1 ? "Soru iki resimde bir değişecek: soruyu dinle, hızlıca Evet ya da Hayır'a dokun." : "Soru her resimde değişecek: soruyu dinle, hızlıca Evet ya da Hayır'a dokun."); }],
 "eye-touch":        [() => Q("Kayan topu gözünle izle, yakalayınca dokun.")],
 "alt-uses":         [() => `Okuyun ve ▶'a basın: ${Q(fluPrompt("alt-uses").say)} Asıl kullanımı sayılmaz; farklı her fikir +1.`],
@@ -9839,7 +9852,7 @@ const INSTR_SHORT = {
 "def-touch":        [() => Q("Dinle. Anlatılan resme dokun.")],
 "use-touch":        [() => Q("Soruyu dinle. Doğru resme dokun.")],
 "size-touch":       [() => Q("Resimlere küçükten büyüğe doğru dokun."), () => Q("Bu kez resimlere büyükten küçüğe doğru dokun.")],
-"arrow-touch":      [() => Q("Üstteki ok hangi yöne bakıyorsa, aynı yöne bakan oka dokun.")],
+"arrow-touch":      [() => Q(Math.min(currentCombo().t, 2) === 2 ? "Ortadaki büyük ok hangi yöne bakıyorsa, aynı yöne bakan oka dokun; küçük oklara aldırma." : "Üstteki ok hangi yöne bakıyorsa, aynı yöne bakan oka dokun.")],
 "edge-touch":       [() => Q("Şeklin kenarlarını say. Doğru sayıya dokun.")],
 "odd-touch":        [() => Q("Şekillere bak. Farklı olana dokun.")],
 "pattern-touch":    [() => Q("Sırayı incele: tekrar mı ediyor, büyüyor mu, dönüyor mu? Soru işaretinin yerine gelecek olana dokun.")],
@@ -12019,7 +12032,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.18-k";
+const APP_VERSION = "2026.10.18-o";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
