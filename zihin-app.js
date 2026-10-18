@@ -10961,7 +10961,8 @@ stageLabel: stage.label,
 tier: layout.label,
 itemCount: layout.rows * layout.cols,
 errors: errors || 0,
-ms: ms
+ms: ms,
+exId: ex.id, src: perfSrc(), lvl: readingLevel === "pre" ? "pre" : "post", ti: currentCombo().t, n: perfItemCount(ex, layout), auto: perfIsAuto(ex)   /* Aşama 1: kaynak, çalışma kimliği, gerçek öğe sayısı */
 };
 if(firestoreReady && window.__fb){
 const { db, collection, addDoc } = window.__fb;
@@ -12053,7 +12054,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.18-u";
+const APP_VERSION = "2026.10.18-v";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -15094,5 +15095,31 @@ function hwOpen(id, l){ hideLinkScreens(); hideFamScreens(); appMode = "aile"; t
 function iconizeTips(root){ if(!root || !/💡/.test(root.textContent)) return; const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), hits = []; let n; while((n = w.nextNode())) if(n.nodeValue.includes("💡")) hits.push(n);
   hits.forEach(t => { const parts = t.nodeValue.split("💡"); const frag = document.createDocumentFragment(); parts.forEach((pt, i) => { if(i){ const sp = document.createElement("span"); sp.innerHTML = icI("bulb", 17, "#B07D00"); frag.appendChild(sp.firstChild); } if(pt) frag.appendChild(document.createTextNode(pt.replace(/^\s+/, i ? " " : ""))); }); t.parentNode.replaceChild(frag, t); }); }
 try{ const ib = document.getElementById("instructionBox"); if(ib){ iconizeTips(ib); new MutationObserver(() => iconizeTips(ib)).observe(ib, { childList:true, subtree:true, characterData:true }); } }catch(e){}
+
+/* ===== Gelişim ödevleri · Aşama 1: performans özeti (veri katmanı) ===== */
+function perfSrc(){ return appMode === "cocuk" || (typeof gameMode !== "undefined" && gameMode) ? "oyun" : appMode === "uzman" ? "uzman" : "aile"; }
+function perfIsAuto(ex){ return !!(ex && (ex.isTouch || ex.isChoice || ex.isSearch || ex.isTrail || ex.isMotion || ex.isPlan || ex.isSort || (typeof NEW_MT !== "undefined" && NEW_MT.build && NEW_MT.build[ex.id]))); }
+function perfItemCount(ex, layout){ try{ if(typeof chState !== "undefined" && chState && chState.id === ex.id && chState.trials) return chState.trials.length; if(typeof mtState !== "undefined" && mtState && Array.isArray(mtState.trials) && NEW_MT.build[ex.id]) return Math.max(1, mtState.trials.length - (mtState.warmN || 0)); if(ex.isTouch) return Math.max(1, touchGoTotal()); if(Array.isArray(currentGrid) && currentGrid.length) return currentGrid.length; }catch(e){} return layout ? layout.rows * layout.cols : 10; }
+/* Kayıtlar: buluttan yüklenenler + bağlantısızken kuyrukta bekleyenler (yenilemede kaybolmasın), yinelenmeden */
+function perfRecords(){ const out = loadSessions().slice(), key = (r) => r.t + "|" + (r.player || "") + "|" + (r.exerciseLabel || ""); const seen = new Set(out.map(key)); try{ loadPendingWrites().forEach(w => { if(w && w.coll === "sessions" && w.data && !seen.has(key(w.data))){ seen.add(key(w.data)); out.push(w.data); } }); }catch(e){} return out; }
+/* Bir denemenin sonucu: hata oranı öğe sayısına göre (oyunun yıldız kuralıyla uyumlu) */
+function perfOutcome(rec){ const n = Math.max(1, rec.n || rec.itemCount || 10), e = rec.errors || 0; if(e <= Math.max(1, Math.floor(n * 0.1))) return "ok"; if(e >= Math.max(3, Math.ceil(n * 0.25))) return "hard"; return "mid"; }
+const PERF_DAYS = 60, PERF_MIN_EVIDENCE = 3;
+function perfExOf(rec){ if(rec.exId && exerciseById(rec.exId)) return exerciseById(rec.exId); return EXERCISES.find(e => e.label === rec.exerciseLabel || (e.oldLabels || []).includes(rec.exerciseLabel)) || null; }
+function perfCatOf(exId){ return CATEGORIES.find(c => !c.hidden && c.id !== "oyun-parki" && c.exerciseIds.includes(exId)) || null; }
+/* Kişinin son 60 günlük kayıtlarından çalışma ve alan özeti.
+   Ağırlık: otomatik ölçülen çalışma 1 · elle ölçülen 0,5 · Zihin Adaları 0,5. Kanıt 3'ten azsa "veri az". */
+function perfSummary(player, opts){ opts = opts || {}; const nm = (player || "").trim().toLocaleLowerCase("tr"); const since = (opts.now || Date.now()) - PERF_DAYS * 864e5; const lvl = opts.lvl || null;
+  const recs = perfRecords().filter(r => (r.player || "").trim().toLocaleLowerCase("tr") === nm && r.t >= since && (!lvl || !r.lvl || r.lvl === lvl));
+  const byEx = {};
+  recs.forEach(r => { const ex = perfExOf(r); if(!ex) return; const cat = perfCatOf(ex.id); if(!cat) return; const auto = r.auto !== undefined ? !!r.auto : perfIsAuto(ex); const src = r.src || "etkinlik"; const w = (auto ? 1 : 0.5) * (src === "oyun" ? 0.5 : 1);
+    (byEx[ex.id] = byEx[ex.id] || { id: ex.id, cat: cat.id, auto, recs: [] }).recs.push({ t: r.t, o: perfOutcome(r), w, ti: r.ti, tier: r.tier, src, errors: r.errors || 0, n: r.n || r.itemCount }); });
+  const exercises = Object.values(byEx).map(x => { const last = x.recs.sort((a, b) => b.t - a.t).slice(0, 3); const W = last.reduce((s, r) => s + r.w, 0) || 1;
+    const hard = last.reduce((s, r) => s + r.w * (r.o === "hard" ? 1 : r.o === "mid" ? 0.5 : 0), 0) / W, ok = last.reduce((s, r) => s + r.w * (r.o === "ok" ? 1 : 0), 0) / W;
+    return { id: x.id, cat: x.cat, auto: x.auto, count: x.recs.length, evidence: last.reduce((s, r) => s + r.w, 0), struggle: hard, success: ok, lastT: last[0].t, lastTi: last[0].ti, lastTier: last[0].tier, lastOutcome: last[0].o }; });
+  const domains = {}; CATEGORIES.filter(c => !c.hidden && c.id !== "oyun-parki").forEach(c => { const xs = exercises.filter(x => x.cat === c.id); const ev = xs.reduce((s, x) => s + x.evidence, 0);
+    const struggle = ev ? xs.reduce((s, x) => s + x.struggle * x.evidence, 0) / ev : 0, success = ev ? xs.reduce((s, x) => s + x.success * x.evidence, 0) / ev : 0;
+    domains[c.id] = { id: c.id, evidence: ev, exercises: xs.length, struggle, success, state: ev < PERF_MIN_EVIDENCE ? "veri-az" : struggle > 0.5 ? "zorlaniyor" : success >= 0.75 ? "guclu" : "gelisiyor" }; });
+  return { player: player, records: recs.length, exercises: exercises.sort((a, b) => b.struggle - a.struggle || b.evidence - a.evidence), domains }; }
 
 window.__zaReady = true;
