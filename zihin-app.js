@@ -6223,7 +6223,7 @@ const W = (board.clientWidth || 360) - 24, H = isLs ? (board.clientHeight || 280
 const stimSize = Math.floor(Math.min(isLs ? H - 20 : 220, W * (isLs ? 0.42 : 0.75)));
 const tr = st.trials[st.idx];
 const stim = st.phase === "idle" ? `<span class="hold">▶ Başlat'a bas</span>` : st.phase === "done" ? `<span class="hold">Bitti!</span>` : st.phase === "gap" ? "" : sp.stim(tr, stimSize, st.ctx);
-const buttons = sp.buttons(st.ctx);
+const buttons = sp.buttons(st.ctx, tr);   /* deneme bazlı düğmeler (Hızlı Seç: yer ve kural değişimi) */
 const corr = st.phase === "feedback" ? sp.correct(tr, st.ctx) : undefined;
 const btnHtml = `<div class="ch-btns" style="grid-template-columns:repeat(${Math.min(buttons.length, sp.cols || buttons.length)}, minmax(0, 1fr));">` + buttons.map(b => {
 let cls = "";
@@ -6311,7 +6311,7 @@ function qsRules(){ const W = WILD_IMAGES, H = HOUSE_IMAGES, V = VEHICLE_IMAGES,
     sicak:   { a:{ id:"yes", l:"SICAK", e:"🔥", pool: [HC.fire, HC.soup, HC.sun, HC.iron, NI(1).tea] }, b:{ id:"no", l:"SOĞUK", e:"❄️", pool: [HC.snowman, HC.ice, HC.icecream, HC.penguin, O.snowpile, O.snowman2] } },
     meyve:   { a:{ id:"yes", l:"MEYVE", e:"🍎", pool: [F.apple, F.banana, F.orange, F.grapes, F.strawberry, TS.watermelon, TS.lemon] }, b:{ id:"no", l:"SEBZE", e:"🥕", pool: [F.carrot, F.cucumber, F.pepper, F.broccoli, F.tomato, TS.chili] } },
     giyilir: { a:{ id:"yes", l:"GİYİLİR", e:"👕", pool: [P.shoe, X.sock, X.slipper, OB.jacket, OB.tshirt, OB.jeans, S.boots_yellow, S.beanie_red, S.cap_blue] }, b:{ id:"no", l:"GİYİLMEZ", e:"🚫", pool: house.concat([T.ball, P.hammer, F.apple, P.phone, T.drum]) } } }; }
-const QS_TIER = { pre:[["animal"], ["animal","yenir","ucar"], ["animal","yenir","ucar","suda"]], post:[["canli"], ["canli","yenir","tasit"], ["canli","yenir","tasit","sicak","meyve","giyilir"]] };
+const QS_TIER = { pre:[["animal","tasit"], ["yenir","giyilir","meyve"], ["ucar","suda","sicak"]], post:[["animal","canli"], ["yenir","tasit","giyilir"], ["ucar","suda","sicak","meyve"]] }   /* düzeyler örtüşmez: somut görsel ayrım → işlev/özellik → bilgi ve çıkarım */;
 let qsRuleKey = null, qsRulePrev = null;
 function qsPools(){ const R = qsRules(); return isPre() ? { animal: R.animal.a.pool, thing: R.animal.b.pool, trickA: [], trickT: [] } : { animal: R.canli.a.pool, thing: R.canli.b.pool, trickA: R.canli.a.trick, trickT: R.canli.b.trick }; }   /* eski arayüz (testler ve olası dış kullanım) */
 function qsPickRule(){ const pool = (isPre() ? QS_TIER.pre : QS_TIER.post)[Math.min(currentCombo().t, 2)]; qsRuleKey = pool.length > 1 ? pickDifferent(pool, qsRulePrev) : pool[0]; return qsRuleKey; }
@@ -6319,10 +6319,23 @@ function qsRule(){ const R = qsRules()[qsRuleKey || qsPickRule()]; ["a","b"].for
 /* yönelme eki: büyük ünlü uyumu + ünlüyle bitiyorsa kaynaştırma y */
 function trDat(w){ const last = w[w.length - 1].toLocaleLowerCase("tr"), vowels = "aeıioöuü"; const back = [...w.toLocaleLowerCase("tr")].reverse().find(c => vowels.includes(c)); const front = "eiöü".includes(back || "a"); return w + "'" + (vowels.includes(last) ? "y" : "") + (front ? "e" : "a"); }
 const trCap = (w) => w.charAt(0) + w.slice(1).toLocaleLowerCase("tr");
-CHOICE["quick-sort"] = { setup: () => { const R = qsRule(); /* sayfa için kural zaten seçildiyse (yönerge) aynısını kullan */ return { rule: qsRuleKey, sides: shuffleArray([R.a, R.b]) }; },
-  trials_make: (n, c) => { const R = qsRules()[c.rule]; const a = []; const nextA = mkCycle(R.a.pool), nextB = mkCycle(R.b.pool); let g = 0;
-    while(a.length < n && g++ < 500){ const isA = Math.random() < 0.5, side = isA ? R.a : R.b, trick = !isPre() && side.trick && Math.random() < 0.35; const src = trick ? randomItem(side.trick) : (isA ? nextA() : nextB()); if(!a.length || a[a.length-1].src !== src) a.push({ src, g: side.id }); } return a; },
-  stim: (t) => imgFill(t.src), buttons: (c) => c.sides.map(sd => ({ id: sd.id, html: `<span style="font-size:30px">${sd.e}</span><b style="margin-left:6px">${sd.l}</b>` })), correct: (t) => t.g, cols: 2 };
+/* Hızlı Seç düşündürücü öğeleri: anahtar adıyla resim sözlüklerinden bulunur; normal havuzdan çıkarılır, yalnızca düzeyin oranında gelir */
+const QS_TRICKS = { yenir:{ a:["chili","lemon"], b:["ball"] }, tasit:{ a:["fire_f","heli_f"], b:["car","train"] }, giyilir:{ a:["beanie_red","cap_blue","boots_yellow"], b:[] }, ucar:{ a:["kite"], b:["penguin"] }, suda:{ a:["dolphin","starfish"], b:[] }, sicak:{ a:["iron"], b:[] }, meyve:{ a:["lemon","watermelon"], b:["pepper","chili"] } };
+function qsImg(key){ const D = [() => FRUIT_VEG_IMAGES, () => TASTE_IMAGES, () => TOY_IMAGES, () => VEHICLE_IMAGES, () => HOTCOLD_IMAGES, () => SEA_IMAGES, () => OS_IMAGES, () => OBJECT_IMAGES, () => PAL_EXTRA_IMAGES, () => HOUSE_IMAGES, () => WILD_IMAGES, () => SRH_IMAGES, () => PAIR_IMAGES, () => SCENE_OBJ_IMAGES, () => NI(1), () => NI(2), () => NI(3), () => NI(4), () => NI(5)]; for(const f of D){ try{ const o = f(); if(o && o[key]) return o[key]; }catch(e){} } return null; }
+function qsSide(rk, sd){ const R = qsRules()[rk], side = R[sd], T = QS_TRICKS[rk]; const base = (side.pool || []).filter(Boolean); if(!T) return { pool: base, trick: (side.trick || []).filter(Boolean) }; const tr = (T[sd] || []).map(qsImg).filter(Boolean); const set = new Set(tr); const pool = base.filter(x => !set.has(x)); return { pool: pool.length >= 4 ? pool : base, trick: tr.concat((side.trick || []).filter(Boolean)) }; }
+/* Hızlı Seç düzey ayarları: düşündürücü öğe oranı · düğme yeri (0 sabit, 1 her sayfada, 2 her resimde) · Zor'da tur ortasında kural değişimi */
+function qsTierCfg(){ const t = Math.min(currentCombo().t, 2); return { t, trickP: (isPre() ? [0, 0.15, 0.3] : [0, 0.2, 0.4])[t], swap: t, sw: t === 2 }; }
+CHOICE["quick-sort"] = {
+setup: () => { qsRule(); const cfg = qsTierCfg(), pool = (isPre() ? QS_TIER.pre : QS_TIER.post)[cfg.t]; const others = pool.filter(k => k !== qsRuleKey); const rule2 = cfg.sw && others.length ? randomItem(others) : null; return { rule: qsRuleKey, rule2, flip: cfg.swap === 1 ? Math.random() < 0.5 : false, cfg }; },
+trials_make: (n, c) => { const cfg = c.cfg || qsTierCfg(), half = c.rule2 ? Math.floor(n / 2) : n; const cyc = {}; const next = (rk, sd) => { const key = rk + sd; if(!cyc[key]) cyc[key] = mkCycle(qsSide(rk, sd).pool); return cyc[key](); };
+  const flips = cfg.swap === 2 ? balancedSeq(n, [false, true], 3) : []; const sides = balancedSeq(n, ["a", "b"], 3); const a = [];
+  for(let k = 0; k < n; k++){ const rk = k < half ? c.rule : c.rule2, R = qsRules()[rk], sd = sides[k], side = R[sd]; const tricks = qsSide(rk, sd).trick; const trick = tricks.length && Math.random() < cfg.trickP;
+    let src = trick ? randomItem(tricks) : next(rk, sd), g = 0; while(a.length && a[a.length - 1].src === src && g++ < 5) src = next(rk, sd);
+    a.push({ src, g: side.id, rk, flip: cfg.swap === 2 ? flips[k] : false, sw: !!(c.rule2 && k === half), trick: !!trick }); }
+  return a; },
+stim: (t) => { if(!t || !t.sw) return imgFill(t.src); const R = qsRules()[t.rk]; return `<div style="position:relative;width:100%;height:100%">${imgFill(t.src)}<div style="position:absolute;left:4%;right:4%;top:4%;background:#FFF4E5;border:3px solid #F59E0B;border-radius:14px;padding:6px 8px;text-align:center;font-weight:900;color:#9A3412;font-size:17px;line-height:1.2">🔄 Kural değişti!<br>${R.a.l} – ${R.b.l}</div></div>`; },
+buttons: (c, t) => { const R = qsRules()[(t && t.rk) || c.rule]; const sides = [R.a, R.b]; const f = c.cfg && c.cfg.swap === 2 ? !!(t && t.flip) : !!c.flip; if(f) sides.reverse(); return sides.map(sd => ({ id: sd.id, html: `<span style="font-size:30px">${sd.e}</span><b style="margin-left:6px">${sd.l}</b>` })); },
+correct: (t) => t.g, cols: 2 };
 let fgStop = "angry";
 CHOICE["face-go"] = {
 setup: () => { fgStop = pickDifferent(FACE_KEYS, fgStop); return { stop: fgStop }; },
@@ -9690,7 +9703,7 @@ const INSTR_SHORT = {
 "trail-numbers":    [() => Q(`BAŞLA'dan başla, sayılara sırayla dokun: 1, 2, 3 … ${currentGrid.length || ""}`), () => Q(`Bu kez tersten: BAŞLA'dan başla, sayılara büyükten küçüğe dokun: ${currentGrid.length || ""}, ${(currentGrid.length || 2) - 1} … 1`)],
 "pairs-touch":      [() => Q("Birlikte kullanılan çiftlere hızlıca dokun; diğerlerine dokunma."), () => Q("Bu kez birlikte KULLANILMAYAN çiftlere hızlıca dokun; birlikte kullanılanlara dokunma.")],
 "sdmt-touch":       [() => `Anahtarı birlikte inceleyin, sonra: ${Q("Gelen şeklin eşi olan resme hızlıca dokun.")}`],
-"quick-sort":       [() => { const R = qsRule(); const tail = qsRuleKey === "canli" ? " Bitkiler de canlıdır; oyuncak hayvanlar cansızdır." : ""; return Q(`${trCap(R.a.l)} gelirse ${trDat(R.a.l)}, ${trCap(R.b.l).toLocaleLowerCase("tr")} gelirse ${trDat(R.b.l)} hızlıca dokun.`) + tail; }],
+"quick-sort":       [() => { const R = qsRule(); const tail = qsRuleKey === "canli" ? " Bitkiler de canlıdır; oyuncak hayvanlar cansızdır." : ""; const t = Math.min(currentCombo().t, 2); const extra = t === 2 ? " <b>Dikkat:</b> tur ortasında kural değişecek, ekrandaki uyarıya bak." : t === 1 ? " Düğmelerin yeri her sayfada değişebilir." : ""; return Q(`${trCap(R.a.l)} gelirse ${trDat(R.a.l)}, ${trCap(R.b.l).toLocaleLowerCase("tr")} gelirse ${trDat(R.b.l)} hızlıca dokun.`) + tail + extra; }],
 "stroop-touch":     [() => Q("Kelimeyi okuma; yazının rengini gösteren düğmeye dokun.")],
 "day-night-touch":  [() => Q("Güneş gelince AY'a, ay gelince GÜNEŞ'e dokun.")],
 "fish-flanker":     [() => Q("Yalnızca ORTADAKİ canlıya bak; baktığı yönün okuna dokun.")],
@@ -11988,7 +12001,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.18-h";
+const APP_VERSION = "2026.10.18-i";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
