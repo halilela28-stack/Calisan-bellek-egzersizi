@@ -6991,7 +6991,7 @@ function qzTierOpts(id, trials){ const cfg = QZ_TIER_OPTS[id]; if(!cfg || !Array
       if(isNum(q)){ const a = numVal(ansHtml), have = new Set(opts.map(numVal)), cands = []; for(let d = 1; d <= 6; d++) [a + d, a - d].forEach(v => { if(v >= 1 && !have.has(v) && !cands.includes(v)) cands.push(v); });
         const bare = String(ansHtml).trim() === plain(ansHtml); const claps = (String(ansHtml).match(/👏/g) || []).length; const tmpl = (v) => bare ? String(v) : String(ansHtml).replace(new RegExp(">(\\s*)" + a + "(\\s*)<"), ">$1" + v + "$2<").replace("👏".repeat(claps), "👏".repeat(claps ? v : 0));
         while(opts.length < want && cands.length) opts.push(tmpl(cands.shift())); }
-      else if(!ordinal(q)){ const seen = new Set(opts.map(String)); const cands = shuffleArray(poolAll.filter(o => !seen.has(String(o)) && plain(o) !== plain(ansHtml) || (!plain(o) && !seen.has(String(o))))); for(const o of cands){ if(opts.length >= want) break; if(seen.has(String(o))) continue; opts.push(o); seen.add(String(o)); } if(opts.length < want && /src="[^"]+"/.test(String(ansHtml))){ const used = new Set(poolAll.concat(opts).map(o => (String(o).match(/src="([^"]+)"/) || [])[1]).filter(Boolean)); for(const pp of shuffleArray(picPool())){ if(opts.length >= want) break; if(!pp || !pp.src || used.has(pp.src)) continue; const h = String(ansHtml).replace(/src="[^"]+"/, `src="${pp.src}"`); if(!seen.has(h)){ opts.push(h); seen.add(h); used.add(pp.src); } } }   /* resimli seçenek: ödünç bulunamazsa resim havuzundan */ if(opts.length < want && id === "closure" && /^<svg/.test(String(ansHtml))){ const fill = (String(ansHtml).match(/fill="([^"]+)"/) || [])[1] || "#2E6FD8"; const extra = [`<rect x="8" y="8" width="84" height="84" fill="${fill}"/>`, `<polygon points="50,4 96,50 50,96 4,50" fill="${fill}"/>`, `<polygon points="27,8 73,8 96,50 73,92 27,92 4,50" fill="${fill}"/>`, `<ellipse cx="50" cy="50" rx="46" ry="30" fill="${fill}"/>`].map(x => `<svg viewBox="0 0 100 100">${x}</svg>`); for(const h of shuffleArray(extra)){ if(opts.length >= want) break; const tag = h.match(/<(rect|polygon points="[^"]+"|ellipse)/)[0]; if(opts.some(o => String(o).includes(tag)) || seen.has(h)) continue; opts.push(h); seen.add(h); } }   /* Görsel Tamamlama: aynı renkte yedek şekiller */ const order = shuffleArray(opts.map((o, i) => i)); opts = order.map(i => opts[i]); } }
+      else if(!ordinal(q)){ const seen = new Set(opts.map(qzOptKey)); const cands = shuffleArray(poolAll.filter(o => !seen.has(qzOptKey(o)) && plain(o) !== plain(ansHtml) || (!plain(o) && !seen.has(qzOptKey(o))))); for(const o of cands){ if(opts.length >= want) break; if(seen.has(qzOptKey(o))) continue; opts.push(o); seen.add(qzOptKey(o)); }   /* resimli seçenek resmine göre karşılaştırılır (döndürülmüş aynı resim ikinci kez gelmez) */ if(opts.length < want && /src="[^"]+"/.test(String(ansHtml))){ const used = new Set(poolAll.concat(opts).map(o => (String(o).match(/src="([^"]+)"/) || [])[1]).filter(Boolean)); for(const pp of shuffleArray(picPool())){ if(opts.length >= want) break; if(!pp || !pp.src || used.has(pp.src)) continue; const h = String(ansHtml).replace(/src="[^"]+"/, `src="${pp.src}"`); if(!seen.has(qzOptKey(h))){ opts.push(h); seen.add(qzOptKey(h)); used.add(pp.src); } } }   /* resimli seçenek: ödünç bulunamazsa resim havuzundan */ if(opts.length < want && id === "closure" && /^<svg/.test(String(ansHtml))){ const fill = (String(ansHtml).match(/fill="([^"]+)"/) || [])[1] || "#2E6FD8"; const extra = [`<rect x="8" y="8" width="84" height="84" fill="${fill}"/>`, `<polygon points="50,4 96,50 50,96 4,50" fill="${fill}"/>`, `<polygon points="27,8 73,8 96,50 73,92 27,92 4,50" fill="${fill}"/>`, `<ellipse cx="50" cy="50" rx="46" ry="30" fill="${fill}"/>`].map(x => `<svg viewBox="0 0 100 100">${x}</svg>`); for(const h of shuffleArray(extra)){ if(opts.length >= want) break; const tag = h.match(/<(rect|polygon points="[^"]+"|ellipse)/)[0]; if(opts.some(o => String(o).includes(tag)) || seen.has(h)) continue; opts.push(h); seen.add(h); } }   /* Görsel Tamamlama: aynı renkte yedek şekiller */ const order = shuffleArray(opts.map((o, i) => i)); opts = order.map(i => opts[i]); } }
     if(isNum({ opts })) opts.sort((x, y) => numVal(x) - numVal(y));   /* sayısal seçenekler hep küçükten büyüğe */
     q.opts = opts; q.ans = opts.indexOf(ansHtml); });
   return trials; }
@@ -7235,7 +7235,7 @@ return { rule:"Bütün daireler kırmızıya boyanmalıydı.", items }; }); }
 function cupsTrials(){ const t = currentCombo().t, n = isPre() ? 3 : [3, 4, 5][t], swaps = (isPre() ? [2, 3, 4] : [3, 5, 7])[t], ms = (isPre() ? [1200, 1000, 850] : [1000, 800, 650])[t];
 return Array.from({length: isPre() ? 3 : 4}, () => { const ball = Math.floor(Math.random() * n), seq = []; for(let k = 0; k < swaps; k++){ let a = Math.floor(Math.random() * n), b; do{ b = Math.floor(Math.random() * n); } while(b === a); seq.push([a, b]); }
 return { n, ball, seq, ms }; }); }
-const CUP_SVG = (c) => `<svg viewBox="0 0 100 110" style="width:100%;height:100%"><path d="M18 8 h64 l-8 92 a6 6 0 0 1 -6 5 h-36 a6 6 0 0 1 -6 -5 z" fill="${c}"/><path d="M14 4 h72 v10 h-72 z" fill="${c}" opacity=".75"/><path d="M30 26 l4 60" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".35"/></svg>`;
+const CUP_SVG = (c) => `<svg viewBox="0 0 100 110" style="width:100%;height:100%"><path d="M34 6 H66 Q72 6 72.5 12 L86 98 H14 L27.5 12 Q28 6 34 6 Z" fill="${c}"/><rect x="4" y="95" width="92" height="13" rx="3" fill="${c}"/><rect x="4" y="95" width="92" height="13" rx="3" fill="#000" opacity=".12"/><path d="M38 22 l-5 62" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".35"/></svg>`;   /* ters bardak: geniş ağız altta, top tamamen içinde kalır */
 function mmathTrials(){ const t = currentCombo().t, steps = (isPre() ? [1, 2, 2] : [2, 3, 4])[t];
 return Array.from({length: isPre() ? 3 : 5}, () => { let v = isPre() ? 1 + Math.floor(Math.random() * 3) : 1 + Math.floor(Math.random() * 6); const start = v, ops = [];
 for(let k = 0; k < steps; k++){ const maxAdd = (isPre() ? 5 : 9) - v; let d; if(v > 0 && (maxAdd <= 0 || Math.random() < 0.45)){ d = -(1 + Math.floor(Math.random() * Math.min(v, isPre() ? 2 : 4))); } else { d = 1 + Math.floor(Math.random() * Math.min(maxAdd, isPre() ? 2 : 4)); } v += d; ops.push(d); }
@@ -7569,7 +7569,7 @@ opts = [mrShapeSVG(rot, col), mrShapeSVG(mir, col), mrShapeSVG(mir2, col)]; prom
 else if(t === 0){ const L = randomItem(MR_LETTERS), deg = () => randomItem([90, 180, 270]), lt = (d, fl) => `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font:900 54px 'Trebuchet MS',sans-serif;color:var(--ink);transform:rotate(${d}deg)${fl ? " scaleX(-1)" : ""}">${L}</div>`;
 stim = lt(0); const dd = shuffleArray([90, 180, 270]); opts = [lt(dd[0]), lt(dd[1], true), lt(dd[2], true), lt(0, true)]; /* iki aynalı seçenek farklı açılarda */ prompt = "Hangisi <b>yalnızca döndürülmüş</b> (ayna değil)?"; }
 else if(t === 1){ const base = randomItem(MR_POLY), col = randomItem(COLORS); let rot = mrRot(base); if(Math.random() < 0.5) rot = mrRot(rot);
-const mir = mrFlip(base), wrong = [mir, mrRot(mir), mrRot(mrRot(mir))].filter(m => mrKey(m) !== mrKey(rot));
+const mir = mrFlip(base), wrong = [mir, mrRot(mir), mrRot(mrRot(mir))].filter((m, i, arr) => mrKey(m) !== mrKey(rot) && arr.findIndex(x => mrKey(x) === mrKey(m)) === i);   /* 180° simetrik parçada aynı çeldirici iki kez gelmez */
 stim = mrShapeSVG(base, col); opts = [mrShapeSVG(rot, col)].concat(wrong.slice(0, 3).map(m => mrShapeSVG(m, col))); prompt = "Şeklin <b>90° ya da 180° döndürülmüş</b> hâli hangisi?"; }
 else { const base = (mrCubeCycle || (mrCubeCycle = mkCycle(MR_CUBES)))(), col = (mrColCycle || (mrColCycle = mkCycle(MR_CUBE_COLS)))();   /* her soruda farklı yapı ve renk */ let rot = cubeRot(base); if(Math.random() < 0.5) rot = cubeRot(rot);
 const mir = cubeFlip(base), wr = [mir, cubeRot(mir), cubeRot(cubeRot(mir))].filter(m => cubeKey(m) !== cubeKey(rot) && cubeKey(m) !== cubeKey(base));
@@ -7649,7 +7649,8 @@ if(opt.dot) el += `<circle cx="${cx}" cy="${cy + (sh === "triangle" ? r * 0.25 :
 return `<g${rot}>${el}</g>`; }
 function aaCell(c){ const n = c.n || 1, r = (n === 1 ? 26 : n === 2 ? 18 : 14) * (c.sz || 1), pos = n === 1 ? [[50, 50]] : n === 2 ? [[30, 50], [70, 50]] : [[25, 62], [50, 36], [75, 62]];
 return `<svg viewBox="0 0 100 100" width="100%" height="100%">${pos.map(([x, y]) => aaShape(c.sh, x, y, r, c.col, c)).join("")}</svg>`; }
-const aaKey = (c) => JSON.stringify([c.sh, c.col, c.n || 1, c.sz || 1, c.rot || 0, !!c.outline, !!c.dot]);
+const aaRotVis = (c) => { const r = ((c.rot || 0) % 360 + 360) % 360; return c.sh === "circle" ? 0 : c.sh === "square" ? r % 90 : r; };   /* görünüşe göre döndürme: daire her açıda, kare 90° katlarında aynı görünür */
+const aaKey = (c) => JSON.stringify([c.sh, c.col, c.n || 1, c.sz || 1, aaRotVis(c), !!c.outline, !!c.dot]);
 function aaDistract(ans, muts, k){ const out = [], seen = new Set([aaKey(ans)]); for(const m of shuffleArray(muts)){ const d = Object.assign({}, ans, m); if(!seen.has(aaKey(d))){ seen.add(aaKey(d)); out.push(d); } if(out.length >= k) break; } return out; }
 function mxTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 4 : 5, out = [];
 for(let q = 0; q < N; q++){ let grid, size, muts;
@@ -7666,7 +7667,7 @@ else if(ty === "latin") grid.push({ sh:[s1, s2, s3][(r + c) % 3], col:[c1, c2, c
 else if(ty === "latinColor") grid.push({ sh:[s1, s2, s3][r], col:[c1, c2, c3][(c + r) % 3] });
 else if(ty === "rotation") grid.push({ sh:"pointer", col:[c1, c2, c3][r], rot:[0, 90, 180][c] + r * 90 });
 else grid.push({ sh:s1, col:[c1, c2, c3][r], n:c + 1 }); }
-muts = [{ n:1 }, { n:2 }, { n:3 }, { sh:s1 }, { sh:s2 }, { sh:s3 }, { col:c1 }, { col:c2 }, { col:c3 }, { rot:0 }, { rot:90 }, { rot:270 }]; }
+muts = [{ n:1 }, { n:2 }, { n:3 }, { sh:s1 }, { sh:s2 }, { sh:s3 }, { col:c1 }, { col:c2 }, { col:c3 }].concat(ty === "rotation" ? [{ rot:0 }, { rot:90 }, { rot:270 }] : []); }   /* döndürme çeldiricisi yalnızca döndürme sorularında */
 const ans = grid[grid.length - 1], dis = aaDistract(ans, muts, pre ? 2 : 3);
 const cells = grid.map((c, i) => i === grid.length - 1 ? `<div class="mx-c q">?</div>` : `<div class="mx-c">${aaCell(c)}</div>`).join("");
 const stim = `<div class="mx-g" style="grid-template-columns:repeat(${size}, minmax(0,1fr));width:${size === 2 ? 170 : 210}px">${cells}</div>`;
@@ -7849,8 +7850,9 @@ return Array.from({length:3}, () => ({ counts: Array.from({length:L}, () => 2 + 
 const TONE_KEYS = [ { c:"#E5484D", f:392 }, { c:"#2E6FD8", f:494 }, { c:"#1FA463", f:587 }, { c:"#F5A524", f:698 } ];
 function toneBeep(f){ try{ const ctx = getAudioCtx(); if(!ctx) return; if(ctx.state === "suspended") ctx.resume(); sfxTone(ctx, f, ctx.currentTime + 0.005, 0.32, "sine", 0.28); }catch(e){} }
 function toneTrials(){ const t = currentCombo().t, L = (isPre() ? [2, 3, 4] : [3, 4, 5])[t]; return Array.from({length:4}, () => Array.from({length:L}, () => Math.floor(Math.random() * 4))); }
+const WS_MIRROR_OK = new Set(["t-car","t-train","t-kite","t-puzzle","t-ball","h-cup","h-scissors","h-lamp","h-comb","h-broom","h-clock","f-banana","f-grapes","f-cucumber","f-apple"]);   /* ayna görüntüsü belirgin farklı olan resimler (gözle seçildi); simetrik nesnelerde ayna = aslı */
 function wsTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 5 : 6, pool = picPool();
-return Array.from({length:N}, () => { const [a, b, c] = shuffleArray(pool).slice(0, 3);
+return Array.from({length:N}, () => { const usesFlip = pre ? t >= 1 : true; let a, b, c; if(usesFlip){ const ok = pool.filter(x => WS_MIRROR_OK.has(x.k)); a = randomItem(ok.length ? ok : pool); [b, c] = shuffleArray(pool.filter(x => x !== a)).slice(0, 2); } else [a, b, c] = shuffleArray(pool).slice(0, 3);
 const im = (x, o) => `<div style="width:100%;height:100%;position:relative;${o.flip ? "transform:scaleX(-1);" : ""}${o.hue ? "filter:hue-rotate(" + o.hue + "deg) saturate(1.3);" : ""}">${qzPic(x.src)}${o.patch ? `<div style="position:absolute;left:${o.patch[0]}%;top:${o.patch[1]}%;width:30%;height:30%;background:var(--panel);border-radius:50%"></div>` : ""}</div>`;
 const orig = im(a, {}); let lures = pre ? [[im(b, {}), im(c, {})], [im(a, { flip:true }), im(b, {})], [im(a, { flip:true }), im(a, { hue:150 })]][Math.min(t, 2)] : t === 0 ? [im(a, { flip:true }), im(b, {})] : t === 1 ? [im(a, { flip:true }), im(a, { hue:150 }), im(b, {})] : [im(a, { flip:true }), im(a, { hue:150 }), im(a, { patch:[30 + Math.random() * 20, 25 + Math.random() * 30] })];
 const opts = shuffleArray([orig].concat(lures)); return { study: orig, opts, ans: opts.indexOf(orig), ms: pre ? [3000, 2600, 2200][Math.min(t, 2)] : [2200, 1800, 1500][t] }; }); }
@@ -8031,7 +8033,7 @@ if(tiles.every((v, i) => v === i)){ const s = blank - 1 >= 0 && (blank % C) > 0 
 return { R, C, tiles, blank, par: mv, limit: mv * 3 + 6, img: randomItem([SCENE_IMAGES.room, SCENE_IMAGES.kitchen, SCENE_IMAGES.park, SCENE_IMAGES.class].filter(Boolean)) }; }
 function kkTrials(){ const t = currentCombo().t, pre = isPre(), two = !pre && t === 2;
 return Array.from({length:5}, () => { const gap = pre ? 2 + Math.floor(Math.random() * 3) : 3 + Math.floor(Math.random() * (t === 0 ? 3 : 5));
-if(two){ for(let g = 0; g < 200; g++){ const a = 1 + Math.floor(Math.random() * (gap - 1)), b = gap - a, d1 = 1 + Math.floor(Math.random() * 6), d2 = 1 + Math.floor(Math.random() * 6); const opts = shuffleArray([a, b, d1, d2]);
+if(two){ for(let g = 0; g < 200; g++){ const a = 1 + Math.floor(Math.random() * (gap - 1)), b = gap - a, d1 = 1 + Math.floor(Math.random() * 6), d2 = 1 + Math.floor(Math.random() * 6); if(d1 === d2 || [a, b].includes(d1) || [a, b].includes(d2)) continue;   /* çeldiriciler birbirinden ve doğru tahtalardan farklı */ const opts = shuffleArray([a, b, d1, d2]);
 let pairs = 0; for(let i = 0; i < 4; i++) for(let j = i + 1; j < 4; j++) if(opts[i] + opts[j] === gap) pairs++; if(pairs === 1) return { gap, opts, two }; } }
 let opts = shuffleArray(Array.from(new Set([gap, gap - 1, gap + 1, gap + 2].filter(x => x >= 1)))).slice(0, pre ? 3 : 4); if(!opts.includes(gap)) opts[0] = gap; return { gap, opts, two:false }; }); }
 function geTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 5 : 6, pool = picPool().concat(qzCats().wild.items);
@@ -8855,9 +8857,9 @@ body = dots + `<div class="aud-note" style="text-align:center;font-weight:800;ma
 } else if(st.kind === "cups"){
 const tr = st.trials[ti], bw = Math.min(W, 460), cw = Math.min(bw / tr.n * 0.8, ((isLs ? H - 30 : H) - 80) / 1.1), ch = cw * 1.1, bh = ch + 62;
 info = st.phase === "show" ? "<b>Topu takip et…</b>" : st.phase === "ask" ? "Top <b>hangi bardağın</b> altında?" : (st.pick === tr.ball ? "<b>Buldun!</b>" : "Top buradaydı");
-const ballX = (bw / tr.n) * (st.slot ? st.slot.indexOf(tr.ball) : tr.ball) + bw / tr.n / 2 - 16;
+const bsz = Math.round(Math.min(32, cw * 0.55)), ballX = (bw / tr.n) * (st.slot ? st.slot.indexOf(tr.ball) : tr.ball) + bw / tr.n / 2 - bsz / 2;
 const showBall = st.phase === "show" || st.phase === "fb";
-body = dots + `<div id="cupsBox" style="position:relative;width:${bw}px;height:${bh}px;margin:10px auto 0">${showBall ? `<div class="cup-ball" style="left:${ballX}px;top:${bh - 40}px"></div>` : ""}` +
+body = dots + `<div id="cupsBox" style="position:relative;width:${bw}px;height:${bh}px;margin:10px auto 0">${showBall ? `<div class="cup-ball" style="left:${ballX}px;top:${bh - 6 - bsz - Math.round(ch * 0.03)}px;width:${bsz}px;height:${bsz}px"></div>` : ""}` +
 Array.from({length: tr.n}, (_, c) => { const slot = st.slot ? st.slot.indexOf(c) : c, lift = (st.phase === "show" && st.lift && c === tr.ball) || (st.phase === "fb" && (c === tr.ball || c === st.pick));
 return `<div class="cup" data-cup="${c}" ${st.phase === "ask" ? `data-mt="${c}"` : ""} style="width:${cw}px;height:${ch}px;left:${slot * bw / tr.n + bw / tr.n * 0.1}px;top:${bh - ch - 6}px;transform:translateY(${lift ? -46 : 0}px)">${CUP_SVG(["#E5484D","#2E6FD8","#1FA463","#F5A524","#8B5CF6"][0])}</div>`; }).join("") + `</div>`;
 } else if(st.kind === "mmath"){
@@ -12059,7 +12061,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.19-f";
+const APP_VERSION = "2026.10.19-i";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -15287,5 +15289,8 @@ function perfLocalAll(){ try{ return JSON.parse(localStorage.getItem(PERF_LOCAL_
 function perfLogLocal(rec){ try{ const a = perfLocalAll(); a.push(Object.assign({}, rec)); while(a.length > 400) a.shift(); localStorage.setItem(PERF_LOCAL_KEY, JSON.stringify(a)); }catch(e){} }
 /* Buluta eski biçim: güvenlik kuralları yalnızca bu alanlara izin veriyor olabilir */
 function perfCloudRec(r){ const o = {}; ["t","player","exerciseLabel","stageLabel","tier","itemCount","errors","ms"].forEach(k => { if(r[k] !== undefined) o[k] = r[k]; }); return o; }
+
+/* Seçeneğin görünüş anahtarı: resimli seçeneklerde resim(ler), diğerlerinde boşluksuz kod */
+function qzOptKey(o){ const s = String(o), src = (s.match(/src="([^"]+)"/g) || []).sort(); return src.length ? "img:" + src.join("|") : s.replace(/\s+/g, ""); }
 
 window.__zaReady = true;
