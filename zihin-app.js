@@ -11955,8 +11955,9 @@ box.innerHTML = `<button type="button" class="fh-today" id="fhTodayBtn">
 <span class="fh-ring"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="7"/><circle cx="32" cy="32" r="26" fill="none" stroke="#FFC21A" stroke-width="7" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/></svg><b>${n}/4</b></span>
 <span class="fh-tx"><div class="fh-t1">${all ? "Bugün tamam!" : "Bugünün oturumu"}</div><div class="fh-t2">${famProfile() === "Oyuncu" ? "Önce kişi seçin" : escHTML(famProfile())} · yaklaşık 12 dakika · hedef: ${famCatName(plan.target)}</div></span>
 <span class="fh-go">${all ? "Gör" : (n ? "Devam" : "Başla")}</span></button>
+<button type="button" class="fh-week" id="fhHwBtn" style="position:relative"><span class="ic" style="background:var(--teal-tint);color:var(--teal-dark)">${icI("clip", 22, "#0A847E")}</span><span><div class="t1">Ödevlerim</div><div class="t2">Uzman ve gelişim ödevleri</div></span>${famProfile() === "Oyuncu" ? "" : hwBadgeHtml(hwBadgeCount(famProfile(), famLvl()))}</button>
 ${recommendedCardHtml()}
-<button type="button" class="fh-week" id="fhGrowBtn"><span class="ic" style="background:#FFF3C4;color:#9A6B00">🌱</span><span><div class="t1">Gelişim haritası</div><div class="t2">Güçlü yönler ve gelişen alanlar</div></span></button>
+<button type="button" class="fh-week" id="fhGrowBtn"><span class="ic" style="background:#FFF3C4;color:#9A6B00">${icI("sprout", 22, "#9A6B00")}</span><span><div class="t1">Gelişim haritası</div><div class="t2">Güçlü yönler ve gelişen alanlar</div></span></button>
 <button type="button" class="fh-week" id="fhWeekBtn"><span class="ic">${I_CHART}</span><span><div class="t1">Bu hafta</div><div class="t2">Çalışılan günler ve kısa gelişim özeti</div></span></button>
 <button type="button" class="fh-week" id="fhLinkBtn"><span class="ic" style="background:var(--teal-tint);color:var(--teal-dark)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></span>
 <span><div class="t1">${familyLinkLocal() ? "Uzmanınıza bağlı" : "Uzmana bağlan"}</div><div class="t2">${familyLinkLocal() ? (familyProgram() ? "Program: " + famCatName(familyProgram().target) + " · " + (familyProgram().days || []).map(d => DAY_SHORT[d]).join(", ") : "Uzmanınızın programı bekleniyor") : (otherLevelLink() ? "Bu çocuğun uzman programı " + (famLvl() === "pre" ? "Okul Sonrası" : "Okul Öncesi") + " seviyesinde; seviyeyi değiştirin" : "Uzmanınızın verdiği kodu girin")}</div></span></button>`;
@@ -11967,6 +11968,7 @@ document.getElementById("fhTodayBtn").onclick = guard(showToday);
 document.getElementById("fhWeekBtn").onclick = guard(showWeek);
 document.getElementById("fhGrowBtn").onclick = guard(showGrowth);
 document.getElementById("fhLinkBtn").onclick = guard(showLinkScreen);
+document.getElementById("fhHwBtn").onclick = guard(() => { hwFrom = "aile"; showHwScreen(); });
 box.querySelectorAll("[data-rec]").forEach(b => b.onclick = () => openRecommended(b.dataset.rec));
 try{ watchFamilyLink(); }catch(e){}
 }
@@ -12054,7 +12056,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.19-a";
+const APP_VERSION = "2026.10.19-b";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -12210,7 +12212,7 @@ updateDoc(doc(db, "links", l.code), { weekKey: wk, weekDays: l.weekDays, lastAct
 }
 
 function showLinkScreen(){
-hideFamScreens(); hideLinkScreens();
+hwScreenOpen = false; hideFamScreens(); hideLinkScreens();
 document.getElementById("categoryScreen").style.display = "none";
 const l = familyLinkLocal();
 const w = document.getElementById("linkWrap");
@@ -12521,7 +12523,7 @@ document.getElementById("expertBackBtn").addEventListener("click", () => {
 if(expertResultsUnsub){ expertResultsUnsub(); expertResultsUnsub = null; }
 if(expertView.mode === "list"){ if(window.__exFromHome){ window.__exFromHome = false; hideLinkScreens(); showWho(); } else leaveToCategories(); } else showExpert("list");
 });
-document.getElementById("linkBackBtn").addEventListener("click", leaveToCategories);
+document.getElementById("linkBackBtn").addEventListener("click", () => { if(hwScreenOpen && hwFrom === "home"){ hwScreenOpen = false; hideLinkScreens(); showWho(); return; } hwScreenOpen = false; leaveToCategories(); });   /* Ödevlerim ana sayfadan açıldıysa ana sayfaya döner */
 window.addEventListener("firebase-ready", () => setTimeout(() => { try{ watchFamilyLink(); }catch(e){} }, 1500));
 })();
 
@@ -14792,7 +14794,7 @@ ${L && L.player && names.includes(L.player) && MODE_NAMES[L.mode] ? `<button typ
 <div class="hm-duo"><button type="button" class="hm-add hm-add-out" id="hmAdd">＋ Kişi ekle</button><button type="button" class="hm-guest-b" id="hmGuest">${hmIc("user")} Misafir girişi</button></div>
 
 <div class="hm-card hm-mode" id="hmEtk"><div class="hm-mh"><span class="hm-ic etk">${hmIc("users")}</span><div><b>Bilişsel Etkinlik</b><span>Uzmanla veya aileyle birlikte</span></div><i class="hm-go">›</i></div>
-<div class="hm-seg"><div class="hm-col uz"><button type="button" data-hview="uzman" class="${view === "uzman" ? "on" : ""}">${hmIc("brief")} Uzman</button><button type="button" class="hm-sub" id="hmClients">${hmIc("users")} Danışanlar</button></div><div class="hm-col ai"><button type="button" data-hview="aile" class="${view === "aile" ? "on" : ""}">${hmIc("home")} Aile</button><button type="button" class="hm-sub" id="hmHw">${hmIc("clip")} Ödevlerim</button></div></div></div>
+<div class="hm-seg"><div class="hm-col uz"><button type="button" data-hview="uzman" class="${view === "uzman" ? "on" : ""}">${hmIc("brief")} Uzman</button><button type="button" class="hm-sub" id="hmClients">${hmIc("users")} Danışanlar</button></div><div class="hm-col ai"><button type="button" data-hview="aile" class="${view === "aile" ? "on" : ""}">${hmIc("home")} Aile</button><button type="button" class="hm-sub" id="hmHw"><span style="position:relative;display:inline-flex">${hmIc("clip")}${cur ? hwBadgeHtml(hwBadgeCount(cur, getPlayerLevel(cur) || "post"), true) : ""}</span> Ödevlerim</button></div></div></div>
 <div class="hm-card hm-mode" id="hmGame"><div class="hm-mh"><span class="hm-ic oyun">${zihniSVG("happy")}</span><div><b>Bilişsel Oyun</b><span>Çocuk deneyimi · Zihin Adaları</span></div><i class="hm-go oy">›</i></div><div class="hm-motto">${hmMotto()}</div></div>
 </div>`;
 el.style.display = "flex"; try{ scheduleTour("home", "whoScreen"); }catch(e){}
@@ -14805,7 +14807,7 @@ if($("hmAdd")) $("hmAdd").onclick = whoAdd;
 $("hmGuest").onclick = () => { whoListOpen = false; whoSelect("__guest__"); };
 if($("hmResume")) $("hmResume").onclick = () => { const go = () => { whoSelSet(L.player); whoTouch(L.player); document.getElementById("whoScreen").style.display = "none"; resumeLast(L); }; if(L.mode === "uzman") expertGate(go); else go(); };
 el.querySelectorAll("[data-hview]").forEach(b => b.onclick = (ev) => { ev.stopPropagation(); const v = b.dataset.hview; try{ setEtkinlikView(v); }catch(e){} if(v === "uzman") expertGate(() => need("uzman")); else need("aile"); });
-if($("hmHw")) $("hmHw").onclick = (ev) => { ev.stopPropagation(); if(guest || !cur){ showToast("Önce yukarıdan kişiyi seçin", "err"); whoListOpen = true; showWho(false); return; } setEtkinlikView("aile"); whoEnter(cur, "aile"); setTimeout(() => { try{ showHwScreen(); }catch(e){ console.error(e); } }, 350); };   /* Ödevlerim: tarih tarih ödevler ve başarı durumu */
+if($("hmHw")) $("hmHw").onclick = (ev) => { ev.stopPropagation(); if(guest || !cur){ showToast("Önce yukarıdan kişiyi seçin", "err"); whoListOpen = true; showWho(false); return; } try{ whoTouch(cur); }catch(e){} currentPlayerName = cur; readingLevel = getPlayerLevel(cur) || "post"; try{ applyLevelDefaultThresholds(readingLevel); }catch(e){} setEtkinlikView("aile"); appMode = "aile"; viaWho = true; el.style.display = "none"; hwFrom = "home"; try{ showHwScreen(); }catch(e){ console.error(e); } };   /* Ödevlerim: doğrudan, Aile sayfası arada görünmeden */
 if($("hmClients")) $("hmClients").onclick = (ev) => { ev.stopPropagation(); expertGate(() => { el.style.display = "none"; appMode = "uzman"; window.__exFromHome = true; try{ showExpert("list"); }catch(e){} }); };
 const need = (mode) => { if(guest) return whoGuestEnter(mode); if(!cur){ whoListOpen = true; showWho(); showLevelFlash(names.length ? "Önce kimin çalışacağını seçin" : "Önce bir kişi ekleyin", "down"); return; } whoEnter(cur, mode); };
 $("hmEtk").onclick = () => { if(getEtkinlikView() === "uzman") expertGate(() => need("uzman")); else need("aile"); };
@@ -15075,7 +15077,7 @@ function hwStatus(e, player){ const ex = exerciseById(e.id); const nm = (player 
   const recs = loadSessions().filter(r => (r.player || "").trim().toLocaleLowerCase("tr") === nm && labels.includes(r.exerciseLabel) && r.t >= e.at && (!e.end || r.t <= e.end)).sort((a, b) => b.t - a.t);
   if(!recs.length) return { k:"none", n:0 }; const er = recs[0].errors || 0; return { k: er <= 1 ? "ok" : er === 2 ? "mid" : "hard", n: recs.length, last: recs[0].t, err: er }; }
 const HW_ST = { none:["Henüz yapılmadı","#EEF2F6","#5B6B7A"], ok:["Başarılı ✓","#E3F6EA","#1B7A3D"], mid:["Gelişiyor","#FFF6D6","#8A6400"], hard:["Tekrar edelim","#FDEBDD","#A9632A"] };
-function showHwScreen(){ hideFamScreens(); hideLinkScreens(); ["categoryScreen","familyHome","mainApp","readingLevelScreen","returnSplashScreen"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; });
+function showHwScreen(){ hideFamScreens(); hideLinkScreens(); hwScreenOpen = true; ["categoryScreen","familyHome","mainApp","readingLevelScreen","returnSplashScreen"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; });
   const l = familyLinkLocal(), player = famProfile(), lvl = famLvl(), now = Date.now(), list = hwEntries(l && l.program).sort((a, b) => b.at - a.at); const w = document.getElementById("linkWrap");
   const activeExpert = list.filter(e => !e.end).length; let plan = null; try{ plan = devPlanRefresh(player, lvl, { now, expertCount: activeExpert, off: !!(l && l.program && l.program.devOff), excludeIds: list.filter(e => !e.end).map(e => e.id) }); if(l) devPlanSync(plan, l); }catch(e){ console.error(e); }
   const devItems = plan ? plan.items.slice().sort((a, b) => (a.snooze > now ? 1 : 0) - (b.snooze > now ? 1 : 0) || (a.kind === "strong") - (b.kind === "strong")) : [];
@@ -15102,7 +15104,7 @@ function showHwScreen(){ hideFamScreens(); hideLinkScreens(); ["categoryScreen",
   else if(plan){ devHtml = `<div class="fam-sub" style="font-weight:600;margin:0 2px 4px">Şu an bütün alanlarda iyi gidiyor. Yeni çalışmalar yapıldıkça burada yeni adımlar çıkabilir.</div>`; }
   const anyHw = list.length || devItems.length; let body = "";
   if(!anyHw){ body = `<div class="fam-card" style="text-align:center;padding:28px 18px"><div style="width:64px;height:64px;margin:0 auto;border-radius:50%;background:#D9F2EF;display:flex;align-items:center;justify-content:center">${icI("clip", 34, "#0A847E")}</div><div style="font-weight:900;font-size:18px;margin-top:10px">Henüz ödeviniz yok.</div><div class="fam-sub" style="font-weight:600;margin-top:6px">${l ? "Uzmanınız ödev verdiğinde ya da uygulama gelişim ödevi hazırladığında burada görünecek." : "Uzmanınıza bağlandığınızda verdiği ödevler, çalışmalar yapıldıkça da gelişim ödevleri burada görünecek."}</div>${l ? "" : `<button type="button" class="fam-cta" id="hwLinkBtn" style="margin-top:14px">Uzmana bağlan</button>`}</div>`
-      + (plan && plan.needData ? devHtml : ""); }
+      + (plan && plan.needData ? devHtml : hwDevStatusLine(plan, player, lvl)); }
   else { body = head("brief", "#0A847E", "Uzman ödevleri", list.length ? "Uzmanınızın verdiği ödevler; önce bunlarla başlayın" : "") + expertHtml + head("sprout", "#1B7A3D", "Gelişim ödevleri", "Çalışmalarına göre hazırlanan bir sonraki adımlar") + devHtml
       + `<details class="fam-card" style="margin-top:10px"><summary style="font-weight:800;cursor:pointer">Bu ödevler nasıl seçilir?</summary><div class="fam-sub" style="font-weight:600;margin-top:8px;line-height:1.55">Uzman ödevlerini uzmanınız verir ve her zaman önceliklidir. Gelişim ödevlerini uygulama, son 60 gündeki çalışmalara bakarak hazırlar: daha çok çalışmaya ihtiyaç duyduğu alanlardan bir çalışma bir alt düzeyden başlar, iyi yaptığı bir alandan da bir çalışma eklenir. Bir ödev iki başarılı denemeyle tamamlanır ve yerine bir sonraki adım gelir. Uzman ödevi varken en fazla bir gelişim ödevi verilir.<br>Uzman ödevlerinde: Başarılı = son denemede en çok 1 hata · Gelişiyor = 2 hata · Tekrar edelim = 3 ve üzeri hata.</div></details>`; }
   w.innerHTML = `<div><h2 class="fam-h">Ödevlerim</h2><div class="fam-sub">${escHTML(player)}</div></div>${body}`;
@@ -15127,7 +15129,7 @@ function perfItemCount(ex, layout){ try{ if(typeof chState !== "undefined" && ch
 /* Kayıtlar: buluttan yüklenenler + bağlantısızken kuyrukta bekleyenler (yenilemede kaybolmasın), yinelenmeden */
 function perfRecords(){ const out = loadSessions().slice(), key = (r) => r.t + "|" + (r.player || "") + "|" + (r.exerciseLabel || ""); const seen = new Set(out.map(key)); try{ loadPendingWrites().forEach(w => { if(w && w.coll === "sessions" && w.data && !seen.has(key(w.data))){ seen.add(key(w.data)); out.push(w.data); } }); }catch(e){} return out; }
 /* Bir denemenin sonucu: hata oranı öğe sayısına göre (oyunun yıldız kuralıyla uyumlu) */
-function perfOutcome(rec){ const n = Math.max(1, rec.n || rec.itemCount || 10), e = rec.errors || 0; if(e <= Math.max(1, Math.floor(n * 0.1))) return "ok"; if(e >= Math.max(3, Math.ceil(n * 0.25))) return "hard"; return "mid"; }
+function perfOutcome(rec){ const n = Math.max(1, rec.n || perfLegacyN(rec)), e = rec.errors || 0; if(e <= Math.max(1, Math.floor(n * 0.1))) return "ok"; if(e >= Math.max(3, Math.ceil(n * 0.25))) return "hard"; return "mid"; }
 const PERF_DAYS = 60, PERF_MIN_EVIDENCE = 3;
 function perfExOf(rec){ if(rec.exId && exerciseById(rec.exId)) return exerciseById(rec.exId); return EXERCISES.find(e => e.label === rec.exerciseLabel || (e.oldLabels || []).includes(rec.exerciseLabel)) || null; }
 function perfCatOf(exId){ return CATEGORIES.find(c => !c.hidden && c.id !== "oyun-parki" && c.exerciseIds.includes(exId)) || null; }
@@ -15226,5 +15228,18 @@ function exDevCardWire(box, p, saveProg, redraw){ box.querySelectorAll("[data-de
 /* ===== Gelişim ödevleri · Aşama 5: Zihin Adaları ===== */
 /* Gelişim ödevi olan durağa küçük işaret (çocuk oyunda da o çalışmaya yönelebilsin) */
 function devIslandMark(exId){ try{ const pl = devPlanGet(gameProfile(), readingLevel === "pre" ? "pre" : "post"); if(!pl || pl.off || !(pl.items || []).some(it => it.id === exId && it.kind === "dev")) return ""; return `<div class="t2" style="display:flex;align-items:center;gap:4px;color:#1B7A3D;font-weight:800">${icI("sprout", 14, "#1B7A3D")} Gelişim durağı</div>`; }catch(e){ return ""; } }
+
+/* ===== Ödevlerim: gezinme, rozet, durum satırı ===== */
+let hwFrom = "aile", hwScreenOpen = false;
+/* Eski kayıtlar (öğe sayısı yok): soru-cevap ve seçmeli çalışmalarda ızgara boyutu gerçek soru sayısı değildir */
+function perfLegacyN(rec){ try{ const ex = perfExOf(rec); if(ex && ((typeof NEW_MT !== "undefined" && NEW_MT.build && NEW_MT.build[ex.id]) || (typeof CHOICE !== "undefined" && CHOICE[ex.id]))) return CHOICE[ex.id] ? 16 : 6; }catch(e){} return rec.itemCount || 10; }
+/* Yapılacak ödev sayısı: uzman ödevlerinden henüz başarılmayanlar + açık (ertelenmemiş) gelişim ödevleri */
+function hwBadgeCount(name, lvl){ const keepP = currentPlayerName, keepL = readingLevel; try{ currentPlayerName = name; readingLevel = lvl === "pre" ? "pre" : "post"; const l = familyLinkLocal(); const act = hwEntries(l && l.program).filter(e => !e.end); const exp = act.filter(e => hwStatus(e, name).k !== "ok").length;
+    let dev = 0; try{ const plan = devPlanRefresh(name, readingLevel, { expertCount: act.length, off: !!(l && l.program && l.program.devOff), excludeIds: act.map(e => e.id) }); dev = (plan.items || []).filter(i => !(i.snooze > Date.now())).length; }catch(e){} return exp + dev; }catch(e){ return 0; } finally{ currentPlayerName = keepP; readingLevel = keepL; } }
+function hwBadgeHtml(n, inset){ if(!n) return ""; return `<span class="hw-badge" aria-label="${n} ödev" style="position:absolute;${inset ? "top:-13px;right:-8px;min-width:19px;height:19px;font-size:11px;padding:0 4px;border-width:1.5px;" : "top:-7px;right:-7px;"}min-width:24px;height:24px;padding:0 6px;border-radius:12px;background:#D62839;color:#fff;font-weight:900;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-sizing:border-box">${n > 9 ? "9+" : n}</span>`; }
+/* Boş durumda velinin nedenini anlayacağı kısa satır */
+function hwDevStatusLine(plan, player, lvl){ let t; if(!plan) t = "Gelişim ödevleri şu an hazırlanamadı; daha sonra yeniden deneyin."; else if(plan.off) t = "Uzmanınız gelişim ödevlerini bu dönem için kapattı.";
+  else { let S = null; try{ S = perfSummary(player, { lvl }); }catch(e){} const ok = S ? Object.values(S.domains).filter(d => d.state !== "veri-az").length : 0; t = S ? `Son 60 günde ${S.records} çalışma kaydı var; ${ok} alanda yeterli veri bulunuyor. Şu an bütün alanlarda iyi gidiyor; yeni çalışmalar yapıldıkça burada yeni adımlar çıkabilir.` : "Şu an bütün alanlarda iyi gidiyor."; }
+  return `<div class="fam-sub" style="font-weight:600;margin:10px 4px 0;text-align:center">${t}</div>`; }
 
 window.__zaReady = true;
