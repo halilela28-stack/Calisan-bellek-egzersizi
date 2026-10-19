@@ -10965,14 +10965,15 @@ errors: errors || 0,
 ms: ms,
 exId: ex.id, src: perfSrc(), lvl: readingLevel === "pre" ? "pre" : "post", ti: currentCombo().t, n: perfItemCount(ex, layout), auto: perfIsAuto(ex)   /* Aşama 1: kaynak, çalışma kimliği, gerçek öğe sayısı */
 };
+perfLogLocal(record);   /* ödev durumu ve özet buluttan bağımsız */
 if(firestoreReady && window.__fb){
 const { db, collection, addDoc } = window.__fb;
-try{ sessionHistory.push(Object.assign({}, record)); }catch(e){}   /* bulut listesi gelene kadar yerelde de görünsün (ödev durumu anında güncellensin) */
-addDoc(collection(db, "sessions"), withUid(record)).catch(e=> console.error("Kayıt yazılamadı:", e));
+try{ sessionHistory.push(Object.assign({}, record)); }catch(e){}   /* bulut listesi gelene kadar yerelde de görünsün */
+addDoc(collection(db, "sessions"), withUid(perfCloudRec(record))).catch(e=> console.error("Kayıt yazılamadı:", e));
 } else {
 sessionHistory.push(record);
 while(sessionHistory.length > 50) sessionHistory.shift();
-queuePendingWrite("sessions", record);
+queuePendingWrite("sessions", perfCloudRec(record));
 }
 flashSaved();
 celebrateSave();
@@ -12058,7 +12059,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.19-d";
+const APP_VERSION = "2026.10.19-e";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -15076,7 +15077,7 @@ function hwStamp(p){ if(!p) return; const now = Date.now(); p.hwLog = Array.isAr
   if(p.hwLog.length > 80) p.hwLog = p.hwLog.slice(-80); }
 function hwEntries(prog){ if(!prog) return []; const log = Array.isArray(prog.hwLog) ? prog.hwLog.slice() : []; (prog.hw || []).forEach(id => { if(!log.some(e => e.id === id && !e.end)) log.push({ id, at: prog.updatedAt || Date.now(), noDate: !prog.updatedAt }); }); return log.filter(e => exerciseById(e.id)); }
 function hwStatus(e, player){ const ex = exerciseById(e.id); const nm = (player || "").trim().toLocaleLowerCase("tr"); const labels = [ex.label].concat(ex.oldLabels || []);
-  const recs = loadSessions().filter(r => (r.player || "").trim().toLocaleLowerCase("tr") === nm && labels.includes(r.exerciseLabel) && r.t >= e.at && (!e.end || r.t <= e.end)).sort((a, b) => b.t - a.t);
+  const recs = perfRecords().filter(r => (r.player || "").trim().toLocaleLowerCase("tr") === nm && (labels.includes(r.exerciseLabel) || r.exId === e.id) && r.t >= e.at && (!e.end || r.t <= e.end)).sort((a, b) => b.t - a.t);
   if(!recs.length) return { k:"none", n:0 }; const er = recs[0].errors || 0; return { k: er <= 1 ? "ok" : er === 2 ? "mid" : "hard", n: recs.length, last: recs[0].t, err: er }; }
 const HW_ST = { none:["Henüz yapılmadı","#EEF2F6","#5B6B7A"], ok:["Başarılı ✓","#E3F6EA","#1B7A3D"], mid:["Gelişiyor","#FFF6D6","#8A6400"], hard:["Tekrar edelim","#FDEBDD","#A9632A"] };
 function showHwScreen(){ hideFamScreens(); hideLinkScreens(); hwScreenOpen = true; if(hwRun) hwRunEnd(); ["categoryScreen","familyHome","mainApp","readingLevelScreen","returnSplashScreen"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; });
@@ -15116,7 +15117,7 @@ function showHwScreen(){ hideFamScreens(); hideLinkScreens(); hwScreenOpen = tru
   w.querySelectorAll("[data-devopen]").forEach(b => b.onclick = () => hwRunOpen(b.dataset.devopen, +b.dataset.devti));
   w.querySelectorAll("[data-devsnooze]").forEach(b => b.onclick = () => { const pl = devPlanGet(player, lvl); if(!pl) return; const it = pl.items.find(x => x.id === b.dataset.devsnooze); if(!it) return; if(it.snooze > Date.now()) delete it.snooze; else { it.snooze = Date.now() + 864e5; it.at = Math.max(it.at, Date.now() - (DEV_STALE_DAYS - 2) * 864e5); } devPlanSave(player, lvl, pl); showHwScreen(); });
   document.getElementById("linkScreen").style.display = "flex"; document.getElementById("linkScreen").scrollTop = 0; }
-function hwOpen(id, l, tiOverride){ hideLinkScreens(); hideFamScreens(); appMode = "aile"; try{ applyModeVisibility(); }catch(e){} const ci = CATEGORIES.findIndex(c => !c.hidden && c.exerciseIds.includes(id)); if(ci < 0) return; selectCategory(ci);
+function hwOpen(id, l, tiOverride){ hideLinkScreens(); hideFamScreens(); appMode = "aile"; try{ applyModeVisibility(); }catch(e){} try{ renderPlayerOptions(); const sel = document.getElementById("playerSelect"); if(playersList.includes(currentPlayerName)){ sel.value = currentPlayerName; updatePlayerAvatar(currentPlayerName); } }catch(e){} const ci = CATEGORIES.findIndex(c => !c.hidden && c.exerciseIds.includes(id)); if(ci < 0) return; selectCategory(ci);
   const k = currentCategoryExercises().findIndex(x => x.id === id); if(k < 0) return; const cf = l && l.program && l.program.cfg ? l.program.cfg[id] : null; const t = tiOverride != null && !isNaN(tiOverride) ? tiOverride : (cf && cf.t != null ? cf.t : currentCombo().t); const si = findSeqIndex(t, k); goToIndex(si >= 0 ? si : findSeqIndex(0, k)); }
 
 /* Yönerge kutusundaki strateji notları: 💡 emojisi yerine çizgi ampul simgesi (metinler tek tek değiştirilmeden) */
@@ -15129,7 +15130,7 @@ function perfSrc(){ return appMode === "cocuk" || (typeof gameMode !== "undefine
 function perfIsAuto(ex){ return !!(ex && (ex.isTouch || ex.isChoice || ex.isSearch || ex.isTrail || ex.isMotion || ex.isPlan || ex.isSort || (typeof NEW_MT !== "undefined" && NEW_MT.build && NEW_MT.build[ex.id]))); }
 function perfItemCount(ex, layout){ try{ if(typeof chState !== "undefined" && chState && chState.id === ex.id && chState.trials) return chState.trials.length; if(typeof mtState !== "undefined" && mtState && Array.isArray(mtState.trials) && NEW_MT.build[ex.id]) return Math.max(1, mtState.trials.length - (mtState.warmN || 0)); if(ex.isTouch) return Math.max(1, touchGoTotal()); if(Array.isArray(currentGrid) && currentGrid.length) return currentGrid.length; }catch(e){} return layout ? layout.rows * layout.cols : 10; }
 /* Kayıtlar: buluttan yüklenenler + bağlantısızken kuyrukta bekleyenler (yenilemede kaybolmasın), yinelenmeden */
-function perfRecords(){ const out = loadSessions().slice(), key = (r) => r.t + "|" + (r.player || "") + "|" + (r.exerciseLabel || ""); const seen = new Set(out.map(key)); try{ loadPendingWrites().forEach(w => { if(w && w.coll === "sessions" && w.data && !seen.has(key(w.data))){ seen.add(key(w.data)); out.push(w.data); } }); }catch(e){} return out; }
+function perfRecords(){ const key = (r) => r.t + "|" + (r.player || "") + "|" + (r.exerciseLabel || ""); const local = perfLocalAll(), lmap = new Map(local.map(r => [key(r), r])); const out = loadSessions().map(r => lmap.has(key(r)) ? Object.assign({}, r, lmap.get(key(r))) : r); const seen = new Set(out.map(key)); local.forEach(r => { if(!seen.has(key(r))){ seen.add(key(r)); out.push(r); } }); try{ loadPendingWrites().forEach(w => { if(w && w.coll === "sessions" && w.data && !seen.has(key(w.data))){ seen.add(key(w.data)); out.push(w.data); } }); }catch(e){} return out; }
 /* Bir denemenin sonucu: hata oranı öğe sayısına göre (oyunun yıldız kuralıyla uyumlu) */
 function perfOutcome(rec){ const n = Math.max(1, rec.n || perfLegacyN(rec)), e = rec.errors || 0; if(e <= Math.max(1, Math.floor(n * 0.1))) return "ok"; if(e >= Math.max(3, Math.ceil(n * 0.25))) return "hard"; return "mid"; }
 const PERF_DAYS = 60, PERF_MIN_EVIDENCE = 3;
@@ -15270,11 +15271,18 @@ function hideHwDone(){ const e = document.getElementById("hwDone"); if(e) e.remo
 /* Çalışma kaydedilince: ödevin durumu + Sıradaki ödev / Ödevlerime dön */
 function showHwDone(){ if(!hwRun) return; const it = hwRun.items[hwRun.idx], player = famProfile(), lvl = famLvl(), n = hwRun.items.length; let title = "Kaydedildi", sub = "";
   if(it.kind === "expert"){ const st = hwStatus({ id: it.id, at: it.at || 0 }, player); title = st.k === "ok" ? "Ödev başarıyla yapıldı ✓" : "Ödev kaydedildi"; sub = `Durum: ${HW_ST[st.k][0]} · ${st.n} kez çalışıldı`; }
-  else { const pl = devPlanGet(player, lvl); const item = ((pl && pl.items) || []).find(x => x.id === it.id) || it; const A = devAttempts(Object.assign({ at: it.at || 0 }, item), player); if(it.kind === "explore"){ title = "Tanıma ödevi tamamlandı ✓"; sub = "Bu alan hakkında bilgi toplandı; sonraki ödevler buna göre hazırlanacak."; } else if(A.ok >= 2){ title = "Ödev tamamlandı ✓"; sub = "İki başarılı deneme yapıldı; yerine bir sonraki adım gelecek."; } else if(A.lastOutcome === "ok"){ title = "Güzel! Bir başarı daha kaldı"; sub = "Bir kez daha başarıyla yapınca ödev tamamlanır."; } else { title = "Ödev kaydedildi"; sub = "İki başarılı deneme gerekiyor; istersen tekrar deneyebilirsin."; } }
+  else { const pl = devPlanGet(player, lvl); const item = ((pl && pl.items) || []).find(x => x.id === it.id) || it; const A = devAttempts(Object.assign({ at: it.at || 0 }, item), player); if(it.kind === "explore"){ if(A.n >= 1){ title = "Tanıma ödevi tamamlandı ✓"; sub = "Bu alan hakkında bilgi toplandı; sonraki ödevler buna göre hazırlanacak."; } else { title = "Kaydedildi"; sub = "Bu çalışma ödevle eşleşmedi; Ödevlerim ekranından yeniden açmayı deneyin."; } } else if(A.ok >= 2){ title = "Ödev tamamlandı ✓"; sub = "İki başarılı deneme yapıldı; yerine bir sonraki adım gelecek."; } else if(A.lastOutcome === "ok"){ title = "Güzel! Bir başarı daha kaldı"; sub = "Bir kez daha başarıyla yapınca ödev tamamlanır."; } else { title = "Ödev kaydedildi"; sub = "İki başarılı deneme gerekiyor; istersen tekrar deneyebilirsin."; } }
   hideHwDone(); const el = document.createElement("div"); el.id = "hwDone"; el.style.cssText = "position:fixed;inset:0;z-index:9000;background:rgba(15,40,40,.35);display:flex;align-items:flex-end;justify-content:center";
   const hasNext = hwRun.idx < n - 1; const done = title.includes("✓");
   el.innerHTML = `<div style="width:100%;max-width:560px;background:#fff;border-radius:24px 24px 0 0;padding:20px 18px calc(18px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 30px rgba(0,0,0,.15)"><div style="display:flex;align-items:center;gap:10px">${icI(done ? "star" : "clip", 26, done ? "#1B7A3D" : "#0A847E")}<div style="font-weight:900;font-size:19px">${escHTML(title)}</div></div><div class="fam-sub" style="font-weight:600;margin:6px 0 14px">${escHTML(famLabel(it.id))} · ${escHTML(sub)}</div><div style="display:flex;flex-direction:column;gap:8px">${hasNext ? `<button type="button" class="fam-cta" id="hwDoneNext">Sıradaki ödev (${hwRun.idx + 2}/${n})</button>` : ""}<button type="button" class="fam-cta${hasNext ? " ghost" : ""}" id="hwDoneList">Ödevlerime dön</button><button type="button" id="hwDoneStay" style="min-height:42px;background:none;border:0;font:inherit;font-weight:800;color:#5B6B7A;cursor:pointer">Bu çalışmada kal</button></div></div>`;
   document.body.appendChild(el); const nx = document.getElementById("hwDoneNext"); if(nx) nx.onclick = () => { hideHwDone(); hwRunStep(1); };
   document.getElementById("hwDoneList").onclick = () => { hwRunEnd(); showHwScreen(); }; document.getElementById("hwDoneStay").onclick = () => hideHwDone(); }
+
+/* ===== Cihazdaki çalışma kaydı: ödev durumu ve özet buluta bağlı kalmasın ===== */
+const PERF_LOCAL_KEY = "wm_attempts_v1";
+function perfLocalAll(){ try{ return JSON.parse(localStorage.getItem(PERF_LOCAL_KEY) || "[]"); }catch(e){ return []; } }
+function perfLogLocal(rec){ try{ const a = perfLocalAll(); a.push(Object.assign({}, rec)); while(a.length > 400) a.shift(); localStorage.setItem(PERF_LOCAL_KEY, JSON.stringify(a)); }catch(e){} }
+/* Buluta eski biçim: güvenlik kuralları yalnızca bu alanlara izin veriyor olabilir */
+function perfCloudRec(r){ const o = {}; ["t","player","exerciseLabel","stageLabel","tier","itemCount","errors","ms"].forEach(k => { if(r[k] !== undefined) o[k] = r[k]; }); return o; }
 
 window.__zaReady = true;
