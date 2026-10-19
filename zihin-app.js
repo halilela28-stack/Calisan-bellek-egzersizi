@@ -6195,6 +6195,7 @@ chClear();
 const ctx = spec.setup ? spec.setup() : {};
 const trials = spec.trials_make(chTrialCount(spec), ctx); if(CH_NORUN.has(id)){ const R = limitRuns(trials, x => String(spec.correct(x)), 2); trials.splice(0, trials.length, ...R); }   /* aynı doğru tepki art arda en çok 2 */
 chState = { id, spec, ctx, trials, idx:0, wrong:0, phase:"idle", flash:"", rts:[], picked:null };
+try{ renderInstruction(); }catch(e){}   /* yönerge, yeni kurulan dizinin rastgele seçimine (ör. dur yüzü) göre yeniden yazılır */
 return trials;
 }
 function chStart(){ if(!chState || chState.phase !== "idle") return; chNext(); }
@@ -12059,7 +12060,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.19-j";
+const APP_VERSION = "2026.10.20-b";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -15105,10 +15106,10 @@ function showHwScreen(){ hideFamScreens(); hideLinkScreens(); hwScreenOpen = tru
   else if(plan && plan.off){ devHtml = `<div class="fam-sub" style="font-weight:600;margin:0 2px 4px">Uzmanınız gelişim ödevlerini bu dönem için kapattı.</div>`; }
   else if(plan && plan.needData){ devHtml = `<div class="fam-card"><div style="font-weight:900">Gelişim ödevlerini hazırlamak için biraz daha çalışma gerekiyor</div><div class="fam-sub" style="font-weight:600;margin-top:4px">Birkaç çalışma yapıldıkça ya da keşif turu tamamlandığında uygulama ${escHTML(player)} için ödevleri kendisi hazırlar.</div><button type="button" class="fam-cta" id="devPlaceBtn" style="margin-top:10px">Keşif turunu başlat</button></div>`; }
   else if(plan){ devHtml = `<div class="fam-sub" style="font-weight:600;margin:0 2px 4px">Şu an bütün alanlarda iyi gidiyor. Yeni çalışmalar yapıldıkça burada yeni adımlar çıkabilir.</div>`; }
-  if(devDone.length){ if(!devItems.length && plan && !plan.off && doneToday) devHtml = `<div class="fam-card" style="margin-bottom:8px;display:flex;align-items:center;gap:10px">${icI("star", 24, "#1B7A3D")}<div><div style="font-weight:900">Bugünkü ödevler tamamlandı</div><div class="fam-sub" style="font-weight:600;margin-top:2px">Yarın yeni ödevler hazırlanacak.</div></div></div>`;
-    devHtml += `<div style="font-weight:800;font-size:13px;color:#5B6B7A;margin:10px 2px 6px">Son 7 günde tamamlananlar</div>` + devDone.slice(0, 6).map(h => `<div class="fam-card" style="margin-bottom:8px;display:flex;align-items:center;gap:10px;padding-top:12px;padding-bottom:12px"><span style="flex:1;min-width:0"><span style="display:flex;align-items:center;gap:6px;font-weight:800;font-size:15px">${icI(h.kind === "explore" ? "search" : h.kind === "strong" ? "star" : "sprout", 16, "#1B7A3D")}${escHTML(famLabel(h.id))}</span><span class="fam-sub" style="display:block;font-weight:600;margin-top:2px">${escHTML(catName(h.id))} · ${escHTML(dShort(h.doneAt || h.at))}</span></span><span style="flex:none;padding:6px 10px;border-radius:999px;font-weight:900;font-size:13px;background:#E3F6EA;color:#1B7A3D">Tamamlandı ✓</span></div>`).join(""); }
+  if(devDone.length && !devItems.length && plan && !plan.off && doneToday) devHtml = `<div class="fam-card" style="margin-bottom:8px;display:flex;align-items:center;gap:10px">${icI("star", 24, "#1B7A3D")}<div><div style="font-weight:900">Bugünkü ödevler tamamlandı</div><div class="fam-sub" style="font-weight:600;margin-top:2px">Yarın yeni ödevler hazırlanacak.</div></div></div>`;
+  devHtml += hwHistoryTable(plan, player, now, catName, dShort);   /* geçmiş ödevler tablosu */
 
-  const anyHw = list.length || devItems.length || devDone.length; let body = ""; if(devItems.length && plan && plan.needData) devHtml = hwKesifCard(player) + devHtml; else if(devItems.length && plan && hwNeedsKesif(player)) devHtml = hwKesifCard(player, true) + devHtml;
+  const anyHw = list.length || devItems.length || devDone.length || hwHistRows(plan, now).length; let body = ""; if(devItems.length && plan && plan.needData) devHtml = hwKesifCard(player) + devHtml; else if(devItems.length && plan && hwNeedsKesif(player)) devHtml = hwKesifCard(player, true) + devHtml;
   if(!anyHw){ body = `<div class="fam-card" style="text-align:center;padding:28px 18px"><div style="width:64px;height:64px;margin:0 auto;border-radius:50%;background:#D9F2EF;display:flex;align-items:center;justify-content:center">${icI("clip", 34, "#0A847E")}</div><div style="font-weight:900;font-size:18px;margin-top:10px">Henüz ödeviniz yok.</div><div class="fam-sub" style="font-weight:600;margin-top:6px">${l ? "Uzmanınız ödev verdiğinde ya da uygulama gelişim ödevi hazırladığında burada görünecek." : "Uzmanınıza bağlandığınızda verdiği ödevler, çalışmalar yapıldıkça da gelişim ödevleri burada görünecek."}</div>${l ? "" : `<button type="button" class="fam-cta" id="hwLinkBtn" style="margin-top:14px">Uzmana bağlan</button>`}</div>`
       + (plan && plan.needData ? devHtml : hwDevStatusLine(plan, player, lvl)); }
   else { body = head("brief", "#0A847E", "Uzman ödevleri", list.length ? "Uzmanınızın verdiği ödevler; önce bunlarla başlayın" : "") + expertHtml + head("sprout", "#1B7A3D", "Gelişim ödevleri", "Çalışmalarına göre hazırlanan bir sonraki adımlar") + devHtml
@@ -15290,5 +15291,20 @@ function perfCloudRec(r){ const o = {}; ["t","player","exerciseLabel","stageLabe
 
 /* Seçeneğin görünüş anahtarı: resimli seçeneklerde resim(ler), diğerlerinde boşluksuz kod */
 function qzOptKey(o){ const s = String(o), src = (s.match(/src="([^"]+)"/g) || []).sort(); return src.length ? "img:" + src.join("|") : s.replace(/\s+/g, ""); }
+
+/* ===== Geçmiş ödevler tablosu (son 30 gün) ===== */
+const HW_HIST_ST = { done:["Tamamlandı ✓","#E3F6EA","#1B7A3D"], expired:["Yapılmadı","#EEF2F6","#5B6B7A"], eased:["Kolaylaştırıldı","#FFF6D6","#8A6400"], promoted:["Uzman ödevi","#D9F2EF","#0A847E"] };
+function hwHistRows(plan, now){ return ((plan && plan.history) || []).filter(h => HW_HIST_ST[h.status] && (now - (h.doneAt || h.at)) < 30 * 864e5).sort((a, b) => (b.doneAt || b.at) - (a.doneAt || a.at)); }
+function hwHistoryTable(plan, player, now, catName, dShort){ const rows = hwHistRows(plan, now); if(!rows.length) return "";
+  const kindIc = (k) => k === "explore" ? "search" : k === "strong" ? "star" : "sprout";
+  const errOf = (h) => { if(h.status !== "done") return ""; try{ const A = devAttempts(Object.assign({}, h), player, (h.doneAt || h.at) + 1); const nm = (player || "").trim().toLocaleLowerCase("tr"); const ex = exerciseById(h.id); const labels = ex ? [ex.label].concat(ex.oldLabels || []) : []; const last = perfRecords().filter(r => (r.player || "").trim().toLocaleLowerCase("tr") === nm && (r.exId === h.id || labels.includes(r.exerciseLabel)) && r.t >= h.at && r.t <= (h.doneAt || h.at) + 1).sort((a, b) => b.t - a.t)[0]; return last ? `${last.errors || 0} hata` : ""; }catch(e){ return ""; } };
+  const tr = (h) => { const st = HW_HIST_ST[h.status], e = errOf(h); return `<tr><td style="padding:9px 6px;vertical-align:top"><div style="display:flex;align-items:flex-start;gap:5px;font-weight:800;line-height:1.25">${icI(kindIc(h.kind), 14, "#1B7A3D")}<span>${escHTML(famLabel(h.id))}</span></div><div style="font-size:12px;font-weight:600;color:#5B6B7A;margin-top:2px">${escHTML(dShort(h.doneAt || h.at))} · ${escHTML(catName(h.id))}</div></td><td style="padding:9px 4px 9px 6px;text-align:right;vertical-align:top;white-space:nowrap"><span style="display:inline-block;padding:4px 8px;border-radius:999px;font-weight:900;font-size:12px;background:${st[1]};color:${st[2]}">${st[0]}</span>${e ? `<div style="font-size:12px;font-weight:700;color:#5B6B7A;margin-top:3px">${e}</div>` : ""}</td></tr>`; };
+  const head = `<thead><tr style="text-align:left;font-size:12px;color:#5B6B7A"><th style="padding:6px;font-weight:800">Ödev</th><th style="padding:6px 4px 6px 6px;font-weight:800;text-align:right">Sonuç</th></tr></thead>`;
+  const table = (rs) => `<table style="width:100%;border-collapse:collapse;font-size:14px">${head}<tbody>${rs.map(tr).join("")}</tbody></table>`;
+  const nDone = rows.filter(h => h.status === "done").length;
+  let html = `<div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:2px 10px;margin:14px 2px 6px"><div style="font-weight:900;font-size:16px;white-space:nowrap">Geçmiş ödevler</div><div class="fam-sub" style="font-weight:700;white-space:nowrap">Son 30 gün · ${nDone} tamamlandı</div></div><div class="fam-card hw-hist" style="padding:6px 8px">`;
+  html += table(rows.slice(0, 8)).replace(/<tr>/g, '<tr style="border-top:1px solid #E6ECF2">').replace('<tr style="border-top:1px solid #E6ECF2" style="text-align:left', '<tr style="text-align:left');
+  if(rows.length > 8) html += `<details style="margin-top:4px"><summary style="cursor:pointer;font-weight:800;color:#0A847E;padding:8px 6px">Tümünü göster (${rows.length})</summary>${table(rows.slice(8)).replace(/<thead>[\s\S]*?<\/thead>/, "").replace(/<tr>/g, '<tr style="border-top:1px solid #E6ECF2">')}</details>`;
+  return html + `</div>`; }
 
 window.__zaReady = true;
