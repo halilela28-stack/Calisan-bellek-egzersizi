@@ -5520,9 +5520,7 @@ exs.forEach((ex, e)=>{ if((ex.minTier || 0) > t) return; /* bu düzeyi olmayan �
 const grp = groups.find(g => g[1].includes(ex.id));
 if(grp && !shownGroups.has(grp[0])){
 shownGroups.add(grp[0]);
-const lbl = document.createElement("span");
-lbl.className = "exercise-group-label";
-lbl.textContent = grp[0];
+const lbl = document.createElement("button"); lbl.type = "button"; lbl.className = "exercise-group-label"; lbl.innerHTML = `${escHTML(grp[0])}<span class="egl-arrow" aria-hidden="true">›</span>`; lbl.setAttribute("aria-label", grp[0] + " bölümüne git"); const firstE = e; lbl.addEventListener("click", () => { const ex0 = exs[firstE]; const tt = Math.min(currentCombo().t, tierMax(ex0)); goToIndex(findSeqIndex(tt, firstE)); });   /* bölüm başlığı: dokununca o bölümün ilk çalışması */
 row.appendChild(lbl);
 }
 const btn = document.createElement("button");
@@ -12061,7 +12059,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.19-i";
+const APP_VERSION = "2026.10.19-j";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
