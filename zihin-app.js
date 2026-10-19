@@ -5480,7 +5480,7 @@ return grid;
 /* Sonraki/Önceki: sekme sırasını izler. navTier = gezilen düzey (bu düzeyi olmayan çalışma kendi en yüksek düzeyinde açılır);
    satırın sonunda bir sonraki düzeyin ilk sekmesine, son düzeyin sonunda Başlangıç'ın ilk sekmesine geçilir. */
 let navTier = null;
-function navStep(dir){ const exs = currentCategoryExercises(), n = exs.length; if(!n) return; let e = currentCombo().e, t = (navTier == null ? currentCombo().t : navTier);
+function navStep(dir){ if(hwRun){ hwRunStep(dir); return; } const exs = currentCategoryExercises(), n = exs.length; if(!n) return; let e = currentCombo().e, t = (navTier == null ? currentCombo().t : navTier);
   for(let i = 0; i < n * TIERS.length + 2; i++){ e += dir;
     if(e >= n){ e = 0; t = (t + 1) % TIERS.length; } else if(e < 0){ e = n - 1; t = (t - 1 + TIERS.length) % TIERS.length; }
     const ex = exs[e]; if((ex.minTier || 0) > t) continue; if(!exs.some(x => (x.minTier || 0) <= t && t <= tierMax(x))) continue;
@@ -5511,7 +5511,7 @@ btn.addEventListener("click", ()=>{ navTier = t; goToIndex(findSeqIndex(t, curre
 
 /* Etkin çalışma sekmesini görünür (ortada) tut: Sonraki/Önceki ile sayfa değişince sekme satırı da birlikte kayar; sayfanın dikey konumu değişmez */
 function centerActiveChip(row, instant){ try{ const go = () => { const b = row.querySelector(".exercise-btn.active"); if(!b || row.scrollWidth <= row.clientWidth + 2) return; const rr = row.getBoundingClientRect(), br = b.getBoundingClientRect(); const rel = br.left - rr.left - row.clientLeft; /* satırın görünen kısmına göre konum */ const target = Math.max(0, Math.min(row.scrollWidth - row.clientWidth, row.scrollLeft + rel - (row.clientWidth - br.width) / 2)); if(Math.abs(row.scrollLeft - target) < 2) return; const vis = rel >= 4 && rel + br.width <= row.clientWidth - 4; if(vis && !instant && Math.abs(row.scrollLeft - target) < row.clientWidth * 0.25) return; try{ row.scrollTo({ left: target, behavior: instant ? "auto" : "smooth" }); }catch(e){ row.scrollLeft = target; } }; requestAnimationFrame(go); }catch(e){} }
-function renderExerciseRow(){ const row = document.getElementById("exerciseRow"); const prevScroll = row.scrollLeft; row.innerHTML = "";
+function renderExerciseRow(){ try{ hwRunCheck(); }catch(e){} const row = document.getElementById("exerciseRow"); const prevScroll = row.scrollLeft; row.innerHTML = "";
 const exs = currentCategoryExercises();
 const t = currentCombo().t;
 const groups = currentCategory().exerciseGroups || [];
@@ -5639,7 +5639,7 @@ btn.textContent = "▶ Başlat";
 btn.classList.remove("running");
 { const manual = window._manualStop; window._manualStop = false; const hint = document.getElementById("saveHint"); window._incomplete = !!(manual && !gameMode && !pageComplete());
 if(window._incomplete){ document.getElementById("saveResultBtn").style.display = "none"; hint.style.display = "block"; hint.textContent = "Çalışma tamamlanmadan durduruldu; bu sonuç kaydedilemez. ↻ ile yeniden başlatabilirsin."; hint.classList.add("warn"); }
-else if(elapsedMs > 300){ document.getElementById("saveResultBtn").style.display = "block"; hint.style.display = "block"; hint.textContent = "Çalışmayı bitirdin — hata sayısını kontrol et ve kaydet."; hint.classList.remove("warn"); } }
+else if(elapsedMs > 300){ document.getElementById("saveResultBtn").style.display = "block"; hint.style.display = "block"; hint.textContent = "Çalışmayı bitirdin — hata sayısını kontrol et ve kaydet."; hint.classList.remove("warn"); if(hwRun && !gameMode){ if(perfIsAuto(currentExercise())) setTimeout(() => { try{ confirmSaveResult(); }catch(e){ console.error(e); } }, 80); else hint.textContent = "Ödevi bitirdin — hata sayısını kontrol et ve Kaydet'e bas."; } } }
 if(!gameMode) requestAnimationFrame(() => { try{ const hn = document.getElementById("saveHint"), sv = document.getElementById("saveResultBtn"); const tg = (hn && getComputedStyle(hn).display !== "none") ? hn : sv; if(!tg || getComputedStyle(tg).display === "none") return; const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; const r = tg.getBoundingClientRect(); if(r.bottom > window.innerHeight - barH - 8 || r.top < 0) pageScroller().scrollBy(0, r.bottom - (window.innerHeight - barH - 16)); }catch(e){} });
 if(gameMode){ setTimeout(gameAfterStop, 400); try{ renderGameWho(); }catch(e){} }
 }
@@ -5698,6 +5698,7 @@ document.getElementById("saveHint").style.display = "none";
 function confirmSaveResult(){ if(elapsedMs <= 300 || window._incomplete) return; if(!gameMode && !(currentPlayerName || "").trim()){ zaAlert("Kaydetmek için önce kimin çalıştığını seçin."); try{ const row = document.getElementById("playerRow"); row.scrollIntoView({ behavior:"smooth", block:"center" }); row.classList.remove("attn"); void row.offsetWidth; row.classList.add("attn"); }catch(e){} return; }
 recordSession(elapsedMs, currentErrorCount);
 playSound("save");
+if(hwRun){ resetTimer(); setTimeout(() => { try{ showHwDone(); }catch(e){ console.error(e); } }, 120); return; }   /* ödev oturumu: otomatik düzey değişmez, sonuç paneli */
 if(!currentExercise().isMotion && !currentExercise().isRecall && !currentExercise().noAdaptive && (appMode === "aile" || (appMode === "uzman" && expertAdaptiveEnabled))){
 applyAdaptiveDifficulty(elapsedMs, currentErrorCount);
 }
@@ -10966,6 +10967,7 @@ exId: ex.id, src: perfSrc(), lvl: readingLevel === "pre" ? "pre" : "post", ti: c
 };
 if(firestoreReady && window.__fb){
 const { db, collection, addDoc } = window.__fb;
+try{ sessionHistory.push(Object.assign({}, record)); }catch(e){}   /* bulut listesi gelene kadar yerelde de görünsün (ödev durumu anında güncellensin) */
 addDoc(collection(db, "sessions"), withUid(record)).catch(e=> console.error("Kayıt yazılamadı:", e));
 } else {
 sessionHistory.push(record);
@@ -12056,7 +12058,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.19-c";
+const APP_VERSION = "2026.10.19-d";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -15077,7 +15079,7 @@ function hwStatus(e, player){ const ex = exerciseById(e.id); const nm = (player 
   const recs = loadSessions().filter(r => (r.player || "").trim().toLocaleLowerCase("tr") === nm && labels.includes(r.exerciseLabel) && r.t >= e.at && (!e.end || r.t <= e.end)).sort((a, b) => b.t - a.t);
   if(!recs.length) return { k:"none", n:0 }; const er = recs[0].errors || 0; return { k: er <= 1 ? "ok" : er === 2 ? "mid" : "hard", n: recs.length, last: recs[0].t, err: er }; }
 const HW_ST = { none:["Henüz yapılmadı","#EEF2F6","#5B6B7A"], ok:["Başarılı ✓","#E3F6EA","#1B7A3D"], mid:["Gelişiyor","#FFF6D6","#8A6400"], hard:["Tekrar edelim","#FDEBDD","#A9632A"] };
-function showHwScreen(){ hideFamScreens(); hideLinkScreens(); hwScreenOpen = true; ["categoryScreen","familyHome","mainApp","readingLevelScreen","returnSplashScreen"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; });
+function showHwScreen(){ hideFamScreens(); hideLinkScreens(); hwScreenOpen = true; if(hwRun) hwRunEnd(); ["categoryScreen","familyHome","mainApp","readingLevelScreen","returnSplashScreen"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; });
   const l = familyLinkLocal(), player = famProfile(), lvl = famLvl(), now = Date.now(), list = hwEntries(l && l.program).sort((a, b) => b.at - a.at); const w = document.getElementById("linkWrap");
   const activeExpert = list.filter(e => !e.end).length; let plan = null; try{ plan = devPlanRefresh(player, lvl, { now, expertCount: activeExpert, off: !!(l && l.program && l.program.devOff), excludeIds: list.filter(e => !e.end).map(e => e.id) }); if(l) devPlanSync(plan, l); }catch(e){ console.error(e); }
   const devItems = plan ? plan.items.slice().sort((a, b) => (a.snooze > now ? 1 : 0) - (b.snooze > now ? 1 : 0) || (a.kind === "strong") - (b.kind === "strong")) : [];
@@ -15110,8 +15112,8 @@ function showHwScreen(){ hideFamScreens(); hideLinkScreens(); hwScreenOpen = tru
   w.innerHTML = `<div><h2 class="fam-h">Ödevlerim</h2><div class="fam-sub">${escHTML(player)}</div></div>${body}`;
   ["hwLinkBtn","hwLinkBtn2"].forEach(id => { const lb = document.getElementById(id); if(lb) lb.onclick = () => { try{ showLinkScreen(); }catch(e){} }; });
   const pb = document.getElementById("devPlaceBtn") || document.getElementById("devPlaceBtn2"); if(pb) pb.onclick = () => { try{ hideLinkScreens(); placeStart(player); }catch(e){ console.error(e); } };
-  w.querySelectorAll("[data-hwopen]").forEach(b => b.onclick = () => hwOpen(b.dataset.hwopen, l));
-  w.querySelectorAll("[data-devopen]").forEach(b => b.onclick = () => hwOpen(b.dataset.devopen, l, +b.dataset.devti));
+  w.querySelectorAll("[data-hwopen]").forEach(b => b.onclick = () => hwRunOpen(b.dataset.hwopen, null));
+  w.querySelectorAll("[data-devopen]").forEach(b => b.onclick = () => hwRunOpen(b.dataset.devopen, +b.dataset.devti));
   w.querySelectorAll("[data-devsnooze]").forEach(b => b.onclick = () => { const pl = devPlanGet(player, lvl); if(!pl) return; const it = pl.items.find(x => x.id === b.dataset.devsnooze); if(!it) return; if(it.snooze > Date.now()) delete it.snooze; else { it.snooze = Date.now() + 864e5; it.at = Math.max(it.at, Date.now() - (DEV_STALE_DAYS - 2) * 864e5); } devPlanSave(player, lvl, pl); showHwScreen(); });
   document.getElementById("linkScreen").style.display = "flex"; document.getElementById("linkScreen").scrollTop = 0; }
 function hwOpen(id, l, tiOverride){ hideLinkScreens(); hideFamScreens(); appMode = "aile"; try{ applyModeVisibility(); }catch(e){} const ci = CATEGORIES.findIndex(c => !c.hidden && c.exerciseIds.includes(id)); if(ci < 0) return; selectCategory(ci);
@@ -15194,7 +15196,7 @@ function devPlanRefresh(player, lvl, opts){ opts = opts || {}; const now = opts.
   const weekly = !plan.genAt || now - plan.genAt >= DEV_WEEK_DAYS * 864e5 || plan.needData || plan.items.filter(i => i.kind !== "explore").length === 0;   /* veri az yüzünden boş kaldıysa ya da açık ödev yoksa 7 gün bekleme */
   if(weekly){ plan.genAt = now; const makeRoom = () => { if(plan.items.length < totalCap) return true; const ei = plan.items.findIndex(i => i.kind === "explore" && !(i.tries > 0)); if(ei < 0) return false; const rm = plan.items.splice(ei, 1)[0]; rm.status = "replaced"; plan.history.push(rm); return true; };   /* gelişim ödevi tanıma ödevinden önceliklidir */
     const prio = (d) => d.struggle + (d.gameSignal ? 0.1 : 0); const hardDomains = Object.values(S.domains).filter(d => d.state === "zorlaniyor").sort((a, b) => prio(b) - prio(a) || b.evidence - a.evidence);   /* oyun sinyali önceliği artırır */
-    for(const d of hardDomains){ if(plan.items.filter(i => i.kind === "dev").length >= devCap || !makeRoom()) break; if(plan.items.some(i => i.cat === d.id)) continue; const ex = devPickExercise(d.id, lvl, S, recentIds, "hard"); if(!ex) continue; plan.items.push(devMakeItem(ex, d.id, devTierFor(ex, S, "dev"), "dev", now, { step: 1 })); recentIds.add(ex.id); }
+    for(const d of hardDomains){ if(plan.items.filter(i => i.kind === "dev").length >= devCap) break; { const ei = plan.items.findIndex(i => i.cat === d.id && i.kind === "explore" && !(i.tries > 0)); if(ei >= 0){ const rm = plan.items.splice(ei, 1)[0]; rm.status = "replaced"; plan.history.push(rm); } } if(!makeRoom()) break; if(plan.items.some(i => i.cat === d.id)) continue;   /* aynı alandaki başlanmamış tanıma ödevi gelişime yer açar */ const ex = devPickExercise(d.id, lvl, S, recentIds, "hard"); if(!ex) continue; plan.items.push(devMakeItem(ex, d.id, devTierFor(ex, S, "dev"), "dev", now, { step: 1 })); recentIds.add(ex.id); }
     const nDev = plan.items.filter(i => i.kind === "dev").length;
     if(nDev > 0 && strongCap > 0 && !plan.items.some(i => i.kind === "strong") && makeRoom()){ const strong = Object.values(S.domains).filter(d => d.state === "guclu" && !plan.items.some(i => i.cat === d.id)).sort((a, b) => b.success - a.success || b.evidence - a.evidence)[0];
       if(strong){ const ex = devPickExercise(strong.id, lvl, S, recentIds, "strong"); if(ex){ plan.items.push(devMakeItem(ex, strong.id, devTierFor(ex, S, "strong"), "strong", now)); recentIds.add(ex.id); } } } }
@@ -15249,5 +15251,30 @@ function hwDevStatusLine(plan, player, lvl){ let t; if(!plan) t = "Gelişim öde
 /* Keşif turu önerisi: hiç yapılmadıysa */
 function hwNeedsKesif(player){ try{ const p = placeGet(player); return !p || !p.res || !Object.keys(p.res).length; }catch(e){ return false; } }
 function hwKesifCard(player, soft){ if(soft && !hwNeedsKesif(player)) return ""; return `<div class="fam-card" style="margin-bottom:8px"><div style="font-weight:900">${soft ? "Keşif turu henüz yapılmadı" : "Gelişim ödevlerini hazırlamak için biraz daha çalışma gerekiyor"}</div><div class="fam-sub" style="font-weight:600;margin-top:4px">Keşif turu, ${escHTML(player)} için her alanda uygun başlangıç düzeyini bulur; böylece ödevler daha doğru hazırlanır.</div><button type="button" class="fam-cta" id="${soft ? "devPlaceBtn2" : "devPlaceBtn"}" style="margin-top:10px">Keşif turunu başlat</button></div>`; }
+
+/* ===== Ödev oturumu: ödevler kendi içinde ayrı bir akış ===== */
+let hwRun = null;
+function hwRunList(){ const l = familyLinkLocal(), player = famProfile(), lvl = famLvl(); const exp = hwEntries(l && l.program).filter(e => !e.end).sort((a, b) => b.at - a.at).map(e => ({ id: e.id, ti: null, kind: "expert", at: e.at }));
+  const pl = devPlanGet(player, lvl); const dev = ((pl && pl.items) || []).filter(i => !(i.snooze > Date.now())).map(i => ({ id: i.id, ti: i.ti, kind: i.kind, at: i.at })); return exp.concat(dev.filter(d => !exp.some(e => e.id === d.id))); }
+function hwRunGo(idx){ if(!hwRun) return; hwRun.idx = idx; const it = hwRun.items[idx]; hwRun.cur = it.id; hwRun.switching = true; try{ hwOpen(it.id, familyLinkLocal(), it.ti); } finally{ if(hwRun) hwRun.switching = false; } hwBarRender(); }
+function hwRunOpen(id, ti){ const items = hwRunList(); let idx = items.findIndex(x => x.id === id); if(idx < 0){ items.unshift({ id, ti, kind: ti == null ? "expert" : "dev", at: Date.now() }); idx = 0; } hwRun = { items, idx, cur: id }; hwRunGo(idx); }
+function hwRunStep(dir){ if(!hwRun) return; const j = hwRun.idx + dir; if(j < 0 || j >= hwRun.items.length){ hwRunEnd(); showHwScreen(); return; } hideHwDone(); hwRunGo(j); }
+function hwRunEnd(){ hwRun = null; hwBarRender(); hideHwDone(); }
+function hwRunCheck(){ if(hwRun && !hwRun.switching && currentExercise() && currentExercise().id !== hwRun.cur) hwRunEnd(); }
+function hwBarRender(){ let bar = document.getElementById("hwBar"); if(!hwRun){ if(bar) bar.remove(); return; } if(!bar){ const ib = document.getElementById("instructionBox"); if(!ib) return; bar = document.createElement("div"); bar.id = "hwBar"; ib.parentNode.insertBefore(bar, ib); }
+  const it = hwRun.items[hwRun.idx], n = hwRun.items.length, tag = it.kind === "expert" ? "Uzman ödevi" : it.kind === "explore" ? "Tanıma ödevi" : it.kind === "strong" ? "Güçlü yön" : "Gelişim ödevi";
+  bar.style.cssText = "display:flex;align-items:center;gap:10px;background:#D9F2EF;border:2px solid #A7DDD6;border-radius:16px;padding:10px 12px;margin:0 0 10px";
+  bar.innerHTML = `${icI("clip", 22, "#0A847E")}<div style="flex:1;min-width:0"><div style="font-weight:900;font-size:15px;color:#0B5F5A">Ödev ${hwRun.idx + 1}/${n} · ${escHTML(famLabel(it.id))}</div><div style="font-weight:700;font-size:13px;color:#2F6F69">${tag} · Sonraki ile sıradaki ödeve geçilir</div></div><button type="button" id="hwBarBack" style="flex:none;min-height:42px;padding:6px 12px;border-radius:12px;border:2px solid #0A847E;background:#fff;color:#0A847E;font:inherit;font-weight:800;font-size:14px;cursor:pointer">Ödevlerim</button>`;
+  document.getElementById("hwBarBack").onclick = () => { hwRunEnd(); showHwScreen(); }; }
+function hideHwDone(){ const e = document.getElementById("hwDone"); if(e) e.remove(); }
+/* Çalışma kaydedilince: ödevin durumu + Sıradaki ödev / Ödevlerime dön */
+function showHwDone(){ if(!hwRun) return; const it = hwRun.items[hwRun.idx], player = famProfile(), lvl = famLvl(), n = hwRun.items.length; let title = "Kaydedildi", sub = "";
+  if(it.kind === "expert"){ const st = hwStatus({ id: it.id, at: it.at || 0 }, player); title = st.k === "ok" ? "Ödev başarıyla yapıldı ✓" : "Ödev kaydedildi"; sub = `Durum: ${HW_ST[st.k][0]} · ${st.n} kez çalışıldı`; }
+  else { const pl = devPlanGet(player, lvl); const item = ((pl && pl.items) || []).find(x => x.id === it.id) || it; const A = devAttempts(Object.assign({ at: it.at || 0 }, item), player); if(it.kind === "explore"){ title = "Tanıma ödevi tamamlandı ✓"; sub = "Bu alan hakkında bilgi toplandı; sonraki ödevler buna göre hazırlanacak."; } else if(A.ok >= 2){ title = "Ödev tamamlandı ✓"; sub = "İki başarılı deneme yapıldı; yerine bir sonraki adım gelecek."; } else if(A.lastOutcome === "ok"){ title = "Güzel! Bir başarı daha kaldı"; sub = "Bir kez daha başarıyla yapınca ödev tamamlanır."; } else { title = "Ödev kaydedildi"; sub = "İki başarılı deneme gerekiyor; istersen tekrar deneyebilirsin."; } }
+  hideHwDone(); const el = document.createElement("div"); el.id = "hwDone"; el.style.cssText = "position:fixed;inset:0;z-index:9000;background:rgba(15,40,40,.35);display:flex;align-items:flex-end;justify-content:center";
+  const hasNext = hwRun.idx < n - 1; const done = title.includes("✓");
+  el.innerHTML = `<div style="width:100%;max-width:560px;background:#fff;border-radius:24px 24px 0 0;padding:20px 18px calc(18px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 30px rgba(0,0,0,.15)"><div style="display:flex;align-items:center;gap:10px">${icI(done ? "star" : "clip", 26, done ? "#1B7A3D" : "#0A847E")}<div style="font-weight:900;font-size:19px">${escHTML(title)}</div></div><div class="fam-sub" style="font-weight:600;margin:6px 0 14px">${escHTML(famLabel(it.id))} · ${escHTML(sub)}</div><div style="display:flex;flex-direction:column;gap:8px">${hasNext ? `<button type="button" class="fam-cta" id="hwDoneNext">Sıradaki ödev (${hwRun.idx + 2}/${n})</button>` : ""}<button type="button" class="fam-cta${hasNext ? " ghost" : ""}" id="hwDoneList">Ödevlerime dön</button><button type="button" id="hwDoneStay" style="min-height:42px;background:none;border:0;font:inherit;font-weight:800;color:#5B6B7A;cursor:pointer">Bu çalışmada kal</button></div></div>`;
+  document.body.appendChild(el); const nx = document.getElementById("hwDoneNext"); if(nx) nx.onclick = () => { hideHwDone(); hwRunStep(1); };
+  document.getElementById("hwDoneList").onclick = () => { hwRunEnd(); showHwScreen(); }; document.getElementById("hwDoneStay").onclick = () => hideHwDone(); }
 
 window.__zaReady = true;
