@@ -1721,31 +1721,35 @@ face: faceAnimalSize
 "sort-color-shape-count": {
 dims: [{key:"color", name:"renk", acc:"RENGE"}, {key:"shape", name:"şekil", acc:"ŞEKLE"}, {key:"count", name:"sayı", acc:"ŞEKİL SAYISINA"}],
 refs: () => {
-const c = shuffleArray(["#E53935","#2E9E4F","#F5C518","#1E63D6","#8E44AD"]).slice(0, 4);
-const sh = shuffleArray(["triangle","star","cross","circle","square","heart"]).slice(0, 4);
-const n = shuffleArray([1, 2, 3, 4]);
-return [0,1,2,3].map(i => ({color:c[i], shape:sh[i], count:n[i]}));
+const k = sortRefN();   /* düzeye göre 2-3-4 örnek kart */
+const c = shuffleArray(["#E53935","#2E9E4F","#F5C518","#1E63D6","#8E44AD"]).slice(0, k);
+const sh = shuffleArray(["triangle","star","cross","circle","square","heart"]).slice(0, k);
+const n = shuffleArray([1, 2, 3, 4]).slice(0, k);
+return Array.from({length:k}, (_, i) => ({color:c[i], shape:sh[i], count:n[i]}));
 },
 face: faceShapeCount
 },
 "sort-words": {
 dims: [{key:"cat", name:"anlam kategorisi", acc:"ANLAM KATEGORİSİNE"}, {key:"syl", name:"hece sayısı", acc:"HECE SAYISINA"}, {key:"color", name:"yazı rengi", acc:"YAZI RENGİNE"}],
 refs: () => {
+const k = sortRefN();   /* düzeye göre 2-3-4 örnek kart */
 const syl = shuffleArray([1, 2, 3, 4]), col = shuffleArray(SORT_WORD_COLORS.map(x => x.c));
-return SORT_CATS.map((cat, i) => ({ word: randomItem(SORT_WORDS[cat][syl[i]]), cat, syl: syl[i], color: col[i] }));
+return shuffleArray(SORT_CATS.slice()).slice(0, k).map((cat, i) => ({ word: randomItem(SORT_WORDS[cat][syl[i]]), cat, syl: syl[i], color: col[i] }));
 },
 face: faceWord,
 wide: true        // kelimeler için geniş (yatay) kartlar, örnek kartlar 2x2
 }
 };
 const SORT_PER_PHASE = [6, 8, 10];
+const sortRefN = () => isPre() ? 4 : ([2, 3, 4][currentCombo().t] || 4);   /* üç boyutlu sıralamada örnek kart sayısı düzeye göre 2-3-4 */
 const PRE_SORT_PER_PHASE = [4, 5, 6];
 let sortState = null;
 let sortLastRules = "";
 function sortSpec(){ return SORT_SPECS[currentExercise().id]; }
 function sortMatchIndex(card, dimKey, refs){ return refs.findIndex(r => r[dimKey] === card[dimKey]); }
 function makeConflictCard(spec, refs){
-const idx = shuffleArray(refs.map((_, i) => i)).slice(0, spec.dims.length);
+let idx = shuffleArray(refs.map((_, i) => i)).slice(0, spec.dims.length);
+if(refs.length < spec.dims.length){ let g = 0; do{ idx = spec.dims.map(() => Math.floor(Math.random() * refs.length)); g++; } while(g < 50 && idx.every(x => x === idx[0])); }   /* örnek kart boyut sayısından azsa: her boyut bir karttan, ama hiçbir örnek kartın kopyası değil */
 const card = {};
 spec.dims.forEach((d, k) => { card[d.key] = refs[idx[k]][d.key]; });
 if(spec === SORT_SPECS["sort-words"]){
@@ -1766,7 +1770,7 @@ do{ refs = shuffleArray(spec.refs()); gR++; }
 while(gR < 20 && JSON.stringify(refs.map(r => JSON.stringify(r)).sort()) === sortState?.lastRefsKey);
 const refsKey = JSON.stringify(refs.map(r => JSON.stringify(r)).sort());
 const d0 = spec.dims[0].key, d1 = spec.dims[1].key;
-const crossTests = refs.length === 2 ? [{[d0]: refs[1][d0], [d1]: refs[0][d1]}, {[d0]: refs[0][d0], [d1]: refs[1][d1]}] : null;
+const crossTests = refs.length === 2 && spec.dims.length === 2 ? [{[d0]: refs[1][d0], [d1]: refs[0][d1]}, {[d0]: refs[0][d0], [d1]: refs[1][d1]}] : null;
 const cards = [];
 for(let ph = 0; ph < rules.length; ph++){
 for(let k = 0; k < per; k++){
@@ -1858,8 +1862,8 @@ const info = `<div class="srt-rule${st.justChanged ? " changed" : ""}" id="srtRu
 board.innerHTML = isLs
 ? `<div class="srt-wrap" style="flex-direction:row;justify-content:center;gap:18px;">` +
 `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;">${info}${middle}</div>` +
-`<div class="srt-refs" style="grid-template-columns:repeat(${refCols}, ${ref}px);">${refsHtml}</div></div>`
-: `<div class="srt-wrap"><div class="srt-refs" style="grid-template-columns:repeat(${refCols}, ${ref}px);">${refsHtml}</div>${info}${middle}</div>`;
+`<div class="srt-refs" style="${st.refs.length % refCols ? `display:flex;flex-wrap:wrap;justify-content:center;max-width:${refCols * ref + (refCols - 1) * 10}px;margin:0 auto` : `grid-template-columns:repeat(${refCols}, ${ref}px)`};">${refsHtml}</div></div>`
+: `<div class="srt-wrap"><div class="srt-refs" style="${st.refs.length % refCols ? `display:flex;flex-wrap:wrap;justify-content:center;max-width:${refCols * ref + (refCols - 1) * 10}px;margin:0 auto` : `grid-template-columns:repeat(${refCols}, ${ref}px)`};">${refsHtml}</div>${info}${middle}</div>`;
 st.justChanged = false;
 }
 function handleSortTap(ev){
@@ -6980,7 +6984,7 @@ const QZ_SPREAD_SKIP = new Set(["arrow-touch","edge-touch","overlap-count","syl-
 const QZ_D = { pre:[3,3,4], post:[3,4,5] }, QZ_D2 = { pre:[3,4,4], post:[3,4,5] };
 const QZ_TIER_OPTS = { "pattern-touch":QZ_D, "analogy-touch":QZ_D, "pk-shadow":QZ_D, "matrix-fill":QZ_D, "rule-induce":QZ_D, "closure":QZ_D, "syl-blend":QZ_D, "embedded":QZ_D, "proverb-touch":QZ_D, "infer-touch":QZ_D, "listen-answer":QZ_D,
   "opp-touch":{ pre:[3,3,4] }, "mental-rot":{ pre:[3,3,4] }, "word-pic":{ post:[3,4,5] }, "syl-touch":{ post:[3,4,5] }, "balance":{ post:[3,4,4] },
-  "paper-fold":QZ_D2, "num-pattern":QZ_D2, "overlap-count":QZ_D2, "concept-touch":{ pre:[2,3,3], post:[2,3,4], capOnly:true } };
+  "paper-fold":QZ_D2, "num-pattern":QZ_D2, "overlap-count":QZ_D2, "concept-touch":{ pre:[2,3,3], post:[2,3,4], capOnly:true }, "view-from":{ post:[2,3,4], capOnly:true } };
 function qzTierOpts(id, trials){ const cfg = QZ_TIER_OPTS[id]; if(!cfg || !Array.isArray(trials)) return trials; const tab = isPre() ? cfg.pre : cfg.post; if(!tab) return trials; const want = tab[Math.min(currentCombo().t, 2)];
   const plain = (o) => String(o).replace(/<[^>]+>/g, "").trim(); const numVal = (o) => { const m = plain(o).match(/^(?:👏\s*)*(\d+)$/); return m ? +m[1] : NaN; }; const isNum = (q) => q.opts.every(o => !isNaN(numVal(o))); const ordinal = (q) => q.opts.every(o => /^[\d\s👏]+$/.test(plain(o)) && plain(o) !== "");
   const poolAll = []; trials.forEach(q => (q && q.opts || []).forEach(o => { if(!poolAll.includes(o)) poolAll.push(o); }));
@@ -7238,7 +7242,7 @@ const CUP_SVG = (c) => `<svg viewBox="0 0 100 110" style="width:100%;height:100%
 function mmathTrials(){ const t = currentCombo().t, steps = (isPre() ? [1, 2, 2] : [2, 3, 4])[t];
 return Array.from({length: isPre() ? 3 : 5}, () => { let v = isPre() ? 1 + Math.floor(Math.random() * 3) : 1 + Math.floor(Math.random() * 6); const start = v, ops = [];
 for(let k = 0; k < steps; k++){ const maxAdd = (isPre() ? 5 : 9) - v; let d; if(v > 0 && (maxAdd <= 0 || Math.random() < 0.45)){ d = -(1 + Math.floor(Math.random() * Math.min(v, isPre() ? 2 : 4))); } else { d = 1 + Math.floor(Math.random() * Math.min(maxAdd, isPre() ? 2 : 4)); } v += d; ops.push(d); }
-const opts = shuffleArray(Array.from(new Set([v, v + 1, Math.max(0, v - 1), v + 2, Math.max(0, v - 2)])).slice(0, 4)); if(!opts.includes(v)) opts[0] = v;
+const want = (isPre() ? [3, 3, 4] : [3, 4, 5])[Math.min(currentCombo().t, 2)]; const near = Array.from(new Set([v + 1, v - 1, v + 2, v - 2, v + 3, v - 3, v + 4, v + 5].filter(x => x >= 0 && x !== v))); const opts = [v].concat(shuffleArray(near.slice(0, Math.max(want - 1, 4))).slice(0, want - 1));   /* seçenek sayısı düzeye göre; doğru cevaba yakın sayılar */
 return { start, ops, res: v, opts: shuffleArray(opts), pic: randomItem(picPool()) }; }); }
 const mmathTrials0 = mmathTrials; mmathTrials = function(){ let T = mmathTrials0(); for(let g = 0; g < 25 && T.some((q, i) => i && q.res === T[i - 1].res); g++){ const i = T.findIndex((q, i) => i && q.res === T[i - 1].res); const R = mmathTrials0(); T[i] = R.find(q => q.res !== T[i - 1].res && (!T[i + 1] || q.res !== T[i + 1].res)) || T[i]; } return T; };   /* ardışık iki soru aynı sonucu vermez */
 function whoTrial(){ const t = currentCombo().t, nP = !isPre() && t === 2 ? 3 : 2, nI = isPre() ? [4, 5, 6][t] : [4, 6, 8][t];
@@ -7853,7 +7857,7 @@ const WS_MIRROR_OK = new Set(["t-car","t-train","t-kite","t-puzzle","t-ball","h-
 function wsTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 5 : 6, pool = picPool();
 return Array.from({length:N}, () => { const usesFlip = pre ? t >= 1 : true; let a, b, c; if(usesFlip){ const ok = pool.filter(x => WS_MIRROR_OK.has(x.k)); a = randomItem(ok.length ? ok : pool); [b, c] = shuffleArray(pool.filter(x => x !== a)).slice(0, 2); } else [a, b, c] = shuffleArray(pool).slice(0, 3);
 const im = (x, o) => `<div style="width:100%;height:100%;position:relative;${o.flip ? "transform:scaleX(-1);" : ""}${o.hue ? "filter:hue-rotate(" + o.hue + "deg) saturate(1.3);" : ""}">${qzPic(x.src)}${o.patch ? `<div style="position:absolute;left:${o.patch[0]}%;top:${o.patch[1]}%;width:30%;height:30%;background:var(--panel);border-radius:50%"></div>` : ""}</div>`;
-const orig = im(a, {}); let lures = pre ? [[im(b, {}), im(c, {})], [im(a, { flip:true }), im(b, {})], [im(a, { flip:true }), im(a, { hue:150 })]][Math.min(t, 2)] : t === 0 ? [im(a, { flip:true }), im(b, {})] : t === 1 ? [im(a, { flip:true }), im(a, { hue:150 }), im(b, {})] : [im(a, { flip:true }), im(a, { hue:150 }), im(a, { patch:[30 + Math.random() * 20, 25 + Math.random() * 30] })];
+const orig = im(a, {}); let lures = pre ? [[im(b, {}), im(c, {})], [im(a, { flip:true }), im(b, {})], [im(a, { flip:true }), im(a, { hue:150 }), im(b, {})]][Math.min(t, 2)] : t === 0 ? [im(a, { flip:true }), im(b, {})] : t === 1 ? [im(a, { flip:true }), im(a, { hue:150 }), im(b, {})] : [im(a, { flip:true }), im(a, { hue:150 }), im(a, { patch:[30 + Math.random() * 20, 25 + Math.random() * 30] }), im(b, {})];   /* seçenek: Okul Öncesi 3-3-4, Okul Sonrası 3-4-5 */
 const opts = shuffleArray([orig].concat(lures)); return { study: orig, opts, ans: opts.indexOf(orig), ms: pre ? [3000, 2600, 2200][Math.min(t, 2)] : [2200, 1800, 1500][t] }; }); }
 function routeTrials(){ const t = currentCombo().t, pre = isPre(), n = pre ? [3, 4, 4, 5][t] : [4, 5, 5, 6][t], L = pre ? [3, 4, 5, 6][t] : [4, 6, 8, 10][t];
 return Array.from({length:3}, () => { let path; let g = 0; do{ path = [Math.floor(Math.random() * n * n)];
@@ -8250,7 +8254,7 @@ mtState = { kind:"hear", trials: Array.from({length: isPre() ? 3 : 4}, () => { c
 "dir-follow": () => { mtState = { kind:"dir", trials: Array.from({length: isPre() ? 3 : 5}, dirTrial), ti:0, pos:0, wrong:0, phase:"idle" }; return mtState.trials; },
 "vis-miss": () => { const t = currentCombo().t, N = (isPre() ? [3, 4, 5] : [5, 6, 8])[t];
 mtState = { kind:"miss", trials: Array.from({length: isPre() ? 3 : 5}, () => { const p = shuffleArray(picPool()); const set = p.slice(0, N), gone = Math.floor(Math.random() * N);
-return { set, gone, opts: shuffleArray([set[gone]].concat(p.slice(N, N + 3))), shuffle: t > 0 }; }), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
+const want = (isPre() ? [3, 3, 4] : [3, 4, 5])[Math.min(t, 2)]; return { set, gone, opts: shuffleArray([set[gone]].concat(p.slice(N, N + want - 1))), shuffle: t > 0 }; })   /* seçenek sayısı düzeye göre */, ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
 "vis-chg": () => { const t = currentCombo().t, N = (isPre() ? [3, 4, 5] : [4, 6, 8])[t];
 mtState = { kind:"chg", trials: Array.from({length: isPre() ? 3 : 5}, () => { const p = shuffleArray(picPool()); return { set: p.slice(0, N), at: Math.floor(Math.random() * N), neo: p[N] }; }), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
 "vis-recog": () => { const t = currentCombo().t, M = (isPre() ? [4, 5, 6] : [6, 8, 10])[t], pool = shuffleArray(picPool());
@@ -12060,7 +12064,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.20-c";
+const APP_VERSION = "2026.10.20-e";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -15306,5 +15310,9 @@ function hwHistoryTable(plan, player, now, catName, dShort){ const rows = hwHist
   html += table(rows.slice(0, 8)).replace(/<tr>/g, '<tr style="border-top:1px solid #E6ECF2">').replace('<tr style="border-top:1px solid #E6ECF2" style="text-align:left', '<tr style="text-align:left');
   if(rows.length > 8) html += `<details style="margin-top:4px"><summary style="cursor:pointer;font-weight:800;color:#0A847E;padding:8px 6px">Tümünü göster (${rows.length})</summary>${table(rows.slice(8)).replace(/<thead>[\s\S]*?<\/thead>/, "").replace(/<tr>/g, '<tr style="border-top:1px solid #E6ECF2">')}</details>`;
   return html + `</div>`; }
+
+/* Seçenek/resim ızgaralarında (wm-grid) eksik son satırı ortala: tahta her yeniden çizildiğinde */
+function centerWmGrids(root){ (root || document).querySelectorAll(".wm-grid, .qz-txt-grid").forEach(g => { const items = [...g.children]; if(g.dataset.centered || items.length < 2) return; const m = /repeat\(\s*(\d+)/.exec(g.style.gridTemplateColumns || ""); const cs = getComputedStyle(g); if(cs.display !== "grid" && !m) return; const cols = m ? +m[1] : (cs.gridTemplateColumns || "").split(" ").filter(Boolean).length; if(!cols || items.length <= cols || items.length % cols === 0) return; const cell = items[0].getBoundingClientRect().width || parseFloat(items[0].style.width) || 0; const gap = parseFloat(cs.columnGap) || parseFloat(cs.gap) || 8; if(!cell) return; g.dataset.centered = "1"; items.forEach(it => { it.style.flex = `0 0 ${cell}px`; it.style.width = cell + "px"; }); g.style.display = "flex"; g.style.flexWrap = "wrap"; g.style.justifyContent = "center"; g.style.gap = (parseFloat(cs.rowGap) || gap) + "px " + gap + "px"; g.style.maxWidth = (cols * cell + (cols - 1) * gap + 1) + "px"; g.style.marginLeft = "auto"; g.style.marginRight = "auto"; }); }   /* seçenek/resim ızgaralarında eksik son satır ortada */
+try{ const bd0 = document.getElementById("board"); if(bd0) new MutationObserver(() => { try{ centerWmGrids(bd0); }catch(e){} }).observe(bd0, { childList:true }); }catch(e){}
 
 window.__zaReady = true;
