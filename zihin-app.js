@@ -7839,7 +7839,7 @@ for(let i = 0; i < beeps; i++) bt.push(1200 + Math.random() * (secs * 1000 - 240
 return { secs, beeps, bt: bt.sort((a, b) => a - b), st, show: pre ? 1500 : 1200 }; }); }
 const stopDirs = () => ["l", "r", "u", "d"].slice(0, (isPre() ? [2, 3, 3] : [2, 3, 4])[Math.min(currentCombo().t, 2)]);   /* yön düğmesi sayısı düzeye göre */
 function stopArrowSVG(dir, col, px){ const rot = { r:0, l:180, u:-90, d:90 }[dir] || 0; return `<svg viewBox="0 0 100 100" width="${px}" height="${px}" style="display:block"><g transform="rotate(${rot} 50 50)"><path d="M14 40 H56 V22 L88 50 L56 78 V60 H14 Z" fill="${col}" stroke="${col}" stroke-width="6" stroke-linejoin="round"/></g></svg>`; }
-function stopTrials(){ const t = currentCombo().t, pre = isPre(), N = (pre ? [10, 12, 14] : [16, 20, 24])[Math.min(t, 2)], ssd = (pre ? [380, 320, 260] : [320, 240, 170])[t], D = stopDirs();   /* ok sayısı düzeye göre */ const out = []; for(let i = 0; i < N; i++){ let dir, g = 0; do{ dir = randomItem(D); g++; } while(g < 20 && i >= 2 && out[i - 1].dir === dir && out[i - 2].dir === dir); out.push({ dir, stop: i > 1 && Math.random() < 0.25, ssd }); } return out; }
+function stopTrials(){ const t = currentCombo().t, pre = isPre(), N = (pre ? [10, 12, 14] : [16, 20, 24])[Math.min(t, 2)], ssd = 0, win = (pre ? [2000, 1800, 1600] : [1800, 1600, 1400])[Math.min(t, 2)], D = stopDirs();   /* zorluk: yanıt süresi kısalır */   /* ok sayısı düzeye göre */ const out = []; for(let i = 0; i < N; i++){ let dir, g = 0; do{ dir = randomItem(D); g++; } while(g < 20 && i >= 2 && out[i - 1].dir === dir && out[i - 2].dir === dir); out.push({ dir, stop: i > 1 && Math.random() < 0.25, ssd, win }); } return out; }
 function vigBuild(){ const t = currentCombo().t, pre = isPre(), N = pre ? [24, 30, 36][t] : [36, 48, 60][t], ms = pre ? 1300 : [1100, 950, 850][t];
 const seq = Array.from({length:N}, (_, i) => { const tg = i > 2 && Math.random() < 0.15; if(tg) return { sh:"star", col:"#E5484D", tg:true };
 if(!pre && Math.random() < 0.35) return Math.random() < 0.5 ? { sh:"circle", col:"#E5484D" } : { sh:"star", col:"#2E6FD8" };
@@ -8536,9 +8536,8 @@ tr.st.forEach((tm, k) => mtLater(() => { st.tgt = { k, x: 8 + Math.random() * 78
 mtLater(() => { if(st.tgt && st.tgt.k === k){ st.tgt = null; st.miss++; mtErr(); const a2 = document.getElementById("dualArea"); const o = a2 && a2.querySelector(".du-t"); if(o) o.remove(); } }, tr.show); }, tm));
 mtLater(() => { st.phase = "ask"; st.tgt = null; renderMtBoard(); sayTask("Kaç bip sesi duydun?"); }, tr.secs * 1000); },
 stop(){ const st = mtState, tr = st.trials[st.ti]; st.phase = "fix"; st.red = false; renderMtBoard(); const my = st.ti;
-mtLater(() => { if(st.ti !== my) return; st.phase = "go"; st.t0 = performance.now(); renderMtBoard();
-if(tr.stop) mtLater(() => { if(st.ti === my && st.phase === "go"){ st.red = true; renderMtBoard(); gameSfx("pop"); } }, tr.ssd);
-mtLater(() => { if(st.ti === my && st.phase === "go"){ if(!tr.stop) mtErr(); else gameSfx("correct"); st.phase = "fb"; renderMtBoard(); mtLater(NEW_MT.next, 350); } }, tr.stop ? tr.ssd + 1000 : 1600); }, 500); },
+mtLater(() => { if(st.ti !== my) return; st.phase = "go"; st.red = !!tr.stop; st.t0 = performance.now(); renderMtBoard();   /* kırmızı ok doğrudan kırmızı gelir (maviden dönmez) */
+mtLater(() => { if(st.ti === my && st.phase === "go"){ if(!tr.stop) mtErr(); else gameSfx("correct"); st.phase = "fb"; renderMtBoard(); mtLater(NEW_MT.next, 350); } }, tr.win || 1600); }, 500); },   /* mavi ve kırmızı aynı süre ekranda */
 vig(){ const st = mtState; st.phase = "run"; renderMtBoard(); const step = () => { if(st.phase !== "run") return; if(st.i >= 0 && st.seq[st.i].tg && !st.resp) { st.miss++; mtErr(); }
 st.i++; st.resp = false; if(st.i >= st.seq.length){ st.phase = "done"; mtFinish(` İsabet: ${st.hits} · kaçırılan: ${st.miss} · yanlış alarm: ${st.fa}`); return; }
 const it = st.seq[st.i], b = document.getElementById("vigShape"); if(b) b.innerHTML = shapeSVG(it.sh, it.col); const c = document.getElementById("vigCnt"); if(c) c.textContent = `${st.i + 1}/${st.seq.length}`; mtLater(step, st.ms); };
@@ -12065,7 +12064,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.20-i";
+const APP_VERSION = "2026.10.20-j";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
