@@ -6913,7 +6913,7 @@ const opts = [qzPic(x.src)].concat(dis.map(d => qzPic(d.src)));
 return qzMake("", opts, 0, { prompt: x.q, say: x.q, replay:true }); }); },
 "arrow-touch": () => { const t = currentCombo().t, dirs4 = ["up","down","left","right"], dirs8 = dirs4.concat(["up-left","up-right","down-left","down-right"]);
 const dirs = isPre() ? [["left","right"], dirs4, dirs4.concat(["up-left","up-right"])][Math.min(t, 2)] : [dirs4, dirs4.concat(["up-left","up-right"]), dirs8][Math.min(t, 2)];
-const nextDir = mkCycle(dirs), nextCol = mkCycle(COLORS), tt = Math.min(t, 2); const nextSty = mkCycle(tt === 0 ? ["arrow"] : ["arrow","chevron","head"]);   /* el emojisi çıkarıldı: parmağın yönü belirsiz */ return Array.from({length: qzTrials(8, 5)}, () => { const d = nextDir(), col = nextCol(), sty = nextSty(); const opts = dirs.map(x => qzArrow(x, "#5B6B7A")); let stim = qzArrowStyled(d, col, sty);
+const nextDir = mkCycle(dirs), nextCol = mkCycle(COLORS), tt = Math.min(t, 2); const nextSty = mkCycle(tt === 0 ? ["arrow"] : ["arrow","chevron","head"]);   /* el emojisi çıkarıldı: parmağın yönü belirsiz */ return Array.from({length: (isPre() ? [4, 5, 6] : [6, 8, 10])[tt]}, () => { const d = nextDir(), col = nextCol(), sty = nextSty(); const opts = dirs.map(x => qzArrow(x, "#5B6B7A")); let stim = qzArrowStyled(d, col, sty);
   if(tt === 2){ /* Zor: ortadaki büyük okun çevresinde başka yönlere bakan küçük gri oklar */ const others = dirs8.filter(x => x !== d); const sm = [0, 1, 2, 3].map(() => qzArrow(randomItem(others), "#B8C2CC")); const cell = (h) => `<div style="width:100%;height:100%">${h}</div>`; stim = `<div style="display:grid;grid-template-columns:1fr 2fr 1fr;grid-template-rows:1fr 2fr 1fr;width:100%;height:100%;align-items:center;justify-items:center"><div style="width:70%;height:70%">${cell(sm[0])}</div><div></div><div style="width:70%;height:70%">${cell(sm[1])}</div><div></div><div style="width:100%;height:100%">${stim}</div><div></div><div style="width:70%;height:70%">${cell(sm[2])}</div><div></div><div style="width:70%;height:70%">${cell(sm[3])}</div></div>`; }
   return { stim, opts, ans: dirs.indexOf(d), prompt: tt === 2 ? "<b>Ortadaki büyük ok</b> hangi yöne bakıyor?" : "Ok <b>hangi yöne</b> bakıyor?", fixed:true }; }); },
 "edge-touch": () => { const t = currentCombo().t, sides = isPre() ? [[3, 4], [3, 4, 5], [3, 4, 5]][t] : [[3, 4, 5], [3, 4, 5, 6], [3, 4, 5, 6, 8]][t];
@@ -7828,7 +7828,7 @@ const SV_BANKS = [SV_BANK, SV_BANK_MID, SV_BANK_HARD];
 function svTrials(){ const t = currentCombo().t, N = [10, 14, 18][t], bank = SV_BANKS[Math.min(t, 2)]; const y = shuffleArray(bank.filter(x => x[1])), n = shuffleArray(bank.filter(x => !x[1])), out = [];
 for(let i = 0; i < N; i++){ const s = i % 2 ? y[Math.floor(i / 2) % y.length] : n[Math.floor(i / 2) % n.length]; out.push({ stim:`<div style="font-size:${t === 2 ? 18 : 21}px;font-weight:800;text-align:center;line-height:1.35">${s[0]}</div>`, raw:true, opts:[`<b style="font-size:20px">✓ Doğru</b>`, `<b style="font-size:20px">✗ Yanlış</b>`], ans: s[1] ? 0 : 1, fixed:true, text:true, prompt: t === 2 ? "<b>İki cümleyi oku:</b> ikincisi ilkine uyuyor mu?" : "<b>Oku</b> ve hızlıca karar ver" }); }
 return shuffleArray(out); }
-function perTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 8 : 12, ms = (pre ? [1600, 1300, 1100] : [1500, 1200, 1000])[t];
+function perTrials(){ const t = currentCombo().t, pre = isPre(), N = (pre ? [6, 8, 10] : [10, 12, 14])[Math.min(t, 2)],   /* gösterim sayısı düzeye göre */ ms = (pre ? [1600, 1300, 1100] : [1500, 1200, 1000])[t];
 return Array.from({length:N}, () => { const side = randomItem(["l","r","t","b"]), u = 8 + Math.random() * 84, pos = side === "l" ? [4 + Math.random() * 10, u] : side === "r" ? [86 + Math.random() * 10, u] : side === "t" ? [u, 5 + Math.random() * 10] : [u, 85 + Math.random() * 10];
 return { pos, ms, lure: !pre && t === 2 && Math.random() < 0.3 }; }); }
 function fixTrials(){ const t = currentCombo().t, s = (isPre() ? [5, 8, 10] : [10, 15, 20])[t]; return Array.from({length:3}, () => ({ secs: s, rate: (isPre() ? [1200, 1000, 850] : [1000, 800, 600])[t] })); }
@@ -7839,7 +7839,7 @@ for(let i = 0; i < beeps; i++) bt.push(1200 + Math.random() * (secs * 1000 - 240
 return { secs, beeps, bt: bt.sort((a, b) => a - b), st, show: pre ? 1500 : 1200 }; }); }
 const stopDirs = () => ["l", "r", "u", "d"].slice(0, (isPre() ? [2, 3, 3] : [2, 3, 4])[Math.min(currentCombo().t, 2)]);   /* yön düğmesi sayısı düzeye göre */
 function stopArrowSVG(dir, col, px){ const rot = { r:0, l:180, u:-90, d:90 }[dir] || 0; return `<svg viewBox="0 0 100 100" width="${px}" height="${px}" style="display:block"><g transform="rotate(${rot} 50 50)"><path d="M14 40 H56 V22 L88 50 L56 78 V60 H14 Z" fill="${col}" stroke="${col}" stroke-width="6" stroke-linejoin="round"/></g></svg>`; }
-function stopTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 12 : 20, ssd = (pre ? [380, 320, 260] : [320, 240, 170])[t], D = stopDirs(); const out = []; for(let i = 0; i < N; i++){ let dir, g = 0; do{ dir = randomItem(D); g++; } while(g < 20 && i >= 2 && out[i - 1].dir === dir && out[i - 2].dir === dir); out.push({ dir, stop: i > 1 && Math.random() < 0.25, ssd }); } return out; }
+function stopTrials(){ const t = currentCombo().t, pre = isPre(), N = (pre ? [10, 12, 14] : [16, 20, 24])[Math.min(t, 2)], ssd = (pre ? [380, 320, 260] : [320, 240, 170])[t], D = stopDirs();   /* ok sayısı düzeye göre */ const out = []; for(let i = 0; i < N; i++){ let dir, g = 0; do{ dir = randomItem(D); g++; } while(g < 20 && i >= 2 && out[i - 1].dir === dir && out[i - 2].dir === dir); out.push({ dir, stop: i > 1 && Math.random() < 0.25, ssd }); } return out; }
 function vigBuild(){ const t = currentCombo().t, pre = isPre(), N = pre ? [24, 30, 36][t] : [36, 48, 60][t], ms = pre ? 1300 : [1100, 950, 850][t];
 const seq = Array.from({length:N}, (_, i) => { const tg = i > 2 && Math.random() < 0.15; if(tg) return { sh:"star", col:"#E5484D", tg:true };
 if(!pre && Math.random() < 0.35) return Math.random() < 0.5 ? { sh:"circle", col:"#E5484D" } : { sh:"star", col:"#2E6FD8" };
@@ -9022,8 +9022,8 @@ body = (isLs ? "" : dots) + `<div class="wm-btns" style="margin:${isLs ? 6 : 14}
 else { info = "Yıldızlara dokun, aynı anda <b>bip seslerini say</b>"; body = `<div id="dualArea" style="position:relative;width:100%;height:${ah}px;background:var(--panel);border:2px solid var(--line);border-radius:18px;overflow:hidden"></div>`; }
 } else if(st.kind === "stop"){
 const tr = st.trials[ti];
-info = `Okun yönündeki düğmeye bas; <b>ok kırmızı olursa dur</b> · ${ti + 1}/${st.trials.length}`;
-const arrow = st.phase === "go" || st.phase === "fb" ? `${stopArrowSVG(tr.dir, st.red ? "#E5484D" : "#2E6FD8", isLs ? 84 : 104)}${st.red ? `<div style="font-weight:900;color:#E5484D;font-size:22px">DUR!</div>` : ""}` : `<div style="font-size:40px;color:var(--ink-soft)">+</div>`;   /* ok SVG: rengi "DUR!" ile aynı anda değişir (emoji okları boyanamıyordu) */
+info = `Okun yönündeki düğmeye bas; <b>kırmızı okta basma</b> · ${ti + 1}/${st.trials.length}`;
+const arrow = st.phase === "go" || st.phase === "fb" ? `${stopArrowSVG(tr.dir, st.red ? "#E5484D" : "#2E6FD8", isLs ? 84 : 104)}` : `<div style="font-size:40px;color:var(--ink-soft)">+</div>`;   /* durma işareti yalnızca kırmızı ok (yazı yok); ok SVG */
 body = dots + `<div style="height:${isLs ? 110 : 150}px;display:flex;flex-direction:column;align-items:center;justify-content:center">${arrow}</div>${stopButtonsHTML()}`;
 } else if(st.kind === "vig"){
 info = `Yalnızca <b>kırmızı yıldız</b> görünce bas · <span id="vigCnt">${Math.max(0, st.i + 1)}/${st.seq.length}</span>`;
@@ -9805,7 +9805,7 @@ const INSTR_SHORT = {
 "periph":           [() => Q("Gözünü ortadaki kırmızı noktadan ayırma. Kenarda yıldız görünce ona dokun.") + (!isPre() && currentCombo().t === 2 ? " " + Q("Mavi daireye dokunma.") : "")],
 "fixation":         [() => `Çocuğa söyleyin: ${Q("Kırmızı noktaya bak, etrafta ne çıkarsa çıksın gözünü ayırma.")} Süre bitince gözlerini ayırıp ayırmadığını işaretleyin.`],
 "dual-task":        [() => Q("Çıkan yıldızlara dokun. Aynı anda bip seslerini say; sonunda kaç tane olduğunu söyleyeceksin.")],
-"stop-signal":      [() => Q("Ok hangi yönü gösteriyorsa o yöndeki düğmeye hızlıca bas. Ok kırmızıya dönerse basma, dur.")],
+"stop-signal":      [() => Q("Ok hangi yönü gösteriyorsa o yöndeki düğmeye hızlıca bas. Ok kırmızı olursa hiçbir düğmeye basma.")],
 "vigilance":        [() => Q("Şekiller tek tek gelecek. Yalnızca kırmızı yıldız gelince Gördüm'e bas.")],
 "pos-nback":        [() => Q(mtState && mtState.n === 2 ? "Mavi kare iki önceki kareyle aynı yerdeyse Aynı yer'e bas." : "Mavi kare bir öncekiyle aynı yerdeyse Aynı yer'e bas.")],
 "count-span":       [() => Q("Her karttaki noktaları say, Saydım'a bas. Sonunda sayıları sırayla seç.")],
@@ -12065,7 +12065,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.20-g";
+const APP_VERSION = "2026.10.20-h";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
