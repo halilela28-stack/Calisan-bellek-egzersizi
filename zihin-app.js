@@ -1761,7 +1761,8 @@ return card;
 function makeSortDeck(){
 const spec = sortSpec();
 const t = currentCombo().t;
-const per = (isPre() ? PRE_SORT_PER_PHASE : SORT_PER_PHASE)[t] || 6;
+const totalN = selCount(), per = Math.round(totalN / spec.dims.length);   /* toplam kart sayısı ortak kuraldan */
+const perOf = (ph) => Math.floor(totalN / spec.dims.length) + (ph < totalN % spec.dims.length ? 1 : 0);
 let rules, g = 0;
 do{ rules = shuffleArray(spec.dims.map(d => d.key)); g++; } while(g < 20 && rules.join("|") === sortLastRules);
 sortLastRules = rules.join("|");
@@ -1773,7 +1774,7 @@ const d0 = spec.dims[0].key, d1 = spec.dims[1].key;
 const crossTests = refs.length === 2 && spec.dims.length === 2 ? [{[d0]: refs[1][d0], [d1]: refs[0][d1]}, {[d0]: refs[0][d0], [d1]: refs[1][d1]}] : null;
 const cards = [];
 for(let ph = 0; ph < rules.length; ph++){
-for(let k = 0; k < per; k++){
+for(let k = 0; k < perOf(ph); k++){
 let c, gg = 0;
 do{
 c = crossTests ? Object.assign({}, randomItem(crossTests)) : makeConflictCard(spec, refs);
@@ -6182,8 +6183,10 @@ const catTargetWord = (id) => { const sp = (CAT_TOUCH[id].dyn && catDyn[id]) ? c
 let chState = null, chTimers = [];
 function chClear(){ chTimers.forEach(t => clearTimeout(t)); chTimers = []; }
 function chLater(fn, ms){ const st = chState; chTimers.push(setTimeout(() => { if(chState === st && timerRunning) fn(); }, ms * (window.__wmSpeed || 1))); }
-const CH_TRIALS = { post:[16, 20, 26], pre:[8, 10, 14] };
-function chTrialCount(spec){ const tb = spec.trials || CH_TRIALS; return (isPre() ? tb.pre : tb.post)[currentCombo().t]; }
+const SEL_N = { post:[16, 20, 24], pre:[10, 12, 14] };   /* KURAL: seçim yapılan kart/deneme sayısı (Okul Öncesi = 3/5 oranı) */
+const selCount = () => (isPre() ? SEL_N.pre : SEL_N.post)[Math.min(currentCombo().t, 2)];
+const CH_TRIALS = SEL_N;
+function chTrialCount(spec){ const tb = spec.trials || CH_TRIALS; return (isPre() ? tb.pre : tb.post)[Math.min(currentCombo().t, 2)]; }
 const CHOICE = {};
 /* Aynı doğru cevap art arda en çok maxRun kez: sorular değişmez, yalnızca tur içindeki sırası düzenlenir */
 function limitRuns(arr, keyFn, maxRun){ if(!Array.isArray(arr) || arr.length < 3) return arr; const left = arr.map((x, i) => ({ x, i, k: String(keyFn(x)) })), out = [];
@@ -6266,7 +6269,7 @@ stim: (t, sz) => `<svg viewBox="0 0 100 100" style="width:70%;height:70%">${sort
 buttons: (c) => c.order.map(k => ({ id: k, html: imgFill(HOUSE_IMAGES[k]) })),
 correct: (t) => t.img,
 key: (c) => `<div class="ch-key">${c.pairs.map(p => `<div class="ch-kp"><svg viewBox="0 0 100 100">${sortShapeSVG(p.shape, "#1F2A33")}</svg>${imgFill(HOUSE_IMAGES[p.img])}</div>`).join("")}</div>`,
-cols: 5, trials: { post:[16, 20, 26], pre:[8, 10, 14] }
+cols: 5   /* deneme sayısı ortak kuraldan (SEL_N) */
 };
 const STROOP_T = [{ c:"#D32F2F", n:"KIRMIZI" }, { c:"#1E63D6", n:"MAVİ" }, { c:"#2E7D32", n:"YEŞİL" }, { c:"#F2B705", n:"SARI" }, { c:"#7B3FB0", n:"MOR" }];
 CHOICE["stroop-touch"] = {
@@ -7839,7 +7842,7 @@ for(let i = 0; i < beeps; i++) bt.push(1200 + Math.random() * (secs * 1000 - 240
 return { secs, beeps, bt: bt.sort((a, b) => a - b), st, show: pre ? 1500 : 1200 }; }); }
 const stopDirs = () => ["l", "r", "u", "d"].slice(0, (isPre() ? [2, 3, 3] : [2, 3, 4])[Math.min(currentCombo().t, 2)]);   /* yön düğmesi sayısı düzeye göre */
 function stopArrowSVG(dir, col, px){ const rot = { r:0, l:180, u:-90, d:90 }[dir] || 0; return `<svg viewBox="0 0 100 100" width="${px}" height="${px}" style="display:block"><g transform="rotate(${rot} 50 50)"><path d="M14 40 H56 V22 L88 50 L56 78 V60 H14 Z" fill="${col}" stroke="${col}" stroke-width="6" stroke-linejoin="round"/></g></svg>`; }
-function stopTrials(){ const t = currentCombo().t, pre = isPre(), N = (pre ? [10, 12, 14] : [16, 20, 24])[Math.min(t, 2)], ssd = 0, win = (pre ? [2000, 1800, 1600] : [1800, 1600, 1400])[Math.min(t, 2)], D = stopDirs();   /* zorluk: yanıt süresi kısalır */   /* ok sayısı düzeye göre */ const out = []; for(let i = 0; i < N; i++){ let dir, g = 0; do{ dir = randomItem(D); g++; } while(g < 20 && i >= 2 && out[i - 1].dir === dir && out[i - 2].dir === dir); out.push({ dir, stop: i > 1 && Math.random() < 0.25, ssd, win }); } return out; }
+function stopTrials(){ const t = currentCombo().t, pre = isPre(), N = selCount(), ssd = 0, win = (pre ? [2000, 1800, 1600] : [1800, 1600, 1400])[Math.min(t, 2)], D = stopDirs();   /* zorluk: yanıt süresi kısalır */   /* ok sayısı düzeye göre */ const out = []; for(let i = 0; i < N; i++){ let dir, g = 0; do{ dir = randomItem(D); g++; } while(g < 20 && i >= 2 && out[i - 1].dir === dir && out[i - 2].dir === dir); out.push({ dir, stop: i > 1 && Math.random() < 0.25, ssd, win }); } return out; }
 function vigBuild(){ const t = currentCombo().t, pre = isPre(), N = pre ? [24, 30, 36][t] : [36, 48, 60][t], ms = pre ? 1300 : [1100, 950, 850][t];
 const seq = Array.from({length:N}, (_, i) => { const tg = i > 2 && Math.random() < 0.15; if(tg) return { sh:"star", col:"#E5484D", tg:true };
 if(!pre && Math.random() < 0.35) return Math.random() < 0.5 ? { sh:"circle", col:"#E5484D" } : { sh:"star", col:"#2E6FD8" };
@@ -12064,7 +12067,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.20-j";
+const APP_VERSION = "2026.10.20-k";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
