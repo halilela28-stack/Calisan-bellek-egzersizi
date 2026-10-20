@@ -8386,7 +8386,7 @@ const bw = box.clientWidth - st.size, bh = box.clientHeight - st.size, k = (now 
 ball.style.left = (bw * (0.5 + 0.5 * Math.sin(k * 1.3 + ph))) + "px"; ball.style.top = (bh * (0.5 + 0.5 * Math.sin(k * 0.9 + ph * 1.7))) + "px"; requestAnimationFrame(step); };
 requestAnimationFrame(step); },
 time(){ const st = mtState; st.phase = "ready"; renderMtBoard(); document.documentElement.classList.add("hide-clock"); },
-ferr(){ const st = mtState; st.sel = {}; st.phase = "input"; renderMtBoard(); },
+ferr(){ const st = mtState; st.sel = {}; st.phase = "input"; renderMtBoard(); const tr = st.trials[st.ti]; if(tr && tr.rule) mtLater(() => sayTask("Kural: " + tr.rule), 250); },   /* kural seslendirilir */
 cups(){ const st = mtState, tr = st.trials[st.ti]; st.slot = Array.from({length: tr.n}, (_, i) => i); st.phase = "show"; st.lift = true; renderMtBoard();
 mtLater(() => { st.lift = false; cupsApply(); }, 1300);
 tr.seq.forEach(([a, b], k) => mtLater(() => { const ca = st.slot.indexOf(a), cb = st.slot.indexOf(b); st.slot[ca] = b; st.slot[cb] = a; cupsApply(); }, 1800 + k * tr.ms));
@@ -8730,7 +8730,7 @@ st.phase = "fb"; st.reveal = true; renderMtBoard(); mtLater(() => { st.reveal = 
 "time-stop"(){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "timing") return; if(performance.now() - st.t0 < 800) return;   /* Başla ile aynı yerde: yanlışlıkla çift dokunuş Dur sayılmaz */ const sec = (performance.now() - st.t0) / 1000 / (window.__wmSpeed || 1), ok = Math.abs(sec - tr.secs) <= tr.secs * tr.tol;
 st.last = { sec, ok }; st.res.push(+sec.toFixed(1)); if(ok) gameSfx("correct"); else mtErr(); st.phase = "fb"; renderMtBoard();
 mtLater(() => { st.ti++; if(st.ti >= st.trials.length){ document.documentElement.classList.remove("hide-clock"); mtFinish(` Tahminler: ${st.res.join(" · ")} sn`); return; } st.phase = "ready"; renderMtBoard(); }, 2500); },
-"ferr-done"(){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "input") return; let e = 0; tr.items.forEach((it, i) => { if(!!it.bad !== !!st.sel[i]) e++; }); for(let k = 0; k < e; k++) mtErr(); if(!e) gameSfx("correct");
+"ferr-say"(){ const st = mtState, tr = st && st.trials[st.ti]; if(tr && tr.rule) sayTask("Kural: " + tr.rule); }, "ferr-done"(){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "input") return; let e = 0; tr.items.forEach((it, i) => { if(!!it.bad !== !!st.sel[i]) e++; }); for(let k = 0; k < e; k++) mtErr(); if(!e) gameSfx("correct");
 st.phase = "fb"; renderMtBoard(); mtLater(() => { st.sel = {}; NEW_MT.next(); }, e ? 1800 : 700); },
 "rhy-done"(){ const st = mtState; if(st.phase !== "input") return; rhyEval(); },
 "per-x"(){},
@@ -8857,8 +8857,8 @@ body = isLs ? dots + `<div style="display:flex;gap:20px;align-items:center;justi
 const tr = st.trials[ti], n = tr.items.length;
 info = st.phase === "fb" ? "Kırmızı: kaçan ya da yanlış işaretlenen" : "<b>Hataları</b> bul ve dokun, sonra Bitti";
 const d = wmGridDims(n, W, isLs ? H - 140 : H - 140, 48);
-const cell = (it, i) => { const sel = !!st.sel[i]; let mk = sel ? " sel" : ""; if(st.phase === "fb") mk = (!!it.bad === sel) ? (it.bad ? " ok" : "") : " bad"; return `<div class="wm-pic${mk}" data-mt="${i}" style="width:${d.cell}px;height:${d.cell}px;padding:6px">${it.html}${sel && st.phase !== "fb" ? `<span class="fs-x">✗</span>` : ""}</div>`; };
-body = dots + `<div class="aud-note" style="text-align:center;font-weight:800;margin-bottom:6px">Kural: ${tr.rule}</div><div class="wm-grid" style="grid-template-columns:repeat(${tr.row ? Math.min(n, d.cols * 2 > n ? n : d.cols) : d.cols}, ${tr.row ? Math.min(d.cell, (W - 10 * n) / n) : d.cell}px);">${tr.items.map(cell).join("")}</div>` +
+const cell = (it, i) => { const sel = !!st.sel[i]; let mk = sel ? " sel" : ""; if(st.phase === "fb") mk = (!!it.bad === sel) ? (it.bad ? " ok" : "") : " bad"; return `<div class="wm-pic${mk}" data-mt="${i}" style="width:${d.cell}px;height:${d.cell}px;padding:6px">${it.html}${sel && st.phase !== "fb" ? `<span class="sel-mark">✓</span>` : ""}</div>`; };   /* seçildi işareti nötr (turkuaz); kırmızı yalnızca yanlış geri bildirimi */
+body = dots + `<div class="aud-note" style="text-align:center;font-weight:800;margin-bottom:6px;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap"><span>Kural: ${tr.rule}</span><button type="button" data-mtbtn="ferr-say" aria-label="Kuralı tekrar dinle" style="flex:none;width:40px;height:40px;border-radius:50%;border:2px solid #0A847E;background:#fff;color:#0A847E;display:inline-flex;align-items:center;justify-content:center;cursor:pointer"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></button></div><div class="wm-grid" style="grid-template-columns:repeat(${tr.row ? Math.min(n, d.cols * 2 > n ? n : d.cols) : d.cols}, ${tr.row ? Math.min(d.cell, (W - 10 * n) / n) : d.cell}px);">${tr.items.map(cell).join("")}</div>` +
 (st.phase === "input" ? `<div class="wm-btns" style="margin:8px auto 0"><button type="button" class="wm-btn same" data-mtbtn="ferr-done">Bitti</button></div>` : "");
 } else if(st.kind === "cups"){
 const tr = st.trials[ti], bw = Math.min(W, 460), cw = Math.min(bw / tr.n * 0.8, ((isLs ? H - 30 : H) - 80) / 1.1), ch = cw * 1.1, bh = ch + 62;
@@ -9799,7 +9799,7 @@ const INSTR_SHORT = {
 "finger-trace":     [() => Q("Parmağını topun üstüne koy. Top nereye giderse parmağınla onu izle, kaldırma.")],
 "eye-count":        [() => `Çocuğa söyleyin: ${Q(!isPre() && currentCombo().t === 2 ? "Parmağını kullanmadan, yalnızca yıldızları gözünle soldan sağa say." : "Parmağını kullanmadan, gözünle soldan sağa say.")} Sayıyı söyleyince değerlendirin.`],
 "listen-answer":    [() => Q("Hikâyeyi dinle. Sorulan anı gösteren resme dokun.")],
-"rhyme-done":       [() => Q("Tekerlemeyi dinle, sonunu sen söyle.")],
+"rhyme-done":       [() => `Okuyun: ${Q("Tekerlemeyi dinle, sonunu sen söyle.")}`],
 "new-word":         [() => Q("Yeni arkadaşlarla tanış, adlarını dinle. Sonra sorulan arkadaşı bul.")],
 "sent-pic":         [() => isPre() ? Q("Cümleyi dinle. Cümleye uyan resme dokun.") : Q("Cümleyi oku ve dinle. Cümleye tam uyan resme dokun.")],
 "pair-match":       [() => Q("Satıra bak. Birbirinin aynısı olan iki taneye dokun.")],
@@ -9815,7 +9815,7 @@ const INSTR_SHORT = {
 "which-seen":       [() => Q("Resme iyice bak. Sonra benzerlerin içinden tam olarak gördüğünü seç.")],
 "route-mem":        [() => Q("Turuncu yolu izle. Sonra yeşil kareden başlayıp aynı yolu kare kare tekrarla.")],
 "syl-blend":        [() => Q("Heceleri dinle, birleştir. Hangi resim olduğunu bul.")],
-"phon-manip":       [() => Q("Kelimeyi dinle. İstenen sesi çıkar, ekle ya da değiştir ve yeni hâlini söyle.")],
+"phon-manip":       [() => `Okuyun: ${Q("Kelimeyi dinle. İstenen sesi çıkar, ekle ya da değiştir ve yeni hâlini söyle.")}`],
 "sent-build":       [() => Q("Kelimelere dokunarak anlamlı bir cümle kur.")],
 "wh-scene":         [() => Q("Resme bak, soruyu oku ya da dinle. Doğru cevaba dokun.")],
 "spot-diff":        [() => Q("İki resmi karşılaştır. Sağdakinde farklı olan yerlere dokun.")],
@@ -12067,7 +12067,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.20-k";
+const APP_VERSION = "2026.10.20-l";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
