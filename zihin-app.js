@@ -7837,8 +7837,9 @@ return Array.from({length:2}, () => { const beeps = 3 + Math.floor(Math.random()
 while(tt < secs * 1000 - 1500){ st.push(tt); tt += (pre ? 2200 : 1700) + Math.random() * 600; }
 for(let i = 0; i < beeps; i++) bt.push(1200 + Math.random() * (secs * 1000 - 2400));
 return { secs, beeps, bt: bt.sort((a, b) => a - b), st, show: pre ? 1500 : 1200 }; }); }
-function stopTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 12 : 20, ssd = (pre ? [380, 320, 260] : [320, 240, 170])[t];
-return Array.from({length:N}, (_, i) => ({ dir: Math.random() < 0.5 ? "l" : "r", stop: i > 1 && Math.random() < 0.25, ssd })); }
+const stopDirs = () => ["l", "r", "u", "d"].slice(0, (isPre() ? [2, 3, 3] : [2, 3, 4])[Math.min(currentCombo().t, 2)]);   /* yön düğmesi sayısı düzeye göre */
+function stopArrowSVG(dir, col, px){ const rot = { r:0, l:180, u:-90, d:90 }[dir] || 0; return `<svg viewBox="0 0 100 100" width="${px}" height="${px}" style="display:block"><g transform="rotate(${rot} 50 50)"><path d="M14 40 H56 V22 L88 50 L56 78 V60 H14 Z" fill="${col}" stroke="${col}" stroke-width="6" stroke-linejoin="round"/></g></svg>`; }
+function stopTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 12 : 20, ssd = (pre ? [380, 320, 260] : [320, 240, 170])[t], D = stopDirs(); const out = []; for(let i = 0; i < N; i++){ let dir, g = 0; do{ dir = randomItem(D); g++; } while(g < 20 && i >= 2 && out[i - 1].dir === dir && out[i - 2].dir === dir); out.push({ dir, stop: i > 1 && Math.random() < 0.25, ssd }); } return out; }
 function vigBuild(){ const t = currentCombo().t, pre = isPre(), N = pre ? [24, 30, 36][t] : [36, 48, 60][t], ms = pre ? 1300 : [1100, 950, 850][t];
 const seq = Array.from({length:N}, (_, i) => { const tg = i > 2 && Math.random() < 0.15; if(tg) return { sh:"star", col:"#E5484D", tg:true };
 if(!pre && Math.random() < 0.35) return Math.random() < 0.5 ? { sh:"circle", col:"#E5484D" } : { sh:"star", col:"#2E6FD8" };
@@ -7916,7 +7917,7 @@ const stories = (pre ? PA_IMAGES.pre : PA_IMAGES.post).map(s => [s[0], s[s.lengt
 return shuffleArray(stories.map((s, i) => i)).slice(0, pre ? 4 : 5).map(i => { const oth = shuffleArray(stories.map((s, k) => k).filter(k => k !== i)).slice(0, (pre ? [1, 2, 3] : [2, 3, 4])[Math.min(t, 2)]);   // seçenek: öncesi 2/3/4 · sonrası 3/4/5
 const img = (src) => `<img src="${src}" alt="" style="width:100%;height:100%;object-fit:contain">`;
 return qzMake(`<div class="wm-card" style="width:150px;height:110px;margin:0 auto;padding:3px">${img(stories[i][0])}</div>`, [i].concat(oth).map(k => img(stories[k][1])), 0, { prompt:"Bu olayın <b>sonunda</b> ne olur?", raw:true, fixed:true, cell:110 }); }); }
-function sdkTrials(){ const t = currentCombo().t, pre = isPre(), n = pre ? [3, 3, 3, 4][t] : [3, 4, 4, 4][t], blanks = pre ? [2, 3, 4, 5][t] : [4, 6, 9, 12][t];
+function sdkTrials(){ const t = currentCombo().t, pre = isPre(), n = pre ? [3, 3, 4, 4][t] : [3, 4, 4, 4][t], blanks = pre ? [2, 3, 4, 5][t] : [4, 6, 9, 12][t];
 const fr = shuffleArray([FRUIT_VEG_IMAGES.apple, FRUIT_VEG_IMAGES.banana, FRUIT_VEG_IMAGES.strawberry, FRUIT_VEG_IMAGES.grapes].filter(Boolean)).slice(0, n);
 return Array.from({length:2}, () => { const p = shuffleArray([...Array(n).keys()]), rows = shuffleArray([...Array(n).keys()]), cols = shuffleArray([...Array(n).keys()]);
 const sol = Array.from({length: n * n}, (_, i) => p[(rows[Math.floor(i / n)] + cols[i % n]) % n]); const hide = new Set(shuffleArray([...Array(n * n).keys()]).slice(0, blanks));
@@ -8731,7 +8732,7 @@ mtLater(() => { st.ti++; if(st.ti >= st.trials.length){ document.documentElement
 st.phase = "fb"; renderMtBoard(); mtLater(() => { st.sel = {}; NEW_MT.next(); }, e ? 1800 : 700); },
 "rhy-done"(){ const st = mtState; if(st.phase !== "input") return; rhyEval(); },
 "per-x"(){},
-"stop-l"(){ stopResp("l"); }, "stop-r"(){ stopResp("r"); },
+"stop-l"(){ stopResp("l"); }, "stop-r"(){ stopResp("r"); }, "stop-u"(){ stopResp("u"); }, "stop-d"(){ stopResp("d"); },
 "vig-hit"(){ const st = mtState; if(st.phase !== "run" || st.i < 0 || st.resp) return; st.resp = true; if(st.seq[st.i].tg){ st.hits++; gameSfx("correct"); } else { st.fa++; mtErr(); } const b = document.getElementById("vigShape"); if(b){ b.classList.remove("hit"); void b.offsetWidth; b.classList.add("hit"); } },
 "pnb-same"(){ const st = mtState; if(st.phase !== "run" || st.i < 0 || st.resp[st.i]) return; st.resp[st.i] = true; if(st.i >= st.n && st.seq[st.i] === st.seq[st.i - st.n]) gameSfx("correct"); else mtErr(); },
 "csp-ok"(){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "count") return; st.ci++; if(st.ci >= tr.counts.length){ st.phase = "recall"; st.pos = 0; } gameSfx("pop"); renderMtBoard(); },
@@ -9022,8 +9023,8 @@ else { info = "Yıldızlara dokun, aynı anda <b>bip seslerini say</b>"; body = 
 } else if(st.kind === "stop"){
 const tr = st.trials[ti];
 info = `Okun yönündeki düğmeye bas; <b>ok kırmızı olursa dur</b> · ${ti + 1}/${st.trials.length}`;
-const arrow = st.phase === "go" || st.phase === "fb" ? `<div style="font-size:90px;line-height:1;color:${st.red ? "#E5484D" : "#2E6FD8"}">${tr.dir === "l" ? "⬅" : "➡"}</div>${st.red ? `<div style="font-weight:900;color:#E5484D;font-size:22px">DUR!</div>` : ""}` : `<div style="font-size:40px;color:var(--ink-soft)">+</div>`;
-body = dots + `<div style="height:${isLs ? 110 : 150}px;display:flex;flex-direction:column;align-items:center;justify-content:center">${arrow}</div><div class="wm-btns" style="margin:6px auto 0"><button type="button" class="wm-btn diff stp-b" data-mtbtn="stop-l">⬅</button><button type="button" class="wm-btn diff stp-b" data-mtbtn="stop-r">➡</button></div>`;
+const arrow = st.phase === "go" || st.phase === "fb" ? `${stopArrowSVG(tr.dir, st.red ? "#E5484D" : "#2E6FD8", isLs ? 84 : 104)}${st.red ? `<div style="font-weight:900;color:#E5484D;font-size:22px">DUR!</div>` : ""}` : `<div style="font-size:40px;color:var(--ink-soft)">+</div>`;   /* ok SVG: rengi "DUR!" ile aynı anda değişir (emoji okları boyanamıyordu) */
+body = dots + `<div style="height:${isLs ? 110 : 150}px;display:flex;flex-direction:column;align-items:center;justify-content:center">${arrow}</div>${stopButtonsHTML()}`;
 } else if(st.kind === "vig"){
 info = `Yalnızca <b>kırmızı yıldız</b> görünce bas · <span id="vigCnt">${Math.max(0, st.i + 1)}/${st.seq.length}</span>`;
 const sz = Math.min(isLs ? H - 120 : 170, 170);
@@ -9088,7 +9089,7 @@ else { info = "Resimleri <b>olayların sırasına</b> koy: önce olana dokun"; b
 const tr = st.trials[ti], n = tr.n, shown = blkRotModel(tr.model, n, tr.rot), mw = Math.min(isLs ? H - 120 : 130, W * 0.36), cw = Math.min(isLs ? H - 40 : 210, W * 0.55);
 const grid = (arr, w, tap) => `<div style="display:grid;grid-template-columns:repeat(${n}, 1fr);width:${w}px;height:${w}px;gap:2px;background:#9AA9B8;border:2px solid #9AA9B8;border-radius:8px;overflow:hidden">${arr.map((f, i) => `<div ${tap ? `data-mt="${i}"` : ""} style="cursor:${tap ? "pointer" : "default"};${tap && st.phase === "fb" && f !== tr.model[i] ? "outline:3px solid #E5484D;outline-offset:-3px" : ""}">${blkFace(f, tr.A, tr.B)}</div>`).join("")}</div>`;
 info = st.phase === "fb" ? (st.res ? `<b>${st.res}</b> blok farklı (kırmızı çerçeveli)` : "<b>Aynısı!</b>") : tr.rot ? "Model <b>döndürülmüş</b>: ok yukarı bakacak şekilde, düz hâlini yap" : "Modelin <b>aynısını</b> yap: bloğa dokundukça yüzü değişir";
-const arrow = tr.rot ? `<div style="font-size:26px;font-weight:900;color:#B07D00;transform:rotate(${tr.rot * 90}deg)">↑</div>` : "";
+const arrow = tr.rot ? `<div style="display:inline-block;transform:rotate(${tr.rot * 90}deg)">${stopArrowSVG("u", "#B07D00", 30)}</div>` : "";   /* SVG ok: her cihazda aynı renk */
 const done = st.phase === "input" ? `<div class="wm-btns" style="margin:8px auto 0"><button type="button" class="wm-btn same" data-mtbtn="blk-done">Bitti</button></div>` : "";
 body = (isLs ? "" : dots) + `<div style="display:flex;${isLs ? "" : "flex-direction:column;"}gap:12px;align-items:center;justify-content:center"><div><div style="display:flex;gap:6px;align-items:center"><div style="text-align:center"><div style="font-size:12px;font-weight:800;color:var(--ink-soft)">Model</div>${grid(shown, mw, false)}</div>${arrow}</div>${isLs ? done : ""}</div><div>${grid(st.cells.length ? st.cells : Array(n * n).fill(0), cw, true)}</div></div>` + (isLs ? "" : done);
 } else if(st.kind === "clut"){
@@ -12064,7 +12065,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.20-f";
+const APP_VERSION = "2026.10.20-g";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -15314,5 +15315,10 @@ function hwHistoryTable(plan, player, now, catName, dShort){ const rows = hwHist
 /* Seçenek/resim ızgaralarında (wm-grid) eksik son satırı ortala: tahta her yeniden çizildiğinde */
 function centerWmGrids(root){ (root || document).querySelectorAll(".wm-grid, .qz-txt-grid").forEach(g => { const items = [...g.children]; if(g.dataset.centered || items.length < 2) return; const m = /repeat\(\s*(\d+)/.exec(g.style.gridTemplateColumns || ""); const cs = getComputedStyle(g); if(cs.display !== "grid" && !m) return; const cols = m ? +m[1] : (cs.gridTemplateColumns || "").split(" ").filter(Boolean).length; if(!cols || items.length <= cols || items.length % cols === 0) return; const cell = items[0].getBoundingClientRect().width || parseFloat(items[0].style.width) || 0; const gap = parseFloat(cs.columnGap) || parseFloat(cs.gap) || 8; if(!cell) return; g.dataset.centered = "1"; items.forEach(it => { it.style.flex = `0 0 ${cell}px`; it.style.width = cell + "px"; }); g.style.display = "flex"; g.style.flexWrap = "wrap"; g.style.justifyContent = "center"; g.style.gap = (parseFloat(cs.rowGap) || gap) + "px " + gap + "px"; g.style.maxWidth = (cols * cell + (cols - 1) * gap + 1) + "px"; g.style.marginLeft = "auto"; g.style.marginRight = "auto"; }); }   /* seçenek/resim ızgaralarında eksik son satır ortada */
 try{ const bd0 = document.getElementById("board"); if(bd0) new MutationObserver(() => { try{ centerWmGrids(bd0); }catch(e){} }).observe(bd0, { childList:true }); }catch(e){}
+
+/* Dur İşareti düğmeleri: 2 → yan yana; 3–4 → ok tuşları düzeni (yukarı üstte, sol–aşağı–sağ altta) */
+function stopButtonsHTML(){ const D = stopDirs(), b = (d) => `<button type="button" class="wm-btn diff stp-b" data-mtbtn="stop-${d}" aria-label="${{ l:"sol", r:"sağ", u:"yukarı", d:"aşağı" }[d]}" style="display:flex;align-items:center;justify-content:center">${stopArrowSVG(d, "#fff", 40)}</button>`;
+  if(D.length === 2) return `<div class="wm-btns" style="margin:6px auto 0">${b("l")}${b("r")}</div>`;
+  return `<div class="wm-btns" style="margin:6px auto 0;grid-template-columns:1fr 1fr 1fr;grid-template-areas:'. u .' 'l d r'">${D.map(d => b(d).replace('style="', `style="grid-area:${d};`)).join("")}</div>`; }
 
 window.__zaReady = true;
