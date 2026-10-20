@@ -1330,7 +1330,7 @@ handlePlanTap(ev);
 const board = document.getElementById("board");
 let start = null;
 const pick = (ex, t) => (ex.isPlan && t.closest(".pln-peg[data-peg], .pln-cube[data-cube]")) ? "plan"
-: (ex.isSort && t.closest(".srt-ref")) ? "sort" : (ex.isWm && t.closest("[data-ans],[data-pic],[data-box]")) ? "wm" : (ex.isChoice && t.closest("[data-ch]")) ? "ch" : (ex.isRt && t.closest("[data-rt]")) ? "rt" : (ex.isMt && t.closest("[data-mt],[data-judge]")) ? "mt" : null;
+: (ex.isSort && t.closest(".srt-ref")) ? "sort" : (ex.isWm && t.closest("[data-ans],[data-pic],[data-box]")) ? "wm" : (ex.isChoice && t.closest("[data-ch]")) ? "ch" : (ex.isRt && t.closest("[data-rt]")) ? "rt" : (ex.isMt && t.closest("[data-mt],[data-judge],[data-mtbtn]")) ? "mt" : null;   /* tahta içi düğmeler de (Başla/Dur, Gördüm, sol/sağ…) parmak kalkınca işlenir */
 board.addEventListener("pointerdown", (ev) => {
 if(ev.button > 0){ start = null; return; }
 const kind = pick(currentExercise(), ev.target);
@@ -8720,9 +8720,9 @@ st.phase = "fb"; st.reveal = true; renderMtBoard(); mtLater(() => { st.reveal = 
 const miss = tr.study.length - Object.keys(st.found).length; for(let k = 0; k < miss; k++) mtErr();
 st.phase = "fb"; st.reveal = true; renderMtBoard(); mtLater(() => { st.reveal = false; NEW_MT.next(); }, miss ? 1500 : 500); },
 "time-go"(){ const st = mtState; if(st.phase !== "ready") return; st.t0 = performance.now(); st.phase = "timing"; renderMtBoard(); },
-"time-stop"(){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "timing") return; const sec = (performance.now() - st.t0) / 1000 / (window.__wmSpeed || 1), ok = Math.abs(sec - tr.secs) <= tr.secs * tr.tol;
+"time-stop"(){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "timing") return; if(performance.now() - st.t0 < 800) return;   /* Başla ile aynı yerde: yanlışlıkla çift dokunuş Dur sayılmaz */ const sec = (performance.now() - st.t0) / 1000 / (window.__wmSpeed || 1), ok = Math.abs(sec - tr.secs) <= tr.secs * tr.tol;
 st.last = { sec, ok }; st.res.push(+sec.toFixed(1)); if(ok) gameSfx("correct"); else mtErr(); st.phase = "fb"; renderMtBoard();
-mtLater(() => { st.ti++; if(st.ti >= st.trials.length){ document.documentElement.classList.remove("hide-clock"); mtFinish(` Tahminler: ${st.res.join(" · ")} sn`); return; } st.phase = "ready"; renderMtBoard(); }, 1600); },
+mtLater(() => { st.ti++; if(st.ti >= st.trials.length){ document.documentElement.classList.remove("hide-clock"); mtFinish(` Tahminler: ${st.res.join(" · ")} sn`); return; } st.phase = "ready"; renderMtBoard(); }, 2500); },
 "ferr-done"(){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "input") return; let e = 0; tr.items.forEach((it, i) => { if(!!it.bad !== !!st.sel[i]) e++; }); for(let k = 0; k < e; k++) mtErr(); if(!e) gameSfx("correct");
 st.phase = "fb"; renderMtBoard(); mtLater(() => { st.sel = {}; NEW_MT.next(); }, e ? 1800 : 700); },
 "rhy-done"(){ const st = mtState; if(st.phase !== "input") return; rhyEval(); },
@@ -8843,7 +8843,7 @@ body = `<div id="chaseBox" data-mt="0" style="position:relative;width:100%;heigh
 } else if(st.kind === "time"){
 const tr = st.trials[ti];
 info = st.phase === "fb" ? (st.last.ok ? "<b>Çok yakın!</b>" : "<b>Bir dahaki sefere</b> daha dikkatli say") : `<b>${tr.secs} saniye</b> olunca Dur'a bas`;
-const big = st.phase === "timing" ? `<button type="button" class="time-btn stop" data-mtbtn="time-stop">Dur</button>` : st.phase === "ready" ? `<button type="button" class="time-btn" data-mtbtn="time-go">Başla</button>` : `<div class="time-res">${st.last.sec.toFixed(1)} sn <span>hedef ${tr.secs} sn</span></div>`;
+const big = st.phase === "timing" ? `<button type="button" class="time-btn stop" data-mtbtn="time-stop">Dur</button>` : st.phase === "ready" ? `<button type="button" class="time-btn" data-mtbtn="time-go">Başla</button>` : `<div class="time-res" style="color:${st.last.ok ? "#1B7A3D" : "#B35C00"}">${st.last.sec.toFixed(1)} sn <span>hedef ${tr.secs} sn</span>${st.ti < st.trials.length - 1 ? `<span style="display:block;font-size:14px;margin-top:6px;opacity:.8">Sıradaki deneme birazdan…</span>` : ""}</div>`;
 const card = `<div class="flu-card" style="margin-bottom:12px"><div class="flu-big">${tr.secs} sn</div><div class="flu-sub">saati görmeden, içinden say</div></div>`;
 body = isLs ? dots + `<div style="display:flex;gap:20px;align-items:center;justify-content:center"><div>${card}</div><div class="time-ls">${big}</div></div>` : dots + card + big;
 } else if(st.kind === "ferr"){
@@ -12060,7 +12060,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.20-b";
+const APP_VERSION = "2026.10.20-c";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
