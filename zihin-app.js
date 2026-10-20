@@ -1543,7 +1543,7 @@ trailState.crossings = crossings(best);
 pos = best;
 }
 let lines = "";
-for(let i = 1; i < trailState.next; i++) lines += `<line x1="${pos[i-1].x}" y1="${pos[i-1].y}" x2="${pos[i].x}" y2="${pos[i].y}" stroke="#2E9E4F" stroke-width="3" stroke-linecap="round"/>`;
+for(let i = 1; i < trailState.next; i++) lines += `<line x1="${pos[i-1].x}" y1="${pos[i-1].y}" x2="${pos[i].x}" y2="${pos[i].y}" stroke="#1FA463" stroke-width="3" stroke-linecap="round"/>`;
 const nodes = currentGrid.map((it, i) => {
 const tag = i === 0 ? `<span class="tag">BAŞLA</span>` : (i === n - 1 ? `<span class="tag" style="background:#5B6B78">BİTİŞ</span>` : "");
 return `<div class="trl-node${i < trailState.next ? " done" : ""}" data-o="${i}" style="left:${pos[i].x}px;top:${pos[i].y}px;width:${pos[i].w}px;height:${node}px;font-size:${it.long ? Math.round(fs*0.66) : fs}px;">${trlFace(it)}${tag}</div>`;
@@ -1563,7 +1563,7 @@ const P = trailState.pos;
 if(svg && P && i > 0){
 const ln = document.createElementNS("http://www.w3.org/2000/svg", "line");
 ln.setAttribute("x1", P[i-1].x); ln.setAttribute("y1", P[i-1].y); ln.setAttribute("x2", P[i].x); ln.setAttribute("y2", P[i].y);
-ln.setAttribute("stroke", "#2E9E4F"); ln.setAttribute("stroke-width", "3"); ln.setAttribute("stroke-linecap", "round");
+ln.setAttribute("stroke", "#1FA463"); ln.setAttribute("stroke-width", "3"); ln.setAttribute("stroke-linecap", "round");
 svg.appendChild(ln);
 }
 const st = board.querySelectorAll(".trl-strip .st");
@@ -9055,7 +9055,7 @@ body = dots + `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols
 const tr = st.trials[ti], n = tr.n, w = Math.min(isLs ? H - 30 : 280 * tabletScale(), W - 20);
 info = st.phase === "show" ? "<b>Yolu izle…</b>" : st.reveal ? "Yol buydu" : `Yolu <b>aynı sırayla</b> tekrarla: yeşilden başla · ${Math.max(0, st.pos - 1)}/${tr.path.length - 1}`;
 const cell = (i) => { const k = tr.path.indexOf(i); let bg = "#fff"; if(st.phase === "show" && k >= 0 && k <= st.step) bg = k === st.step ? "#F5A524" : "#FFE2A8";
-if(st.phase !== "show"){ if(i === tr.path[0]) bg = "#1FA463"; else if(k > 0 && k < st.pos) bg = "#7FD3A8"; if(st.reveal && k > 0) bg = "#FFE2A8"; }
+if(st.phase !== "show"){ if(i === tr.path[0]) bg = "#1FA463"; else if(k > 0 && k < st.pos) bg = "#1FA463"; if(st.reveal && k > 0) bg = "#FFE2A8"; }
 return `<div ${st.phase === "input" ? `data-mt="${i}"` : ""} style="background:${bg};border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:900;color:#2B3A4A">${st.reveal && k >= 0 ? k + 1 : ""}</div>`; };
 body = dots + `<div style="display:grid;grid-template-columns:repeat(${n},1fr);gap:4px;width:${w}px;height:${w}px;margin:0 auto;background:#C9D3DE;padding:4px;border-radius:12px">${Array.from({length: n * n}, (_, i) => cell(i)).join("")}</div>`;
 } else if(st.kind === "sbuild"){
@@ -12064,7 +12064,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.20-e";
+const APP_VERSION = "2026.10.20-f";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
