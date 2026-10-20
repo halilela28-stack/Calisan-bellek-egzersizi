@@ -681,7 +681,7 @@ const FLK_CATS = [["apple","banana","orange","grapes","strawberry"],["dog","cat"
 const FLK_DIGITS = ["1","2","3","4","5","6","7","8","9"];
 const FLK_SIMILAR = {"1":["7","4"], "2":["5","7"], "3":["8","5"], "4":["1","9"], "5":["6","3","2"],
 "6":["9","5","8"], "7":["1","2"], "8":["3","6","9"], "9":["6","8","4"]};
-const FLK_GROUPS_BY_TIER = [8, 10, 12];
+const FLK_GROUPS_BY_TIER = [10, 14, 18];   /* çalışmaya özel kural: telefonda 5 / 7 / 9 satır (satır başına 2 çerçeve) */
 const PRE_FLK_GROUPS_BY_TIER = [4, 6, 8];
 function flkCatOf(k){ return FLK_CATS.findIndex(c => c.includes(k)); }
 function flkPickFlanker(target, t){
@@ -12065,7 +12065,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.20-h";
+const APP_VERSION = "2026.10.20-i";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
