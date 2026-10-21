@@ -7082,7 +7082,7 @@ function fluPrompt(fid){
 const tg = fluPick(fid);
 if(fid === "flu-cat"){ const c = FLU_CATS[isPre() ? "pre" : "post"].find(x => x.k === tg); return { big: c.n, say: c.say }; }
 if(fid === "alt-uses"){ const o = ALT_OBJ().find(x => x.n === tg); const cx = altCtx(), cs = cx ? cx + " " : "";   /* bağlam kısıtı: Orta evde, Zor kampta/okulda/parkta */
-return { big: o.n.toLocaleUpperCase("tr-TR"), img: o.src, say: isPre() ? `Bir ${o.n} ${cs}başka ne işe yarar? Aklına gelen her şeyi söyle.` : `${cap(o.n)} ${cs}başka nelere yarayabilir? Olağan dışı kullanımlar da düşün.`, sub: `${cs}başka ne işe yarar?` }; }
+return { big: o.n.toLocaleUpperCase("tr-TR"), img: o.src, say: `${cap(o.n)} ${cs}başka ne işe yarar?`,   /* kısa soru; yan kullanımlar da sayılır */ sub: `${cs}başka ne işe yarar?` }; }
 if(fid === "flu-letter") return isPre() ? { big: tg, say:`${tg} sesiyle başlayan kelimeler bulalım.`, sub:"sesiyle başlayan kelimeler" } : { big: tg, say:`${tg} harfiyle başlayan olabildiğince çok kelime söyle.`, sub:"harfiyle başlayan kelimeler" };
 const sw = isPre() ? FLU_SWITCH_PRE[currentCombo().t] : FLU_SWITCH[currentCombo().t]; return { big: sw.map(x => x[0]).join(" – "), say:`Sırayla bir ${sw.map(x => x[1]).join(", bir ")} söyle.`, sw };
 }
@@ -8402,7 +8402,7 @@ samenum(){ const st = mtState; st.phase = "input"; renderMtBoard(); },
 quiz(){ qzStart(); },
 flu(){ const st = mtState; st.phase = "run"; st.t0 = Date.now(); renderMtBoard(); sayTask(st.P.say, 0.9);
 const tick = () => { if(st.phase !== "run") return; const el = (Date.now() - st.t0) / (window.__wmSpeed || 1) / 1000; st.left = Math.max(0, Math.ceil(st.secs - el));
-if(el >= st.secs){ st.phase = "done"; sfx("solved"); mtFinish(` Doğru: ${st.ok} · tekrar: ${st.rep} · kural dışı: ${st.rule + st.ord}`); return; }
+if(el >= st.secs){ st.phase = "done"; sfx("solved"); mtFinish(fluUnit() === "fikir" ? ` Uygun fikir: ${st.ok} (hedef ${altGoal()}) · tekrar: ${st.rep} · sayılmaz: ${st.rule + st.ord}` : ` Doğru: ${st.ok} · tekrar: ${st.rep} · kural dışı: ${st.rule + st.ord}`); return; }
 const hd = document.getElementById("fluLeft"); if(hd) hd.textContent = `${Math.floor(st.left / 60)}:${String(st.left % 60).padStart(2, "0")}`; mtLater(tick, 250); };
 mtLater(tick, 250); },
 dots(){ const st = mtState, tr = st.trials[st.ti]; st.phase = "show"; renderMtBoard(); mtLater(() => { st.phase = "ask"; st.pick = null; renderMtBoard(); }, tr.ms); },
@@ -8780,7 +8780,9 @@ const ok = tr.order.every(o => cnt[tr.shelf.indexOf(o.x)] === o.n) && Object.key
 "ss-names"(){ const st = mtState, tr = st.trials && st.trials[st.ti]; if(tr) sayTask(tr.opts.map(x => x.n).join(", "), 0.85); },
 "ss-done"(){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "input") return; const miss = tr.opts.filter((x, i) => trFirst(x.n) === tr.s && !st.found[i]).length; for(let k = 0; k < miss; k++) mtErr();
 st.phase = "fb"; st.reveal = true; renderMtBoard(); mtLater(() => { st.reveal = false; NEW_MT.next(); }, miss ? 1500 : 500); },
-"flu-ok"(){ const st = mtState; if(st.phase !== "run") return; st.ok++; const el = (Date.now() - st.t0) / (window.__wmSpeed || 1) / 1000; st.q[Math.min(3, Math.floor(el / (st.secs / 4)))]++; if(st.P.sw) st.exp = (st.exp + 1) % st.P.sw.length; setErrorCount(st.ok); gameSfx("pop"); renderMtBoard(); },
+"flu-ok"(){ const st = mtState; if(st.phase !== "run") return; st.ok++; const el = (Date.now() - st.t0) / (window.__wmSpeed || 1) / 1000; st.q[Math.min(3, Math.floor(el / (st.secs / 4)))]++; if(st.P.sw) st.exp = (st.exp + 1) % st.P.sw.length; setErrorCount(st.ok); gameSfx("pop");
+if(fluUnit() === "fikir" && st.ok >= altGoal()){ st.phase = "done"; st.goalHit = true; sfx("solved"); mtFinish(` Uygun fikir: ${st.ok} (hedef ${altGoal()}) · tekrar: ${st.rep} · sayılmaz: ${st.rule + st.ord}`); return; }   /* hedefe ulaşınca çalışma biter */
+renderMtBoard(); },
 "flu-rep"(){ const st = mtState; if(st.phase !== "run") return; st.rep++; renderMtBoard(); },
 "flu-rule"(){ const st = mtState; if(st.phase !== "run") return; st.rule++; renderMtBoard(); },
 "flu-ord"(){ const st = mtState; if(st.phase !== "run") return; st.ord++; renderMtBoard(); },
@@ -8808,7 +8810,7 @@ if(st.kind === "samenum") return { info:"Bitti!", body:"" };
 if(st.kind === "mem") return { info:`Bitti · ${st.P} eş · eşleşmeyen deneme ${st.miss}`, body:"" };
 if(st.kind === "time") return { info:`Bitti · tahminler: ${st.res.join(" · ")} sn`, body:"" };
 if(st.kind === "chase") return { info:`Bitti · ${st.hits} kez dokundun`, body:"" };
-if(st.kind === "flu") return { info:`Süre doldu · ${fluUnit() === "fikir" ? "uygun" : "doğru"} <b>${st.ok}</b> ${fluUnit()}${fluUnit() === "fikir" ? (st.ok >= altGoal() ? ` · hedef ${altGoal()} <b style="color:var(--good)">✓</b>` : ` · hedef ${altGoal()} (ulaşılamadı)`) : ""}`, body:`<div class="flu-q">${st.q.map((n, k) => `<div><b>${n}</b><span>${Math.round(st.secs / 4 * k)}–${Math.round(st.secs / 4 * (k + 1))} sn</span></div>`).join("")}</div><div class="aud-key" style="text-align:center;margin-top:6px">Tekrar: <b>${st.rep}</b> · ${fluUnit() === "fikir" ? "Sayılmaz" : "Kural dışı"}: <b>${st.rule + st.ord}</b>${st.P.sw ? ` (sıra karışması: ${st.ord})` : ""}</div><div class="aud-key" style="text-align:center">İlk çeyrekte çok, sonlara doğru az kelime olağandır; çok erken tükeniyorsa strateji aşamasını deneyin.</div>` };
+if(st.kind === "flu") return { info:`${st.goalHit ? "<b style=\"color:var(--good)\">Hedefe ulaştın ✓</b>" : "Süre doldu"} · ${fluUnit() === "fikir" ? "uygun" : "doğru"} <b>${st.ok}</b> ${fluUnit()}${fluUnit() === "fikir" ? (st.ok >= altGoal() ? ` · hedef ${altGoal()} <b style="color:var(--good)">✓</b>` : ` · hedef ${altGoal()} (ulaşılamadı)`) : ""}`, body:`<div class="flu-q">${st.q.map((n, k) => `<div><b>${n}</b><span>${Math.round(st.secs / 4 * k)}–${Math.round(st.secs / 4 * (k + 1))} sn</span></div>`).join("")}</div><div class="aud-key" style="text-align:center;margin-top:6px">Tekrar: <b>${st.rep}</b> · ${fluUnit() === "fikir" ? "Sayılmaz" : "Kural dışı"}: <b>${st.rule + st.ord}</b>${st.P.sw ? ` (sıra karışması: ${st.ord})` : ""}</div><div class="aud-key" style="text-align:center">İlk çeyrekte çok, sonlara doğru az ${fluUnit()} olağandır; çok erken tükeniyorsa strateji aşamasını deneyin.</div>` };
 if(st.kind === "movesay") return { info:`Bitti · doğru <b>${st.ok}/${st.trials.length}</b>`, body:"" };
 if(st.kind === "absay") return { info:`Bitti · uygun <b>${st.okN}</b> · uygun değil <b>${st.wrong}</b>`, body:"" };
 if(st.kind === "whatdo") return { info:`Bitti · uygun <b>${st.okN}</b> · uygun değil <b>${st.wrong}</b>`, body:"" };
@@ -9878,7 +9880,7 @@ const INSTR_SHORT = {
 "dot-count":        [() => Q(Math.min(currentCombo().t, 2) === 0 ? "Noktalar bir an görünecek. Kaç tane olduğunu seç." : Math.min(currentCombo().t, 2) === 1 ? "Resimler bir an görünecek. Kaç tane olduğunu seç." : "Resimler bir an görünecek. Kaç tane olduğunu seç.")],
 "sem-decide":       [() => { const t = currentCombo().t; return Q(t === 0 ? "Soruyu dinle; her resim için hızlıca Evet ya da Hayır'a dokun." : t === 1 ? "Soru iki resimde bir değişecek: soruyu dinle, hızlıca Evet ya da Hayır'a dokun." : "Soru her resimde değişecek: soruyu dinle, hızlıca Evet ya da Hayır'a dokun."); }],
 "eye-touch":        [() => Q("Kayan topu gözünle izle, yakalayınca dokun.")],
-"alt-uses":         [() => `Okuyun ve ▶'a basın: ${Q(fluPrompt("alt-uses").say)} Asıl kullanımı sayılmaz; farklı her fikir +1. Hedef: ${altGoal()} fikir.`],
+"alt-uses":         [() => `Okuyun ve ▶'a basın: ${Q(fluPrompt("alt-uses").say)} Asıl kullanımı dışındaki her kullanım sayılır; olağan dışı olması gerekmez. Farklı her fikir +1. Hedef: ${altGoal()} fikir.`],
 "time-est":         [() => Q("Başla'ya bas, içinden say. Söylenen saniye olunca Dur'a bas.")],
 "find-error":       [() => Q("Kuralı dinle. Uymayanlara dokun, sonra Bitti.")],
 "cups":             [() => Q("Top hangi bardakta, iyi bak. Bardaklar karışınca topu bul.")],
@@ -12093,7 +12095,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.21-f";
+const APP_VERSION = "2026.10.21-g";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
