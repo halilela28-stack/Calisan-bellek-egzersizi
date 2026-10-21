@@ -1394,7 +1394,7 @@ if(kind === "numbers"){
 return Array.from({length:n}, (_, i) => ({t:"text", s:String(i + 1)}));
 }
 if(kind === "number-month"){
-const seq = []; for(let i = 0; i < half; i++){ seq.push({t:"text", s:String(i+1)}); if(i < half2) seq.push({t:"text", s:MONTHS_TR[i], long:true}); }
+const h = Math.min(12, Math.floor(n / 2)), seq = []; for(let i = 0; i < h; i++){ seq.push({t:"text", s:String(i+1)}); seq.push({t:"text", s:MONTHS_TR[i], long:true}); }   /* sayı–ay çiftleri tam: en çok 12 sayı + 12 ay, her zaman bir ayla biter */
 return seq;
 }
 return numberLetterSequence(n, stIx() === 1).map(x => ({t:"text", s:x}));
@@ -1533,8 +1533,10 @@ return false;
 };
 return tryStep(0) ? P : null;
 };
-let best = null;
-for(let k = 0; k < 8 && !best; k++) best = build();
+const tagSlot = (P, i) => trlTagSlot(P, i, node, W, H);
+let best = null, fallback = null;
+for(let k = 0; k < 24 && !best; k++){ const b = build(); if(!b) continue; if(!fallback) fallback = b; if(tagSlot(b, 0) !== null && tagSlot(b, b.length - 1) !== null) best = b; }   /* başlangıç/bitiş etiketine yer kalan yerleşim seçilir */
+if(!best) best = fallback;
 if(!best){
 best = placeWith(trailState.perm, currentGrid.map(it => [it.jx, it.jy]));
 }
@@ -1544,8 +1546,9 @@ pos = best;
 }
 let lines = "";
 for(let i = 1; i < trailState.next; i++) lines += `<line x1="${pos[i-1].x}" y1="${pos[i-1].y}" x2="${pos[i].x}" y2="${pos[i].y}" stroke="#1FA463" stroke-width="3" stroke-linecap="round"/>`;
+const tagStyle = (i) => trlTagSlot(pos, i, node, W, H) || "";   /* BAŞLA/BİTİŞ etiketi: boş yer (üst, alt, sağ, sol) */
 const nodes = currentGrid.map((it, i) => {
-const tag = i === 0 ? `<span class="tag">BAŞLA</span>` : (i === n - 1 ? `<span class="tag" style="background:#5B6B78">BİTİŞ</span>` : "");
+const tag = i === 0 ? `<span class="tag" style="${tagStyle(i)}">BAŞLA</span>` : (i === n - 1 ? `<span class="tag" style="${tagStyle(i)}background:#5B6B78">BİTİŞ</span>` : "");
 return `<div class="trl-node${i < trailState.next ? " done" : ""}" data-o="${i}" style="left:${pos[i].x}px;top:${pos[i].y}px;width:${pos[i].w}px;height:${node}px;font-size:${it.long ? Math.round(fs*0.66) : fs}px;">${trlFace(it)}${tag}</div>`;
 }).join("");
 const area = board.querySelector(".trl-area");
@@ -12077,7 +12080,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.21-a";
+const APP_VERSION = "2026.10.21-b";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -15332,5 +15335,10 @@ try{ const bd0 = document.getElementById("board"); if(bd0) new MutationObserver(
 function stopButtonsHTML(){ const D = stopDirs(), b = (d) => `<button type="button" class="wm-btn diff stp-b" data-mtbtn="stop-${d}" aria-label="${{ l:"sol", r:"sağ", u:"yukarı", d:"aşağı" }[d]}" style="display:flex;align-items:center;justify-content:center">${stopArrowSVG(d, "#fff", 40)}</button>`;
   if(D.length === 2) return `<div class="wm-btns" style="margin:6px auto 0">${b("l")}${b("r")}</div>`;
   return `<div class="wm-btns" style="margin:6px auto 0;grid-template-columns:1fr 1fr 1fr;grid-template-areas:'. u .' 'l d r'">${D.map(d => b(d).replace('style="', `style="grid-area:${d};`)).join("")}</div>`; }
+
+/* Sırayla Dokun: BAŞLA/BİTİŞ etiketi için boş yer (üst, alt, sağ, sol); yoksa null */
+function trlTagSlot(P, i, node, W, H){ const p0 = P[i], tw = 64, th = 16, g = 2, hw = p0.w / 2, hh = node / 2; const free = (x1, y1, x2, y2) => x1 >= -2 && y1 >= -2 && x2 <= W + 2 && y2 <= H + 2 && !P.some((q, j) => j !== i && q.x + q.w / 2 > x1 && q.x - q.w / 2 < x2 && q.y + node / 2 > y1 && q.y - node / 2 < y2);
+  const opts = [ [p0.x - tw / 2, p0.y - hh - th - g, p0.x + tw / 2, p0.y - hh - g, ""], [p0.x - tw / 2, p0.y + hh + g, p0.x + tw / 2, p0.y + hh + th + g, "top:auto;bottom:-15px;"], [p0.x + hw + g, p0.y - th / 2, p0.x + hw + g + tw, p0.y + th / 2, "top:50%;left:100%;transform:translate(3px,-50%);"], [p0.x - hw - g - tw, p0.y - th / 2, p0.x - hw - g, p0.y + th / 2, "top:50%;left:auto;right:100%;transform:translate(-3px,-50%);"] ];
+  const ok = opts.find(o => free(o[0], o[1], o[2], o[3])); return ok ? ok[4] : null; }
 
 window.__zaReady = true;
