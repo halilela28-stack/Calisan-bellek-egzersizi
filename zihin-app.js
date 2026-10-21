@@ -7225,19 +7225,29 @@ const ALT_BY_TIER = [ ["kova","yastık","şemsiye"], ["kalem","kaşık","fincan"
 const ALT_OBJ = () => [ { n:"kova", src: HOUSE_IMAGES.bucket }, { n:"kaşık", src: PAL_EXTRA_IMAGES.spoon }, { n:"şemsiye", src: PAIR_IMAGES.umbrella }, { n:"yastık", src: HOUSE_IMAGES.pillow },
 { n:"kalem", src: PAIR_IMAGES.pencil }, { n:"fincan", src: HOUSE_IMAGES.cup }, { n:"makas", src: HOUSE_IMAGES.scissors }, { n:"tarak", src: HOUSE_IMAGES.comb } ];
 function timeTrials(){ const t = currentCombo().t, secs = (isPre() ? [3, 5, 7] : [5, 10, 15])[t]; return Array.from({length: isPre() ? 3 : 4}, () => ({ secs, tol: isPre() ? 0.3 : 0.2 })); }
-function ferrTrials(){ const t = currentCombo().t, types = isPre() ? ["shape"] : ["shape","num","pattern"];
-return Array.from({length: isPre() ? 3 : 4}, () => { const ty = randomItem(types), E = isPre() ? [1, 1, 2][t] : [1, 2, 3][t];
-if(ty === "num"){ const N = [6, 8, 10][t], arr = Array.from({length:N}, (_, i) => i + 1), bad = new Set();
-while(bad.size < E){ const i = 1 + Math.floor(Math.random() * (N - 1)); if(bad.has(i) || bad.has(i - 1) || bad.has(i + 1)) continue; bad.add(i); }
-const items = arr.map((v, i) => bad.has(i) ? { html:`<b style="font-size:24px">${v + (Math.random() < 0.5 ? 1 : 2)}</b>`, bad:true } : { html:`<b style="font-size:24px">${v}</b>` });
-return { rule:"Sayılar 1'den başlayıp birer birer artmalı.", items }; }
-if(ty === "pattern"){ const [a, b] = shuffleArray(SHAPES).slice(0, 2), [ca, cb] = shuffleArray(COLORS).slice(0, 2), N = [6, 8, 10][t], bad = new Set();
-while(bad.size < E){ bad.add(1 + Math.floor(Math.random() * (N - 1))); }
-const items = Array.from({length:N}, (_, i) => { const want = i % 2 === 0 ? [a, ca] : [b, cb], wrong = i % 2 === 0 ? [b, cb] : [a, ca]; const sh = bad.has(i) ? wrong : want; return { html: shapeSVG(sh[0], sh[1]), bad: bad.has(i) }; });
-return { rule:"Şekiller sırayla bir o, bir bu gelmeli.", items, row:true }; }
-const N = isPre() ? [4, 6, 6][t] : [6, 8, 9][t], red = "#E5484D", bad = new Set(); while(bad.size < E) bad.add(Math.floor(Math.random() * N));
-const items = Array.from({length:N}, (_, i) => bad.has(i) ? { html: shapeSVG("circle", randomItem(["#CC79A7","#0072B2","#009E73"])), bad:true } : { html: shapeSVG("circle", red) });
-return { rule:"Bütün daireler kırmızıya boyanmalıydı.", items }; }); }
+const FERR_COL = [{ c:"#E5484D", n:"kırmızı" }, { c:"#1E63D6", n:"mavi" }, { c:"#2E9E4F", n:"yeşil" }, { c:"#F5B800", n:"sarı" }];
+const FERR_SH = [{ s:"circle", n:"daire" }, { s:"triangle", n:"üçgen" }, { s:"square", n:"kare" }, { s:"star", n:"yıldız" }, { s:"heart", n:"kalp" }];
+const FERR_DIR = [{ d:"u", n:"yukarı" }, { d:"d", n:"aşağı" }, { d:"l", n:"sola" }, { d:"r", n:"sağa" }];
+/* Hatayı Bul: sayfada her soru farklı türden; kurallar kısa (hız çalışması) */
+function ferrTrials(){ const tt = Math.min(currentCombo().t, 2), pre = isPre(); const types = pre ? ["color", "shape", "arrow"] : ["num1", "num2", "numDown", "color", "shape", "pattern", "arrow"]; const K = pre ? 3 : 4, E = pre ? [1, 1, 2][tt] : [1, 2, 3][tt];
+  return shuffleArray(types).slice(0, K).map(ty => Object.assign(ferrMake(ty, tt, pre, E), { ty })); }
+function ferrMake(ty, tt, pre, E){ const gridN = pre ? [4, 6, 6][tt] : [6, 8, 9][tt], seqN = [6, 8, 10][tt];
+  const pickBad = (N, seq) => { const bad = new Set(); let g = 0; while(bad.size < E && g++ < 500){ const i = seq ? 1 + Math.floor(Math.random() * (N - 1)) : Math.floor(Math.random() * N); if(seq && (bad.has(i - 1) || bad.has(i + 1))) continue; bad.add(i); } return bad; };
+  const num = (v) => ({ html:`<b style="font-size:26px">${v}</b>` });
+  if(ty === "num1" || ty === "num2" || ty === "numDown"){ const N = seqN, step = ty === "num2" ? 2 : 1; const arr = Array.from({length:N}, (_, i) => ty === "numDown" ? N - i : (ty === "num2" ? 2 : 1) + step * i); const set = new Set(arr), bad = pickBad(N, true);
+    const wrongOf = (v) => { const c = (ty === "num2" ? [v + 1, v - 1, v + 3] : [v + 2, v - 2, v + 3, v + 4, N + 1, N + 2, N + 3, N + 4, N + 5]).filter(x => x >= 0 && !set.has(x)); return c.length ? randomItem(c) : v + N; };   /* hatalı sayı dizideki başka bir sayıyla aynı olmaz */
+    const used = new Set(); const items = arr.map((v, i) => { if(!bad.has(i)) return num(v); let w, g = 0; do{ w = wrongOf(v); g++; } while(g < 20 && used.has(w)); used.add(w); return Object.assign(num(w), { bad:true }); });
+    if(new Set(items.map(x => x.html)).size < items.length) return ferrMake(ty, tt, pre, E);   /* güvence: aynı sayı iki kez görünmez */
+    return { rule: ty === "num2" ? "Sayılar ikişer artmalı." : ty === "numDown" ? "Sayılar birer azalmalı." : "Sayılar birer artmalı.", items }; }
+  if(ty === "pattern"){ const [a, b] = shuffleArray(FERR_SH).slice(0, 2), [ca, cb] = shuffleArray(FERR_COL).slice(0, 2), N = seqN, bad = pickBad(N, true);
+    const items = Array.from({length:N}, (_, i) => { const want = i % 2 === 0 ? [a.s, ca.c] : [b.s, cb.c], wrong = i % 2 === 0 ? [b.s, cb.c] : [a.s, ca.c]; const sh = bad.has(i) ? wrong : want; return { html: shapeSVG(sh[0], sh[1]), bad: bad.has(i) }; });
+    return { rule:"Bir o, bir bu gelmeli.", items, row:true }; }
+  if(ty === "arrow"){ const tgt = randomItem(FERR_DIR), others = FERR_DIR.filter(x => x !== tgt), col = randomItem(FERR_COL.filter(x => x.n !== "kırmızı")).c,   /* kırmızı ok kullanılmaz (Dur İşareti'nde "basma" anlamında) */ N = gridN, bad = pickBad(N, false); const svg = (d) => stopArrowSVG(d, col, 64).replace('width="64" height="64"', 'width="100%" height="100%"');
+    return { rule:`Hepsi ${tgt.n} bakmalı.`, items: Array.from({length:N}, (_, i) => bad.has(i) ? { html: svg(randomItem(others).d), bad:true } : { html: svg(tgt.d) }) }; }
+  if(ty === "shape"){ const tgt = randomItem(FERR_SH), others = FERR_SH.filter(x => x !== tgt), col = randomItem(FERR_COL).c, N = gridN, bad = pickBad(N, false);
+    return { rule:`Hepsi ${tgt.n} olmalı.`, items: Array.from({length:N}, (_, i) => bad.has(i) ? { html: shapeSVG(randomItem(others).s, col), bad:true } : { html: shapeSVG(tgt.s, col) }) }; }
+  const tgt = randomItem(FERR_COL), others = FERR_COL.filter(x => x !== tgt), sh = randomItem(FERR_SH).s, N = gridN, bad = pickBad(N, false);
+  return { rule:`Hepsi ${tgt.n} olmalı.`, items: Array.from({length:N}, (_, i) => bad.has(i) ? { html: shapeSVG(sh, randomItem(others).c), bad:true } : { html: shapeSVG(sh, tgt.c) }) }; }
 function cupsTrials(){ const t = currentCombo().t, n = isPre() ? 3 : [3, 4, 5][t], swaps = (isPre() ? [2, 3, 4] : [3, 5, 7])[t], ms = (isPre() ? [1200, 1000, 850] : [1000, 800, 650])[t];
 return Array.from({length: isPre() ? 3 : 4}, () => { const ball = Math.floor(Math.random() * n), seq = []; for(let k = 0; k < swaps; k++){ let a = Math.floor(Math.random() * n), b; do{ b = Math.floor(Math.random() * n); } while(b === a); seq.push([a, b]); }
 return { n, ball, seq, ms }; }); }
@@ -8386,7 +8396,7 @@ const bw = box.clientWidth - st.size, bh = box.clientHeight - st.size, k = (now 
 ball.style.left = (bw * (0.5 + 0.5 * Math.sin(k * 1.3 + ph))) + "px"; ball.style.top = (bh * (0.5 + 0.5 * Math.sin(k * 0.9 + ph * 1.7))) + "px"; requestAnimationFrame(step); };
 requestAnimationFrame(step); },
 time(){ const st = mtState; st.phase = "ready"; renderMtBoard(); document.documentElement.classList.add("hide-clock"); },
-ferr(){ const st = mtState; st.sel = {}; st.phase = "input"; renderMtBoard(); const tr = st.trials[st.ti]; if(tr && tr.rule) mtLater(() => sayTask("Kural: " + tr.rule), 250); },   /* kural seslendirilir */
+ferr(){ const st = mtState; st.sel = {}; st.phase = "input"; renderMtBoard(); const tr = st.trials[st.ti]; if(tr && tr.rule) mtLater(() => sayTask(tr.rule, 1.0), 250); },   /* kısa ve hızlı */   /* kural seslendirilir */
 cups(){ const st = mtState, tr = st.trials[st.ti]; st.slot = Array.from({length: tr.n}, (_, i) => i); st.phase = "show"; st.lift = true; renderMtBoard();
 mtLater(() => { st.lift = false; cupsApply(); }, 1300);
 tr.seq.forEach(([a, b], k) => mtLater(() => { const ca = st.slot.indexOf(a), cb = st.slot.indexOf(b); st.slot[ca] = b; st.slot[cb] = a; cupsApply(); }, 1800 + k * tr.ms));
@@ -8730,7 +8740,7 @@ st.phase = "fb"; st.reveal = true; renderMtBoard(); mtLater(() => { st.reveal = 
 "time-stop"(){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "timing") return; if(performance.now() - st.t0 < 800) return;   /* Başla ile aynı yerde: yanlışlıkla çift dokunuş Dur sayılmaz */ const sec = (performance.now() - st.t0) / 1000 / (window.__wmSpeed || 1), ok = Math.abs(sec - tr.secs) <= tr.secs * tr.tol;
 st.last = { sec, ok }; st.res.push(+sec.toFixed(1)); if(ok) gameSfx("correct"); else mtErr(); st.phase = "fb"; renderMtBoard();
 mtLater(() => { st.ti++; if(st.ti >= st.trials.length){ document.documentElement.classList.remove("hide-clock"); mtFinish(` Tahminler: ${st.res.join(" · ")} sn`); return; } st.phase = "ready"; renderMtBoard(); }, 2500); },
-"ferr-say"(){ const st = mtState, tr = st && st.trials[st.ti]; if(tr && tr.rule) sayTask("Kural: " + tr.rule); }, "ferr-done"(){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "input") return; let e = 0; tr.items.forEach((it, i) => { if(!!it.bad !== !!st.sel[i]) e++; }); for(let k = 0; k < e; k++) mtErr(); if(!e) gameSfx("correct");
+"ferr-say"(){ const st = mtState, tr = st && st.trials[st.ti]; if(tr && tr.rule) sayTask(tr.rule, 1.0); }, "ferr-done"(){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "input") return; let e = 0; tr.items.forEach((it, i) => { if(!!it.bad !== !!st.sel[i]) e++; }); for(let k = 0; k < e; k++) mtErr(); if(!e) gameSfx("correct");
 st.phase = "fb"; renderMtBoard(); mtLater(() => { st.sel = {}; NEW_MT.next(); }, e ? 1800 : 700); },
 "rhy-done"(){ const st = mtState; if(st.phase !== "input") return; rhyEval(); },
 "per-x"(){},
@@ -8855,7 +8865,7 @@ const card = `<div class="flu-card" style="margin-bottom:12px"><div class="flu-b
 body = isLs ? dots + `<div style="display:flex;gap:20px;align-items:center;justify-content:center"><div>${card}</div><div class="time-ls">${big}</div></div>` : dots + card + big;
 } else if(st.kind === "ferr"){
 const tr = st.trials[ti], n = tr.items.length;
-info = st.phase === "fb" ? "Kırmızı: kaçan ya da yanlış işaretlenen" : "<b>Hataları</b> bul ve dokun, sonra Bitti";
+info = st.phase === "fb" ? "Kırmızı: kaçan ya da yanlış işaretlenen" : "<b>Hatalara</b> dokun, sonra Bitti";
 const d = wmGridDims(n, W, isLs ? H - 140 : H - 140, 48);
 const cell = (it, i) => { const sel = !!st.sel[i]; let mk = sel ? " sel" : ""; if(st.phase === "fb") mk = (!!it.bad === sel) ? (it.bad ? " ok" : "") : " bad"; return `<div class="wm-pic${mk}" data-mt="${i}" style="width:${d.cell}px;height:${d.cell}px;padding:6px">${it.html}${sel && st.phase !== "fb" ? `<span class="sel-mark">✓</span>` : ""}</div>`; };   /* seçildi işareti nötr (turkuaz); kırmızı yalnızca yanlış geri bildirimi */
 body = dots + `<div class="aud-note" style="text-align:center;font-weight:800;margin-bottom:6px;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap"><span>Kural: ${tr.rule}</span><button type="button" data-mtbtn="ferr-say" aria-label="Kuralı tekrar dinle" style="flex:none;width:40px;height:40px;border-radius:50%;border:2px solid #0A847E;background:#fff;color:#0A847E;display:inline-flex;align-items:center;justify-content:center;cursor:pointer"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></button></div><div class="wm-grid" style="grid-template-columns:repeat(${tr.row ? Math.min(n, d.cols * 2 > n ? n : d.cols) : d.cols}, ${tr.row ? Math.min(d.cell, (W - 10 * n) / n) : d.cell}px);">${tr.items.map(cell).join("")}</div>` +
@@ -9854,7 +9864,7 @@ const INSTR_SHORT = {
 "eye-touch":        [() => Q("Kayan topu gözünle izle, yakalayınca dokun.")],
 "alt-uses":         [() => `Okuyun ve ▶'a basın: ${Q(fluPrompt("alt-uses").say)} Asıl kullanımı sayılmaz; farklı her fikir +1.`],
 "time-est":         [() => Q("Başla'ya bas, içinden say. Söylenen saniye olunca Dur'a bas.")],
-"find-error":       [() => Q("Kuralı dinle. Kurala uymayanlara dokun, bitince Bitti'ye bas.")],
+"find-error":       [() => Q("Kuralı dinle. Uymayanlara dokun, sonra Bitti.")],
 "cups":             [() => Q("Top hangi bardakta, iyi bak. Bardaklar karışınca topu bul.")],
 "mental-math":      [() => isPre() ? Q("Kutuya girenleri ve çıkanları izle. Sonunda kaç tane kaldı?") : Q("Sayıları ve işlemleri aklında tut, sonucu seç.")],
 "who-said":         [() => Q("Kim ne söylüyor, dinle. Sonra resmi kimin söylediğini seç.")],
@@ -12067,7 +12077,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.20-l";
+const APP_VERSION = "2026.10.20-m";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
