@@ -1097,10 +1097,10 @@ return flags.map(f => ({ k: f ? "sun" : "moon" }));
 
 const PLN_COLORS = ["#E53935", "#F5C518", "#1E63D6", "#2E9E4F", "#8E44AD"];
 const PLN_SPECS = {
-"plan-swap":  { type:"swap", items: [3, 3, 4], target: [[1,1],[2,2],[2,3]], problems: 2, colors:[0,1,2,3] },
-"plan-beads": { type:"pegs", items: [3, 3, 3], caps: [[3,3,3],[3,3,3],[3,3,3]], target: [[2,2],[3,3],[4,4]], problems: 2, colors:[0,1,2] },
-"plan-tol":   { type:"pegs", items: [3, 3, 3], caps: [[3,2,1],[3,2,1],[3,2,1]], target: [[3,3],[4,5],[5,6]], problems: 3, colors:[0,3,2] },
-"plan-cubes": { type:"pegs", items: [4, 4, 5], caps: [[4,4,4],[4,4,4],[5,5,5]], target: [[3,4],[5,6],[6,7]], problems: 3, colors:[0,1,2,3,4], square:true }
+"plan-swap":  { type:"swap", items: [3, 3, 4], target: [[1,1],[2,2],[2,3]], problems: [2, 3, 4], colors:[0,1,2,3] },
+"plan-beads": { type:"pegs", items: [3, 3, 3], caps: [[3,3,3],[3,3,3],[3,3,3]], target: [[2,2],[3,3],[4,4]], problems: [2, 3, 4], colors:[0,1,2] },
+"plan-tol":   { type:"pegs", items: [3, 3, 3], caps: [[3,2,1],[3,2,1],[3,2,1]], target: [[3,3],[4,5],[5,6]], problems: [3, 4, 5], colors:[0,3,2] },
+"plan-cubes": { type:"pegs", items: [4, 4, 5], caps: [[4,4,4],[4,4,4],[5,5,5]], target: [[3,4],[5,6],[6,7]], problems: [3, 4, 5], colors:[0,1,2,3,4], square:true }
 };
 function plnKey(st){ return JSON.stringify(st); }
 function plnNeighbors(st, caps){
@@ -1155,9 +1155,11 @@ const colors = shuffleArray(spec.colors.map(i => PLN_COLORS[i])).slice(0, n);
 const [lo, hi] = spec.target[t];
 const problems = [];
 let lastKey = "";
-for(let k = 0; k < spec.problems; k++){
+const NP = Array.isArray(spec.problems) ? spec.problems[Math.min(t, 2)] : spec.problems;   /* problem sayısı düzeye göre 3-4-5 */
+const seenKey = currentExercise().id + "|" + t, seenAll = (window.__plnSeen = window.__plnSeen || {}), seen = seenAll[seenKey] = seenAll[seenKey] || new Set(); const usedS = new Set(), usedG = new Set();
+for(let k = 0; k < NP; k++){
 let pr = null, g = 0;
-while(!pr && g < 60){
+while(!pr && g < 120){
 g++;
 const want = lo + Math.floor(Math.random() * (hi - lo + 1));
 if(spec.type === "swap"){
@@ -1173,10 +1175,13 @@ const cands = states.filter(s2 => dist.get(plnKey(s2)) === want);
 if(cands.length) pr = { start, goal: randomItem(cands), min: want, caps };
 }
 if(pr && plnKey([pr.start, pr.goal]) === lastKey) pr = null;
+if(pr && g < 100 && (usedS.has(plnKey(pr.start)) || usedG.has(plnKey(pr.goal)))) pr = null;   /* sayfada aynı başlangıç ya da hedef iki kez gelmez */
+if(pr && g < 60 && seen.has(plnKey([pr.start, pr.goal]))) pr = null;   /* önceki girişlerde görülen problem, yenisi varken tekrar gelmez */
 }
-lastKey = plnKey([pr.start, pr.goal]);
+lastKey = plnKey([pr.start, pr.goal]); usedS.add(plnKey(pr.start)); usedG.add(plnKey(pr.goal)); seen.add(lastKey);
 problems.push(pr);
 }
+problems.sort((a, b) => a.min - b.min);   /* kolaydan zora */
 planState = { p:0, cur: problems[0].start.map(x => Array.isArray(x) ? x.slice() : x), moves:0, extra:0, sel:null, done:false,
 firstMoveMs:[], probStart:null, solved:0 };
 return problems;
@@ -12088,7 +12093,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.21-e";
+const APP_VERSION = "2026.10.21-f";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
