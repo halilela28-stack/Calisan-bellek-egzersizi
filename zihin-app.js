@@ -5494,6 +5494,7 @@ function navStep(dir){ if(hwRun){ hwRunStep(dir); return; } const exs = currentC
     const ex = exs[e]; if((ex.minTier || 0) > t) continue; if(!exs.some(x => (x.minTier || 0) <= t && t <= tierMax(x))) continue;
     navTier = t; goToIndex(findSeqIndex(Math.min(t, tierMax(ex)), e)); return; } }
 function goToIndex(newIndex){
+window.__navSerial = (window.__navSerial || 0) + 1;   /* sayfaya her giriş */
 const prevExId = currentExercise().id;
 currentIndex = ((newIndex % SEQUENCE.length) + SEQUENCE.length) % SEQUENCE.length;
 if(currentExercise().id !== prevExId){
@@ -7053,10 +7054,14 @@ const WHATDO = [
 function whatdoTrials(){ const t = currentCombo().t, N = (isPre() ? [3, 4, 5] : [4, 5, 6])[t];
 const pool = isPre() ? (t === 0 ? WHATDO.slice(0, 4) : WHATDO) : WHATDO; return shuffleArray(pool).slice(0, N); }
 
-const FLU_CATS = { pre:[ { k:"hayvan", n:"HAYVANLAR", say:"Bildiğin hayvanları söyle." }, { k:"yiyecek", n:"YİYECEKLER", say:"Yenebilen şeylerden olabildiğince çok söyle." }, { k:"giysi", n:"GİYSİLER", say:"Giyebileceğin şeylerden olabildiğince çok söyle." } ],
-post:[ { k:"hayvan", n:"HAYVANLAR", say:"Bildiğin bütün hayvanları söyle." }, { k:"meyve", n:"MEYVELER", say:"Bildiğin bütün meyveleri söyle." }, { k:"meslek", n:"MESLEKLER", say:"Bildiğin bütün meslekleri söyle." } ] };
-const FLU_CAT_TIER = { pre:[["hayvan"], ["yiyecek"], ["giysi"]], post:[["hayvan"], ["meyve"], ["meslek"]] };   // geniş kategori kolay, dar kategori zor
-const FLU_LETTERS = { pre:[["K","B"], ["S","T"], ["M"]], post:[["K","S","B"], ["A","M","T"], ["D","E","Ç"]] };
+const FLU_CATS = { pre:[ { k:"hayvan", n:"HAYVANLAR", say:"Bildiğin hayvanları söyle." }, { k:"yiyecek", n:"YİYECEKLER", say:"Yenebilen şeylerden olabildiğince çok söyle." }, { k:"oyuncak", n:"OYUNCAKLAR", say:"Bildiğin oyuncakları söyle." },
+    { k:"meyve", n:"MEYVELER", say:"Bildiğin meyveleri söyle." }, { k:"giysi", n:"GİYSİLER", say:"Giyebileceğin şeylerden olabildiğince çok söyle." }, { k:"tasit", n:"TAŞITLAR", say:"Bildiğin taşıtları söyle." }, { k:"vucut", n:"VÜCUDUMUZ", say:"Vücudumuzun bölümlerini söyle." },
+    { k:"sebze", n:"SEBZELER", say:"Bildiğin sebzeleri söyle." }, { k:"mutfak", n:"MUTFAK EŞYALARI", say:"Mutfakta bulunan eşyaları söyle." }, { k:"okul", n:"OKULDA", say:"Okulda bulunan şeyleri söyle." } ],
+  post:[ { k:"hayvan", n:"HAYVANLAR", say:"Bildiğin bütün hayvanları söyle." }, { k:"yiyecek", n:"YİYECEKLER", say:"Bildiğin bütün yiyecekleri söyle." }, { k:"giysi", n:"GİYSİLER", say:"Bildiğin bütün giysileri söyle." }, { k:"esya", n:"EVDEKİ EŞYALAR", say:"Evde bulunan eşyaları söyle." },
+    { k:"meyve", n:"MEYVELER", say:"Bildiğin bütün meyveleri söyle." }, { k:"sebze", n:"SEBZELER", say:"Bildiğin bütün sebzeleri söyle." }, { k:"tasit", n:"TAŞITLAR", say:"Bildiğin bütün taşıtları söyle." }, { k:"spor", n:"SPOR DALLARI", say:"Bildiğin bütün spor dallarını söyle." }, { k:"icecek", n:"İÇECEKLER", say:"Bildiğin bütün içecekleri söyle." },
+    { k:"meslek", n:"MESLEKLER", say:"Bildiğin bütün meslekleri söyle." }, { k:"muzik", n:"MÜZİK ALETLERİ", say:"Bildiğin bütün müzik aletlerini söyle." }, { k:"deniz", n:"DENİZ CANLILARI", say:"Denizde yaşayan canlıları söyle." }, { k:"mutfak", n:"MUTFAK ALETLERİ", say:"Mutfakta kullanılan aletleri söyle." }, { k:"kus", n:"KUŞLAR", say:"Bildiğin bütün kuşları söyle." } ] };
+const FLU_CAT_TIER = { pre:[["hayvan","yiyecek","oyuncak"], ["meyve","giysi","tasit","vucut"], ["sebze","mutfak","okul"]], post:[["hayvan","yiyecek","giysi","esya"], ["meyve","sebze","tasit","spor","icecek"], ["meslek","muzik","deniz","mutfak","kus"]] }; // geniş kategori kolay, dar kategori zor
+const FLU_LETTERS = { pre:[["K","B","A","M"], ["S","T","D","E"], ["Ç","Y","H"]], post:[["K","S","B","A","T"], ["M","D","Y","E","G"], ["Ç","H","O","İ","F","Z"]] };   // sık başlayan sesler kolay, seyrek olanlar zor
 const FLU_SWITCH_PRE = [ [["HAYVAN","hayvan"],["YİYECEK","yiyecek"]], [["RENK","renk"],["HAYVAN","hayvan"]], [["HAYVAN","hayvan"],["YİYECEK","yiyecek"],["RENK","renk"]] ];
 const FLU_SWITCH = [ [["HAYVAN","hayvan"],["YİYECEK","yiyecek"]], [["MEYVE","meyve"],["GİYSİ","giysi"]], [["HAYVAN","hayvan"],["YİYECEK","yiyecek"],["TAŞIT","taşıt"]] ];
 let fluTarget = {};
@@ -7064,13 +7069,15 @@ function fluSecs(fid){ if(fid === "alt-uses") return (isPre() ? [45, 60, 60] : [
 function fluPick(fid, force){
 const lvl = isPre() ? "pre" : "post", t = currentCombo().t, key = fid + "|" + lvl + "|" + t;
 const pool = fid === "flu-cat" ? FLU_CAT_TIER[lvl][Math.min(t, 2)] : fid === "flu-letter" ? (isPre() ? FLU_LETTERS.pre : FLU_LETTERS.post)[Math.min(t, 2)] : fid === "alt-uses" ? ALT_BY_TIER[Math.min(t, 2)] : [0];
-if(force || !pool.includes(fluTarget[key])){ let v; do{ v = randomItem(pool); } while(pool.length > 1 && v === fluTarget[key]); fluTarget[key] = v; }
+const visit = fluTarget[key + "@"] !== window.__navSerial; if(visit) fluTarget[key + "@"] = window.__navSerial;   /* sayfaya her girişte yeni öge; sayfa içinde sabit */
+if(force || visit || !pool.includes(fluTarget[key])){ let v; do{ v = randomItem(pool); } while(pool.length > 1 && v === fluTarget[key]); fluTarget[key] = v; }
 return fluTarget[key];
 }
 function fluPrompt(fid){
 const tg = fluPick(fid);
 if(fid === "flu-cat"){ const c = FLU_CATS[isPre() ? "pre" : "post"].find(x => x.k === tg); return { big: c.n, say: c.say }; }
-if(fid === "alt-uses"){ const o = ALT_OBJ().find(x => x.n === tg); return { big: o.n.toLocaleUpperCase("tr-TR"), img: o.src, say: isPre() ? `Bir ${o.n} başka ne işe yarar? Aklına gelen her şeyi söyle.` : `${cap(o.n)} başka nelere yarayabilir? Olağan dışı kullanımlar da düşün.`, sub:"başka ne işe yarar?" }; }
+if(fid === "alt-uses"){ const o = ALT_OBJ().find(x => x.n === tg); const cx = altCtx(), cs = cx ? cx + " " : "";   /* bağlam kısıtı: Orta evde, Zor kampta/okulda/parkta */
+return { big: o.n.toLocaleUpperCase("tr-TR"), img: o.src, say: isPre() ? `Bir ${o.n} ${cs}başka ne işe yarar? Aklına gelen her şeyi söyle.` : `${cap(o.n)} ${cs}başka nelere yarayabilir? Olağan dışı kullanımlar da düşün.`, sub: `${cs}başka ne işe yarar?` }; }
 if(fid === "flu-letter") return isPre() ? { big: tg, say:`${tg} sesiyle başlayan kelimeler bulalım.`, sub:"sesiyle başlayan kelimeler" } : { big: tg, say:`${tg} harfiyle başlayan olabildiğince çok kelime söyle.`, sub:"harfiyle başlayan kelimeler" };
 const sw = isPre() ? FLU_SWITCH_PRE[currentCombo().t] : FLU_SWITCH[currentCombo().t]; return { big: sw.map(x => x[0]).join(" – "), say:`Sırayla bir ${sw.map(x => x[1]).join(", bir ")} söyle.`, sw };
 }
@@ -7224,9 +7231,10 @@ function semTrials(){ const C = qzCats(), I = (src) => ({ src }), t = Math.min(c
     out.push({ stim: qzPic(it.src), opts:[`<b style="font-size:20px">✓ Evet</b>`, `<b style="font-size:20px">✗ Hayır</b>`], ans: y ? 0 : 1, prompt:`<b>${Q.q}</b>`, say: Q.q, text:true, qk: Q.k }); }
   return out; }
 function chaseCfg(){ const t = currentCombo().t; return { need: isPre() ? [5, 6, 8][t] : [8, 10, 12][t], speed: (isPre() ? [0.45, 0.6, 0.75] : [0.6, 0.85, 1.1])[t], size: isPre() ? 70 : [64, 56, 48][t] }; }
-const ALT_BY_TIER = [ ["kova","yastık","şemsiye"], ["kalem","kaşık","fincan"], ["makas","tarak"] ];   // Başlangıç: çok amaçlı nesneler · Zor: kullanım alanı dar nesneler
-const ALT_OBJ = () => [ { n:"kova", src: HOUSE_IMAGES.bucket }, { n:"kaşık", src: PAL_EXTRA_IMAGES.spoon }, { n:"şemsiye", src: PAIR_IMAGES.umbrella }, { n:"yastık", src: HOUSE_IMAGES.pillow },
-{ n:"kalem", src: PAIR_IMAGES.pencil }, { n:"fincan", src: HOUSE_IMAGES.cup }, { n:"makas", src: HOUSE_IMAGES.scissors }, { n:"tarak", src: HOUSE_IMAGES.comb } ];
+const ALT_BY_TIER = [ ["kutu","ip","kova","yastık","şemsiye","kâğıt","top"], ["kaşık","fincan","çorap","ayakkabı","kâse","kemer","süpürge","pipet","defter","kalem"], ["anahtar","tarak","diş fırçası","kalemtıraş","makas","saat","mıknatıs","gözlük","termos","zarf","tornavida","el feneri","bilezik"] ];   // Başlangıç: çok amaçlı, esnek nesneler (7) · Orta (10) · Zor: kullanım alanı dar nesneler (13)
+const ALT_OBJ = () => [ { n:"kutu", src: g3img("box") }, { n:"ip", src: g3img("rope") }, { n:"kova", src: HOUSE_IMAGES.bucket }, { n:"yastık", src: HOUSE_IMAGES.pillow }, { n:"şemsiye", src: PAIR_IMAGES.umbrella }, { n:"kâğıt", src: PAIR_IMAGES.paper }, { n:"top", src: TOY_IMAGES.ball },
+  { n:"kaşık", src: PAL_EXTRA_IMAGES.spoon }, { n:"fincan", src: HOUSE_IMAGES.cup }, { n:"çorap", src: PAIR_IMAGES.sock }, { n:"ayakkabı", src: PAIR_IMAGES.shoe }, { n:"kâse", src: PAIR_IMAGES.bowl }, { n:"kemer", src: g3img("belt") }, { n:"süpürge", src: HOUSE_IMAGES.broom }, { n:"pipet", src: PAIR_IMAGES.straw }, { n:"defter", src: PAIR_IMAGES.notebook }, { n:"kalem", src: PAIR_IMAGES.pencil },
+  { n:"anahtar", src: PAIR_IMAGES.key }, { n:"tarak", src: HOUSE_IMAGES.comb }, { n:"diş fırçası", src: PAIR_IMAGES.toothbrush }, { n:"kalemtıraş", src: PAIR_IMAGES.sharpener }, { n:"makas", src: HOUSE_IMAGES.scissors }, { n:"saat", src: HOUSE_IMAGES.clock }, { n:"mıknatıs", src: g3img("magnet") }, { n:"gözlük", src: g3img("glasses") }, { n:"termos", src: g3img("thermos") }, { n:"zarf", src: PAIR_IMAGES.envelope }, { n:"tornavida", src: PAIR_IMAGES.screwdriver }, { n:"el feneri", src: g3img("flashlight") }, { n:"bilezik", src: g3img("bracelet") } ];
 function timeTrials(){ const t = currentCombo().t, secs = (isPre() ? [3, 5, 7] : [5, 10, 15])[t]; return Array.from({length: isPre() ? 3 : 4}, () => ({ secs, tol: isPre() ? 0.3 : 0.2 })); }
 const FERR_COL = [{ c:"#E5484D", n:"kırmızı" }, { c:"#1E63D6", n:"mavi" }, { c:"#2E9E4F", n:"yeşil" }, { c:"#F5B800", n:"sarı" }];
 const FERR_SH = [{ s:"circle", n:"daire" }, { s:"triangle", n:"üçgen" }, { s:"square", n:"kare" }, { s:"star", n:"yıldız" }, { s:"heart", n:"kalp" }];
@@ -8795,7 +8803,7 @@ if(st.kind === "samenum") return { info:"Bitti!", body:"" };
 if(st.kind === "mem") return { info:`Bitti · ${st.P} eş · eşleşmeyen deneme ${st.miss}`, body:"" };
 if(st.kind === "time") return { info:`Bitti · tahminler: ${st.res.join(" · ")} sn`, body:"" };
 if(st.kind === "chase") return { info:`Bitti · ${st.hits} kez dokundun`, body:"" };
-if(st.kind === "flu") return { info:`Süre doldu · doğru <b>${st.ok}</b> kelime`, body:`<div class="flu-q">${st.q.map((n, k) => `<div><b>${n}</b><span>${Math.round(st.secs / 4 * k)}–${Math.round(st.secs / 4 * (k + 1))} sn</span></div>`).join("")}</div><div class="aud-key" style="text-align:center;margin-top:6px">Tekrar: <b>${st.rep}</b> · Kural dışı: <b>${st.rule + st.ord}</b>${st.P.sw ? ` (sıra karışması: ${st.ord})` : ""}</div><div class="aud-key" style="text-align:center">İlk çeyrekte çok, sonlara doğru az kelime olağandır; çok erken tükeniyorsa strateji aşamasını deneyin.</div>` };
+if(st.kind === "flu") return { info:`Süre doldu · ${fluUnit() === "fikir" ? "uygun" : "doğru"} <b>${st.ok}</b> ${fluUnit()}${fluUnit() === "fikir" ? (st.ok >= altGoal() ? ` · hedef ${altGoal()} <b style="color:var(--good)">✓</b>` : ` · hedef ${altGoal()} (ulaşılamadı)`) : ""}`, body:`<div class="flu-q">${st.q.map((n, k) => `<div><b>${n}</b><span>${Math.round(st.secs / 4 * k)}–${Math.round(st.secs / 4 * (k + 1))} sn</span></div>`).join("")}</div><div class="aud-key" style="text-align:center;margin-top:6px">Tekrar: <b>${st.rep}</b> · ${fluUnit() === "fikir" ? "Sayılmaz" : "Kural dışı"}: <b>${st.rule + st.ord}</b>${st.P.sw ? ` (sıra karışması: ${st.ord})` : ""}</div><div class="aud-key" style="text-align:center">İlk çeyrekte çok, sonlara doğru az kelime olağandır; çok erken tükeniyorsa strateji aşamasını deneyin.</div>` };
 if(st.kind === "movesay") return { info:`Bitti · doğru <b>${st.ok}/${st.trials.length}</b>`, body:"" };
 if(st.kind === "absay") return { info:`Bitti · uygun <b>${st.okN}</b> · uygun değil <b>${st.wrong}</b>`, body:"" };
 if(st.kind === "whatdo") return { info:`Bitti · uygun <b>${st.okN}</b> · uygun değil <b>${st.wrong}</b>`, body:"" };
@@ -8846,10 +8854,10 @@ const r = qzRender(st, W, H, isLs); info = r.info; body = r.body;
 const P = st.P, t = `${Math.floor(st.left / 60)}:${String(st.left % 60).padStart(2, "0")}`;
 const fluTxt = `<div class="flu-big" style="${P.big.length > 12 ? `font-size:${isLs ? 18 : 24}px` : ""}">${P.big}</div>${P.sub ? `<div class="flu-sub">${P.sub}</div>` : ""}`;
 const card = `<div class="flu-card">${P.img && isPre() ? `<div style="display:flex;align-items:center;justify-content:center;gap:12px"><img class="flu-img" src="${P.img}" alt="" style="width:${isLs ? 64 : 84}px;height:${isLs ? 64 : 84}px;object-fit:contain;flex:0 0 auto"><div>${fluTxt}</div></div>` : fluTxt}${P.sw && st.phase === "run" ? `<div class="flu-next">Sıradaki: <b>${P.sw[st.exp][0]}</b></div>` : ""}</div>`;
-if(st.phase === "idle"){ info = "▶ Başlat'a basınca süre başlar"; body = card + `<div class="aud-key" style="text-align:center">Süre: ${st.secs} sn · geçerli her kelimede <b>+1</b>'e basın</div>`; }
+if(st.phase === "idle"){ info = "▶ Başlat'a basınca süre başlar"; body = card + `<div class="aud-key" style="text-align:center">Süre: ${st.secs} sn · geçerli her ${fluUnit() === "fikir" ? "fikirde" : "kelimede"} <b>+1</b>'e basın${fluUnit() === "fikir" ? ` · hedef <b>${altGoal()}</b> fikir` : ""}</div>`; }
 else { info = `Kalan süre: <b id="fluLeft">${t}</b>`;
-const okb = `<div class="flu-cnt">${st.ok}</div><button type="button" class="flu-ok" data-mtbtn="flu-ok">+1 kelime</button>`;
-const errb = `<div class="wm-btns${isLs ? " wd-compact" : ""}" style="margin:8px auto 0;flex-wrap:wrap"><button type="button" class="wm-btn diff" data-mtbtn="flu-rep">Tekrar · ${st.rep}</button><button type="button" class="wm-btn diff" data-mtbtn="flu-rule">Kural dışı · ${st.rule}</button>${P.sw ? `<button type="button" class="wm-btn diff" data-mtbtn="flu-ord">Sıra karıştı · ${st.ord}</button>` : ""}</div>`;
+const okb = `<div class="flu-cnt">${st.ok}${fluUnit() === "fikir" ? `<span style="font-size:.45em;color:var(--ink-soft)"> / ${altGoal()}</span>` : ""}</div>${fluUnit() === "fikir" && st.ok >= altGoal() ? `<div style="text-align:center;color:var(--good);font-weight:900;margin:-4px 0 6px">Hedefe ulaştın ✓</div>` : ""}<button type="button" class="flu-ok" data-mtbtn="flu-ok">+1 ${fluUnit()}</button>`;
+const errb = `<div class="wm-btns${isLs ? " wd-compact" : ""}" style="margin:8px auto 0;flex-wrap:wrap"><button type="button" class="wm-btn diff" data-mtbtn="flu-rep">Tekrar · ${st.rep}</button><button type="button" class="wm-btn diff" data-mtbtn="flu-rule">${fluUnit() === "fikir" ? "Sayılmaz" : "Kural dışı"} · ${st.rule}</button>${P.sw ? `<button type="button" class="wm-btn diff" data-mtbtn="flu-ord">Sıra karıştı · ${st.ord}</button>` : ""}</div>`;
 body = isLs ? `<div style="display:flex;gap:16px;align-items:center;justify-content:center;width:100%"><div style="width:56%;max-width:420px">${card}${errb}</div><div style="width:38%;max-width:320px">${okb}</div></div>` : card + okb + errb; }
 } else if(st.kind === "dots"){
 const tr = st.trials[ti], sz = Math.min(isLs ? H - 50 : 230, W * 0.7);
@@ -9865,7 +9873,7 @@ const INSTR_SHORT = {
 "dot-count":        [() => Q(Math.min(currentCombo().t, 2) === 0 ? "Noktalar bir an görünecek. Kaç tane olduğunu seç." : Math.min(currentCombo().t, 2) === 1 ? "Resimler bir an görünecek. Kaç tane olduğunu seç." : "Resimler bir an görünecek. Kaç tane olduğunu seç.")],
 "sem-decide":       [() => { const t = currentCombo().t; return Q(t === 0 ? "Soruyu dinle; her resim için hızlıca Evet ya da Hayır'a dokun." : t === 1 ? "Soru iki resimde bir değişecek: soruyu dinle, hızlıca Evet ya da Hayır'a dokun." : "Soru her resimde değişecek: soruyu dinle, hızlıca Evet ya da Hayır'a dokun."); }],
 "eye-touch":        [() => Q("Kayan topu gözünle izle, yakalayınca dokun.")],
-"alt-uses":         [() => `Okuyun ve ▶'a basın: ${Q(fluPrompt("alt-uses").say)} Asıl kullanımı sayılmaz; farklı her fikir +1.`],
+"alt-uses":         [() => `Okuyun ve ▶'a basın: ${Q(fluPrompt("alt-uses").say)} Asıl kullanımı sayılmaz; farklı her fikir +1. Hedef: ${altGoal()} fikir.`],
 "time-est":         [() => Q("Başla'ya bas, içinden say. Söylenen saniye olunca Dur'a bas.")],
 "find-error":       [() => Q("Kuralı dinle. Uymayanlara dokun, sonra Bitti.")],
 "cups":             [() => Q("Top hangi bardakta, iyi bak. Bardaklar karışınca topu bul.")],
@@ -12080,7 +12088,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.21-c";
+const APP_VERSION = "2026.10.21-e";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -15340,5 +15348,14 @@ function stopButtonsHTML(){ const D = stopDirs(), b = (d) => `<button type="butt
 function trlTagSlot(P, i, node, W, H){ const p0 = P[i], tw = 64, th = 16, g = 2, hw = p0.w / 2, hh = node / 2; const free = (x1, y1, x2, y2) => x1 >= -2 && y1 >= -2 && x2 <= W + 2 && y2 <= H + 2 && !P.some((q, j) => j !== i && q.x + q.w / 2 > x1 && q.x - q.w / 2 < x2 && q.y + node / 2 > y1 && q.y - node / 2 < y2);
   const opts = [ [p0.x - tw / 2, p0.y - hh - th - g, p0.x + tw / 2, p0.y - hh - g, ""], [p0.x - tw / 2, p0.y + hh + g, p0.x + tw / 2, p0.y + hh + th + g, "top:auto;bottom:-15px;"], [p0.x + hw + g, p0.y - th / 2, p0.x + hw + g + tw, p0.y + th / 2, "top:50%;left:100%;transform:translate(3px,-50%);"], [p0.x - hw - g - tw, p0.y - th / 2, p0.x - hw - g, p0.y + th / 2, "top:50%;left:auto;right:100%;transform:translate(-3px,-50%);"] ];
   const ok = opts.find(o => free(o[0], o[1], o[2], o[3])); return ok ? ok[4] : null; }
+
+function fluUnit(){ return currentExercise().id === "alt-uses" ? "fikir" : "kelime"; }   /* akıcılık sayacının birimi */
+
+/* zihin-gorsel-3.js eski sürümdeyse yeni resimler yoktur: hata vermeden boş döner */
+function g3img(k){ try{ return (typeof NEW_IMAGES_2 !== "undefined" && NEW_IMAGES_2[k]) || ""; }catch(e){ return ""; } }
+
+/* Başka Ne İşe Yarar?: hedef fikir sayısı ve bağlam kısıtı (düzeye göre) */
+function altGoal(){ return (isPre() ? [2, 3, 4] : [3, 5, 7])[Math.min(currentCombo().t, 2)]; }
+function altCtx(){ const t = Math.min(currentCombo().t, 2); if(t === 0) return ""; const pool = t === 1 ? ["evde"] : (isPre() ? ["okulda", "parkta"] : ["kampta", "okulda", "parkta"]); const key = "alt-ctx|" + (isPre() ? "pre" : "post") + "|" + t; if(fluTarget[key + "@"] !== window.__navSerial || !pool.includes(fluTarget[key])){ fluTarget[key + "@"] = window.__navSerial; let v; do{ v = randomItem(pool); } while(pool.length > 1 && v === fluTarget[key]); fluTarget[key] = v; } return fluTarget[key]; }
 
 window.__zaReady = true;
