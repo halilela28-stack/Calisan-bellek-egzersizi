@@ -6381,7 +6381,7 @@ trials_make: (n) => { const a = []; let rule = Math.random() < 0.5 ? "same" : "f
 stim: (t, sz) => `<div style="width:100%;height:100%;border-radius:20px;box-shadow:inset 0 0 0 ${Math.round(sz * 0.05)}px ${t.rule === "same" ? "#1FA463" : "#FF9500"};display:flex;align-items:center;justify-content:center">${imgFill(VEHICLE_IMAGES[t.v + (t.back ? "_b" : "_f")])}</div>`,
 buttons: () => [{ id:"front", html: imgFill(VEHICLE_IMAGES.bus_f) + '<b style="margin-left:4px">ÖN</b>' }, { id:"back", html: imgFill(VEHICLE_IMAGES.bus_b) + '<b style="margin-left:4px">ARKA</b>' }],
 correct: (t) => { const seen = t.back ? "back" : "front"; return t.rule === "same" ? seen : (seen === "front" ? "back" : "front"); },
-key: () => `<div class="ch-key" style="font-weight:800;font-size:13px;color:var(--ink);gap:12px;padding:6px 12px"><span><span class="target-swatch" style="background:#1FA463"></span>gördüğünü seç</span><span><span class="target-swatch" style="background:#FF9500"></span>tersini seç</span></div>`,
+key: () => `<div class="ch-key" style="font-weight:800;font-size:13px;color:var(--ink);gap:12px;padding:6px 12px"><span><span class="target-swatch" style="background:#1FA463"></span>aynı yöndekine dokun</span><span><span class="target-swatch" style="background:#FF9500"></span>ters yöndekine dokun</span></div>`,
 cols: 2
 };
 Object.defineProperty(PLN_SPECS, "plan-think", { get(){ return isPre() ? PLN_SPECS["plan-beads"] : PLN_SPECS["plan-tol"]; } });
@@ -9782,7 +9782,7 @@ const INSTR_SHORT = {
 "day-night-touch":  [() => Q("Güneş gelince AY'a, ay gelince GÜNEŞ'e dokun.")],
 "fish-flanker":     [() => Q("Yalnızca ORTADAKİ canlıya bak; baktığı yönün okuna dokun.")],
 "face-go":          [() => Q(`Her yüzde DOKUN'a bas. ${trUpper(FACE_NAMES[fgStop])} yüzde dokunma, bekle.`)],
-"switch-touch":     [() => Q("Yeşil çerçevede gördüğünü, turuncu çerçevede TERSİNİ seç: ön mü, arka mı?")],
+"switch-touch":     [() => Q("Gördüğün yeşil renkte ise aynı yöndekine dokun, gördüğün turuncu ise ters yönde olana dokun.")],
 "plan-think":       [() => `${Q("Önce zihninde planla; birkaç saniye sonra dokunabilirsin. En az hamleyle hedefteki gibi yap.")} İsterseniz çocuk kaç hamlede çözeceğini önce söylesin.`],
 "hear-find":        [() => Q("Dinle. Sonra duyduğun resimlere dokun. Bitince Bitti'ye bas.")],
 "dir-follow":       [() => Q("Dinle. Sonra söylediğim gibi, doğru sırayla dokun.")],
@@ -12080,7 +12080,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.21-b";
+const APP_VERSION = "2026.10.21-c";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
