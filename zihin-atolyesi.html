@@ -55,7 +55,7 @@ min-height:100%;
 min-width:0;
 display:flex;
 flex-direction:column;
-padding:14px 14px calc(90px + env(safe-area-inset-bottom, 0px));
+padding:14px 14px calc(90px + var(--hb, 0px) + env(safe-area-inset-bottom, 0px));
 overflow-x:hidden;
 }
 .consent-screen{
@@ -360,7 +360,7 @@ html.hide-clock #timerDisplay{ visibility:hidden; }
 .mola-ball-wrap{ height:200px; display:flex; align-items:center; justify-content:center; } .mola-ball{ width:70px; height:70px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #FFD1E0, #FF8FB1 70%); transition:transform 4s ease-in-out; }
 .mola-ball.in{ animation:molaIn 4s ease-in-out forwards; } .mola-ball.out{ animation:molaOut 4s ease-in-out forwards; } @keyframes molaIn{ from{ transform:scale(1); } to{ transform:scale(2.6); } } @keyframes molaOut{ from{ transform:scale(2.6); } to{ transform:scale(1); } }
 .mola-inv{ display:block; margin:10px auto 0; border:0; border-radius:16px; background:#CFE8B8; color:#2F6B2F; font-family:inherit; font-weight:900; font-size:15px; padding:10px 16px; cursor:pointer; }
-#advScreen{ position:fixed; inset:0; z-index:420; background:linear-gradient(#FFF1DC, #FDF8F0); display:none; justify-content:center; overflow-y:auto; padding:12px 12px calc(16px + env(safe-area-inset-bottom)); }
+#advScreen{ position:fixed; inset:0; z-index:420; background:linear-gradient(#FFF1DC, #FDF8F0); display:none; justify-content:center; overflow-y:auto; padding:12px 12px calc(16px + var(--hb, 0px) + env(safe-area-inset-bottom)); }
 .adv-wrap{ width:min(560px, 100%); } .adv-top{ display:flex; align-items:center; gap:10px; margin:calc(6px + env(safe-area-inset-top)) 0 8px; } .adv-top .mola-x{ position:static; flex:none; }
 .adv-t1{ font-size:13px; font-weight:800; color:#9A5A12; } .adv-t2{ font-size:21px; font-weight:900; color:var(--ink); } .adv-frags{ margin-left:auto; display:flex; gap:3px; }
 .adv-f{ width:14px; height:14px; border-radius:50%; background:#E8DCC8; border:2px solid #C9B08A; } .adv-f.on{ background:radial-gradient(circle at 35% 30%, #FFF6B0, #FFC93D 60%, #E08A00); border-color:#B07D00; box-shadow:0 0 8px #FFD23F; }
@@ -372,7 +372,7 @@ html.hide-clock #timerDisplay{ visibility:hidden; }
 .adv-tasks{ display:flex; flex-direction:column; gap:8px; } .adv-task{ display:flex; align-items:center; gap:10px; background:#fff; border:3px solid #F1DFC2; border-radius:16px; padding:8px 10px; } .adv-task span{ font-size:20px; color:#E0A100; } .adv-task b{ flex:1; } .adv-task em{ color:#1FA463; font-weight:800; font-style:normal; } .adv-task.ok{ border-color:var(--good); } .adv-task.ok span{ color:var(--good); }
 .adv-nav{ display:flex; justify-content:space-between; margin-top:12px; gap:10px; }
 #placeSheet{ position:fixed; inset:0; z-index:470; background:rgba(20,30,40,.45); display:none; align-items:center; justify-content:center; padding:16px; }
-#placeScreen{ position:fixed; inset:0; z-index:465; background:linear-gradient(#E3F6F4, #F6FBFA); display:none; justify-content:center; overflow-y:auto; padding:12px 12px calc(16px + env(safe-area-inset-bottom)); }
+#placeScreen{ position:fixed; inset:0; z-index:465; background:linear-gradient(#E3F6F4, #F6FBFA); display:none; justify-content:center; overflow-y:auto; padding:12px 12px calc(16px + var(--hb, 0px) + env(safe-area-inset-bottom)); }
 .place-top{ margin:calc(10px + env(safe-area-inset-top)) 0 10px; } .place-dots{ display:flex; gap:6px; justify-content:center; } .place-dots span{ width:28px; height:8px; border-radius:6px; background:#CFE3E1; } .place-dots .done{ background:#3CCFC0; } .place-dots .cur{ background:#0A847E; }
 .place-q{ text-align:center; font-weight:800; font-size:19px; margin:8px 0 10px; } .place-stim{ display:flex; justify-content:center; margin-bottom:12px; max-width:100%; overflow:hidden; } .ps-in{ display:inline-block; max-width:100%; } .ps-in > svg:only-child{ width:min(56vw, 220px); height:min(56vw, 220px); display:block; } .place-stim img{ max-height:34vh !important; width:auto !important; max-width:100% !important; object-fit:contain; } .place-stim > div{ max-width:100%; }
 .place-opts{ display:grid; gap:10px; justify-content:center; margin:0 auto; max-width:520px; } .place-opts .wm-pic.ok{ box-shadow:0 0 0 4px var(--good); } .place-opts .wm-pic.bad{ box-shadow:0 0 0 4px var(--bad); }
@@ -383,7 +383,7 @@ html.hide-clock #timerDisplay{ visibility:hidden; }
 [data-mt], [data-mtbtn], [data-judge]{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 @media (orientation: portrait){ html.board-run #mainApp::after{ content:""; display:block; height:var(--runpad, 0px); } }
 .tier-btn.usta{ background:linear-gradient(#FFF3C4,#FFE27A); border-color:#E0A100; color:#7A5600; } .tier-btn.usta.active{ background:linear-gradient(#FFD23F,#F5A524); color:#3D2B00; }
-#growthScreen{ position:fixed; inset:0; z-index:420; background:linear-gradient(#F3FAF0,#FDFCF6); display:none; justify-content:center; overflow-y:auto; padding:12px 12px calc(16px + env(safe-area-inset-bottom)); }
+#growthScreen{ position:fixed; inset:0; z-index:420; background:linear-gradient(#F3FAF0,#FDFCF6); display:none; justify-content:center; overflow-y:auto; padding:12px 12px calc(16px + var(--hb, 0px) + env(safe-area-inset-bottom)); }
 .gr-sum{ background:#fff; border-radius:16px; padding:12px 14px; font-weight:700; line-height:1.5; margin:6px 0 10px; } .gr-note{ background:#FFF8E5; border:2px solid #F1DFC2; border-radius:16px; padding:12px 14px; font-size:14px; font-weight:600; line-height:1.5; margin-bottom:10px; }
 .gr-h{ font-weight:900; font-size:16px; margin:14px 0 6px; } .gr-list{ display:flex; flex-direction:column; gap:6px; } .gr-row{ display:flex; justify-content:space-between; align-items:center; gap:8px; background:#fff; border-radius:14px; padding:9px 12px; } .gr-row span{ display:block; font-size:12px; font-weight:600; color:var(--ink-soft); }
 .gr-row em{ font-style:normal; font-weight:900; font-size:12px; border-radius:9px; padding:3px 9px; white-space:nowrap; } .gr-row .t2{ background:#DDF5E7; color:#1B7A45; } .gr-row .t1{ background:#DDF1FF; color:#1E5FA8; } .gr-row .t0{ background:#FFF1D6; color:#9A6B00; } .gr-row .tz{ background:#EEF1F4; color:#6B7A88; }
@@ -391,7 +391,7 @@ html.hide-clock #timerDisplay{ visibility:hidden; }
 .resume-card .rc-play{ flex:none; width:46px; height:46px; border-radius:50%; background:rgba(255,255,255,.22); display:flex; align-items:center; justify-content:center; font-size:20px; }
 .resume-card .rc-tx b{ display:block; font-size:18px; font-weight:900; } .resume-card .rc-tx span{ display:block; font-size:13px; font-weight:700; opacity:.92; margin-top:2px; }
 .onboard-next-btn.rc-alt{ background:#fff !important; color:var(--teal-dark) !important; box-shadow:0 4px 0 #CFE3E1 !important; border:2px solid #CFE3E1 !important; font-size:16px !important; }
-#whoScreen{ position:fixed; inset:0; z-index:300; background:linear-gradient(#E3F6F4,#F6FBFA); display:none; justify-content:center; overflow-y:auto; padding:calc(14px + env(safe-area-inset-top)) 14px calc(16px + env(safe-area-inset-bottom)); }
+#whoScreen{ position:fixed; inset:0; z-index:300; background:linear-gradient(#E3F6F4,#F6FBFA); display:none; justify-content:center; overflow-y:auto; padding:calc(14px + env(safe-area-inset-top)) 14px calc(16px + var(--hb, 0px) + env(safe-area-inset-bottom)); }
 .who-wrap{ width:min(560px,100%); } .who-head{ display:flex; align-items:center; gap:12px; margin:6px 0 14px; } .who-t1{ font-size:24px; font-weight:900; } .who-t2{ font-size:14px; font-weight:600; color:var(--ink-soft); }
 .who-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; } .who-card{ position:relative; background:#fff; border:0; border-radius:22px; padding:14px 10px 12px; display:flex; flex-direction:column; align-items:center; gap:4px; box-shadow:0 4px 0 #D5E7E5; cursor:pointer; font-family:inherit; text-align:center; }
 .who-card b{ font-size:17px; } .who-card span{ font-size:12px; font-weight:700; color:var(--ink-soft); } .who-card em{ font-style:normal; font-size:11px; font-weight:700; color:#1B7A45; }
@@ -426,7 +426,7 @@ html.hide-clock #timerDisplay{ visibility:hidden; }
 .hm-seg button.on{ background:#0A847E; color:#fff; border-color:#0A847E; border-bottom:3px solid #076A64; } .hm-link{ display:block; margin:10px auto 0; border:0; background:none; font-family:inherit; font-weight:800; font-size:13px; color:#0A847E; text-decoration:underline; cursor:pointer; }
 .acct-note{ font-size:13px; font-weight:600; color:var(--ink-soft); line-height:1.5; } .acct-note b{ color:var(--ink); } .acct-btns{ display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
 .qz-warm{ display:table; margin:4px auto 0; background:#E7F6EC; color:#1B7A45; font-size:12px; font-weight:900; border-radius:10px; padding:3px 10px; } .wm-dots i.w{ opacity:.55; } .wm-dots i.w.on{ opacity:1; }
-#zaToast{ width:max-content; position:fixed; left:50%; bottom:calc(24px + env(safe-area-inset-bottom)); transform:translateX(-50%); z-index:700; max-width:88vw; padding:12px 18px; border-radius:16px; font-weight:800; font-size:15px; text-align:center; box-shadow:0 6px 20px rgba(0,40,60,.22); display:none; }
+#zaToast{ width:max-content; position:fixed; left:50%; bottom:calc(24px + var(--hb, 0px) + env(safe-area-inset-bottom)); transform:translateX(-50%); z-index:700; max-width:88vw; padding:12px 18px; border-radius:16px; font-weight:800; font-size:15px; text-align:center; box-shadow:0 6px 20px rgba(0,40,60,.22); display:none; }
 #zaToast.ok{ background:#0A847E; color:#fff; } #zaToast.warn{ background:#B45309; color:#fff; }
 .icon-btn, .flow-back-btn, .category-switch-back, .mem-back, .mola-x, .cl-x, [id$="BackBtn"]{ color:#0A5F5A !important; font-weight:900 !important; border:2px solid #C9DDDB !important; background:#fff !important; }
 .icon-btn{ font-size:22px !important; } .flow-back-btn svg, .category-switch-back svg, .mem-back svg, [id$="BackBtn"] svg, .icon-btn svg{ stroke-width:3.2 !important; width:26px; height:26px; color:#0A5F5A; }
@@ -614,7 +614,7 @@ html.game-mode #dots, html.game-mode #lsToggleBtn, html.game-mode #lsPage, html.
 .game-reward.many .gr-stars svg{ width:40px !important; height:40px !important; } .game-reward.many .gr-stars svg.mid{ width:50px !important; height:50px !important; }
 .game-reward.many .gr-card{ padding:12px 14px; gap:7px; } .game-reward.many .gr-line{ font-size:14px; line-height:1.3; }
 .game-reward.many .gr-rays{ top:150px; }
-.gr-btns{ position:sticky; bottom:0; z-index:2; padding-bottom:max(10px, env(safe-area-inset-bottom)); background:linear-gradient(transparent, var(--bg) 35%); }
+.gr-btns{ position:sticky; bottom:0; z-index:2; padding-bottom:max(calc(10px + var(--hb, 0px)), env(safe-area-inset-bottom)); background:linear-gradient(transparent, var(--bg) 35%); }
 .gr-raysbox{ position:absolute; left:0; top:0; width:100%; height:100%; min-height:100vh; overflow:hidden; pointer-events:none; z-index:0; }
 .gr-line svg{ flex:none; }
 .gr-inner{ max-width:440px; margin:0 auto; padding:48px 22px 28px; display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center; box-sizing:border-box; min-height:100%; }
@@ -1670,6 +1670,7 @@ html.text-xl .wide-grid .name-cell{ font-size:min(4.8vw, 19px); }
 html.text-xl .stroop-cell{ font-size:min(4.4vw, 17px); }
 html.text-xl .wide-grid .stroop-cell{ font-size:min(3.8vw, 15px); }
 html.text-xl .wide-grid .phrase-cell{ font-size:min(4vw, 16px); }
+html.ios-hb{ --hb:18px; }   /* ana ekran çubuğu olan iOS cihazlar: alt düğmeler hareket bölgesinden yukarıda */
 .controls{
 position:fixed;
 bottom:0;
@@ -1680,7 +1681,7 @@ max-width:520px;
 box-sizing:border-box;
 display:flex;
 gap:6px;
-padding:10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+padding:10px 12px calc(10px + var(--hb, 0px) + env(safe-area-inset-bottom, 0px));
 background:var(--bg);
 border-top:1px solid var(--line);
 z-index:50;
@@ -2723,7 +2724,7 @@ html.text-lg #hmEtk .hm-col > button, html.text-xl #hmEtk .hm-col > button{ font
 
 /* Değerlendirme turu sonuç ekranı: tek ekrana sığan özet (2026.10.17) */
 #placeScreen{ overflow-y:auto; -webkit-overflow-scrolling:touch; }
-.place-done{ max-width:420px; margin:0 auto; padding-top:calc(6px + env(safe-area-inset-top)); padding-bottom:calc(8px + env(safe-area-inset-bottom)); }
+.place-done{ max-width:420px; margin:0 auto; padding-top:calc(6px + env(safe-area-inset-top)); padding-bottom:calc(8px + var(--hb, 0px) + env(safe-area-inset-bottom)); }
 .place-done-top{ display:flex; align-items:center; justify-content:center; gap:12px; margin:4px 0 10px; }
 .place-sum{ display:flex; flex-direction:column; gap:8px; text-align:left; }
 .place-grp{ background:#FFFFFF; border-radius:16px; padding:6px 12px 4px; border:1.5px solid #E3ECEA; }
@@ -2997,7 +2998,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.21-g</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.21-h</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -3442,14 +3443,14 @@ dispatchFbReady();
 }
 </script>
 <script>setTimeout(function(){ if(window.__zaReady) return; var d=document.createElement('div'); d.style.cssText='position:fixed;inset:0;z-index:99999;background:#F6FBFA;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;text-align:center;color:#1D2B36'; d.innerHTML='<div style="max-width:420px"><div style="font-size:22px;font-weight:800;margin-bottom:10px">Uygulama dosyaları yüklenemedi</div><div style="font-size:15px;line-height:1.5">Bu sayfa yanındaki <b>zihin-app.js</b> ve <b>zihin-gorsel</b> dosyalarıyla birlikte çalışır. Beş dosyanın da aynı klasöre yüklendiğinden emin olun ve sayfayı yenileyin.<br><br><span style="color:#5B6B78">Claude içindeki önizlemede bu sürüm açılmaz; önizleme için zihin-atolyesi-onizleme.html dosyasını kullanın.</span></div><button onclick="location.reload()" style="margin-top:16px;padding:12px 22px;border:0;border-radius:14px;background:#0A847E;color:#fff;font-size:16px;font-weight:800">Yenile</button></div>'; document.body.appendChild(d); }, 9000);</script>
-<script>window.ZA_HTML_VERSION = "2026.10.21-g";</script>
-<script src="zihin-app.js?v=2026.10.21-g"></script>
+<script>window.ZA_HTML_VERSION = "2026.10.21-h";</script>
+<script src="zihin-app.js?v=2026.10.21-h"></script>
 <div id="imgBar" style="position:fixed;left:0;top:0;height:3px;width:100%;background:rgba(0,0,0,.06);z-index:9999;pointer-events:none"><div id="imgProg" style="height:100%;width:0;background:#1FA463;transition:width .3s"></div></div>
 <div id="imgWarn" style="display:none;position:fixed;left:12px;right:12px;bottom:92px;z-index:9997;background:#FFF4E5;color:#9A3412;border:2px solid #F59E0B;border-radius:14px;padding:10px 14px;font-weight:700;font-size:14px;text-align:center"></div>
 <div id="imgOverlay" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,.92);z-index:9998;align-items:center;justify-content:center;flex-direction:column;gap:14px;font-weight:800;color:#1F2A37;padding:24px;text-align:center"><div id="imgTitle" style="font-size:20px">Resimler yükleniyor…</div><div style="width:min(320px,80%);height:10px;background:#E6ECF2;border-radius:999px;overflow:hidden"><div id="imgProg2" style="height:100%;width:0;background:#1FA463;transition:width .3s"></div></div><div id="imgPct" style="font-size:15px;color:#5B6B7A">%0</div><div style="font-size:13px;color:#5B6B7A;font-weight:600">Yalnızca ilk açılışta sürer; sonraki açılışlarda resimler cihazdan gelir.</div></div>
 <script>
 (function(){ /* Resim dosyaları arkada, paralel yüklenir; uygulama beklemeden açılır. Yüklenen dosya eski/eksikse (ör. eski service worker önbelleği) önbelleği atlayarak yeniden indirilir. */
-  const v = "2026.10.21-g"; const files = [["zihin-gorsel-1.js", 4.5, "TASTE_IMAGES.simit"], ["zihin-gorsel-2.js", 3.1, "PART_IMAGES"], ["zihin-gorsel-3.js", 2.7, "NEW_IMAGES_5"]];   /* sonda: dosyaya en son eklenen resim (dosya eskiyse yoktur) */ const total = files.reduce((a, f) => a + f[1], 0); let got = 0, done = 0;
+  const v = "2026.10.21-h"; const files = [["zihin-gorsel-1.js", 4.5, "TASTE_IMAGES.simit"], ["zihin-gorsel-2.js", 3.1, "PART_IMAGES"], ["zihin-gorsel-3.js", 2.7, "NEW_IMAGES_5"]];   /* sonda: dosyaya en son eklenen resim (dosya eskiyse yoktur) */ const total = files.reduce((a, f) => a + f[1], 0); let got = 0, done = 0;
   const show = () => { const pct = Math.round(got / total * 100); ["imgProg", "imgProg2"].forEach(id => { const el = document.getElementById(id); if(el) el.style.width = pct + "%"; }); const p = document.getElementById("imgPct"); if(p) p.textContent = "%" + pct; };
   const has = (name) => { try{ return eval("typeof " + name) !== "undefined" && eval(name) != null; }catch(e){ return false; } };
   const finish = async () => { const bar = document.getElementById("imgBar"); if(bar) setTimeout(() => bar.style.display = "none", 600); window.__imgMissing = files.filter(f => !has(f[2])).map(f => f[0] + " (" + f[2].replace(/^.*\./, "") + " resmi yok)");

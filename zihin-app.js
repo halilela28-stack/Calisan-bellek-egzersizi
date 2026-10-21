@@ -1540,7 +1540,7 @@ return tryStep(0) ? P : null;
 };
 const tagSlot = (P, i) => trlTagSlot(P, i, node, W, H);
 let best = null, fallback = null;
-for(let k = 0; k < 24 && !best; k++){ const b = build(); if(!b) continue; if(!fallback) fallback = b; if(tagSlot(b, 0) !== null && tagSlot(b, b.length - 1) !== null) best = b; }   /* başlangıç/bitiş etiketine yer kalan yerleşim seçilir */
+for(let k = 0; k < 8 && !best; k++){ const b = build(); if(!b) continue; if(!fallback) fallback = b; if(tagSlot(b, 0) !== null && tagSlot(b, b.length - 1) !== null) best = b; }   /* başlangıç/bitiş etiketine yer kalan yerleşim seçilir */
 if(!best) best = fallback;
 if(!best){
 best = placeWith(trailState.perm, currentGrid.map(it => [it.jx, it.jy]));
@@ -1551,7 +1551,7 @@ pos = best;
 }
 let lines = "";
 for(let i = 1; i < trailState.next; i++) lines += `<line x1="${pos[i-1].x}" y1="${pos[i-1].y}" x2="${pos[i].x}" y2="${pos[i].y}" stroke="#1FA463" stroke-width="3" stroke-linecap="round"/>`;
-const tagStyle = (i) => trlTagSlot(pos, i, node, W, H) || "";   /* BAŞLA/BİTİŞ etiketi: boş yer (üst, alt, sağ, sol) */
+const tagStyle = (i) => { const sl = trlTagSlot(pos, i, node, W, H); return sl !== null ? sl : "top:2px;transform:translateX(-50%) scale(.82);"; };   /* yer yoksa etiket düğmenin içinde, üst kenarda (komşuya binmez) */   /* BAŞLA/BİTİŞ etiketi: boş yer (üst, alt, sağ, sol) */
 const nodes = currentGrid.map((it, i) => {
 const tag = i === 0 ? `<span class="tag" style="${tagStyle(i)}">BAŞLA</span>` : (i === n - 1 ? `<span class="tag" style="${tagStyle(i)}background:#5B6B78">BİTİŞ</span>` : "");
 return `<div class="trl-node${i < trailState.next ? " done" : ""}" data-o="${i}" style="left:${pos[i].x}px;top:${pos[i].y}px;width:${pos[i].w}px;height:${node}px;font-size:${it.long ? Math.round(fs*0.66) : fs}px;">${trlFace(it)}${tag}</div>`;
@@ -12095,7 +12095,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.21-g";
+const APP_VERSION = "2026.10.21-h";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -12129,7 +12129,7 @@ html.text-lg #hmEtk .hm-col > button, html.text-xl #hmEtk .hm-col > button{ font
 
 /* Değerlendirme turu sonuç ekranı: tek ekrana sığan özet (2026.10.17) */
 #placeScreen{ overflow-y:auto; -webkit-overflow-scrolling:touch; }
-.place-done{ max-width:420px; margin:0 auto; padding-top:calc(6px + env(safe-area-inset-top)); padding-bottom:calc(8px + env(safe-area-inset-bottom)); }
+.place-done{ max-width:420px; margin:0 auto; padding-top:calc(6px + env(safe-area-inset-top)); padding-bottom:calc(8px + var(--hb, 0px) + env(safe-area-inset-bottom)); }
 .place-done-top{ display:flex; align-items:center; justify-content:center; gap:12px; margin:4px 0 10px; }
 .place-sum{ display:flex; flex-direction:column; gap:8px; text-align:left; }
 .place-grp{ background:#FFFFFF; border-radius:16px; padding:6px 12px 4px; border:1.5px solid #E3ECEA; }
@@ -15313,7 +15313,7 @@ function showHwDone(){ if(!hwRun) return; const it = hwRun.items[hwRun.idx], pla
   else { const pl = devPlanGet(player, lvl); const item = ((pl && pl.items) || []).find(x => x.id === it.id) || it; const A = devAttempts(Object.assign({ at: it.at || 0 }, item), player); if(it.kind === "explore"){ if(A.n >= 1){ title = "Tanıma ödevi tamamlandı ✓"; sub = "Bu alan hakkında bilgi toplandı; sonraki ödevler buna göre hazırlanacak."; } else { title = "Kaydedildi"; sub = "Bu çalışma ödevle eşleşmedi; Ödevlerim ekranından yeniden açmayı deneyin."; } } else if(A.ok >= 2){ title = "Ödev tamamlandı ✓"; sub = "İki başarılı deneme yapıldı; yerine bir sonraki adım gelecek."; } else if(A.lastOutcome === "ok"){ title = "Güzel! Bir başarı daha kaldı"; sub = "Bir kez daha başarıyla yapınca ödev tamamlanır."; } else { title = "Ödev kaydedildi"; sub = "İki başarılı deneme gerekiyor; istersen tekrar deneyebilirsin."; } }
   hideHwDone(); const el = document.createElement("div"); el.id = "hwDone"; el.style.cssText = "position:fixed;inset:0;z-index:9000;background:rgba(15,40,40,.35);display:flex;align-items:flex-end;justify-content:center";
   const hasNext = hwRun.idx < n - 1; const done = title.includes("✓");
-  el.innerHTML = `<div style="width:100%;max-width:560px;background:#fff;border-radius:24px 24px 0 0;padding:20px 18px calc(18px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 30px rgba(0,0,0,.15)"><div style="display:flex;align-items:center;gap:10px">${icI(done ? "star" : "clip", 26, done ? "#1B7A3D" : "#0A847E")}<div style="font-weight:900;font-size:19px">${escHTML(title)}</div></div><div class="fam-sub" style="font-weight:600;margin:6px 0 14px">${escHTML(famLabel(it.id))} · ${escHTML(sub)}</div><div style="display:flex;flex-direction:column;gap:8px">${hasNext ? `<button type="button" class="fam-cta" id="hwDoneNext">Sıradaki ödev (${hwRun.idx + 2}/${n})</button>` : ""}<button type="button" class="fam-cta${hasNext ? " ghost" : ""}" id="hwDoneList">Ödevlerime dön</button><button type="button" id="hwDoneStay" style="min-height:42px;background:none;border:0;font:inherit;font-weight:800;color:#5B6B7A;cursor:pointer">Bu çalışmada kal</button></div></div>`;
+  el.innerHTML = `<div style="width:100%;max-width:560px;background:#fff;border-radius:24px 24px 0 0;padding:20px 18px calc(18px + var(--hb, 0px) + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 30px rgba(0,0,0,.15)"><div style="display:flex;align-items:center;gap:10px">${icI(done ? "star" : "clip", 26, done ? "#1B7A3D" : "#0A847E")}<div style="font-weight:900;font-size:19px">${escHTML(title)}</div></div><div class="fam-sub" style="font-weight:600;margin:6px 0 14px">${escHTML(famLabel(it.id))} · ${escHTML(sub)}</div><div style="display:flex;flex-direction:column;gap:8px">${hasNext ? `<button type="button" class="fam-cta" id="hwDoneNext">Sıradaki ödev (${hwRun.idx + 2}/${n})</button>` : ""}<button type="button" class="fam-cta${hasNext ? " ghost" : ""}" id="hwDoneList">Ödevlerime dön</button><button type="button" id="hwDoneStay" style="min-height:42px;background:none;border:0;font:inherit;font-weight:800;color:#5B6B7A;cursor:pointer">Bu çalışmada kal</button></div></div>`;
   document.body.appendChild(el); const nx = document.getElementById("hwDoneNext"); if(nx) nx.onclick = () => { hideHwDone(); hwRunStep(1); };
   document.getElementById("hwDoneList").onclick = () => { hwRunEnd(); showHwScreen(); }; document.getElementById("hwDoneStay").onclick = () => hideHwDone(); }
 
@@ -15364,5 +15364,14 @@ function g3img(k){ try{ return (typeof NEW_IMAGES_2 !== "undefined" && NEW_IMAGE
 /* Başka Ne İşe Yarar?: hedef fikir sayısı ve bağlam kısıtı (düzeye göre) */
 function altGoal(){ return (isPre() ? [2, 3, 4] : [3, 5, 7])[Math.min(currentCombo().t, 2)]; }
 function altCtx(){ const t = Math.min(currentCombo().t, 2); if(t === 0) return ""; const pool = t === 1 ? ["evde"] : (isPre() ? ["okulda", "parkta"] : ["kampta", "okulda", "parkta"]); const key = "alt-ctx|" + (isPre() ? "pre" : "post") + "|" + t; if(fluTarget[key + "@"] !== window.__navSerial || !pool.includes(fluTarget[key])){ fluTarget[key + "@"] = window.__navSerial; let v; do{ v = randomItem(pool); } while(pool.length > 1 && v === fluTarget[key]); fluTarget[key] = v; } return fluTarget[key]; }
+
+/* Ana ekran çubuğu olan iOS cihazlar (çentikli iPhone, iPad): alt boşluk */
+(function markHomeBar(){ try{ const ua = navigator.userAgent || "", big = Math.max(screen.width, screen.height); const iphoneX = /iPhone/.test(ua) && big >= 812; const ipad = /iPad/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); if(iphoneX || ipad) document.documentElement.classList.add("ios-hb"); }catch(e){} })();
+/* Alt düğmeler (Önceki, Karıştır, Sonraki): hızlı dokunma — parmak biraz kaysa da basış sayılır, çift tetiklenmez */
+(function initNavFastTap(){ const ids = ["prevBtn", "reshuffleBtn", "nextBtn"]; ids.forEach(id => { const el = document.getElementById(id); if(!el) return; let st = null;
+  el.addEventListener("pointerdown", ev => { if(ev.pointerType === "mouse") return; st = { x: ev.clientX, y: ev.clientY, t: Date.now() }; }, { passive:true });
+  el.addEventListener("pointercancel", () => { st = null; }, { passive:true });
+  el.addEventListener("pointerup", ev => { if(!st || ev.pointerType === "mouse") return; const ok = Math.hypot(ev.clientX - st.x, ev.clientY - st.y) < 24 && Date.now() - st.t < 900; st = null; if(!ok || el.disabled) return; if(Date.now() - (el._navAt || 0) < 350) return; el._navAt = Date.now(); el._ftAt = Date.now(); el.click(); });
+  el.addEventListener("click", ev => { if(ev.isTrusted && Date.now() - (el._ftAt || 0) < 700){ ev.stopImmediatePropagation(); ev.preventDefault(); return; } if(ev.isTrusted){ if(Date.now() - (el._navAt || 0) < 350){ ev.stopImmediatePropagation(); ev.preventDefault(); return; } el._navAt = Date.now(); } }, true); }); })();
 
 window.__zaReady = true;
