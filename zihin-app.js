@@ -8116,7 +8116,7 @@ else if(a === "light"){ const g2 = advState(); g2.adv.lit = true; g2.light = (g2
 el.querySelectorAll("[data-adv-play]").forEach(b => b.onclick = () => { el.style.display = "none"; startGameStop(b.dataset.advPlay, "macera"); }); }
 
 const PLACE_KEY = "wm_place_v2", PLACE_REDO_DAYS = 42;
-/* Keşif turu: her kategori ayrı alan; her alanda 6 basamaklı tek merdiven
+/* Değerlendirme turu: her kategori ayrı alan; her alanda 6 basamaklı tek merdiven
    (Okul Öncesi Başlangıç/Orta/Zor → Okul Sonrası Başlangıç/Orta/Zor). Seviye yaşa göre değil, alanda yapabildiğine göre belirlenir;
    yaş yalnızca başlangıç basamağını seçer. */
 const PLACE_DOMS = [
@@ -8142,8 +8142,8 @@ function placedStep(catId, name){ const p = placeGet(name != null ? name : curre
 function placedLevelFor(catId, name){ const s = placedStep(catId, name); return s == null ? null : stepLvl(s); }
 function placedTierFor(exId, name){ const c = CATEGORIES.find(c => c.exerciseIds.includes(exId)); if(!c) return null; const s = placedStep(c.id, name); if(s == null) return null;
   if(stepLvl(s) !== readingLevel) return stepLvl(s) === "post" ? 2 : 0; /* başka seviyedeyse o seviyenin ucundan başla */ return stepTier(s); }
-/* Çalışma açılırken seviyeyi alandaki keşif sonucuna göre ayarla (sonuç yoksa profildeki seviye) */
-function applyPlacedLevel(catId, name){ try{ const n = (name != null ? name : currentPlayerName) || ""; if(!n || n === "Misafir") return; const L = placedLevelFor(catId, n);   /* yalnızca bu alanda keşif sonucu varsa */ if(L && L !== readingLevel){ readingLevel = L; try{ applyLevelDefaultThresholds(L); }catch(e){} } }catch(e){} }
+/* Çalışma açılırken seviyeyi alandaki değerlendirme sonucuna göre ayarla (sonuç yoksa profildeki seviye) */
+function applyPlacedLevel(catId, name){ try{ const n = (name != null ? name : currentPlayerName) || ""; if(!n || n === "Misafir") return; const L = placedLevelFor(catId, n);   /* yalnızca bu alanda değerlendirme sonucu varsa */ if(L && L !== readingLevel){ readingLevel = L; try{ applyLevelDefaultThresholds(L); }catch(e){} } }catch(e){} }
 function placeSummary(p){ if(!p) return ""; const e = Object.entries(p.dom), nm = (k) => (PLACE_DOMS.find(d => d.k === k) || {}).nm; const post = e.filter(([, v]) => v >= 3).length;
   const hi = e.filter(([, v]) => v >= 4).map(([k]) => nm(k)).filter(Boolean), lo = e.filter(([, v]) => v <= 1).map(([k]) => nm(k)).filter(Boolean);
   return [`${post} alan Okul Sonrası, ${e.length - post} alan Okul Öncesi`, hi.length ? `Güçlü: ${hi.join(", ")}` : "", lo.length ? `Gelişen: ${lo.join(", ")}` : ""].filter(Boolean).join(" · "); }
@@ -8155,16 +8155,16 @@ const R = placeRun, recent = (R && R.recent) || []; let pool = shuffleArray(out.
 if(R){ R.recent = recent.concat(pool.slice(0, 9).map(x => x.src)).slice(-18); } return pool; }
 function placeNamedPool(){ const C = qzCats(), seen = new Set(), out = []; Object.keys(C).forEach(k => (C[k].items || []).forEach(x => { if(x && x.src && x.n && !seen.has(x.n)){ seen.add(x.n); out.push(x); } })); return shuffleArray(out); }
 function placeOffer(name){ if(!name || name === "Misafir") return; let el = document.getElementById("placeSheet"); if(!el){ el = document.createElement("div"); el.id = "placeSheet"; document.body.appendChild(el); }
-el.innerHTML = `<div class="mola-card"><div style="width:90px;height:90px;margin:0 auto">${zihniSVG("happy")}</div><div class="mola-h">Keşif turu</div><div class="mola-s"><b>${escHTML(name)}</b> için Zihni ile 6–8 dakikalık bir keşif turu oynansın mı? On alanın her birinde çocuğun yapabildiği yer bulunur; çalışmalar oradan başlar.</div>
+el.innerHTML = `<div class="mola-card"><div style="width:90px;height:90px;margin:0 auto">${zihniSVG("happy")}</div><div class="mola-h">Değerlendirme turu</div><div class="mola-s"><b>${escHTML(name)}</b> için Zihni ile 6–8 dakikalık bir değerlendirme turu oynansın mı? On alanın her birinde çocuğun yapabildiği yer bulunur; çalışmalar oradan başlar.</div>
 <div class="mola-list"><button type="button" data-po="go"><span>🧭</span>Şimdi oyna</button><button type="button" data-po="later"><span>⏰</span>Sonra</button></div></div>`;
 el.style.display = "flex"; el.querySelector('[data-po="go"]').onclick = () => { el.style.display = "none"; placeStart(name); }; el.querySelector('[data-po="later"]').onclick = () => { el.style.display = "none"; }; }
 function placeStart(name){ let prof = null; try{ prof = getPlayerLevel(name); }catch(e){} const base = (prof || readingLevel) === "pre" ? 1 : 3;
 placeRun = { name, base, di:0, step: base, dir:0, hits:0, n:0, visits:0, res:{}, items:0, warmDone:{} };
 let el = document.getElementById("placeScreen"); if(!el){ el = document.createElement("div"); el.id = "placeScreen"; document.body.appendChild(el); }
-el.style.display = "flex"; el.innerHTML = `<div class="adv-wrap" style="text-align:center"><div style="width:110px;height:110px;margin:20px auto 6px">${zihniSVG("happy")}</div><div class="mola-h">Zihni ile keşif turu!</div><div class="mola-s">On küçük oyun var. Elinden geldiğince dikkatli oyna, acele etmene gerek yok.</div><div class="mola-list" style="max-width:300px;margin:0 auto"><button type="button" id="placeGo" class="place-cta"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M10 8.5v7l5.5-3.5z" fill="currentColor"></path></svg>Başla</button></div></div>`;
-speakText("Zihni ile keşif turuna hazır mısın?"); document.getElementById("placeGo").onclick = placeNext; placeExitBtn(); }
-function placeExitBtn(){ const el = document.getElementById("placeScreen"); let x = document.getElementById("placeX"); if(x){ x.style.display = "flex"; return; } x = document.createElement("button"); x.id = "placeX"; x.type = "button"; x.className = "place-x mola-x"; x.setAttribute("aria-label", "Keşif turundan çık"); x.textContent = "✕";
-x.onclick = async () => { if(!await zaConfirm("Keşif turundan çıkılsın mı? Sonuçlar kaydedilmez; turu daha sonra yeniden başlatabilirsiniz.")) return; placeRun = null; el.style.display = "none"; x.style.display = "none"; try{ speechSynthesis.cancel(); }catch(e){} try{ if(document.getElementById("islandScreen").style.display === "flex") showIslandMap(); }catch(e){} };
+el.style.display = "flex"; el.innerHTML = `<div class="adv-wrap" style="text-align:center"><div style="width:110px;height:110px;margin:20px auto 6px">${zihniSVG("happy")}</div><div class="mola-h">Zihni ile değerlendirme turu!</div><div class="mola-s">On küçük oyun var. Elinden geldiğince dikkatli oyna, acele etmene gerek yok.</div><div class="mola-list" style="max-width:300px;margin:0 auto"><button type="button" id="placeGo" class="place-cta"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M10 8.5v7l5.5-3.5z" fill="currentColor"></path></svg>Başla</button></div></div>`;
+speakText("Zihni ile değerlendirme turuna hazır mısın?"); document.getElementById("placeGo").onclick = placeNext; placeExitBtn(); }
+function placeExitBtn(){ const el = document.getElementById("placeScreen"); let x = document.getElementById("placeX"); if(x){ x.style.display = "flex"; return; } x = document.createElement("button"); x.id = "placeX"; x.type = "button"; x.className = "place-x mola-x"; x.setAttribute("aria-label", "Değerlendirme turundan çık"); x.textContent = "✕";
+x.onclick = async () => { if(!await zaConfirm("Değerlendirme turundan çıkılsın mı? Sonuçlar kaydedilmez; turu daha sonra yeniden başlatabilirsiniz.")) return; placeRun = null; el.style.display = "none"; x.style.display = "none"; try{ speechSynthesis.cancel(); }catch(e){} try{ if(document.getElementById("islandScreen").style.display === "flex") showIslandMap(); }catch(e){} };
 document.body.appendChild(x); }
 function placeNext(){ const R = placeRun; if(!R) return; if(R.di >= PLACE_DOMS.length) return placeFinish(); setTimeout(placeExitBtn, 0);
 const d = PLACE_DOMS[R.di]; R.items++; const myItem = R.item = (R.item || 0) + 1;
@@ -8219,17 +8219,17 @@ el.querySelectorAll("[data-po-v]").forEach(b => b.onclick = () => { if(R.answere
 function placeFinish(){ const R = placeRun; placeRun = null; { const x = document.getElementById("placeX"); if(x) x.style.display = "none"; } const rec = { t: Date.now(), dom: R.res, items: R.items, base: R.base }; placeSave(R.name, rec);
 try{ if(gameProfile() === R.name){ const g = gxGet(); g.light = (g.light || 0) + 5; gxSave(g); } }catch(e){}
 const el = document.getElementById("placeScreen");
-el.innerHTML = `<div class="adv-wrap place-done" style="text-align:center"><div class="place-done-top"><div style="width:64px;height:64px;flex:0 0 64px">${zihniSVG("happy")}</div><div style="text-align:left"><div class="mola-h" style="margin:0">Keşif turu bitti!</div><div class="mola-s" style="margin:2px 0 0">Harikaydın! +5 ışık</div></div></div>
+el.innerHTML = `<div class="adv-wrap place-done" style="text-align:center"><div class="place-done-top"><div style="width:64px;height:64px;flex:0 0 64px">${zihniSVG("happy")}</div><div style="text-align:left"><div class="mola-h" style="margin:0">Değerlendirme turu bitti!</div><div class="mola-s" style="margin:2px 0 0">Harikaydın! +5 ışık</div></div></div>
 <div class="place-sum">${[["Okul Sonrası", PLACE_DOMS.filter(d => R.res[d.k] >= 3)], ["Okul Öncesi", PLACE_DOMS.filter(d => R.res[d.k] < 3)]].filter(g => g[1].length).map(g => `<div class="place-grp"><div class="place-grp-h">${g[0]}</div>${g[1].map(d => `<div class="place-row"><b>${d.nm}</b><span class="t${stepTier(R.res[d.k])}">${PLACE_TIER[stepTier(R.res[d.k])]}</span></div>`).join("")}</div>`).join("")}</div>
 <div class="fam-sub place-note">Yetişkin için: seviye yaşa göre değil, her alanda yapabildiğine göre belirlendi. Çalışmalar buradan başlar, sonra performansa göre kendiliğinden ayarlanır.</div>
 <div class="mola-list" style="max-width:300px;margin:0 auto"><button type="button" id="placeDone" class="place-cta"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="m7.5 12.5 3 3 6-6.5"></path></svg>Tamam</button></div></div>`;
-speakText("Keşif turu bitti! Harikaydın!");
+speakText("Değerlendirme turu bitti! Harikaydın!");
 document.getElementById("placeDone").onclick = () => { el.style.display = "none"; try{ if(document.getElementById("islandScreen").style.display === "flex") showIslandMap(); }catch(e){} try{ renderPlaceSettings(); }catch(e){} }; }
 function renderPlaceSettings(){ const box = document.getElementById("placeSettingsBox"); if(!box) return; const nm = (currentPlayerName || "").trim();
 if(!nm || nm === "Misafir"){ box.innerHTML = `<span style="font-size:12px;font-weight:600;color:var(--ink-soft)">Önce bir kişi seçin.</span>`; return; }
 const p = placeGet(nm);
-box.innerHTML = `<div style="font-size:13px;font-weight:700">${escHTML(nm)}</div>${p ? `<div class="place-sum" style="margin:8px 0 4px">${[["Okul Sonrası", PLACE_DOMS.filter(d => (p.dom[d.k] ?? 0) >= 3)], ["Okul Öncesi", PLACE_DOMS.filter(d => (p.dom[d.k] ?? 0) < 3)]].filter(g => g[1].length).map(g => `<div class="place-grp"><div class="place-grp-h">${g[0]}</div>${g[1].map(d => `<div class="place-row"><b>${d.nm}</b><span class="t${stepTier(p.dom[d.k] ?? 0)}">${PLACE_TIER[stepTier(p.dom[d.k] ?? 0)]}</span></div>`).join("")}</div>`).join("")}</div><div style="font-size:12px;font-weight:600;color:var(--ink-soft);margin:4px 0">${placeSummary(p)} · ${new Date(p.t).toLocaleDateString("tr-TR")}</div>` : `<div style="font-size:12px;font-weight:600;color:var(--ink-soft);margin:4px 0">Henüz keşif turu yapılmadı.</div>`}
-<button type="button" class="fam-chip" id="placeRunBtn">${p ? "Yeniden değerlendir" : "Keşif turunu başlat"}</button>`;
+box.innerHTML = `<div style="font-size:13px;font-weight:700">${escHTML(nm)}</div>${p ? `<div class="place-sum" style="margin:8px 0 4px">${[["Okul Sonrası", PLACE_DOMS.filter(d => (p.dom[d.k] ?? 0) >= 3)], ["Okul Öncesi", PLACE_DOMS.filter(d => (p.dom[d.k] ?? 0) < 3)]].filter(g => g[1].length).map(g => `<div class="place-grp"><div class="place-grp-h">${g[0]}</div>${g[1].map(d => `<div class="place-row"><b>${d.nm}</b><span class="t${stepTier(p.dom[d.k] ?? 0)}">${PLACE_TIER[stepTier(p.dom[d.k] ?? 0)]}</span></div>`).join("")}</div>`).join("")}</div><div style="font-size:12px;font-weight:600;color:var(--ink-soft);margin:4px 0">${placeSummary(p)} · ${new Date(p.t).toLocaleDateString("tr-TR")}</div>` : `<div style="font-size:12px;font-weight:600;color:var(--ink-soft);margin:4px 0">Henüz değerlendirme turu yapılmadı.</div>`}
+<button type="button" class="fam-chip" id="placeRunBtn">${p ? "Yeniden değerlendir" : "Değerlendirme turunu başlat"}</button>`;
 document.getElementById("placeRunBtn").onclick = () => placeStart(nm); }
 
 const GR_CATS = () => CATEGORIES.filter(c => !c.hidden && c.id !== "goz-takip");
@@ -8256,7 +8256,7 @@ el.innerHTML = `<div class="adv-wrap"><div class="adv-top"><button type="button"
 ${sup.length ? `<div class="gr-note"><b>Bir öneri:</b> ${sup.map(x => x.c.label).join(", ")} alanında bir süredir zorlanma görünüyor. Bu bir değerlendirme ya da tanı değildir; çocuklar farklı hızlarda gelişir. İsterseniz bu özeti bir çocuk gelişim uzmanı, özel eğitim öğretmeni ya da dil ve konuşma terapistiyle paylaşabilirsiniz.${linked ? ` <i>Uzmanınız bu sonuçları görebiliyor.</i>` : `<button type="button" class="fam-cta ghost" data-gr="link" style="margin-top:8px">Uzmana bağlan</button>`}</div>` : ""}
 <div class="gr-list">${D.map(x => `<div class="gr-row"><div><b>${x.c.label}</b><span>${x.n ? `${x.n} çalışma` : ""}${x.n && x.stars ? " · " : ""}${x.stars ? `${x.stars} ⭐` : ""}${x.crowns ? ` · ${x.crowns} 👑` : ""}</span></div><em class="${GR_TXT[x.st][1]}">${GR_TXT[x.st][0]}</em></div>`).join("")}</div>
   ${(() => { const O = growthData(nm, OKUL_SKILLS).filter(x => famExIds(x.c.id).length >= 3); return `<div class="gr-h">🎒 Okul becerileri</div><div class="gr-list">${O.map(x => `<div class="gr-row"><div><b>${x.c.label}</b><span>${x.n ? `${x.n} çalışma` : ""}${x.n && x.stars ? " · " : ""}${x.stars ? `${x.stars} ⭐` : ""}</span></div><em class="${GR_TXT[x.st][1]}">${GR_TXT[x.st][0]}</em></div>`).join("")}</div><div class="fam-sub" style="font-weight:600;margin:6px 0">Bir okul becerisini günlük oturumun hedefi yapmak için “Bugünün oturumu” ekranında hedef alanı değiştirin.</div>`; })()}
-${P ? `<div class="fam-sub" style="font-weight:600;margin:10px 0">Keşif turu (${new Date(P.t).toLocaleDateString("tr-TR")}): ${placeSummary(P)}</div>` : ""}
+${P ? `<div class="fam-sub" style="font-weight:600;margin:10px 0">Değerlendirme turu (${new Date(P.t).toLocaleDateString("tr-TR")}): ${placeSummary(P)}</div>` : ""}
 <div class="fam-sub" style="font-weight:600;margin:10px 0 20px">Bu sayfa çocuğunuzun uygulamadaki çalışmalarını özetler; başka çocuklarla karşılaştırma yapmaz ve tanı koymaz.</div></div>`;
 el.style.display = "flex"; el.scrollTop = 0;
 el.querySelectorAll("[data-gr]").forEach(b => b.onclick = () => { el.style.display = "none"; if(b.dataset.gr === "link"){ try{ showLinkScreen(); }catch(e){} } }); }
@@ -12077,7 +12077,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.20-m";
+const APP_VERSION = "2026.10.21-a";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -12104,12 +12104,12 @@ html.text-lg #hmEtk .hm-col > button, html.text-xl #hmEtk .hm-col > button{ font
 @media (max-width:359px){ #hmEtk .hm-seg{ grid-template-columns:minmax(0,1fr) !important; } }
 @media (min-width:360px) and (max-width:389px){ #hmEtk .hm-col > button, #hmEtk .hm-col > .hm-sub{ padding:0 10px !important; gap:8px !important; font-size:14px !important; } #hmEtk .hm-col > button svg{ width:20px !important; height:20px !important; flex:0 0 20px; } #hmEtk .hm-seg, #hmEtk .hm-col{ gap:10px !important; } }   /* çok dar ekran: tek sütun, yazılar kırpılmaz */
 
-/* Keşif turu: Başla / Tamam düğmeleri — uygulama yeşili, çizgi simge (2026.10.17) */
+/* Değerlendirme turu: Başla / Tamam düğmeleri — uygulama yeşili, çizgi simge (2026.10.17) */
 .mola-list button.place-cta{ flex-direction:row !important; justify-content:center !important; gap:12px !important; min-height:60px; padding:12px 18px !important; background:#FFFFFF !important; border:2px solid #CFE6E2 !important; border-bottom-width:4px !important; border-radius:18px !important; color:#05625D !important; font-size:19px !important; font-weight:900 !important; }
 .mola-list button.place-cta svg{ color:#0A847E; flex:0 0 30px; }
 .mola-list button.place-cta:active{ background:#F1F8F6 !important; transform:translateY(2px); border-bottom-width:2px !important; }
 
-/* Keşif turu sonuç ekranı: tek ekrana sığan özet (2026.10.17) */
+/* Değerlendirme turu sonuç ekranı: tek ekrana sığan özet (2026.10.17) */
 #placeScreen{ overflow-y:auto; -webkit-overflow-scrolling:touch; }
 .place-done{ max-width:420px; margin:0 auto; padding-top:calc(6px + env(safe-area-inset-top)); padding-bottom:calc(8px + env(safe-area-inset-bottom)); }
 .place-done-top{ display:flex; align-items:center; justify-content:center; gap:12px; margin:4px 0 10px; }
@@ -12303,8 +12303,8 @@ watchExpertLinks();
 const n = expertLinks.length, linked = expertLinks.filter(l => l.familyUid).length;
 const cur = (currentPlayerName || "").trim(), has = !!cur && cur !== "Misafir" && cur !== "Oyuncu";
 const P = has ? placeGet(cur) : null, L = (() => { try{ return lastGet(); }catch(e){ return null; } })(), canResume = !!(has && L && L.mode === "uzman" && L.player === cur);
-const sumTxt = P ? (() => { const v = Object.values(P.dom), post = v.filter(x => x >= 3).length; return post === v.length ? "Keşif: Okul Sonrası" : post === 0 ? "Keşif: Okul Öncesi" : `Keşif: ${post} alan Okul Sonrası`; })() : "Keşif turu henüz yapılmadı";
-const go = !has ? "Seç" : !P ? "Keşif" : canResume ? "Devam" : "Başla";
+const sumTxt = P ? (() => { const v = Object.values(P.dom), post = v.filter(x => x >= 3).length; return post === v.length ? "Değerlendirme: Okul Sonrası" : post === 0 ? "Değerlendirme: Okul Öncesi" : `Değerlendirme: ${post} alan Okul Sonrası`; })() : "Değerlendirme turu henüz yapılmadı";
+const go = !has ? "Seç" : !P ? "Değerlendir" : canResume ? "Devam" : "Başla";
 const ic = (path, col) => `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="${col}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`;
 const T = "#0A847E", K = "#A9632A";
 const I = { users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8"/><path d="M18 14.8c2 .7 3.2 2.4 3.6 5.2"/>', hw:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 3 3 5-6"/>', grow:'<path d="M12 21v-9"/><path d="M12 12c0-4 3-7 7-7 0 4-3 7-7 7z"/><path d="M12 14c0-3-2.5-5.5-6-5.5 0 3.5 2.5 5.5 6 5.5z"/>', week:'<path d="M4 20V11M10 20V5M16 20v-6M2 20h20"/>', compass:'<circle cx="12" cy="12" r="9.5"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>' };
@@ -12315,7 +12315,7 @@ box.innerHTML = `<button type="button" class="fh-today ex-today" id="exTodayCard
 <button type="button" class="fh-week" id="exHomeBtn"><span class="ic" style="background:var(--teal-tint);color:var(--teal-dark)">${ic(I.users, T)}</span><span><div class="t1">Danışanlar</div><div class="t2">${n ? `${n} danışan · ${linked} aile bağlı · ödevler danışan ekranında` : "Danışan ekle, aileye bağla, ödev gönder"}</div></span></button>
 <button type="button" class="fh-week" id="exGrowBtn"><span class="ic" style="background:#FFF3C4;color:#9A6B00">${ic(I.grow, "#9A6B00")}</span><span><div class="t1">Gelişim haritası</div><div class="t2">${has ? escHTML(cur) + " · güçlü yönler ve gelişen alanlar" : "Kişi seçince açılır"}</div></span></button>
 <button type="button" class="fh-week" id="exWeekBtn"><span class="ic">${ic(I.week, "#9A5A12")}</span><span><div class="t1">Bu hafta</div><div class="t2">${has ? "Çalışılan günler ve kısa gelişim özeti" : "Kişi seçince açılır"}</div></span></button>
-${has ? `<button type="button" class="fh-week" id="exPlaceBtn"><span class="ic" style="background:var(--teal-tint);color:var(--teal-dark)">${ic(I.compass, T)}</span><span><div class="t1">Keşif turu</div><div class="t2">${P ? sumTxt.replace("Keşif: ", "") + " · " + new Date(P.t).toLocaleDateString("tr-TR") + " · yeniden değerlendir" : "On alanda başlangıç düzeyini belirle"}</div></span></button>` : ""}`;
+${has ? `<button type="button" class="fh-week" id="exPlaceBtn"><span class="ic" style="background:var(--teal-tint);color:var(--teal-dark)">${ic(I.compass, T)}</span><span><div class="t1">Değerlendirme turu</div><div class="t2">${P ? sumTxt.replace("Değerlendirme: ", "") + " · " + new Date(P.t).toLocaleDateString("tr-TR") + " · yeniden değerlendir" : "On alanda başlangıç düzeyini belirle"}</div></span></button>` : ""}`;
 box.style.display = "flex";
 const needPerson = (fn) => () => { if(!has){ pickPerson(() => renderCategoryList(), { noGuest:true }); return; } fn(); };
 document.getElementById("exHomeBtn").onclick = () => showExpert("list");
@@ -12325,7 +12325,7 @@ document.getElementById("exTodayCard").onclick = needPerson(() => {
   if(canResume) return resumeLast(L);
   if(P){ const d = PLACE_DOMS.slice().sort((a, b) => (P.dom[a.k] ?? 9) - (P.dom[b.k] ?? 9))[0]; const ci = CATEGORIES.findIndex(c => d.cats.includes(c.id) && !c.hidden); if(ci >= 0) return selectCategory(ci); }
   const first = CATEGORIES.findIndex(c => !c.hidden && c.id === "islemleme-hizi"); selectCategory(first >= 0 ? first : 0); });
-const pb = document.getElementById("exPlaceBtn"); if(pb) pb.onclick = async () => { if(P && !await zaConfirm(cur + " için keşif turu yeniden yapılsın mı? Yeni sonuçlar eskisinin yerine geçer.")) return; placeStart(cur); };
+const pb = document.getElementById("exPlaceBtn"); if(pb) pb.onclick = async () => { if(P && !await zaConfirm(cur + " için değerlendirme turu yeniden yapılsın mı? Yeni sonuçlar eskisinin yerine geçer.")) return; placeStart(cur); };
 }
 const expertView = { mode:"list", code:null };
 function showExpert(mode, code){
@@ -13425,7 +13425,7 @@ const box = document.getElementById("islandRoute"); if(!box) return;
 if(!(currentPlayerName || "").trim()){ box.innerHTML = ""; return; }
 setTimeout(() => { try{ let pc = document.getElementById("placeCard"); const nm = gameProfile(); const due = nm !== "Misafir" && placeDue(nm), had = !!placeGet(nm);
 if(!due){ if(pc) pc.remove(); return; } if(!pc){ pc = document.createElement("div"); pc.id = "placeCard"; box.parentNode.insertBefore(pc, box); }
-pc.innerHTML = `<div class="place-card"><span>🧭</span><div><b>${had ? "Yeniden keşif turu" : "Keşif turu"}</b><div>${had ? "6 hafta oldu, düzeyler güncellensin" : "Zihni ile başlangıç düzeyini bul"}</div></div><button type="button" class="gr-btn" id="placeCardBtn">Oyna</button></div>`;
+pc.innerHTML = `<div class="place-card"><span>🧭</span><div><b>${had ? "Yeniden değerlendirme turu" : "Değerlendirme turu"}</b><div>${had ? "6 hafta oldu, düzeyler güncellensin" : "Zihni ile başlangıç düzeyini bul"}</div></div><button type="button" class="gr-btn" id="placeCardBtn">Oyna</button></div>`;
 document.getElementById("placeCardBtn").onclick = () => placeStart(nm); }catch(e){} }, 0);
 const g = gxGet(), r = gxRoute(), days = gxWeekDays(g), ti = todayDayIdx();
 const allDone = r.done.every(Boolean), nx = gxRouteNext();
@@ -14207,7 +14207,7 @@ const TOURS = {
 home: { key: "wm_tour_home_seen_v1", steps: [
 {sel:"#hmHead", title:"Kim çalışacak?", text:"Çalışacak kişiyi buradan seç. Liste en son çalışandan başlar; yaşı ve seviyeyi listedeki ⚙︎ ile değiştirebilirsin."},
 {sel:"#hmResume", title:"Kaldığın yerden devam", text:"Seçili kişinin en son yaptığı çalışmaya tek dokunuşla döner."},
-{sel:"#hmAdd", title:"Kişi ekle", text:"Yeni bir çocuk ekle. Eklenince kısa bir Keşif Turu ile başlangıç düzeyleri belirlenir."},
+{sel:"#hmAdd", title:"Kişi ekle", text:"Yeni bir çocuk ekle. Eklenince kısa bir Değerlendirme Turu ile başlangıç düzeyleri belirlenir."},
 {sel:"#hmGuest", title:"Misafir girişi", text:"Kayıt tutmadan denemek için."},
 {sel:"#hmEtk .hm-seg", title:"Uzman ya da Aile girişi", text:"Bilişsel Etkinlik yetişkinle yapılır. Uzman girişi danışanlar, programlar ve ödevler içindir; Aile girişi günlük oturum ve uzmanın önerdiği çalışmalar içindir."},
 {sel:"#hmGame", title:"Bilişsel Oyun", text:"Çocuğun tek başına oynadığı Zihin Adaları. Oyundan çıkış ebeveyn kontrolüyle korunur."},
@@ -14521,7 +14521,7 @@ if(catIconEl){
 catIconEl.innerHTML = categoryIconSVG(currentCategory().id, currentCategory().color);
 catIconEl.style.color = currentCategory().color;
 }
-applyModeVisibility(); renderTierRow(); renderExerciseRow(); renderStageRow(); newPage(); try{ if(appMode === "uzman"){ const st = placedStep(currentCategory().id, currentPlayerName); if(st != null){ const tt = stepTier(st), si = findSeqIndex(tt, 0); if(si > 0){ navTier = tt; goToIndex(si); } } } }catch(e){} /* uzman girişi: keşif yerleşimindeki düzeyden başla */ scheduleTour("main", "mainApp"); }
+applyModeVisibility(); renderTierRow(); renderExerciseRow(); renderStageRow(); newPage(); try{ if(appMode === "uzman"){ const st = placedStep(currentCategory().id, currentPlayerName); if(st != null){ const tt = stepTier(st), si = findSeqIndex(tt, 0); if(si > 0){ navTier = tt; goToIndex(si); } } } }catch(e){} /* uzman girişi: değerlendirme yerleşimindeki düzeyden başla */ scheduleTour("main", "mainApp"); }
 
 function openCategoryScreen(){
 resetTimer();
@@ -14802,7 +14802,7 @@ try{ hideGameScreens(); exitGameMode(); hideFamScreens(); hideLinkScreens(); }ca
 if(typeof openList === "boolean") whoListOpen = openList;
 let el = document.getElementById("whoScreen"); if(!el){ el = document.createElement("div"); el.id = "whoScreen"; document.body.appendChild(el); }
 const names = whoNames(), sel = whoSelGet(), guest = sel === "__guest__", cur = guest ? "" : (names.includes(sel) ? sel : ""), view = getEtkinlikView(), L = cur ? lastFor(cur) : null;
-const sub = (n) => { const a = ageOf(n), lv = getPlayerLevel(n), st = whoStars(n); return [a ? (a >= 12 ? "12+ yaş" : `${a} yaş`) : "", (() => { const P = placeGet(n); if(P && P.dom){ const v = Object.values(P.dom), post = v.filter(x => x >= 3).length; return post === v.length ? "Keşif: Okul Sonrası" : post === 0 ? "Keşif: Okul Öncesi" : `Keşif: ${post} alan Okul Sonrası`; } return lv ? (lv === "pre" ? "Okul Öncesi" : "Okul Sonrası") : "seviye seçilmedi"; })(), st ? `⭐ ${st}` : ""].filter(Boolean).join(" · "); };
+const sub = (n) => { const a = ageOf(n), lv = getPlayerLevel(n), st = whoStars(n); return [a ? (a >= 12 ? "12+ yaş" : `${a} yaş`) : "", (() => { const P = placeGet(n); if(P && P.dom){ const v = Object.values(P.dom), post = v.filter(x => x >= 3).length; return post === v.length ? "Değerlendirme: Okul Sonrası" : post === 0 ? "Değerlendirme: Okul Öncesi" : `Değerlendirme: ${post} alan Okul Sonrası`; } return lv ? (lv === "pre" ? "Okul Öncesi" : "Okul Sonrası") : "seviye seçilmedi"; })(), st ? `⭐ ${st}` : ""].filter(Boolean).join(" · "); };
 const row = (n, i) => `<div class="hm-row${n === cur ? " on" : ""}" data-hsel="${escHTML(n)}"><span class="hm-av" style="background:hsl(${whoHue(n)},70%,88%)">${whoAvatar(n)}</span><div class="hm-tx"><b>${escHTML(n)}</b><span>${sub(n)}</span></div>${n === cur ? `<i class="hm-ck">✓</i>` : ""}<button type="button" class="hm-gear" data-hgear="${escHTML(n)}" aria-label="Seviye ve yaş">⚙︎</button></div>`;
 el.innerHTML = `<div class="hm-wrap">
 <div class="hm-top"><div class="hm-brand"><span class="hm-logo">${zihniSVG("happy")}</span><b>Zihin Atölyesi</b></div><button type="button" class="hm-set" id="hmSet" aria-label="Ayarlar">⚙︎</button></div>
@@ -15121,7 +15121,7 @@ function showHwScreen(){ hideFamScreens(); hideLinkScreens(); hwScreenOpen = tru
       const ex = it.kind === "explore"; return `<div class="fam-card" style="margin-bottom:8px;${sn ? "opacity:.65;" : ""}"><button type="button" data-devopen="${it.id}" data-devti="${it.ti}" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;font:inherit;color:inherit;background:none;border:0;padding:0"><span style="flex:1;min-width:0"><span style="display:flex;align-items:center;gap:6px;font-weight:900;font-size:15px">${icI(it.kind === "strong" ? "star" : ex ? "search" : "sprout", 17, it.kind === "strong" ? "#A9632A" : ex ? "#0A847E" : "#1B7A3D")}${escHTML(famLabel(it.id))}</span><span class="fam-sub" style="display:block;font-weight:600;margin-top:2px">${escHTML(catName(it.id))} · ${escHTML(tl)}${it.kind === "strong" ? " · Güçlü yön" : ex ? " · Tanıma" : ""}</span><span class="fam-sub" style="display:block;font-weight:600;margin-top:2px">${escHTML(it.kind === "strong" ? "İyi yaptığı bir çalışma; kendine güvenini destekler" : ex ? "Bu alanı tanımak için kısa bir çalışma" : (it.reason || ""))}</span><span class="fam-sub" style="display:block;font-weight:700;margin-top:4px;color:#0A847E">${ex ? "Bir kez yapınca tamamlanır" : A.ok >= 1 ? "Bir başarı daha kaldı" : A.n ? `${A.n} kez çalışıldı · iki başarılı deneme gerekiyor` : "İki kez başarıyla yapınca tamamlanır"}</span></span></button><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px">${pill(c)}<button type="button" data-devsnooze="${it.id}" style="min-height:40px;padding:6px 12px;font:inherit;font-size:14px;font-weight:800;color:#0A847E;background:#fff;border:2px solid #D7E2EA;border-radius:12px;cursor:pointer">${sn ? "Ertelemeyi geri al" : "Yarına ertele"}</button></div></div>`; }).join("");
   }
   else if(plan && plan.off){ devHtml = `<div class="fam-sub" style="font-weight:600;margin:0 2px 4px">Uzmanınız gelişim ödevlerini bu dönem için kapattı.</div>`; }
-  else if(plan && plan.needData){ devHtml = `<div class="fam-card"><div style="font-weight:900">Gelişim ödevlerini hazırlamak için biraz daha çalışma gerekiyor</div><div class="fam-sub" style="font-weight:600;margin-top:4px">Birkaç çalışma yapıldıkça ya da keşif turu tamamlandığında uygulama ${escHTML(player)} için ödevleri kendisi hazırlar.</div><button type="button" class="fam-cta" id="devPlaceBtn" style="margin-top:10px">Keşif turunu başlat</button></div>`; }
+  else if(plan && plan.needData){ devHtml = `<div class="fam-card"><div style="font-weight:900">Gelişim ödevlerini hazırlamak için biraz daha çalışma gerekiyor</div><div class="fam-sub" style="font-weight:600;margin-top:4px">Birkaç çalışma yapıldıkça ya da değerlendirme turu tamamlandığında uygulama ${escHTML(player)} için ödevleri kendisi hazırlar.</div><button type="button" class="fam-cta" id="devPlaceBtn" style="margin-top:10px">Değerlendirme turunu başlat</button></div>`; }
   else if(plan){ devHtml = `<div class="fam-sub" style="font-weight:600;margin:0 2px 4px">Şu an bütün alanlarda iyi gidiyor. Yeni çalışmalar yapıldıkça burada yeni adımlar çıkabilir.</div>`; }
   if(devDone.length && !devItems.length && plan && !plan.off && doneToday) devHtml = `<div class="fam-card" style="margin-bottom:8px;display:flex;align-items:center;gap:10px">${icI("star", 24, "#1B7A3D")}<div><div style="font-weight:900">Bugünkü ödevler tamamlandı</div><div class="fam-sub" style="font-weight:600;margin-top:2px">Yarın yeni ödevler hazırlanacak.</div></div></div>`;
   devHtml += hwHistoryTable(plan, player, now, catName, dShort);   /* geçmiş ödevler tablosu */
@@ -15270,9 +15270,9 @@ function hwDevStatusLine(plan, player, lvl){ let t; if(!plan) t = "Gelişim öde
   else { let S = null; try{ S = perfSummary(player, { lvl }); }catch(e){} const ok = S ? Object.values(S.domains).filter(d => d.state !== "veri-az").length : 0; const all = S ? Object.keys(S.domains).length : 0; t = !S ? "Şu an bütün alanlarda iyi gidiyor." : ok >= all ? `Son 60 günde ${S.records} çalışma kaydı var. Şu an bütün alanlarda iyi gidiyor; yeni çalışmalar yapıldıkça burada yeni adımlar çıkabilir.` : `Son 60 günde ${S.records} çalışma kaydı var; ${ok} alanda yeterli veri var, ${all - ok} alanda henüz az. Diğer alanlardan da çalıştıkça ödevler hazırlanır.`; }
   return `<div class="fam-sub" style="font-weight:600;margin:10px 4px 0;text-align:center">${t}</div>`; }
 
-/* Keşif turu önerisi: hiç yapılmadıysa */
+/* Değerlendirme turu önerisi: hiç yapılmadıysa */
 function hwNeedsKesif(player){ try{ const p = placeGet(player); return !p || !p.res || !Object.keys(p.res).length; }catch(e){ return false; } }
-function hwKesifCard(player, soft){ if(soft && !hwNeedsKesif(player)) return ""; return `<div class="fam-card" style="margin-bottom:8px"><div style="font-weight:900">${soft ? "Keşif turu henüz yapılmadı" : "Gelişim ödevlerini hazırlamak için biraz daha çalışma gerekiyor"}</div><div class="fam-sub" style="font-weight:600;margin-top:4px">Keşif turu, ${escHTML(player)} için her alanda uygun başlangıç düzeyini bulur; böylece ödevler daha doğru hazırlanır.</div><button type="button" class="fam-cta" id="${soft ? "devPlaceBtn2" : "devPlaceBtn"}" style="margin-top:10px">Keşif turunu başlat</button></div>`; }
+function hwKesifCard(player, soft){ if(soft && !hwNeedsKesif(player)) return ""; return `<div class="fam-card" style="margin-bottom:8px"><div style="font-weight:900">${soft ? "Değerlendirme turu henüz yapılmadı" : "Gelişim ödevlerini hazırlamak için biraz daha çalışma gerekiyor"}</div><div class="fam-sub" style="font-weight:600;margin-top:4px">Değerlendirme turu, ${escHTML(player)} için her alanda uygun başlangıç düzeyini bulur; böylece ödevler daha doğru hazırlanır.</div><button type="button" class="fam-cta" id="${soft ? "devPlaceBtn2" : "devPlaceBtn"}" style="margin-top:10px">Değerlendirme turunu başlat</button></div>`; }
 
 /* ===== Ödev oturumu: ödevler kendi içinde ayrı bir akış ===== */
 let hwRun = null;
