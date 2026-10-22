@@ -3549,12 +3549,7 @@ instruction: () => `Aynı şekilde inceleyin, ama bu sefer çocuktan kelimeleri 
 example: () => ``
 },
 {
-label: "Aşama 3 · Strateji · Hikâye Zinciri",
-instruction: () => `Kelimeleri birlikte okurken hepsini birleştiren kısa bir hikâye kurun.`,
-example: () => ``
-},
-{
-label: "Aşama 4 · Dinleyerek",
+label: "Aşama 3 · Dinleyerek",
 listen: true,
 instruction: () => `Kelimeler gösterilmez; Başlat'a basınca uygulama okur.`,
 example: () => ``
@@ -3580,13 +3575,6 @@ label: "Aşama 2 · 4 Saniye Sonra",
 answerMode: "same",
 delay: true,
 instruction: () => `Kelimeleri <b>çocuğa göstermeden</b> sesli okuyun ve <b>"Ben söyle dediğimde, bu ${audLen()} kelimeyi aynı sırayla söyle"</b> deyin. ⏱ düğmesine basın; 4 saniye sonra "Söyle!" deyin.`,
-example: () => ``
-},
-{
-label: "Aşama 3 · Strateji · İçinden Tekrarla",
-answerMode: "same",
-delay: true,
-instruction: () => ``,
 example: () => ``
 }
 ]
@@ -3799,7 +3787,7 @@ label: "Eşini Hatırla",
 isMt: true, attrs: [], speedFactor: 11.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
-stages: [ { label: "Aşama 1 · Öğren ve Hatırla", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Strateji · Hayal Et", instruction: () => ``, example: () => `` } ]
+stages: [ { label: "Öğren ve Hatırla", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "word-pairs",
@@ -3812,7 +3800,7 @@ return `<div class="aud-list">${currentStageIndex === 3 ? `<div class="aud-note"
 `<div class="aud-row"><div class="aud-num">1</div><div class="aud-body"><div class="aud-words">${pr.map(p => `${p[0]} – ${p[1]}`).join(" &nbsp;·&nbsp; ")}</div></div></div>` +
 `<div class="aud-row"><div class="aud-num">2</div><div class="aud-body">${test.map(p => `<div style="font-size:18px;margin:3px 0"><b>${p[0]}?</b> <span class="aud-key" style="display:inline">→ ${p[1]}</span></div>`).join("")}</div></div></div>`; },
 randomItem: () => ({}),
-stages: [ { label: "Aşama 1 · İlişkisiz Kelimeler", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Sayı – Kelime", instruction: () => ``, example: () => `` }, { label: "Aşama 3 · İsim – Yer", instruction: () => ``, example: () => `` }, { label: "Aşama 4 · Strateji · Cümle Kur", instruction: () => ``, example: () => `` } ]
+stages: [ { label: "Aşama 1 · İlişkisiz Kelimeler", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Sayı – Kelime", instruction: () => ``, example: () => `` }, { label: "Aşama 3 · İsim – Yer", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "mixed-span",
@@ -3825,7 +3813,7 @@ tr.map(t => `<div class="aud-row"><div class="aud-num">${t.L}</div><div class="a
 `<div class="aud-list"><div class="aud-note">Her diziyi saniyede bir öğe hızında okuyun; çocuk <b>verildiği sırayla</b> tekrar etsin. Her uzunlukta iki dizi var: <b>aynı uzunluktaki iki dizinin ikisi de yanlışsa durun</b>; doğru tekrarlanan en uzun diziyi not edin. Yanlış dizileri hata sayısına ekleyin.</div>` +
 tr.map((t, i) => `<div class="aud-row"><div class="aud-num">${t.L}</div><div class="aud-body"><div class="aud-words">${t.words.join(" – ")}</div></div></div>`).join("") + `</div>`,
 randomItem: () => ({}),
-stages: [ { label: "Aşama 1 · Uzayan Dizi", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Strateji · Parçala", instruction: () => ``, example: () => `` } ]
+stages: [ { label: "Uzayan Dizi", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "story-recall",
@@ -3833,11 +3821,11 @@ readingLevel: ["post"],
 label: "Hikâye Hatırlama",
 isAuditory: true, attrs: [], errorLabel: "Hatırlanmayan ayrıntı sayısı",
 audTrials: () => { storyChecked = {}; const ls = lastStory();
-if(currentStageIndex === 2 && ls){ const st = STORIES_POST.find(x => x.id === ls.id); if(st) return [st]; }
+if(currentStageIndex === 1 && ls){ const st = STORIES_POST.find(x => x.id === ls.id); if(st) return [st]; }   /* Aşama 2: gecikmeli (strateji aşaması kaldırıldı) */
 return [randomItem(STORIES_POST)]; },
 audRender: (items) => renderStoryBoard(items),
 randomItem: () => ({}),
-stages: [ { label: "Aşama 1 · Hemen Anlat", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Strateji · Soru Sorarak", instruction: () => ``, example: () => `` }, { label: "Aşama 3 · Gecikmeli (10–15 dk sonra)", instruction: () => ``, example: () => `` } ]
+stages: [ { label: "Aşama 1 · Hemen Anlat", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Gecikmeli (10–15 dk sonra)", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "short-story",
@@ -3942,7 +3930,7 @@ ckScore: () => clScore(), ckCycle: 3,
 audTrials: () => { ckMarks = {}; return clBuild(); },
 audRender: (items) => clRender(items),
 randomItem: () => ({}),
-stages: [ { label: "Aşama 1 · Serbest + İpuçlu", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Strateji · Grupla", instruction: () => ``, example: () => `` } ]
+stages: [ { label: "Serbest + İpuçlu", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "nonword",
@@ -5488,11 +5476,6 @@ example: () => ``
 label: "Aşama 2 · Şekil + Renk",
 instruction: () => `Aynı şekilde inceleyin, çocuktan hem <b>şekli hem rengini</b> hatırlamasını isteyin.`,
 example: () => ``
-},
-{
-label: "Aşama 3 · Strateji · Adlandır",
-instruction: () => `Şekilleri incelerken çocuk her birini sesli adlandırsın ("mavi üçgen").`,
-example: () => ``
 }
 ]
 },
@@ -5515,11 +5498,6 @@ example: () => ``
 label: "Aşama 2 · Sırayla Hatırlama",
 instruction: () => `Aynı şekilde inceleyin, çocuktan dolu daireleri <b>soldan sağa sırayla</b> saymasını isteyin.`,
 example: () => ``
-},
-{
-label: "Aşama 3 · Strateji · Şekle Benzet",
-instruction: () => `İncelerken dolu daireleri bir şekle benzetin ("çizgi", "L harfi").`,
-example: () => ``
 }
 ]
 },
@@ -5541,11 +5519,6 @@ example: () => ``
 {
 label: "Aşama 2 · Sırayla Hatırlama",
 instruction: () => `Aynı şekilde inceleyin, çocuktan renkleri <b>gördüğü sırayla</b> söylemesini isteyin.`,
-example: () => ``
-},
-{
-label: "Aşama 3 · Strateji · Nesneyle Eşle",
-instruction: () => `İncelerken her rengi bir nesneyle eşleştirin ("kırmızı – elma").`,
 example: () => ``
 }
 ]
@@ -6242,6 +6215,7 @@ flash._hideTimer = setTimeout(()=>{ flash.style.display = "none"; }, 4000);
 }
 
 function renderStageRow(){
+try{ const __ex = currentExercise(); if(__ex && __ex.stages && currentStageIndex >= __ex.stages.length) currentStageIndex = 0; }catch(e){}   /* kaldırılmış aşama (strateji) kayıtlı kalmışsa ilk aşamaya dön */
 const row = document.getElementById("stageRow");
 row.innerHTML = "";
 if(currentExercise().stages.length <= 1){
@@ -7235,7 +7209,7 @@ let storyChecked = {};
 function rememberStory(id){ const d = delayGet("story"); if(!d || d.id !== id) delaySet("story", { id }); }
 function lastStory(){ return delayGet("story"); }
 function renderStoryBoard(items){
-const st = items[0], delayed = currentStageIndex === 2, strat = currentStageIndex === 1;
+const st = items[0], delayed = currentStageIndex === 1, strat = false;
 const total = st.units.length, got = st.units.filter((u, i) => storyChecked[i]).length;
 const ls = lastStory(), mins = ls ? Math.floor((Date.now() - ls.ts) / 60000) : 0;
 const head = delayed
@@ -10237,7 +10211,7 @@ let flat; do{ flat = shuffleArray(groups.flatMap(g => g.w.map(w => ({ w, c: g.c 
 return [{ groups, flat }];
 }
 function clRender(items){
-const L = items[0], total = L.flat.length, strat = currentStageIndex === 1;
+const L = items[0], total = L.flat.length, strat = false;
 let free = 0, cued = 0; L.groups.forEach((g, gi) => g.w.forEach((w, i) => { const s = ckMarks[gi + ":" + i]; if(s === 1) free++; if(s === 2) cued++; }));
 const tip = strat ? `<div class="aud-note" style="border-color:#E0A100;background:#FFF8E5">💡 <b>Strateji · Grupla:</b> Okumadan önce söyleyin: <b>"Bu listede ${L.groups.map(g => CL_PLURAL[g.c]).join(", ")} var. Dinlerken aklında grupla; söylerken önce bir grubu bitir, sonra ötekine geç."</b> Sonuçları Aşama 1 ile karşılaştırın.</div>` : "";
 return `<div class="aud-list"><div class="aud-note">Kelimeleri karışık sırayla, saniyede bir okuyun; çocuk <b>hatırladıklarını</b> söylesin. Kendiliğinden söylediğine <b>bir kez</b> dokunun (✓). Sonra eksik kalan gruplar için ipucu verin: <b>"${CL_PLURAL[L.groups[0].c][0].toLocaleUpperCase("tr-TR") + CL_PLURAL[L.groups[0].c].slice(1)} hangileriydi?"</b>; ipucuyla söylediğine <b>iki kez</b> dokunun (◐).</div>${tip}` +
@@ -10346,7 +10320,7 @@ else seqShow();
 function palStudy(){
 const st = mtState; st.phase = "study"; st.si = -1; renderMtBoard();
 const step = isPre() ? 2600 : 2200;
-const strat = currentStageIndex === 1, stp = strat ? step + 1300 : step;
+const strat = false, stp = step;
 st.pairs.forEach((p, k) => mtLater(() => { st.si = k; renderMtBoard(); sayTask(strat ? `${p.a.n} ile ${p.b.n}. İkisini birlikte hayal et.` : `${p.a.n}, ${p.b.n}`); }, 300 + k * stp));
 mtLater(() => palTest(), 300 + st.pairs.length * stp + 200);
 }
@@ -10862,13 +10836,13 @@ const INSTR_SHORT = {
 "scene-touch":      [() => Q("Resme iyi bak. Kapanınca resimde olana dokun.")],
 "vis-draw":         [() => Q("Çizgiye iyi bak. Kaybolunca noktalara dokunarak aynısını çiz.")],
 "list-learn":       [() => `Okuyun: ${Q("Sana kelimeler okuyacağım. Bitince hatırladıklarını söyle; sıra önemli değil.")}`, () => `Listeyi okumadan sorun: ${Q("Az önceki kelimeleri hatırlıyor musun?")}`],
-"cat-list":         [() => `Okuyun: ${Q("Kelimeleri dinle. Bitince hatırladıklarını söyle.")}`, () => `💡 Okumadan önce grupları söyleyin. Sonra: ${Q("Dinle, grupla ve gruplar hâlinde söyle.")}`],
+"cat-list":         [() => `Okuyun: ${Q("Kelimeleri dinle. Bitince hatırladıklarını söyle.")}`],
 "nonword":          [() => `Okuyun: ${Q("Şimdi uydurma kelimeler söyleyeceğim. Duyduğun gibi tekrar et.")}`],
 "sent-listen":      [() => `Göstermeden okuyun: ${Q("Söylediğim cümleyi aynen tekrar et.")}`],
-"pal-touch":        [() => Q("Çiftleri izle ve dinle. Sonra bir resim gelecek; eşine dokun."), () => `💡 ${Q("Her çifti görünce ikisini tek bir resimde birlikte hayal et.")}`],
-"word-pairs":       [() => `Okuyun: ${Q("Bu kelimeler ikişer ikişer arkadaş. İlkini söyleyince arkadaşını sen söyle.")}`, () => `Okuyun: ${Q("Her sayının bir kelimesi var. Sayıyı söyleyince kelimesini sen söyle.")}`, () => `Okuyun: ${Q("Her çocuk bir şehirde yaşıyor. İsmi söyleyince şehrini sen söyle.")}`, () => `💡 Okuyun: ${Q("Her çifti duyunca ikisiyle bir cümle kur. Sonra ilkini söyleyince eşini sen söyle.")}`],
-"mixed-span":       [() => `Göstermeden okuyun: ${Q("Söylediklerimi aynı sırayla tekrar et.")}`, () => `💡 Gruplar hâlinde okuyun: ${Q("Parça parça aklında tut, parça parça söyle.")}`],
-"story-recall":     [() => `Okuyun: ${Q("Sana bir hikâye okuyacağım. Bitince hatırladığın her şeyi anlat.")}`, () => `💡 Okumadan önce: ${Q("Dinlerken kim, nerede, ne zaman, ne oldu sorularının cevabını yakala.")}`, () => `Aşama 1'deki hikâyeyi okumadan sorun: ${Q("Az önceki hikâyeyi hatırlıyor musun? Bana yeniden anlat.")}`],
+"pal-touch":        [() => Q("Çiftleri izle ve dinle. Sonra bir resim gelecek; eşine dokun.")],
+"word-pairs":       [() => `Okuyun: ${Q("Bu kelimeler ikişer ikişer arkadaş. İlkini söyleyince arkadaşını sen söyle.")}`, () => `Okuyun: ${Q("Her sayının bir kelimesi var. Sayıyı söyleyince kelimesini sen söyle.")}`, () => `Okuyun: ${Q("Her çocuk bir şehirde yaşıyor. İsmi söyleyince şehrini sen söyle.")}`],
+"mixed-span":       [() => `Göstermeden okuyun: ${Q("Söylediklerimi aynı sırayla tekrar et.")}`],
+"story-recall":     [() => `Okuyun: ${Q("Sana bir hikâye okuyacağım. Bitince hatırladığın her şeyi anlat.")}`, () => `Aşama 1'deki hikâyeyi okumadan sorun: ${Q("Az önceki hikâyeyi hatırlıyor musun? Bana yeniden anlat.")}`],
 "short-story":      [() => `Okuyun: ${Q("Resme bak ve hikâyeyi dinle. Sonra sorularıma cevap ver.")}`],
 "pic-seq-say":      [() => `Resimler tek tek görünecek. Kapanınca: ${Q("Gördüğün resimleri sırayla söyle.")} İsterseniz gerçek nesnelerle de yapabilirsiniz.`],
 "pic-seq-touch":    [() => Q("Adlarını dinle. Sonra resimlere duyduğun sırayla dokun.")],
@@ -10941,14 +10915,13 @@ const INSTR_SHORT = {
 () => `Başlamadan önce: ${Q(`Deniz canlılarının adını söyle. ${ptTimes[0]}. ve ${ptTimes[1] || ptTimes[0] + 15}. saniyede dur, o anki canlıyı söyle.`)}`],
 "prospective-delayed":[() => `Başlamadan önce: ${Q(`Oyuncakların adını söyle. Oyun bitince ${pdTask}, unutma.`)} Sonunda hatırlamadıklarını hataya girin.`,
 () => `Başlamadan önce: ${Q(`Oyuncakların adını söyle. Oyun bitince ${pdTask}, unutma.`)} Sonunda hatırlamadıklarını hataya girin.`],
-"word-list-recall": [() => `Kelimeleri birlikte okuyun. Kapanınca: ${Q("Hatırladıklarını söyle.")}`, () => `Kapanınca: ${Q("Aynı sırayla söyle.")}`, () => `💡 ${Q("Bu kelimelerle birlikte kısa bir hikâye uyduralım.")} Kapanınca: ${Q("Hikâyeyi düşün, kelimeleri söyle.")}`, () => `Kelimeler gizli; Başlat'a basın, uygulama okusun. Bitince: ${Q("Duyduklarını söyle.")}`],
+"word-list-recall": [() => `Kelimeleri birlikte okuyun. Kapanınca: ${Q("Hatırladıklarını söyle.")}`, () => `Kapanınca: ${Q("Aynı sırayla söyle.")}`, () => `Kelimeler gizli; Başlat'a basın, uygulama okusun. Bitince: ${Q("Duyduklarını söyle.")}`],
 "sentence-repeat":  [() => `Öbekleri birlikte okuyun. Kapanınca: ${Q("Hatırladıklarını söyle.")}`, () => `Kapanınca: ${Q("Aynı sırayla söyle.")}`, () => `Öbekler gizli; Başlat'a basın, uygulama okusun. Bitince: ${Q("Duyduklarını söyle.")}`],
 "word-repeat":      [() => `Göstermeden okuyun: ${Q(`${audLen()} kelimeyi aynı sırayla tekrar et.`)}`,
-() => `Göstermeden okuyun, ⏱'a basın: ${Q(`'Söyle!' deyince ${audLen()} kelimeyi aynı sırayla söyle.`)}`,
-() => `💡 Okuyun, ⏱'a basın: ${Q(`Beklerken kelimeleri içinden ya da fısıldayarak tekrar et. 'Söyle!' deyince söyle.`)}` + " Sonucu Aşama 2 ile karşılaştırın."],
-"shape-recall":     [() => `Şekilleri birlikte inceleyin. Kapanınca: ${Q("Hangi şekilleri gördün?")}`, () => `Kapanınca: ${Q("Şekilleri renkleriyle söyle.")}`, () => `💡 ${Q("Bakarken her şekli sesli söyle: mavi üçgen, yeşil kalp…")} Kapanınca: ${Q("Hangilerini gördün?")}`],
-"position-recall":  [() => `Dolu daireleri birlikte inceleyin. Kapanınca: ${Q("Hangi daireler doluydu?")}`, () => `Kapanınca: ${Q("Dolu daireleri soldan sağa söyle.")}`, () => `💡 ${Q("Dolu daireler neye benziyor? Bir çizgi mi, bir harf mi?")} Kapanınca: ${Q("Hangi daireler doluydu?")}`],
-"color-recall":     [() => `Renkleri birlikte inceleyin. Kapanınca: ${Q("Hangi renkleri gördün?")}`, () => `Kapanınca: ${Q("Aynı sırayla söyle.")}`, () => `💡 ${Q("Her rengi bir şeye benzet: mavi deniz, yeşil yaprak, turuncu portakal…")} Kapanınca: ${Q("Hangi renkleri gördün?")}`],
+() => `Göstermeden okuyun, ⏱'a basın: ${Q(`'Söyle!' deyince ${audLen()} kelimeyi aynı sırayla söyle.`)}`],
+"shape-recall":     [() => `Şekilleri birlikte inceleyin. Kapanınca: ${Q("Hangi şekilleri gördün?")}`, () => `Kapanınca: ${Q("Şekilleri renkleriyle söyle.")}`],
+"position-recall":  [() => `Dolu daireleri birlikte inceleyin. Kapanınca: ${Q("Hangi daireler doluydu?")}`, () => `Kapanınca: ${Q("Dolu daireleri soldan sağa söyle.")}`],
+"color-recall":     [() => `Renkleri birlikte inceleyin. Kapanınca: ${Q("Hangi renkleri gördün?")}`, () => `Kapanınca: ${Q("Aynı sırayla söyle.")}`],
 "word-group":       [() => `Seçenek vermeden sorun: ${Q("Bu kelime neyin adı? Grubunun adını söyle.")}`, () => Q("Grubunun adını söyle, o gruptan bir örnek daha ver.")],
 "opposite-match":   [() => Q("Kelimenin zıt anlamlısını söyle.")],
 "similarities":     [() => Q("İki kelimenin ortak yönü ne?"), () => Q("Ortak yönü söyle, aynı gruptan bir örnek daha ver.")],
@@ -11175,6 +11148,7 @@ return {
 /* "Önce Planla" ayrı çalışma olmaktan çıktı: Üç Bardak – Üç Pul ve Boncukları Yer Değiştir'e 2. aşama olarak eklendi */
 [["plan-tol", "Üç Bardak"], ["plan-beads", "Boncuklar"]].forEach(([id, first]) => { const ex = EXERCISES.find(e => e.id === id); if(!ex || ex.stages.some(st => st.think)) return; const base = ex.stages[0]; base.label = "Aşama 1 · " + first; ex.stages.push(Object.assign({}, base, { label: "Aşama 2 · Önce Planla", think: true, instruction: () => `${base.instruction()} <br><b>Bu aşamada</b> her problemin başında ekran birkaç saniye kilitlidir; çocuk önce zihninde planlar. İsterseniz kaç hamlede çözeceğini önce söylesin.` })); });
 EXERCISES.forEach(ex => {
+return;   /* KURAL: strateji aşamaları kaldırıldı — yönlendirmeyi uzman yapar (STRATEGIES yalnızca oyun modundaki ipucu metni olarak kalır) */
 const sp = STRATEGIES[ex.id]; if(!sp || !ex.stages || ex.stages.some(st => st.strategyOf != null)) return;
 const [of, name, tip] = sp, base = ex.stages[Math.min(of, ex.stages.length - 1)];
 const lab = /^Aşama \d/.test(base.label) || ex.stages.length > 1 ? `Aşama ${ex.stages.length + 1} · Strateji · ${name}` : `Strateji · ${name}`;
@@ -13077,7 +13051,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.23-c";
+const APP_VERSION = "2026.10.23-d";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
