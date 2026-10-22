@@ -4720,8 +4720,9 @@ stages: [ { label: "Tersini Göster", instruction: () => ``, example: () => `` }
 id: "tap-reverse",
 readingLevel: ["pre","post"],
 label: "Ters Vuruş",
-isChoice: true, attrs: [], speedFactor: 2,
-isDone: () => !!chState && chState.phase === "done",
+isMt: true, attrs: [], speedFactor: 3,
+errorLabel: "Yanlış sayıda vuruş",
+isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Bir Görünce İki", instruction: () => ``, example: () => `` } ]
 },
@@ -6016,7 +6017,10 @@ const btn = document.getElementById("timerBtn");
 btn.textContent = "▶ Başlat";
 btn.classList.remove("running");
 { const manual = window._manualStop; window._manualStop = false; const hint = document.getElementById("saveHint"); window._incomplete = !!(manual && !gameMode && !pageComplete());
-if(window._incomplete){ document.getElementById("saveResultBtn").style.display = "none"; hint.style.display = "block"; hint.textContent = "Çalışma tamamlanmadan durduruldu; bu sonuç kaydedilemez. ↻ ile yeniden başlatabilirsin."; hint.classList.add("warn"); }
+if(window._incomplete){ document.getElementById("saveResultBtn").style.display = "none"; hint.style.display = "block"; hint.textContent = "Çalışma tamamlanmadan durduruldu; bu sonuç kaydedilemez. ↻ ile yeniden başlatabilirsin."; hint.classList.add("warn");
+  try{ const ex = currentExercise(); let rebuilt = false;   /* yarım kalan deneme tahtada asılı kalmasın: etkileşimli tahta başa döner */
+    if(ex.isChoice){ chClear(); currentGrid = chBuild(); renderChoiceBoard(); rebuilt = true; } else if(ex.isMt){ mtClear(); currentGrid = mtBuild(); renderMtBoard(); rebuilt = true; } else if(ex.isRt){ rtClear(); currentGrid = rtBuild(); renderRtBoard(); rebuilt = true; } else if(ex.isWm){ wmClearTimers(); currentGrid = wmBuild(); renderWmBoard(); rebuilt = true; }
+    if(rebuilt){ elapsedMs = 0; document.getElementById("timerDisplay").textContent = "00:00.0"; currentErrorCount = 0; const ce = document.getElementById("errorCount"); if(ce) ce.textContent = "0"; hint.textContent = "Çalışma tamamlanmadan durduruldu; bu sonuç kaydedilmedi. ▶ Başlat ile baştan başlayabilirsin."; } }catch(e){} }
 else if(elapsedMs > 300){ document.getElementById("saveResultBtn").style.display = "block"; hint.style.display = "block"; hint.textContent = "Çalışmayı bitirdin — hata sayısını kontrol et ve kaydet."; hint.classList.remove("warn"); if(hwRun && !gameMode){ if(perfIsAuto(currentExercise())) setTimeout(() => { try{ confirmSaveResult(); }catch(e){ console.error(e); } }, 80); else hint.textContent = "Ödevi bitirdin — hata sayısını kontrol et ve Kaydet'e bas."; } } }
 if(!gameMode) requestAnimationFrame(() => { try{ const hn = document.getElementById("saveHint"), sv = document.getElementById("saveResultBtn"); const tg = (hn && getComputedStyle(hn).display !== "none") ? hn : sv; if(!tg || getComputedStyle(tg).display === "none") return; const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; const r = tg.getBoundingClientRect(); if(r.bottom > window.innerHeight - barH - 8 || r.top < 0) pageScroller().scrollBy(0, r.bottom - (window.innerHeight - barH - 16)); }catch(e){} });
 if(gameMode){ setTimeout(gameAfterStop, 400); try{ renderGameWho(); }catch(e){} }
@@ -6799,18 +6803,12 @@ window: () => (isPre() ? [2000, 1700, 1700] : [1600, 1300, 1300])[Math.min(curre
 CHOICE["bear-dragon"] = {
 trials_make: (n) => { const t = Math.min(currentCombo().t, 2), nD = Math.round(n * [0.3, 0.35, 0.4][t]); const who = balancedSeq(n, ["bear","dragon"], 2, [n - nD, nD]); let prev = -1;
   return who.map(w => { const m = pickDifferent(SIMON_MOVES, prev); prev = m; return { m, bear: w === "bear" }; }); },
-stim: (t, sz) => `<div style="display:flex;align-items:center;justify-content:center;gap:3%;width:100%;height:100%"><div style="width:40%;height:84%;display:flex;align-items:center;justify-content:center"><img src="${t.bear ? WILD_IMAGES.bear : efImg("ejderha")}" alt="" style="width:94%;height:94%;object-fit:contain"></div><div style="width:50%;height:84%;border-radius:16px;background:#F2F5F8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px"><img src="${MOVE_IMAGES[t.m]}" alt="" style="width:76%;height:68%;object-fit:contain"><b style="font-size:${Math.max(12, Math.round(sz * 0.075))}px;line-height:1.1;text-align:center;color:#1F2A33">${cap(MOVES[t.m])}!</b></div></div>`,
-buttons: () => [{ id:"go", html:'<span style="font-size:30px">👆</span><b style="margin-left:8px;font-size:20px">YAP</b>' }],
+stim: (t, sz) => { const st = chState, fb = st && st.phase === "feedback"; const bc = fb ? (st.picked === "go" ? (st.flash === "ok" ? "var(--good)" : "var(--bad)") : (st.flash === "bad" ? "var(--good)" : "#E6ECF2")) : "#E6ECF2";   /* harekete dokunmak = yapmak */
+  return `<div style="display:flex;align-items:center;justify-content:center;gap:3%;width:100%;height:100%;position:relative"><div style="width:38%;height:84%;display:flex;align-items:center;justify-content:center;pointer-events:none"><img src="${t.bear ? WILD_IMAGES.bear : efImg("ejderha")}" alt="" style="width:94%;height:94%;object-fit:contain"></div><div data-ch="go" style="width:54%;height:90%;border-radius:16px;background:#F2F5F8;border:4px solid ${bc};box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer${fb && st.flash === "bad" && st.picked === "go" ? ";box-shadow:0 0 0 4px rgba(229,72,77,.35)" : ""}"><img src="${MOVE_IMAGES[t.m]}" alt="" style="width:74%;height:62%;object-fit:contain;pointer-events:none"><b style="font-size:${Math.max(12, Math.round(sz * 0.075))}px;line-height:1.1;text-align:center;color:#1F2A33;pointer-events:none">${cap(MOVES[t.m])}!</b><span style="font-size:11px;color:#5B6B78;pointer-events:none">dokun = yap</span></div>${chSideNote(fb && st.flash === "bad" ? (t.bear ? "Ayı söyledi — yapmalıydın" : "Ejderha söyledi — yapmamalıydın") : "")}</div>`; },
+buttons: () => [], tapStim: true,
 correct: (t) => t.bear ? "go" : null,
-window: () => (isPre() ? [2000, 1800, 1600] : [1600, 1400, 1200])[Math.min(currentCombo().t, 2)], gap: 320, cols: 1, wideStim: true,
-key: () => `<div class="ch-key" style="font-weight:800;font-size:13px;color:var(--ink);gap:12px;padding:6px 12px"><span>🐻 Ayı derse → YAP</span><span>🐲 Ejderha derse → bekle</span></div>`
-};
-CHOICE["tap-reverse"] = {
-trials_make: (n) => balancedSeq(n, [1, 2], 2).map(k => ({ k })),
-stim: (t) => `<div style="display:flex;align-items:center;justify-content:center;gap:4%;width:100%;height:100%">${Array.from({length:t.k}, () => `<img src="${efImg("el_yumruk")}" alt="" style="width:${t.k === 1 ? 70 : 44}%;height:${t.k === 1 ? 74 : 62}%;object-fit:contain">`).join("")}</div>`,
-buttons: () => [{ id:"1", html:'<span style="font-size:26px;font-weight:900">●</span><b style="margin-left:8px">1 KEZ</b>' }, { id:"2", html:'<span style="font-size:26px;font-weight:900">● ●</span><b style="margin-left:8px">2 KEZ</b>' }],
-correct: (t) => String(t.k === 1 ? 2 : 1),
-window: () => (isPre() ? [2200, 1800, 1500] : [1800, 1400, 1100])[Math.min(currentCombo().t, 2)], gap: 320, cols: 2
+window: () => (isPre() ? [2200, 2000, 1800] : [1800, 1600, 1400])[Math.min(currentCombo().t, 2)], gap: 320, cols: 1, wideStim: true,
+key: () => `<div class="ch-key" style="font-weight:800;font-size:13px;color:var(--ink);gap:12px;padding:6px 12px"><span>🐻 Ayı derse → harekete dokun</span><span>🐲 Ejderha derse → dokunma</span></div>`
 };
 /* ===== Yürütücü İşlev · Paket 2 · dokunmalı çalışmalar ===== */
 CHOICE["less-more"] = {
@@ -6828,10 +6826,10 @@ CHOICE["context-go"] = {
 setup: () => { const pool = NB_ANIMALS.filter(k => animalImg(k)); const cue = pickDifferent(pool, axCue), tgt = pickDifferent(pool.filter(k => k !== cue), axTgt); axCue = cue; axTgt = tgt; return { cue, tgt, others: pool.filter(k => k !== cue && k !== tgt), support: Math.min(currentCombo().t, 2) === 0 }; },
 trials_make: (n, c) => axSeq(n, c),
 stim: (t, sz, c) => `<div style="position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center">${imgFill(animalImg(t.k))}${c.support && t.prev ? `<div style="position:absolute;left:4%;top:4%;width:26%;height:26%;border-radius:12px;background:#F2F5F8;border:2px solid #C9D3DE;display:flex;align-items:center;justify-content:center"><img src="${animalImg(t.prev)}" alt="" style="width:80%;height:80%;object-fit:contain;opacity:.75"></div>` : ""}</div>`,
-buttons: () => [{ id:"go", html:'<span style="font-size:30px">👆</span><b style="margin-left:8px;font-size:20px">YAP</b>' }],
+buttons: () => [{ id:"go", html:'<span style="font-size:30px">👆</span><b style="margin-left:8px;font-size:20px">DOKUN</b>' }],
 correct: (t) => t.go ? "go" : null,
 window: () => (isPre() ? [2100, 1800, 1600] : [1600, 1400, 1200])[Math.min(currentCombo().t, 2)], gap: 300, cols: 1,
-key: (c) => `<div class="ch-key" style="font-weight:800;font-size:13px;color:var(--ink);gap:8px;padding:6px 12px;align-items:center"><img src="${animalImg(c.cue)}" alt="" style="width:34px;height:34px;object-fit:contain"><span>sonra</span><img src="${animalImg(c.tgt)}" alt="" style="width:34px;height:34px;object-fit:contain"><span>gelirse → YAP</span></div>`
+key: (c) => `<div class="ch-key" style="font-weight:800;font-size:13px;color:var(--ink);gap:8px;padding:6px 12px;align-items:center"><img src="${animalImg(c.cue)}" alt="" style="width:34px;height:34px;object-fit:contain"><span>sonra</span><img src="${animalImg(c.tgt)}" alt="" style="width:34px;height:34px;object-fit:contain"><span>gelirse → DOKUN</span></div>`
 };
 CHOICE["distract"] = {
 setup: () => { const t = Math.min(currentCombo().t, 2); return { D: ["l","r","u","d"].slice(0, [2, 3, 4][t]), dist: stIx() === 1, nD: (isPre() ? [2, 3, 4] : [3, 5, 7])[t], pool: shuffleArray(picPool()) }; },
@@ -8960,12 +8958,13 @@ const KT_CATS = () => [{ k:"hayvan", n:"hayvan", items: NB_ANIMALS.filter(k => a
 function ktTrials(){ const t = Math.min(currentCombo().t, 2), pre = isPre(), K = (pre ? [2, 2, 3] : [2, 3, 4])[t], L = (pre ? [6, 8, 10] : [9, 12, 15])[t], R = pre ? 2 : 3, cats = KT_CATS();
   return Array.from({length:R}, () => { const use = shuffleArray(cats).slice(0, K); const seq = []; for(let i = 0; i < L; i++){ const c = use[i % K]; let it; let g = 0; do{ it = randomItem(c.items); g++; } while(g < 20 && seq.length && seq[seq.length - 1].n === it.n); seq.push({ cat: c.k, n: it.n, src: it.src }); } const order = shuffleArray(seq.slice()); const last = {}; order.forEach(x => { last[x.cat] = x.n; }); return { cats: use, seq: order, last, judge: {} }; }); }
 /* Tahmin Et – Yap – Karşılaştır katmanı: işaretli dokunmalı çalışmalarda başlamadan önce tahmin alınır */
-const PREDICT_IDS = new Set(["face-go", "fish-flanker", "switch-touch", "day-night-touch", "stroop-touch", "bear-dragon", "anti-touch", "grass-snow", "context-go", "tap-reverse", "navon", "motion-dir", "rev-sort", "size-stroop", "num-stroop", "spatial-stroop", "distract", "less-more", "creature-count", "look-first"]);
+const PREDICT_IDS = new Set(["face-go", "fish-flanker", "switch-touch", "day-night-touch", "stroop-touch", "bear-dragon", "anti-touch", "grass-snow", "context-go", "tap-reverse", "navon", "motion-dir", "rev-sort", "size-stroop", "num-stroop", "spatial-stroop", "distract", "less-more", "creature-count", "look-first"]);   /* tap-reverse artık vuruş sayılan etkileşimli tahta */
 function predictOn(){ try{ return !gameMode && PREDICT_IDS.has(currentExercise().id) && localStorage.getItem("wm_predict_v1") !== "0"; }catch(e){ return false; } }
 function predictHTML(st){ const n = st.trials.length, p = st.pred == null ? Math.round(n * 0.8) : st.pred; st.pred = p; return `<div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="font-weight:800;font-size:14px;color:#1F2A33">Kaç tanesini doğru yaparsın? <span style="color:#5B6B78">(${n} deneme)</span></div><div style="display:flex;align-items:center;gap:10px"><button type="button" class="wm-btn diff" data-pred="-1" style="min-width:44px;padding:6px 10px">−</button><b style="font-size:30px;min-width:44px;text-align:center">${p}</b><button type="button" class="wm-btn same" data-pred="1" style="min-width:44px;padding:6px 10px">+</button></div><div class="aud-key" style="font-size:12px">sonra ▶ Başlat'a bas</div></div>`; }
 function predictResult(st){ if(st.pred == null) return ""; const got = st.trials.length - st.wrong, d = got - st.pred; const txt = Math.abs(d) <= Math.max(1, Math.round(st.trials.length * 0.1)) ? `<b style="color:var(--good)">Tahminin isabetli</b>` : d > 0 ? `<b style="color:#2E6FD8">Tahminin altında kalmadın, daha iyisini yaptın</b>` : `<b style="color:var(--bad)">Tahmininden daha az doğru yaptın</b>`; return `<div style="font-weight:800;font-size:14px;color:#1F2A33;text-align:center">Tahmin: <b>${st.pred}</b> · Gerçek: <b>${got}</b> / ${st.trials.length}<br>${txt}</div>`; }
 (function initPredictTap(){ try{ document.getElementById("board").addEventListener("click", ev => { const b = ev.target.closest("[data-pred]"); if(!b || !chState || chState.phase !== "idle") return; const n = chState.trials.length; chState.pred = Math.max(0, Math.min(n, (chState.pred == null ? Math.round(n * 0.8) : chState.pred) + Number(b.dataset.pred))); renderChoiceBoard(); }); }catch(e){} })();
 /* Paket 5 · akış yardımcıları */
+function taprEval(){ const st = mtState; if(!st || st.kind !== "tapr" || st.phase !== "show") return; const tr = st.trials[st.ti], want = tr.k === 1 ? 2 : 1, ok = st.taps === want; if(ok){ st.okN++; gameSfx("correct"); } else mtErr(); st.fb = { ok, want }; st.phase = "fb"; renderMtBoard(); mtLater(NEW_MT.next, ok ? 500 : 1100); }
 function scArm(){ const st = mtState; if(!st || st.kind !== "selfchk" || st.phase !== "run") return; const my = st.cur; mtLater(() => { if(mtState !== st || st.phase !== "run" || st.cur !== my) return; const it = st.trials[my]; if(it.ans == null){ it.ans = "-"; it.ok = false; } scNext(); }, st.cfg.win); }
 function scNext(){ const st = mtState; st.cur++; if(st.cur >= st.trials.length){ st.phase = "review"; st.view = "review"; renderMtBoard(); return; } renderMtBoard(); scArm(); }
 function scAnswer(d){ const st = mtState; if(!st || st.kind !== "selfchk" || st.phase !== "run") return; const it = st.trials[st.cur]; if(it.ans != null) return; it.ans = d; it.ok = d === it.d; scNext(); }
@@ -9045,6 +9044,7 @@ return mtState.test; },
 "stop-signal": () => { mtState = { kind:"stop", trials: stopTrials(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
 "hayling": () => { mtState = { kind:"hayl", trials: haylTrials(), ti:0, wrong:0, okN:0, part:0, phase:"idle" }; return mtState.trials; },
 "zihni-says": () => { mtState = { kind:"simon", trials: simonTrials(), ti:0, wrong:0, okN:0, phase:"idle" }; return mtState.trials; },
+"tap-reverse": () => { mtState = { kind:"tapr", trials: balancedSeq(selCount(), [1, 2], 2).map(k => ({ k })), ti:0, wrong:0, okN:0, phase:"idle", taps:0, fb:null }; return mtState.trials; },
 "opp-do": () => { mtState = { kind:"oppdo", set:"htks", trials: oppTrials("htks"), ti:0, wrong:0, okN:0, part:0, phase:"idle" }; return mtState.trials; },
 "hand-game": () => { mtState = { kind:"oppdo", set:"hand", trials: oppTrials("hand"), ti:0, wrong:0, okN:0, part:0, phase:"idle" }; return mtState.trials; },
 "statue": () => { const c = statueCfg(); mtState = { kind:"statue", cfg:c, trials:[{}], ti:0, wrong:0, phase:"idle", left:c.secs, moves:0 }; return mtState.trials; },
@@ -9279,6 +9279,8 @@ mtLater(() => { st.phase = "ask"; st.tgt = null; renderMtBoard(); sayTask("Kaç 
 stop(){ const st = mtState, tr = st.trials[st.ti]; st.phase = "fix"; st.red = false; renderMtBoard(); const my = st.ti;
 mtLater(() => { if(st.ti !== my) return; st.phase = "go"; st.red = !!tr.stop; st.t0 = performance.now(); renderMtBoard();   /* kırmızı ok doğrudan kırmızı gelir (maviden dönmez) */
 mtLater(() => { if(st.ti === my && st.phase === "go"){ if(!tr.stop) mtErr(); else gameSfx("correct"); st.phase = "fb"; renderMtBoard(); mtLater(NEW_MT.next, 350); } }, tr.win || 1600); }, 500); },   /* mavi ve kırmızı aynı süre ekranda */
+tapr(){ const st = mtState, my = st.ti; st.phase = "show"; st.taps = 0; st.fb = null; renderMtBoard(); const win = (isPre() ? [3000, 2600, 2400] : [2400, 2000, 1700])[Math.min(currentCombo().t, 2)];
+  mtLater(() => { if(st.ti === my && st.phase === "show") taprEval(); }, win); },
 hayl(){ const st = mtState, it = st.trials[st.ti]; st.phase = "judge"; renderMtBoard(); mtLater(() => sayTask(it.s.replace("…", "").trim(), 0.85), 250); },
 simon(){ const st = mtState, tr = st.trials[st.ti]; st.phase = "show"; st.fb = null; renderMtBoard(); mtLater(() => sayTask((tr.zihni ? "Zihni diyor ki: " : "") + MOVES[tr.m] + ".", 0.9), 250); mtLater(() => { st.phase = "judge"; renderMtBoard(); }, 1300); },
 oppdo(){ const st = mtState, tr = st.trials[st.ti]; st.phase = "show"; st.fb = null; renderMtBoard(); mtLater(() => sayTask(tr.say, 0.9), 250); mtLater(() => { st.phase = "judge"; renderMtBoard(); }, 1200 + (tr.seq.length - 1) * 800); },
@@ -9543,6 +9545,8 @@ st.phase = "fb"; renderMtBoard(); mtLater(() => { st.sel = {}; NEW_MT.next(); },
 "rhy-done"(){ const st = mtState; if(st.phase !== "input") return; rhyEval(); },
 "per-x"(){},
 "stop-l"(){ stopResp("l"); }, "stop-r"(){ stopResp("r"); }, "stop-u"(){ stopResp("u"); }, "stop-d"(){ stopResp("d"); },
+"tapr-pad"(){ const st = mtState; if(!st || st.kind !== "tapr" || st.phase !== "show") return; st.taps++; gameSfx("pop"); const el = document.getElementById("taprCount"); if(el) el.textContent = st.taps; const my = st.ti, n = st.taps;
+  mtLater(() => { if(st.ti === my && st.phase === "show" && st.taps === n) taprEval(); }, 750); },   /* son vuruştan 0,75 sn sonra değerlendirilir */
 "statue-move"(){ const st = mtState; if(!st || st.kind !== "statue" || st.phase !== "run") return; st.moves++; mtErr(); const el = document.getElementById("statueMoves"); if(el) el.textContent = st.moves; },
 "ks-clear"(){ const st = mtState; if(!st || st.kind !== "keys" || st.phase !== "input") return; st.trials[st.ti].pts = []; renderMtBoard(); },
 "ks-done"(){ const st = mtState; if(!st || st.kind !== "keys" || st.phase !== "input") return; const tr = st.trials[st.ti]; const cov = ksCoverage(tr.pts), pct = Math.round(cov.size / 64 * 100), found = cov.has(tr.key[0] + "," + tr.key[1]); tr.cov = cov; tr.pct = pct; tr.found = found; st.res.push(pct); if(pct < tr.need) mtErr(); else { st.okN++; gameSfx("correct"); } st.phase = "fb"; renderMtBoard(); mtLater(NEW_MT.next, 2200); },
@@ -9610,6 +9614,7 @@ if(st.kind === "mem") return { info:`Bitti · ${st.P} eş · eşleşmeyen deneme
 if(st.kind === "time") return { info:`Bitti · tahminler: ${st.res.join(" · ")} sn`, body:"" };
 if(st.kind === "chase") return { info:`Bitti · ${st.hits} kez dokundun`, body:"" };
 if(st.kind === "flu") return { info:`${st.goalHit ? "<b style=\"color:var(--good)\">Hedefe ulaştın ✓</b>" : "Süre doldu"} · ${fluUnit() === "fikir" ? "uygun" : "doğru"} <b>${st.ok}</b> ${fluUnit()}${fluUnit() === "fikir" ? (st.ok >= altGoal() ? ` · hedef ${altGoal()} <b style="color:var(--good)">✓</b>` : ` · hedef ${altGoal()} (ulaşılamadı)`) : ""}`, body:`<div class="flu-q">${st.q.map((n, k) => `<div><b>${n}</b><span>${Math.round(st.secs / 4 * k)}–${Math.round(st.secs / 4 * (k + 1))} sn</span></div>`).join("")}</div><div class="aud-key" style="text-align:center;margin-top:6px">Tekrar: <b>${st.rep}</b> · ${fluUnit() === "fikir" ? "Sayılmaz" : "Kural dışı"}: <b>${st.rule + st.ord}</b>${st.P.sw ? ` (sıra karışması: ${st.ord})` : ""}</div><div class="aud-key" style="text-align:center">İlk çeyrekte çok, sonlara doğru az ${fluUnit()} olağandır; çok erken tükeniyorsa strateji aşamasını deneyin.</div>` };
+if(st.kind === "tapr") return { info:`Bitti · doğru <b>${st.okN}/${st.trials.length}</b>`, body:"" };
 if(st.kind === "hayl") return { info: stIx() === 1 ? `Bitti · uymayan <b>${st.okN}</b> · ilgili <b>${st.part}</b> · uyan <b>${st.wrong}</b>` : `Bitti · uygun <b>${st.okN}/${st.trials.length}</b>`, body:"" };
 if(st.kind === "simon" || st.kind === "oppdo") return { info:`Bitti · doğru <b>${st.okN}/${st.trials.length}</b>${st.part ? ` · düzeltti <b>${st.part}</b>` : ""}`, body:"" };
 if(st.kind === "statue") return { info:`Bitti · ${st.cfg.secs} sn · hareket/konuşma <b>${st.moves}</b>`, body:"" };
@@ -10000,6 +10005,12 @@ return `<div class="wm-pic${mk}" data-mt="${i}" style="width:${d.cell}px;height:
 const done = st.phase === "input" ? `<div class="wm-btns" style="margin:8px auto 0"><button type="button" class="wm-btn same" data-mtbtn="fs-done">Bitti</button></div>` : "";
 body = isLs ? `<div style="display:flex;gap:14px;align-items:center;justify-content:center"><div>${pal}${done}</div>${grid}</div>` : pal + grid + done;
 }
+} else if(st.kind === "tapr"){
+const tr = st.trials[Math.min(ti, st.trials.length - 1)], c = Math.min(isLs ? 110 : 120, W * 0.3), pad = Math.min(isLs ? 150 : 180, W * 0.6);
+info = st.phase === "fb" ? (st.fb.ok ? `<b style="color:var(--good)">Doğru</b> · ${st.fb.want} kez vurdun` : `<b style="color:var(--bad)">${st.taps} kez vurdun</b> · doğrusu ${st.fb.want} kez`) : `Deneme <b>${ti + 1}/${st.trials.length}</b> · vuruşun: <b id="taprCount">${st.taps}</b>`;
+const fists = `<div class="wm-card${st.phase === "fb" ? (st.fb.ok ? " ok" : " bad") : ""}" style="width:${c * (tr.k === 1 ? 1 : 1.7)}px;height:${c}px;gap:4px">${Array.from({length: tr.k}, () => `<img src="${efImg("el_yumruk")}" alt="" style="width:${tr.k === 1 ? 80 : 46}%;height:84%;object-fit:contain">`).join("")}</div>`;
+const padBtn = `<button type="button" class="wm-btn same" data-mtbtn="tapr-pad" style="width:${pad}px;height:${Math.round(pad * 0.55)}px;font-size:22px;border-radius:24px;${st.phase === "show" ? "" : "opacity:.55"}">👊 VUR</button>`;
+body = dots + (isLs ? `<div style="display:flex;gap:18px;align-items:center;justify-content:center">${fists}${padBtn}</div>` : `<div style="display:flex;flex-direction:column;gap:12px;align-items:center">${fists}${padBtn}</div>`);
 } else if(st.kind === "hayl"){
 const it = st.trials[Math.min(ti, st.trials.length - 1)], B = stIx() === 1;
 info = `Cümle <b>${ti + 1}/${st.trials.length}</b>`;
@@ -10202,7 +10213,7 @@ body = dots + (st.copy ? `<div style="display:flex;${isLs ? "" : "flex-direction
 return { info, body };
 }
 };
-const NEW_MT_KINDS = ["selfchk","cgt","ktrack","zoo","keys","jars","dfl","twq","bsearch","six","cog","fist","wcst","rev","statue","hold","hayl","simon","oppdo","hear","dir","miss","chg","recog","draw","face","scene","scenet","samenum","size","movesay","storyord","whatdo","flu","spic","fsort","absay","parr","nword","rl","wt","dr","kav","ubal","htrn","slide","kopru","esc","bln","mol","ctc","bag","smn","clue","ctab","cobj","porder","ftrace","ecount","pairm","per","fix","dual","stop","vig","pnb","csp","tone","wseen","route","sbuild","spotd","sdk","blk","clut","sym","maze","ssnd","seqw","dots","chase","time","ferr","cups","mmath","who","rhy","mem"];
+const NEW_MT_KINDS = ["tapr","selfchk","cgt","ktrack","zoo","keys","jars","dfl","twq","bsearch","six","cog","fist","wcst","rev","statue","hold","hayl","simon","oppdo","hear","dir","miss","chg","recog","draw","face","scene","scenet","samenum","size","movesay","storyord","whatdo","flu","spic","fsort","absay","parr","nword","rl","wt","dr","kav","ubal","htrn","slide","kopru","esc","bln","mol","ctc","bag","smn","clue","ctab","cobj","porder","ftrace","ecount","pairm","per","fix","dual","stop","vig","pnb","csp","tone","wseen","route","sbuild","spotd","sdk","blk","clut","sym","maze","ssnd","seqw","dots","chase","time","ferr","cups","mmath","who","rhy","mem"];
 
 const DELAY_TASKS = { story:"Hikâye Hatırlama → Aşama 3 (Gecikmeli)", recog:"Bunu Gördün mü? → Aşama 2 (Gecikmeli)", list:"Liste Öğrenme → Aşama 2 (Gecikmeli)" };
 function delayKey(task){ return "wm_delay_" + task + "_" + (currentPlayerName || "Misafir"); }
@@ -10772,7 +10783,7 @@ const INSTR_SHORT = {
 "self-check":       [() => `${Q("Okun yönüne hızlıca dokun; bu kez doğru mu yanlış mı söylemeyeceğim.")} Bitince: ${Q("Hangi cevapların yanlıştı? İşaretle.")}`],
 "safe-box":         [() => Q("Kutulardan birine dokun; gülen yüz yıldız verir, üzgün yüz yıldız alır. Hangi kutunun daha iyi olduğunu keşfet.")],
 "keep-track":       [() => Q("Resimler sırayla gelecek. Her grubun EN SON geleni aklında tut; sonunda söyle.")],
-"zoo-map":          [() => `${Q("Girişten başla, ⭐ işaretli yerlerin hepsine uğra, çıkışta bitir. Aynı yoldan iki kez geçme.")} Durağa gitmek için düğmeye dokun.`],
+"zoo-map":          [() => `${Q("Girişten başla, ⭐ işaretli yerlerin hepsine uğra, çıkışta bitir. Aynı yoldan iki kez geçme.")} Gitmek için haritadaki yere dokun.`],
 "key-search":       [() => Q("Bu tarlada bir anahtar kayboldu. Parmağınla öyle bir yol çiz ki tarlanın her yerini taramış olasın.")],
 "water-jars":       [() => Q("Kapları doldurup boşaltarak ve birbirine aktararak bir kapta tam hedef miktarı elde et. Az hamleyle.")],
 "design-fluency":   [() => Q("Noktaları çizgilerle birleştirip olabildiğince çok FARKLI desen çiz. Her deseni bitirince ✓'ye bas.")],
@@ -10787,11 +10798,11 @@ const INSTR_SHORT = {
 "plus-minus":       [() => Q("Her sayıya 3 ekle, sonucu hızlıca söyle."), () => Q("Her sayıdan 3 çıkar, sonucu hızlıca söyle."), () => Q("Sırayla değiştir: ilk sayıya 3 ekle, ikincisinden 3 çıkar, sonra yine ekle…")],
 "creature-count":   [() => Q("Yaratıkları sırayla say. Yeşil ok gelince ileri, kırmızı ok gelince geri say. Sondaki sayıya dokun.")],
 "motion-dir":       [() => Q("Çerçeve YEŞİL ise oklar nereye bakıyorsa, TURUNCU ise oklar nereye gidiyorsa o oka dokun.")],
-"rev-sort":         [() => Q("Büyük şekli BÜYÜK kovaya, küçük şekli KÜÇÜK kovaya koy."), () => Q("Şimdi tersi: büyük şekli KÜÇÜK kovaya, küçük şekli BÜYÜK kovaya koy.")],
+"rev-sort":         [() => Q("Büyük şekli BÜYÜK kovaya, küçük şekli KÜÇÜK kovaya koy: kovaya dokun."), () => Q("Şimdi tersi: büyük şekli KÜÇÜK kovaya, küçük şekli BÜYÜK kovaya koy: kovaya dokun.")],
 "statue":           [() => `Çocuk ayakta, gözler kapalı, eller yanda: ${Q("Heykel gibi hiç kıpırdamadan dur; ben söyleyene kadar.")} Süre dolunca uygulama durur.`],
 "hold-wait":        [() => Q("Hediyeye bas ve açılana kadar bırakma; etrafta ne olursa olsun elini çekme.")],
 "less-more":        [() => Q("Az olan tabağı gösterirsen çok olanı kazanırsın. Hangi tabağı gösteriyorsun?")],
-"context-go":       [() => Q(`${trUpper(ANIMAL_NAMES[axCue])} geldikten hemen sonra ${trUpper(ANIMAL_NAMES[axTgt])} gelirse YAP'a dokun; başka zaman dokunma.`)],
+"context-go":       [() => Q(`${trUpper(ANIMAL_NAMES[axCue])} geldikten hemen sonra ${trUpper(ANIMAL_NAMES[axTgt])} gelirse DOKUN'a bas; başka zaman basma.`)],
 "distract":         [() => Q("Ortadaki ok hangi yöne bakıyorsa o oka dokun."), () => Q("Ortadaki ok hangi yöne bakıyorsa o oka dokun. Etraftaki resimlere ve seslere aldırma.")],
 "opp-world":        [() => Q("Gördüğün rakamı hızlıca söyle."), () => Q("Tersini söyle: 1 görünce 'iki', 2 görünce 'bir' de.")],
 "grass-snow":       [() => Q("Çimen gelince BEYAZ'a, kar gelince YEŞİL'e dokun.")],
@@ -10802,10 +10813,10 @@ const INSTR_SHORT = {
 "anti-touch":       [() => Q("Mavi top hangi tarafta belirirse KARŞI tarafın okuna dokun.")],
 "hayling":          [() => `Cümleyi okuyun, sonunda durun: ${Q("Cümleyi uygun bir kelimeyle tamamla.")}`, () => `Cümleyi okuyun, sonunda durun: ${Q("Cümleye hiç uymayan bir kelime söyle.")} Uyan ya da ilgili kelime hata sayılır.`],
 "zihni-says":       [() => `Komutu okuyun: ${Q("Yalnızca ‘Zihni diyor ki’ ile başlayan komutu yap; başlamıyorsa yapma.")}`],
-"bear-dragon":      [() => Q("Komutu AYI veriyorsa YAP'a dokun; EJDERHA veriyorsa dokunma, bekle.")],
+"bear-dragon":      [() => Q("Komutu AYI veriyorsa hareket kartına dokun, dokunmak yapmak demek; EJDERHA veriyorsa dokunma, bekle.")],
 "opp-do":           [() => `Komutu okuyun: ${Q("Söylenenin tersini yap.")}${oppRuleText("htks")}`],
 "hand-game":        [() => `Elinizle gösterin: ${Q("Yumruk gösterirsem parmak, parmak gösterirsem yumruk göster.")}${oppRuleText("hand")}`],
-"tap-reverse":      [() => Q("Bir yumruk görürsen 2 KEZ'e, iki yumruk görürsen 1 KEZ'e dokun.")],
+"tap-reverse":      [() => Q("Bir yumruk görürsen büyük düğmeye İKİ kez, iki yumruk görürsen BİR kez vur.")],
 "vigilance":        [() => Q("Şekiller tek tek gelecek. Yalnızca kırmızı yıldız gelince Gördüm'e bas.")],
 "pos-nback":        [() => Q(mtState && mtState.n === 2 ? "Mavi kare iki önceki kareyle aynı yerdeyse Aynı yer'e bas." : "Mavi kare bir öncekiyle aynı yerdeyse Aynı yer'e bas.")],
 "count-span":       [() => Q("Her karttaki noktaları say, Saydım'a bas. Sonunda sayıları sırayla seç.")],
@@ -11115,10 +11126,10 @@ return {
 "anti-touch":[0, "Karşıya Hazırlan", "Top çıkmadan iki tarafı da düşün; çıkınca hemen karşıyı seç."],
 "hayling":[1, "Önce Dur", "Aklına ilk gelen kelimeyi söyleme; odadaki bir eşyanın adını söyle."],
 "zihni-says":[0, "Önce Dinle", "Harekete geçmeden önce sor: ‘Zihni diyor ki’ dedi mi?"],
-"bear-dragon":[0, "Önce Kime Bak", "Dokunmadan önce komutu kimin verdiğine bak: ayı mı, ejderha mı?"],
+"bear-dragon":[0, "Önce Kime Bak", "Karta dokunmadan önce komutu kimin verdiğine bak: ayı mı, ejderha mı?"],
 "opp-do":[0, "Tersini Söyle", "Yapmadan önce tersini sesli söyle: ‘Baş değil, ayak.’"],
 "hand-game":[0, "Tersini Söyle", "Göstermeden önce tersini söyle: ‘Yumruk değil, parmak.’"],
-"tap-reverse":[0, "Tersini Söyle", "Dokunmadan önce içinden söyle: ‘Bir gördüm, iki dokunacağım.’"],
+"tap-reverse":[0, "Tersini Söyle", "Vurmadan önce içinden söyle: ‘Bir gördüm, iki vuracağım.’"],
 "vigilance":[0, "Hedefi Söyle", "İçinden tekrar et: kırmızı yıldız, kırmızı yıldız."],
 "pos-nback":[0, "Yeri Söyle", "Her kareyi içinden adlandır: 'üst sol', 'orta'…"],
 "count-span":[0, "Sayıları Tekrarla", "Her yeni sayıyı önceki sayılarla birlikte içinden tekrar et."],
@@ -13106,7 +13117,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.22-f";
+const APP_VERSION = "2026.10.22-g";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
