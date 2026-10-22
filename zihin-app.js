@@ -6601,7 +6601,7 @@ if(btnId !== null) st.rts.push(performance.now() - st.shownAt);
 st.picked = btnId; st.flash = ok ? "ok" : "bad";
 if(ok) gameSfx("correct"); else { st.wrong++; setErrorCount(currentErrorCount + 1); try{ vibrate(60); }catch(e){} gameSfx("wrong"); }
 st.phase = "feedback"; renderChoiceBoard();
-chLater(() => { st.idx++; chNext(); }, ok ? 260 : 520);
+chLater(() => { st.idx++; chNext(); }, ok ? 260 : (st.spec.tapStim ? 1400 : 520));   /* resme dokunmalı çalışmalarda yanlışta düzeltme notu okunabilsin */
 }
 function renderChoiceBoard(){
 const board = document.getElementById("board");
@@ -6613,15 +6613,15 @@ const W = (board.clientWidth || 360) - 24, H = isLs ? (board.clientHeight || 280
 const stimSize = Math.floor(Math.min(isLs ? H - 20 : 220, W * (isLs ? 0.42 : 0.75)));
 const tr = st.trials[st.idx];
 const stim = st.phase === "idle" ? (predictOn() ? predictHTML(st) : `<span class="hold">▶ Başlat'a bas</span>`) : st.phase === "done" ? (predictOn() && st.pred != null ? predictResult(st) : `<span class="hold">Bitti!</span>`) : st.phase === "gap" ? "" : sp.stim(tr, stimSize, st.ctx);   /* Tahmin Et – Yap – Karşılaştır katmanı: işaretli çalışmalarda */
-const buttons = sp.buttons(st.ctx, tr);   /* deneme bazlı düğmeler (Hızlı Seç: yer ve kural değişimi) */
+const buttons = sp.buttons(st.ctx, tr);   /* deneme bazlı düğmeler (Hızlı Seç: yer ve kural değişimi); tapStim: seçim resmin kendisine dokunarak */
 const corr = st.phase === "feedback" ? sp.correct(tr, st.ctx) : undefined;
-const btnHtml = `<div class="ch-btns" style="grid-template-columns:repeat(${Math.min(buttons.length, sp.cols || buttons.length)}, minmax(0, 1fr));">` + buttons.map(b => {
+const btnHtml = sp.tapStim ? (st.phase === "ask" ? `<div class="aud-key" style="text-align:center">Resme dokun</div>` : "") : `<div class="ch-btns" style="grid-template-columns:repeat(${Math.min(buttons.length, sp.cols || buttons.length)}, minmax(0, 1fr));">` + buttons.map(b => {
 let cls = "";
 if(st.phase === "feedback"){ if(b.id === st.picked) cls = st.flash === "ok" ? " ok" : " bad"; else if(b.id === corr && st.flash === "bad") cls = " show"; }
 return `<button type="button" class="ch-btn${cls}" data-ch="${b.id}" ${st.phase === "ask" ? "" : "disabled"} style="${b.style || ""}">${b.html}</button>`; }).join("") + `</div>`;
 const key = sp.key ? sp.key(st.ctx) : "";
 const prog = st.phase === "idle" ? (sp.hint ? sp.hint(st.ctx) : "") : st.phase === "done" ? "" : `Deneme <b>${Math.min(st.idx + 1, st.trials.length)}</b> / ${st.trials.length}`;
-const stimBox = `<div class="wm-card ${st.flash || ""}" style="width:${sp.wideStim ? Math.min(W, stimSize * 1.8) : stimSize}px;height:${stimSize}px;">${stim}</div>`;
+const stimBox = `<div class="wm-card ${sp.tapStim ? "" : (st.flash || "")}" style="width:${sp.wideStim ? Math.min(W, stimSize * 1.8) : stimSize}px;height:${stimSize}px;${sp.tapStim ? "padding:0;" : ""}">${stim}</div>`;
 board.innerHTML = isLs
 ? `<div class="wm-wrap" style="flex-direction:row;justify-content:center;gap:20px;">${stimBox}<div style="display:flex;flex-direction:column;gap:10px;align-items:center;width:46%">${key}<div class="wm-info">${prog}</div>${btnHtml}</div></div>`
 : `<div class="wm-wrap">${key}<div class="wm-info">${prog}</div>${stimBox}${btnHtml}</div>`;
@@ -6763,18 +6763,21 @@ trials_make: (n) => { const t = Math.min(currentCombo().t, 2), nI = Math.round(n
   return conds.map((cd, k) => { let a, b; do{ a = 1 + Math.floor(Math.random() * 9); b = 1 + Math.floor(Math.random() * 9); } while(a === b || (t === 0 && Math.abs(a - b) < 3)); if(a < b){ const x = a; a = b; b = x; }   /* a: büyük rakam */
     const [lo, hi] = randomItem(CS), cong = cd === "C"; const big = { d: a, c: cong ? hi : lo }, small = { d: b, c: cong ? lo : hi };   /* uyumlu: büyük rakam daha çok */
     const left = sides[k] === "L"; return { L: left ? big : small, R: left ? small : big, valSide: left ? "L" : "R", moreSide: (big.c > small.c) === left ? "L" : "R", cong }; }); },
-stim: (t, sz) => { const grp = (g) => `<div style="flex:1;height:86%;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:2px 8px;font-weight:900;font-size:${Math.round(sz * 0.2)}px;line-height:1;color:#1F2A33">${Array.from({length:g.c}, () => `<span>${g.d}</span>`).join("")}</div>`; return `<div style="display:flex;width:100%;height:100%;align-items:center">${grp(t.L)}<div style="width:3px;height:70%;background:#C9D3DE;border-radius:2px"></div>${grp(t.R)}</div>`; },
-buttons: () => sideButtons(),
+stim: (t, sz) => { const grp = (g, id) => `<div ${chSideAttr(id)}><div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;align-content:center;gap:2px 8px;font-weight:900;font-size:${Math.round(sz * 0.2)}px;line-height:1;color:#1F2A33;pointer-events:none">${Array.from({length:g.c}, () => `<span>${g.d}</span>`).join("")}</div></div>`;
+  const cs = stIx() === 1 ? t.valSide : t.moreSide, cg = t[cs]; const note = chSideNote(stIx() === 1 ? `Doğrusu: ${cg.d} — daha büyük rakam` : `Doğrusu: ${cg.c} tane olan — daha çok`);
+  return `<div style="display:flex;width:100%;height:100%;align-items:center;position:relative">${grp(t.L, "L")}<div style="width:3px;height:70%;background:#C9D3DE;border-radius:2px"></div>${grp(t.R, "R")}${note}</div>`; },
+buttons: () => [], tapStim: true,
 correct: (t) => stIx() === 1 ? t.valSide : t.moreSide, cols: 2, wideStim: true
 };
 CHOICE["size-stroop"] = {
 setup: () => ({ big: shuffleArray(SZ_BIG()), small: shuffleArray(SZ_SMALL()) }),
 trials_make: (n, c) => { const t = Math.min(currentCombo().t, 2), nI = Math.round(n * [0.5, 0.6, 0.7][t]); const conds = balancedSeq(n, ["I","C"], 2, [nI, n - nI]), sides = balancedSeq(n, ["L","R"], 2); let pb = null, ps = null;
   return conds.map((cd, k) => { const b = pickDifferent(c.big, pb), s = pickDifferent(c.small, ps); pb = b; ps = s; return { b, s, cong: cd === "C", bigSide: sides[k] }; }); },
-stim: (t) => { const one = (x, large) => `<div style="flex:1;height:100%;display:flex;align-items:center;justify-content:center"><img src="${x[1]}" alt="" style="width:${large ? 92 : 38}%;height:${large ? 92 : 38}%;object-fit:contain"></div>`;
-  const L = t.bigSide === "L" ? one(t.b, t.cong) : one(t.s, !t.cong), R = t.bigSide === "L" ? one(t.s, !t.cong) : one(t.b, t.cong);   /* uyumsuz: büyük hayvan küçük çizilir */
-  return `<div style="display:flex;width:100%;height:100%;align-items:center">${L}<div style="width:3px;height:70%;background:#C9D3DE;border-radius:2px"></div>${R}</div>`; },
-buttons: () => sideButtons(),
+stim: (t) => { const one = (x, large, id) => `<div ${chSideAttr(id)}><img src="${x[1]}" alt="" style="width:${large ? 92 : 38}%;height:${large ? 92 : 38}%;object-fit:contain;pointer-events:none"></div>`;
+  const oS = t.bigSide === "L" ? "R" : "L", L = t.bigSide === "L" ? one(t.b, t.cong, "L") : one(t.s, !t.cong, "L"), R = t.bigSide === "L" ? one(t.s, !t.cong, "R") : one(t.b, t.cong, "R");   /* uyumsuz: büyük hayvan küçük çizilir */
+  const note = chSideNote(stIx() === 1 ? `Doğrusu: ${t.s[0]} — gerçekte daha küçük` : `Doğrusu: ${t.b[0]} — gerçekte daha büyük`);
+  return `<div style="display:flex;width:100%;height:100%;align-items:center;position:relative">${L}<div style="width:3px;height:70%;background:#C9D3DE;border-radius:2px"></div>${R}${note}</div>`; },
+buttons: () => [], tapStim: true,
 correct: (t) => stIx() === 1 ? DIR_OPP[t.bigSide.toLowerCase()].toUpperCase() : t.bigSide, cols: 2, wideStim: true
 };
 CHOICE["spatial-stroop"] = {
@@ -6814,9 +6817,10 @@ CHOICE["less-more"] = {
 setup: () => ({ treats: shuffleArray(LM_TREATS()), won: 0 }),
 trials_make: (n, c) => { const t = Math.min(currentCombo().t, 2), P = (isPre() ? LM_PAIRS.pre : LM_PAIRS.post)[t], sides = balancedSeq(n, ["L","R"], 2); return sides.map((s, i) => { const [lo, hi] = randomItem(P); return { lo, hi, loSide: s, tr: c.treats[i % c.treats.length] }; }); },
 stim: (t, sz, c) => { let mk = null; if(chState && chState.phase === "feedback"){ if(!t.counted){ t.counted = true; t.good = chState.picked === t.loSide; t.got = t.good ? t.hi : t.lo; c.won += t.got; } mk = { n: t.got, good: t.good }; }   /* ödül: az olanı gösterince çok olanı alır */
-  const L = t.loSide === "L", lo = lmPlate(t.lo, t.tr[1], sz, mk && !mk.good ? mk : null), hi = lmPlate(t.hi, t.tr[1], sz, mk && mk.good ? mk : null);
-  return `<div style="display:flex;width:100%;height:100%;align-items:center;gap:2%">${L ? lo : hi}<div style="width:3px;height:70%;background:#C9D3DE;border-radius:2px"></div>${L ? hi : lo}</div>`; },
-buttons: () => sideButtons(),
+  const L = t.loSide === "L", hiSide = L ? "R" : "L", lo = lmPlate(t.lo, t.tr[1], sz, mk && !mk.good ? mk : null, t.loSide), hi = lmPlate(t.hi, t.tr[1], sz, mk && mk.good ? mk : null, hiSide);
+  const note = chSideNote("Az olanı göster, çoğu sana gelir");
+  return `<div style="display:flex;width:100%;height:100%;align-items:center;gap:2%;position:relative">${L ? lo : hi}<div style="width:3px;height:70%;background:#C9D3DE;border-radius:2px"></div>${L ? hi : lo}${note}</div>`; },
+buttons: () => [], tapStim: true,
 correct: (t) => t.loSide, cols: 2, wideStim: true, gap: 420,
 key: (c) => `<div class="ch-key" style="font-weight:800;font-size:14px;color:var(--ink);padding:6px 12px">🧺 Kazandığın: <b style="margin-left:4px">${c.won}</b></div>`
 };
@@ -8816,6 +8820,10 @@ const DIR_POS = { l:"left:14%;top:50%", r:"left:86%;top:50%", u:"left:50%;top:16
 const spDirs = () => ["l","r","u","d"].slice(0, [2, 3, 4][Math.min(currentCombo().t, 2)]);
 const atDirs = () => ["l","r","u","d"].slice(0, [2, 2, 4][Math.min(currentCombo().t, 2)]);
 const dirButtons = (D) => D.map(d => ({ id: d, html: `<span style="font-size:32px;font-weight:900">${DIR_ARROW[d]}</span>` }));
+/* Resme dokunarak seçim (iki taraflı çalışmalar): seçilen taraf belirgin yeşil/kırmızı; yanlışta doğru taraf yeşil çerçeve + kısa not */
+function chSideAttr(id){ const st = chState; let bc = "#E6ECF2", sh = ""; if(st && st.phase === "feedback"){ const corr = st.spec.correct(st.trials[st.idx], st.ctx); if(id === st.picked){ bc = st.flash === "ok" ? "var(--good)" : "var(--bad)"; sh = st.flash === "ok" ? "box-shadow:0 0 0 4px rgba(31,164,99,.35);" : "box-shadow:0 0 0 4px rgba(229,72,77,.35);"; } else if(id === corr && st.flash === "bad"){ bc = "var(--good)"; sh = "box-shadow:0 0 0 4px rgba(31,164,99,.35);"; } }
+  return `data-ch="${id}" style="flex:1;align-self:stretch;margin:2%;display:flex;align-items:center;justify-content:center;border:4px solid ${bc};border-radius:16px;box-sizing:border-box;cursor:pointer;position:relative;${sh}"`; }
+function chSideNote(txt){ const st = chState; if(!st || st.phase !== "feedback" || st.flash !== "bad" || !txt) return ""; return `<b style="position:absolute;left:50%;bottom:3%;transform:translateX(-50%);background:var(--good);color:#fff;border-radius:999px;padding:3px 12px;font-size:13px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,.2)">${txt}</b>`; }
 const sideButtons = () => [{ id:"L", html:'<span style="font-size:30px;font-weight:900">◀</span><b style="margin-left:6px">SOL</b>' }, { id:"R", html:'<b style="margin-right:6px">SAĞ</b><span style="font-size:30px;font-weight:900">▶</span>' }];
 /* ===== Yürütücü İşlev · Paket 2 (Ketleme B) · veri ve yardımcılar ===== */
 (function efStyle(){ try{ if(document.getElementById("efStyle")) return; const s = document.createElement("style"); s.id = "efStyle"; s.textContent = `@keyframes efFly{0%{transform:translate(0,0) scale(1)}50%{transform:translate(var(--dx),var(--dy)) scale(1.35)}100%{transform:translate(0,0) scale(1)}}@keyframes efBlink{0%,100%{opacity:1}50%{opacity:.15}}.ef-dist{position:absolute;pointer-events:none;will-change:transform}.ef-hold{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}.ef-hold.holding{transform:translateY(3px);box-shadow:none !important;background:#E3F6EC !important;border-color:#1FA463 !important}.ef-bar{height:14px;border-radius:999px;background:#E6ECF2;overflow:hidden}.ef-bar>i{display:block;height:100%;width:0;background:#1FA463;border-radius:999px}#statueDist{opacity:0;transition:opacity .2s}#statueDist.on{opacity:1}`; document.head.appendChild(s); }catch(e){} })();
@@ -8837,7 +8845,7 @@ function holdUp(){ const st = mtState; if(!st || st.kind !== "hold" || st.phase 
 /* Azı Seç (Less is More): tabak çiftleri ve ödül görselleri */
 const LM_TREATS = () => [["kurabiye", efImg("kurabiye")], ["lolipop", efImg("lolipop")], ["çilek", FRUIT_VEG_IMAGES.strawberry], ["üzüm", FRUIT_VEG_IMAGES.grapes]].filter(x => x[1]);
 const LM_PAIRS = { pre: [[[1, 3], [1, 4]], [[1, 4], [2, 5]], [[2, 5], [2, 6]]], post: [[[1, 4], [2, 5]], [[2, 6], [3, 6]], [[3, 7], [2, 7], [4, 8]]] };
-function lmPlate(n, src, sz, mark){ const w = Math.round(sz * (n > 4 ? 0.17 : 0.22)); return `<div style="flex:1;height:92%;display:flex;align-items:center;justify-content:center;position:relative"><div style="width:88%;aspect-ratio:1;max-height:88%;border-radius:50%;background:#F2F5F8;border:3px solid #C9D3DE;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;align-content:center;gap:2px;padding:6%;box-sizing:border-box">${Array.from({length:n}, () => `<img src="${src}" alt="" style="width:${w}px;height:${w}px;object-fit:contain">`).join("")}</div>${mark ? `<b style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:${mark.good ? "#1FA463" : "#E5484D"};color:#fff;border-radius:999px;padding:6px 14px;font-size:${Math.round(sz * 0.11)}px;white-space:nowrap;box-shadow:0 3px 8px rgba(0,0,0,.25)">+${mark.n}</b>` : ""}</div>`; }
+function lmPlate(n, src, sz, mark, id){ const w = Math.round(sz * (n > 4 ? 0.17 : 0.22)); return `<div ${chSideAttr(id)}><div style="pointer-events:none;width:88%;aspect-ratio:1;max-height:88%;border-radius:50%;background:#F2F5F8;border:3px solid #C9D3DE;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;align-content:center;gap:2px;padding:6%;box-sizing:border-box">${Array.from({length:n}, () => `<img src="${src}" alt="" style="width:${w}px;height:${w}px;object-fit:contain">`).join("")}</div>${mark ? `<b style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:${mark.good ? "#1FA463" : "#E5484D"};color:#fff;border-radius:999px;padding:6px 14px;font-size:${Math.round(sz * 0.11)}px;white-space:nowrap;box-shadow:0 3px 8px rgba(0,0,0,.25)">+${mark.n}</b>` : ""}</div>`; }
 /* Bağlamlı Tepki (AX-CPT): ipucu ve hedef hayvan Karıştır'da değişir */
 let axCue = "dog", axTgt = "cat";
 function axSeq(n, c){ const t = Math.min(currentCombo().t, 2), pAY = [0.2, 0.25, 0.3][t], pBX = [0.15, 0.2, 0.3][t]; let best = null;
@@ -13098,7 +13106,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.22-e";
+const APP_VERSION = "2026.10.22-f";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
