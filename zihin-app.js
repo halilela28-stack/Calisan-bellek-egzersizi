@@ -5226,10 +5226,10 @@ sub:"Ketleme (Stroop, gece–gündüz, ket vurma, hayvana dokun, ortadakini söy
 purpose:"Dikkati yönetme, kural değiştirme, dürtüsel tepkiyi durdurma, planlama, zamanı tahmin etme ve kendi işini denetleme becerilerini çalıştırır.",
 color:"#3A6EA5",
 group:"Hız & Dikkat",
-exerciseIds:["stroop","day-night","go-no-go","fish-flanker","stroop-touch","day-night-touch","touch-animal","dual-task","flanker","task-switch","face-go","time-est","sort-color-shape","sort-animal-size","sort-color-shape-count","stop-signal","sort-words","find-error","number-letter","trail-number-month","trail-animal-fruit","trail-color-shape","switch-touch","alt-uses","vigilance","plan-beads","plan-swap","plan-tol","plan-cubes","plan-think"],
+exerciseIds:["stroop","day-night","go-no-go","fish-flanker","stroop-touch","day-night-touch","touch-animal","dual-task","flanker","task-switch","face-go","time-est","sort-color-shape","sort-animal-size","sort-color-shape-count","stop-signal","sort-words","find-error","number-letter","trail-number-month","trail-animal-fruit","trail-color-shape","switch-touch","alt-uses","vigilance","plan-beads","plan-swap","plan-tol","plan-cubes"],
 exerciseGroups:[["Ketleme",["stroop","day-night","go-no-go","fish-flanker","touch-animal","stroop-touch","day-night-touch","flanker","face-go"]],
 ["Esneklik",["task-switch","sort-color-shape","sort-animal-size","sort-color-shape-count","sort-words","number-letter","trail-number-month","trail-animal-fruit","trail-color-shape","switch-touch"]],
-["Planlama",["plan-beads","plan-swap","plan-tol","plan-cubes","plan-think"]]]
+["Planlama",["plan-beads","plan-swap","plan-tol","plan-cubes"]]]
 },
 {
 id:"calisan-bellek",
@@ -5617,7 +5617,7 @@ if(currentExercise().isWm){ setTimeout(() => { try{ wmStart(); }catch(e){ consol
 if(currentExercise().isChoice){ setTimeout(() => { try{ chStart(); }catch(e){ console.error(e); } }, 250); }
 if(currentExercise().isRt){ setTimeout(() => { try{ rtStart(); }catch(e){ console.error(e); } }, 250); }
 if(currentExercise().isMt){ setTimeout(() => { try{ mtStart(); }catch(e){ console.error(e); } }, 250); }
-if(currentExercise().id === "plan-think"){ try{ plnStartLock(); }catch(e){} }
+if(planThinkOn()){ try{ plnStartLock(); }catch(e){} }
 if(typeof gameMode !== "undefined" && gameMode){ sfx("go"); speakText(gameLine("go"), { pitch: 1.2 }); try{ renderGameWho(); }catch(e){} }
 { if(!landscapeMQ.matches){
 const bd = document.getElementById("board");
@@ -6394,13 +6394,13 @@ Object.defineProperty(PLN_SPECS, "plan-think", { get(){ return isPre() ? PLN_SPE
 const PLAN_THINK_MS = () => isPre() ? 4000 : 5000;
 let plnLockTimer = null;
 function plnStartLock(){
-if(currentExercise().id !== "plan-think" || !planState) return;
+if(!planThinkOn() || !planState) return;
 planState.lockUntil = Date.now() + PLAN_THINK_MS() * (window.__wmSpeed || 1);
 clearInterval(plnLockTimer);
 plnLockTimer = setInterval(() => { if(!planState || Date.now() >= planState.lockUntil){ clearInterval(plnLockTimer); plnLockTimer = null; } try{ renderPlanBoard(); }catch(e){} }, 250);
 renderPlanBoard();
 }
-const plnLocked = () => currentExercise().id === "plan-think" && planState && planState.lockUntil && Date.now() < planState.lockUntil;
+const plnLocked = () => planThinkOn() && planState && planState.lockUntil && Date.now() < planState.lockUntil;
 
 
 let rtState = null, rtTimers = [];
@@ -9986,8 +9986,8 @@ const INSTR_SHORT = {
 "trail-animal-fruit":[() => `${Q("BAŞLA'dan başla; üstteki yol kartındaki sırayla dokun.")} Sıra: bir hayvan, bir meyve.`],
 "trail-color-shape": [() => `${Q("BAŞLA'dan başla; üstteki yol kartındaki sırayla dokun.")} Sıra: bir renk, bir şekil.`],
 "plan-swap":        [() => Q("Önce düşün. İki küpe dokun, yer değiştirsinler. Hedefteki sırayı en az hamleyle yap.")],
-"plan-beads":       [() => Q("Önce düşün. Çubuğa dokun, üstteki boncuk kalkar; başka çubuğa koy. Hedefteki gibi yap.")],
-"plan-tol":         [() => `${Q("Önce zihninde planla. Pulları en az hamleyle hedefteki gibi diz.")} Bardaklar 3, 2 ve 1 pul alır.`],
+"plan-beads":       [() => Q("Önce düşün. Çubuğa dokun, üstteki boncuk kalkar; başka çubuğa koy. Hedefteki gibi yap."), () => Q("Önce düşün; birkaç saniye sonra dokunabilirsin. Hedefteki gibi yap.")],
+"plan-tol":         [() => `${Q("Önce zihninde planla. Pulları en az hamleyle hedefteki gibi diz.")} Bardaklar 3, 2 ve 1 pul alır.`, () => `${Q("Önce zihninde planla; birkaç saniye sonra dokunabilirsin. Pulları en az hamleyle hedefteki gibi diz.")} Bardaklar 3, 2 ve 1 pul alır.`],
 "plan-cubes":       [() => Q("Önce zihninde planla. Yalnızca üstteki küpü taşı; hedefteki gibi en az hamleyle diz.")],
 "nback-shape":      [() => Q("Her hayvanda, BİR ÖNCEKİ hayvanın adını söyle."), () => Q("Her hayvanda, İKİ ÖNCEKİ hayvanın adını söyle.")],
 "nback-color":      [() => Q("Her taşıtta, BİR ÖNCEKİ taşıtın adını söyle."), () => Q("Her taşıtta, İKİ ÖNCEKİ taşıtın adını söyle.")],
@@ -10193,6 +10193,8 @@ return {
 "visual-analogy":[0, "Kuralı Söyle", "İlk çiftte ne değişti? Sesli söyle, sonra ikinci çifte uygula."]
 };
 })();
+/* "Önce Planla" ayrı çalışma olmaktan çıktı: Üç Bardak – Üç Pul ve Boncukları Yer Değiştir'e 2. aşama olarak eklendi */
+[["plan-tol", "Üç Bardak"], ["plan-beads", "Boncuklar"]].forEach(([id, first]) => { const ex = EXERCISES.find(e => e.id === id); if(!ex || ex.stages.some(st => st.think)) return; const base = ex.stages[0]; base.label = "Aşama 1 · " + first; ex.stages.push(Object.assign({}, base, { label: "Aşama 2 · Önce Planla", think: true, instruction: () => `${base.instruction()} <br><b>Bu aşamada</b> her problemin başında ekran birkaç saniye kilitlidir; çocuk önce zihninde planlar. İsterseniz kaç hamlede çözeceğini önce söylesin.` })); });
 EXERCISES.forEach(ex => {
 const sp = STRATEGIES[ex.id]; if(!sp || !ex.stages || ex.stages.some(st => st.strategyOf != null)) return;
 const [of, name, tip] = sp, base = ex.stages[Math.min(of, ex.stages.length - 1)];
@@ -12095,7 +12097,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.21-h";
+const APP_VERSION = "2026.10.21-i";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -12750,7 +12752,7 @@ const GAME_ISLANDS = [
 { id:"kavram", name:"Kavram Adası",  color:"#8FD3FF", ids:["word-pic", "vanalogy-touch", "concept-touch", "absurd-touch", "proverb-touch", "infer-touch", "odd-cat", "sort-pic", "sim-touch", "opp-touch", "free-sort", "def-touch", "syn-touch", "use-touch", "seq-words", "part-whole", "wh-scene", "sent-pic", "listen-answer"] },
 { id:"bulmaca",name:"Bulmaca Adası", color:"#C9A7FF", ids:["block-design", "mental-rot", "clutter-find", "overlap-count", "embedded", "closure", "copy-design", "symmetry", "size-touch", "arrow-touch", "edge-touch", "spot-diff", "paper-fold", "view-from", "same-number"] },
 { id:"mantik", name:"Mantık Adası",  color:"#A8E6CF", ids:["matrix-fill", "rule-induce", "balance", "odd-touch", "pattern-touch", "analogy-touch", "cause-effect", "sudoku", "num-pattern", "clue-find", "class-table"] },
-{ id:"plan",   name:"Plan Adası",    color:"#FF8E7E", ids:["plan-swap", "plan-beads", "plan-tol", "plan-cubes", "plan-think", "maze", "time-est", "find-error", "pic-arrange"], unlockStars:3 },
+{ id:"plan",   name:"Plan Adası",    color:"#FF8E7E", ids:["plan-swap", "plan-beads", "plan-tol", "plan-cubes", "maze", "time-est", "find-error", "pic-arrange"], unlockStars:3 },
 { id:"macera", name:"Macera Adası",  color:"#FFD7A8", special:true, adv:true },
 { id:"usta",   name:"Usta Adası",    color:"#FFE27A", special:true, unlockStars:40, dyn:() => gxUstaStops() },
 { id:"gezgin", name:"Gezgin Adası",  color:"#9FE0D8", special:true, dyn:() => gxGezginStops() },
@@ -15373,5 +15375,7 @@ function altCtx(){ const t = Math.min(currentCombo().t, 2); if(t === 0) return "
   el.addEventListener("pointercancel", () => { st = null; }, { passive:true });
   el.addEventListener("pointerup", ev => { if(!st || ev.pointerType === "mouse") return; const ok = Math.hypot(ev.clientX - st.x, ev.clientY - st.y) < 24 && Date.now() - st.t < 900; st = null; if(!ok || el.disabled) return; if(Date.now() - (el._navAt || 0) < 350) return; el._navAt = Date.now(); el._ftAt = Date.now(); el.click(); });
   el.addEventListener("click", ev => { if(ev.isTrusted && Date.now() - (el._ftAt || 0) < 700){ ev.stopImmediatePropagation(); ev.preventDefault(); return; } if(ev.isTrusted){ if(Date.now() - (el._navAt || 0) < 350){ ev.stopImmediatePropagation(); ev.preventDefault(); return; } el._navAt = Date.now(); } }, true); }); })();
+
+function planThinkOn(){ try{ const ex = currentExercise(); if(ex.id === "plan-think") return true; const st = ex.stages && ex.stages[currentStageIndex]; return !!(st && st.think); }catch(e){ return false; } }   /* "Önce Planla" kilidi açık mı */
 
 window.__zaReady = true;
