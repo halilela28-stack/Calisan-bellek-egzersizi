@@ -6022,6 +6022,8 @@ if(window._incomplete){ document.getElementById("saveResultBtn").style.display =
     if(ex.isChoice){ chClear(); currentGrid = chBuild(); renderChoiceBoard(); rebuilt = true; } else if(ex.isMt){ mtClear(); currentGrid = mtBuild(); renderMtBoard(); rebuilt = true; } else if(ex.isRt){ rtClear(); currentGrid = rtBuild(); renderRtBoard(); rebuilt = true; } else if(ex.isWm){ wmClearTimers(); currentGrid = wmBuild(); renderWmBoard(); rebuilt = true; }
     if(rebuilt){ elapsedMs = 0; document.getElementById("timerDisplay").textContent = "00:00.0"; currentErrorCount = 0; const ce = document.getElementById("errorCount"); if(ce) ce.textContent = "0"; hint.textContent = "Çalışma tamamlanmadan durduruldu; bu sonuç kaydedilmedi. ▶ Başlat ile baştan başlayabilirsin."; } }catch(e){} }
 else if(elapsedMs > 300){ document.getElementById("saveResultBtn").style.display = "block"; hint.style.display = "block"; hint.textContent = "Çalışmayı bitirdin — hata sayısını kontrol et ve kaydet."; hint.classList.remove("warn"); if(hwRun && !gameMode){ if(perfIsAuto(currentExercise())) setTimeout(() => { try{ confirmSaveResult(); }catch(e){ console.error(e); } }, 80); else hint.textContent = "Ödevi bitirdin — hata sayısını kontrol et ve Kaydet'e bas."; } } }
+/* KURAL (tüm çalışmalar, yeni eklenecekler dahil): çalışma tamamlanınca konfeti. Tek noktadan: süre durunca, yarım bırakılmadıysa. Oyun modunda ödül kartı kendi konfetisini atar. */
+if(!gameMode && !window._incomplete && elapsedMs > 300){ try{ celebrateSave(); }catch(e){} }
 if(!gameMode) requestAnimationFrame(() => { try{ const hn = document.getElementById("saveHint"), sv = document.getElementById("saveResultBtn"); const tg = (hn && getComputedStyle(hn).display !== "none") ? hn : sv; if(!tg || getComputedStyle(tg).display === "none") return; const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; const r = tg.getBoundingClientRect(); if(r.bottom > window.innerHeight - barH - 8 || r.top < 0) pageScroller().scrollBy(0, r.bottom - (window.innerHeight - barH - 16)); }catch(e){} });
 if(gameMode){ setTimeout(gameAfterStop, 400); try{ renderGameWho(); }catch(e){} }
 }
@@ -13075,7 +13077,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.23-b";
+const APP_VERSION = "2026.10.23-c";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
