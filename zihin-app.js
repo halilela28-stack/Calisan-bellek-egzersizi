@@ -3915,7 +3915,7 @@ id: "list-learn",
 readingLevel: ["pre","post"],
 label: "Liste Öğrenme",
 isAuditory: true, attrs: [], errorLabel: "Hatırlanmayan kelime sayısı",
-ckScore: () => llScore(),
+
 audTrials: () => { ckMarks = {}; return llBuild(); },
 audRender: (items) => llRender(items),
 randomItem: () => ({}),
@@ -3926,7 +3926,7 @@ id: "cat-list",
 readingLevel: ["pre","post"],
 label: "Kategorili Liste",
 isAuditory: true, attrs: [], errorLabel: "Kendiliğinden hatırlanmayan kelime",
-ckScore: () => clScore(), ckCycle: 3,
+
 audTrials: () => { ckMarks = {}; return clBuild(); },
 audRender: (items) => clRender(items),
 randomItem: () => ({}),
@@ -4171,7 +4171,7 @@ id: "group-say",
 readingLevel: ["pre","post"],
 label: "Hangileri Birlikte?",
 isAuditory: true, attrs: [], errorLabel: "Yanlış gruplanan kelime",
-ckScore: () => gsScore(),
+
 audTrials: () => { ckMarks = {}; return gsBuild(); },
 audRender: (items) => gsRender(items),
 randomItem: () => ({}),
@@ -4227,7 +4227,7 @@ id: "rhyme-say",
 readingLevel: ["pre","post"],
 label: "Uyak Bul",
 isAuditory: true, attrs: [], errorLabel: "Uyak bulunamayan kelime",
-ckScore: () => rhsScore(),
+
 audTrials: () => { ckMarks = {}; return rhsBuild(); },
 audRender: (items) => rhsRender(items),
 randomItem: () => ({}),
@@ -4342,7 +4342,7 @@ id: "analogy-say",
 readingLevel: ["pre","post"],
 label: "Sözel Analoji",
 isAuditory: true, attrs: [], errorLabel: "Uygun olmayan cevap",
-ckScore: () => lcScore(),
+
 audTrials: () => { ckMarks = {}; return lcBuild(ANALOGY); },
 audRender: (items) => lcRender(items, `İlk ikiliyi vurgulayarak okuyun; çocuk aynı ilişkiyi ikinci ikiliye aktarsın. Anlamca uygun her cevap kabul edilir.`),
 randomItem: () => ({}),
@@ -4353,7 +4353,7 @@ id: "proverb-say",
 readingLevel: ["pre","post"],
 label: "Benzetme ve Atasözü",
 isAuditory: true, attrs: [], errorLabel: "Uygun olmayan açıklama",
-ckScore: () => lcScore(),
+
 audTrials: () => { ckMarks = {}; return lcBuild(PROVERB); },
 audRender: (items) => lcRender(items, `Okuyun ve sorun: ${isPre() ? "Gerçekten öyle mi? Ne anlatıyor?" : "Bu ne anlatmak istiyor? Ne zaman söylenir?"} Kelimesi kelimesine açıklama (ör. 'eteğinde zil var') uygun sayılmaz.`),
 randomItem: () => ({}),
@@ -4364,7 +4364,7 @@ id: "infer-say",
 readingLevel: ["pre","post"],
 label: "Çıkarım Yap",
 isAuditory: true, attrs: [], errorLabel: "Uygun olmayan çıkarım",
-ckScore: () => lcScore(),
+
 audTrials: () => { ckMarks = {}; return lcBuild(INFER); },
 audRender: (items) => lcRender(items, `Durumu okuyun, soruyu sorun. Çocuk ipuçlarını kullanarak mantıklı bir sonuç söylesin; aynı anlamdaki farklı cevaplar uygundur.`),
 randomItem: () => ({}),
@@ -4375,7 +4375,7 @@ id: "homonym-say",
 readingLevel: ["post"],
 label: "Çok Anlamlı Kelimeler",
 isAuditory: true, attrs: [], errorLabel: "İki anlamı bulunamayan",
-ckScore: () => lcScore(),
+
 audTrials: () => { ckMarks = {}; return lcBuild(HOMONYM); },
 audRender: (items) => lcRender(items, `Kelimeyi söyleyin: "Bu kelimenin iki farklı anlamını söyle, istersen her biriyle bir cümle kur." İki anlamı da söylerse uygun sayın.`),
 randomItem: () => ({}),
@@ -5127,7 +5127,7 @@ id: "phon-manip",
 readingLevel: ["pre","post"],
 label: "Ses Oyunu",
 isAuditory: true, attrs: [], errorLabel: "Doğru yapılamayan madde",
-ckScore: () => lcScore(),
+
 audTrials: () => { ckMarks = {}; return lcBuild(PHON); },
 audRender: (items) => lcRender(items, isPre() ? "Kelimeyi hecelerine ayırarak söyleyin; çocuk istenen heceyi çıkarıp ya da değiştirip söylesin." : "Kelimeyi söyleyin; çocuk istenen sesi çıkarıp, ekleyip ya da değiştirip söylesin. Uydurma kelime çıkması doğaldır."),
 randomItem: () => ({}),
@@ -5230,7 +5230,7 @@ id: "rhyme-done",
 readingLevel: ["pre"],
 label: "Tekerlemeyi Tamamla",
 isAuditory: true, attrs: [], errorLabel: "Tamamlayamadığı tekerleme",
-ckScore: () => lcScore(),
+
 audTrials: () => { ckMarks = {}; return lcBuild(RHYME_DONE); },
 audRender: (items) => lcRender(items, ["Tekerlemeyi iki kez birlikte söyleyin, sonra son sözcüğü söylemeden durun; çocuk tamamlasın.", "Tekerlemeyi bir kez söyleyin, sonra son sözcüğü söylemeden durun; çocuk tamamlasın.", "Tekerlemeyi bir kez söyleyin; çocuk tekerlemenin tamamını kendisi tekrar etsin."][currentCombo().t]),
 randomItem: () => ({}),
@@ -5545,7 +5545,7 @@ sub:"Hızlı isimlendirme, sayı bulma, seçimli tepki, simge arama, şekil-resi
 purpose:"Görsel bilgiyi hızlı ve doğru biçimde tarama, eşleme, isimlendirme ve karar verme becerisini çalıştırır; bu beceriler okuma akıcılığıyla ilişkilendirilir.",
 color:"#2E6F6E",
 group:"Hız & Dikkat",
-exerciseIds:["shape-color","trail-numbers","object-name","dot-count","search-object","search-symbol","pair-match","fruit-veg","sdmt-touch","number-find","cat-cold","number-color","quick-sort","related-pairs","cat-living","ran-letter","taste-name","search-shape","search-letter","origin-order","sem-decide","hot-cold","touch-card","sent-verify","symbol-image","choice-reaction","pairs-touch","living-nonliving","cat-fruit"]
+exerciseIds:["shape-color","trail-numbers","object-name","dot-count","search-object","pair-match","search-symbol","fruit-veg","sdmt-touch","number-find","cat-cold","number-color","quick-sort","related-pairs","cat-living","ran-letter","taste-name","search-shape","origin-order","sem-decide","search-letter","hot-cold","touch-card","sent-verify","symbol-image","choice-reaction","pairs-touch","living-nonliving","cat-fruit"]
 },
 {
 id:"goz-takip",
@@ -5565,7 +5565,7 @@ sub:"Ketleme (Stroop, sayı ve hayvan boyutu Stroop, ok–kelime, ters yöne dok
 purpose:"Dikkati yönetme, kural değiştirme, dürtüsel tepkiyi durdurma, planlama, zamanı tahmin etme ve kendi işini denetleme becerilerini çalıştırır.",
 color:"#3A6EA5",
 group:"Hız & Dikkat",
-exerciseIds:["stroop","day-night","go-no-go","fish-flanker","stroop-touch","day-night-touch","touch-animal","dual-task","flanker","task-switch","face-go","time-est","sort-color-shape","sort-animal-size","sort-color-shape-count","stop-signal","num-stroop","zihni-says","opp-do","size-stroop","spatial-stroop","bear-dragon","hand-game","hayling","anti-touch","tap-reverse","statue","opp-world","less-more","hold-wait","context-go","grass-snow","distract","rev-arrow","fist","navon","rule-shift","plus-minus","reversal","motion-dir","creature-count","rev-sort","zoo-map","box-search","water-jars","twenty-q","key-search","three-tasks","design-fluency","cog-est","look-first","safe-box","self-check","keep-track","sort-words","find-error","number-letter","trail-number-month","trail-animal-fruit","trail-color-shape","switch-touch","alt-uses","vigilance","plan-beads","plan-swap","plan-tol","plan-cubes"],
+exerciseIds:["stroop","day-night","sort-color-shape","go-no-go","trail-number-month","fish-flanker","plan-beads","stroop-touch","sort-animal-size","day-night-touch","number-letter","touch-animal","plan-swap","dual-task","sort-color-shape-count","flanker","trail-animal-fruit","task-switch","plan-tol","face-go","sort-words","time-est","trail-color-shape","stop-signal","plan-cubes","find-error","switch-touch","alt-uses","vigilance","num-stroop","zihni-says","opp-do","size-stroop","spatial-stroop","bear-dragon","hand-game","hayling","anti-touch","tap-reverse","statue","opp-world","less-more","hold-wait","context-go","grass-snow","distract","rev-arrow","fist","navon","rule-shift","plus-minus","reversal","motion-dir","creature-count","rev-sort","zoo-map","box-search","water-jars","twenty-q","key-search","three-tasks","design-fluency","cog-est","look-first","safe-box","self-check","keep-track"],
 exerciseGroups:[["Ketleme",["stroop","day-night","go-no-go","fish-flanker","touch-animal","stroop-touch","day-night-touch","flanker","face-go","num-stroop","zihni-says","opp-do","size-stroop","spatial-stroop","bear-dragon","hand-game","hayling","anti-touch","tap-reverse","statue","opp-world","less-more","hold-wait","context-go","grass-snow","distract","rev-arrow"]],
 ["Esneklik",["task-switch","sort-color-shape","sort-animal-size","sort-color-shape-count","sort-words","number-letter","trail-number-month","trail-animal-fruit","trail-color-shape","switch-touch","fist","navon","rule-shift","plus-minus","reversal","motion-dir","creature-count","rev-sort"]],
 ["Planlama",["plan-beads","plan-swap","plan-tol","plan-cubes","zoo-map","box-search","water-jars","twenty-q","key-search","three-tasks","design-fluency","cog-est"]],
@@ -5579,7 +5579,7 @@ sub:"N-geri, aynı mı?, rakam dizisi, Corsi blokları, dinleme ve okuma aralı�
 purpose:"Bilgiyi kısa süre zihinde tutup üzerinde işlem yapma becerisini çalıştırır: sayı ve kelime dizileri, ters ve sıralı tekrar, n-geri güncelleme, ileriye dönük bellek, zihinden hesap ve görsel-uzamsal takip.",
 color:"#4F9D5A",
 group:"Bellek",
-exerciseIds:["nback-shape","corsi","market","nback-color","span-listen","zihni","cups","wm-same","lns","pos-nback","market-verbal","digit-span","mental-math","running","span-touch","nback-number","zihni-verbal","wm-seq","corsi-verbal","running-verbal","count-span","word-order","lns-touch","animal-fruit","wm-where","span-read","prospective-event","prospective-time","prospective-delayed"]
+exerciseIds:["nback-shape","corsi","market","nback-color","span-listen","zihni","cups","wm-same","lns","pos-nback","market-verbal","digit-span","prospective-event","mental-math","running","span-touch","nback-number","zihni-verbal","wm-seq","prospective-time","corsi-verbal","running-verbal","count-span","word-order","lns-touch","animal-fruit","wm-where","span-read","prospective-delayed"]
 },
 {
 id:"sozel-bellek",
@@ -7584,9 +7584,9 @@ let flat; do{ flat = shuffleArray(groups.flatMap(g => g.w.map(w => ({ w, c: g.c 
 return [{ groups, flat }];
 }
 function gsRender(items){ const L = items[0], total = L.flat.length; let ok = 0; L.groups.forEach((g, gi) => g.w.forEach((w, i) => { if(ckMarks[gi + ":" + i]) ok++; }));
-return `<div class="aud-list"><div class="aud-note">Kelimeleri okuyun; çocuk <b>hangilerinin birlikte olduğunu</b> gruplar hâlinde söylesin. Bu bir bellek çalışması değil: kelimeleri <b>istediği kadar tekrar okuyabilirsiniz</b>. Doğru gruba koyduğu kelimelere dokunun.</div>` +
+return `<div class="aud-list"><div class="aud-note">Kelimeleri okuyun; çocuk <b>hangilerinin birlikte olduğunu</b> gruplar hâlinde söylesin. Bu bir bellek çalışması değil: kelimeleri <b>istediği kadar tekrar okuyabilirsiniz</b>. Yanlış gruplanan her kelime için <b>Hata sayısı +</b>.</div>` +
 `<div class="aud-row"><div class="aud-num">↓</div><div class="aud-body"><div class="aud-words">${L.flat.map(x => x.w).join(" – ")}</div></div></div>` +
-`<div style="font-weight:900;margin:6px 0">Doğru gruplanan: <span style="color:var(--teal-dark)">${ok} / ${total}</span></div>` +
+`` +
 L.groups.map((g, gi) => `<div style="font-weight:800">${cap(GS_PLURAL[g.c])}</div>` + ckRow(g.w.map((w, i) => ckChip(gi, i, w, ckMarks[gi + ":" + i])).join(""))).join("") + `</div>`; }
 function gsScore(){ const L = currentGrid[0]; let ok = 0; L.groups.forEach((g, gi) => g.w.forEach((w, i) => { if(ckMarks[gi + ":" + i]) ok++; })); return L.flat.length - ok; }
 function spGroups(){
@@ -7642,8 +7642,8 @@ const RHYME_PAIRS = { yes:[["kedi","yedi"],["el","gel"],["bal","dal"],["ev","sev
 const RHYME_NEAR = [["bal","bel"],["el","al"],["ev","av"],["kar","kır"],["taş","kuş"],["top","tip"]];   // yalnızca bir ünlü farklı: kulağa uyaklı gelir
 function rhNoPool(t){ if(t >= 2) return RHYME_NEAR.concat(RHYME_PAIRS.no); if(t === 1) return RHYME_PAIRS.no;
   const ends = RHYME_PAIRS.no.map(p => p[1]); return RHYME_PAIRS.yes.map(([a]) => [a, randomItem(ends.filter(b => b[0] !== a[0] && b.slice(-2) !== a.slice(-2)))]); }   // Başlangıç: tamamen farklı kelimeler
-function rhBuild(){ const t = currentCombo().t, N = isPre() ? 5 : 8, yes = shuffleArray(RHYME_PAIRS.yes), no = shuffleArray(rhNoPool(t)), out = [];
-for(let i = 0; i < N; i++){ const isYes = i % 2 === 0; const pr = isYes ? yes[i] : no[i]; out.push({ stim:"", text:true, opts:[`<b style="font-size:20px">✓ Uyaklı</b>`, `<b style="font-size:20px">✗ Değil</b>`], ans: isYes ? 0 : 1, say:`${pr[0]}… ${pr[1]}`, replay:true, fixed:true, prompt:"Bu iki kelime <b>uyaklı</b> mı?", after: isYes ? "" : `${pr[0]} ve ${pr[1]} uyaklı değil.` }); }
+function rhBuild(){ const t = currentCombo().t, N = (isPre() ? [10, 12, 14] : [16, 20, 24])[Math.min(t, 2)], yes = shuffleArray(RHYME_PAIRS.yes), no = shuffleArray(rhNoPool(t)), out = [];
+for(let i = 0; i < N; i++){ const isYes = i % 2 === 0; const pr = isYes ? yes[Math.floor(i / 2) % yes.length] : no[Math.floor(i / 2) % no.length]; out.push({ stim:"", text:true, opts:[`<b style="font-size:20px">✓ Uyaklı</b>`, `<b style="font-size:20px">✗ Değil</b>`], ans: isYes ? 0 : 1, say:`${pr[0]}… ${pr[1]}`, replay:true, fixed:true, prompt:"Bu iki kelime <b>uyaklı</b> mı?", after: isYes ? "" : `${pr[0]} ve ${pr[1]} uyaklı değil.` }); }
 return shuffleArray(out); }
 const SYN = [["büyük","iri"],["hızlı","çabuk"],["güzel","hoş"],["mutlu","sevinçli"],["cevap","yanıt"],["okul","mektep"],["öğrenci","talebe"],["siyah","kara"],["beyaz","ak"],["yaşlı","ihtiyar"],["doktor","hekim"],["sınav","imtihan"],["kelime","sözcük"],["kırmızı","al"],["zengin","varlıklı"],["akıllı","zeki"],["cümle","tümce"],["hikâye","öykü"],["misafir","konuk"],["sene","yıl"],["rüzgâr","yel"],["nehir","ırmak"],["şehir","kent"],["hediye","armağan"],["fikir","düşünce"],["kıymetli","değerli"],["kalp","yürek"],["kirli","pis"],["soru","sual"],["anı","hatıra"],["rüya","düş"],["komik","gülünç"]];
 const SYN_OPP = { "büyük":"küçük", "hızlı":"yavaş", "güzel":"çirkin", "mutlu":"üzgün", "siyah":"beyaz", "beyaz":"siyah", "yaşlı":"genç", "zengin":"fakir", "akıllı":"aptal", "cevap":"soru", "kirli":"temiz", "soru":"cevap", "kıymetli":"değersiz" };
@@ -7673,8 +7673,8 @@ return shuffleArray(SEQW.filter(q => q.length >= L)).slice(0, 4).map(q => { cons
 const RHYME_TIPS = "Kelimenin başını değiştir, sonunu koru; uydurma kelime de olur.";
 function rhsBuild(){ const t = currentCombo().t, src = isPre() ? RHYME_SAY.pre : RHYME_SAY.post; return [{ items: shuffleArray(src).slice(0, isPre() ? [4, 5, 6][t] : [6, 8, 10][t]) }]; }
 function rhsRender(items){ const L = items[0], ok = L.items.filter((x, i) => ckMarks["0:" + i]).length;
-return `<div class="aud-list"><div class="aud-note">Kelimeyi söyleyin (ya da 🔊); çocuk <b>uyaklı</b> bir kelime söylesin. ${RHYME_TIPS} Doğru olanlara dokunun.</div><div style="font-weight:900;margin:6px 0">Doğru: <span style="color:var(--teal-dark)">${ok} / ${L.items.length}</span></div>` +
-L.items.map((x, i) => `<div class="aud-row"><div class="aud-num">${i + 1}</div><div class="aud-body" style="display:flex;align-items:center;gap:8px;justify-content:space-between"><div><div class="aud-words" style="font-size:22px">${x[0]}</div><div class="aud-key">Örnek: ${x[1]}</div></div><div style="display:flex;gap:6px;align-items:center">${sayBtn(x[0])}${ckChip(0, i, "Doğru", ckMarks["0:" + i])}</div></div></div>`).join("") + `</div>`; }
+return `<div class="aud-list"><div class="aud-note">Kelimeyi söyleyin (ya da 🔊); çocuk <b>uyaklı</b> bir kelime söylesin. ${RHYME_TIPS} Uyak bulamadığı her kelime için <b>Hata sayısı +</b>.</div>` +
+L.items.map((x, i) => `<div class="aud-row"><div class="aud-num">${i + 1}</div><div class="aud-body" style="display:flex;align-items:center;gap:8px;justify-content:space-between"><div><div class="aud-words" style="font-size:22px">${x[0]}</div><div class="aud-key">Örnek: ${x[1]}</div></div><div style="display:flex;gap:6px;align-items:center">${sayBtn(x[0])}</div></div></div>`).join("") + `</div>`; }
 function rhsScore(){ const L = currentGrid[0]; return L.items.length - L.items.filter((x, i) => ckMarks["0:" + i]).length; }
 
 function dotTrials(){ const t = currentCombo().t, rng = isPre() ? [[1, 3], [1, 4], [2, 5]][t] : [[1, 5], [2, 7], [3, 9]][t], ms = (isPre() ? [2800, 2200, 1700] : [2200, 1700, 1300])[t];
@@ -7718,7 +7718,7 @@ function semTrials(){ const C = qzCats(), I = (src) => ({ src }), t = Math.min(c
       okul:    { yes: [I(P.pencil), I(S.pencil_yellow), I(S.pencil_green), I(P.sharpener), I(H.scissors), I(SC.backpack), I(SC.map)], no: [I(P.hammer), I(H.pillow), I(X.spoon), I(T.teddy), I(X.sock), I(H.comb), I(X.slipper), I(H.cup), I(T.kite)] } };
     Object.keys(SETS).forEach(k => { SETS[k].yes = SETS[k].yes.filter(x => x && x.src); SETS[k].no = SETS[k].no.filter(x => x && x.src); }); /* resmi olmayan öğe havuza girmez */
     const sets = (Q) => SETS[Q.k] || ({ yes: Q.k === "canli" ? living : Q.k === "yenir" ? food : veh, no: Q.k === "canli" ? obj.concat(veh, food) : Q.k === "yenir" ? obj.concat(veh, living) : obj.concat(living, food) });
-  const pool = shuffleArray((isPre() ? SEM_QS.slice(0, 2) : SEM_QS.slice(2)).slice()).slice(0, isPre() ? 2 : [1, 2, 4][t]), N = isPre() ? [8, 9, 10][t] : [12, 14, 16][t]; const qAt = (i) => t === 0 ? pool[0] : t === 1 ? pool[Math.floor(i / 2) % 2] : pool[i % pool.length]; /* Başlangıç tek soru · Orta iki soru, iki resimde bir · Zor dört soru, her resimde değişir */   // Başlangıç tek soru · Orta iki resimde bir · Zor her resimde
+  const pool = shuffleArray((isPre() ? SEM_QS.slice(0, 2) : SEM_QS.slice(2)).slice()).slice(0, isPre() ? 2 : [1, 2, 4][t]), N = isPre() ? [10, 12, 14][t] : [16, 20, 24][t]; const qAt = (i) => t === 0 ? pool[0] : t === 1 ? pool[Math.floor(i / 2) % 2] : pool[i % pool.length]; /* Başlangıç tek soru · Orta iki soru, iki resimde bir · Zor dört soru, her resimde değişir */   // Başlangıç tek soru · Orta iki resimde bir · Zor her resimde
   const ans = shuffleArray(Array.from({length:N}, (_, i) => i % 2 === 0)); const out = [], used = new Set(); for(let i = 0; i < N; i++){ const Q = qAt(i), S = sets(Q), y = ans[i]; const cand = (y ? S.yes : S.no); const fresh = cand.filter(x => !used.has(x.src)); const it = randomItem(fresh.length ? fresh : cand); used.add(it.src); /* bir turda aynı resim tekrar gelmesin */
     out.push({ stim: qzPic(it.src), opts:[`<b style="font-size:20px">✓ Evet</b>`, `<b style="font-size:20px">✗ Hayır</b>`], ans: y ? 0 : 1, prompt:`<b>${Q.q}</b>`, say: Q.q, text:true, qk: Q.k }); }
   return out; }
@@ -7775,8 +7775,8 @@ function lcBuild(bank){ const t = currentCombo().t, lvl = isPre() ? "pre" : "pos
 const tierFirst = shuffleArray(pool.filter(x => (x.t || 0) === t)), rest = shuffleArray(pool.filter(x => (x.t || 0) !== t));
 return [{ items: tierFirst.concat(rest).slice(0, N) }]; }
 function lcRender(items, note){ const L = items[0], ok = L.items.filter((x, i) => ckMarks["0:" + i]).length;
-return `<div class="aud-list"><div class="aud-note">${note}</div><div style="font-weight:900;margin:6px 0">Uygun: <span style="color:var(--teal-dark)">${ok} / ${L.items.length}</span></div>` +
-L.items.map((x, i) => `<div class="aud-row"><div class="aud-num">${i + 1}</div><div class="aud-body" style="display:flex;align-items:center;gap:8px;justify-content:space-between"><div><div style="font-size:18px;font-weight:800;line-height:1.35">${x.q}</div><div class="aud-key">Beklenen: <b>${x.a}</b></div></div><div style="display:flex;gap:6px;align-items:center;flex:none">${sayBtn(x.q.replace(/<[^>]+>/g, ""))}${ckChip(0, i, "Uygun", ckMarks["0:" + i])}</div></div></div>`).join("") + `</div>`; }
+return `<div class="aud-list"><div class="aud-note">${note}</div><div class="aud-key" style="margin:4px 0 8px">Yetişkin: uygun olmayan her cevap için <b>Hata sayısı +</b></div>` +
+L.items.map((x, i) => `<div class="aud-row"><div class="aud-num">${i + 1}</div><div class="aud-body" style="display:flex;align-items:center;gap:8px;justify-content:space-between"><div><div style="font-size:18px;font-weight:800;line-height:1.35">${x.q}</div><div class="aud-key">Beklenen: <b>${x.a}</b></div></div><div style="display:flex;gap:6px;align-items:center;flex:none">${sayBtn(x.q.replace(/<[^>]+>/g, ""))}</div></div></div>`).join("") + `</div>`; }
 function lcScore(){ const L = currentGrid[0]; return L.items.length - L.items.filter((x, i) => ckMarks["0:" + i]).length; }
 const ANALOGY = {
 pre:[ { t:0, q:"Kaşık yemek içindir; bardak ne içindir?", a:"su içmek" }, { t:0, q:"Top oynamak içindir; kitap ne içindir?", a:"okumak / bakmak" },
@@ -7840,7 +7840,7 @@ const ABSURD_POST = [
 ["Elif ısınmak istiyordu. Sıcak çay içip battaniyeye sarıldı.", true], ["Elif ısınmak istiyordu. Soğuk suyla duş alıp balkona çıktı.", false],
 ["Deniz denize girecekti. Mayosunu giyip havlusunu aldı.", true], ["Deniz denize girecekti. Mayosunu çıkarıp üstüne kalın kazak giydi.", false],
 ["Ayşe sınıfta sessizlik istiyordu. Parmağını dudağına götürüp 'şşş' dedi.", true], ["Ayşe sınıfta sessizlik istiyordu. Davulu alıp olanca gücüyle çalmaya başladı.", false] ] ];
-function absBuild(){ const t = currentCombo().t, L = isPre() ? ABSURD.pre : ABSURD_POST[Math.min(t, 2)], N = isPre() ? [5, 6, 8][t] : [8, 10, 12][t];
+function absBuild(){ const t = currentCombo().t, L = isPre() ? ABSURD.pre : ABSURD_POST[Math.min(t, 2)], N = isPre() ? [10, 12, 14][t] : [16, 20, 24][t];
 const yes = shuffleArray(L.filter(x => x[1])), no = shuffleArray(L.filter(x => !x[1])), out = [];
 for(let i = 0; i < N; i++){ const s = i % 2 ? yes[Math.floor(i / 2) % yes.length] : no[Math.floor(i / 2) % no.length];
 out.push({ stim: isPre() ? "" : `<div style="font-size:${!isPre() && t === 2 ? 17 : 19}px;font-weight:800;text-align:center;max-width:340px;margin:0 auto;line-height:1.35">${s[0]}</div>`, raw:true, opts:[`<b style="font-size:20px">✓ Doğru</b>`, `<b style="font-size:20px">✗ Saçma</b>`], ans: s[1] ? 0 : 1, say: s[0], replay:true, fixed:true, text:true, prompt: !isPre() && t === 2 ? "İki cümleyi oku: <b>davranış amaca uyuyor mu?</b>" : "Bu cümle <b>doğru mu, saçma mı?</b>" }); }
@@ -8341,10 +8341,10 @@ const SV_BANK_HARD = [ /* Zor: iki cümle; ikinci cümle ilkinin mantıklı sonu
 ["Ayşe şemsiyesini açtı ve çizmelerini giydi. Dışarıda yağmur yağıyor.",1],["Mert bütün gece ders çalıştı. Sabah çok yorgundu.",1],["Kedi mama kabının başında miyavlıyor. Kedi acıkmış olabilir.",1],["Ali'nin ayakkabıları çamur içinde. Ali dışarıda oynamış.",1],["Zeynep üç elma aldı, birini yedi. Elinde iki elma kaldı.",1],["Bugün pazartesi. Yarın salı olacak.",1],["Cam bardak masadan yere düştü. Bardak kırılmış olabilir.",1],["Kerem kalın mont giydi ve eldivenlerini taktı. Hava soğuk.",1],["Deniz suyu tuzludur. Denizden alınan su içilmez.",1],["Elif koşarak geldi ve nefes nefeseydi. Elif acele etmişti.",1],["Saat gece on iki. Dışarısı karanlık.",1],
 ["Ayşe şemsiyesini açtı ve çizmelerini giydi. Dışarıda güneş açmış, hava sıcak.",0],["Mert erkenden yattı ve sabaha kadar uyudu. Mert hiç uyumadı.",0],["Zeynep üç elma aldı, birini yedi. Elinde dört elma kaldı.",0],["Bugün pazartesi. Yarın cuma olacak.",0],["Ali ayakkabılarını hiç dışarı giymedi. Ayakkabıları çamur içinde.",0],["Kerem şort ve tişört giydi, terliyordu. Hava çok soğuktu.",0],["Kar yağıyor ve her yer bembeyaz. Mevsim yazın ortası.",0],["Elif sınıfa en son girdi. Elif sınıfa ilk gelen öğrenciydi.",0],["Saat öğlen on iki ve güneş tepede. Dışarısı zifiri karanlık.",0],["Deniz hiç yüzme bilmiyor. Deniz yüzme yarışını birinci bitirdi.",0],["Can'ın kalemi kırıldı ve başka kalemi yok. Can yazısını aynı kalemle bitirdi.",0] ];
 const SV_BANKS = [SV_BANK, SV_BANK_MID, SV_BANK_HARD];
-function svTrials(){ const t = currentCombo().t, N = [10, 14, 18][t], bank = SV_BANKS[Math.min(t, 2)]; const y = shuffleArray(bank.filter(x => x[1])), n = shuffleArray(bank.filter(x => !x[1])), out = [];
+function svTrials(){ const t = currentCombo().t, N = [16, 20, 24][t], bank = SV_BANKS[Math.min(t, 2)]; const y = shuffleArray(bank.filter(x => x[1])), n = shuffleArray(bank.filter(x => !x[1])), out = [];
 for(let i = 0; i < N; i++){ const s = i % 2 ? y[Math.floor(i / 2) % y.length] : n[Math.floor(i / 2) % n.length]; out.push({ stim:`<div style="font-size:${t === 2 ? 18 : 21}px;font-weight:800;text-align:center;line-height:1.35">${s[0]}</div>`, raw:true, opts:[`<b style="font-size:20px">✓ Doğru</b>`, `<b style="font-size:20px">✗ Yanlış</b>`], ans: s[1] ? 0 : 1, fixed:true, text:true, prompt: t === 2 ? "<b>İki cümleyi oku:</b> ikincisi ilkine uyuyor mu?" : "<b>Oku</b> ve hızlıca karar ver" }); }
 return shuffleArray(out); }
-function perTrials(){ const t = currentCombo().t, pre = isPre(), N = (pre ? [6, 8, 10] : [10, 12, 14])[Math.min(t, 2)],   /* gösterim sayısı düzeye göre */ ms = (pre ? [1600, 1300, 1100] : [1500, 1200, 1000])[t];
+function perTrials(){ const t = currentCombo().t, pre = isPre(), N = (pre ? [10, 12, 14] : [16, 20, 24])[Math.min(t, 2)],   /* gösterim sayısı düzeye göre */ ms = (pre ? [1600, 1300, 1100] : [1500, 1200, 1000])[t];
 return Array.from({length:N}, () => { const side = randomItem(["l","r","t","b"]), u = 8 + Math.random() * 84, pos = side === "l" ? [4 + Math.random() * 10, u] : side === "r" ? [86 + Math.random() * 10, u] : side === "t" ? [u, 5 + Math.random() * 10] : [u, 85 + Math.random() * 10];
 return { pos, ms, lure: !pre && t === 2 && Math.random() < 0.3 }; }); }
 function fixTrials(){ const t = currentCombo().t, s = (isPre() ? [5, 8, 10] : [10, 15, 20])[t]; return Array.from({length:3}, () => ({ secs: s, rate: (isPre() ? [1200, 1000, 850] : [1000, 800, 600])[t] })); }
@@ -8918,9 +8918,9 @@ function sixPart(task){ if(task === "A"){ const nums = shuffleArray([1, 2, 3, 4,
 function sixCfg(){ const t = Math.min(currentCombo().t, 2), pre = isPre(); const parts = {}; SIX_TASKS.forEach(tk => { parts[tk.id + "1"] = sixPart(tk.id); parts[tk.id + "2"] = sixPart(tk.id); }); return { secs: (pre ? [60, 75, 90] : [90, 120, 150])[t], parts }; }
 /* Bilişsel Tahmin: makul aralıklar */
 const COGEST = {
-0: [["Bir sınıfta kaç öğrenci olur?", "15–35"], ["Bir muz yaklaşık kaç santim uzunluğundadır?", "12–25 cm"], ["Bir yetişkin yaklaşık kaç kilodur?", "50–100 kg"], ["Bir kedi kaç kilodur?", "3–6 kg"], ["Bir kapı kaç santim yüksekliğindedir?", "180–220 cm"], ["Bir futbol maçı kaç dakika sürer?", "60–100 dk"], ["Bir okul otobüsü kaç metre uzunluğundadır?", "8–14 m"], ["Bir elma kaç gramdır?", "100–250 g"], ["7 yaşında bir çocuğun boyu kaç santimdir?", "110–135 cm"], ["Diş fırçalamak kaç dakika sürer?", "1–4 dk"]],
-1: [["Bir araba kaç metre uzunluğundadır?", "3,5–5 m"], ["Bir fil kaç kilodur?", "3.000–7.000 kg"], ["Bir yolcu uçağına kaç kişi biner?", "100–300"], ["İstanbul'dan Ankara'ya araba kaç saat sürer?", "4–7 saat"], ["Bir zürafa kaç metre boyundadır?", "4–6 m"], ["Bir litre süt kaç gramdır?", "900–1.100 g"], ["İnsan kalbi dakikada kaç kez atar?", "60–100"], ["Bir ekmek kaç gramdır?", "200–400 g"], ["Tek katlı bir ev kaç metre yüksekliğindedir?", "3–5 m"], ["Hızlı bir koşucu 100 metreyi kaç saniyede koşar?", "10–15 sn"]],
-2: [["Bir bisiklet kaç kilodur?", "8–18 kg"], ["Türkiye'de kaç milyon insan yaşar?", "80–90 milyon"], ["Bir mavi balina kaç metre uzunluğundadır?", "20–30 m"], ["Bir kalem pil kaç gramdır?", "20–60 g"], ["Bir kedi günde kaç saat uyur?", "12–16 saat"], ["Bir karınca kaç milimetredir?", "2–10 mm"], ["Ay'a kaç günde gidilir?", "2–4 gün"], ["Bir bardak su kaç mililitredir?", "150–300 ml"], ["Bir sinema filmi kaç dakika sürer?", "80–150 dk"], ["Yüksek bir dağ kaç metre olur?", "1.000–5.000 m"]]
+0: [["Bir sınıfta kaç öğrenci olur?", "15–35"], ["Bir muz yaklaşık kaç santim uzunluğundadır?", "12–25 cm"], ["Bir yetişkin yaklaşık kaç kilodur?", "50–100 kg"], ["Bir kedi kaç kilodur?", "3–6 kg"], ["Bir kapı kaç santim yüksekliğindedir?", "180–220 cm"], ["Bir futbol maçı kaç dakika sürer?", "60–100 dk"], ["Bir okul otobüsü kaç metre uzunluğundadır?", "8–14 m"], ["Bir elma kaç gramdır?", "100–250 g"], ["7 yaşında bir çocuğun boyu kaç santimdir?", "110–135 cm"], ["Diş fırçalamak kaç dakika sürer?", "1–4 dk"], ["Bir kalem kaç santim uzunluğundadır?", "14–20 cm"], ["Bir kedi kaç yıl yaşar?", "10–18 yıl"], ["Bir okul günü kaç saat sürer?", "5–8 saat"], ["Bir futbol topu kaç gramdır?", "400–500 g"], ["Bir yetişkin kaç santim boyundadır?", "155–190 cm"], ["Bir bardak çay kaç dakikada soğur?", "5–15 dk"], ["Bir köpek kaç kilodur?", "5–40 kg"], ["Bir ekmek kaç dilim olur?", "15–25 dilim"], ["Bir yumurta kaç gramdır?", "50–70 g"], ["Sınıftaki yazı tahtası kaç metre uzunluğundadır?", "2–4 m"]],
+1: [["Bir araba kaç metre uzunluğundadır?", "3,5–5 m"], ["Bir fil kaç kilodur?", "3.000–7.000 kg"], ["Bir yolcu uçağına kaç kişi biner?", "100–300"], ["İstanbul'dan Ankara'ya araba kaç saat sürer?", "4–7 saat"], ["Bir zürafa kaç metre boyundadır?", "4–6 m"], ["Bir litre süt kaç gramdır?", "900–1.100 g"], ["İnsan kalbi dakikada kaç kez atar?", "60–100"], ["Bir ekmek kaç gramdır?", "200–400 g"], ["Tek katlı bir ev kaç metre yüksekliğindedir?", "3–5 m"], ["Hızlı bir koşucu 100 metreyi kaç saniyede koşar?", "10–15 sn"], ["Bir otobüse kaç kişi biner?", "40–90"], ["Bir yetişkin günde kaç saat uyur?", "6–9 saat"], ["Bir karpuz kaç kilodur?", "3–8 kg"], ["Bir apartman katı kaç metre yüksekliğindedir?", "2,5–3,5 m"], ["Bir insan bir dakikada kaç kez nefes alır?", "12–20"], ["Bisikletle bir saatte kaç kilometre gidilir?", "10–20 km"], ["Bir kamyon kaç metre uzunluğundadır?", "8–15 m"], ["Bir sinema salonuna kaç kişi sığar?", "100–300"], ["Büyük bir ağaç kaç metre boyunda olur?", "10–25 m"], ["Bir kova kaç litre su alır?", "8–12 L"]],
+2: [["Bir bisiklet kaç kilodur?", "8–18 kg"], ["Türkiye'de kaç milyon insan yaşar?", "80–90 milyon"], ["Bir mavi balina kaç metre uzunluğundadır?", "20–30 m"], ["Bir kalem pil kaç gramdır?", "20–60 g"], ["Bir kedi günde kaç saat uyur?", "12–16 saat"], ["Bir karınca kaç milimetredir?", "2–10 mm"], ["Ay'a kaç günde gidilir?", "2–4 gün"], ["Bir bardak su kaç mililitredir?", "150–300 ml"], ["Bir sinema filmi kaç dakika sürer?", "80–150 dk"], ["Yüksek bir dağ kaç metre olur?", "1.000–5.000 m"], ["İstanbul'da kaç milyon insan yaşar?", "15–17 milyon"], ["Bir yolcu uçağı saatte kaç kilometre hızla uçar?", "700–950 km"], ["Bir fil kaç yıl yaşar?", "50–70 yıl"], ["Bir arabanın deposu kaç litre benzin alır?", "40–70 L"], ["Okyanus kaç metre derin olur?", "3.000–5.000 m"], ["Bir yolcu treni kaç vagon olur?", "5–15"], ["Bir buzdolabı kaç kilodur?", "50–100 kg"], ["Ekmek fırını kaç derece sıcaktır?", "200–250 °C"], ["Bir güvercin saatte kaç kilometre hızla uçar?", "60–100 km"], ["Bir insan dakikada kaç kelime konuşur?", "120–160"]]
 };
 function cogTrials(){ const t = Math.min(currentCombo().t, 2); return shuffleArray(COGEST[t].map(x => ({ q: x[0], r: x[1] }))).slice(0, [8, 10, 10][t]); }
 /* Paket 4 · akış yardımcıları */
@@ -9486,18 +9486,18 @@ const k = a < b ? a + "-" + b : b + "-" + a; if(st.mine.has(k)) st.mine.delete(k
 st.sel = b; gameSfx("pop"); renderMtBoard(); }
 },
 judge: {
-fsort(v){ const st = mtState; if(st.phase !== "name") return; if(v === 0) mtErr(); else gameSfx("correct"); st.ni++; if(st.ni >= st.ng.length){ mtFinish(); return; } renderMtBoard(); },
-movesay(v){ const st = mtState; if(st.phase !== "judge") return; if(v === 1){ st.ok++; gameSfx("correct"); } else mtErr(); st.phase = "fb"; renderMtBoard(); mtLater(NEW_MT.next, 400); },
-ecount(v){ const st = mtState; if(st.phase !== "judge") return; if(v === 0) mtErr(); else gameSfx("correct"); st.phase = "fb"; NEW_MT.next(); },
-fix(v){ const st = mtState; if(st.phase !== "judge") return; if(v === 0) mtErr(); else gameSfx("correct"); st.phase = "fb"; NEW_MT.next(); },
-dual(v){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "ask") return; if(v !== tr.beeps) mtErr(); else gameSfx("correct"); st.phase = "fb"; st.ansShown = true; renderMtBoard(); mtLater(() => { st.ansShown = false; NEW_MT.next(); }, 1200); },
-parr(v){ const st = mtState; if(st.phase !== "tell") return; if(v === 0) mtErr(); else gameSfx("correct"); st.phase = "fb"; renderMtBoard(); mtLater(NEW_MT.next, 400); },
-absay(v){ const st = mtState; if(st.phase !== "judge") return; if(v === 1){ st.okN++; gameSfx("correct"); } else if(v === 0) mtErr();
+fsort(v){ const st = mtState; if(st.phase !== "name") return; st.manual = v === 9; if(v === 0) mtErr(); else if(v !== 9) gameSfx("correct"); st.ni++; if(st.ni >= st.ng.length){ mtFinish(); return; } renderMtBoard(); },
+movesay(v){ const st = mtState; if(st.phase !== "judge") return; st.manual = v === 9; if(v === 1){ st.ok++; gameSfx("correct"); } else if(v !== 9) mtErr(); st.phase = "fb"; renderMtBoard(); mtLater(NEW_MT.next, 400); },
+ecount(v){ const st = mtState; if(st.phase !== "judge") return; st.manual = v === 9; if(v === 0) mtErr(); else if(v !== 9) gameSfx("correct"); st.phase = "fb"; NEW_MT.next(); },
+fix(v){ const st = mtState; if(st.phase !== "judge") return; st.manual = v === 9; if(v === 0) mtErr(); else if(v !== 9) gameSfx("correct"); st.phase = "fb"; NEW_MT.next(); },
+dual(v){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "ask") return; if(v === 9){ st.manual = true; st.phase = "fb"; NEW_MT.next(); return; } if(v !== tr.beeps) mtErr(); else gameSfx("correct"); st.phase = "fb"; st.ansShown = true; renderMtBoard(); mtLater(() => { st.ansShown = false; NEW_MT.next(); }, 1200); },
+parr(v){ const st = mtState; if(st.phase !== "tell") return; st.manual = v === 9; if(v === 0) mtErr(); else if(v !== 9) gameSfx("correct"); st.phase = "fb"; renderMtBoard(); mtLater(NEW_MT.next, 400); },
+absay(v){ const st = mtState; if(st.phase !== "judge") return; st.manual = v === 9; if(v === 1){ st.okN++; gameSfx("correct"); } else if(v === 0) mtErr();
 st.ti++; if(st.ti >= st.trials.length){ mtFinish(); return; } renderMtBoard(); const it = st.trials[st.ti]; if(it.s) mtLater(() => sayTask(it.s, 0.85), 250); },
-whatdo(v){ const st = mtState; if(st.phase !== "judge") return; if(v === 1){ st.okN++; gameSfx("correct"); } else if(v === 0) mtErr();
+whatdo(v){ const st = mtState; if(st.phase !== "judge") return; st.manual = v === 9; if(v === 1){ st.okN++; gameSfx("correct"); } else if(v === 0) mtErr();
 st.ti++; if(st.ti >= st.trials.length){ mtFinish(); return; } renderMtBoard(); mtLater(() => sayTask(st.trials[st.ti].q, 0.85), 250); },
-scene(v){ const st = mtState; if(st.phase !== "ask") return; if(v === 1){ st.ok++; gameSfx("correct"); } else mtErr();
-st.qi++; if(st.qi >= st.qs.length){ mtFinish(` Doğru: ${st.ok}/${st.qs.length}.`); return; } renderMtBoard(); },
+scene(v){ const st = mtState; if(st.phase !== "ask") return; st.manual = v === 9; if(v === 1){ st.ok++; gameSfx("correct"); } else if(v !== 9) mtErr();
+st.qi++; if(st.qi >= st.qs.length){ mtFinish(st.manual ? "" : ` Doğru: ${st.ok}/${st.qs.length}.`); return; } renderMtBoard(); },
 recog(v){ const st = mtState; if(st.phase !== "ask") return; const it = st.test[st.qi], ok = (v === 1) === it.old;
 if(ok){ gameSfx("correct"); if(it.old) st.hits++; } else { mtErr(); if(!it.old) st.fa++; }
 st.fb = ok ? "ok" : "bad"; st.phase = "fb"; renderMtBoard();
@@ -9601,7 +9601,7 @@ if(st.kind === "six") return { info:`Bitti · yapılan parça <b>${Object.keys(s
 if(st.kind === "selfchk") return { info: st.res ? `Bitti · yaptığı hata <b>${st.res.errs}</b> · fark ettiği <b>${st.res.hit}</b> · fark etmediği <b>${st.res.miss}</b> · yanlış işaret <b>${st.res.fa}</b>` : "Bitti!", body:"" };
 if(st.kind === "cgt"){ const h = Math.floor(st.cfg.N / 2), second = st.picks.slice(h), safe = second.filter(p => p === "S").length; return { info:`Bitti · yıldız <b>${st.stars}</b> · ikinci yarıda güvenli kutu <b>${safe}/${second.length}</b>`, body:"" }; }
 if(st.kind === "ktrack") return { info:`Bitti · hatırlanmayan sonuncular Hata sayısında`, body:"" };
-if(st.kind === "movesay") return { info:`Bitti · doğru <b>${st.ok}/${st.trials.length}</b>`, body:"" };
+if(st.kind === "movesay") return { info: st.manual ? "Bitti · hatalar Hata sayısında" : `Bitti · doğru <b>${st.ok}/${st.trials.length}</b>`, body:"" };
 if(st.kind === "absay") return { info:`Bitti · uygun <b>${st.okN}</b> · uygun değil <b>${st.wrong}</b>`, body:"" };
 if(st.kind === "whatdo") return { info:`Bitti · uygun <b>${st.okN}</b> · uygun değil <b>${st.wrong}</b>`, body:"" };
 if(st.kind === "scene") return { info:`Bitti · doğru <b>${st.ok}/${st.qs.length}</b>`, body:"" };
@@ -9816,7 +9816,7 @@ body = `<div id="ftArea" style="position:relative;width:100%;height:${ah}px;back
 const tr = st.trials[ti], ah = isLs ? H - 120 : Math.min(H - 150, 340);
 info = tr.onlyStar ? "Parmağını kullanmadan, <b>yalnızca yıldızları</b> gözünle say" : "Parmağını kullanmadan, <b>gözünle</b> soldan sağa say";
 body = `<div style="position:relative;width:100%;height:${ah}px;background:var(--panel);border:2px solid var(--line);border-radius:18px;overflow:hidden">${tr.items.map(it => `<div style="position:absolute;left:${it.x}%;top:${it.y}%;width:30px;height:30px">${shapeSVG(it.sh, it.c)}</div>`).join("")}</div>` +
-`<div class="aud-key" style="text-align:center;margin-top:6px">Doğru sayı: <b>${tr.ans}</b> · Çocuk gözle (parmak kullanmadan) doğru saydı mı?</div><div class="wm-btns" style="margin:6px auto 0"><button type="button" class="wm-btn same" data-judge="1">✓ Doğru</button><button type="button" class="wm-btn diff" style="background:#E5484D;box-shadow:0 5px 0 #A9262B" data-judge="0">✗ Yanlış</button></div>`;
+`<div class="aud-key" style="text-align:center;margin-top:6px">Doğru sayı: <b>${tr.ans}</b> · Çocuk gözle (parmak kullanmadan) doğru saydı mı?</div><div class="aud-key" style="text-align:center;margin-top:6px">Yetişkin: yanlış ya da eksikse <b>Hata sayısı +</b></div><div class="wm-btns" style="margin:6px auto 0"><button type="button" class="wm-btn same" data-judge="9">Sonraki ▶</button></div>`;
 } else if(st.kind === "nword"){
 if(st.phase === "learn"){ const x = st.learn[st.li], sz = Math.min(isLs ? H - 70 : 200, W * 0.6); info = `<b>Yeni arkadaşlarla tanış</b> · ${Math.max(0, st.li + 1)}/${st.learn.length}`;
 body = x ? `<div style="display:flex;${isLs ? "" : "flex-direction:column;"}gap:10px;align-items:center;justify-content:center"><div class="wm-card" style="width:${sz}px;height:${sz}px;padding:6px"><img src="${CREATURE_IMAGES[x.ci]}" alt="" style="width:100%;height:100%;object-fit:contain"></div><div style="font-size:30px;font-weight:900;color:var(--teal-dark)">${x.nm}</div></div>` : ""; }
@@ -9833,12 +9833,12 @@ info = `Gözün <b>ortadaki noktada</b>; kenarda yıldız çıkınca dokun · ${
 body = `<div style="position:relative;width:100%;height:${ah}px;background:var(--panel);border:2px solid var(--line);border-radius:18px;overflow:hidden"><div style="position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#E5484D;box-shadow:0 0 0 6px rgba(229,72,77,.2)"></div>${st.phase === "show" ? `<div data-mt="t" style="position:absolute;left:${tr.pos[0]}%;top:${tr.pos[1]}%;width:54px;height:54px;margin:-27px 0 0 -27px;cursor:pointer">${shapeSVG(tr.lure ? "circle" : "star", tr.lure ? "#2E6FD8" : "#F5A524")}</div>` : ""}</div>`;
 } else if(st.kind === "fix"){
 const tr = st.trials[ti], ah = isLs ? H - 20 : Math.min(H - 20, 420);
-if(st.phase === "judge"){ info = "<b>Gözünü noktadan ayırdı mı?</b>"; body = dots + `<div class="aud-key" style="text-align:center">${tr.secs} sn boyunca çocuğun gözlerini izlediniz. Gözünü kırmızı noktadan hiç ayırmadan durabildi mi?</div><div class="wm-btns" style="margin:12px auto 0"><button type="button" class="wm-btn same" data-judge="1">✓ Ayırmadı</button><button type="button" class="wm-btn diff" style="background:#E5484D;box-shadow:0 5px 0 #A9262B" data-judge="0">✗ Ayırdı</button></div>`; }
+if(st.phase === "judge"){ info = "<b>Gözünü noktadan ayırdı mı?</b>"; body = dots + `<div class="aud-key" style="text-align:center">${tr.secs} sn boyunca çocuğun gözlerini izlediniz. Gözünü kırmızı noktadan hiç ayırmadan durabildi mi?</div><div class="aud-key" style="text-align:center;margin-top:6px">Yetişkin: gözünü ayırdıysa <b>Hata sayısı +</b></div><div class="wm-btns" style="margin:6px auto 0"><button type="button" class="wm-btn same" data-judge="9">Sonraki ▶</button></div>`; }
 else { info = `<b>Kırmızı noktaya bak</b>, gözünü ayırma · ${tr.secs} sn`; body = `<div id="fixArea" style="position:relative;width:100%;height:${ah}px;background:var(--panel);border:2px solid var(--line);border-radius:18px;overflow:hidden"><div style="position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:#E5484D"></div></div>`; }
 } else if(st.kind === "dual"){
 const tr = st.trials[ti], ah = isLs ? H - 44 : Math.min(H - 20, 420);
 if(st.phase === "ask" || st.ansShown){ const nums = Array.from({length:5}, (_, k) => Math.max(1, tr.beeps - 2) + k); info = st.ansShown ? `Doğrusu: <b>${tr.beeps}</b> bip` : "<b>Kaç bip sesi</b> duydun?";
-body = (isLs ? "" : dots) + `<div class="wm-btns" style="margin:${isLs ? 6 : 14}px auto 0;flex-wrap:wrap">${nums.map(n => `<button type="button" class="wm-btn diff" data-judge="${n}" style="min-width:56px">${n}</button>`).join("")}</div>`; }
+body = (isLs ? "" : dots) + `<div class="aud-key" style="text-align:center;margin-top:6px">Doğru bip sayısı: <b>${tr.beeps}</b> · yanlış söylediyse <b>Hata sayısı +</b></div><div class="wm-btns" style="margin:6px auto 0"><button type="button" class="wm-btn same" data-judge="9">Sonraki ▶</button></div>`; }
 else { info = "Yıldızlara dokun, aynı anda <b>bip seslerini say</b>"; body = `<div id="dualArea" style="position:relative;width:100%;height:${ah}px;background:var(--panel);border:2px solid var(--line);border-radius:18px;overflow:hidden"></div>`; }
 } else if(st.kind === "stop"){
 const tr = st.trials[ti];
@@ -9903,7 +9903,7 @@ const slots = `<div style="display:flex;gap:6px;justify-content:center;margin-bo
 const cw = Math.min(isLs ? Math.min((W * 0.42 - 16) / Math.min(3, n), (H - 40) / (Math.ceil(n / 3) * 0.8 + 0.4)) : (W - 30) / 2, 150), chh = Math.round(cw * 0.8);
 const cards = `<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">${tr.cards.map((c, i) => st.placed.includes(i) ? "" : `<div class="wm-pic${st.bad[i] ? " bad" : ""}" data-mt="${i}" style="width:${cw}px;height:${chh}px;padding:3px">${img(c)}</div>`).join("")}</div>`;
 if(st.phase === "tell"){ info = "<b>Şimdi hikâyeyi anlat</b>";
-body = dots + slots + `<div class="aud-key" style="text-align:center">Beklenen: ${PA_TEXT[tr.lvl][tr.si].slice(1).join(" → ")}. Olayları sırasıyla ve bağlantılı anlatıyor mu?</div><div class="wm-btns" style="margin:8px auto 0"><button type="button" class="wm-btn same" data-judge="1">✓ Anlattı</button><button type="button" class="wm-btn diff" style="background:#E5484D;box-shadow:0 5px 0 #A9262B" data-judge="0">✗ Anlatamadı</button></div>`; }
+body = dots + slots + `<div class="aud-key" style="text-align:center">Beklenen: ${PA_TEXT[tr.lvl][tr.si].slice(1).join(" → ")}. Olayları sırasıyla ve bağlantılı anlatıyor mu?</div><div class="aud-key" style="text-align:center;margin-top:6px">Yetişkin: anlatamadıysa <b>Hata sayısı +</b></div><div class="wm-btns" style="margin:6px auto 0"><button type="button" class="wm-btn same" data-judge="9">Sonraki ▶</button></div>`; }
 else { info = "Resimleri <b>olayların sırasına</b> koy: önce olana dokun"; body = dots + (isLs ? `<div style="display:flex;gap:14px;align-items:center;justify-content:center"><div>${slots}</div><div>${cards}</div></div>` : slots + cards); }
 } else if(st.kind === "blk"){
 const tr = st.trials[ti], n = tr.n, shown = blkRotModel(tr.model, n, tr.rot), mw = Math.min(isLs ? H - 120 : 130, W * 0.36), cw = Math.min(isLs ? H - 40 : 210, W * 0.55);
@@ -9963,7 +9963,7 @@ const nC = st.fams.length, used = (k) => Object.values(st.asg).filter(v => v ===
 if(st.phase === "name"){ const gi = st.ng[st.ni], ids = st.groupsOf[gi], cnt = {}; ids.forEach(i => { cnt[st.items[i].f] = (cnt[st.items[i].f] || 0) + 1; }); const maj = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0];
 info = `Grup ${st.ni + 1}/${st.ng.length} · <b>Bu gruba ne ad verirsin?</b>`;
 body = `<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:8px">${ids.map(i => { const it = st.items[i]; return `<div class="wm-card" style="width:64px;height:64px;padding:4px;border-color:${FS_COLORS[gi]}">${it.src ? `<img src="${it.src}" alt="" style="width:100%;height:100%;object-fit:contain">` : `<b style="font-size:14px">${it.w}</b>`}</div>`; }).join("")}</div>` +
-`<div class="aud-key" style="text-align:center">Beklenen ad: <b>${st.names[maj]}</b> (benzer bir üst ad da uygundur)</div><div class="wm-btns" style="margin:10px auto 0"><button type="button" class="wm-btn same" data-judge="1">✓ Adı uygun</button><button type="button" class="wm-btn diff" style="background:#E5484D;box-shadow:0 5px 0 #A9262B" data-judge="0">✗ Uygun değil</button></div>`;
+`<div class="aud-key" style="text-align:center">Beklenen ad: <b>${st.names[maj]}</b> (benzer bir üst ad da uygundur)</div><div class="aud-key" style="text-align:center;margin-top:6px">Yetişkin: verdiği ad uygun değilse <b>Hata sayısı +</b></div><div class="wm-btns" style="margin:6px auto 0"><button type="button" class="wm-btn same" data-judge="9">Sonraki ▶</button></div>`;
 } else {
 info = st.phase === "fb" ? (st.res.size ? "<b>✗</b> işaretliler gruplarına uymuyor" : "Harika, hepsi doğru gruplandı!") : "<b>Bir renk seç</b>, sonra birlikte olanlara dokun";
 const pal = `<div style="display:flex;gap:8px;justify-content:center;margin-bottom:8px">${FS_COLORS.slice(0, nC).map((c, k) => `<button type="button" data-mtbtn="fs-c${k}" class="fs-col${st.sel === k ? " on" : ""}" style="background:${c}">${used(k)}</button>`).join("")}</div>`;
@@ -10074,7 +10074,7 @@ if(st.phase === "listen"){ info = "<b>Dinle…</b>"; body = dots + SPEAKER_HTML(
 else { const c = Math.min(isLs ? H - 140 : 110, (W - 30) / seq.length - 8);
 info = "<b>Şimdi yap!</b> Hareketleri aynı sırayla yap.";
 body = dots + `<div class="aud-key" style="text-align:center;margin-bottom:4px">Doğru sıra: <b>${seq.map(i => MOVES[i]).join(" → ")}</b></div><div style="display:flex;gap:6px;justify-content:center">${seq.map((i, k) => `<div class="wm-card" style="width:${c}px;height:${c}px;position:relative"><img src="${MOVE_IMAGES[i]}" alt="" style="width:100%;height:100%;object-fit:contain"><span class="num">${k + 1}</span></div>`).join("")}</div>` +
-`<div class="wm-btns" style="margin:10px auto 0"><button type="button" class="wm-btn same" data-judge="1">✓ Doğru</button><button type="button" class="wm-btn diff" style="background:#E5484D;box-shadow:0 5px 0 #A9262B" data-judge="0">✗ Yanlış</button></div>`; }
+`<div class="aud-key" style="text-align:center;margin-top:6px">Yetişkin: yanlış ya da eksikse <b>Hata sayısı +</b></div><div class="wm-btns" style="margin:6px auto 0"><button type="button" class="wm-btn same" data-judge="9">Sonraki ▶</button></div>`; }
 } else if(st.kind === "storyord"){
 const tr = st.trials[ti], simg = (c) => `<img src="${STORY_SEQ_IMAGES[c.si][c.k]}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:10px">`;
 if(st.phase === "study"){ const k = st.si, w = Math.min(W - 20, isLs ? (H - 70) * 2 : 340);
@@ -10094,13 +10094,13 @@ const it = st.trials[Math.min(ti, st.trials.length - 1)], sz = Math.min(isLs ? M
 info = `${isPre() ? "Resim" : "Cümle"} <b>${ti + 1}/${st.trials.length}</b>`;
 const pic = it.img != null ? `<div class="wm-card" style="width:${sz}px;height:${sz}px;padding:4px"><img src="${ABS_PIC_IMAGES[it.img]}" alt="" style="width:100%;height:100%;object-fit:contain"></div>` : `<div class="flu-card" style="max-width:${isLs ? 300 : 360}px;font-size:${isLs ? 16 : 19}px;font-weight:800;line-height:1.35;text-align:center">${it.s}</div>`;
 body = dots + `<div style="display:flex;${isLs ? "" : "flex-direction:column;"}gap:12px;align-items:center;justify-content:center">${pic}<div style="max-width:${isLs ? "60%" : "380px"}"><div style="font-weight:900;font-size:${isLs ? 15 : 19}px;margin-bottom:4px">${it.q}</div><div class="aud-key" style="${isLs ? "font-size:12px;line-height:1.2" : ""}">Beklenen: <b>${it.a}</b></div>` +
-`<div class="wm-btns${isLs ? " wd-compact" : ""}" style="margin:${isLs ? 6 : 10}px 0 0;flex-wrap:wrap"><button type="button" class="wm-btn same" data-judge="1">✓ Uygun</button><button type="button" class="wm-btn diff" data-judge="2">◐ Kısmen</button><button type="button" class="wm-btn diff" style="background:#E5484D;box-shadow:0 5px 0 #A9262B" data-judge="0">✗ Uygun değil</button></div></div></div>`;
+`<div class="aud-key" style="text-align:center;margin-top:6px">Yetişkin: yanlış ya da eksikse <b>Hata sayısı +</b></div><div class="wm-btns" style="margin:6px auto 0"><button type="button" class="wm-btn same" data-judge="9">Sonraki ▶</button></div></div></div>`;
 } else if(st.kind === "whatdo"){
 const it = st.trials[Math.min(ti, st.trials.length - 1)], why = stIx() === 1, sz = Math.min(isLs ? Math.min(H - 70, W * 0.27) : 210, W * 0.62) * (window._fitK || 1);
 info = `Durum <b>${ti + 1}/${st.trials.length}</b>`;
 body = dots + `<div style="display:flex;${isLs ? "" : "flex-direction:column;"}gap:12px;align-items:center;justify-content:center"><div class="wm-card" style="width:${sz}px;height:${sz}px;padding:4px"><img src="${SIT_IMAGES[it.img]}" alt="" style="width:100%;height:100%;object-fit:contain"></div>` +
 `<div style="max-width:${isLs ? "70%" : "380px"}"><div style="font-weight:900;font-size:${isLs ? 14 : 19}px;margin-bottom:${isLs ? 2 : 4}px">${it.q}${why ? " <span style='color:#B07D00'>Neden?</span>" : ""}</div><div class="aud-key" style="${isLs ? "font-size:12px;line-height:1.2" : ""}">${isLs ? "Örnek" : "Uygun cevap örneği"}: <b>${it.a}</b>${why ? `<br>Gerekçe: <b>${it.why}</b>` : ""}</div>` +
-`<div class="wm-btns${isLs ? " wd-compact" : ""}" style="margin:${isLs ? 6 : 10}px 0 0;flex-wrap:wrap"><button type="button" class="wm-btn same" data-judge="1">✓ Uygun</button><button type="button" class="wm-btn diff" data-judge="2">◐ Kısmen</button><button type="button" class="wm-btn diff" style="background:#E5484D;box-shadow:0 5px 0 #A9262B" data-judge="0">✗ Uygun değil</button></div></div></div>`;
+`<div class="aud-key" style="text-align:center;margin-top:6px">Yetişkin: yanlış ya da eksikse <b>Hata sayısı +</b></div><div class="wm-btns" style="margin:6px auto 0"><button type="button" class="wm-btn same" data-judge="9">Sonraki ▶</button></div></div></div>`;
 } else if(st.kind === "size"){
 const tr = st.trials[ti];
 info = st.desc ? "<b>Büyükten küçüğe</b> dokun" : "<b>Küçükten büyüğe</b> dokun";
@@ -10133,7 +10133,7 @@ else if(st.kind === "scene"){
 const q = st.qs[Math.min(st.qi, st.qs.length - 1)];
 info = `Resim kapandı · soru <b>${st.qi + 1}/${st.qs.length}</b>`;
 body = `<div style="font-size:22px;font-weight:900;text-align:center;margin:10px 0 4px">${q[0]}</div><div class="aud-key" style="text-align:center;font-size:16px">Cevap: <b>${q[1]}</b></div>` +
-`<div class="wm-btns" style="margin:12px auto 0"><button type="button" class="wm-btn same" data-judge="1">✓ Doğru</button><button type="button" class="wm-btn diff" style="background:#E5484D;box-shadow:0 5px 0 #A9262B" data-judge="0">✗ Yanlış</button></div>`;
+`<div class="aud-key" style="text-align:center;margin-top:6px">Yetişkin: yanlış ya da eksikse <b>Hata sayısı +</b></div><div class="wm-btns" style="margin:6px auto 0"><button type="button" class="wm-btn same" data-judge="9">Sonraki ▶</button></div>`;
 } else {
 const q = st.qs[Math.min(st.qi, st.qs.length - 1)];
 info = `<b>Hangisi resimdeydi?</b> · ${st.qi + 1}/${st.qs.length}`;
@@ -10172,31 +10172,31 @@ function llBuild(){
 if(currentStageIndex === 1){ const d = delayGet("list"); if(d && d.A){ const rest = shuffleArray(LL_WORDS.filter(w => !d.A.includes(w) && !(d.B || []).includes(w)));
 return [{ A: d.A, delayed:true, R: shuffleArray(d.A.concat(rest.slice(0, d.A.length))) }]; } }
 const N = (isPre() ? LL_LEN.pre : LL_LEN.post)[currentCombo().t], w = shuffleArray(LL_WORDS), A = w.slice(0, N), B = w.slice(N, N * 2);
+try{ delaySet("list", { A, B }); }catch(e){}   /* gecikmeli aşama için öğrenilen liste (işaretleme kalktığı için burada kaydedilir) */
 return [{ A, B, delayed:false }];
 }
 const ckCount = (blk, n) => Array.from({length:n}, (_, i) => ckMarks[blk + ":" + i] ? 1 : 0).reduce((a, b) => a + b, 0);
-const ckChip = (blk, i, word, state, labels) => {
-const st = state || 0, col = st === 1 ? ["#1FA463", "#E3F6EC"] : st === 2 ? ["#E0A100", "#FFF4D6"] : ["var(--line)", "var(--panel)"];
-return `<button type="button" data-ck="${blk}:${i}" style="border:2px solid ${col[0]};background:${col[1]};border-radius:999px;padding:5px 11px;font-family:inherit;font-weight:800;font-size:14px;color:var(--ink);cursor:pointer">${st ? (labels ? labels[st] : "✓") + " " : ""}${word}</button>`; };
+/* KURAL: listeli sözel çalışmalarda tek tek işaretleme yok; kelimeler okuma listesi olarak görünür, yetişkin Hata sayısı −/+ ile puanlar */
+const ckChip = (blk, i, word, state, labels) => `<span style="border:2px solid var(--line);background:var(--panel);border-radius:999px;padding:5px 11px;font-weight:800;font-size:14px;color:var(--ink)">${word}</span>`;
 const ckRow = (inner) => `<div style="display:flex;flex-wrap:wrap;gap:5px;margin:4px 0 10px">${inner}</div>`;
 function llRender(items){
 const L = items[0], T = isPre() ? LL_TRIALS.pre : LL_TRIALS.post;
 if(L.delayed){
 const mins = delayMins("list"), d = ckCount("D", L.A.length);
 const rh = L.R.filter((w, i) => ckMarks["R:" + i] && L.A.includes(w)).length, rf = L.R.filter((w, i) => ckMarks["R:" + i] && !L.A.includes(w)).length;
-return `<div class="aud-list"><div class="aud-note">⏰ Liste <b>${mins} dakika</b> önce öğrenildi${mins < 10 ? " <b>(10–15 dakika beklemeniz önerilir)</b>" : ""}. Listeyi okumadan önce <b>hatırladığı kelimeleri</b> sordurun ve dokunun. Sonra <b>tanıma</b> listesini tek tek okuyun: çocuk "listede vardı" derse kelimeye dokunun.</div>` +
-`<div style="font-weight:900">1. Gecikmeli hatırlama: <span style="color:var(--teal-dark)">${d} / ${L.A.length}</span></div>` + ckRow(L.A.map((w, i) => ckChip("D", i, w, ckMarks["D:" + i])).join("")) +
-`<div style="font-weight:900">2. Tanıma — "vardı" dedikleri: <span style="color:var(--teal-dark)">doğru ${rh} / ${L.A.length}</span> · yanlış ${rf}</div>` + ckRow(L.R.map((w, i) => ckChip("R", i, w, ckMarks["R:" + i])).join("")) +
+return `<div class="aud-list"><div class="aud-note">⏰ Liste <b>${mins} dakika</b> önce öğrenildi${mins < 10 ? " <b>(10–15 dakika beklemeniz önerilir)</b>" : ""}. Listeyi okumadan önce <b>hatırladığı kelimeleri</b> sorun; hatırlamadığı her kelime için <b>Hata sayısı +</b>. Sonra <b>tanıma</b> listesini tek tek okuyun; listede olanlar koyu yazılı. Yanlış "vardı" ya da yanlış "yoktu" dediği her kelime için de <b>Hata sayısı +</b>.</div>` +
+`<div style="font-weight:900">1. Gecikmeli hatırlama</div>` + ckRow(L.A.map((w, i) => ckChip("D", i, w, ckMarks["D:" + i])).join("")) +
+`<div style="font-weight:900">2. Tanıma (koyu olanlar listedeydi)</div>` + ckRow(L.R.map((w, i) => ckChip("R", i, L.A.includes(w) ? "<b>" + w + "</b>" : w)).join("")) +
 `<div class="aud-note">Gecikmeli hatırlamada düşük, tanımada yüksek puan: bilgi kaydedilmiş ama geri getirmekte güçlük var. İkisi de düşükse kayıt (öğrenme) güçlüğü düşünülebilir.</div></div>`;
 }
 const curve = Array.from({length:T}, (_, k) => ckCount("t" + k, L.A.length));
-let html = `<div class="aud-list"><div class="aud-note">A listesini her denemede <b>aynı sırayla</b>, saniyede bir kelime okuyun; her okumadan sonra çocuk <b>hatırladığı kadarını, istediği sırayla</b> söylesin. Söylediklerine dokunun. ${T} denemeden sonra B listesini bir kez okuyup sordurun, ardından <b>A listesini okumadan</b> yeniden sorun. 10–15 dakika sonra <b>Aşama 2</b>'yi açın.</div>` +
+let html = `<div class="aud-list"><div class="aud-note">A listesini her denemede <b>aynı sırayla</b>, saniyede bir kelime okuyun; her okumadan sonra çocuk <b>hatırladığı kadarını, istediği sırayla</b> söylesin. Son denemede hatırlanmayan her kelime için <b>Hata sayısı +</b>. ${T} denemeden sonra B listesini bir kez okuyup sordurun, ardından <b>A listesini okumadan</b> yeniden sorun. 10–15 dakika sonra <b>Aşama 2</b>'yi açın.</div>` +
 `<div class="aud-row"><div class="aud-num">A</div><div class="aud-body"><div class="aud-words">${L.A.join(" – ")}</div></div></div>` +
-`<div style="font-weight:900;margin:6px 0">Öğrenme eğrisi: <span style="color:var(--teal-dark)">${curve.join(" → ")}</span> / ${L.A.length}</div>`;
-for(let k = 0; k < T; k++) html += `<div style="font-weight:800">${k + 1}. deneme · ${curve[k]}</div>` + ckRow(L.A.map((w, i) => ckChip("t" + k, i, w, ckMarks["t" + k + ":" + i])).join(""));
+``;
+for(let k = 0; k < T; k++) html += `<div style="font-weight:800">${k + 1}. deneme</div>` + ckRow(L.A.map((w, i) => ckChip("t" + k, i, w, ckMarks["t" + k + ":" + i])).join(""));
 html += `<div class="aud-row"><div class="aud-num">B</div><div class="aud-body"><div class="aud-words">${L.B.join(" – ")}</div></div></div>` +
-`<div style="font-weight:800">B listesi (karışma) · ${ckCount("B", L.B.length)}</div>` + ckRow(L.B.map((w, i) => ckChip("B", i, w, ckMarks["B:" + i])).join("")) +
-`<div style="font-weight:800">A listesi, B'den sonra (okumadan) · ${ckCount("A2", L.A.length)}</div>` + ckRow(L.A.map((w, i) => ckChip("A2", i, w, ckMarks["A2:" + i])).join(""));
+`<div style="font-weight:800">B listesi (karışma)</div>` + ckRow(L.B.map((w, i) => ckChip("B", i, w, ckMarks["B:" + i])).join("")) +
+`<div style="font-weight:800">A listesi, B'den sonra (okumadan)</div>` + ckRow(L.A.map((w, i) => ckChip("A2", i, w, ckMarks["A2:" + i])).join(""));
 return html + `</div>`;
 }
 function llScore(){
@@ -10222,9 +10222,9 @@ function clRender(items){
 const L = items[0], total = L.flat.length, strat = false;
 let free = 0, cued = 0; L.groups.forEach((g, gi) => g.w.forEach((w, i) => { const s = ckMarks[gi + ":" + i]; if(s === 1) free++; if(s === 2) cued++; }));
 const tip = strat ? `<div class="aud-note" style="border-color:#E0A100;background:#FFF8E5">💡 <b>Strateji · Grupla:</b> Okumadan önce söyleyin: <b>"Bu listede ${L.groups.map(g => CL_PLURAL[g.c]).join(", ")} var. Dinlerken aklında grupla; söylerken önce bir grubu bitir, sonra ötekine geç."</b> Sonuçları Aşama 1 ile karşılaştırın.</div>` : "";
-return `<div class="aud-list"><div class="aud-note">Kelimeleri karışık sırayla, saniyede bir okuyun; çocuk <b>hatırladıklarını</b> söylesin. Kendiliğinden söylediğine <b>bir kez</b> dokunun (✓). Sonra eksik kalan gruplar için ipucu verin: <b>"${CL_PLURAL[L.groups[0].c][0].toLocaleUpperCase("tr-TR") + CL_PLURAL[L.groups[0].c].slice(1)} hangileriydi?"</b>; ipucuyla söylediğine <b>iki kez</b> dokunun (◐).</div>${tip}` +
+return `<div class="aud-list"><div class="aud-note">Kelimeleri karışık sırayla, saniyede bir okuyun; çocuk <b>hatırladıklarını</b> söylesin. Kendiliğinden hatırlanmayan her kelime için <b>Hata sayısı +</b>. Sonra eksik kalan gruplar için ipucu verin: <b>"${CL_PLURAL[L.groups[0].c][0].toLocaleUpperCase("tr-TR") + CL_PLURAL[L.groups[0].c].slice(1)} hangileriydi?"</b></div>${tip}` +
 `<div class="aud-row"><div class="aud-num">↓</div><div class="aud-body"><div class="aud-words">${L.flat.map(x => x.w).join(" – ")}</div></div></div>` +
-`<div style="font-weight:900;margin:6px 0">Serbest: <span style="color:#1FA463">${free}</span> · İpucuyla: <span style="color:#B07D00">${cued}</span> · Toplam: ${free + cued} / ${total}</div>` +
+`` +
 L.groups.map((g, gi) => `<div style="font-weight:800">${cap(CL_PLURAL[g.c])}</div>` + ckRow(g.w.map((w, i) => ckChip(gi, i, w, ckMarks[gi + ":" + i], { 1:"✓", 2:"◐" })).join(""))).join("") +
 `<div class="aud-note">İpucuyla çok kelime ekleniyorsa bilgi bellekte var, geri getirme stratejisi desteklenmeli.</div></div>`;
 }
@@ -10263,6 +10263,7 @@ function mtErr(){ if(mtState && mtState.kind === "quiz" && mtState.warmN && mtSt
 mtState.wrong++; setErrorCount(currentErrorCount + 1); try{ vibrate(60); }catch(e){} gameSfx("wrong"); }
 function mtFinish(extra){
 const st = mtState; st.phase = "done"; renderMtBoard(); stopTimer();
+if(st.manual){ showLevelFlash("Bitti! Hata sayısını kontrol edin.", "levelup"); return; }   /* yetişkin Hata sayısı −/+ ile puanladı */
 showLevelFlash((st.wrong ? `Bitti! ${st.wrong} hata.` : "Bitti! Hiç hata yok 🎉") + (extra || ""), st.wrong ? "down" : "levelup");
 }
 function mtBuild(){
@@ -10270,7 +10271,7 @@ const id = currentExercise().id, t = currentCombo().t, pre = isPre();
 mtClear();
 if(id === "corsi" || id === "corsi-verbal"){
 const N = pre ? [5, 6, 6][Math.min(t, 2)] : 9;   // öncesi: 5 blok → 6 blok → 6 blok + 3'lük dizi
-mtState = { kind: id, N, blocks: null, len: (pre ? [2, 3, 4] : [3, 4, 5])[t], maxLen: pre ? N : 9, tries: 0, okAtLen: 0, best: 0, wrong:0, phase:"idle", back: stIx() === 1, seq:[], pos:0, trials:0 };
+mtState = { kind: id, N, blocks: null, len: (pre ? [2, 3, 4] : [3, 4, 5])[t], maxLen: pre ? N : 9, tries: 0, okAtLen: 0, best: 0, wrong:0, phase:"idle", back: stIx() === 1, seq:[], pos:0, trials:0, maxTrials: (pre ? [4, 5, 6] : [6, 8, 10])[Math.min(t, 2)], manual: id === "corsi-verbal" };   /* uzmanla: sabit uzunluk, "Sonraki" + Hata sayısı */
 return Array.from({length: 12}, () => ({}));
 }
 if(id === "span-touch"){
@@ -10435,6 +10436,7 @@ st.len++; st.tries = 0; st.okAtLen = 0;
 corsiTrial();
 }, 700);
 }
+function corsiVerbalNext(){ const st = mtState; st.trials++; st.phase = "between"; renderMtBoard(); mtLater(() => { if(st.trials >= st.maxTrials){ mtFinish(); return; } corsiTrial(); }, 500); }
 function corsiTap(i){
 const st = mtState; if(st.phase !== "input") return;
 const order = st.back ? st.seq.slice().reverse() : st.seq;
@@ -10501,7 +10503,7 @@ let info = "", body = "";
 if(st.kind === "corsi" || st.kind === "corsi-verbal"){
 corsiLayout();
 const area = Math.min(W, isLs ? (st.kind === "corsi-verbal" && st.phase === "judge" ? H - 112 : H) : 420 * tabletScale()) * (window._fitK || 1), bs = Math.round(area * 0.15);
-info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "show" ? "<b>İzle…</b>" : st.phase === "input" ? `<b>${st.back ? "Tersten" : "Aynı sırayla"}</b> dokun · ${st.pos}/${st.seq.length}` : st.phase === "judge" ? `Çocuk sırayı ${st.back ? "<b>tersten</b>" : ""} söylesin / göstersin:` : st.phase === "done" ? `Bitti · en uzun dizi <b>${st.best || "—"}</b>` : `Dizi uzunluğu: <b>${st.len}</b>`;
+info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "show" ? "<b>İzle…</b>" : st.phase === "input" ? `<b>${st.back ? "Tersten" : "Aynı sırayla"}</b> dokun · ${st.pos}/${st.seq.length}` : st.phase === "judge" ? `Çocuk sırayı ${st.back ? "<b>tersten</b>" : ""} söylesin / göstersin:` : st.phase === "done" ? (st.manual ? `Bitti · ${st.len}'lü diziler · hatalar Hata sayısında` : `Bitti · en uzun dizi <b>${st.best || "—"}</b>`) : `Dizi uzunluğu: <b>${st.len}</b>`;
 body = `<div style="position:relative;width:${area}px;height:${area}px;margin:0 auto;background:#EEF2F6;border-radius:18px;">` + st.blocks.map((p, i) => {
 const lit = st.lit === i, mk = st.marks && st.marks[i];
 const bg = lit ? "#FFC21A" : mk === "ok" ? "#1FA463" : mk === "bad" ? "#E5484D" : "#2E6FD8";
@@ -10509,7 +10511,7 @@ const num = st.kind === "corsi-verbal" ? `<span style="color:#fff;font-weight:90
 return `<div data-mt="${i}" style="position:absolute;left:${(p.x * area).toFixed(0)}px;top:${(p.y * area).toFixed(0)}px;width:${bs}px;height:${bs}px;border-radius:10px;background:${bg};box-shadow:0 4px 0 rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .1s">${num}</div>`; }).join("") + `</div>`;
 if(st.kind === "corsi-verbal" && st.phase === "judge"){
 const order = st.back ? st.seq.slice().reverse() : st.seq;
-body += `<div class="aud-key" style="text-align:center;margin-top:8px">Doğru cevap: <b>${order.map(i => i + 1).join(" – ")}</b></div><div class="wm-btns" style="margin:8px auto 0"><button type="button" class="wm-btn same" data-judge="1">✓ Doğru</button><button type="button" class="wm-btn diff" style="background:#E5484D;box-shadow:0 5px 0 #A9262B" data-judge="0">✗ Yanlış</button></div>`;
+body += `<div class="aud-key" style="text-align:center;margin-top:8px">Doğru cevap: <b>${order.map(i => i + 1).join(" – ")}</b> · dizi <b>${st.trials + 1}/${st.maxTrials}</b></div><div class="aud-key" style="text-align:center">Yetişkin: dizi yanlışsa <b>Hata sayısı +</b></div><div class="wm-btns" style="margin:6px auto 0"><button type="button" class="wm-btn same" data-judge="9">Sonraki ▶</button></div>`;
 }
 } else if(st.kind === "span-touch"){
 const set = st.sets[st.si] || st.sets[0], it = set.items[Math.min(st.ii, set.items.length - 1)];
@@ -10564,7 +10566,7 @@ const r = NEW_MT.render(st, W, H, isLs); info = r.info; body = r.body;
 } else if(st.kind === "picsay" && st.phase === "judge"){
 const items = st.trials[st.ti];
 info = "Çocuk resimlerin adlarını <b>sırayla</b> söylesin:";
-body = `<div class="wm-dots">${st.trials.map((x, i) => `<i class="${i < st.ti ? "on" : ""}"></i>`).join("")}</div><div class="aud-key" style="text-align:center;font-size:17px">Doğru cevap: <b>${items.map(x => x.n).join(" – ")}</b></div><div class="wm-btns" style="margin:8px auto 0"><button type="button" class="wm-btn same" data-judge="1">✓ Doğru</button><button type="button" class="wm-btn diff" style="background:#E5484D;box-shadow:0 5px 0 #A9262B" data-judge="0">✗ Yanlış</button></div>`;
+body = `<div class="wm-dots">${st.trials.map((x, i) => `<i class="${i < st.ti ? "on" : ""}"></i>`).join("")}</div><div class="aud-key" style="text-align:center;font-size:17px">Doğru cevap: <b>${items.map(x => x.n).join(" – ")}</b></div><div class="aud-key" style="text-align:center;margin-top:6px">Yetişkin: sıra yanlışsa <b>Hata sayısı +</b></div><div class="wm-btns" style="margin:6px auto 0"><button type="button" class="wm-btn same" data-judge="9">Sonraki ▶</button></div>`;
 } else if(st.kind === "running"){
 const items = st.trials[Math.min(st.ti, st.trials.length - 1)];
 const dots = `<div class="wm-dots">${st.trials.map((x, i) => `<i class="${i < st.ti ? "on" : ""}"></i>`).join("")}</div>`;
@@ -10641,8 +10643,8 @@ const st = mtState;
 if(b.dataset.mtbtn){ const f = NEW_MT.btn[b.dataset.mtbtn]; if(f) f(); return; }
 if(b.dataset.judge !== undefined && NEW_MT.judge[st.kind]){ NEW_MT.judge[st.kind](Number(b.dataset.judge)); return; }
 if(b.dataset.mt !== undefined && NEW_MT.tap[st.kind]){ const v = b.dataset.mt; NEW_MT.tap[st.kind](/^-?\d+$/.test(v) ? Number(v) : v); return; }
-if(b.dataset.judge !== undefined){ if(st.kind === "picsay" && st.phase === "judge"){ if(b.dataset.judge === "1") gameSfx("correct"); else mtErr(); st.phase = "fb"; renderMtBoard(); mtLater(seqNext, 400); return; }
-if(st.kind === "corsi-verbal" && st.phase === "judge") corsiResult(b.dataset.judge === "1"); else if(st.kind === "span-touch") spanJudge(Number(b.dataset.judge)); return; }
+if(b.dataset.judge !== undefined){ if(st.kind === "picsay" && st.phase === "judge"){ const jv = b.dataset.judge; st.manual = jv === "9"; if(jv === "1") gameSfx("correct"); else if(jv !== "9") mtErr(); st.phase = "fb"; renderMtBoard(); mtLater(seqNext, 400); return; }
+if(st.kind === "corsi-verbal" && st.phase === "judge") corsiVerbalNext(); else if(st.kind === "span-touch") spanJudge(Number(b.dataset.judge)); return; }
 const i = Number(b.dataset.mt);
 if(st.kind === "corsi") corsiTap(i); else if(st.kind === "span-touch") spanTap(i);
 else if(st.kind === "running") runTap(i); else if(st.kind === "zihni") zhTap(i); else if(st.kind === "pal-touch") palTap(i);
@@ -10681,11 +10683,11 @@ const INSTR_SHORT = {
 "pairs-touch":      [() => Q("Her kutuda iki şey var. Birlikte kullanılan çiftlere hızlıca dokun; birlikte kullanılmayanlara dokunma."), () => Q("Bu kez tersi: birlikte KULLANILMAYAN çiftlere hızlıca dokun; birlikte kullanılanlara dokunma.")],
 "sdmt-touch":       [() => `Anahtarı birlikte inceleyin, sonra: ${Q("Üstteki anahtarda her şeklin bir resmi var. Ekrana bir şekil gelince anahtara bak; o şeklin eşi olan resme hızlıca dokun.")}`],
 "quick-sort":       [() => { const R = qsRule(); const tail = qsRuleKey === "canli" ? " Bitkiler de canlıdır; oyuncak hayvanlar cansızdır." : ""; const t = Math.min(currentCombo().t, 2); const extra = t === 2 ? " <b>Dikkat:</b> tur ortasında kural değişecek, ekrandaki uyarıya bak." : t === 1 ? " Düğmelerin yeri her sayfada değişebilir." : ""; return Q(`Ekrana resimler tek tek gelecek. ${trCap(R.a.l)} gelirse ${trDat(R.a.l)}, ${trCap(R.b.l).toLocaleLowerCase("tr")} gelirse ${trDat(R.b.l)} hızlıca dokun.`) + tail + extra; }],
-"stroop-touch":     [() => Q("Kelimeyi okuma; yazının rengini gösteren düğmeye dokun.")],
-"day-night-touch":  [() => Q("Güneş gelince AY'a, ay gelince GÜNEŞ'e dokun.")],
-"fish-flanker":     [() => Q("Yalnızca ORTADAKİ canlıya bak; baktığı yönün okuna dokun.")],
-"face-go":          [() => Q(`Her yüzde DOKUN'a bas. ${trUpper(FACE_NAMES[fgStop])} yüzde dokunma, bekle.`)],
-"switch-touch":     [() => Q("Gördüğün yeşil renkte ise aynı yöndekine dokun, gördüğün turuncu ise ters yönde olana dokun.")],
+"stroop-touch":     [() => Q("Ekrana renk adı yazan kelimeler gelecek ama her kelime başka renkle yazılmış. Kelimeyi okuma; yazının rengi hangisiyse alttan o renk düğmesine dokun.")],
+"day-night-touch":  [() => Q("Ekrana güneş ya da ay gelecek. Tersine dokunacaksın: güneş gelince AY düğmesine, ay gelince GÜNEŞ düğmesine dokun.")],
+"fish-flanker":     [() => Q("Ekranda yan yana balıklar var. Yalnızca ORTADAKİ balığa bak; yandakilere aldırma. Ortadaki balık hangi yöne bakıyorsa alttan o yönün okuna dokun.")],
+"face-go":          [() => Q(`Ekrana yüzler tek tek gelecek. Her yüz gelince DOKUN'a bas. Ama ${trUpper(FACE_NAMES[fgStop])} yüz gelince dokunma, bekle.`)],
+"switch-touch":     [() => Q("Ekrana ön ya da arka tarafı görünen taşıtlar gelecek. Çerçeve yeşilse gördüğünle aynı tarafa, çerçeve turuncuysa ters tarafa dokun: yeşilde önü gördüysen ön'e, turuncuda önü gördüysen arka'ya.")],
 "plan-think":       [() => `${Q("Önce zihninde planla; birkaç saniye sonra dokunabilirsin. En az hamleyle hedefteki gibi yap.")} İsterseniz çocuk kaç hamlede çözeceğini önce söylesin.`],
 "hear-find":        [() => Q("Ekranda resimler var. Bazılarının adı okunacak; dinle ve aklında tut. Bitince adı okunan resimlere dokun; sonra Bitti'ye bas.")],
 "dir-follow":       [() => Q("Ekranda resimler var. Sana hangi resimlere, hangi sırayla dokunacağını söyleyeceğim; dinle ve aklında tut. Bitince söylediğim sırayla resimlere dokun.")],
@@ -10722,8 +10724,8 @@ const INSTR_SHORT = {
 "sent-verify":      [() => Q(currentCombo().t === 2 ? "Ekrana iki cümle gelecek. İkisini de oku; ikinci cümle ilkine uyuyorsa Doğru'ya, ters düşüyorsa Yanlış'a dokun." : "Ekrana cümleler tek tek gelecek. Cümleyi oku; doğruysa Doğru'ya, yanlışsa Yanlış'a hızlıca dokun.")],
 "periph":           [() => Q("Ortada kırmızı bir nokta var; gözünü ondan hiç ayırma. Kenarlardan bir yıldız belirince, gözünü ortadan ayırmadan parmağınla yıldıza dokun." + (!isPre() && currentCombo().t === 2 ? " Mavi daire çıkarsa ona dokunma." : ""))],
 "fixation":         [() => `Çocuğa söyleyin: ${Q("Ortadaki kırmızı noktaya bak. Etrafta başka şeyler çıkacak; ne çıkarsa çıksın gözünü kırmızı noktadan ayırma.")} Süre bitince gözlerini ayırıp ayırmadığını işaretleyin.`],
-"dual-task":        [() => Q("Çıkan yıldızlara dokun. Aynı anda bip seslerini say; sonunda kaç tane olduğunu söyleyeceksin.")],
-"stop-signal":      [() => Q("Ok hangi yönü gösteriyorsa o yöndeki düğmeye hızlıca bas. Ok kırmızı olursa hiçbir düğmeye basma.")],
+"dual-task":        [() => Q("İki işi birden yapacaksın: ekranda çıkan yıldızlara dokun, aynı anda duyduğun bip seslerini içinden say. Sonunda kaç bip duyduğunu söyle.")],
+"stop-signal":      [() => Q("Ekrana oklar gelecek. Ok hangi yöne bakıyorsa alttan o yönün düğmesine hızlıca bas. Ama ok kırmızıya dönerse hiçbir düğmeye basma, bekle.")],
 "look-first":       [() => Q("Üstte bir ev var. Alttaki evlerden sadece biri üsttekinin birebir aynısı, ötekilerde küçük bir fark var. Dokunmadan önce hepsine dikkatle bak ve karşılaştır; sonra aynı olana dokun.")],
 "self-check":       [() => `${Q("Ekranda oklar gelecek. Her ok için aynı yöndeki oka hızlıca dokun. Bu sefer doğru mu yanlış mı söylemeyeceğim.")} Bitince: ${Q("Şimdi cevaplarına bak. Sence hangileri yanlıştı? Yanlış olduğunu düşündüklerine dokunup işaretle, sonra ‘Bitti’ye bas.")}`],
 "safe-box":         [() => Q("İki kutu var. Bir kutuya dokununca gülen yüzler yıldız verir, üzgün yüzler yıldız alır. Kutulardan biri daha iyi; hangisinin daha iyi olduğunu bul ve ona dokun.")],
@@ -10762,7 +10764,7 @@ const INSTR_SHORT = {
 "opp-do":           [() => `Komutları okuyun: ${Q(oppKidText("htks"))}`],
 "hand-game":        [() => `Elinizle gösterin: ${Q(oppKidText("hand"))}`],
 "tap-reverse":      [() => Q("Ekranda yumruk resmi göreceksin. Bir yumruk görürsen büyük düğmeye iki kez vur. İki yumruk görürsen bir kez vur. Yani hep gördüğünün tersi kadar vur.")],
-"vigilance":        [() => Q("Şekiller tek tek gelecek. Yalnızca kırmızı yıldız gelince Gördüm'e bas.")],
+"vigilance":        [() => Q("Ekrana şekiller tek tek gelecek; çoğu başka şekil olacak. Sadece kırmızı yıldız gelince Gördüm'e bas; diğerlerinde basma. Uzun sürse de dikkatini bırakma.")],
 "pos-nback":        [() => Q(mtState && mtState.n === 2 ? "Ekranda mavi bir kare belirip kaybolacak, her seferinde başka yerde. Kare iki önceki karenin olduğu yerde belirirse ‘Aynı yer’e bas; başka yerdeyse basma." : "Ekranda mavi bir kare belirip kaybolacak, her seferinde başka yerde. Kare bir önceki karenin olduğu yerde belirirse ‘Aynı yer’e bas; başka yerdeyse basma.")],
 "count-span":       [() => Q("Kartlar tek tek gelecek. Her karttaki noktaları say, sayıyı aklında tut ve Saydım'a bas. Kartlar bitince saydığın sayıları sırayla seç.")],
 "tone-seq":         [() => Q("Ekranda tuşlar var. Tuşlar sırayla yanacak ve her biri bir ses çıkaracak; sırayı izle ve dinle. Bitince tuşlara aynı sırayla dokun."), () => Q("Bu kez tuşlar yanmayacak, sadece sesler çalacak. Sesleri dikkatle dinle; bitince tuşlara aynı sırayla dokun.")],
@@ -10806,9 +10808,9 @@ const INSTR_SHORT = {
 "dot-count":        [() => Q(Math.min(currentCombo().t, 2) === 0 ? "Ekranda noktalar çok kısa bir süre görünüp kaybolacak. Kaç tane nokta gördüysen alttan o sayıya dokun." : "Ekranda resimler çok kısa bir süre görünüp kaybolacak. Kaç tane resim gördüysen alttan o sayıya dokun.")],
 "sem-decide":       [() => { const t = currentCombo().t; return Q(t === 0 ? "Üstte bir soru var; altta resimler tek tek gelecek. Her resim için soruya göre hızlıca Evet ya da Hayır'a dokun." : t === 1 ? "Üstteki soru iki resimde bir değişecek. Her resimde soruyu oku, ona göre hızlıca Evet ya da Hayır'a dokun." : "Üstteki soru her resimde değişecek. Her resimde soruyu oku, ona göre hızlıca Evet ya da Hayır'a dokun."); }],
 "eye-touch":        [() => Q("Ekranda kayan bir top var. Topu gözünle izle ve yakalamak için üstüne dokun.")],
-"alt-uses":         [() => `Okuyun ve ▶'a basın: ${Q(fluPrompt("alt-uses").say)} Asıl kullanımı dışındaki her kullanım sayılır; olağan dışı olması gerekmez. Farklı her fikir +1. Hedef: ${altGoal()} fikir.`],
-"time-est":         [() => Q("Başla'ya bas, içinden say. Söylenen saniye olunca Dur'a bas.")],
-"find-error":       [() => Q("Kuralı dinle. Uymayanlara dokun, sonra Bitti.")],
+"alt-uses":         [() => `Okuyun ve ▶'a basın: ${Q(`${fluPrompt("alt-uses").say} Aklına gelen her kullanımı söyle; gerçek kullanımı dışında olsun yeter.`)} Olağan dışı olması gerekmez. Farklı her fikir +1. Hedef: ${altGoal()} fikir.`],
+"time-est":         [() => Q("Sana bir süre söylenecek, mesela 10 saniye. Başla'ya bas ve içinden say. Söylenen süre dolduğunu düşündüğün anda Dur'a bas. Saate bakmak yok.")],
+"find-error":       [() => Q("Sana bir kural söylenecek; dinle. Ekrandaki resimlere bak; kurala uymayanları bul ve her birine dokun. Bitince Bitti'ye bas.")],
 "cups":             [() => Q("Bardaklardan birinin altında top var; hangi bardakta olduğuna iyi bak. Bardaklar karışacak. Durunca topun olduğu bardağa dokun.")],
 "mental-math":      [() => isPre() ? Q("Kutuya nesneler girecek, bazıları çıkacak; iyi izle. Sonunda kutuda kaç tane kaldığını söyle.") : Q("Sayılar ve işlemler tek tek gelecek; hepsini aklında tut ve hesapla. Sonunda sonucu seç.")],
 "who-said":         [() => Q("Ekranda çocuklar var ve her biri bir şey söyleyecek; kimin ne söylediğini dinle ve aklında tut. Sonra bir resim gelecek; onu kimin söylediğini seç.")],
@@ -10864,7 +10866,7 @@ const INSTR_SHORT = {
 "market":           [() => Q("Önce bir alışveriş listesi göreceksin; listedekileri aklında tut. Sonra balonlar gelecek, onları patlat. En sonda raftan listedeki şeyleri seç.")],
 "market-verbal":    [() => `Listeyi okuyun: ${Q("Sana bir alışveriş listesi okuyacağım; aklında tut. Arada başka bir iş yapacağız. Sonra listedekileri bana söyle.")}`],
 "corsi":            [() => Q("Ekranda mavi bloklar var. Bloklar sırayla yanıp sönecek; iyi bak. Bitince bloklara aynı sırayla dokun."), () => Q("Bloklar sırayla yanıp sönecek; iyi bak. Bitince bloklara TERSTEN dokun: en son yanana ilk, ilk yanana en son.")],
-"corsi-verbal":     [() => `${Q("Bloklar sırayla yanacak; iyi bak. Bitince yanan blokların numaralarını aynı sırayla söyle ya da parmağınla göster.")} Doğru/Yanlış ile kaydedin.`, () => `${Q("Bloklar sırayla yanacak; iyi bak. Bitince yanan blokların numaralarını TERSTEN söyle ya da göster: en son yanandan ilk yanana.")} Doğru/Yanlış ile kaydedin.`],
+"corsi-verbal":     [() => `${Q("Bloklar sırayla yanacak; iyi bak. Bitince yanan blokların numaralarını aynı sırayla söyle ya da parmağınla göster.")} Yanlış dizi için Hata sayısı +.`, () => `${Q("Bloklar sırayla yanacak; iyi bak. Bitince yanan blokların numaralarını TERSTEN söyle ya da göster: en son yanandan ilk yanana.")} Yanlış dizi için Hata sayısı +.`],
 "span-listen":      [() => `Göstermeden okuyun: ${Q("Sana cümleler okuyacağım. Her cümle için doğru mu yanlış mı söyle ve cümledeki nesneyi aklında tut. Bitince nesneleri sırayla söyle.")}`],
 "span-read":        [() => Q("Cümleleri tek tek oku; her cümle için doğru mu yanlış mı söyle. Her cümledeki nesneyi aklında tut. Bitince nesneleri sırayla söyle.")],
 "span-touch":       [() => Q("Sana cümleler okunacak. Her cümle doğruysa ✓'ye, yanlışsa ✗'e dokun. Her cümlenin resmini aklında tut. Bitince resimlere sırayla dokun.")],
@@ -10895,30 +10897,30 @@ const INSTR_SHORT = {
 "eye-saccade-two":  [() => Q(`Ekranda bir top var; top bir yerden başka yere atlayacak. Başını hiç oynatma; top atladığı anda gözlerinle hemen ona bak. Top ${currentCombo().t === 2 ? "sağ ile sol, yukarı ile aşağı arasında" : "sağ ile sol arasında"} atlar.`)],
 "eye-saccade-random":[() => Q("Ekranda bir top belirip kaybolacak; her seferinde başka bir yerde çıkacak. Başını hiç oynatma; top nerede belirirse gözlerinle hemen oraya bak.")],
 "eye-saccade-reading":[() => Q("Top kitap okur gibi satır satır gidecek: soldan sağa gider, satır bitince alt satırın başına atlar. Başını hiç oynatma; topu sadece gözlerinle izle.")],
-"stroop":           [() => `${Q("Kelimeyi okuma, yazının rengini söyle.")} (mavi yazılmış "YEŞİL" → "mavi")`],
-"day-night":        [() => Q("Güneş görünce 'gece', ay görünce 'gündüz' de.")],
-"task-switch":      [() => switchSide === "back" ? Q("Arkasını görüyorsan 'arka' de, önünü görüyorsan adını söyle.") : Q("Önünü görüyorsan 'ön' de, arkasını görüyorsan adını söyle.")],
-"go-no-go":         [() => Q(`Yüzün duygusunu söyle. ${stopFaceText()} yüzde sus.`), () => Q(`Yüzün duygusunu söyle. ${stopFaceText()} yüzde sus.`)],
-"flanker":          [() => Q(isPre() ? "Her çerçevede yalnızca ORTADAKİ resmin adını söyle." : "Her çerçevede yalnızca ORTADAKİ rakamı söyle."),
-() => `${Q("Yine yalnızca ORTADAKİNİ söyle.")} Bazen beşi de aynıdır.`],
-"touch-animal":     [() => `<b>"Hayvanlara hızlıca dokun. ${trUpper(cardName(taStopColor))}</b> ${swatch(taStopColor)} <b>DUR kartına dokunma.${currentCombo().t > 0 ? " Başka renk DUR kartlarına dokunabilirsin." : ""}"</b>`, () => `<b>"Bu kez eşyalara hızlıca dokun. ${trUpper(cardName(taStopColor))}</b> ${swatch(taStopColor)} <b>DUR kartına dokunma.${currentCombo().t > 0 ? " Başka renk DUR kartlarına dokunabilirsin." : ""}"</b>`],
+"stroop":           [() => `${Q("Ekranda renk adları yazıyor ama her kelime başka renkle yazılmış. Kelimeyi okuma; soldan sağa, satır satır her kelimenin yazı rengini söyle.")} (mavi yazılmış "YEŞİL" → "mavi")`],
+"day-night":        [() => Q("Ekranda güneşler ve aylar var. Tersini söyleyeceksin: güneş görünce ‘gece’ de, ay görünce ‘gündüz’ de. Soldan sağa, satır satır git.")],
+"task-switch":      [() => switchSide === "back" ? Q("Ekranda taşıtlar var; bazılarının önü, bazılarının arkası görünüyor. Arkasını görüyorsan ‘arka’ de, önünü görüyorsan taşıtın adını söyle.") : Q("Ekranda taşıtlar var; bazılarının önü, bazılarının arkası görünüyor. Önünü görüyorsan ‘ön’ de, arkasını görüyorsan taşıtın adını söyle.")],
+"go-no-go":         [() => Q(`Ekranda yüzler var. Soldan sağa, satır satır her yüzün duygusunu söyle. Ama ${stopFaceText()} yüz gelince sus, hiçbir şey söyleme.`), () => Q(`Ekranda yüzler var. Her yüzün duygusunu söyle. Ama ${stopFaceText()} yüz gelince sus, hiçbir şey söyleme.`)],
+"flanker":          [() => Q(isPre() ? "Ekranda çerçeveler var; her çerçevede beş resim var. Yandakilere aldırma; her çerçevede yalnızca ORTADAKİ resmin adını söyle." : "Ekranda çerçeveler var; her çerçevede beş rakam var. Yandakilere aldırma; her çerçevede yalnızca ORTADAKİ rakamı söyle."),
+() => `${Q("Yine her çerçevede yalnızca ORTADAKİNİ söyle. Bazen beşi de aynı olacak, bazen ortadaki farklı; yandakilere aldanma.")}`],
+"touch-animal":     [() => `<b>"Ekranda hayvanlar, eşyalar ve DUR kartları var. Bütün hayvanlara hızlıca dokun; eşyalara dokunma. ${trUpper(cardName(taStopColor))}</b> ${swatch(taStopColor)} <b>DUR kartına da dokunma.${currentCombo().t > 0 ? " Başka renkteki DUR kartlarına dokunabilirsin." : ""}"</b>`, () => `<b>"Bu kez tersi: bütün eşyalara hızlıca dokun; hayvanlara dokunma. ${trUpper(cardName(taStopColor))}</b> ${swatch(taStopColor)} <b>DUR kartına da dokunma.${currentCombo().t > 0 ? " Başka renkteki DUR kartlarına dokunabilirsin." : ""}"</b>`],
 "touch-card":       [() => `<b>"Ekranda renkli kartlar var. Yalnızca ${trUpper(cardName(tcTarget))}</b> ${swatch(tcTarget)} <b>kartlara hızlıca dokun; öteki renklere dokunma."</b>`],
 "sort-color-shape":       [() => sortShort()],
 "sort-animal-size":       [() => sortShort()],
 "sort-color-shape-count": [() => sortShort()],
 "sort-words":             [() => sortShort()],
-"number-letter":    [() => Q(`BAŞLA'dan başla, sırayla dokun: ${trailExampleText(5)} …`), () => Q(`Harften başla, sırayla dokun: ${trailExampleText(5)} …`)],
-"trail-number-month":[() => Q(`BAŞLA'dan başla, sırayla dokun: ${trailExampleText(6)} …`)],
-"trail-animal-fruit":[() => `${Q("BAŞLA'dan başla; üstteki yol kartındaki sırayla dokun.")} Sıra: bir hayvan, bir meyve.`],
-"trail-color-shape": [() => `${Q("BAŞLA'dan başla; üstteki yol kartındaki sırayla dokun.")} Sıra: bir renk, bir şekil.`],
-"plan-swap":        [() => Q("Önce düşün. İki küpe dokun, yer değiştirsinler. Hedefteki sırayı en az hamleyle yap.")],
-"plan-beads":       [() => Q("Önce düşün. Çubuğa dokun, üstteki boncuk kalkar; başka çubuğa koy. Hedefteki gibi yap."), () => Q("Önce düşün; birkaç saniye sonra dokunabilirsin. Hedefteki gibi yap.")],
-"plan-tol":         [() => `${Q("Önce zihninde planla. Pulları en az hamleyle hedefteki gibi diz.")} Bardaklar 3, 2 ve 1 pul alır.`, () => `${Q("Önce zihninde planla; birkaç saniye sonra dokunabilirsin. Pulları en az hamleyle hedefteki gibi diz.")} Bardaklar 3, 2 ve 1 pul alır.`],
-"plan-cubes":       [() => Q("Önce zihninde planla. Yalnızca üstteki küpü taşı; hedefteki gibi en az hamleyle diz.")],
+"number-letter":    [() => Q(`Ekranda sayılar ve harfler karışık duruyor. BAŞLA yazan yerden başla; bir sayı, bir harf diye sırayla dokun: ${trailExampleText(5)} … En sona kadar git.`), () => Q(`Bu kez harften başlayacaksın; bir harf, bir sayı diye sırayla dokun: ${trailExampleText(5)} … En sona kadar git.`)],
+"trail-number-month":[() => Q(`Ekranda sayılar ve ay adları karışık duruyor. BAŞLA yazan yerden başla; bir sayı, bir ay diye sırayla dokun: ${trailExampleText(6)} … En sona kadar git.`)],
+"trail-animal-fruit":[() => Q("Üstteki yol kartında bir sıra var: bir hayvan, bir meyve. Ekranda resimler karışık duruyor. BAŞLA yazan yerden başla; yol kartındaki sırayla, bir hayvan bir meyve diye dokun.")],
+"trail-color-shape": [() => Q("Üstteki yol kartında bir sıra var: bir renk, bir şekil. Ekranda kartlar karışık duruyor. BAŞLA yazan yerden başla; yol kartındaki sırayla, bir renk bir şekil diye dokun.")],
+"plan-swap":        [() => Q("Üstte hedef sıra, altta renkli küpler var. İki küpe dokununca yerleri değişir. Önce düşün; küpleri en az hamleyle hedefteki sıraya diz.")],
+"plan-beads":       [() => Q("Üstte hedef dizilim, altta çubuklara dizilmiş boncuklar var. Bir çubuğa dokununca en üstteki boncuk kalkar; başka bir çubuğa dokununca oraya konur. Dokunmadan önce düşün ve boncukları hedefteki gibi diz."), () => Q("Bu kez önce birkaç saniye sadece düşüneceksin, sonra dokunabileceksin. Boncukları hedefteki gibi diz.")],
+"plan-tol":         [() => `${Q("Üstte hedef, altta üç bardak ve renkli pullar var. Bir bardağa dokununca üstteki pul kalkar; başka bardağa dokununca oraya konur. Bardaklar farklı sayıda pul alır. Dokunmadan önce zihninde planla; pulları en az hamleyle hedefteki gibi diz.")} Bardaklar 3, 2 ve 1 pul alır.`, () => `${Q("Bu kez önce birkaç saniye sadece bakıp planlayacaksın, sonra dokunabileceksin. Pulları en az hamleyle hedefteki gibi diz.")} Bardaklar 3, 2 ve 1 pul alır.`],
+"plan-cubes":       [() => Q("Üstte hedef, altta küp kuleleri var. Bir kuleye dokununca en üstteki küp kalkar; başka kuleye dokununca oraya konur. Yalnızca en üstteki küpü taşıyabilirsin. Önce zihninde planla; küpleri en az hamleyle hedefteki gibi diz.")],
 "nback-shape":      [() => Q("Hayvanlar tek tek gelecek. Her yeni hayvan gelince, ondan BİR ÖNCE gelen hayvanın adını söyle. İlk hayvanda bir şey söyleme, sadece aklında tut."), () => Q("Hayvanlar tek tek gelecek. Her yeni hayvan gelince, ondan İKİ ÖNCE gelen hayvanın adını söyle. İlk iki hayvanda bir şey söyleme, sadece aklında tut.")],
 "nback-color":      [() => Q("Taşıtlar tek tek gelecek. Her yeni taşıt gelince, ondan BİR ÖNCE gelen taşıtın adını söyle. İlk taşıtta bir şey söyleme, sadece aklında tut."), () => Q("Taşıtlar tek tek gelecek. Her yeni taşıt gelince, ondan İKİ ÖNCE gelen taşıtın adını söyle. İlk iki taşıtta bir şey söyleme, sadece aklında tut.")],
 "nback-number":     [() => Q("Sayılar tek tek gelecek. Her yeni sayı gelince, ondan BİR ÖNCE gelen sayıyı söyle. İlk sayıda bir şey söyleme, sadece aklında tut."), () => Q("Sayılar tek tek gelecek. Her yeni sayı gelince, ondan İKİ ÖNCE gelen sayıyı söyle. İlk iki sayıda bir şey söyleme, sadece aklında tut.")],
-"digit-span":       [() => `Rakamları birlikte okuyun. Kapanınca: ${Q("Rakamları aynı sırayla söyle.")}`, () => `Rakamları birlikte okuyun. Kapanınca: ${Q("Rakamları tersten söyle: sondan başa.")}`],
+"digit-span":       [() => `Rakamları birlikte okuyun. Kapanınca: ${Q("Ekranda rakamlar var; onları birlikte okuyacağız ve sen aklında tutacaksın. Rakamlar kapanınca onları aynı sırayla söyle.")}`, () => `Rakamları birlikte okuyun. Kapanınca: ${Q("Rakamları birlikte okuyup aklında tutacaksın. Rakamlar kapanınca onları tersten söyle: en sondakinden başla, ilkte bitir.")}`],
 "word-order":       [() => `Göstermeden okuyun: ${Q(`Sana ${audLen()} kelime okuyacağım. Bitince aynı sırayla tekrar et.`)}`, () => `Göstermeden okuyun: ${Q(`Sana ${audLen()} kelime okuyacağım. Bitince tersten söyle: en son söylediğimden başla.`)}`, () => `Göstermeden okuyun: ${Q(`Sana ${audLen()} hayvan adı okuyacağım. Bitince onları küçükten büyüğe sırala ve söyle.`)}`],
 "prospective-event":[() => `Başlamadan önce: ${Q(`Resimler gelecek; her resmin adını söyle. Ama ${peObjName(peObjTriggers[0])} görünce adını söylemeden önce masaya vur.`)}`,
 () => `Başlamadan önce: ${Q(`Resimler gelecek; her resmin adını söyle. ${peObjName(peObjTriggers[0])} görünce masaya vur, ${peObjName(peObjTriggers[1] || peObjTriggers[0])} görünce alkışla.`)}`],
@@ -11166,10 +11168,7 @@ const lab = /^Aşama \d/.test(base.label) || ex.stages.length > 1 ? `Aşama ${ex
 ex.stages = ex.stages.concat([Object.assign({}, base, { label: lab, strategyOf: Math.min(of, ex.stages.length - 1), stratName: name, strategy: tip })]);
 });
 
-function sortShort(){
-const rest = sortState.rules.slice(1).map((r, i) => sortRuleText(i + 1)).join(", ");
-return `${Q(`Ortadaki kartı ${sortRuleText(0)} göre eşleştir.`)} Sonra: ${rest}. Kural değişince uyarı çıkar.`;
-}
+function sortShort(){ const rest = sortState.rules.slice(1).map((r, i) => sortRuleText(i + 1)).join(", "); return `${Q(`Ortada bir kart var, etrafında da örnek kartlar. Ortadaki kartı ${sortRuleText(0)} göre uyan örnek karta dokunarak eşleştir. Bir süre sonra kural değişecek; uyarı çıkınca yeni kurala göre eşleştir.`)} Sonra: ${rest}.`; }
 
 function renderInstruction(){
 const box = document.getElementById("instructionBox");
@@ -13062,7 +13061,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.23-o";
+const APP_VERSION = "2026.10.23-r";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
