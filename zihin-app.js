@@ -93,7 +93,7 @@ return `<div class="number-cell seq-cell seq-mixed gs-${item.style}" style="colo
 }
 function shuffleArray(a){ const b = a.slice(); for(let i=b.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [b[i],b[j]] = [b[j],b[i]]; } return b; }
 function numberLetterSequence(n, letterFirst){
-const firstCount = Math.ceil(n/2), secondCount = Math.floor(n/2), seq = [];
+const firstCount = Math.floor(n/2), secondCount = Math.floor(n/2), seq = [];   /* tam çiftler: 1-A … 12-İ */
 for(let i=0;i<firstCount;i++){
 const num = String(i+1), let_ = TURKISH_LETTERS[i];
 seq.push(letterFirst ? let_ : num);
@@ -1390,7 +1390,8 @@ const PRE_TRL_COUNT_BY_TIER = [8, 10, 12];
 function trlCount(){ return isPre() ? (PRE_TRL_COUNT_BY_TIER[currentCombo().t] || 8) : scatterCount(); }
 function trlSequence(kind){
 const n = trlCount();
-const half = Math.ceil(n / 2), half2 = Math.floor(n / 2);
+/* KURAL: dönüşümlü izlerde (sayı–harf, hayvan–meyve, renk–şekil, sayı–ay) çiftler tam olur; iki türden eşit sayıda öğe vardır, iz her zaman ikinci türle biter (fazladan tek bir sayı kalmaz) */
+const half = Math.floor(n / 2), half2 = Math.floor(n / 2);
 if(kind === "animal-fruit"){
 const a = shuffleArray(TRL_ANIMALS).slice(0, half), f = shuffleArray(TRL_FRUITS).slice(0, half2);
 const seq = []; for(let i = 0; i < half; i++){ seq.push({t:"img", src:trlAnimalImg(a[i])}); if(i < half2) seq.push({t:"img", src:trlFruitImg(f[i])}); }
@@ -13095,7 +13096,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.23-w";
+const APP_VERSION = "2026.10.23-x";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
