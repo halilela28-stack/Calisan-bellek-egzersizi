@@ -10674,7 +10674,8 @@ const Q = (t) => `<b>"${t}"</b>`;
 const EYE = (d) => Q(`Ekranda bir top var. Başını hiç oynatma; top nereye giderse sadece gözlerinle onu takip et. ${d}`);
 /* KURAL (yönergeler): Q(...) içindeki yeşil metin çocuğa okunur. Düzgün Türkçe, tam cümleler; önce ne olacağını, sonra çocuğun ne yapacağını anlatır;
    tek kelimelik ya da kopuk komut olmaz ("Tersini yap." gibi); kısalık uğruna anlatım bozulmaz; düzeye özgü kural (eşler, sıra) yetişkin notunda değil çocuğun cümlesinde geçer;
-   ekrandaki eylemle birebir örtüşür (dokun/söyle/vur/çiz); çalışmayla çelişen ifade olmaz. Q dışındaki metin yetişkine yöneliktir ve kısa tutulur. */
+   ekrandaki eylemle birebir örtüşür (dokun/söyle/vur/çiz); çalışmayla çelişen ifade olmaz. Q dışındaki metin yetişkine yöneliktir ve kısa tutulur.
+   Yeşil cümleden SONRA açıklama, örnek, puanlama notu ya da "Örneğin" satırı gelmez (yetişkin bunu cümlenin devamı sanıp çocuğa okuyabilir); yetişkine gereken kısa yönlendirme yeşilden ÖNCE yazılır. İstisna: renk–hareket anahtarı gibi görsel anahtar. */
 const INSTR_SHORT = {
 "shape-color":      [() => Q("Ekranda şekiller var. Soldan sağa, satır satır her şeklin adını hızlıca söyle."), () => Q("Ekranda renkli şekiller var. Soldan sağa, satır satır her şeklin önce rengini, sonra adını hızlıca söyle.")],
 "number-color":     [() => Q("Ekranda rakamlar var. Soldan sağa, satır satır her rakamı hızlıca söyle."), () => Q("Her rakamın önce rengini, sonra kendisini söyle.")],
@@ -10685,7 +10686,7 @@ const INSTR_SHORT = {
 "living-nonliving": [() => Q("Ekranda resimler var. Her biri için canlı mı cansız mı olduğunu hızlıca söyle."), () => Q("Her biri için önce adını, sonra canlı mı cansız mı olduğunu söyle.")],
 "choice-reaction":  [() => `Eşleşmeleri birlikte deneyin, sonra: ${Q("Her rengin bir hareketi var. Ekrandaki renkleri soldan sağa, satır satır git; her rengin hareketini hızlıca yap.")}` + crtLegendHTML(),
 () => `${Q("Ekrandaki renkleri soldan sağa, satır satır git; önce rengin adını söyle, sonra hareketini yap.")}` + crtLegendHTML()],
-"origin-order":     [() => `${Q("Her satırın başında bir resim var. Ondan sonra ne olur, en sonda ne olur? Satırdaki resimleri oluş sırasına göre parmağınla göster.")} (yumurta → civciv → tavuk)`],
+"origin-order":     [() => `${Q("Her satırın başında bir resim var. Ondan sonra ne olur, en sonda ne olur? Satırdaki resimleri oluş sırasına göre parmağınla göster.")}`],
 "symbol-image":     [() => `Anahtarı birlikte okuyun, sonra: ${Q("Üstteki anahtarda her şeklin bir resmi var. Aşağıdaki şekillere soldan sağa bak; her şeklin eşi olan resmin adını söyle.")}`],
 "related-pairs":    [() => Q("Her kutuda iki şey var. İkisi birlikte kullanılıyorsa ‘doğru’, birlikte kullanılmıyorsa ‘yanlış’ de.")],
 "search-object":    [() => Q("Her satırın solunda bir resim var. Satırdaki resimler arasından onun tıpatıp aynısını bul ve ona dokun.")],
@@ -10698,7 +10699,7 @@ const INSTR_SHORT = {
 "trail-numbers":    [() => Q(`Ekranda karışık duran sayılar var. BAŞLA yazan yerden başla; sayılara küçükten büyüğe sırayla dokun: 1, 2, 3 … ${currentGrid.length || ""}.`), () => Q(`Bu kez tersten gideceksin. BAŞLA yazan yerden başla; sayılara büyükten küçüğe sırayla dokun: ${currentGrid.length || ""}, ${(currentGrid.length || 2) - 1} … 1.`)],
 "pairs-touch":      [() => Q("Her kutuda iki şey var. Birlikte kullanılan çiftlere hızlıca dokun; birlikte kullanılmayanlara dokunma."), () => Q("Bu kez tersi: birlikte KULLANILMAYAN çiftlere hızlıca dokun; birlikte kullanılanlara dokunma.")],
 "sdmt-touch":       [() => `Anahtarı birlikte inceleyin, sonra: ${Q("Üstteki anahtarda her şeklin bir resmi var. Ekrana bir şekil gelince anahtara bak; o şeklin eşi olan resme hızlıca dokun.")}`],
-"quick-sort":       [() => { const R = qsRule(); const tail = qsRuleKey === "canli" ? " Bitkiler de canlıdır; oyuncak hayvanlar cansızdır." : ""; const t = Math.min(currentCombo().t, 2); const extra = t === 2 ? " <b>Dikkat:</b> tur ortasında kural değişecek, ekrandaki uyarıya bak." : t === 1 ? " Düğmelerin yeri her sayfada değişebilir." : ""; return Q(`Ekrana resimler tek tek gelecek. ${trCap(R.a.l)} gelirse ${trDat(R.a.l)}, ${trCap(R.b.l).toLocaleLowerCase("tr")} gelirse ${trDat(R.b.l)} hızlıca dokun.`) + tail + extra; }],
+"quick-sort":       [() => { const R = qsRule(); const tail = qsRuleKey === "canli" ? " Bitkiler de canlıdır; oyuncak hayvanlar cansızdır." : ""; const t = Math.min(currentCombo().t, 2); const extra = t === 2 ? " Dikkat: oyunun ortasında kural değişecek; ekranda uyarı çıkınca yeni kurala göre dokun." : ""; return Q(`Ekrana resimler tek tek gelecek. ${trCap(R.a.l)} gelirse ${trDat(R.a.l)}, ${trCap(R.b.l).toLocaleLowerCase("tr")} gelirse ${trDat(R.b.l)} hızlıca dokun.${tail}${extra}`); }],
 "stroop-touch":     [() => Q("Ekrana renk adı yazan kelimeler gelecek ama her kelime başka renkle yazılmış. Kelimeyi okuma; yazının rengi hangisiyse alttan o renk düğmesine dokun.")],
 "day-night-touch":  [() => Q("Ekrana güneş ya da ay gelecek. Tersine dokunacaksın: güneş gelince AY düğmesine, ay gelince GÜNEŞ düğmesine dokun.")],
 "fish-flanker":     [() => Q("Ekranda yan yana balıklar var. Yalnızca ORTADAKİ balığa bak; yandakilere aldırma. Ortadaki balık hangi yöne bakıyorsa alttan o yönün okuna dokun.")],
@@ -10731,7 +10732,7 @@ const INSTR_SHORT = {
 "color-obj":        [() => Q("Ekranda resimler var ve her resim renkli bir kartın üstünde duruyor. Hangi resmin hangi renkte olduğuna iyi bak ve aklında tut. Sonra her resim için hangi renk kartta olduğunu seç.")],
 "pic-order":        [() => Q("Resimler tek tek gelecek; hangi resmin hangi sırada geldiğine iyi bak ve aklında tut. Bitince resimler karışık görünecek; onlara geliş sırasıyla dokun.")],
 "finger-trace":     [() => Q("Ekranda bir top var. Parmağını topun üstüne koy. Top nereye giderse parmağınla onunla birlikte git; parmağını kaldırma.")],
-"eye-count":        [() => `Çocuğa söyleyin: ${Q(!isPre() && currentCombo().t === 2 ? "Ekranda karışık şekiller var. Parmağını kullanmadan, sadece yıldızları gözünle soldan sağa say ve kaç tane olduğunu söyle." : "Ekranda şekiller var. Parmağını kullanmadan, sadece gözünle soldan sağa say ve kaç tane olduğunu söyle.")} Sayıyı söyleyince değerlendirin.`],
+"eye-count":        [() => `Çocuğa söyleyin: ${Q(!isPre() && currentCombo().t === 2 ? "Ekranda karışık şekiller var. Parmağını kullanmadan, sadece yıldızları gözünle soldan sağa say ve kaç tane olduğunu söyle." : "Ekranda şekiller var. Parmağını kullanmadan, sadece gözünle soldan sağa say ve kaç tane olduğunu söyle.")}`],
 "listen-answer":    [() => Q("Sana kısa bir hikâye okunacak; dikkatle dinle. Sonra hikâyedeki bir an sorulacak. Resimlerden o anı gösterene dokun.")],
 "rhyme-done":       [() => `Okuyun: ${Q("Sana bir tekerleme okuyacağım ama sonunu söylemeyeceğim. Dinle; sonunu sen tamamla.")}`],
 "new-word":         [() => Q("Ekranda yeni arkadaşlar var; her birinin adını duyacaksın. Adlarını dinle ve aklında tut. Sonra bir ad sorulacak; o arkadaşı bul ve ona dokun.")],
@@ -10739,22 +10740,22 @@ const INSTR_SHORT = {
 "pair-match":       [() => Q("Her satıra dikkatle bak. Satırda birbirinin tıpatıp aynısı olan iki resim var; o ikisine dokun.")],
 "sent-verify":      [() => Q(currentCombo().t === 2 ? "Ekrana iki cümle gelecek. İkisini de oku; ikinci cümle ilkine uyuyorsa Doğru'ya, ters düşüyorsa Yanlış'a dokun." : "Ekrana cümleler tek tek gelecek. Cümleyi oku; doğruysa Doğru'ya, yanlışsa Yanlış'a hızlıca dokun.")],
 "periph":           [() => Q("Ortada kırmızı bir nokta var; gözünü ondan hiç ayırma. Kenarlardan bir yıldız belirince, gözünü ortadan ayırmadan parmağınla yıldıza dokun." + (!isPre() && currentCombo().t === 2 ? " Mavi daire çıkarsa ona dokunma." : ""))],
-"fixation":         [() => `Çocuğa söyleyin: ${Q("Ortadaki kırmızı noktaya bak. Etrafta başka şeyler çıkacak; ne çıkarsa çıksın gözünü kırmızı noktadan ayırma.")} Süre bitince gözlerini ayırıp ayırmadığını işaretleyin.`],
+"fixation":         [() => `Çocuğa söyleyin: ${Q("Ortadaki kırmızı noktaya bak. Etrafta başka şeyler çıkacak; ne çıkarsa çıksın gözünü kırmızı noktadan ayırma.")}`],
 "dual-task":        [() => Q("İki işi birden yapacaksın: ekranda çıkan yıldızlara dokun, aynı anda duyduğun bip seslerini içinden say. Sonunda kaç bip duyduğunu söyle.")],
 "stop-signal":      [() => Q("Ekrana oklar gelecek. Ok hangi yöne bakıyorsa alttan o yönün düğmesine hızlıca bas. Ama ok kırmızıya dönerse hiçbir düğmeye basma, bekle.")],
 "look-first":       [() => Q("Üstte bir ev var. Alttaki evlerden sadece biri üsttekinin birebir aynısı, ötekilerde küçük bir fark var. Dokunmadan önce hepsine dikkatle bak ve karşılaştır; sonra aynı olana dokun.")],
 "self-check":       [() => `${Q("Ekranda oklar gelecek. Her ok için aynı yöndeki oka hızlıca dokun. Bu sefer doğru mu yanlış mı söylemeyeceğim.")} Bitince: ${Q("Şimdi cevaplarına bak. Sence hangileri yanlıştı? Yanlış olduğunu düşündüklerine dokunup işaretle, sonra ‘Bitti’ye bas.")}`],
 "safe-box":         [() => Q("İki kutu var. Bir kutuya dokununca gülen yüzler yıldız verir, üzgün yüzler yıldız alır. Kutulardan biri daha iyi; hangisinin daha iyi olduğunu bul ve ona dokun.")],
-"keep-track":       [() => `${Q("Resimler tek tek gelecek; hayvanlar, oyuncaklar, meyveler gibi gruplardan. Her gruptan en son gelen resmi aklında tut. Resimler bitince her grubun en son gelenini söyle.")} Yetişkin: hatırlanmayan her sonuncu için Hata sayısı +.`],
+"keep-track":       [() => `${Q("Resimler tek tek gelecek; hayvanlar, oyuncaklar, meyveler gibi gruplardan. Her gruptan en son gelen resmi aklında tut. Resimler bitince her grubun en son gelenini söyle.")}`],
 "zoo-map":          [() => Q("Bu bir hayvanat bahçesi haritası. Girişten başla, yıldızlı hayvanların hepsine uğra ve çıkışta bitir. Gitmek istediğin yere dokun. Aynı yoldan iki kez geçemezsin; dikkatli plan yap.")],
 "key-search":       [() => Q("Bu tarlada bir anahtar kayboldu ama nerede olduğunu bilmiyoruz. Parmağınla tarlanın içinde bir yol çiz; öyle çiz ki tarlanın her yerine bakmış ol. Bitince ‘Bitti’ye dokun.")],
 "water-jars":       [() => Q("Kaplarla su ölçeceğiz. Bir kaba dokunup ‘Doldur’a basarsan kap tamamen dolar, ‘Boşalt’a basarsan boşalır. Önce bir kaba, sonra öbürüne dokunursan suyu aktarırsın. Kaplardan birinde tam istenen kadar su olunca kazanırsın; az hamleyle yapmaya çalış.")],
 "design-fluency":   [() => Q("Noktaları çizgilerle birleştirerek desenler yapacaksın. Bir noktaya, sonra başka bir noktaya dokununca aralarına çizgi çizilir. Her deseni bitirince ‘Desen bitti’ye bas. Olabildiğince çok ve hep birbirinden farklı desen çiz.")],
-"twenty-q":         [() => `Hedefi çocuğa göstermeyin. ${Q("Tahtadaki resimlerden birini aklımda tuttum. Bana sorular sorarak hangisi olduğunu bul. Sadece ‘evet’ ya da ‘hayır’ diye cevap verebileceğim sorular sor; az soruyla bulmaya çalış.")} Her soruda Soru +1'e basın, elenenleri soldurun.`],
+"twenty-q":         [() => `Hedefi çocuğa göstermeyin; her soruda Soru +1'e basın. ${Q("Tahtadaki resimlerden birini aklımda tuttum. Bana sorular sorarak hangisi olduğunu bul. Sadece ‘evet’ ya da ‘hayır’ diye cevap verebileceğim sorular sor; az soruyla bulmaya çalış.")}`],
 "box-search":       [() => Q("Kutuların içinde yıldızlar saklı; her kutuda tam bir yıldız var. Kutulara dokunarak yıldızları bul. Bir kutuda yıldız bulduktan sonra o kutuya bir daha dokunma, çünkü yıldız artık orada olmaz.")],
 "three-tasks":      [() => Q("Üç çeşit iş var ve her işin iki parçası var. Süre bitmeden altı parçanın hepsine dokunup biraz yap. Ama bir kural var: aynı işin iki parçasını arka arkaya yapma, araya başka bir iş koy.")],
 "cog-est":          [() => `Soruyu okuyun: ${Q("Sana bazı sorular soracağım. Tam cevabı bilmen gerekmiyor; aşağı yukarı ne kadar olabileceğini tahmin et ve söyle.")}`],
-"fist":             [() => `${Q("Üç kart göreceksin. Önce birbirine benzeyen iki karta dokun. Sonra başka bir yönden benzeyen iki karta dokun; mesela önce rengi aynı olanları, sonra şekli aynı olanları seç.")} Düzeye göre 2 ya da 3 farklı eşleme bulunur.`],
+"fist":             [() => `${Q("Üç kart göreceksin. Önce birbirine benzeyen iki karta dokun. Sonra başka bir yönden benzeyen iki karta dokun; mesela önce rengi aynı olanları, sonra şekli aynı olanları seç.")}`],
 "rule-shift":       [() => Q("Üstte dört anahtar kart var. Alttaki kartı anahtarlardan birinin üstüne dokunarak koy. Kuralı sana söylemeyeceğim; doğru mu yanlış mı işaretine bakarak kuralı sen bul. Kural ara sıra değişir; yanlış çıkmaya başlayınca yeni kuralı bul.")],
 "reversal":         [() => Q("İki resim var. Birine dokununca yıldız alırsın, öbürüne dokununca almazsın. Hangisinin yıldız verdiğini bul ve hep ona dokun. Bir süre sonra yıldız öbür resme geçebilir; fark edince ona dokun.")],
 "navon":            [() => Q("Ekranda küçük şekillerden yapılmış büyük bir şekil var. Üstte ‘BÜYÜK’ yazıyorsa büyük şeklin ne olduğuna bak ve alttan ona dokun. ‘KÜÇÜK’ yazıyorsa küçük şekillerin ne olduğuna bak ve ona dokun.")],
@@ -10762,7 +10763,7 @@ const INSTR_SHORT = {
 "creature-count":   [() => Q("Yaratıkları sırayla sayacaksın. Yeşil ok gelince yukarı doğru saymaya devam et, kırmızı ok gelince geriye doğru say. En sonda kaça geldiysen alttan o sayıya dokun.")],
 "motion-dir":       [() => Q("Ekranda oklar hem bir yöne bakıyor hem de kayıyor. Çerçeve yeşilse okların baktığı yönü seç; çerçeve turuncuysa okların gittiği yönü seç. Alttan o yönün okuna dokun.")],
 "rev-sort":         [() => Q("Ekranda büyük ya da küçük bir şekil gelecek. Büyük şekli büyük kovaya, küçük şekli küçük kovaya koy; koymak için kovaya dokun."), () => Q("Şimdi tersine koyacaksın. Büyük şekli küçük kovaya, küçük şekli büyük kovaya koy; koymak için kovaya dokun.")],
-"statue":           [() => `Çocuk ayakta, gözler kapalı, eller yanda: ${Q("Heykel oyunu oynayacağız. Gözlerini kapat, ellerini yanına indir ve ben ‘bitti’ diyene kadar hiç kıpırdamadan dur. Sesler duysan bile kıpırdama ve konuşma.")} Her hareket/konuşma için Hata sayısı +; süre dolunca uygulama durur.`],
+"statue":           [() => `Çocuk ayakta, gözler kapalı, eller yanda: ${Q("Heykel oyunu oynayacağız. Gözlerini kapat, ellerini yanına indir ve ben ‘bitti’ diyene kadar hiç kıpırdamadan dur. Sesler duysan bile kıpırdama ve konuşma.")}`],
 "hold-wait":        [() => Q("Ekranda bir hediye var. Parmağını hediyenin üstüne koy ve hediye açılana kadar hiç çekme. Etrafta resimler çıksa, sesler gelse bile parmağını kaldırma.")],
 "less-more":        [() => Q("İki tabakta yiyecekler var. Bu oyunda az olan tabağa dokunursan çok olanı kazanırsın. Çok olanı kazanmak için hangi tabağa dokunmalısın?")],
 "context-go":       [() => Q(`Resimler tek tek gelecek. Önce ${ANIMAL_NAMES[axCue]} gelip hemen arkasından ${ANIMAL_NAMES[axTgt]} gelirse DOKUN düğmesine bas. Başka bir resim gelince basma.`)],
@@ -10774,7 +10775,7 @@ const INSTR_SHORT = {
 "size-stroop":      [() => Q("İki hayvan göreceksin. Resimde hangisi büyük çizilmiş, ona aldanma. Gerçek hayatta hangisi daha büyükse ona dokun."), () => Q("İki hayvan göreceksin. Resimde hangisi küçük çizilmiş, ona aldanma. Gerçek hayatta hangisi daha küçükse ona dokun.")],
 "spatial-stroop":   [() => Q("Ekranda SOL, SAĞ, YUKARI ya da AŞAĞI yazacak. Yazının nerede durduğuna bakma; ne yazıyorsa o yönün okuna dokun."), () => Q("Ekranda bir kelime olacak. Ne yazdığını okuma; kelime ekranın neresinde duruyorsa o yönün okuna dokun.")],
 "anti-touch":       [() => Q("Ekranda mavi bir top belirecek. Topun olduğu tarafa değil, tam karşı tarafın okuna dokun. Top solda çıkarsa sağ oka, sağda çıkarsa sol oka bas.")],
-"hayling":          [() => `Cümleyi okuyun, son kelimeyi söylemeden durun: ${Q("Sana bir cümle okuyacağım ama sonunu söylemeyeceğim. Sen cümleyi uygun bir kelimeyle tamamla.")}`, () => `Cümleyi okuyun, son kelimeyi söylemeden durun: ${Q("Sana bir cümle okuyacağım ama sonunu söylemeyeceğim. Sen cümleye hiç uymayan, alakasız bir kelime söyle. Uyan kelimeyi söylersen olmaz.")} Uyan ya da ilgili kelime hata sayılır.`],
+"hayling":          [() => `Cümleyi okuyun, son kelimeyi söylemeden durun: ${Q("Sana bir cümle okuyacağım ama sonunu söylemeyeceğim. Sen cümleyi uygun bir kelimeyle tamamla.")}`, () => `Cümleyi okuyun, son kelimeyi söylemeden durun: ${Q("Sana bir cümle okuyacağım ama sonunu söylemeyeceğim. Sen cümleye hiç uymayan, alakasız bir kelime söyle. Uyan kelimeyi söylersen olmaz.")}`],
 "zihni-says":       [() => `Komutları okuyun: ${Q("Sana komutlar vereceğim. Komut ‘Zihni diyor ki’ diye başlıyorsa yap. ‘Zihni diyor ki’ demeden söylersem yapma, olduğun gibi dur.")}`],
 "bear-dragon":      [() => Q("Ayı ile ejderha sana hareketler söyleyecek. Komutu ayı veriyorsa hareketin resmine dokun; dokunmak yapmak demek. Komutu ejderha veriyorsa dokunma, bekle.")],
 "opp-do":           [() => `Komutları okuyun: ${Q(oppKidText("htks"))}`],
@@ -10824,7 +10825,7 @@ const INSTR_SHORT = {
 "dot-count":        [() => Q(Math.min(currentCombo().t, 2) === 0 ? "Ekranda noktalar çok kısa bir süre görünüp kaybolacak. Kaç tane nokta gördüysen alttan o sayıya dokun." : "Ekranda resimler çok kısa bir süre görünüp kaybolacak. Kaç tane resim gördüysen alttan o sayıya dokun.")],
 "sem-decide":       [() => { const t = currentCombo().t; return Q(t === 0 ? "Üstte bir soru var; altta resimler tek tek gelecek. Her resim için soruya göre hızlıca Evet ya da Hayır'a dokun." : t === 1 ? "Üstteki soru iki resimde bir değişecek. Her resimde soruyu oku, ona göre hızlıca Evet ya da Hayır'a dokun." : "Üstteki soru her resimde değişecek. Her resimde soruyu oku, ona göre hızlıca Evet ya da Hayır'a dokun."); }],
 "eye-touch":        [() => Q("Ekranda kayan bir top var. Topu gözünle izle ve yakalamak için üstüne dokun.")],
-"alt-uses":         [() => `Okuyun ve ▶'a basın: ${Q(`${fluPrompt("alt-uses").say} Aklına gelen her kullanımı söyle; gerçek kullanımı dışında olsun yeter.`)} Olağan dışı olması gerekmez. Farklı her fikir +1. Hedef: ${altGoal()} fikir.`],
+"alt-uses":         [() => `Okuyun ve ▶'a basın: ${Q(`${fluPrompt("alt-uses").say} Aklına gelen her kullanımı söyle; gerçek kullanımı dışında olsun yeter.`)}`],
 "time-est":         [() => Q("Sana bir süre söylenecek, mesela 10 saniye. Başla'ya bas ve içinden say. Söylenen süre dolduğunu düşündüğün anda Dur'a bas. Saate bakmak yok.")],
 "find-error":       [() => Q("Sana bir kural söylenecek; dinle. Ekrandaki resimlere bak; kurala uymayanları bul ve her birine dokun. Bitince Bitti'ye bas.")],
 "cups":             [() => Q("Bardaklardan birinin altında top var; hangi bardakta olduğuna iyi bak. Bardaklar karışacak. Durunca topun olduğu bardağa dokun.")],
@@ -10838,15 +10839,15 @@ const INSTR_SHORT = {
 "syn-touch":        [() => Q("Ekranda bir kelime var. Altındaki kelimelerden onunla aynı anlama gelene dokun.")],
 "seq-words":        [() => isPre() ? Q("Ekranda hayvanlar var. Onları gerçek hayattaki boylarına göre en küçükten en büyüğe sırayla dokunarak diz.") : Q("Ekranda kelimeler karışık duruyor. Onları doğru sıraya diz: önce ilk geleni, sonra sıradakini seç.")],
 "part-whole":       [() => isPre() ? Q("Bir soru okunacak; dinle: ‘Tekerlek neyin parçası?’ gibi. Resimlerden doğru olana dokun.") : Q("Ekrandaki soruyu oku: bir şeyin parçası ya da bütünü soruluyor. Kelimelerden doğru olana dokun.")],
-"flu-cat":          [() => `Okuyun ve ▶'a basın: ${Q(`${fluPrompt("flu-cat").say} Aklına gelen her şeyi söyle; olabildiğince çok söyle ama aynı kelimeyi iki kez söyleme.`)} Tekrarları ve kural dışı sözcükleri ayrı işaretleyin.`],
-"flu-letter":       [() => `Okuyun ve ▶'a basın: ${Q(`${fluPrompt("flu-letter").say} İnsan adı ve yer adı söyleme; aynı kelimeyi de tekrar etme.`)} Özel adlar (Ali, Bursa) ve aynı kelimenin türevleri sayılmaz.`],
-"flu-switch":       [() => `Okuyun ve ▶'a basın: ${Q(`${fluPrompt("flu-switch").say} Hep bu sırayla devam et; olabildiğince çok söyle.`)} Sıra karışırsa ayrı işaretleyin.`],
+"flu-cat":          [() => `Okuyun ve ▶'a basın: ${Q(`${fluPrompt("flu-cat").say} Aklına gelen her şeyi söyle; olabildiğince çok söyle ama aynı kelimeyi iki kez söyleme.`)}`],
+"flu-letter":       [() => `Okuyun ve ▶'a basın: ${Q(`${fluPrompt("flu-letter").say} İnsan adı ve yer adı söyleme; aynı kelimeyi de tekrar etme.`)}`],
+"flu-switch":       [() => `Okuyun ve ▶'a basın: ${Q(`${fluPrompt("flu-switch").say} Hep bu sırayla devam et; olabildiğince çok söyle.`)}`],
 "sort-pic":         [() => Q("Ekrana bir resim gelecek; altta grup kutuları var. Resim hangi gruba giriyorsa o grubun kutusuna dokun.")],
 "group-say":        [() => `Kelimeleri okuyun: ${Q("Sana kelimeler okuyacağım. Bazıları birbiriyle ilgili, aynı gruptan. Hangilerinin birlikte olduğunu söyle ve her grubun adını söyle.")}`],
 "free-sort":        [() => Q("Ekranda karışık resimler var; bazıları aynı gruptan. Önce bir renk seç, sonra aynı gruptan olan resimlere dokun; hepsi o renge boyanır. Başka bir grup için başka bir renk seç. Bitince Bitti'ye bas."), () => `Gruplar bitince sorun: ${Q("Bu gruptakilerin ortak adı ne? Bu gruba bir ad ver.")}`],
 "move-seq":         [() => `Çocuk ayakta olsun, yakında bir masa bulunsun. ${Q("Sana birkaç hareket söyleyeceğim; dinle ve aklında tut, hemen yapma. Ben ‘şimdi yap’ deyince hareketleri aynı sırayla yap.")}`],
 "story-order":      [() => Q("Sana resimli bir hikâye gösterilecek; izle ve dinle. Sonra resimler karışacak. Resimleri hikâyedeki doğru sıraya koy.")],
-"what-do":          [() => `Resmi gösterin, soruyu okuyun (uygulama da okur): ${Q("Resme bak; burada bir sorun var. Bu durumda ne yapmalı? Anlat.")}`, () => `Cevaptan sonra sorun: ${Q("Neden öyle yapmalı? Nedenini de anlat.")} Cevap ve gerekçeyi birlikte değerlendirin.`],
+"what-do":          [() => `Resmi gösterin, soruyu okuyun (uygulama da okur): ${Q("Resme bak; burada bir sorun var. Bu durumda ne yapmalı? Anlat.")}`, () => `Cevaptan sonra sorun: ${Q("Neden öyle yapmalı? Nedenini de anlat.")}`],
 "odd-cat":          [() => Q("Ekranda resimler var. Biri hariç hepsi aynı gruptan. Gruba uymayan resmi bul ve ona dokun.")],
 "opp-touch":        [() => isPre() ? Q("Bir kelime okunacak; dinle. Söylenenin zıttını gösteren resme dokun.") : Q("Ekranda bir kelime var. Altındaki kelimelerden onun zıt anlamlısına dokun.")],
 "syl-touch":        [() => Q("Bir resmin adı okunacak; dinle. Kelimeyi hecelerine ayırarak el çırp ve heceleri say. Sonra alttan doğru sayıya dokun.")],
@@ -10873,7 +10874,7 @@ const INSTR_SHORT = {
 "mixed-span":       [() => `Göstermeden okuyun: ${Q("Sana bazı şeyler söyleyeceğim; sayılar, kelimeler karışık olabilir. Dikkatle dinle; bitince söylediklerimi aynı sırayla tekrar et.")}`],
 "story-recall":     [() => `Okuyun: ${Q("Sana bir hikâye okuyacağım; dikkatle dinle. Bitince hikâyede hatırladığın her şeyi bana anlat.")}`, () => `Aşama 1'deki hikâyeyi okumadan sorun: ${Q("Az önce okuduğum hikâyeyi hatırlıyor musun? Onu bana baştan sona yeniden anlat.")}`],
 "short-story":      [() => `Okuyun: ${Q("Ekrandaki resme bak; ben sana onunla ilgili kısa bir hikâye okuyacağım. Dikkatle dinle. Bitince sana sorular soracağım, cevapla.")}`],
-"pic-seq-say":      [() => `Resimler tek tek görünecek. Kapanınca: ${Q("Resimler tek tek gelecek; her birine iyi bak ve aklında tut. Resimler kapanınca gördüğün resimleri sırayla söyle.")} İsterseniz gerçek nesnelerle de yapabilirsiniz.`],
+"pic-seq-say":      [() => `Resimler tek tek görünecek. Kapanınca: ${Q("Resimler tek tek gelecek; her birine iyi bak ve aklında tut. Resimler kapanınca gördüğün resimleri sırayla söyle.")}`],
 "pic-seq-touch":    [() => Q("Ekranda resimler var. Bazılarının adı sırayla okunacak; dinle ve sırayı aklında tut. Bitince resimlere duyduğun sırayla dokun.")],
 "running":          [() => Q(`Resimler tek tek gelecek ama kaç tane geleceğini bilmiyorsun. Resimler bitince en son gelen ${runLast()} resmi hatırla ve onlara geliş sırasıyla dokun.`)],
 "running-verbal":   [() => `Göstermeden okuyun: ${Q(`Sana kelimeler okuyacağım ama kaç tane olduğunu söylemeyeceğim. Dinle. Bittiğinde en son söylediğim ${runLast()} kelimeyi sırasıyla söyle.`)}`],
@@ -10882,7 +10883,7 @@ const INSTR_SHORT = {
 "market":           [() => Q("Önce bir alışveriş listesi göreceksin; listedekileri aklında tut. Sonra balonlar gelecek, onları patlat. En sonda raftan listedeki şeyleri seç.")],
 "market-verbal":    [() => `Listeyi okuyun: ${Q("Sana bir alışveriş listesi okuyacağım; aklında tut. Arada başka bir iş yapacağız. Sonra listedekileri bana söyle.")}`],
 "corsi":            [() => Q("Ekranda mavi bloklar var. Bloklar sırayla yanıp sönecek; iyi bak. Bitince bloklara aynı sırayla dokun."), () => Q("Bloklar sırayla yanıp sönecek; iyi bak. Bitince bloklara TERSTEN dokun: en son yanana ilk, ilk yanana en son.")],
-"corsi-verbal":     [() => `${Q("Bloklar sırayla yanacak; iyi bak. Bitince yanan blokların numaralarını aynı sırayla söyle ya da parmağınla göster.")} Yanlış dizi için Hata sayısı +.`, () => `${Q("Bloklar sırayla yanacak; iyi bak. Bitince yanan blokların numaralarını TERSTEN söyle ya da göster: en son yanandan ilk yanana.")} Yanlış dizi için Hata sayısı +.`],
+"corsi-verbal":     [() => `${Q("Bloklar sırayla yanacak; iyi bak. Bitince yanan blokların numaralarını aynı sırayla söyle ya da parmağınla göster.")}`, () => `${Q("Bloklar sırayla yanacak; iyi bak. Bitince yanan blokların numaralarını TERSTEN söyle ya da göster: en son yanandan ilk yanana.")}`],
 "span-listen":      [() => `Göstermeden okuyun: ${Q("Sana cümleler okuyacağım. Her cümle için doğru mu yanlış mı söyle ve cümledeki nesneyi aklında tut. Bitince nesneleri sırayla söyle.")}`],
 "span-read":        [() => Q("Cümleleri tek tek oku; her cümle için doğru mu yanlış mı söyle. Her cümledeki nesneyi aklında tut. Bitince nesneleri sırayla söyle.")],
 "span-touch":       [() => Q("Sana cümleler okunacak. Her cümle doğruysa ✓'ye, yanlışsa ✗'e dokun. Her cümlenin resmini aklında tut. Bitince resimlere sırayla dokun.")],
@@ -10913,7 +10914,7 @@ const INSTR_SHORT = {
 "eye-saccade-two":  [() => Q(`Ekranda bir top var; top bir yerden başka yere atlayacak. Başını hiç oynatma; top atladığı anda gözlerinle hemen ona bak. Top ${currentCombo().t === 2 ? "sağ ile sol, yukarı ile aşağı arasında" : "sağ ile sol arasında"} atlar.`)],
 "eye-saccade-random":[() => Q("Ekranda bir top belirip kaybolacak; her seferinde başka bir yerde çıkacak. Başını hiç oynatma; top nerede belirirse gözlerinle hemen oraya bak.")],
 "eye-saccade-reading":[() => Q("Top kitap okur gibi satır satır gidecek: soldan sağa gider, satır bitince alt satırın başına atlar. Başını hiç oynatma; topu sadece gözlerinle izle.")],
-"stroop":           [() => `${Q("Ekranda renk adları yazıyor ama her kelime başka renkle yazılmış. Kelimeyi okuma; soldan sağa, satır satır her kelimenin yazı rengini söyle.")} (mavi yazılmış "YEŞİL" → "mavi")`],
+"stroop":           [() => `${Q("Ekranda renk adları yazıyor ama her kelime başka renkle yazılmış. Kelimeyi okuma; soldan sağa, satır satır her kelimenin yazı rengini söyle.")}`],
 "day-night":        [() => Q("Ekranda güneşler ve aylar var. Tersini söyleyeceksin: güneş görünce ‘gece’ de, ay görünce ‘gündüz’ de. Soldan sağa, satır satır git.")],
 "task-switch":      [() => switchSide === "back" ? Q("Ekranda taşıtlar var; bazılarının önü, bazılarının arkası görünüyor. Arkasını görüyorsan ‘arka’ de, önünü görüyorsan taşıtın adını söyle.") : Q("Ekranda taşıtlar var; bazılarının önü, bazılarının arkası görünüyor. Önünü görüyorsan ‘ön’ de, arkasını görüyorsan taşıtın adını söyle.")],
 "go-no-go":         [() => Q(`Ekranda yüzler var. Soldan sağa, satır satır her yüzün duygusunu söyle. Ama ${stopFaceText()} yüz gelince sus, hiçbir şey söyleme.`), () => Q(`Ekranda yüzler var. Her yüzün duygusunu söyle. Ama ${stopFaceText()} yüz gelince sus, hiçbir şey söyleme.`)],
@@ -10931,7 +10932,7 @@ const INSTR_SHORT = {
 "trail-color-shape": [() => Q("Üstteki yol kartında bir sıra var: bir renk, bir şekil. Ekranda kartlar karışık duruyor. BAŞLA yazan yerden başla; yol kartındaki sırayla, bir renk bir şekil diye dokun.")],
 "plan-swap":        [() => Q("Üstte hedef sıra, altta renkli küpler var. İki küpe dokununca yerleri değişir. Önce düşün; küpleri en az hamleyle hedefteki sıraya diz.")],
 "plan-beads":       [() => Q("Üstte hedef dizilim, altta çubuklara dizilmiş boncuklar var. Bir çubuğa dokununca en üstteki boncuk kalkar; başka bir çubuğa dokununca oraya konur. Dokunmadan önce düşün ve boncukları hedefteki gibi diz."), () => Q("Bu kez önce birkaç saniye sadece düşüneceksin, sonra dokunabileceksin. Boncukları hedefteki gibi diz.")],
-"plan-tol":         [() => `${Q("Üstte hedef, altta üç bardak ve renkli pullar var. Bir bardağa dokununca üstteki pul kalkar; başka bardağa dokununca oraya konur. Bardaklar farklı sayıda pul alır. Dokunmadan önce zihninde planla; pulları en az hamleyle hedefteki gibi diz.")} Bardaklar 3, 2 ve 1 pul alır.`, () => `${Q("Bu kez önce birkaç saniye sadece bakıp planlayacaksın, sonra dokunabileceksin. Pulları en az hamleyle hedefteki gibi diz.")} Bardaklar 3, 2 ve 1 pul alır.`],
+"plan-tol":         [() => `${Q("Üstte hedef, altta üç bardak ve renkli pullar var. Bir bardağa dokununca üstteki pul kalkar; başka bardağa dokununca oraya konur. Bardaklar farklı sayıda pul alır. Dokunmadan önce zihninde planla; pulları en az hamleyle hedefteki gibi diz.")}`, () => `${Q("Bu kez önce birkaç saniye sadece bakıp planlayacaksın, sonra dokunabileceksin. Pulları en az hamleyle hedefteki gibi diz.")}`],
 "plan-cubes":       [() => Q("Üstte hedef, altta küp kuleleri var. Bir kuleye dokununca en üstteki küp kalkar; başka kuleye dokununca oraya konur. Yalnızca en üstteki küpü taşıyabilirsin. Önce zihninde planla; küpleri en az hamleyle hedefteki gibi diz.")],
 "nback-shape":      [() => Q("Hayvanlar tek tek gelecek. Her yeni hayvan gelince, ondan BİR ÖNCE gelen hayvanın adını söyle. İlk hayvanda bir şey söyleme, sadece aklında tut."), () => Q("Hayvanlar tek tek gelecek. Her yeni hayvan gelince, ondan İKİ ÖNCE gelen hayvanın adını söyle. İlk iki hayvanda bir şey söyleme, sadece aklında tut.")],
 "nback-color":      [() => Q("Taşıtlar tek tek gelecek. Her yeni taşıt gelince, ondan BİR ÖNCE gelen taşıtın adını söyle. İlk taşıtta bir şey söyleme, sadece aklında tut."), () => Q("Taşıtlar tek tek gelecek. Her yeni taşıt gelince, ondan İKİ ÖNCE gelen taşıtın adını söyle. İlk iki taşıtta bir şey söyleme, sadece aklında tut.")],
@@ -10942,8 +10943,8 @@ const INSTR_SHORT = {
 () => `Başlamadan önce: ${Q(`Resimler gelecek; her resmin adını söyle. ${peObjName(peObjTriggers[0])} görünce masaya vur, ${peObjName(peObjTriggers[1] || peObjTriggers[0])} görünce alkışla.`)}`],
 "prospective-time": [() => `Başlamadan önce: ${Q(`Deniz canlıları gelecek; her birinin adını söyle. Bir de kronometreye göz at: ${ptTimes[0]}. saniyeye gelince dur ve o anda ekranda olan canlıyı söyle.`)}`,
 () => `Başlamadan önce: ${Q(`Deniz canlıları gelecek; her birinin adını söyle. Bir de kronometreye göz at: ${ptTimes[0]}. ve ${ptTimes[1] || ptTimes[0] + 15}. saniyelerde dur ve o anda ekranda olan canlıyı söyle.`)}`],
-"prospective-delayed":[() => `Başlamadan önce: ${Q(`Oyuncaklar gelecek; her birinin adını söyle. Oyun bitince ${pdTask}; bunu unutma.`)} Sonunda hatırlamadıklarını hataya girin.`,
-() => `Başlamadan önce: ${Q(`Oyuncaklar gelecek; her birinin adını söyle. Oyun bitince ${pdTask}; bunu unutma.`)} Sonunda hatırlamadıklarını hataya girin.`],
+"prospective-delayed":[() => `Başlamadan önce: ${Q(`Oyuncaklar gelecek; her birinin adını söyle. Oyun bitince ${pdTask}; bunu unutma.`)}`,
+() => `Başlamadan önce: ${Q(`Oyuncaklar gelecek; her birinin adını söyle. Oyun bitince ${pdTask}; bunu unutma.`)}`],
 "word-list-recall": [() => `Kelimeleri birlikte okuyun. Kapanınca: ${Q("Ekranda kelimeler var; onları birlikte okuyacağız ve sen aklında tutacaksın. Kelimeler kapanınca hatırladığın kelimeleri söyle; sıra önemli değil.")}`, () => `Kapanınca: ${Q("Kelimeleri birlikte okuyup aklında tutacaksın. Kelimeler kapanınca onları aynı sırayla söyle.")}`, () => `Kelimeler gizli; Başlat'a basın, uygulama okusun. Bitince: ${Q("Bu kez kelimeleri görmeyeceksin, sadece duyacaksın. Dikkatle dinle; bitince duyduğun kelimeleri söyle.")}`],
 "sentence-repeat":  [() => `Öbekleri birlikte okuyun. Kapanınca: ${Q("Ekranda kısa söz öbekleri var; onları birlikte okuyacağız ve sen aklında tutacaksın. Kapanınca hatırladıklarını söyle.")}`, () => `Kapanınca: ${Q("Söz öbeklerini birlikte okuyup aklında tutacaksın. Kapanınca onları aynı sırayla söyle.")}`, () => `Öbekler gizli; Başlat'a basın, uygulama okusun. Bitince: ${Q("Bu kez söz öbeklerini görmeyeceksin, sadece duyacaksın. Dikkatle dinle; bitince duyduklarını söyle.")}`],
 "word-repeat":      [() => `Göstermeden okuyun: ${Q(`Sana ${audLen()} kelime söyleyeceğim; dikkatle dinle. Bitince kelimeleri aynı sırayla tekrar et.`)}`,
@@ -11184,7 +11185,7 @@ const lab = /^Aşama \d/.test(base.label) || ex.stages.length > 1 ? `Aşama ${ex
 ex.stages = ex.stages.concat([Object.assign({}, base, { label: lab, strategyOf: Math.min(of, ex.stages.length - 1), stratName: name, strategy: tip })]);
 });
 
-function sortShort(){ const rest = sortState.rules.slice(1).map((r, i) => sortRuleText(i + 1)).join(", "); return `${Q(`Ortada bir kart var, etrafında da örnek kartlar. Ortadaki kartı ${sortRuleText(0)} göre uyan örnek karta dokunarak eşleştir. Bir süre sonra kural değişecek; uyarı çıkınca yeni kurala göre eşleştir.`)} Sonra: ${rest}.`; }
+function sortShort(){ const rest = sortState.rules.slice(1).map((r, i) => sortRuleText(i + 1)).join(", "); return `${Q(`Ortada bir kart var, etrafında da örnek kartlar. Ortadaki kartı ${sortRuleText(0)} göre uyan örnek karta dokunarak eşleştir. Bir süre sonra kural değişecek; uyarı çıkınca yeni kurala göre eşleştir.`)}`; }
 
 function renderInstruction(){
 const box = document.getElementById("instructionBox");
@@ -11197,9 +11198,7 @@ let ins;
 try{ ins = shortFn ? shortFn() : stage.instruction(); }catch(e){ ins = stage.instruction(); }
 if(stage.strategyOf != null) ins = `<span class="strat-tip">💡 <b>Strateji · ${stage.stratName}:</b> ${Q(stage.strategy)}</span>${ins}`;
 else { const sm = /Strateji · (.+)$/.exec(stage.label || ""); if(sm && /^💡/.test(ins)) ins = `<span class="strat-tip">💡 <b>Strateji · ${sm[1]}</b></span>` + ins.replace(/^💡\s*/, ""); }
-const html = exampleText
-? `${ins}<span class="example">Örneğin: "${exampleText}"</span>`
-: `${ins}`;
+const html = `${ins}`;   /* KURAL: yönergede "Örneğin" satırı ve yeşil cümlenin anlamını bozan açıklama yazıları gösterilmez */
 box.innerHTML = html;
 if(lsBox) lsBox.innerHTML = html;
 }
@@ -13077,7 +13076,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.23-t";
+const APP_VERSION = "2026.10.23-u";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
