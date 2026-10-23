@@ -6069,10 +6069,72 @@ function confirmSaveResult(){ if(elapsedMs <= 300 || window._incomplete) return;
 recordSession(elapsedMs, currentErrorCount);
 playSound("save");
 if(hwRun){ resetTimer(); setTimeout(() => { try{ showHwDone(); }catch(e){ console.error(e); } }, 120); return; }   /* ödev oturumu: otomatik düzey değişmez, sonuç paneli */
-if(!currentExercise().isMotion && !currentExercise().isRecall && !currentExercise().noAdaptive && (appMode === "aile" || (appMode === "uzman" && expertAdaptiveEnabled))){
+const __j = (!currentExercise().isMotion && !currentExercise().isRecall && !currentExercise().noAdaptive) ? sessionJudge(elapsedMs, currentErrorCount) : null;
+if(__j && (appMode === "aile" || (appMode === "uzman" && expertAdaptiveEnabled))){
 applyAdaptiveDifficulty(elapsedMs, currentErrorCount);
 }
 resetTimer();
+if(__j && !gameMode) try{ catLevelSuggest(__j); }catch(e){}
+}
+/* ===== Kategori düzeyi geçiş önerisi =====
+   KURAL: okul sonrası Başlangıç'ta aynı kategoride art arda 2 kötü kayıt → "okul öncesine geçilsin mi?"; okul öncesi Zor'da art arda 2 başarılı kayıt → "okul sonrasına geçilsin mi?".
+   Karar yetişkinde; "Hayır" denirse o kategoride 14 gün tekrar sorulmaz. Yalnız Bilişsel Etkinlik'te (çocuk tek başına oynarken sorulmaz). */
+const CAT_STREAK_KEY = "wm_cat_streak_v1", CAT_SNOOZE_DAYS = 14;
+function catStreakAll(){ try{ return JSON.parse(localStorage.getItem(CAT_STREAK_KEY) || "{}"); }catch(e){ return {}; } }
+function catStreakSave(d){ try{ localStorage.setItem(CAT_STREAK_KEY, JSON.stringify(d)); }catch(e){} }
+function catPlayerName(){ return (appMode === "aile" && typeof famProfile === "function") ? famProfile() : currentPlayerName; }
+const CAT_PENDING_KEY = "wm_cat_pending_v1";
+function catPendingAll(){ try{ return JSON.parse(localStorage.getItem(CAT_PENDING_KEY) || "{}"); }catch(e){ return {}; } }
+function catPendingSave(d){ try{ localStorage.setItem(CAT_PENDING_KEY, JSON.stringify(d)); }catch(e){} }
+function catPendingList(name){ const n = (name || "").trim(); const d = catPendingAll()[n] || {}; return Object.keys(d).map(cid => Object.assign({ catId: cid }, d[cid])); }
+function catPendingClear(name, catId){ const d = catPendingAll(), n = (name || "").trim(); if(d[n]){ delete d[n][catId]; catPendingSave(d); } }
+/* Zihin Adaları: art arda sonuçlar izlenir; eşik dolunca çocuğa soru sorulmaz, yetişkin sayfasına bildirim düşer */
+function catGameStreak(ex, t, good){
+const c = CATEGORIES.find(c => c.exerciseIds.includes(ex.id)); if(!c || ex.isMotion) return; const n = (gameProfile() || "").trim(); if(!n || n === "Misafir" || n === "Oyuncu") return;
+const lvl = gameLevelFor(ex.id); const d = catStreakAll(); d[n] = d[n] || {}; const st = d[n][c.id] = d[n][c.id] || { good: 0, bad: 0, lvl };
+if(st.lvl !== lvl){ st.lvl = lvl; st.good = 0; st.bad = 0; }
+if(!good){ st.bad = (lvl === "post" && t === 0) ? st.bad + 1 : 0; st.good = 0; } else { st.good = (lvl === "pre" && t === tierMax(ex)) ? st.good + 1 : 0; st.bad = 0; }
+let target = null; if(lvl === "post" && st.bad >= 2) target = "pre"; if(lvl === "pre" && st.good >= 2) target = "post";
+if(target && !(st.snoozeUntil && st.snoozeUntil > Date.now())){ st.good = 0; st.bad = 0; const pd = catPendingAll(); pd[n] = pd[n] || {}; pd[n][c.id] = { target, at: Date.now(), from: "oyun" }; catPendingSave(pd); }
+catStreakSave(d);
+}
+/* Yetişkin sayfası (Aile / Uzman): bekleyen kademe önerileri */
+function catPendingCardHtml(name){
+const n = (name || "").trim(); if(!n || n === "Misafir" || n === "Oyuncu") return "";
+const list = catPendingList(n); if(!list.length) return "";
+return list.map(p => { const c = CATEGORIES.find(x => x.id === p.catId); if(!c) return ""; const info = catLevelInfo(c.id, n); const locked = appMode === "aile" && info.by === "uzman" && !catLevelEntry(c.id, n);
+  const txt = p.target === "pre" ? `${escHTML(n)}, Zihin Adaları'nda ${escHTML(c.label)} duraklarında okul sonrası Başlangıç'ta art arda zorlandı. Bu alanda Okul Öncesi kademesine geçilsin mi?` : `${escHTML(n)}, Zihin Adaları'nda ${escHTML(c.label)} duraklarında okul öncesi Zor düzeyini art arda başardı. Bu alanda Okul Sonrası kademesine geçilsin mi?`;
+  return `<div class="fh-rec cat-pending" data-cat="${c.id}" data-target="${p.target}"><div class="fh-rec-h">Kademe önerisi</div><div style="font-size:14px;line-height:1.4;margin:4px 0 8px">${txt}</div>${locked ? `<small style="color:#5B6B78;font-weight:700">Bu alanın kademesini uzman belirledi; uzmanınıza iletin.</small>` : `<div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="cat-level-btn on" data-pend="go">Geç</button><button type="button" class="cat-level-btn auto" data-pend="later">Şimdi değil</button></div>`}</div>`; }).join("");
+}
+function catPendingBind(box, name, rerender){
+box.querySelectorAll(".cat-pending").forEach(card => { const cid = card.dataset.cat, target = card.dataset.target;
+  card.querySelectorAll("[data-pend]").forEach(b => b.addEventListener("click", (ev) => { ev.stopPropagation(); const n = (name || "").trim();
+    if(b.dataset.pend === "go"){ setCatLevel(cid, n, target, appMode === "uzman" ? "uzman" : "aile"); catPendingClear(n, cid); showLevelFlash(`${(CATEGORIES.find(x => x.id === cid) || {}).label}: ${target === "pre" ? "Okul Öncesi" : "Okul Sonrası"} kademesine geçildi`, "levelup"); }
+    else { const d = catStreakAll(); d[n] = d[n] || {}; d[n][cid] = d[n][cid] || { good: 0, bad: 0 }; d[n][cid].snoozeUntil = Date.now() + CAT_SNOOZE_DAYS * 864e5; catStreakSave(d); catPendingClear(n, cid); }
+    try{ rerender(); }catch(e){} })); });
+}
+async function catLevelSuggest(j){
+const cat = currentCategory(); if(!cat || cat.hidden) return; const n = (catPlayerName() || "").trim(); if(!n || n === "Misafir" || n === "Oyuncu") return;
+const t = currentCombo().t, lvl = readingLevel === "pre" ? "pre" : "post", ex = currentExercise();
+const d = catStreakAll(); d[n] = d[n] || {}; const st = d[n][cat.id] = d[n][cat.id] || { good: 0, bad: 0, lvl };
+if(st.lvl !== lvl){ st.lvl = lvl; st.good = 0; st.bad = 0; }
+if(j.isBad){ st.bad = (lvl === "post" && t === 0) ? st.bad + 1 : 0; st.good = 0; } else if(j.isGood){ st.good = (lvl === "pre" && t === tierMax(ex)) ? st.good + 1 : 0; st.bad = 0; } else { st.good = 0; st.bad = 0; }
+catStreakSave(d);
+if(st.snoozeUntil && st.snoozeUntil > Date.now()) return;
+let target = null, msg = "";
+if(lvl === "post" && st.bad >= 2){ target = "pre"; msg = `${n}, ${cat.label} alanında okul sonrası Başlangıç'ta art arda iki kez zorlandı. Bu alanda Okul Öncesi kademesine geçilsin mi? Diğer alanlar değişmez.`; }
+if(lvl === "pre" && st.good >= 2){ target = "post"; msg = `${n}, ${cat.label} alanında okul öncesi Zor düzeyini art arda iki kez başardı. Bu alanda Okul Sonrası kademesine geçilsin mi? Diğer alanlar değişmez.`; }
+if(!target) return;
+if(appMode === "aile" && catLevelInfo(cat.id, n).by === "uzman" && !catLevelEntry(cat.id, n)) return;   /* uzman belirlemişse aileye sorulmaz */
+const ok = await zaConfirm(msg);
+const d2 = catStreakAll(); d2[n] = d2[n] || {}; d2[n][cat.id] = d2[n][cat.id] || {}; d2[n][cat.id].good = 0; d2[n][cat.id].bad = 0;
+if(!ok){ d2[n][cat.id].snoozeUntil = Date.now() + CAT_SNOOZE_DAYS * 864e5; catStreakSave(d2); return; }
+catStreakSave(d2);
+setCatLevel(cat.id, n, target, appMode === "uzman" ? "uzman" : "aile");
+const exId = ex.id, ci = currentCategoryIndex; applyPlacedLevel(cat.id, n);
+selectCategory(ci);
+try{ const exs = currentCategoryExercises(); const e = exs.findIndex(x => x.id === exId); if(e >= 0){ const tt = target === "pre" ? tierMax(exs[e]) : 0; const idx = findSeqIndex(tt, e); if(idx >= 0) goToIndex(idx); } }catch(e){}
+showLevelFlash(target === "pre" ? `${cat.label}: Okul Öncesi kademesine geçildi` : `${cat.label}: Okul Sonrası kademesine geçildi`, "levelup");
 }
 
 let audioCtx = null;
@@ -6155,7 +6217,7 @@ if(navigator.vibrate) navigator.vibrate(pattern);
    4) noAdaptive yalnızca ölçüsü hata sayısı olmayan çalışmalarda (ör. Yirmi Soru, Desen Akıcılığı) kullanılır.
    Kaçınılmaz hatalar (sessiz kural değişimi, yıldızın yer değiştirmesi, ilk tahmin) başarıyı engellemez: */
 function adaptInevitable(ex){ try{ if(!ex || !mtState) return 0; if(ex.id === "rule-shift" && mtState.kind === "wcst") return (mtState.shifts || 0) + 1; if(ex.id === "reversal" && mtState.kind === "rev") return (mtState.revs || 0) + 1; }catch(e){} return 0; }
-function applyAdaptiveDifficulty(ms, errors){
+function sessionJudge(ms, errors){
 const ex = currentExercise(); errors = Math.max(0, errors - adaptInevitable(ex));
 const itemCount = ex.isSeqRows ? Math.max(1, currentGrid.length * 2)
 : (ex.isFlanker || ex.isSort || ex.isTrail || ex.isPlan || ex.isSearch || ex.isWm || ex.isChoice || ex.isRt || ex.isMt) ? Math.max(1, currentGrid.length)
@@ -6166,6 +6228,11 @@ const k = ex.speedFactor || (ex.isSeqRows ? 3 : (ex.isScatter ? 2 : 1));
 const errOnly = ex.isAuditory || ex.adaptErrorsOnly;
 const isGood = errOnly ? errors === 0 : (errors === 0 && secPerItem <= SUCCESS_SEC_PER_ITEM * k);
 const isBad = errOnly ? errors >= 2 : (errors > 0 || secPerItem >= FAIL_SEC_PER_ITEM * k);
+return { isGood, isBad };
+}
+function applyAdaptiveDifficulty(ms, errors){
+const ex = currentExercise();
+const { isGood, isBad } = sessionJudge(ms, errors);
 const combo = currentCombo();
 const player = currentPlayerName.trim() || "Oyuncu";
 const useStages = (ex.isScatter || ex.isAuditory || ex.isSeqRows || ex.isFlanker || ex.isTrail || ex.isWm || ex.isMt) && ex.stages.length > 1;
@@ -8669,7 +8736,47 @@ function placedLevelFor(catId, name){ const s = placedStep(catId, name); return 
 function placedTierFor(exId, name){ const c = CATEGORIES.find(c => c.exerciseIds.includes(exId)); if(!c) return null; const s = placedStep(c.id, name); if(s == null) return null;
   if(stepLvl(s) !== readingLevel) return stepLvl(s) === "post" ? 2 : 0; /* başka seviyedeyse o seviyenin ucundan başla */ return stepTier(s); }
 /* Çalışma açılırken seviyeyi alandaki değerlendirme sonucuna göre ayarla (sonuç yoksa profildeki seviye) */
-function applyPlacedLevel(catId, name){ try{ const n = (name != null ? name : currentPlayerName) || ""; if(!n || n === "Misafir") return; const L = placedLevelFor(catId, n);   /* yalnızca bu alanda değerlendirme sonucu varsa */ if(L && L !== readingLevel){ readingLevel = L; try{ applyLevelDefaultThresholds(L); }catch(e){} } }catch(e){} }
+/* ===== Kategori düzeyi (okuma düzeyi kategori başına) =====
+   KURAL: bir kategorinin okuma düzeyi şu sırayla belirlenir: 1) uzmanın o kategori için seçimi (bağlı aile cihazında program.levels ile gelir),
+   2) ailenin seçimi, 3) Değerlendirme turu sonucu, 4) çocuğun genel düzeyi. Yeniden değerlendirme elle seçilmiş düzeyleri değiştirmez.
+   Kayıt: wm_cat_levels_v1 = { [çocuk]: { [kategori]: { lvl:"pre"|"post", by:"uzman"|"aile", at } } } */
+const CAT_LVL_KEY = "wm_cat_levels_v1";
+function catLevelsAll(){ try{ return JSON.parse(localStorage.getItem(CAT_LVL_KEY) || "{}"); }catch(e){ return {}; } }
+function catLevelsSave(d){ try{ localStorage.setItem(CAT_LVL_KEY, JSON.stringify(d)); }catch(e){} }
+function catLevelEntry(catId, name){ const n = (name || "").trim(); if(!n) return null; const d = catLevelsAll(); return (d[n] && d[n][catId]) || null; }
+function catLevelProgram(catId){ try{ if(appMode !== "aile" || typeof familyProgram !== "function") return null; const pr = familyProgram(); const v = pr && pr.levels && pr.levels[catId]; return v === "pre" || v === "post" ? v : null; }catch(e){ return null; } }
+/* Kategorinin etkin düzeyi ve kaynağı */
+function catLevelInfo(catId, name){
+const n = (name != null ? name : currentPlayerName) || "";
+const gen = (n && typeof getPlayerLevel === "function" && getPlayerLevel(n)) || readingLevel || "post";
+if(!n || n === "Misafir") return { lvl: gen, by: "genel" };
+const e = catLevelEntry(catId, n);
+if(e && e.by === "uzman" && (e.lvl === "pre" || e.lvl === "post")) return { lvl: e.lvl, by: "uzman" };
+const pl = catLevelProgram(catId); if(pl) return { lvl: pl, by: "uzman" };
+if(e && e.by === "aile" && (e.lvl === "pre" || e.lvl === "post")) return { lvl: e.lvl, by: "aile" };
+let placed = null; try{ placed = placedLevelFor(catId, n); }catch(err){}
+if(placed) return { lvl: placed, by: "degerlendirme" };
+return { lvl: gen, by: "genel" };
+}
+function catLevelFor(catId, name){ return catLevelInfo(catId, name).lvl; }
+/* Elle seçim: lvl null → seçim silinir (sıradaki kaynağa dönülür). Uzman cihazında bağlı danışan varsa seçim programla aileye gider. */
+function setCatLevel(catId, name, lvl, by){
+const n = (name || "").trim(); if(!n || n === "Misafir") return false;
+const d = catLevelsAll(); d[n] = d[n] || {};
+if(lvl === "pre" || lvl === "post") d[n][catId] = { lvl, by: by || (appMode === "uzman" ? "uzman" : "aile"), at: Date.now() }; else delete d[n][catId];
+catLevelsSave(d);
+try{ if(appMode === "uzman") catLevelSyncToFamily(n, catId, lvl === "pre" || lvl === "post" ? lvl : null); }catch(e){}
+return true;
+}
+function expertLinkForChild(name){ const n = (name || "").trim().toLocaleLowerCase("tr"); return (expertLinks || []).find(l => String(l.childName || "").trim().toLocaleLowerCase("tr") === n) || null; }
+async function catLevelSyncToFamily(name, catId, lvl){
+if(typeof fbOk !== "function" || !fbOk()) return; const l = expertLinkForChild(name); if(!l) return;
+const { db, doc, updateDoc } = window.__fb; const levels = Object.assign({}, (l.program && l.program.levels) || {}); if(lvl) levels[catId] = lvl; else delete levels[catId];
+const program = Object.assign({}, l.program || {}, { levels, updatedAt: Date.now() });
+try{ await updateDoc(doc(db, "links", l.id || l.code), { program }); l.program = program; }catch(e){ console.error("Kategori düzeyi aileye gönderilemedi:", e); }
+}
+/* Kategori açılırken o kategorinin düzeyini uygula */
+function applyPlacedLevel(catId, name){ try{ const n = (name != null ? name : currentPlayerName) || ""; const L = catLevelFor(catId, n); if(L && L !== readingLevel){ readingLevel = L; try{ applyLevelDefaultThresholds(L); }catch(e){} } }catch(e){} }
 function placeSummary(p){ if(!p) return ""; const e = Object.entries(p.dom), nm = (k) => (PLACE_DOMS.find(d => d.k === k) || {}).nm; const post = e.filter(([, v]) => v >= 3).length;
   const hi = e.filter(([, v]) => v >= 4).map(([k]) => nm(k)).filter(Boolean), lo = e.filter(([, v]) => v <= 1).map(([k]) => nm(k)).filter(Boolean);
   return [`${post} alan Okul Sonrası, ${e.length - post} alan Okul Öncesi`, hi.length ? `Güçlü: ${hi.join(", ")}` : "", lo.length ? `Gelişen: ${lo.join(", ")}` : ""].filter(Boolean).join(" · "); }
@@ -8763,11 +8870,11 @@ function growthData(name, groups){ groups = groups || GR_CATS(); const nm = (nam
 const recs = loadSessions().filter(r => r.player === nm && r.t >= since);
 const catOfLabel = (lb) => { const ex = EXERCISES.find(e => e.label === lb || (e.oldLabels || []).includes(lb)); return ex ? (CATEGORIES.find(c => !c.hidden && c.exerciseIds.includes(ex.id)) || {}).id : null; };
 const tierIx = (lb) => Math.max(0, TIERS.findIndex(x => x.label === lb));
-const gs = (gameStoreAll()[nm] || {})[readingLevel === "pre" ? "pre" : "post"] || {};
+const gsAll = gameStoreAll()[nm] || {}, gsOf = (c) => gsAll[(() => { try{ return c.okul ? (readingLevel === "pre" ? "pre" : "post") : catLevelFor(c.id, nm); }catch(e){ return readingLevel === "pre" ? "pre" : "post"; } })()] || {};   /* yıldızlar kategorinin kademesinden */
 const exOfLabel = (lb) => { const ex = EXERCISES.find(e => e.label === lb || (e.oldLabels || []).includes(lb)); return ex ? ex.id : null; };
 return groups.map(c => { const rs = recs.filter(r => c.okul ? c.exerciseIds.includes(exOfLabel(r.exerciseLabel)) : catOfLabel(r.exerciseLabel) === c.id), ok = (r) => (r.errors || 0) <= 1;
 const early = rs.filter(r => r.t < mid), late = rs.filter(r => r.t >= mid), rate = (a) => a.length ? a.filter(ok).length / a.length : null, avgT = (a) => a.length ? a.reduce((s, r) => s + tierIx(r.tier), 0) / a.length : null;
-const stars = c.exerciseIds.reduce((s, id) => s + ((gs[id] && gs[id].stars) ? gs[id].stars.filter(Boolean).length : 0), 0), crowns = c.exerciseIds.filter(id => gs[id] && gs[id].crown).length;
+const gs = gsOf(c); const stars = c.exerciseIds.reduce((s, id) => s + ((gs[id] && gs[id].stars) ? gs[id].stars.filter(Boolean).length : 0), 0), crowns = c.exerciseIds.filter(id => gs[id] && gs[id].crown).length;
 const n = rs.length, R = rate(rs), up = (avgT(late) != null && avgT(early) != null && avgT(late) - avgT(early) >= 0.5) || (rate(late) != null && rate(early) != null && rate(late) - rate(early) >= 0.2);
 const days = n ? (Math.max(...rs.map(r => r.t)) - Math.min(...rs.map(r => r.t))) / 864e5 : 0;
 let st = "az"; if(n + stars >= 3){ if(n >= 3 && R >= 0.75 && avgT(rs) >= 1 || crowns > 0 || (n < 3 && stars >= 6)) st = "guclu"; else if(up) st = "gelisiyor"; else st = "pratik"; }
@@ -8834,7 +8941,7 @@ function chSideNote(txt){ const st = chState; if(!st || st.phase !== "feedback" 
 const sideButtons = () => [{ id:"L", html:'<span style="font-size:30px;font-weight:900">◀</span><b style="margin-left:6px">SOL</b>' }, { id:"R", html:'<b style="margin-right:6px">SAĞ</b><span style="font-size:30px;font-weight:900">▶</span>' }];
 /* ===== Yürütücü İşlev · Paket 2 (Ketleme B) · veri ve yardımcılar ===== */
 (function topHomeStyle(){ try{ if(document.getElementById("topHomeStyle")) return; const st = document.createElement("style"); st.id = "topHomeStyle"; st.textContent = `#lsMore .top{gap:6px}#lsMore .top h1{white-space:nowrap;font-size:clamp(16px,4.9vw,26px);min-width:0;flex:0 1 auto}#lsMore .top-btns{gap:5px;flex:none}#lsMore .top-btns .home-btn.inl{width:36px;height:36px;margin-left:0}#lsMore .top-btns .home-btn.inl svg{width:19px;height:19px}@media (max-width:440px){#lsMore .top-btns .cloud-badge{font-size:0;padding:0;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;gap:0}#lsMore .top-btns .cloud-badge .ui-icon-slot{width:18px;height:18px;margin:0;display:flex;align-items:center;justify-content:center}#lsMore .top-btns .cloud-badge .ui-icon-slot svg{width:18px;height:18px;display:block}}`; document.head.appendChild(st); }catch(e){} })();
-(function catGroupStyle(){ try{ if(document.getElementById("catGroupStyle")) return; const st = document.createElement("style"); st.id = "catGroupStyle"; st.textContent = `.cat-groups{display:none;flex-direction:column;gap:6px;margin-top:8px}.category-card.open .cat-groups{display:flex}.category-card.open .category-card-sub{display:none!important}.cat-group{display:flex;flex-direction:column;gap:6px}.cat-group-chip{align-self:flex-start;border:2px solid var(--line);background:var(--panel);border-radius:999px;padding:6px 12px;font-family:inherit;font-weight:800;font-size:14px;color:var(--ink);cursor:pointer;text-align:left}.cat-group-chip small{font-weight:800;color:#5B6B78;margin-left:4px}.cat-group-chip.on{border-color:#0A847E;background:#DDF3F0;color:#0A847E}.cat-group-list{display:flex;flex-wrap:wrap;gap:6px;padding-left:6px}.cat-ex-btn{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:5px 10px;font-family:inherit;font-weight:700;font-size:13px;color:var(--ink);cursor:pointer;text-align:left}.cat-ex-btn:active{background:#DDF3F0}`; document.head.appendChild(st); }catch(e){} })();
+(function catGroupStyle(){ try{ if(document.getElementById("catGroupStyle")) return; const st = document.createElement("style"); st.id = "catGroupStyle"; st.textContent = `.cat-groups{display:none;flex-direction:column;gap:6px;margin-top:8px}.cat-level-row{display:flex;flex-direction:column;gap:6px;padding:8px 10px;border:1.5px dashed var(--line);border-radius:12px;margin-bottom:4px}.cat-level-lbl{font-size:13px;color:var(--ink)}.cat-level-lbl small{color:#5B6B78;font-weight:700}.cat-level-btns{display:flex;flex-wrap:wrap;gap:6px}.cat-level-btn{border:2px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;font-family:inherit;font-weight:800;font-size:13px;color:var(--ink);cursor:pointer}.cat-level-btn.on{border-color:#0A847E;background:#0A847E;color:#fff}.cat-level-btn.auto{border-style:dashed}.cat-level-btn:disabled{opacity:.55;cursor:default}.cat-level-note{color:#5B6B78;font-weight:700;font-size:12px}.category-card.open .cat-groups{display:flex}.category-card.open .category-card-sub{display:none!important}.cat-group{display:flex;flex-direction:column;gap:6px}.cat-group-chip{align-self:flex-start;border:2px solid var(--line);background:var(--panel);border-radius:999px;padding:6px 12px;font-family:inherit;font-weight:800;font-size:14px;color:var(--ink);cursor:pointer;text-align:left}.cat-group-chip small{font-weight:800;color:#5B6B78;margin-left:4px}.cat-group-chip.on{border-color:#0A847E;background:#DDF3F0;color:#0A847E}.cat-group-list{display:flex;flex-wrap:wrap;gap:6px;padding-left:6px}.cat-ex-btn{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:5px 10px;font-family:inherit;font-weight:700;font-size:13px;color:var(--ink);cursor:pointer;text-align:left}.cat-ex-btn:active{background:#DDF3F0}`; document.head.appendChild(st); }catch(e){} })();
 (function efStyle(){ try{ if(document.getElementById("efStyle")) return; const s = document.createElement("style"); s.id = "efStyle"; s.textContent = `@keyframes efFly{0%{transform:translate(0,0) scale(1)}50%{transform:translate(var(--dx),var(--dy)) scale(1.35)}100%{transform:translate(0,0) scale(1)}}@keyframes efBlink{0%,100%{opacity:1}50%{opacity:.15}}.ef-dist{position:absolute;pointer-events:none;will-change:transform}.ef-hold{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}.ef-hold.holding{transform:translateY(3px);box-shadow:none !important;background:#E3F6EC !important;border-color:#1FA463 !important}.ef-bar{height:14px;border-radius:999px;background:#E6ECF2;overflow:hidden}.ef-bar>i{display:block;height:100%;width:0;background:#1FA463;border-radius:999px}#statueDist{opacity:0;transition:opacity .2s}#statueDist.on{opacity:1}`; document.head.appendChild(s); }catch(e){} })();
 /* Heykel (NEPSY Statue): süre ve çeldirici ses zamanları */
 function statueCfg(){ const t = Math.min(currentCombo().t, 2), pre = isPre(), secs = (pre ? [30, 45, 60] : [45, 60, 75])[t], nD = (pre ? [2, 3, 4] : [3, 4, 6])[t]; const ds = []; for(let i = 0; i < nD; i++) ds.push(4000 + Math.random() * (secs * 1000 - 8000)); return { secs, ds: ds.sort((a, b) => a - b) }; }
@@ -11698,7 +11805,7 @@ dots.appendChild(d);
 }
 
 function renderAll(){
-document.getElementById("pageIndicator").textContent = `${(() => { try{ const c = CATEGORIES[currentCategoryIndex]; const n = (appMode === "aile" && typeof famProfile === "function") ? famProfile() : currentPlayerName; return c && placedStep(c.id, n) != null ? (readingLevel === "pre" ? "Okul Öncesi · " : "Okul Sonrası · ") : ""; }catch(e){ return ""; } })()}${currentTier().label} · Sayfa ${currentIndex+1}/${SEQUENCE.length}`;
+document.getElementById("pageIndicator").textContent = `${(() => { try{ const c = CATEGORIES[currentCategoryIndex]; const n = (appMode === "aile" && typeof famProfile === "function") ? famProfile() : currentPlayerName; const info = c ? catLevelInfo(c.id, n) : null; return info && info.by !== "genel" ? (readingLevel === "pre" ? "Okul Öncesi · " : "Okul Sonrası · ") : ""; }catch(e){ return ""; } })()}${currentTier().label} · Sayfa ${currentIndex+1}/${SEQUENCE.length}`;
 const lsPageEx = document.getElementById("lsPageEx");
 const lsPageInfo = document.getElementById("lsPageInfo");
 if(lsPageEx) lsPageEx.textContent = currentExercise().label;
@@ -12912,7 +13019,8 @@ const STEP_META = [
 ];
 let sessionActive = null;
 const famProfile = () => (currentPlayerName || "").trim() || "Oyuncu";
-const famLvl = () => readingLevel === "pre" ? "pre" : "post";
+let famNameOverride = null;   /* uzman ekranında danışanın adı (famProfile yerine) */
+const famLvl = () => { let g = null; try{ const n = famNameOverride || famProfile(); g = n && n !== "Oyuncu" ? getPlayerLevel(n) : null; }catch(e){} return (g || readingLevel) === "pre" ? "pre" : "post"; };   /* çocuğun GENEL düzeyi: plan/ödev/bağlantı anahtarları kategori kademesinden etkilenmez */
 function todayKey(d){ d = d || new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
 function weekStart(d){ d = new Date(d || Date.now()); const day = (d.getDay() + 6) % 7; d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - day); return d; }
 function weekKey(d){ return todayKey(weekStart(d)); }
@@ -12920,9 +13028,12 @@ function famStoreGet(key){ try{ return JSON.parse(localStorage.getItem(key) || "
 function famStoreSet(key, v){ try{ localStorage.setItem(key, JSON.stringify(v)); }catch(e){} }
 function seededRand(seedStr){ let h = 2166136261; for(const c of seedStr){ h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 100000) / 100000; }; }
 const OKUL_SKILLS = [{ id:"okul-fonoloji", label:"Okumaya hazırlık: sesler ve heceler", okul:true, exerciseIds:["syl-touch", "syllable-count", "syl-blend", "rhyme-touch", "rhyme-say", "same-sound", "phon-manip", "nonword", "pk-train", "pk-rhyme"] },{ id:"okul-akicilik", label:"Okuma akıcılığı ve hızlı isimlendirme", okul:true, exerciseIds:["shape-color", "object-name", "number-color", "ran-letter", "sent-verify", "search-letter", "pair-match", "sem-decide"] },{ id:"okul-sayi", label:"Sayı ve erken matematik", okul:true, exerciseIds:["dot-count", "mental-math", "num-pattern", "balance", "pk-bridge", "trail-numbers", "number-find", "count-span"] },{ id:"okul-anlama", label:"Dinlediğini anlama ve yönergeler", okul:true, exerciseIds:["dir-follow", "listen-answer", "sent-pic", "word-pic", "wh-scene", "short-story", "story-recall", "concept-touch", "sent-listen"] },{ id:"okul-dikkat", label:"Sınıfta dikkat ve öz denetim", okul:true, exerciseIds:["go-no-go", "stop-signal", "vigilance", "touch-animal", "dual-task", "find-error", "pk-redlight", "flanker", "bear-dragon", "anti-touch", "hold-wait", "context-go", "self-check", "look-first"] },{ id:"okul-yazma", label:"Yazmaya hazırlık: görsel-motor", okul:true, exerciseIds:["copy-design", "symmetry", "maze", "finger-trace", "block-design", "vis-draw", "trail-animal-fruit"] }];
+/* KURAL (Bugünün planı / Gelişim ödevleri): çalışmalar kendi kategorisinin kademesinden seçilir, sonuç özeti o kademedeki kayıtlardan hesaplanır; uzman ödevi kendi kademesinde açılır */
+function famLvlFor(catId){ try{ return catLevelFor(catId, famNameOverride || famProfile()); }catch(e){ return famLvl(); } }
+function exLvlOk(id){ const ex = exerciseById(id); if(!ex) return false; const c = CATEGORIES.find(x => x.exerciseIds.includes(id)); return ex.readingLevel.includes(c ? famLvlFor(c.id) : famLvl()); }
 function famExIds(catId){
 const c = CATEGORIES.find(x => x.id === catId) || OKUL_SKILLS.find(x => x.id === catId); if(!c) return [];
-return c.exerciseIds.filter(id => { const ex = exerciseById(id); return ex && ex.readingLevel.includes(famLvl()) && !ex.isMotion; });
+return c.exerciseIds.filter(id => { const ex = exerciseById(id); return ex && exLvlOk(id) && !ex.isMotion; });
 }
 function famTargetOptions(){ return CATEGORIES.filter(c => !c.hidden && c.id !== "goz-takip" && famExIds(c.id).length >= 2).concat(OKUL_SKILLS.filter(c => famExIds(c.id).length >= 3)); }
 function famTarget(){
@@ -12940,12 +13051,12 @@ function buildTodayPlan(){
 const target = famTarget();
 const rnd = seededRand(todayKey() + famProfile() + famLvl() + target);
 const pick = (arr) => arr[Math.floor(rnd() * arr.length)];
-const eyeAll = (CATEGORIES.find(c => c.id === "goz-takip") || {exerciseIds:[]}).exerciseIds.filter(id => { const ex = exerciseById(id); return ex && ex.readingLevel.includes(famLvl()) && !(ex.minTier > 0); });
+const eyeAll = (CATEGORIES.find(c => c.id === "goz-takip") || {exerciseIds:[]}).exerciseIds.filter(id => { const ex = exerciseById(id); return ex && exLvlOk(id) && !(ex.minTier > 0); });
 const eyePref = eyeAll.filter(id => /saccade/.test(id));
 const warm = pick(eyePref.length && rnd() < 0.6 ? eyePref : eyeAll);
 const mains = famExIds(target).slice();
 const prog = typeof familyProgram === "function" ? familyProgram() : null;
-const hwIds = prog && Array.isArray(prog.hw) ? prog.hw.filter(id => { const ex = exerciseById(id); return ex && ex.readingLevel.includes(famLvl()); }) : [];
+const hwIds = prog && Array.isArray(prog.hw) ? prog.hw.filter(id => !!exerciseById(id)) : [];
 let fixed = (prog && prog.target === target && Array.isArray(prog.mains) ? prog.mains.filter(id => mains.includes(id)) : []);
 if(hwIds.length){ const h = hwIds.slice(), pickH = []; while(pickH.length < Math.min(2, h.length)) pickH.push(h.splice(Math.floor(rnd() * h.length), 1)[0]); fixed = pickH.concat(fixed.filter(x => !pickH.includes(x))).slice(0, 2); }
 if(fixed.length > 2 && !hwIds.length){ const f = fixed.slice(); fixed = []; while(fixed.length < 2 && f.length){ fixed.push(f.splice(Math.floor(rnd() * f.length), 1)[0]); } }   // önerilenlerden her gün 2'si
@@ -12993,6 +13104,7 @@ box.innerHTML = `<button type="button" class="fh-today" id="fhTodayBtn">
 <span class="fh-go">${all ? "Gör" : (n ? "Devam" : "Başla")}</span></button>
 <button type="button" class="fh-week" id="fhHwBtn" style="position:relative"><span class="ic" style="background:var(--teal-tint);color:var(--teal-dark)">${icI("clip", 22, "#0A847E")}</span><span><div class="t1">Ödevlerim</div><div class="t2">Uzman ve gelişim ödevleri</div></span>${famProfile() === "Oyuncu" ? "" : hwBadgeHtml(hwBadgeCount(famProfile(), famLvl()))}</button>
 ${recommendedCardHtml()}
+${catPendingCardHtml(famProfile())}
 <button type="button" class="fh-week" id="fhGrowBtn"><span class="ic" style="background:#FFF3C4;color:#9A6B00">${icI("sprout", 22, "#9A6B00")}</span><span><div class="t1">Gelişim haritası</div><div class="t2">Güçlü yönler ve gelişen alanlar</div></span></button>
 <button type="button" class="fh-week" id="fhWeekBtn"><span class="ic">${I_CHART}</span><span><div class="t1">Bu hafta</div><div class="t2">Çalışılan günler ve kısa gelişim özeti</div></span></button>
 <button type="button" class="fh-week" id="fhLinkBtn"><span class="ic" style="background:var(--teal-tint);color:var(--teal-dark)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></span>
@@ -13000,6 +13112,7 @@ ${recommendedCardHtml()}
 box.style.display = "flex";
 const needPerson = () => famProfile() === "Oyuncu" && !familyLinkLocal();
 const guard = (fn) => () => { if(needPerson()) pickPerson(() => renderCategoryList(), { noGuest:true }); else fn(); };
+try{ catPendingBind(box, famProfile(), renderFamilyHome); }catch(e){}
 document.getElementById("fhTodayBtn").onclick = guard(showToday);
 document.getElementById("fhWeekBtn").onclick = guard(showWeek);
 document.getElementById("fhGrowBtn").onclick = guard(showGrowth);
@@ -13092,7 +13205,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.23-y";
+const APP_VERSION = "2026.10.24-d";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -13182,10 +13295,10 @@ function newLinkCode(){ let c = ""; const a = new Uint32Array(8); (window.crypto
 function fmtCode(c){ return c ? c.slice(0, 4) + " " + c.slice(4) : ""; }
 function cleanCode(c){ return String(c || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); }
 function familyLinkLocal(){
-const all = famStoreGet(LINK_LOCAL_KEY), lvl = famLvl();
-const hit = all[famProfile() + "|" + lvl];
+const all = famStoreGet(LINK_LOCAL_KEY), lvl = famLvl(), other = lvl === "pre" ? "post" : "pre";
+const hit = all[famProfile() + "|" + lvl] || all[famProfile() + "|" + other];   /* kategori düzeyi değişince de aynı bağlantı bulunur */
 if(hit) return hit;
-if(famProfile() === "Oyuncu") return all["Oyuncu|" + lvl] || null;
+if(famProfile() === "Oyuncu") return all["Oyuncu|" + lvl] || all["Oyuncu|" + other] || null;
 return null;
 }
 function otherLevelLink(){ const all = famStoreGet(LINK_LOCAL_KEY); const other = famLvl() === "pre" ? "post" : "pre"; return all[famProfile() + "|" + other] || null; }
@@ -13327,12 +13440,14 @@ const goTxt = !has ? "Dokun: kişi seç" : canResume ? "Dokun: kaldığı yerden
 box.innerHTML = `<button type="button" class="fh-today ex-today" id="exTodayCard"><span class="ex-av">${has ? escHTML(cur.charAt(0).toLocaleUpperCase("tr")) : "?"}</span>
 <span class="fh-tx"><div class="fh-t1">${has ? escHTML(cur) + " ile seans" : "Seansa başla"}</div><div class="fh-t2">${has ? sumTxt : "Önce çalışacak kişiyi seçin"}</div><div class="fh-t2 ex-go-txt">${goTxt}</div></span>
 <span class="ex-play" aria-hidden="true"><svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M10 8.3v7.4l5.8-3.7z" fill="#FFFFFF"></path></svg></span></button>
+${has ? catPendingCardHtml(cur) : ""}
 <button type="button" class="fh-week" id="exHomeBtn"><span class="ic" style="background:var(--teal-tint);color:var(--teal-dark)">${ic(I.users, T)}</span><span><div class="t1">Danışanlar</div><div class="t2">${n ? `${n} danışan · ${linked} aile bağlı · ödevler danışan ekranında` : "Danışan ekle, aileye bağla, ödev gönder"}</div></span></button>
 <button type="button" class="fh-week" id="exGrowBtn"><span class="ic" style="background:#FFF3C4;color:#9A6B00">${ic(I.grow, "#9A6B00")}</span><span><div class="t1">Gelişim haritası</div><div class="t2">${has ? escHTML(cur) + " · güçlü yönler ve gelişen alanlar" : "Kişi seçince açılır"}</div></span></button>
 <button type="button" class="fh-week" id="exWeekBtn"><span class="ic">${ic(I.week, "#9A5A12")}</span><span><div class="t1">Bu hafta</div><div class="t2">${has ? "Çalışılan günler ve kısa gelişim özeti" : "Kişi seçince açılır"}</div></span></button>
 ${has ? `<button type="button" class="fh-week" id="exPlaceBtn"><span class="ic" style="background:var(--teal-tint);color:var(--teal-dark)">${ic(I.compass, T)}</span><span><div class="t1">Değerlendirme turu</div><div class="t2">${P ? sumTxt.replace("Değerlendirme: ", "") + " · " + new Date(P.t).toLocaleDateString("tr-TR") + " · yeniden değerlendir" : "On alanda başlangıç düzeyini belirle"}</div></span></button>` : ""}`;
 box.style.display = "flex";
 const needPerson = (fn) => () => { if(!has){ pickPerson(() => renderCategoryList(), { noGuest:true }); return; } fn(); };
+try{ if(has) catPendingBind(box, cur, renderExpertHome); }catch(e){}
 document.getElementById("exHomeBtn").onclick = () => showExpert("list");
 document.getElementById("exGrowBtn").onclick = needPerson(showGrowth);
 document.getElementById("exWeekBtn").onclick = needPerson(showWeek);
@@ -13434,13 +13549,13 @@ const targets = famTargetOptions();
 const p = Object.assign({ target: targets[0] ? targets[0].id : "islemleme-hizi", days: [0,1,2,3,4], minutes: 12, mains: [], games: [], hw: [] }, l.program || {});
 if(!Array.isArray(p.games)) p.games = []; if(!Array.isArray(p.hw)) p.hw = [];
 const hwSel = new Set();
-const mainsOf = (t) => famExIds(t);
+const mainsOf = (t) => { famNameOverride = l.childName || null; try{ return famExIds(t); } finally{ famNameOverride = null; } };   /* danışanın kategori kademeleri */
 let gamesOpen = null;
 const draw = () => {
 readingLevel = l.level || "post";
 const exs = mainsOf(p.target);
 const b = weekBars(l);
-w.innerHTML = `<div style="display:flex;align-items:flex-start;gap:10px"><h2 class="fam-h" style="flex:1">${escHTML(l.childName || "Danışan")}</h2><button type="button" class="fam-chip" id="exRenameBtn" style="flex:none">Adı düzenle</button></div><div><div class="fam-sub">${l.level === "pre" ? "Okul Öncesi" : "Okul Sonrası"} · ${l.familyUid ? "aile bağlı" : "aile henüz bağlanmadı"}</div></div>
+w.innerHTML = `<div style="display:flex;align-items:flex-start;gap:10px"><h2 class="fam-h" style="flex:1">${escHTML(l.childName || "Danışan")}</h2><button type="button" class="fam-chip" id="exRenameBtn" style="flex:none">Adı düzenle</button></div><div><div class="fam-sub">${l.level === "pre" ? "Okul Öncesi" : "Okul Sonrası"} · ${l.familyUid ? "aile bağlı" : "aile henüz bağlanmadı"}</div>${(() => { try{ const diff = CATEGORIES.filter(c => !c.hidden).map(c => [c, catLevelInfo(c.id, l.childName)]).filter(([c, i]) => i.by !== "genel" && i.lvl !== (l.level || "post")); return diff.length ? `<div class="fam-sub" style="margin-top:4px">Kademesi farklı alanlar: ${diff.map(([c, i]) => escHTML(c.label) + " (" + (i.lvl === "pre" ? "Okul Öncesi" : "Okul Sonrası") + ")").join(", ")}</div>` : ""; }catch(e){ return ""; } })()}</div>
 ${(l.childName || "").trim() ? `<div class="fam-card" style="display:flex;flex-direction:column;gap:6px"><button type="button" class="fam-cta" id="exStartBtn">▶ ${escHTML(l.childName.trim())} ile oturum başlat</button><div class="fam-sub" style="font-weight:600">Çalışmalar bu cihazda <b>${escHTML(l.childName.trim())}</b> adıyla kaydedilir; ödevlendirme bu kayıtları kullanır.</div></div>` : ""}
 ${!l.familyUid ? `<div class="fam-card" style="display:flex;flex-direction:column;gap:10px"><div style="font-weight:900">Bağlantı kodu</div><div class="ex-code">${fmtCode(code)}</div>
 <div class="fam-sub" style="font-weight:600">Aile, uygulamada <b>Bilişsel Etkinlik → Aile → Uzmana bağlan</b> bölümüne bu kodu girer.</div>
@@ -13484,9 +13599,12 @@ const saveProg = async (msg) => { if(!fbOk()){ showLevelFlash("İnternet bağlan
 try{ await updateDoc(doc(db, "links", code), { program: { target: p.target, days: p.days, minutes: p.minutes, mains: p.mains, games: p.games, hw: p.hw, hwLog: p.hwLog, devOff: !!p.devOff, cfg: expertCfgFor(l.childName, (p.mains || []).concat(p.hw || [])), updatedAt: Date.now() } }); l.program = Object.assign({}, p); showLevelFlash(msg, "levelup"); return true; }catch(e){ console.error(e); showLevelFlash("Ödev kaydedilemedi.", "down"); return false; } };
 w.querySelectorAll("[data-hws]").forEach(x => x.onclick = () => { const id = x.dataset.hws; if(p.hw.includes(id)) return; if(hwSel.has(id)) hwSel.delete(id); else hwSel.add(id); draw(); });
 w.querySelectorAll("[data-hwx]").forEach(x => x.onclick = async () => { p.hw = p.hw.filter(v => v !== x.dataset.hwx); await saveProg("Ödev kaldırıldı ✓"); draw(); });
-const devBox = document.getElementById("exDevCard"); const devFill = () => { const bx = document.getElementById("exDevCard"); if(!bx) return; bx.innerHTML = exDevCardHtml(p, expertDevPlan); exDevCardWire(bx, p, saveProg, devFill); }; window.__exDevDraw = devFill; if(devBox) devFill();   /* Aşama 4: gelişim ödevleri kartı */ const ha = document.getElementById("hwAutoBtn"); if(ha) ha.onclick = async () => { readingLevel = l.level || "post"; const W = hwWeakPages(l.childName); readingLevel = lvlSave; p.hw = W.list.filter(x => exerciseById(x.id).readingLevel.includes(l.level || "post")).slice(0, 4).map(x => x.id); hwSel.clear(); await saveProg(`${p.hw.length} sayfa ödev olarak gönderildi ✓`); draw(); };
+const devBox = document.getElementById("exDevCard"); const devFill = () => { const bx = document.getElementById("exDevCard"); if(!bx) return; bx.innerHTML = exDevCardHtml(p, expertDevPlan); exDevCardWire(bx, p, saveProg, devFill); }; window.__exDevDraw = devFill; if(devBox) devFill();   /* Aşama 4: gelişim ödevleri kartı */ const ha = document.getElementById("hwAutoBtn"); if(ha) ha.onclick = async () => { readingLevel = l.level || "post"; const W = hwWeakPages(l.childName); readingLevel = lvlSave; p.hw = W.list.filter(x => { const ex = exerciseById(x.id), c = CATEGORIES.find(k => k.exerciseIds.includes(x.id)); return ex && ex.readingLevel.includes(c ? catLevelFor(c.id, l.childName) : (l.level || "post")); }).slice(0, 4).map(x => x.id); hwSel.clear(); await saveProg(`${p.hw.length} sayfa ödev olarak gönderildi ✓`); draw(); };
 const hm = document.getElementById("hwManBtn"); if(hm) hm.onclick = async () => { if(!hwSel.size){ showLevelFlash("Önce listeden sayfa işaretleyin.", "down"); return; } const add = [...hwSel].filter(id => !p.hw.includes(id)); const next = p.hw.concat(add);
-if(next.length > 4){ showLevelFlash(`En fazla 4 ödev olabilir (şu an ${p.hw.length}).`, "down"); return; } p.hw = next; hwSel.clear(); await saveProg(`${add.length} sayfa ödev olarak eklendi ✓`); draw(); };
+if(next.length > 4){ showLevelFlash(`En fazla 4 ödev olabilir (şu an ${p.hw.length}).`, "down"); return; }
+try{ const off = add.filter(id => { const ex = exerciseById(id), c = CATEGORIES.find(x => x.exerciseIds.includes(id)); if(!ex || !c) return false; return !ex.readingLevel.includes(catLevelFor(c.id, l.childName)); });
+  if(off.length){ const c0 = CATEGORIES.find(x => x.exerciseIds.includes(off[0])); const lv = catLevelFor(c0.id, l.childName); const ok = await zaConfirm(`${off.map(id => exerciseById(id).label).join(", ")}: ${l.childName || "çocuk"} için ${c0.label} alanının kademesi ${lv === "pre" ? "Okul Öncesi" : "Okul Sonrası"}; bu sayfa o kademede yok. Yine de ödev verilsin mi? Ödev kendi kademesinde açılır.`); if(!ok) return; } }catch(e){}
+p.hw = next; hwSel.clear(); await saveProg(`${add.length} sayfa ödev olarak eklendi ✓`); draw(); };
 w.querySelectorAll("[data-d]").forEach(x => x.onclick = () => { const d = +x.dataset.d; p.days = p.days.includes(d) ? p.days.filter(v => v !== d) : p.days.concat([d]).sort(); draw(); });
 w.querySelectorAll("[data-m]").forEach(x => x.onclick = () => { p.minutes = +x.dataset.m; draw(); });
 w.querySelectorAll("[data-x]").forEach(x => x.onclick = () => { const id = x.dataset.x; if(p.mains.includes(id)) p.mains = p.mains.filter(v => v !== id); else if(p.mains.length < 4) p.mains = p.mains.concat([id]); draw(); });
@@ -13569,7 +13687,7 @@ function recommendedIds(){
 const prog = familyProgram(); if(!prog) return [];
 const pool = famExIds(prog.target);
 const chosen = (prog.mains || []).filter(id => pool.includes(id));
-const hw = (prog.hw || []).filter(id => { const ex = exerciseById(id); return ex && ex.readingLevel.includes(famLvl()); });
+const hw = (prog.hw || []).filter(id => !!exerciseById(id));
 const base = chosen.length ? chosen : pool.slice(0, 6);
 return hw.concat(base.filter(id => !hw.includes(id)));
 }
@@ -13762,13 +13880,15 @@ let gameIsland = null;
 function gameStoreAll(){ try{ return JSON.parse(localStorage.getItem(GAME_KEY) || "{}"); }catch(e){ return {}; } }
 function gameStoreSave(d){ try{ localStorage.setItem(GAME_KEY, JSON.stringify(d)); }catch(e){} }
 function gameProfile(){ return (currentPlayerName || "").trim() || "Misafir"; }
+/* KURAL (Zihin Adaları): her durak kendi kategorisinin kademesiyle gelir ve yıldızları o kademede tutulur; çocuk kademe etiketi görmez */
+function gameLevelFor(exId){ try{ const c = CATEGORIES.find(c => c.exerciseIds.includes(exId)); if(c) return catLevelFor(c.id, gameProfile()); }catch(e){} return readingLevel || "post"; }
 function gameRecord(exId){
-const d = gameStoreAll(), p = gameProfile(), l = readingLevel || "post";
+const d = gameStoreAll(), p = gameProfile(), l = gameLevelFor(exId);
 const r = ((d[p] || {})[l] || {})[exId];
 return r || { stars:[false,false,false], best:[null,null,null], plays:0 };
 }
 function gameRecordSave(exId, r){
-const d = gameStoreAll(), p = gameProfile(), l = readingLevel || "post";
+const d = gameStoreAll(), p = gameProfile(), l = gameLevelFor(exId);
 d[p] = d[p] || {}; d[p][l] = d[p][l] || {}; d[p][l][exId] = r;
 gameStoreSave(d);
 }
@@ -13787,8 +13907,7 @@ return Math.max(t, (ex && ex.minTier) || 0);
 function gameIslandStops(isl){
 let ids = isl.dyn ? isl.dyn() : (isl.ids || []);
 if(isl.fromCategory){ const c = CATEGORIES.find(c => c.id === isl.fromCategory); ids = c ? c.exerciseIds.slice() : []; }
-const lvl = readingLevel === "pre" ? "pre" : "post";
-return ids.filter(id => { const ex = exerciseById(id); return ex && !ex.adultOnly && ex.readingLevel.includes(lvl) && CATEGORIES.some(c => c.exerciseIds.includes(id)); });
+return ids.filter(id => { const ex = exerciseById(id); return ex && !ex.adultOnly && ex.readingLevel.includes(gameLevelFor(id)) && CATEGORIES.some(c => c.exerciseIds.includes(id)); });   /* durak kendi kategorisinin kademesine göre */
 }
 function gameIslandStarInfo(isl){
 if(isl.legacy || isl.special) return { got:0, total:0 };
@@ -14108,6 +14227,7 @@ if(r.jump === t){ delete r.jump; if(good && t === 2 && !r.stars[1]){ r.stars[1] 
 let jumped = false;
 if(good && newStar && t === 0 && !r.stars[2] && !ex.isMotion && gxFastFlawless(ex, ms, errors)){ r.jump = 2; jumped = true; }
 if(!good && !ex.isMotion) r.lastBad = todayKey(); else if(good && r.lastBad) delete r.lastBad;
+try{ catGameStreak(ex, t, good); }catch(e){}
 r.bolt = r.bolt || [false, false, false];
 const onTime = good && !ex.isMotion && !ex.noBolt && gxOnTime(ex, ms), newBolt = onTime && !r.bolt[t]; if(onTime) r.bolt[t] = true;
 gameRecordSave(ex.id, r);
@@ -15178,10 +15298,28 @@ return cat.exerciseIds.some(id => exerciseById(id).readingLevel.includes("pre"))
 }
 
 /* Kategori kartı: bölüm (üst başlık) çipleri; dokununca o bölümün çalışma sayfaları listelenir, bir çalışmaya dokununca doğrudan o sayfa açılır */
+/* Kategori kartı · düzey satırı: etkin kademe, kaynağı ve elle seçim (uzman / aile). Uzman belirlediyse aile değiştiremez. */
+function renderCatLevelRow(host, cat, onChange){
+const n = (catPlayerName() || "").trim(); if(!n || n === "Misafir" || n === "Oyuncu") return null;
+const info = catLevelInfo(cat.id, n), srcTxt = { uzman: "uzman seçti", aile: "aile seçti", degerlendirme: "Değerlendirme turu", genel: "genel düzey" }[info.by] || "";
+const row = document.createElement("span"); row.className = "cat-level-row";
+const locked = appMode === "aile" && info.by === "uzman";
+const mk = (lvl, txt) => { const b = document.createElement("button"); b.type = "button"; b.className = "cat-level-btn" + (info.lvl === lvl ? " on" : ""); b.textContent = txt; b.disabled = locked;
+  b.addEventListener("click", (ev) => { ev.stopPropagation(); if(locked || info.lvl === lvl) return; setCatLevel(cat.id, n, lvl, appMode === "uzman" ? "uzman" : "aile"); onChange(); }); return b; };
+row.innerHTML = `<span class="cat-level-lbl">Kademe · <b>${info.lvl === "pre" ? "Okul Öncesi" : "Okul Sonrası"}</b> <small>(${escHTML(srcTxt)})</small></span>`;
+const btns = document.createElement("span"); btns.className = "cat-level-btns"; btns.appendChild(mk("pre", "Okul Öncesi")); btns.appendChild(mk("post", "Okul Sonrası"));
+if(!locked && (info.by === "uzman" || info.by === "aile")){ const auto = document.createElement("button"); auto.type = "button"; auto.className = "cat-level-btn auto"; auto.textContent = "Otomatik"; auto.title = "Seçimi kaldır: Değerlendirme turu ya da genel düzey kullanılır";
+  auto.addEventListener("click", (ev) => { ev.stopPropagation(); setCatLevel(cat.id, n, null); onChange(); }); btns.appendChild(auto); }
+row.appendChild(btns);
+if(locked){ const nt = document.createElement("small"); nt.className = "cat-level-note"; nt.textContent = "Bu alanın kademesini uzman belirledi."; row.appendChild(nt); }
+return row;
+}
 function renderCatGroups(host, cat, realIndex){
 if(!host || host.dataset.built) return; host.dataset.built = "1";
 const groups = cat.exerciseGroups || [["Çalışmalar", cat.exerciseIds]];
-const avail = (id) => { const ex = exerciseById(id); return ex && ex.readingLevel.includes(readingLevel); };
+const lvlHere = catLevelFor(cat.id, catPlayerName());   /* liste ve sayılar bu kategorinin kademesine göre */
+const avail = (id) => { const ex = exerciseById(id); return ex && ex.readingLevel.includes(lvlHere); };
+try{ const lr = renderCatLevelRow(host, cat, () => { host.innerHTML = ""; delete host.dataset.built; renderCatGroups(host, cat, realIndex); }); if(lr) host.appendChild(lr); }catch(e){}
 groups.forEach(([name, ids]) => { const inLevel = ids.filter(avail); if(!inLevel.length) return;
   const wrap = document.createElement("span"); wrap.className = "cat-group";
   const chip = document.createElement("button"); chip.type = "button"; chip.className = "cat-group-chip"; chip.innerHTML = `${escHTML(name)} <small>${inLevel.length}</small>`;
@@ -15193,6 +15331,7 @@ groups.forEach(([name, ids]) => { const inLevel = ids.filter(avail); if(!inLevel
   wrap.appendChild(chip); wrap.appendChild(ul); host.appendChild(wrap); });
 }
 function renderCategoryList(){
+try{ const __n = catPlayerName(); const __g = __n && __n !== "Misafir" && __n !== "Oyuncu" ? getPlayerLevel(__n) : null; if(__g && __g !== readingLevel){ readingLevel = __g; applyLevelDefaultThresholds(__g); } }catch(e){}   /* kategori listesine dönünce genel düzeye dönülür; kartlar kendi kademesini gösterir */
 try{ renderFamilyHome(); }catch(e){}
 try{ renderExpertHome(); }catch(e){}
 const list = document.getElementById("categoryList");
@@ -16176,7 +16315,9 @@ function showHwScreen(){ hideFamScreens(); hideLinkScreens(); hwScreenOpen = tru
   w.querySelectorAll("[data-devsnooze]").forEach(b => b.onclick = () => { const pl = devPlanGet(player, lvl); if(!pl) return; const it = pl.items.find(x => x.id === b.dataset.devsnooze); if(!it) return; if(it.snooze > Date.now()) delete it.snooze; else { it.snooze = Date.now() + 864e5; it.at = Math.max(it.at, Date.now() - (DEV_STALE_DAYS - 2) * 864e5); } devPlanSave(player, lvl, pl); showHwScreen(); });
   document.getElementById("linkScreen").style.display = "flex"; document.getElementById("linkScreen").scrollTop = 0; }
 function hwOpen(id, l, tiOverride){ hideLinkScreens(); hideFamScreens(); appMode = "aile"; try{ applyModeVisibility(); }catch(e){} try{ renderPlayerOptions(); const sel = document.getElementById("playerSelect"); if(playersList.includes(currentPlayerName)){ sel.value = currentPlayerName; updatePlayerAvatar(currentPlayerName); } }catch(e){} const ci = CATEGORIES.findIndex(c => !c.hidden && c.exerciseIds.includes(id)); if(ci < 0) return; selectCategory(ci);
-  const k = currentCategoryExercises().findIndex(x => x.id === id); if(k < 0) return; const cf = l && l.program && l.program.cfg ? l.program.cfg[id] : null; const t = tiOverride != null && !isNaN(tiOverride) ? tiOverride : (cf && cf.t != null ? cf.t : currentCombo().t); const si = findSeqIndex(t, k); goToIndex(si >= 0 ? si : findSeqIndex(0, k)); }
+  let k = currentCategoryExercises().findIndex(x => x.id === id);
+  if(k < 0){ const ex0 = exerciseById(id), alt = ex0 && ex0.readingLevel.find(lv => lv !== readingLevel); if(alt){ readingLevel = alt; try{ applyLevelDefaultThresholds(alt); }catch(e){} SEQUENCE = buildSequenceForCategory(); currentIndex = 0; k = currentCategoryExercises().findIndex(x => x.id === id); } }   /* uzman ödevi kendi kademesinde açılır */
+  if(k < 0) return; const cf = l && l.program && l.program.cfg ? l.program.cfg[id] : null; const t = tiOverride != null && !isNaN(tiOverride) ? tiOverride : (cf && cf.t != null ? cf.t : currentCombo().t); const si = findSeqIndex(t, k); goToIndex(si >= 0 ? si : findSeqIndex(0, k)); }
 
 /* Yönerge kutusundaki strateji notları: 💡 emojisi yerine çizgi ampul simgesi (metinler tek tek değiştirilmeden) */
 function iconizeTips(root){ if(!root || !/💡/.test(root.textContent)) return; const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), hits = []; let n; while((n = w.nextNode())) if(n.nodeValue.includes("💡")) hits.push(n);
@@ -16196,8 +16337,8 @@ function perfExOf(rec){ if(rec.exId && exerciseById(rec.exId)) return exerciseBy
 function perfCatOf(exId){ return CATEGORIES.find(c => !c.hidden && c.id !== "oyun-parki" && c.exerciseIds.includes(exId)) || null; }
 /* Kişinin son 60 günlük kayıtlarından çalışma ve alan özeti.
    Ağırlık: otomatik ölçülen çalışma 1 · elle ölçülen 0,5 · Zihin Adaları 0,5. Kanıt 3'ten azsa "veri az". */
-function perfSummary(player, opts){ opts = opts || {}; const nm = (player || "").trim().toLocaleLowerCase("tr"); const since = (opts.now || Date.now()) - PERF_DAYS * 864e5; const lvl = opts.lvl || null;
-  const recs = perfRecords().filter(r => (r.player || "").trim().toLocaleLowerCase("tr") === nm && r.t >= since && (!lvl || !r.lvl || r.lvl === lvl));
+function perfSummary(player, opts){ opts = opts || {}; const nm = (player || "").trim().toLocaleLowerCase("tr"); const since = (opts.now || Date.now()) - PERF_DAYS * 864e5; const lvl = opts.lvl || null; const lvlOf = (r) => { if(!opts.catLvl || !lvl) return lvl; try{ const ex = perfExOf(r), c = ex && perfCatOf(ex.id); return c ? catLevelFor(c.id, player) : lvl; }catch(e){ return lvl; } };
+  const recs = perfRecords().filter(r => { if((r.player || "").trim().toLocaleLowerCase("tr") !== nm || r.t < since) return false; const want = lvlOf(r); return !want || !r.lvl || r.lvl === want; });
   const byEx = {};
   recs.forEach(r => { const ex = perfExOf(r); if(!ex) return; const cat = perfCatOf(ex.id); if(!cat) return; const auto = r.auto !== undefined ? !!r.auto : perfIsAuto(ex); const src = r.src || "etkinlik"; const w = (auto ? 1 : 0.5) * (src === "oyun" ? 0.5 : 1);
     (byEx[ex.id] = byEx[ex.id] || { id: ex.id, cat: cat.id, auto, recs: [] }).recs.push({ t: r.t, o: perfOutcome(r), w, ti: r.ti, tier: r.tier, src, errors: r.errors || 0, n: r.n || r.itemCount }); });
@@ -16236,7 +16377,7 @@ function devMakeItem(ex, cat, ti, kind, now, extra){ return Object.assign({ id: 
 /* Planı güncelle: biten ödevleri kapat, dokunulmayanları düşür, haftalık yenile, sınırları uygula */
 function devPlanRefresh(player, lvl, opts){ opts = opts || {}; const now = opts.now || Date.now(); lvl = lvl === "pre" ? "pre" : "post";
   let plan = devPlanGet(player, lvl) || { genAt: 0, items: [], history: [] }; plan.items = plan.items || []; plan.history = plan.history || [];
-  const S = perfSummary(player, { lvl, now }); const expertN = opts.expertCount || 0; const exclude = new Set(opts.excludeIds || []); plan.items = plan.items.filter(it => { if(exclude.has(it.id)){ it.status = "promoted"; plan.history.push(it); return false; } return true; }); if(opts.off){ plan.items.forEach(it => { it.status = "off"; plan.history.push(it); }); plan.items = []; plan.off = true; devPlanSave(player, lvl, plan); return plan; } plan.off = false;
+  const S = perfSummary(player, { lvl, now, catLvl: true }); const expertN = opts.expertCount || 0; const lvlC = (cat) => { try{ return catLevelFor(cat, player); }catch(e){ return lvl; } }; const exclude = new Set(opts.excludeIds || []); plan.items = plan.items.filter(it => { if(exclude.has(it.id)){ it.status = "promoted"; plan.history.push(it); return false; } return true; }); if(opts.off){ plan.items.forEach(it => { it.status = "off"; plan.history.push(it); }); plan.items = []; plan.off = true; devPlanSave(player, lvl, plan); return plan; } plan.off = false;
   const devCap = expertN > 0 ? 1 : 2, strongCap = expertN > 0 ? 0 : 1, totalCap = Math.max(0, Math.min(devCap + strongCap, DEV_MAX_TOTAL - expertN));
   const recentIds = new Set(plan.history.concat(plan.items).filter(it => now - it.at < DEV_RECENT_DAYS * 864e5).map(it => it.id).concat([...exclude]));
   /* 1) kapananlar ve süresi dolanlar */ const keep = [], nextSteps = [], easeSteps = [];
@@ -16245,20 +16386,20 @@ function devPlanRefresh(player, lvl, opts){ opts = opts || {}; const now = opts.
     else if(A.n === 0 && now - it.at >= DEV_STALE_DAYS * 864e5){ it.status = "expired"; plan.history.push(it); }
     else if(A.n > 0 && now - it.at >= DEV_EASE_DAYS * 864e5){ it.status = "eased"; plan.history.push(it); if(it.kind === "dev") easeSteps.push(it); }   /* 14 günde 2 başarı yoksa: bir alt düzeyde başka çalışma */
     else keep.push(it); });
-  plan.items = keep;
+  plan.items = keep.filter(it => { const ex = exerciseById(it.id); if(ex && it.cat && !devLevelOk(ex, lvlC(it.cat))){ it.status = "level"; plan.history.push(it); return false; } return true; });   /* kademe değişince o kategorideki açık otomatik ödevler kapanır; uzman ödevlerine dokunulmaz */
   /* 2) kapanan gelişim ödevinin bir sonraki adımı: aynı alan, farklı çalışma, bir üst düzey (alan hâlâ zorlanıyorsa ya da veri azsa) */
   nextSteps.forEach(prev => { if(plan.items.filter(i => i.kind === "dev").length >= devCap || plan.items.length >= totalCap) return; const d = S.domains[prev.cat]; if(d && d.state === "guclu") return; recentIds.add(prev.id);
-    const ex = devPickExercise(prev.cat, lvl, S, recentIds, "hard"); if(!ex) return; const ti = Math.max(ex.minTier || 0, Math.min(2, (prev.ti || 0) + 1)); plan.items.push(devMakeItem(ex, prev.cat, ti, "dev", now, { step: (prev.step || 1) + 1, from: prev.id })); recentIds.add(ex.id); });
+    const ex = devPickExercise(prev.cat, lvlC(prev.cat), S, recentIds, "hard"); if(!ex) return; const ti = Math.max(ex.minTier || 0, Math.min(2, (prev.ti || 0) + 1)); plan.items.push(devMakeItem(ex, prev.cat, ti, "dev", now, { step: (prev.step || 1) + 1, from: prev.id })); recentIds.add(ex.id); });
   easeSteps.forEach(prev => { if(plan.items.filter(i => i.kind === "dev").length >= devCap || plan.items.length >= totalCap) return; recentIds.add(prev.id);
-    const ex = devPickExercise(prev.cat, lvl, S, recentIds, "hard"); if(!ex) return; const ti = Math.max(ex.minTier || 0, Math.max(0, (prev.ti || 0) - 1)); plan.items.push(devMakeItem(ex, prev.cat, ti, "dev", now, { step: prev.step || 1, from: prev.id, eased: true })); recentIds.add(ex.id); });
+    const ex = devPickExercise(prev.cat, lvlC(prev.cat), S, recentIds, "hard"); if(!ex) return; const ti = Math.max(ex.minTier || 0, Math.max(0, (prev.ti || 0) - 1)); plan.items.push(devMakeItem(ex, prev.cat, ti, "dev", now, { step: prev.step || 1, from: prev.id, eased: true })); recentIds.add(ex.id); });
   /* 3) haftalık yenileme: ilk kez ya da 7 gün geçtiyse eksikleri tamamla */
   const weekly = !plan.genAt || now - plan.genAt >= DEV_WEEK_DAYS * 864e5 || plan.needData || plan.items.filter(i => i.kind !== "explore").length === 0;   /* veri az yüzünden boş kaldıysa ya da açık ödev yoksa 7 gün bekleme */
   if(weekly){ plan.genAt = now; const makeRoom = () => { if(plan.items.length < totalCap) return true; const ei = plan.items.findIndex(i => i.kind === "explore" && !(i.tries > 0)); if(ei < 0) return false; const rm = plan.items.splice(ei, 1)[0]; rm.status = "replaced"; plan.history.push(rm); return true; };   /* gelişim ödevi tanıma ödevinden önceliklidir */
     const prio = (d) => d.struggle + (d.gameSignal ? 0.1 : 0); const hardDomains = Object.values(S.domains).filter(d => d.state === "zorlaniyor").sort((a, b) => prio(b) - prio(a) || b.evidence - a.evidence);   /* oyun sinyali önceliği artırır */
-    for(const d of hardDomains){ if(plan.items.filter(i => i.kind === "dev").length >= devCap) break; { const ei = plan.items.findIndex(i => i.cat === d.id && i.kind === "explore" && !(i.tries > 0)); if(ei >= 0){ const rm = plan.items.splice(ei, 1)[0]; rm.status = "replaced"; plan.history.push(rm); } } if(!makeRoom()) break; if(plan.items.some(i => i.cat === d.id)) continue;   /* aynı alandaki başlanmamış tanıma ödevi gelişime yer açar */ const ex = devPickExercise(d.id, lvl, S, recentIds, "hard"); if(!ex) continue; plan.items.push(devMakeItem(ex, d.id, devTierFor(ex, S, "dev"), "dev", now, { step: 1 })); recentIds.add(ex.id); }
+    for(const d of hardDomains){ if(plan.items.filter(i => i.kind === "dev").length >= devCap) break; { const ei = plan.items.findIndex(i => i.cat === d.id && i.kind === "explore" && !(i.tries > 0)); if(ei >= 0){ const rm = plan.items.splice(ei, 1)[0]; rm.status = "replaced"; plan.history.push(rm); } } if(!makeRoom()) break; if(plan.items.some(i => i.cat === d.id)) continue;   /* aynı alandaki başlanmamış tanıma ödevi gelişime yer açar */ const ex = devPickExercise(d.id, lvlC(d.id), S, recentIds, "hard"); if(!ex) continue; plan.items.push(devMakeItem(ex, d.id, devTierFor(ex, S, "dev"), "dev", now, { step: 1 })); recentIds.add(ex.id); }
     const nDev = plan.items.filter(i => i.kind === "dev").length;
     if(nDev > 0 && strongCap > 0 && !plan.items.some(i => i.kind === "strong") && makeRoom()){ const strong = Object.values(S.domains).filter(d => d.state === "guclu" && !plan.items.some(i => i.cat === d.id)).sort((a, b) => b.success - a.success || b.evidence - a.evidence)[0];
-      if(strong){ const ex = devPickExercise(strong.id, lvl, S, recentIds, "strong"); if(ex){ plan.items.push(devMakeItem(ex, strong.id, devTierFor(ex, S, "strong"), "strong", now)); recentIds.add(ex.id); } } } }
+      if(strong){ const ex = devPickExercise(strong.id, lvlC(strong.id), S, recentIds, "strong"); if(ex){ plan.items.push(devMakeItem(ex, strong.id, devTierFor(ex, S, "strong"), "strong", now)); recentIds.add(ex.id); } } } }
   /* 3b) tanıma ödevleri: gelişim ödevleri 3'ten azsa, verisi az alanlardan kısa çalışmalar (uzman ödevi yokken) */
   if(!expertN && !opts.noExplore){ const exploreCap = 3; const nowCount = () => plan.items.length; const dayStart = new Date(now).setHours(0, 0, 0, 0); let exploreLeft = Math.max(0, 3 - plan.history.concat(plan.items).filter(i => i.kind === "explore" && i.at >= dayStart && i.status !== "replaced" && i.status !== "trimmed").length);   /* günde en çok 3 tanıma ödevi; yapılan hemen yenisiyle değişmez */
     const poor = Object.values(S.domains).filter(d => d.state === "veri-az" && !plan.items.some(i => i.cat === d.id) && !plan.history.some(h => h.cat === d.id && h.kind === "explore" && now - h.at < DEV_RECENT_DAYS * 864e5)).sort((a, b) => a.evidence - b.evidence || (Math.random() - 0.5));
