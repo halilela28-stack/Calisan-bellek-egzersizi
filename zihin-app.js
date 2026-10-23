@@ -5541,105 +5541,115 @@ exerciseIds:["pk-balloon","pk-bag","pk-word","pk-slide","pk-redlight","pk-mole",
 id:"islemleme-hizi",
 readingLevel:["post"],
 label:"İşlemleme Hızı",
-sub:"Hızlı isimlendirme, sayı bulma, seçimli tepki, simge arama, şekil-resim eşleme, doğru-yanlış eşleşme, oluş sırası, renkli kart seç · dokunmalı: gruba dokun, sayılara sırayla dokun, hızlı seç, doğru çiftler · kaç tane (bir bakışta sayı), anlam kararı · aynı ikiliyi bul, harf adı, hızlı cümle doğrulama · strateji aşamaları",
+sub:"Hızlı Adlandırma · Hızlı Dokunma · Simge Arama · Hızlı Karar",
 purpose:"Görsel bilgiyi hızlı ve doğru biçimde tarama, eşleme, isimlendirme ve karar verme becerisini çalıştırır; bu beceriler okuma akıcılığıyla ilişkilendirilir.",
 color:"#2E6F6E",
 group:"Hız & Dikkat",
-exerciseIds:["shape-color","trail-numbers","object-name","dot-count","search-object","pair-match","search-symbol","fruit-veg","sdmt-touch","number-find","cat-cold","number-color","quick-sort","related-pairs","cat-living","ran-letter","taste-name","search-shape","origin-order","sem-decide","search-letter","hot-cold","touch-card","sent-verify","symbol-image","choice-reaction","pairs-touch","living-nonliving","cat-fruit"]
+exerciseIds:["shape-color","trail-numbers","object-name","dot-count","search-object","pair-match","search-symbol","fruit-veg","sdmt-touch","number-find","cat-cold","number-color","quick-sort","related-pairs","cat-living","ran-letter","taste-name","search-shape","origin-order","sem-decide","search-letter","hot-cold","touch-card","sent-verify","symbol-image","choice-reaction","pairs-touch","living-nonliving","cat-fruit"],
+exerciseGroups:[["Hızlı Adlandırma", ["shape-color", "object-name", "fruit-veg", "number-color", "ran-letter", "taste-name", "hot-cold", "living-nonliving", "symbol-image", "choice-reaction"]], ["Hızlı Dokunma", ["trail-numbers", "sdmt-touch", "cat-cold", "cat-living", "cat-fruit", "touch-card", "quick-sort", "pairs-touch"]], ["Simge Arama", ["search-object", "search-symbol", "search-shape", "search-letter", "pair-match"]], ["Hızlı Karar", ["dot-count", "number-find", "related-pairs", "origin-order", "sem-decide", "sent-verify"]]]
 },
 {
 id:"goz-takip",
 readingLevel:["pre","post"],
 label:"Göz Takip",
-sub:"İzleme (yatay, dikey, çapraz, şekiller), sıçrama (iki nokta, rastgele nokta, satır dönüşü) · dokunmalı: hareketli hedefe dokun (göz–el) · kenardan gelen, sabit bakış · parmakla izle, gözle say",
+sub:"Yumuşak İzleme · Sıçrama · Hedef ve Bakış",
 purpose:"Gözlerin hareketli bir hedefi baş hareketi olmadan izlemesini, bir noktadan diğerine hızlı sıçramasını ve göz–el koordinasyonunu çalıştırır.",
 color:"#C97F32",
 group:"Hız & Dikkat",
-exerciseIds:["eye-horizontal","eye-vertical","eye-diagonal","eye-diagonal2","eye-wave","eye-steep-wave","eye-depth","eye-square","eye-triangle","eye-star","eye-junction","eye-crossbox","eye-saccade-two","eye-saccade-random","eye-saccade-reading","eye-touch","periph","fixation","finger-trace","eye-count"]
+exerciseIds:["eye-horizontal","eye-vertical","eye-diagonal","eye-diagonal2","eye-wave","eye-steep-wave","eye-depth","eye-square","eye-triangle","eye-star","eye-junction","eye-crossbox","eye-saccade-two","eye-saccade-random","eye-saccade-reading","eye-touch","periph","fixation","finger-trace","eye-count"],
+exerciseGroups:[["Yumuşak İzleme", ["eye-horizontal", "eye-vertical", "eye-diagonal", "eye-diagonal2", "eye-wave", "eye-steep-wave", "eye-depth", "eye-square", "eye-triangle", "eye-star", "eye-junction", "eye-crossbox"]], ["Sıçrama", ["eye-saccade-two", "eye-saccade-random", "eye-saccade-reading"]], ["Hedef ve Bakış", ["eye-touch", "periph", "fixation", "finger-trace", "eye-count"]]]
 },
 {
 id:"yurutucu-islev",
 readingLevel:["post"],
 label:"Yürütücü İşlev",
-sub:"Ketleme (Stroop, sayı ve hayvan boyutu Stroop, ok–kelime, ters yöne dokun, gece–gündüz, ket vurma, hayvana dokun, ortadakini söyle, balıklar hangi yöne, yüzler tek tek, uymayan kelime, Zihni diyor ki, ayı–ejderha, tersini yap, el oyunu, ters vuruş, heykel, bekle ve bırak, azı seç, bağlamlı tepki, çeldiriciyi yoksay, zıt dünya, çimen–kar, ters ok) · Esneklik (kural değişimi, ön mü arka mı, kart sıralama, iz sürme, iki yönden eşle, kuralı söylemeden değiştir, hangisi kazandırıyor, büyük–küçük şekil, artı–eksi, yaratık sayma, hareket mi yön mü, tersine sınıfla) · Planlama (boncuklar, küpler, üç bardak, önce planla, hayvanat bahçesi planı, kayıp anahtar, su kapları, desen akıcılığı, yirmi soru, kutuları ara, üç iş bir süre, bilişsel tahmin) · Öz denetim (zaman tahmini, hatayı bul, önce bak sonra dokun, kendi hatanı bul, hangi kutu daha iyi, her grubun sonuncusu; dokunmalılarda tahmin et–yap–karşılaştır) · başka ne işe yarar (esnek düşünme) · iki iş birden, dur işareti, nadir hedef · strateji aşamaları",
+sub:"Ketleme · Esneklik · Planlama · Öz Denetim · Dikkat Kontrolü",
 purpose:"Dikkati yönetme, kural değiştirme, dürtüsel tepkiyi durdurma, planlama, zamanı tahmin etme ve kendi işini denetleme becerilerini çalıştırır.",
 color:"#3A6EA5",
 group:"Hız & Dikkat",
 exerciseIds:["stroop","day-night","sort-color-shape","go-no-go","trail-number-month","fish-flanker","plan-beads","stroop-touch","sort-animal-size","day-night-touch","number-letter","touch-animal","plan-swap","dual-task","sort-color-shape-count","flanker","trail-animal-fruit","task-switch","plan-tol","face-go","sort-words","time-est","trail-color-shape","stop-signal","plan-cubes","find-error","switch-touch","alt-uses","vigilance","num-stroop","zihni-says","opp-do","size-stroop","spatial-stroop","bear-dragon","hand-game","hayling","anti-touch","tap-reverse","statue","opp-world","less-more","hold-wait","context-go","grass-snow","distract","rev-arrow","fist","navon","rule-shift","plus-minus","reversal","motion-dir","creature-count","rev-sort","zoo-map","box-search","water-jars","twenty-q","key-search","three-tasks","design-fluency","cog-est","look-first","safe-box","self-check","keep-track"],
 exerciseGroups:[["Ketleme",["stroop","day-night","go-no-go","fish-flanker","touch-animal","stroop-touch","day-night-touch","flanker","face-go","num-stroop","zihni-says","opp-do","size-stroop","spatial-stroop","bear-dragon","hand-game","hayling","anti-touch","tap-reverse","statue","opp-world","less-more","hold-wait","context-go","grass-snow","distract","rev-arrow"]],
-["Esneklik",["task-switch","sort-color-shape","sort-animal-size","sort-color-shape-count","sort-words","number-letter","trail-number-month","trail-animal-fruit","trail-color-shape","switch-touch","fist","navon","rule-shift","plus-minus","reversal","motion-dir","creature-count","rev-sort"]],
+["Esneklik",["alt-uses","task-switch","sort-color-shape","sort-animal-size","sort-color-shape-count","sort-words","number-letter","trail-number-month","trail-animal-fruit","trail-color-shape","switch-touch","fist","navon","rule-shift","plus-minus","reversal","motion-dir","creature-count","rev-sort"]],
 ["Planlama",["plan-beads","plan-swap","plan-tol","plan-cubes","zoo-map","box-search","water-jars","twenty-q","key-search","three-tasks","design-fluency","cog-est"]],
-["Öz Denetim",["find-error","time-est","look-first","safe-box","self-check","keep-track"]]]
+["Öz Denetim",["find-error","time-est","look-first","safe-box","self-check","keep-track"]],
+["Dikkat Kontrolü",["dual-task","stop-signal","vigilance"]]]
 },
 {
 id:"calisan-bellek",
 readingLevel:["pre","post"],
 label:"Çalışan Bellek",
-sub:"N-geri, aynı mı?, rakam dizisi, Corsi blokları, dinleme ve okuma aralığı, harf-sayı sıralama, sırayı hatırla, nerede saklandı, sondakileri hatırla, Zihni nerede?, market listesi, ileriye dönük bellek · bardak oyunu, zihinden hesap · konum n-geri, say ve hatırla · strateji aşamaları",
+sub:"N-Geri · Diziler · Dinleme ve Okuma Aralığı · Takip ve Güncelleme · İleriye Dönük Bellek",
 purpose:"Bilgiyi kısa süre zihinde tutup üzerinde işlem yapma becerisini çalıştırır: sayı ve kelime dizileri, ters ve sıralı tekrar, n-geri güncelleme, ileriye dönük bellek, zihinden hesap ve görsel-uzamsal takip.",
 color:"#4F9D5A",
 group:"Bellek",
-exerciseIds:["nback-shape","corsi","market","nback-color","span-listen","zihni","cups","wm-same","lns","pos-nback","market-verbal","digit-span","prospective-event","mental-math","running","span-touch","nback-number","zihni-verbal","wm-seq","prospective-time","corsi-verbal","running-verbal","count-span","word-order","lns-touch","animal-fruit","wm-where","span-read","prospective-delayed"]
+exerciseIds:["nback-shape","corsi","market","nback-color","span-listen","zihni","cups","wm-same","lns","pos-nback","market-verbal","digit-span","prospective-event","mental-math","running","span-touch","nback-number","zihni-verbal","wm-seq","prospective-time","corsi-verbal","running-verbal","count-span","word-order","lns-touch","animal-fruit","wm-where","span-read","prospective-delayed"],
+exerciseGroups:[["N-Geri", ["nback-shape", "nback-color", "nback-number", "pos-nback", "wm-same"]], ["Diziler", ["corsi", "corsi-verbal", "digit-span", "word-order", "wm-seq", "lns", "lns-touch", "animal-fruit", "running", "running-verbal", "count-span"]], ["Dinleme ve Okuma Aralığı", ["span-listen", "span-touch", "span-read", "mental-math"]], ["Takip ve Güncelleme", ["market", "market-verbal", "zihni", "zihni-verbal", "cups", "wm-where"]], ["İleriye Dönük Bellek", ["prospective-event", "prospective-time", "prospective-delayed"]]]
 },
 {
 id:"sozel-bellek",
 readingLevel:["pre","post"],
 label:"Sözel Bellek",
-sub:"Kelime listesi, liste öğrenme (gecikmeli + tanıma), kategorili liste, hikâye, kelime çiftleri, karışık dizi, uydurma kelime, kelime ve cümle tekrarı, hareket sırası · dokunmalı: eşini hatırla, duyduklarını bul, yönerge izle, duyduğun sırayla dokun, hikâyeyi sırala · kim söyledi (kaynak belleği), ritim tekrarı · ses dizisi belleği · yeni kelime öğren · tekerlemeyi tamamla · strateji aşamaları",
+sub:"Kelime Listeleri · Cümle ve Hikâye · Resimli ve Sesli Bellek",
 purpose:"Duyduğu bilgiyi kaydedip sonra geri getirme becerisini çalıştırır: kelime listeleri ve öğrenme denemeleri, kelime çiftleri, hikâye ve cümle hatırlama, gecikmeli hatırlama, sözel yönerge ve kaynak belleği.",
 color:"#2E5F8A",
 group:"Bellek",
-exerciseIds:["word-list-recall","pal-touch","pic-seq-say","sent-listen","move-seq","mixed-span","list-learn","who-said","short-story","story-recall","tone-seq","nonword","hear-find","rhyme-done","story-order","word-pairs","rhythm","dir-follow","cat-list","sentence-repeat","pic-seq-touch","word-repeat","new-word"]
+exerciseIds:["word-list-recall","pal-touch","pic-seq-say","sent-listen","move-seq","mixed-span","list-learn","who-said","short-story","story-recall","tone-seq","nonword","hear-find","rhyme-done","story-order","word-pairs","rhythm","dir-follow","cat-list","sentence-repeat","pic-seq-touch","word-repeat","new-word"],
+exerciseGroups:[["Kelime Listeleri", ["word-list-recall", "list-learn", "cat-list", "word-repeat", "word-pairs", "mixed-span", "new-word"]], ["Cümle ve Hikâye", ["sent-listen", "sentence-repeat", "short-story", "story-recall", "story-order", "rhyme-done", "nonword"]], ["Resimli ve Sesli Bellek", ["pic-seq-say", "pic-seq-touch", "hear-find", "pal-touch", "who-said", "tone-seq", "rhythm", "move-seq", "dir-follow"]]]
 },
 {
 id:"gorsel-bellek",
 readingLevel:["pre","post"],
 label:"Görsel Bellek",
-sub:"Şekil, renk ve konum hatırlama · yüz ve yüz–isim belleği, sahne belleği · ne eksik, ne değişti, görsel tanıma (gecikmeli), çizgiyi hatırla · kart eşleştirme · hangisini gördün, yolu hatırla · renkli nesneler, resim sırası · strateji aşamaları",
+sub:"Ne Gördün? · Yer ve Sıra · Sahne ve Değişim",
 purpose:"Gördüğü nesne, konum, yüz, sahne ve desenleri kısa ya da uzun bir süre sonra hatırlama becerisini çalıştırır.",
 color:"#D64545",
 group:"Bellek",
-exerciseIds:["shape-recall","rt-position","vis-miss","color-recall","vis-face","which-seen","rt-shapes","scene-mem","pic-order","vis-recog","memory-cards","position-recall","route-mem","color-obj","vis-chg","rt-colors","scene-touch","vis-draw"]
+exerciseIds:["shape-recall","rt-position","vis-miss","color-recall","vis-face","which-seen","rt-shapes","scene-mem","pic-order","vis-recog","memory-cards","position-recall","route-mem","color-obj","vis-chg","rt-colors","scene-touch","vis-draw"],
+exerciseGroups:[["Ne Gördün?", ["shape-recall", "color-recall", "rt-shapes", "rt-colors", "which-seen", "vis-recog", "vis-face", "memory-cards"]], ["Yer ve Sıra", ["rt-position", "position-recall", "pic-order", "route-mem", "vis-draw", "color-obj"]], ["Sahne ve Değişim", ["vis-miss", "vis-chg", "scene-mem", "scene-touch"]]]
 },
 {
 id:"sozel-organizasyon",
 readingLevel:["post"],
 label:"Sözel Organizasyon",
-sub:"Sözel akıcılık (kategori, ses/harf, kategori değiştirme) · anlamsal kümeleme (üst kavram, resimleri grupla, hangileri birlikte, kendi kümeni kur) · ses ve uyak, hece · zıt ve eş anlam, parça–bütün, sıraya diz · dokunmalı biçimler · hece birleştir, ses oyunu, cümleyi diz · strateji aşamaları",
+sub:"Gruplama · Ses ve Hece · Anlam İlişkileri · Akıcılık",
 purpose:"Sözcükleri anlamına ve sesine göre düzenleme becerisini çalıştırır: sözel akıcılık, anlamsal kümeleme ve üst kavram, uyak, hece ve ses farkındalığı, zıt ve eş anlam, parça–bütün ve sıralama.",
 color:"#8A5A8C",
 group:"Dil & Görsel Analiz",
-exerciseIds:["word-group","flu-cat","opposite-match","sort-pic","syl-blend","syllable-count","rhyme-say","group-say","odd-cat","flu-letter","part-whole","phon-manip","opp-touch","seq-words","rhyme-touch","free-sort","syl-touch","sent-build","syn-touch","same-sound","flu-switch"]
+exerciseIds:["word-group","flu-cat","opposite-match","sort-pic","syl-blend","syllable-count","rhyme-say","group-say","odd-cat","flu-letter","part-whole","phon-manip","opp-touch","seq-words","rhyme-touch","free-sort","syl-touch","sent-build","syn-touch","same-sound","flu-switch"],
+exerciseGroups:[["Gruplama", ["word-group", "sort-pic", "odd-cat", "free-sort", "group-say", "seq-words", "part-whole"]], ["Ses ve Hece", ["syl-blend", "syllable-count", "syl-touch", "rhyme-say", "rhyme-touch", "phon-manip", "same-sound"]], ["Anlam İlişkileri", ["opposite-match", "opp-touch", "syn-touch", "sent-build"]], ["Akıcılık", ["flu-cat", "flu-letter", "flu-switch"]]]
 },
 {
 id:"sozel-kavrama",
 readingLevel:["post"],
 label:"Sözel Kavrama",
-sub:"Benzerlik, kelime tanımlama, genel kavrama, ne yapmalı · sözel analoji, benzetme ve atasözü, çıkarım, çok anlamlı kelimeler, saçmalığı bul · dokunmalı: hangi kelime (alıcı sözcük dağarcığı), analoji tamamla, saçma mı, kavram bilgisi, ne anlama geliyor, çıkarım seç, hangisi benziyor, tanımı dinle, ne işe yarar · soruyu anla · cümle–resim eşleştir (dil bilgisini anlama) · dinle ve cevapla · strateji aşamaları",
+sub:"Anlama · Akıl Yürütme · Kelime ve Deyim · Mantık Hatası",
 purpose:"Kelimeleri ve sözel ifadeleri anlama, aralarında ilişki kurma becerisini çalıştırır: alıcı sözcük dağarcığı, tanımlama, benzerlik ve analoji, mecaz ve atasözü, çıkarım, mantıksızlık bulma ve temel kavramlar.",
 color:"#6B4C9A",
 group:"Dil & Görsel Analiz",
-exerciseIds:["sent-pic","similarities","analogy-say","vocabulary","absurd-touch","practical-reasoning","word-pic","listen-answer","proverb-say","sim-touch","vanalogy-touch","wh-scene","concept-touch","infer-say","absurd-say","def-touch","proverb-touch","homonym-say","what-do","infer-touch","use-touch"]
+exerciseIds:["sent-pic","similarities","analogy-say","vocabulary","absurd-touch","practical-reasoning","word-pic","listen-answer","proverb-say","sim-touch","vanalogy-touch","wh-scene","concept-touch","infer-say","absurd-say","def-touch","proverb-touch","homonym-say","what-do","infer-touch","use-touch"],
+exerciseGroups:[["Anlama", ["sent-pic", "word-pic", "listen-answer", "wh-scene", "concept-touch", "def-touch", "use-touch"]], ["Akıl Yürütme", ["similarities", "sim-touch", "analogy-say", "vanalogy-touch", "infer-say", "infer-touch", "practical-reasoning", "what-do"]], ["Kelime ve Deyim", ["vocabulary", "homonym-say", "proverb-say", "proverb-touch"]], ["Mantık Hatası", ["absurd-touch", "absurd-say"]]]
 },
 {
 id:"gorsel-organizasyon",
 readingLevel:["pre","post"],
 label:"Görsel Organizasyon",
-sub:"Boyut, yön, kenar sayısı, görsel zıtlar, biçim değişmezliği · bloklarla desen, zihinsel döndürme, şekil–zemin (kalabalıkta bul, üst üste şekiller, gizli şekil), görsel tamamlama · desen kopyala, simetri, labirent · farkları bul, katla ve del, hangi yönden · strateji aşamaları",
+sub:"Boyut ve Yön · Şekil Algısı · Zihinsel Döndürme ve Yapı",
 purpose:"Görsel bilgiyi çözümleyip düzenleme becerisini çalıştırır: boyut, yön ve biçim değişmezliği, zihinsel döndürme, şekil–zemin ayırt etme, görsel tamamlama, bloklarla desen, kopyalama, simetri ve labirent.",
 color:"#E8823A",
 group:"Dil & Görsel Analiz",
-exerciseIds:["size-sort","block-design","arrow-direction","clutter-find","spot-diff","edge-count","mental-rot","size-touch","closure","visual-opposites","paper-fold","copy-design","arrow-touch","overlap-count","same-number","symmetry","view-from","edge-touch","embedded","maze"]
+exerciseIds:["size-sort","block-design","arrow-direction","clutter-find","spot-diff","edge-count","mental-rot","size-touch","closure","visual-opposites","paper-fold","copy-design","arrow-touch","overlap-count","same-number","symmetry","view-from","edge-touch","embedded","maze"],
+exerciseGroups:[["Boyut ve Yön", ["size-sort", "size-touch", "arrow-direction", "arrow-touch", "visual-opposites"]], ["Şekil Algısı", ["closure", "embedded", "overlap-count", "edge-count", "edge-touch", "same-number", "clutter-find", "spot-diff"]], ["Zihinsel Döndürme ve Yapı", ["block-design", "mental-rot", "paper-fold", "copy-design", "symmetry", "view-from", "maze"]]]
 },
 {
 id:"algisal-akil-yurutme",
 readingLevel:["pre","post"],
 label:"Algısal Akıl Yürütme",
-sub:"Farklı olanı bulma, örüntü (tekrarlayan ve büyüyen), görsel analoji (boyut, renk, dolgu, döndürme, sayı, parça–bütün) · matris tamamla (Raven/Wechsler tarzı), kural keşfi, terazi · resimleri sırala (neden–sonuç) · dokunmalı biçimler · neden–sonuç, resimli sudoku, sayı örüntüsü · ipucuyla bul, sınıflama tablosu · strateji aşamaları",
+sub:"Örüntü ve Analoji · Sınıflama ve Kural · Neden–Sonuç ve Mantık",
 purpose:"Görsel örüntü ve ilişkileri çözümleyerek sözel olmayan akıl yürütme becerisini çalıştırır: örüntü ve matris tamamlama, analoji, kural keşfi, terazi ve neden–sonuç sıralaması.",
 color:"#B08900",
 group:"Dil & Görsel Analiz",
-exerciseIds:["odd-one-out","matrix-fill","cause-effect","sequence-pattern","rule-induce","class-table","visual-analogy","pic-arrange","sudoku","balance","odd-touch","pattern-touch","num-pattern","analogy-touch","clue-find"]
+exerciseIds:["odd-one-out","matrix-fill","cause-effect","sequence-pattern","rule-induce","class-table","visual-analogy","pic-arrange","sudoku","balance","odd-touch","pattern-touch","num-pattern","analogy-touch","clue-find"],
+exerciseGroups:[["Örüntü ve Analoji", ["matrix-fill", "sequence-pattern", "pattern-touch", "num-pattern", "visual-analogy", "analogy-touch"]], ["Sınıflama ve Kural", ["odd-one-out", "odd-touch", "rule-induce", "class-table", "sudoku", "clue-find"]], ["Neden–Sonuç ve Mantık", ["cause-effect", "pic-arrange", "balance"]]]
 },
 ];
 
@@ -8815,6 +8825,7 @@ function chSideAttr(id){ const st = chState; let bc = "#E6ECF2", sh = ""; if(st 
 function chSideNote(txt){ const st = chState; if(!st || st.phase !== "feedback" || st.flash !== "bad" || !txt) return ""; return `<b style="position:absolute;left:50%;bottom:3%;transform:translateX(-50%);background:var(--good);color:#fff;border-radius:999px;padding:3px 12px;font-size:13px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,.2)">${txt}</b>`; }
 const sideButtons = () => [{ id:"L", html:'<span style="font-size:30px;font-weight:900">◀</span><b style="margin-left:6px">SOL</b>' }, { id:"R", html:'<b style="margin-right:6px">SAĞ</b><span style="font-size:30px;font-weight:900">▶</span>' }];
 /* ===== Yürütücü İşlev · Paket 2 (Ketleme B) · veri ve yardımcılar ===== */
+(function catGroupStyle(){ try{ if(document.getElementById("catGroupStyle")) return; const st = document.createElement("style"); st.id = "catGroupStyle"; st.textContent = `.cat-groups{display:none;flex-direction:column;gap:6px;margin-top:8px}.category-card.open .cat-groups{display:flex}.category-card.open .category-card-sub{display:none!important}.cat-group{display:flex;flex-direction:column;gap:6px}.cat-group-chip{align-self:flex-start;border:2px solid var(--line);background:var(--panel);border-radius:999px;padding:6px 12px;font-family:inherit;font-weight:800;font-size:14px;color:var(--ink);cursor:pointer;text-align:left}.cat-group-chip small{font-weight:800;color:#5B6B78;margin-left:4px}.cat-group-chip.on{border-color:#0A847E;background:#DDF3F0;color:#0A847E}.cat-group-list{display:flex;flex-wrap:wrap;gap:6px;padding-left:6px}.cat-ex-btn{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:5px 10px;font-family:inherit;font-weight:700;font-size:13px;color:var(--ink);cursor:pointer;text-align:left}.cat-ex-btn:active{background:#DDF3F0}`; document.head.appendChild(st); }catch(e){} })();
 (function efStyle(){ try{ if(document.getElementById("efStyle")) return; const s = document.createElement("style"); s.id = "efStyle"; s.textContent = `@keyframes efFly{0%{transform:translate(0,0) scale(1)}50%{transform:translate(var(--dx),var(--dy)) scale(1.35)}100%{transform:translate(0,0) scale(1)}}@keyframes efBlink{0%,100%{opacity:1}50%{opacity:.15}}.ef-dist{position:absolute;pointer-events:none;will-change:transform}.ef-hold{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}.ef-hold.holding{transform:translateY(3px);box-shadow:none !important;background:#E3F6EC !important;border-color:#1FA463 !important}.ef-bar{height:14px;border-radius:999px;background:#E6ECF2;overflow:hidden}.ef-bar>i{display:block;height:100%;width:0;background:#1FA463;border-radius:999px}#statueDist{opacity:0;transition:opacity .2s}#statueDist.on{opacity:1}`; document.head.appendChild(s); }catch(e){} })();
 /* Heykel (NEPSY Statue): süre ve çeldirici ses zamanları */
 function statueCfg(){ const t = Math.min(currentCombo().t, 2), pre = isPre(), secs = (pre ? [30, 45, 60] : [45, 60, 75])[t], nD = (pre ? [2, 3, 4] : [3, 4, 6])[t]; const ds = []; for(let i = 0; i < nD; i++) ds.push(4000 + Math.random() * (secs * 1000 - 8000)); return { secs, ds: ds.sort((a, b) => a - b) }; }
@@ -13066,7 +13077,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.23-s";
+const APP_VERSION = "2026.10.23-t";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -15151,6 +15162,21 @@ function categoryHasPreExercises(cat){
 return cat.exerciseIds.some(id => exerciseById(id).readingLevel.includes("pre"));
 }
 
+/* Kategori kartı: bölüm (üst başlık) çipleri; dokununca o bölümün çalışma sayfaları listelenir, bir çalışmaya dokununca doğrudan o sayfa açılır */
+function renderCatGroups(host, cat, realIndex){
+if(!host || host.dataset.built) return; host.dataset.built = "1";
+const groups = cat.exerciseGroups || [["Çalışmalar", cat.exerciseIds]];
+const avail = (id) => { const ex = exerciseById(id); return ex && ex.readingLevel.includes(readingLevel); };
+groups.forEach(([name, ids]) => { const inLevel = ids.filter(avail); if(!inLevel.length) return;
+  const wrap = document.createElement("span"); wrap.className = "cat-group";
+  const chip = document.createElement("button"); chip.type = "button"; chip.className = "cat-group-chip"; chip.innerHTML = `${escHTML(name)} <small>${inLevel.length}</small>`;
+  const ul = document.createElement("span"); ul.className = "cat-group-list"; ul.style.display = "none";
+  inLevel.forEach(id => { const ex = exerciseById(id); const b = document.createElement("button"); b.type = "button"; b.className = "cat-ex-btn"; b.textContent = ex.label;
+    b.addEventListener("click", (ev) => { ev.stopPropagation(); selectCategory(realIndex); try{ const exs = currentCategoryExercises(); const e = exs.findIndex(x => x.id === id); if(e >= 0){ const tt = Math.max(ex.minTier || 0, Math.min(currentCombo().t, tierMax(ex))); const idx = findSeqIndex(tt, e); if(idx >= 0) goToIndex(idx); } }catch(err){} });
+    ul.appendChild(b); });
+  chip.addEventListener("click", (ev) => { ev.stopPropagation(); const open = ul.style.display !== "none"; host.querySelectorAll(".cat-group-list").forEach(x => { x.style.display = "none"; }); host.querySelectorAll(".cat-group-chip").forEach(x => x.classList.remove("on")); if(!open){ ul.style.display = "flex"; chip.classList.add("on"); } });
+  wrap.appendChild(chip); wrap.appendChild(ul); host.appendChild(wrap); });
+}
 function renderCategoryList(){
 try{ renderFamilyHome(); }catch(e){}
 try{ renderExpertHome(); }catch(e){}
@@ -15179,13 +15205,16 @@ card.innerHTML = `
 <span class="category-card-text">
 <span class="category-card-title">${cat.label}</span>
 <span class="category-card-sub">${cat.sub}</span>
-<span class="cat-hint">Çalışmalara gitmek için tekrar dokun</span>
+<span class="cat-groups" data-cat="${cat.id}"></span>
+<span class="cat-hint">Bölüm adına dokununca o bölümün çalışmaları açılır · çalışmalara gitmek için karta tekrar dokun</span>
 ${badge}
 </span>
 <span class="cat-chev" aria-hidden="true">›</span>
 `;
-card.addEventListener("click", ()=>{ if(card.classList.contains("open")) return selectCategory(realIndex);
+card.addEventListener("click", (ev)=>{ if(ev.target.closest(".cat-groups")) return;   /* bölüm/çalışma dokunuşları kendi işleyicisinde */
+if(card.classList.contains("open")) return selectCategory(realIndex);
 list.querySelectorAll(".category-card.open").forEach(c => c.classList.remove("open")); card.classList.add("open"); card.setAttribute("aria-expanded", "true");
+try{ renderCatGroups(card.querySelector(".cat-groups"), cat, realIndex); }catch(e){}
 setTimeout(() => { try{ card.scrollIntoView({ block: "nearest", behavior: "smooth" }); }catch(e){} }, 50); });
 list.appendChild(card);
 });
