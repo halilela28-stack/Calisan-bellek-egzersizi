@@ -6135,7 +6135,12 @@ if(navigator.vibrate) navigator.vibrate(pattern);
 }catch(e){}
 }
 
-/* KURAL (düzey atlama): görevin doğası gereği kaçınılmaz hatalar (sessiz kural değişimi, yıldızın yer değiştirmesi, ilk tahmin) başarıyı engellemez */
+/* KURAL (düzey geçişleri, yeni eklenecek her çalışma için):
+   1) İki başarılı kayıt → bir üst düzey; bir kötü kayıt → bir alt düzey; son düzeyde iki başarı → (çok aşamalı sözel/etkileşimli çalışmada) sonraki aşamanın ilk düzeyi.
+   2) Her yeni çalışma teslimden önce bu geçişler Başlangıç→Orta→Zor ve geri yönde test edilir (tier_audit) ve "iyi oynayan çocuk" temposunda (0,8 sn/tepki; Okul Öncesi 1,1 sn) başarı eşiğine ulaşılabildiği doğrulanır (adapt_test).
+   3) Süresi görevce sabit olan çalışmalar (tutma, oynatma, geri sayım, arama uzunluğu) adaptErrorsOnly ile yalnızca hataya göre; sessiz kural değişimi gibi kaçınılmaz hatası olan çalışmalar adaptInevitable ile; "dokunma" denemelerinde pencere süresince bekleyen çalışmalar daha yüksek speedFactor ile tanımlanır.
+   4) noAdaptive yalnızca ölçüsü hata sayısı olmayan çalışmalarda (ör. Yirmi Soru, Desen Akıcılığı) kullanılır.
+   Kaçınılmaz hatalar (sessiz kural değişimi, yıldızın yer değiştirmesi, ilk tahmin) başarıyı engellemez: */
 function adaptInevitable(ex){ try{ if(!ex || !mtState) return 0; if(ex.id === "rule-shift" && mtState.kind === "wcst") return (mtState.shifts || 0) + 1; if(ex.id === "reversal" && mtState.kind === "rev") return (mtState.revs || 0) + 1; }catch(e){} return 0; }
 function applyAdaptiveDifficulty(ms, errors){
 const ex = currentExercise(); errors = Math.max(0, errors - adaptInevitable(ex));
@@ -13061,7 +13066,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.23-r";
+const APP_VERSION = "2026.10.23-s";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
