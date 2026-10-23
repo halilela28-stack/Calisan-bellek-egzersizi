@@ -1157,6 +1157,8 @@ const problems = [];
 let lastKey = "";
 const NP = Array.isArray(spec.problems) ? spec.problems[Math.min(t, 2)] : spec.problems;   /* problem sayısı düzeye göre 3-4-5 */
 const seenKey = currentExercise().id + "|" + t, seenAll = (window.__plnSeen = window.__plnSeen || {}), seen = seenAll[seenKey] = seenAll[seenKey] || new Set(); const usedS = new Set(), usedG = new Set();
+/* KURAL (varyasyon): problemler yalnız renkte değil dizilişte de farklı olur — sayfada aynı hedef/başlangıç dizilişi (kule başına küp sayısı) tekrar etmez, tek kulede toplanmış hedef en fazla bir kez gelir, ilk problemin dizilişi önceki açılıştakiyle aynı olmaz */
+const shp = (st) => Array.isArray(st) && Array.isArray(st[0]) ? st.map(x => x.length).join("-") : (Array.isArray(st) ? st.length + "" : ""), usedGS = new Set(), usedSS = new Set(), lastFirst = (window.__plnFirst = window.__plnFirst || {})[seenKey] || []; let towerGoal = 0;
 for(let k = 0; k < NP; k++){
 let pr = null, g = 0;
 while(!pr && g < 120){
@@ -1177,11 +1179,15 @@ if(cands.length) pr = { start, goal: randomItem(cands), min: want, caps };
 if(pr && plnKey([pr.start, pr.goal]) === lastKey) pr = null;
 if(pr && g < 100 && (usedS.has(plnKey(pr.start)) || usedG.has(plnKey(pr.goal)))) pr = null;   /* sayfada aynı başlangıç ya da hedef iki kez gelmez */
 if(pr && g < 60 && seen.has(plnKey([pr.start, pr.goal]))) pr = null;   /* önceki girişlerde görülen problem, yenisi varken tekrar gelmez */
+if(pr && spec.type !== "swap" && g < 90){ const gs = shp(pr.goal), ss = shp(pr.start), single = pr.goal.filter(x => x.length).length === 1;
+  if(usedGS.has(gs) || usedSS.has(ss) || (single && towerGoal >= 1) || (k === 0 && lastFirst.includes(gs + "|" + ss))) pr = null; }
 }
 lastKey = plnKey([pr.start, pr.goal]); usedS.add(plnKey(pr.start)); usedG.add(plnKey(pr.goal)); seen.add(lastKey);
+if(spec.type !== "swap"){ usedGS.add(shp(pr.goal)); usedSS.add(shp(pr.start)); if(pr.goal.filter(x => x.length).length === 1) towerGoal++; }
 problems.push(pr);
 }
 problems.sort((a, b) => a.min - b.min);   /* kolaydan zora */
+if(spec.type !== "swap") window.__plnFirst[seenKey] = [shp(problems[0].goal) + "|" + shp(problems[0].start)].concat(lastFirst).slice(0, 3);   /* son 3 açılışın ilk dizilişi tekrar etmez */
 planState = { p:0, cur: problems[0].start.map(x => Array.isArray(x) ? x.slice() : x), moves:0, extra:0, sel:null, done:false,
 firstMoveMs:[], probStart:null, solved:0 };
 return problems;
@@ -7569,6 +7575,11 @@ const FLU_CATS = { pre:[ { k:"hayvan", n:"HAYVANLAR", say:"Bildiğin hayvanları
     { k:"meslek", n:"MESLEKLER", say:"Bildiğin bütün meslekleri söyle." }, { k:"muzik", n:"MÜZİK ALETLERİ", say:"Bildiğin bütün müzik aletlerini söyle." }, { k:"deniz", n:"DENİZ CANLILARI", say:"Denizde yaşayan canlıları söyle." }, { k:"mutfak", n:"MUTFAK ALETLERİ", say:"Mutfakta kullanılan aletleri söyle." }, { k:"kus", n:"KUŞLAR", say:"Bildiğin bütün kuşları söyle." } ] };
 const FLU_CAT_TIER = { pre:[["hayvan","yiyecek","oyuncak"], ["meyve","giysi","tasit","vucut"], ["sebze","mutfak","okul"]], post:[["hayvan","yiyecek","giysi","esya"], ["meyve","sebze","tasit","spor","icecek"], ["meslek","muzik","deniz","mutfak","kus"]] }; // geniş kategori kolay, dar kategori zor
 const FLU_LETTERS = { pre:[["K","B","A","M"], ["S","T","D","E"], ["Ç","Y","H"]], post:[["K","S","B","A","T"], ["M","D","Y","E","G"], ["Ç","H","O","İ","F","Z"]] };   // sık başlayan sesler kolay, seyrek olanlar zor
+const FLU_SWITCH_PRE_POOL = [ [ [["HAYVAN","hayvan"],["YİYECEK","yiyecek"]], [["OYUNCAK","oyuncak"],["MEYVE","meyve"]], [["RENK","renk"],["TAŞIT","taşıt"]] ], [ [["RENK","renk"],["HAYVAN","hayvan"]], [["MEYVE","meyve"],["GİYSİ","giysi"]], [["TAŞIT","taşıt"],["YİYECEK","yiyecek"]] ], [ [["HAYVAN","hayvan"],["YİYECEK","yiyecek"],["RENK","renk"]], [["MEYVE","meyve"],["OYUNCAK","oyuncak"],["TAŞIT","taşıt"]], [["GİYSİ","giysi"],["HAYVAN","hayvan"],["RENK","renk"]] ] ];
+const FLU_SWITCH_POOL = [ [ [["HAYVAN","hayvan"],["YİYECEK","yiyecek"]], [["MEYVE","meyve"],["TAŞIT","taşıt"]], [["GİYSİ","giysi"],["SPOR","spor dalı"]], [["MESLEK","meslek"],["RENK","renk"]] ], [ [["MEYVE","meyve"],["GİYSİ","giysi"]], [["MESLEK","meslek"],["HAYVAN","hayvan"]], [["ŞEHİR","şehir"],["YİYECEK","yiyecek"]], [["ÇİÇEK","çiçek"],["EŞYA","ev eşyası"]] ], [ [["HAYVAN","hayvan"],["YİYECEK","yiyecek"],["TAŞIT","taşıt"]], [["MESLEK","meslek"],["MEYVE","meyve"],["GİYSİ","giysi"]], [["ŞEHİR","şehir"],["SPOR","spor dalı"],["HAYVAN","hayvan"]] ] ];
+let fluSwPick = {}, fluSwAt = 0;
+function fluSwitchSet(force){ const pre = isPre(), t = currentCombo().t, k = (pre ? "pre" : "post") + t, pool = (pre ? FLU_SWITCH_PRE_POOL : FLU_SWITCH_POOL)[t]; if(force && Date.now() - fluSwAt < 400) force = false;   /* aynı açılışta ikinci çağrı yeniden seçmez */
+if(force) fluSwAt = Date.now(); if(force || fluSwPick[k] == null){ let i, g = 0; do{ i = Math.floor(Math.random() * pool.length); g++; } while(g < 10 && i === fluSwPick[k]); fluSwPick[k] = i; } return pool[fluSwPick[k]]; }
 const FLU_SWITCH_PRE = [ [["HAYVAN","hayvan"],["YİYECEK","yiyecek"]], [["RENK","renk"],["HAYVAN","hayvan"]], [["HAYVAN","hayvan"],["YİYECEK","yiyecek"],["RENK","renk"]] ];
 const FLU_SWITCH = [ [["HAYVAN","hayvan"],["YİYECEK","yiyecek"]], [["MEYVE","meyve"],["GİYSİ","giysi"]], [["HAYVAN","hayvan"],["YİYECEK","yiyecek"],["TAŞIT","taşıt"]] ];
 let fluTarget = {};
@@ -7586,7 +7597,7 @@ if(fid === "flu-cat"){ const c = FLU_CATS[isPre() ? "pre" : "post"].find(x => x.
 if(fid === "alt-uses"){ const o = ALT_OBJ().find(x => x.n === tg); const cx = altCtx(), cs = cx ? cx + " " : "";   /* bağlam kısıtı: Orta evde, Zor kampta/okulda/parkta */
 return { big: o.n.toLocaleUpperCase("tr-TR"), img: o.src, say: `${cap(o.n)} ${cs}başka ne işe yarar?`,   /* kısa soru; yan kullanımlar da sayılır */ sub: `${cs}başka ne işe yarar?` }; }
 if(fid === "flu-letter") return isPre() ? { big: tg, say:`${tg} sesiyle başlayan kelimeler bulalım.`, sub:"sesiyle başlayan kelimeler" } : { big: tg, say:`${tg} harfiyle başlayan olabildiğince çok kelime söyle.`, sub:"harfiyle başlayan kelimeler" };
-const sw = isPre() ? FLU_SWITCH_PRE[currentCombo().t] : FLU_SWITCH[currentCombo().t]; return { big: sw.map(x => x[0]).join(" – "), say:`Sırayla bir ${sw.map(x => x[1]).join(", bir ")} söyle.`, sw };
+const sw = fluSwitchSet(); return { big: sw.map(x => x[0]).join(" – "), say:`Sırayla bir ${sw.map(x => x[1]).join(", bir ")} söyle.`, sw };
 }
 const GS_BANK = { hayvan:["kedi","köpek","tavşan","kuş","inek","at","aslan"], meyve:["elma","muz","çilek","armut","kiraz","üzüm"], sebze:["havuç","patates","soğan","salatalık","ıspanak"],
 "taşıt":["araba","otobüs","tren","uçak","gemi","bisiklet"], giysi:["ceket","çorap","şapka","etek","pantolon","kazak"], mutfak:["kaşık","tabak","çatal","tencere","bardak"] };
@@ -7742,7 +7753,7 @@ const ALT_BY_TIER = [ ["kutu","ip","kova","yastık","şemsiye","kâğıt","top"]
 const ALT_OBJ = () => [ { n:"kutu", src: g3img("box") }, { n:"ip", src: g3img("rope") }, { n:"kova", src: HOUSE_IMAGES.bucket }, { n:"yastık", src: HOUSE_IMAGES.pillow }, { n:"şemsiye", src: PAIR_IMAGES.umbrella }, { n:"kâğıt", src: PAIR_IMAGES.paper }, { n:"top", src: TOY_IMAGES.ball },
   { n:"kaşık", src: PAL_EXTRA_IMAGES.spoon }, { n:"fincan", src: HOUSE_IMAGES.cup }, { n:"çorap", src: PAIR_IMAGES.sock }, { n:"ayakkabı", src: PAIR_IMAGES.shoe }, { n:"kâse", src: PAIR_IMAGES.bowl }, { n:"kemer", src: g3img("belt") }, { n:"süpürge", src: HOUSE_IMAGES.broom }, { n:"pipet", src: PAIR_IMAGES.straw }, { n:"defter", src: PAIR_IMAGES.notebook }, { n:"kalem", src: PAIR_IMAGES.pencil },
   { n:"anahtar", src: PAIR_IMAGES.key }, { n:"tarak", src: HOUSE_IMAGES.comb }, { n:"diş fırçası", src: PAIR_IMAGES.toothbrush }, { n:"kalemtıraş", src: PAIR_IMAGES.sharpener }, { n:"makas", src: HOUSE_IMAGES.scissors }, { n:"saat", src: HOUSE_IMAGES.clock }, { n:"mıknatıs", src: g3img("magnet") }, { n:"gözlük", src: g3img("glasses") }, { n:"termos", src: g3img("thermos") }, { n:"zarf", src: PAIR_IMAGES.envelope }, { n:"tornavida", src: PAIR_IMAGES.screwdriver }, { n:"el feneri", src: g3img("flashlight") }, { n:"bilezik", src: g3img("bracelet") } ];
-function timeTrials(){ const t = currentCombo().t, secs = (isPre() ? [3, 5, 7] : [5, 10, 15])[t]; return Array.from({length: isPre() ? 3 : 4}, () => ({ secs, tol: isPre() ? 0.3 : 0.2 })); }
+function timeTrials(){ const t = currentCombo().t, pool = (isPre() ? [[2, 3, 4], [4, 5, 6], [6, 7, 8]] : [[4, 5, 6, 7], [8, 10, 12, 14], [12, 15, 18, 20]])[t]; return shuffleArray(pool).map(secs => ({ secs, tol: isPre() ? 0.3 : 0.2 })); }   /* sayfada her deneme farklı süre */
 const FERR_COL = [{ c:"#E5484D", n:"kırmızı" }, { c:"#1E63D6", n:"mavi" }, { c:"#2E9E4F", n:"yeşil" }, { c:"#F5B800", n:"sarı" }];
 const FERR_SH = [{ s:"circle", n:"daire" }, { s:"triangle", n:"üçgen" }, { s:"square", n:"kare" }, { s:"star", n:"yıldız" }, { s:"heart", n:"kalp" }];
 const FERR_DIR = [{ d:"u", n:"yukarı" }, { d:"d", n:"aşağı" }, { d:"l", n:"sola" }, { d:"r", n:"sağa" }];
@@ -8922,7 +8933,12 @@ const JAR_PUZZLES = [ [[[2, 5], 3, 2], [[3, 7], 4, 2], [[4, 6], 2, 2], [[3, 5], 
 function jarTrials(){ const t = Math.min(currentCombo().t, 2); return shuffleArray(JAR_PUZZLES[t]).slice(0, t === 0 ? 3 : 3).map(([caps, goal, best]) => ({ caps, goal, best, lv: caps.map(() => 0), moves: 0, sel: -1, solved: false })); }
 function jarSVG(cap, lv, px, selected, goalHit){ const h = Math.round(px * 1.3), w = px, fillH = Math.round((h - 16) * lv / cap); return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" style="display:block"><rect x="4" y="8" width="${w - 8}" height="${h - 12}" rx="10" fill="#F2F5F8" stroke="${goalHit ? "#1FA463" : selected ? "#FFC21A" : "#9AA8B5"}" stroke-width="${selected || goalHit ? 5 : 3}"/><rect x="8" y="${h - 8 - fillH}" width="${w - 16}" height="${fillH}" rx="6" fill="#4FA8F0"/><text x="${w / 2}" y="${h / 2 + 2}" text-anchor="middle" font-size="${Math.round(px * 0.34)}" font-weight="900" fill="#1F2A33">${lv}</text><text x="${w / 2}" y="${h - 1}" text-anchor="middle" font-size="${Math.round(px * 0.2)}" font-weight="800" fill="#5B6B78">${cap} L</text></svg>`; }
 /* Desen Akıcılığı (Beş Nokta / D-KEFS): nokta dizisi, çizgi kümesi benzersiz olmalı */
-function dflCfg(){ const t = Math.min(currentCombo().t, 2), pre = isPre(); const dots = pre ? [[50, 12], [12, 50], [88, 50], [26, 88], [74, 88]] : (t === 0 ? [[50, 12], [12, 50], [88, 50], [26, 88], [74, 88]] : [[16, 16], [50, 16], [84, 16], [16, 50], [50, 50], [84, 50], [16, 84], [50, 84], [84, 84]]); return { dots, secs: pre ? 45 : 60, minLines: t === 2 ? 3 : 1 }; }
+const DFL_LAYOUTS5 = [ [[50, 12], [12, 50], [88, 50], [26, 88], [74, 88]], [[16, 16], [84, 16], [50, 50], [16, 84], [84, 84]], [[50, 10], [14, 40], [86, 40], [30, 88], [70, 88]], [[50, 14], [16, 50], [50, 50], [84, 50], [50, 86]], [[14, 22], [50, 14], [86, 22], [30, 82], [70, 82]] ];
+const DFL_LAYOUTS9 = [ [[16, 16], [50, 16], [84, 16], [16, 50], [50, 50], [84, 50], [16, 84], [50, 84], [84, 84]], [[50, 10], [24, 30], [76, 30], [12, 58], [50, 50], [88, 58], [24, 86], [50, 72], [76, 86]], [[14, 20], [38, 14], [62, 14], [86, 20], [26, 52], [74, 52], [14, 84], [50, 84], [86, 84]], [[50, 12], [20, 26], [80, 26], [12, 54], [36, 50], [64, 50], [88, 54], [32, 86], [68, 86]] ];
+let dflLast = {}, dflMemo = null;
+function dflCfg(){ const t = Math.min(currentCombo().t, 2), pre = isPre(), pool = (pre || t === 0) ? DFL_LAYOUTS5 : DFL_LAYOUTS9, k = (pre ? "p" : "o") + (pool === DFL_LAYOUTS5 ? 5 : 9);
+if(dflMemo && dflMemo.k === k && Date.now() - dflMemo.at < 400) return { dots: pool[dflMemo.i], secs: pre ? 45 : 60, minLines: t === 2 ? 3 : 1 };   /* aynı açılışta ikinci çağrı aynı dizilişi verir */
+let i, g = 0; do{ i = Math.floor(Math.random() * pool.length); g++; } while(g < 10 && i === dflLast[k]); dflLast[k] = i; dflMemo = { k, i, at: Date.now() }; return { dots: pool[i], secs: pre ? 45 : 60, minLines: t === 2 ? 3 : 1 }; }   /* her açılışta farklı nokta dizilişi */
 /* Yirmi Soru: tahta ve hedef */
 function twqTrials(){ const pre = isPre(), N = pre ? 12 : 20, pool = shuffleArray(picPool()); const rounds = pre ? 2 : 3; return Array.from({length: rounds}, (_, i) => { const items = pool.slice(i * N, i * N + N).length === N ? pool.slice(i * N, i * N + N) : shuffleArray(picPool()).slice(0, N); return { items, tgt: Math.floor(Math.random() * N), q: 0, gone: {} }; }); }
 /* Kutuları Ara (kendi sıralı arama): her kutuda tam bir yıldız; bulunan kutuya yıldız bir daha gelmez */
@@ -8955,7 +8971,8 @@ function lfTrials(){ const t = Math.min(currentCombo().t, 2), pre = isPre(), N =
 function scTrials(){ const t = Math.min(currentCombo().t, 2), pre = isPre(), N = (pre ? [8, 10, 12] : [12, 16, 20])[t], D = ["l", "r", "u", "d"].slice(0, pre ? 2 : [2, 4, 4][t]); return { win: (pre ? [1500, 1300, 1100] : [1100, 950, 850])[t], D, items: balancedSeq(N, D, 2).map(d => ({ d, ans:null, ok:null, mark:false })) }; }
 /* Hangi Kutu Daha İyi? (Çocuk Kumar Görevi, Kerr & Zelazo): riskli kutu çok verir ama çok kaybettirir */
 function sfbTrials(){ const t = Math.min(currentCombo().t, 2), N = selCount(), riskLoss = [[0, 4, 0, 5, 0, 6], [0, 5, 0, 6, 0, 7], [0, 5, 6, 0, 0, 7]][t], safeLoss = [0, 1, 0, 0, 1, 0];
-  return { N, riskLoss: shuffleArray(riskLoss), safeLoss: shuffleArray(safeLoss), swap: t === 2 }; }
+  if(!window.__sfbAt || Date.now() - window.__sfbAt > 400) window.__sfbFlip = !window.__sfbFlip; window.__sfbAt = Date.now();
+return { N, riskLoss: shuffleArray(riskLoss), safeLoss: shuffleArray(safeLoss), swap: t === 2, flip: !!window.__sfbFlip }; }   /* daha iyi kutunun yeri her sayfada değişir */
 /* Her Grubun Sonuncusu (Keep Track): kategoriler ve havuzlar */
 const KT_CATS = () => [{ k:"hayvan", n:"hayvan", items: NB_ANIMALS.filter(k => animalImg(k)).map(k => ({ n: ANIMAL_NAMES[k], src: animalImg(k) })) }, { k:"oyuncak", n:"oyuncak", items: TOY_KEYS.map(k => ({ n: TOY_NAMES[k], src: TOY_IMAGES[k] })) }, { k:"esya", n:"ev eşyası", items: Object.keys(HOUSE_NAMES).map(k => ({ n: HOUSE_NAMES[k], src: HOUSE_IMAGES[k] })) }, { k:"meyve", n:"meyve", items: ["apple", "banana", "orange", "grapes", "strawberry"].map(k => ({ n: FRUIT_VEG_NAMES[k], src: FRUIT_VEG_IMAGES[k] })) }];
 function ktTrials(){ const t = Math.min(currentCombo().t, 2), pre = isPre(), K = (pre ? [2, 2, 3] : [2, 3, 4])[t], L = (pre ? [6, 8, 10] : [9, 12, 15])[t], R = pre ? 2 : 3, cats = KT_CATS();
@@ -8994,7 +9011,8 @@ return mtState.test; },
 "move-seq": () => { mtState = { kind:"movesay", trials: moveTrials(), ti:0, wrong:0, ok:0, phase:"idle" }; return mtState.trials; },
 "story-order": () => { mtState = { kind:"storyord", trials: storyOrderTrials(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
 "what-do": () => { mtState = { kind:"whatdo", trials: whatdoTrials(), ti:0, wrong:0, part:0, okN:0, phase:"idle" }; return mtState.trials; },
-...Object.fromEntries(["flu-cat","flu-letter","flu-switch","alt-uses"].map(id => [id, () => { mtState = { kind:"flu", fid:id, P: fluPrompt(id), secs: fluSecs(id), ok:0, rep:0, rule:0, ord:0, q:[0, 0, 0, 0], exp:0, left: fluSecs(id), phase:"idle" }; return [mtState.P]; }])),
+...Object.fromEntries(["flu-cat","flu-letter","flu-switch","alt-uses"].map(id => [id, () => { if(id === "flu-switch") fluSwitchSet(true);   /* her açılışta farklı kategori çifti */
+mtState = { kind:"flu", fid:id, P: fluPrompt(id), secs: fluSecs(id), ok:0, rep:0, rule:0, ord:0, q:[0, 0, 0, 0], exp:0, left: fluSecs(id), phase:"idle" }; return [mtState.P]; }])),
 "dot-count": () => { mtState = { kind:"dots", trials: dotTrials(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
 "sem-decide": () => { mtState = { kind:"quiz", qid:"sem-decide", trials: semTrials(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
 "eye-touch": () => { const c = chaseCfg(); mtState = Object.assign({ kind:"chase", hits:0, wrong:0, phase:"idle" }, c); return Array.from({length: c.need}, () => ({})); },
@@ -9061,7 +9079,7 @@ return mtState.test; },
 "box-search": () => { mtState = { kind:"bsearch", trials: bsTrials(), ti:0, wrong:0, okN:0, phase:"idle", last:-1, show:null }; return mtState.trials; },
 "three-tasks": () => { const c = sixCfg(); mtState = { kind:"six", cfg:c, trials:[{}], ti:0, wrong:0, phase:"idle", left:c.secs, view:"menu", done:{}, lastTask:null, breaks:0, hits:{} }; return mtState.trials; },
 "self-check": () => { const c = scTrials(); mtState = { kind:"selfchk", cfg:c, trials: c.items, ti:0, wrong:0, phase:"idle", view:"run", cur:-1 }; return mtState.trials; },
-"safe-box": () => { const c = sfbTrials(); mtState = { kind:"cgt", cfg:c, trials: Array.from({length: c.N}, (_, i) => ({ swap: c.swap && Math.random() < 0.5 })), ti:0, wrong:0, okN:0, stars:10, picks:[], phase:"idle", fb:null }; return mtState.trials; },
+"safe-box": () => { const c = sfbTrials(); mtState = { kind:"cgt", cfg:c, trials: Array.from({length: c.N}, (_, i) => ({ swap: c.swap ? Math.random() < 0.5 : !!c.flip })), ti:0, wrong:0, okN:0, stars:10, picks:[], phase:"idle", fb:null }; return mtState.trials; },
 "keep-track": () => { mtState = { kind:"ktrack", trials: ktTrials(), ti:0, wrong:0, okN:0, phase:"idle", si:-1, qi:0 }; return mtState.trials; },
 "vigilance": () => { const d = vigBuild(); mtState = Object.assign({ kind:"vig", i:-1, wrong:0, phase:"idle", hits:0, fa:0, miss:0 }, d); return d.seq; },
 "pos-nback": () => { const d = pnbBuild(); mtState = Object.assign({ kind:"pnb", i:-1, wrong:0, phase:"idle", resp:{} }, d); return d.seq; },
@@ -13077,7 +13095,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.23-v";
+const APP_VERSION = "2026.10.23-w";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
