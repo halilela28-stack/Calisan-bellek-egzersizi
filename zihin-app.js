@@ -8825,6 +8825,7 @@ function chSideAttr(id){ const st = chState; let bc = "#E6ECF2", sh = ""; if(st 
 function chSideNote(txt){ const st = chState; if(!st || st.phase !== "feedback" || st.flash !== "bad" || !txt) return ""; return `<b style="position:absolute;left:50%;bottom:3%;transform:translateX(-50%);background:var(--good);color:#fff;border-radius:999px;padding:3px 12px;font-size:13px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,.2)">${txt}</b>`; }
 const sideButtons = () => [{ id:"L", html:'<span style="font-size:30px;font-weight:900">◀</span><b style="margin-left:6px">SOL</b>' }, { id:"R", html:'<b style="margin-right:6px">SAĞ</b><span style="font-size:30px;font-weight:900">▶</span>' }];
 /* ===== Yürütücü İşlev · Paket 2 (Ketleme B) · veri ve yardımcılar ===== */
+(function topHomeStyle(){ try{ if(document.getElementById("topHomeStyle")) return; const st = document.createElement("style"); st.id = "topHomeStyle"; st.textContent = `#lsMore .top{gap:6px}#lsMore .top h1{white-space:nowrap;font-size:clamp(16px,4.9vw,26px);min-width:0;flex:0 1 auto}#lsMore .top-btns{gap:5px;flex:none}#lsMore .top-btns .home-btn.inl{width:36px;height:36px;margin-left:0}#lsMore .top-btns .home-btn.inl svg{width:19px;height:19px}@media (max-width:440px){#lsMore .top-btns .cloud-badge{font-size:0;padding:0;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;gap:0}#lsMore .top-btns .cloud-badge .ui-icon-slot{width:18px;height:18px;margin:0;display:flex;align-items:center;justify-content:center}#lsMore .top-btns .cloud-badge .ui-icon-slot svg{width:18px;height:18px;display:block}}`; document.head.appendChild(st); }catch(e){} })();
 (function catGroupStyle(){ try{ if(document.getElementById("catGroupStyle")) return; const st = document.createElement("style"); st.id = "catGroupStyle"; st.textContent = `.cat-groups{display:none;flex-direction:column;gap:6px;margin-top:8px}.category-card.open .cat-groups{display:flex}.category-card.open .category-card-sub{display:none!important}.cat-group{display:flex;flex-direction:column;gap:6px}.cat-group-chip{align-self:flex-start;border:2px solid var(--line);background:var(--panel);border-radius:999px;padding:6px 12px;font-family:inherit;font-weight:800;font-size:14px;color:var(--ink);cursor:pointer;text-align:left}.cat-group-chip small{font-weight:800;color:#5B6B78;margin-left:4px}.cat-group-chip.on{border-color:#0A847E;background:#DDF3F0;color:#0A847E}.cat-group-list{display:flex;flex-wrap:wrap;gap:6px;padding-left:6px}.cat-ex-btn{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:5px 10px;font-family:inherit;font-weight:700;font-size:13px;color:var(--ink);cursor:pointer;text-align:left}.cat-ex-btn:active{background:#DDF3F0}`; document.head.appendChild(st); }catch(e){} })();
 (function efStyle(){ try{ if(document.getElementById("efStyle")) return; const s = document.createElement("style"); s.id = "efStyle"; s.textContent = `@keyframes efFly{0%{transform:translate(0,0) scale(1)}50%{transform:translate(var(--dx),var(--dy)) scale(1.35)}100%{transform:translate(0,0) scale(1)}}@keyframes efBlink{0%,100%{opacity:1}50%{opacity:.15}}.ef-dist{position:absolute;pointer-events:none;will-change:transform}.ef-hold{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}.ef-hold.holding{transform:translateY(3px);box-shadow:none !important;background:#E3F6EC !important;border-color:#1FA463 !important}.ef-bar{height:14px;border-radius:999px;background:#E6ECF2;overflow:hidden}.ef-bar>i{display:block;height:100%;width:0;background:#1FA463;border-radius:999px}#statueDist{opacity:0;transition:opacity .2s}#statueDist.on{opacity:1}`; document.head.appendChild(s); }catch(e){} })();
 /* Heykel (NEPSY Statue): süre ve çeldirici ses zamanları */
@@ -13076,7 +13077,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.23-u";
+const APP_VERSION = "2026.10.23-v";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -15291,7 +15292,7 @@ steps: [
 {sel:"#lsToggleBtn",       title:"Menü",            text:"Ekran kısa olduğu için bazı düğmeler bu menünün içinde. Dokununca açılır; şimdi içindekileri sırayla anlatıyorum."},
 {sel:"#cloudBadge",        title:"Kayıt durumu",    text:"Bulut: sonuçlar çevrimiçi kaydediliyor. Yerel: bağlantı yok, sonuçlar bu cihazda bekliyor ve bağlantı gelince otomatik yüklenir.", menu:true},
 {sel:"#settingsBtn",       title:"Ayarlar",         text:"Ses, görünüm ve yazı boyutu, otomatik zorluk eşikleri, hesap ve bulut eşitleme, Uzman PIN\'i, kayıtlı kişiler ve sürüm bilgisi burada.", menu:true},
-{sel:"#modeSwitchBtn",     title:"Görünüm",         text:"Bilişsel Etkinlik'te hangi girişte olduğunu gösterir (Uzman ya da Aile). Dokununca ana ekrana dönersin; girişi oradan değiştirebilirsin.", menu:true},
+{sel:"#modeSwitchBtn",     title:"Görünüm",         text:"Bilişsel Etkinlik'te hangi girişte olduğunu gösterir (Uzman ya da Aile). Dokununca o girişin sayfasına dönersin. Ana menü için bulutun yanındaki ev düğmesine dokun.", menu:true},
 {sel:"#categorySwitchBtn", title:"Kategori",        text:"Şu an çalıştığın kategoriyi gösterir. Dokununca başka bir kategori seçebilirsin.", menu:true},
 {sel:"#pageIndicator",     title:"Sayfa",           text:"Hangi düzeyde olduğunu ve bu kategoride kaçıncı sayfada olduğunu gösterir.", menu:true},
 {sel:"#tierRow",           title:"Düzey",           text:"Başlangıç, Orta ya da Zor düzeyi buradan seç. Düzey yükseldikçe çalışma zorlaşır: daha çok öge, daha çok çeşit, daha hızlı hareket gibi.", menu:true},
@@ -15702,6 +15703,7 @@ if(lock) showParentLock(go); else go(); }
 function addHomeBtn(afterId, lock, inline){ const ref = document.getElementById(afterId); if(!ref || ref.parentElement.querySelector(".home-btn")) return; const b = document.createElement("button"); b.type = "button"; b.className = "home-btn" + (inline ? " inl" : ""); b.setAttribute("aria-label", "Ana menü"); b.title = "Ana menü"; b.innerHTML = HOME_SVG; b.onclick = (e) => { e.stopPropagation(); goHome(lock); }; ref.insertAdjacentElement("afterend", b); }
 [["islandStopsBackBtn", true], ["expertBackBtn", false], ["todayBackBtn", false], ["weekBackBtn", false], ["linkBackBtn", false]].forEach(([id, lk]) => addHomeBtn(id, lk));
 addHomeBtn("gameMapBtn", true, true);
+addHomeBtn("cloudBadge", false, true);   /* çalışma sayfası: bulutun yanında ana menü */
 // ===== Gizlilik politikası uygulama içinde =====
 function openPolicy(){ let v = document.getElementById("policyView"); if(!v){ v = document.createElement("div"); v.id = "policyView"; v.innerHTML = `<div class="pv-bar"><b>Gizlilik Politikası</b><button type="button" class="sheet-x" id="pvClose" aria-label="Kapat">✕</button></div><iframe src="gizlilik-politikasi.html" title="Gizlilik Politikası"></iframe>`; document.body.appendChild(v); document.getElementById("pvClose").onclick = () => { v.style.display = "none"; }; } v.style.display = "flex"; }
 document.addEventListener("click", (e) => { const a = e.target.closest && e.target.closest('a[href="gizlilik-politikasi.html"]'); if(!a) return; e.preventDefault(); openPolicy(); }, true);
@@ -15961,10 +15963,13 @@ input.value = "";
 updateLevelPlayerStatus();
 });
 
-document.getElementById("modeSwitchBtn").addEventListener("click", ()=>{
-resetTimer();
+document.getElementById("modeSwitchBtn").addEventListener("click", ()=>{   /* çalışma sayfasında Uzman/Aile → o görünümün kendi sayfası */
+resetTimer(); try{ exitSessionMode(); exitRecMode(); }catch(e){}
 document.getElementById("mainApp").style.display = "none";
-showWho();
+categoryBackTarget = "readingLevelScreen";
+renderCategoryList();
+document.getElementById("categoryScreen").style.display = "block";
+try{ window.scrollTo(0, 0); }catch(e){}
 });
 
 document.getElementById("onboardIcon0").innerHTML = `<div class="logo-zihni">${zihniSVG("happy")}</div>`;
