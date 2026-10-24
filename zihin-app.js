@@ -9049,7 +9049,7 @@ const sideButtons = () => [{ id:"L", html:'<span style="font-size:30px;font-weig
 #expertHome .ex-today .ex-av{width:50px;height:50px;flex:0 0 50px;font-size:22px}
 #expertHome .ex-today .ex-play{flex:0 0 38px;width:38px;height:38px}
 #expertHome .ex-today .ex-play svg{width:38px;height:38px}
-#familyHome,#expertHome{gap:10px !important}@media (max-width:380px){.fh-grid{gap:7px}.fh-grid .fh-week{grid-template-columns:30px minmax(0,1fr);column-gap:7px;padding:10px 9px}.fh-grid .fh-week .ic{width:30px;height:30px;border-radius:9px}.fh-grid .fh-week .ic svg{width:17px;height:17px}}`; document.head.appendChild(st); }catch(e){} })();
+#familyHome,#expertHome{gap:10px !important}.fh-reports .fh-rep-ic{flex:0 0 54px;width:54px;height:54px;border-radius:50%;border:3px solid rgba(255,255,255,.45);display:flex;align-items:center;justify-content:center;color:#fff}.fh-reports .fh-rep-ic svg{width:26px;height:26px}.fh-reports .fh-rep-go{flex:0 0 38px;display:flex}#expertHome .fh-reports .fh-rep-ic{flex-basis:50px;width:50px;height:50px}@media (max-width:380px){.fh-grid{gap:7px}.fh-grid .fh-week{grid-template-columns:30px minmax(0,1fr);column-gap:7px;padding:10px 9px}.fh-grid .fh-week .ic{width:30px;height:30px;border-radius:9px}.fh-grid .fh-week .ic svg{width:17px;height:17px}}`; document.head.appendChild(st); }catch(e){} })();
 (function placeTableStyle(){ try{ if(document.getElementById("placeTableStyle")) return; const st = document.createElement("style"); st.id = "placeTableStyle"; st.textContent = `.place-table-wrap{background:#fff;border:1.5px solid #E3ECEA;border-radius:16px;padding:6px 8px 8px;text-align:left}.place-table{width:100%;border-collapse:collapse;font-size:14px}.place-table th{font-size:11px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:#05625D;text-align:left;padding:6px 6px 4px;border-bottom:1.5px solid #E3ECEA}.place-table td{padding:7px 6px;border-top:1px solid #EEF3F2;font-weight:800;color:var(--ink);vertical-align:middle}.place-table tr:first-child td{border-top:0}.place-table td:first-child{width:46%}.pt-k,.pt-t{display:inline-block;border-radius:9px;padding:3px 8px;font-size:12px;font-weight:900;white-space:nowrap}.pt-k.pre{background:#FFF1D6;color:#9A6B00}.pt-k.post{background:#DDF5E7;color:#1B7A45}.pt-t.t0{background:#F1F4F7;color:#3D4F5F}.pt-t.t1{background:#DDF1FF;color:#1E5FA8}.pt-t.t2{background:#EEE6FA;color:#5A2D8C}.pt-na{color:#9AA8B5;font-weight:700}.pt-foot{font-size:12px;font-weight:800;color:#5B6B78;padding:8px 6px 0}`; document.head.appendChild(st); }catch(e){} })();
 (function fbMarkStyle(){ try{ if(document.getElementById("fbMarkStyle")) return; const st = document.createElement("style"); st.id = "fbMarkStyle"; st.textContent = `/* KURAL: doğru/yanlış rengi tek başına kullanılmaz — renk körlüğü için ✓ / ✗ işareti */.ch-btn.ok,.ch-btn.bad,.ch-btn.show{opacity:1!important;filter:none!important}.ch-btn.ok,.co-sw.ok,.os-tap.ok,.place-opts .wm-pic.ok,.rt-sw.ok,.srh-row.ok,.srt-ref.ok,.wm-card.ok,.wm-pic.ok,.ch-btn.bad,.co-sw.bad,.os-tap.bad,.place-opts .wm-pic.bad,.rt-sw.bad,.srh-row.bad,.srt-ref.bad,.wm-card.bad,.wm-pic.bad,.ct-c.bad,.srh-item.pick-ok,.srh-no.pick-ok,.srh-item.pick-bad,.srh-no.pick-bad,.ch-btn.show,.srh-item.show{position:relative}.ch-btn.ok::before,.co-sw.ok::before,.os-tap.ok::before,.pk-fish.ok::before,.place-opts .wm-pic.ok::before,.rt-sw.ok::before,.srh-row.ok::before,.srt-ref.ok::before,.wm-card.ok::before,.wm-pic.ok::before,.srh-item.pick-ok::before,.srh-no.pick-ok::before,.ch-btn.show::before,.srh-item.show::before{content:"✓";background:#1FA463}.ch-btn.bad::before,.co-sw.bad::before,.os-tap.bad::before,.pk-fish.bad::before,.place-opts .wm-pic.bad::before,.rt-sw.bad::before,.srh-row.bad::before,.srt-ref.bad::before,.wm-card.bad::before,.wm-pic.bad::before,.trl-node.bad::before,.ct-c.bad::before,.pk-car.bad::before,.srh-item.pick-bad::before,.srh-no.pick-bad::before{content:"✗";background:#E5484D}.ch-btn.ok::before,.co-sw.ok::before,.os-tap.ok::before,.pk-fish.ok::before,.place-opts .wm-pic.ok::before,.rt-sw.ok::before,.srh-row.ok::before,.srt-ref.ok::before,.wm-card.ok::before,.wm-pic.ok::before,.ch-btn.bad::before,.co-sw.bad::before,.os-tap.bad::before,.pk-fish.bad::before,.place-opts .wm-pic.bad::before,.rt-sw.bad::before,.srh-row.bad::before,.srt-ref.bad::before,.wm-card.bad::before,.wm-pic.bad::before,.trl-node.bad::before,.ct-c.bad::before,.pk-car.bad::before,.srh-item.pick-ok::before,.srh-no.pick-ok::before,.srh-item.pick-bad::before,.srh-no.pick-bad::before,.ch-btn.show::before,.srh-item.show::before{position:absolute;top:-7px;right:-7px;width:22px;height:22px;border-radius:50%;color:#fff;font:900 14px/22px system-ui,sans-serif;text-align:center;box-shadow:0 0 0 2px #fff;z-index:3;pointer-events:none}`; document.head.appendChild(st); }catch(e){} })();
 (function catGroupStyle(){ try{ if(document.getElementById("catGroupStyle")) return; const st = document.createElement("style"); st.id = "catGroupStyle"; st.textContent = `.cat-groups{display:none;flex-direction:column;gap:6px;margin-top:8px}.cat-level-row{display:flex;flex-direction:column;gap:6px;padding:8px 10px;border:1.5px dashed var(--line);border-radius:12px;margin-bottom:4px}.cat-level-lbl{font-size:13px;color:var(--ink)}.cat-level-lbl small{color:#5B6B78;font-weight:700}.cat-level-btns{display:flex;flex-wrap:wrap;gap:6px}.cat-level-btn{border:2px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;font-family:inherit;font-weight:800;font-size:13px;color:var(--ink);cursor:pointer}.cat-level-btn.on{border-color:#0A847E;background:#0A847E;color:#fff}.cat-level-btn.auto{border-style:dashed}.cat-level-btn:disabled{opacity:.55;cursor:default}.cat-level-note{color:#5B6B78;font-weight:700;font-size:12px}.category-card.open .cat-groups{display:flex}.category-card.open .category-card-sub{display:none!important}.cat-group{display:flex;flex-direction:column;gap:6px}.cat-group-chip{align-self:flex-start;border:2px solid var(--line);background:var(--panel);border-radius:999px;padding:6px 12px;font-family:inherit;font-weight:800;font-size:14px;color:var(--ink);cursor:pointer;text-align:left}.cat-group-chip small{font-weight:800;color:#5B6B78;margin-left:4px}.cat-group-chip.on{border-color:#0A847E;background:#DDF3F0;color:#0A847E}.cat-group-list{display:flex;flex-wrap:wrap;gap:6px;padding-left:6px}.cat-ex-btn{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:5px 10px;font-family:inherit;font-weight:700;font-size:13px;color:var(--ink);cursor:pointer;text-align:left}.cat-ex-btn:active{background:#DDF3F0}`; document.head.appendChild(st); }catch(e){} })();
@@ -11823,7 +11823,7 @@ return best;
 const NO_REFLOW = new Set(["odd-one-out","position-recall","digit-span","word-list-recall","sentence-repeat","color-recall","shape-recall","sequence-pattern","visual-analogy","nback-shape","nback-color","nback-number"]);
 function pickPortraitDims(n, board, rows0, cols0){ try{ if(rows0 < 2 || cols0 < 2 || NO_REFLOW.has(currentExercise().id)) return null; const cs = getComputedStyle(board); const w = board.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
   const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0;
-  const focus = document.documentElement.classList.contains("run-focus") && window._rfMax; const availAll = focus ? window._rfMax : Math.max(window.innerHeight - board.getBoundingClientRect().top - barH - 12 - 90, window.innerHeight * 0.62); /* odak dışında sayfa kaydırılabilir: başlık uzun olsa da tahta ekranın en az %62'si kadar yer alabilir (aksi hâlde seçici ham sütuna düşüp hücreleri sıkıştırıyordu) */   /* odak dışında "Geçmiş Sonuçları Gör" için yer kalsın */
+  const focus = document.documentElement.classList.contains("run-focus") && window._rfMax; const availAll = focus ? window._rfMax : Math.max(window.innerHeight - board.getBoundingClientRect().top - barH - 12 - 16, window.innerHeight * 0.62); /* odak dışında sayfa kaydırılabilir: başlık uzun olsa da tahta ekranın en az %62'si kadar yer alabilir (aksi hâlde seçici ham sütuna düşüp hücreleri sıkıştırıyordu) */   /* geçmiş düğmesi kaldırıldı: tahta bu alanı da kullanır */
   const h = availAll - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 16; if(!(w > 0 && h > 120)) return null;
   const gx = parseFloat(cs.columnGap) || 10, gy = parseFloat(cs.rowGap) || 26; const hasText = !!board.querySelector(".name-cell, .stroop-cell, .phrase-cell"); const hasPair = !!board.querySelector(".pair-cell"), hasOdd = !!board.querySelector(".odd-group"); const aspect = hasPair ? 2.1 : hasOdd ? 2.4 : (hasText ? 1.7 : 1);
   /* KURAL: tahtada son satır eksik kalmaz — öğe sayısını tam bölen bir sütun sayısı varsa yalnız onlar denenir (15 öğe → 3×5 ya da 5×3, 4 sütun + 1 boş hücre değil) */
@@ -12887,7 +12887,7 @@ renderHistory();
 function closeHistoryScreen(){
 document.getElementById("historyScreen").style.display = "none";
 }
-document.getElementById("historyToggle").addEventListener("click", openHistoryScreen);
+/* KURAL: Etkinlik Raporları çalışma sayfasında değil, Uzman ve Aile sayfalarında büyük kartın hemen altındaki aynı boydaki düğmeden açılır */
 document.getElementById("closeHistoryBtn").addEventListener("click", closeHistoryScreen);
 document.getElementById("closeEmptyCategoryBtn").addEventListener("click", ()=>{
 document.getElementById("emptyCategoryScreen").style.display = "none";
@@ -13226,6 +13226,7 @@ box.innerHTML = `<h2 class="home-title">Aile Etkinlik Sayfası</h2>
 <span class="fh-ring"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="7"/><circle cx="32" cy="32" r="26" fill="none" stroke="#FFC21A" stroke-width="7" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/></svg><b>${n}/4</b></span>
 <span class="fh-tx"><div class="fh-t1">${all ? "Bugün tamam!" : "Bugünün oturumu"}</div><div class="fh-t2">${famProfile() === "Oyuncu" ? "Önce kişi seçin" : escHTML(famProfile())} · yaklaşık 12 dakika · hedef: ${famCatName(plan.target)}</div></span>
 <span class="fh-go">${all ? "Gör" : (n ? "Devam" : "Başla")}</span></button>
+${reportsBtnHtml("fhReportsBtn")}
 ${recommendedCardHtml()}
 ${catPendingCardHtml(famProfile())}
 <div class="fh-grid">
@@ -13239,6 +13240,7 @@ box.style.display = "flex";
 const needPerson = () => famProfile() === "Oyuncu" && !familyLinkLocal();
 const guard = (fn) => () => { if(needPerson()) pickPerson(() => renderCategoryList(), { noGuest:true }); else fn(); };
 try{ catPendingBind(box, famProfile(), renderFamilyHome); }catch(e){}
+try{ const rb = document.getElementById("fhReportsBtn"); if(rb){ rb.onclick = () => openHistoryScreen(); const eq = () => { const hero = rb.previousElementSibling; if(hero && hero.classList.contains("fh-today")){ rb.style.minHeight = ""; const hh = hero.getBoundingClientRect().height; if(hh > rb.getBoundingClientRect().height) rb.style.minHeight = Math.round(hh) + "px"; } }; eq(); requestAnimationFrame(eq); } }catch(e){}   /* büyük kartla aynı boy */
 try{ requestAnimationFrame(() => fitHomeTitles(box)); fitHomeTitles(box); }catch(e){}
 document.getElementById("fhTodayBtn").onclick = guard(showToday);
 document.getElementById("fhWeekBtn").onclick = guard(showWeek);
@@ -13332,7 +13334,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.24-t";
+const APP_VERSION = "2026.10.24-u";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -13568,6 +13570,7 @@ box.innerHTML = `<h2 class="home-title">Uzman Etkinlik Sayfası</h2>
 <button type="button" class="fh-today ex-today" id="exTodayCard"><span class="ex-av">${has ? escHTML(cur.charAt(0).toLocaleUpperCase("tr")) : "?"}</span>
 <span class="fh-tx"><div class="fh-t1">${has ? escHTML(cur) + " ile seans" : "Seansa başla"}</div><div class="fh-t2">${has ? sumTxt : "Önce çalışacak kişiyi seçin"}</div><div class="fh-t2 ex-go-txt">${goTxt}</div></span>
 <span class="ex-play" aria-hidden="true"><svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M10 8.3v7.4l5.8-3.7z" fill="#FFFFFF"></path></svg></span></button>
+${reportsBtnHtml("exReportsBtn")}
 ${has ? catPendingCardHtml(cur) : ""}
 <div class="fh-grid">
 <button type="button" class="fh-week" id="exHomeBtn"><span class="ic" style="background:var(--teal-tint);color:var(--teal-dark)">${ic(I.users, T)}</span><span><div class="t1">Danışanlar</div><div class="t2">${n ? `${n} danışan · ${linked} aile bağlı · ödevler danışan ekranında` : "Danışan ekle, aileye bağla, ödev gönder"}</div></span></button>
@@ -13578,6 +13581,7 @@ ${has ? `<button type="button" class="fh-week" id="exPlaceBtn"><span class="ic" 
 box.style.display = "flex";
 const needPerson = (fn) => () => { if(!has){ pickPerson(() => renderCategoryList(), { noGuest:true }); return; } fn(); };
 try{ if(has) catPendingBind(box, cur, renderExpertHome); }catch(e){}
+try{ const rb = document.getElementById("exReportsBtn"); if(rb){ rb.onclick = () => openHistoryScreen(); const eq = () => { const hero = rb.previousElementSibling; if(hero && hero.classList.contains("fh-today")){ rb.style.minHeight = ""; const hh = hero.getBoundingClientRect().height; if(hh > rb.getBoundingClientRect().height) rb.style.minHeight = Math.round(hh) + "px"; } }; eq(); requestAnimationFrame(eq); } }catch(e){}   /* büyük kartla aynı boy */
 try{ requestAnimationFrame(() => fitHomeTitles(box)); fitHomeTitles(box); }catch(e){}
 document.getElementById("exHomeBtn").onclick = () => showExpert("list");
 document.getElementById("exGrowBtn").onclick = needPerson(showGrowth);
@@ -15449,6 +15453,8 @@ return row;
 function fitHomeTitles(box){ try{ if(!box) return; const fit = (el, min, oneLine) => { if(!el) return; el.style.fontSize = ""; let fs = parseFloat(getComputedStyle(el).fontSize) || 16; const words = () => { if(oneLine) return el.scrollWidth > el.clientWidth + 1; const r = document.createRange(); let worst = 0; el.childNodes.forEach(n => { if(n.nodeType === 3){ n.textContent.split(/\s+/).forEach(() => {}); } }); return el.scrollWidth > el.clientWidth + 1; }; let g = 0; while(words() && fs > min && g++ < 20){ fs -= 0.5; el.style.fontSize = fs + "px"; } };
   box.querySelectorAll(".fh-today .fh-t1").forEach(el => fit(el, 14, true));
   box.querySelectorAll(".fh-grid .fh-week .t1").forEach(el => { el.style.fontSize = ""; let fs = parseFloat(getComputedStyle(el).fontSize) || 14.5; const longest = (el.textContent || "").split(/\s+/).sort((a, b) => b.length - a.length)[0] || ""; const probe = document.createElement("span"); probe.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap;font-weight:900;font-family:inherit"; el.appendChild(probe); probe.textContent = longest; let g = 0; while(probe.getBoundingClientRect().width > el.clientWidth + 0.5 && fs > 12 && g++ < 20){ fs -= 0.5; el.style.fontSize = fs + "px"; probe.style.fontSize = fs + "px"; } probe.remove(); }); }catch(e){} }
+/* Etkinlik Raporları düğmesi: büyük yeşil kartla aynı boy ve stil */
+function reportsBtnHtml(id){ return `<button type="button" class="fh-today fh-reports" id="${id}"><span class="fh-rep-ic">${uiIconSVG("chart")}</span><span class="fh-tx"><div class="fh-t1">Etkinlik Raporları</div><div class="fh-t2">Son sonuçlar · haftalık rapor · özet</div></span><span class="fh-rep-go" aria-hidden="true"><svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M10.5 8l4 4-4 4"></path></svg></span></button>`; }
 function renderCatGroups(host, cat, realIndex){
 if(!host || host.dataset.built) return; host.dataset.built = "1";
 const groups = cat.exerciseGroups || [["Çalışmalar", cat.exerciseIds]];
@@ -15597,7 +15603,6 @@ steps: [
 {sel:"#prevBtn",           title:"Önceki",          text:"Bir önceki çalışma sayfasına döner."},
 {sel:"#reshuffleBtn",      title:"Karıştır",        text:"Sayfayı yeniler. Hedefi olan çalışmalarda hedef de değişir (ör. dokunulacak renk ya da dur yüzü); böylece alışkanlık oluşmaz."},
 {sel:"#nextBtn",           title:"Sonraki",         text:"Sıradaki çalışma sayfasına geçer. Sayfalar düzeylere ve çalışmalara göre ilerler."},
-{sel:"#historyToggle",     title:"Geçmiş sonuçlar", text:"Kaydedilen çalışmaları, gelişim raporunu ve özeti burada görürsün.", menu:true}
 ]
 }
 };
@@ -16269,7 +16274,7 @@ document.getElementById("settingsIconSlot").innerHTML = uiIconSVG("gear");
 document.getElementById("consentIconSlot").innerHTML = uiIconSVG("shield");
 document.getElementById("cloudBadgeIcon").innerHTML = uiIconSVG("cloud-off");
 document.getElementById("reshuffleIconSlot").innerHTML = uiIconSVG("shuffle");
-document.getElementById("historyToggleIconSlot").innerHTML = uiIconSVG("chart");
+
 document.getElementById("tabReportIconSlot").innerHTML = uiIconSVG("calendar");
 document.getElementById("tabSummaryIconSlot").innerHTML = uiIconSVG("grid");
 document.getElementById("exportCsvIconSlot").innerHTML = uiIconSVG("arrow-down");
