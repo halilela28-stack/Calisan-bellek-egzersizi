@@ -1618,6 +1618,13 @@ setTimeout(() => el.classList.remove("bad"), 500);
 }
 document.getElementById("board").addEventListener("click", handleTrailTap);
 
+/* KURAL: sayfa yetişkinden "Hata sayısı" ile puanlama istiyorsa (Heykel, Gözle Say, Ne Yapmalı?, Saçmalığı Bul vb.) Hata sayısı satırı çalışma sırasında da görünür kalır */
+/* KURAL (içerik uyumu): sayaç satırının adı ile tahtadaki yönlendirme aynı olur — sayaç özel adlıysa (ör. "Hareket / konuşma sayısı", "Yanlış sayılan") tahtadaki "Hata sayısı +" yazısı o adla gösterilir */
+let _errHintObs = null;
+function syncErrHintText(){ try{ const lb = (document.getElementById("errorRowLabel") || {}).textContent || "Hata sayısı"; if(lb === "Hata sayısı" || /^Doğru/.test(lb)) return; const b = document.getElementById("board"); if(!b) return; const w = document.createTreeWalker(b, NodeFilter.SHOW_TEXT); const nodes = []; while(w.nextNode()){ if(/Hata sayısı/.test(w.currentNode.nodeValue)) nodes.push(w.currentNode); } nodes.forEach(n => { n.nodeValue = n.nodeValue.replace(/Hata sayısı/g, lb); }); }catch(e){} }
+function syncErrHintWatch(){ try{ const b = document.getElementById("board"); if(!b) return; if(!_errHintObs){ _errHintObs = new MutationObserver(() => syncErrHintText()); _errHintObs.observe(b, { childList:true, subtree:true, characterData:true }); } syncErrHintText(); }catch(e){} }
+const MANUAL_ERR_IDS = new Set(["statue","eye-count","what-do","absurd-say"]);
+function usesManualErrors(ex){ try{ if(!ex) return false; if(MANUAL_ERR_IDS.has(ex.id) || ex.manualErrors) return true; const b = document.getElementById("board"); return !!(b && /Hata sayısı/.test(b.innerText || "")); }catch(e){ return false; } }
 function isInteractiveExercise(ex){ return !!(ex && (ex.isTouch || ex.isSort || ex.isTrail || ex.isPlan || ex.isSearch || ex.isWm || ex.isChoice || ex.isRt || ex.isMt || ex.isDone)); }
 function pageComplete(){ try{ const ex = currentExercise(); if((ex.isMt || ex.isWm) && typeof mtState !== "undefined" && mtState && Array.isArray(mtState.trials) && (mtState.phase === "done" || mtState.ti >= mtState.trials.length)) return true; if(isInteractiveExercise(ex)) return interactiveIsDone(); if(ex.isMotion) return elapsedMs >= (motionDurationMs - 300); }catch(e){} return true; }
 
@@ -1628,7 +1635,7 @@ function runFocusOn(){ if(window.__TANI_NOFOCUS) return; const h = document.docu
 // iPhone: düzen değişikliğinden sonra tahtayı zorla yeniden çizdir (çizilmeden kalan alanlar için)
 function runFocusRepaint(){ const bd = document.getElementById("board"); if(!bd) return; const kick = () => { try{ bd.style.visibility = "hidden"; void bd.offsetHeight; bd.style.visibility = ""; }catch(e){} }; requestAnimationFrame(() => { kick(); setTimeout(kick, 120); setTimeout(kick, 400); }); }
 function runFocusSize(){ try{ const bd = document.getElementById("board"); if(!bd) return;
-let ex = null; try{ ex = currentExercise(); }catch(e){} window._rfTap = !!(ex && isInteractiveExercise(ex));
+let ex = null; try{ ex = currentExercise(); }catch(e){} window._rfTap = !!(ex && isInteractiveExercise(ex) && !usesManualErrors(ex));   /* yetişkinin Hata sayısı ile puanladığı dokunmalı sayfalarda satır görünür kalır */
 if(!window.__TANI_NOTIGHT) document.documentElement.classList.toggle("run-tight", window._rfTap);   /* önce sıkı düzen (dokunmalıda hata satırı gizlenir), sonra ölç */
 const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; const top = bd.getBoundingClientRect().top;
 const mx = Math.max(160, Math.floor(window.innerHeight - barH - top - 10)); document.documentElement.style.setProperty("--boardMax", mx + "px"); window._rfMax = mx;
@@ -11955,6 +11962,7 @@ else if(ex.errorLabel) label.textContent = ex.errorLabel;
 else if(ex.isAuditory) label.textContent = "Yanlış söylenen dizi sayısı";
 else label.textContent = "Hata sayısı";
 }
+syncErrHintWatch();
 renderAll();
 resetTimer();
 const flash = document.getElementById("levelFlash");
@@ -13319,7 +13327,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.24-q";
+const APP_VERSION = "2026.10.24-r";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
