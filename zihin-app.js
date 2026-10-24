@@ -8893,26 +8893,48 @@ function growthData(name, groups){ groups = groups || GR_CATS(); const nm = (nam
 const recs = loadSessions().filter(r => r.player === nm && r.t >= since);
 const catOfLabel = (lb) => { const ex = EXERCISES.find(e => e.label === lb || (e.oldLabels || []).includes(lb)); return ex ? (CATEGORIES.find(c => !c.hidden && c.exerciseIds.includes(ex.id)) || {}).id : null; };
 const tierIx = (lb) => Math.max(0, TIERS.findIndex(x => x.label === lb));
+const stepOf = (r) => (r.lvl === "pre" ? 0 : 3) + tierIx(r.tier);   /* okul öncesi ve okul sonrası tek ölçekte (0–5): kademe değişse de ilerleme doğru okunur */
 const gsAll = gameStoreAll()[nm] || {}, gsOf = (c) => gsAll[(() => { try{ return c.okul ? (readingLevel === "pre" ? "pre" : "post") : catLevelFor(c.id, nm); }catch(e){ return readingLevel === "pre" ? "pre" : "post"; } })()] || {};   /* yıldızlar kategorinin kademesinden */
 const exOfLabel = (lb) => { const ex = EXERCISES.find(e => e.label === lb || (e.oldLabels || []).includes(lb)); return ex ? ex.id : null; };
 return groups.map(c => { const rs = recs.filter(r => c.okul ? c.exerciseIds.includes(exOfLabel(r.exerciseLabel)) : catOfLabel(r.exerciseLabel) === c.id), ok = (r) => (r.errors || 0) <= 1;
-const early = rs.filter(r => r.t < mid), late = rs.filter(r => r.t >= mid), rate = (a) => a.length ? a.filter(ok).length / a.length : null, avgT = (a) => a.length ? a.reduce((s, r) => s + tierIx(r.tier), 0) / a.length : null;
+const early = rs.filter(r => r.t < mid), late = rs.filter(r => r.t >= mid), rate = (a) => a.length ? a.filter(ok).length / a.length : null, avgT = (a) => a.length ? a.reduce((s, r) => s + stepOf(r), 0) / a.length : null;
+let lvlNow = null, lvlBy = null; try{ if(!c.okul){ const inf = catLevelInfo(c.id, nm); lvlNow = inf.lvl; lvlBy = inf.by; } }catch(e){}
+const lastRec = rs.length ? rs.reduce((a, b) => b.t > a.t ? b : a) : null, tierNow = lastRec && (!lvlNow || lastRec.lvl === lvlNow) ? tierIx(lastRec.tier) : null;
 const gs = gsOf(c); const stars = c.exerciseIds.reduce((s, id) => s + ((gs[id] && gs[id].stars) ? gs[id].stars.filter(Boolean).length : 0), 0), crowns = c.exerciseIds.filter(id => gs[id] && gs[id].crown).length;
 const n = rs.length, R = rate(rs), up = (avgT(late) != null && avgT(early) != null && avgT(late) - avgT(early) >= 0.5) || (rate(late) != null && rate(early) != null && rate(late) - rate(early) >= 0.2);
 const days = n ? (Math.max(...rs.map(r => r.t)) - Math.min(...rs.map(r => r.t))) / 864e5 : 0;
-let st = "az"; if(n + stars >= 3){ if(n >= 3 && R >= 0.75 && avgT(rs) >= 1 || crowns > 0 || (n < 3 && stars >= 6)) st = "guclu"; else if(up) st = "gelisiyor"; else st = "pratik"; }
+const base = lvlNow === "pre" ? 0 : (lvlNow === "post" ? 3 : 0);   /* "güçlü": kendi kademesinde en az Orta düzeyde, tutarlı başarı */
+let st = "az"; if(n + stars >= 3){ if(n >= 3 && R >= 0.75 && avgT(rs) >= base + 1 || crowns > 0 || (n < 3 && stars >= 6)) st = "guclu"; else if(up) st = "gelisiyor"; else st = "pratik"; }
 const support = n >= 5 && days >= 14 && R < 0.4 && !up;
-return { c, n, stars, crowns, st, support, R }; }); }
+return { c, n, stars, crowns, st, support, R, lvlNow, lvlBy, tierNow }; }); }
 const GR_TXT = { guclu:["Güçlü yön","t2"], gelisiyor:["Gelişiyor","t1"], pratik:["Pratik sürüyor","t0"], az:["Henüz az veri","tz"] };
+/* KURAL (Gelişim haritası): son güncellemelere göre — her alanda şu anki kademe ve düzey (kategori kademesi + son kayıt), ilerleme okul öncesi/okul sonrası tek ölçekte hesaplanır,
+   "Süren çalışmalar" (uzman ödevleri, açık gelişim ödevleri, bugünün oturumu, bekleyen kademe önerileri) ve son Değerlendirme turu tablosu (tarih + o günden bu yana değişen alanlar) gösterilir */
+function growthOngoingHtml(nm){ try{ const rows = []; const lv = famLvl();
+  let prog = null; try{ prog = typeof familyProgram === "function" ? familyProgram() : null; }catch(e){}
+  if(appMode === "uzman"){ try{ const l = expertLinkForChild(nm); if(l && l.program) prog = l.program; }catch(e){} }
+  const hw = (prog && Array.isArray(prog.hw) ? prog.hw : []).filter(id => exerciseById(id));
+  if(hw.length) rows.push(`<div class="gr-row"><div><b>Uzman ödevleri</b><span>${hw.map(id => escHTML(exerciseById(id).label)).join(", ")}</span></div><em class="t1">${hw.length} ödev</em></div>`);
+  let dev = null; try{ dev = devPlanGet(nm, lv); }catch(e){} const open = dev && Array.isArray(dev.items) ? dev.items.filter(it => exerciseById(it.id)) : [];
+  if(open.length) rows.push(`<div class="gr-row"><div><b>Gelişim ödevleri</b><span>${open.map(it => escHTML(exerciseById(it.id).label) + " (" + escHTML((CATEGORIES.find(c => c.id === it.cat) || {}).label || "") + ")").join(", ")}</span></div><em class="t1">${open.length} açık</em></div>`);
+  if(prog && prog.target){ const tc = CATEGORIES.find(c => c.id === prog.target) || OKUL_SKILLS.find(c => c.id === prog.target); if(tc) rows.push(`<div class="gr-row"><div><b>Program hedefi</b><span>${escHTML(tc.label)}${(prog.days || []).length ? " · " + prog.days.map(d => DAY_SHORT[d]).join(", ") : ""}</span></div><em class="t0">Program</em></div>`); }
+  else { try{ const tg = typeof famTarget === "function" ? famTarget() : null; const tc = tg && (CATEGORIES.find(c => c.id === tg) || OKUL_SKILLS.find(c => c.id === tg)); if(tc && appMode === "aile") rows.push(`<div class="gr-row"><div><b>Bugünün oturumu</b><span>Hedef alan: ${escHTML(tc.label)}</span></div><em class="t0">Bu hafta</em></div>`); }catch(e){} }
+  const pend = (typeof catPendingList === "function" ? catPendingList(nm) : []).map(p => { const c = CATEGORIES.find(x => x.id === p.catId); return c ? escHTML(c.label) + " → " + (p.target === "pre" ? "Okul Öncesi" : "Okul Sonrası") : ""; }).filter(Boolean);
+  if(pend.length) rows.push(`<div class="gr-row"><div><b>Kademe önerisi bekliyor</b><span>${pend.join(", ")}</span></div><em class="t1">Karar bekliyor</em></div>`);
+  return `<div class="gr-h">🧩 Süren çalışmalar</div>${rows.length ? `<div class="gr-list">${rows.join("")}</div>` : `<div class="fam-sub" style="font-weight:600;margin:4px 0">Şu an açık ödev ya da program yok.</div>`}`; }catch(e){ return ""; } }
+function growthPlaceCompare(nm, P){ try{ const ch = []; CATEGORIES.filter(c => !c.hidden).forEach(c => { const d = placeDomFor(c.id); const v = d && P.dom ? P.dom[d.k] : null; if(typeof v !== "number") return; const now = catLevelFor(c.id, nm), was = v < 3 ? "pre" : "post"; if(now !== was) ch.push(`${escHTML(c.label)}: ${was === "pre" ? "Okul Öncesi" : "Okul Sonrası"} → ${now === "pre" ? "Okul Öncesi" : "Okul Sonrası"}`); });
+  return ch.length ? `O günden bu yana kademesi değişen alanlar: ${ch.join(" · ")}` : "Tüm alanlar hâlâ değerlendirmedeki kademede çalışıyor."; }catch(e){ return ""; } }
 function showGrowth(){ const nm = famProfile(); let el = document.getElementById("growthScreen"); if(!el){ el = document.createElement("div"); el.id = "growthScreen"; document.body.appendChild(el); }
 const D = growthData(nm), strong = D.filter(x => x.st === "guclu").map(x => x.c.label), grow = D.filter(x => x.st === "gelisiyor").map(x => x.c.label), sup = D.filter(x => x.support), P = placeGet(nm);
 const linked = typeof familyLinkLocal === "function" && familyLinkLocal();
 el.innerHTML = `<div class="adv-wrap"><div class="adv-top"><button type="button" class="mola-x" data-gr="close">✕</button><div><div class="adv-t1">Son 4 hafta</div><div class="adv-t2">${escHTML(nm)} · gelişim haritası</div></div></div>
 <div class="gr-sum">${strong.length ? `<div>🌟 <b>Güçlü yönler:</b> ${strong.join(", ")}</div>` : ""}${grow.length ? `<div>🌱 <b>Gelişen alanlar:</b> ${grow.join(", ")}</div>` : ""}${!strong.length && !grow.length ? `<div>Birkaç gün düzenli çalıştıkça burada çocuğunuzun güçlü yönleri ve gelişen alanları görünecek.</div>` : ""}</div>
 ${sup.length ? `<div class="gr-note"><b>Bir öneri:</b> ${sup.map(x => x.c.label).join(", ")} alanında bir süredir zorlanma görünüyor. Bu bir değerlendirme ya da tanı değildir; çocuklar farklı hızlarda gelişir. İsterseniz bu özeti bir çocuk gelişim uzmanı, özel eğitim öğretmeni ya da dil ve konuşma terapistiyle paylaşabilirsiniz.${linked ? ` <i>Uzmanınız bu sonuçları görebiliyor.</i>` : `<button type="button" class="fam-cta ghost" data-gr="link" style="margin-top:8px">Uzmana bağlan</button>`}</div>` : ""}
-<div class="gr-list">${D.map(x => `<div class="gr-row"><div><b>${x.c.label}</b><span>${x.n ? `${x.n} çalışma` : ""}${x.n && x.stars ? " · " : ""}${x.stars ? `${x.stars} ⭐` : ""}${x.crowns ? ` · ${x.crowns} 👑` : ""}</span></div><em class="${GR_TXT[x.st][1]}">${GR_TXT[x.st][0]}</em></div>`).join("")}</div>
+<div class="gr-h">📍 Alanlar · şu anki çalışma düzeyi</div>
+<div class="gr-list">${D.map(x => `<div class="gr-row"><div><b>${x.c.label}</b><span>${x.lvlNow ? `<i class="gr-lv ${x.lvlNow}">${x.lvlNow === "pre" ? "Okul Öncesi" : "Okul Sonrası"}${x.tierNow != null ? " · " + TIERS[x.tierNow].label.replace(" Düzey", "") : ""}</i>` : ""}${x.n ? `${x.n} çalışma` : ""}${x.n && x.stars ? " · " : ""}${x.stars ? `${x.stars} ⭐` : ""}${x.crowns ? ` · ${x.crowns} 👑` : ""}</span></div><em class="${GR_TXT[x.st][1]}">${GR_TXT[x.st][0]}</em></div>`).join("")}</div>
+${growthOngoingHtml(nm)}
   ${(() => { const O = growthData(nm, OKUL_SKILLS).filter(x => famExIds(x.c.id).length >= 3); return `<div class="gr-h">🎒 Okul becerileri</div><div class="gr-list">${O.map(x => `<div class="gr-row"><div><b>${x.c.label}</b><span>${x.n ? `${x.n} çalışma` : ""}${x.n && x.stars ? " · " : ""}${x.stars ? `${x.stars} ⭐` : ""}</span></div><em class="${GR_TXT[x.st][1]}">${GR_TXT[x.st][0]}</em></div>`).join("")}</div><div class="fam-sub" style="font-weight:600;margin:6px 0">Bir okul becerisini günlük oturumun hedefi yapmak için “Bugünün oturumu” ekranında hedef alanı değiştirin.</div>`; })()}
-${P ? `<div class="fam-sub" style="font-weight:600;margin:10px 0">Değerlendirme turu (${new Date(P.t).toLocaleDateString("tr-TR")}): ${placeSummary(P)}</div>` : ""}
+${P ? `<div class="gr-h">🧭 Son değerlendirme turu · ${new Date(P.t).toLocaleDateString("tr-TR")}</div>${placeTableHtml(P.dom)}<div class="fam-sub" style="font-weight:600;margin:6px 0 4px">${growthPlaceCompare(nm, P)}</div>` : `<div class="gr-h">🧭 Değerlendirme turu</div><div class="fam-sub" style="font-weight:600;margin:4px 0">Henüz yapılmadı. Ana sayfadaki “Değerlendirme turu” ile her alanın başlangıç kademesi ve düzeyi belirlenir.</div>`}
 <div class="fam-sub" style="font-weight:600;margin:10px 0 20px">Bu sayfa çocuğunuzun uygulamadaki çalışmalarını özetler; başka çocuklarla karşılaştırma yapmaz ve tanı koymaz.</div></div>`;
 el.style.display = "flex"; el.scrollTop = 0;
 el.querySelectorAll("[data-gr]").forEach(b => b.onclick = () => { el.style.display = "none"; if(b.dataset.gr === "link"){ try{ showLinkScreen(); }catch(e){} } }); }
@@ -8965,6 +8987,7 @@ const sideButtons = () => [{ id:"L", html:'<span style="font-size:30px;font-weig
 /* ===== Yürütücü İşlev · Paket 2 (Ketleme B) · veri ve yardımcılar ===== */
 (function topHomeStyle(){ try{ if(document.getElementById("topHomeStyle")) return; const st = document.createElement("style"); st.id = "topHomeStyle"; st.textContent = `#lsMore .top{gap:6px}#lsMore .top h1{white-space:nowrap;font-size:clamp(16px,4.9vw,26px);min-width:0;flex:0 1 auto}#lsMore .top-btns{gap:5px;flex:none}#lsMore .top-btns .home-btn.inl{width:36px;height:36px;margin-left:0}#lsMore .top-btns .home-btn.inl svg{width:19px;height:19px}@media (max-width:440px){#lsMore .top-btns .cloud-badge{font-size:0;padding:0;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;gap:0}#lsMore .top-btns .cloud-badge .ui-icon-slot{width:18px;height:18px;margin:0;display:flex;align-items:center;justify-content:center}#lsMore .top-btns .cloud-badge .ui-icon-slot svg{width:18px;height:18px;display:block}}`; document.head.appendChild(st); }catch(e){} })();
 /* KURAL (ana sayfalar): Uzman ve Aile sayfasının en üstünde sayfa adı ("Uzman Etkinlik Sayfası" / "Aile Etkinlik Sayfası", uygulamanın başlık yazı tipiyle); dört kısayol kartı iki satırda yan yana 2×2 düğme olarak durur */
+(function growthStyle(){ try{ if(document.getElementById("growthStyle")) return; const st = document.createElement("style"); st.id = "growthStyle"; st.textContent = `.gr-lv{display:inline-block;font-style:normal;font-weight:900;font-size:11.5px;border-radius:8px;padding:2px 7px;margin:3px 6px 0 0}.gr-lv.pre{background:#FFF1D6;color:#9A6B00}.gr-lv.post{background:#DDF5E7;color:#1B7A45}#growthScreen .place-table-wrap{margin:4px 0}`; document.head.appendChild(st); }catch(e){} })();
 (function placeStimStyle(){ try{ if(document.getElementById("placeStimStyle")) return; const st = document.createElement("style"); st.id = "placeStimStyle"; st.textContent = `/* KURAL: uyaran kutusu yüzdeli içerikte çökmesin (Değerlendirme turu "ortadaki büyük ok" görünmüyordu) */.ps-in > div:only-child[style*="height:100%"]{width:min(62vw,240px) !important;height:min(62vw,240px) !important}`; document.head.appendChild(st); }catch(e){} })();
 (function homeGridStyle(){ try{ if(document.getElementById("homeGridStyle")) return; const st = document.createElement("style"); st.id = "homeGridStyle"; st.textContent = `.home-title{margin:0;text-align:center;font-size:24px;line-height:1.15;letter-spacing:-.01em}
 .fh-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
@@ -13257,7 +13280,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.24-l";
+const APP_VERSION = "2026.10.24-m";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
