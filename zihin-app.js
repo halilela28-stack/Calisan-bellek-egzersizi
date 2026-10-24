@@ -2165,7 +2165,9 @@ const scale = SIZE_SCALE[size];
 return `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="${42*scale}" fill="${color}"/></svg>`;
 }
 
-const WORD_POOL = ["elma","kitap","güneş","masa","bulut","kalem","ağaç","balık","anahtar","pencere","köprü","yıldız","deniz","kapı","bardak"];
+/* KURAL (içerik uyumu): hatırlama listelerinde bir sayfada aynı öğe iki kez gelmez; havuz en zor düzeydeki öğe sayısından (25) büyüktür */
+const WORD_POOL = ["kalem","masa","elma","kapı","kitap","bardak","pencere","anahtar","deniz","balık","yıldız","köprü","güneş","bulut","ağaç","çiçek","kuş","araba","top","şapka","ayna","çanta","saat","yastık","halı","dolap","kutu","peynir","ekmek","limon","köpek","kedi","tren","vapur","orman","dağ","nehir","kar","yağmur","ay"];
+const PHRASE_POOL = ["kırmızı top","büyük ev","hızlı araba","yeşil ağaç","tatlı elma","küçük kedi","uzun yol","soğuk su","sıcak çorba","mavi deniz","yumuşak yastık","eski ayakkabı","yüksek dağ","parlak yıldız","sessiz orman","sarı balon","kısa merdiven","derin göl","taze ekmek","beyaz bulut","sıcak güneş","ıslak şemsiye","kocaman fil","minik kuş","tuzlu peynir","ekşi limon","karanlık oda","geniş bahçe","dar sokak","ağır çanta","hafif tüy","keskin bıçak","yuvarlak masa","uzun kuyruk","sıcak ekmek","serin rüzgar"];
 const CATEGORY_WORDS = {
 "meyve": ["elma","muz","çilek","karpuz","armut","kiraz"],
 "hayvan": ["kedi","köpek","aslan","inek","tavşan","zürafa"],
@@ -3388,6 +3390,7 @@ example: (item) => `${item.hint}`
 
 {
 id: "odd-one-out",
+dims: () => ROW_GROUP_DIMS(),
 readingLevel: ["pre","post"],
 label: "Farklı Olanı Bul",
 attrs: ["dimension"],
@@ -3422,6 +3425,7 @@ example: (item) => `${item.oddIndex+1}. şekil farklı (${item.dimension === "sh
 },
 {
 id: "sequence-pattern",
+dims: () => ROW_GROUP_DIMS(),
 readingLevel: ["pre","post"],
 label: "Örüntü Tamamlama",
 attrs: ["answer"],
@@ -3450,6 +3454,7 @@ example: (item) => `${COLOR_NAMES[item.answer]}`
 },
 {
 id: "visual-analogy",
+dims: () => ROW_GROUP_DIMS(),
 readingLevel: ["pre","post"],
 label: "Görsel Analoji",
 attrs: ["shape1"],
@@ -3545,7 +3550,7 @@ readingLevel: ["post"],
 label: "Kelime Listesi Hatırlama",
 isRecall: true,
 attrs: ["word"],
-randomItem: () => ({ word: randomItem(WORD_POOL) }),
+randomItem: () => ({ word: randomItem(WORD_POOL) }), uniqueFrom: () => WORD_POOL, itemFrom: (w) => ({ word: w }),
 renderItem: (item) => `<div class="name-cell">${item.word}</div>`,
 stages: [
 {
@@ -5418,7 +5423,7 @@ readingLevel: ["post"],
 label: "Cümle/Öbek Tekrarı",
 isRecall: true,
 attrs: ["phrase"],
-randomItem: () => ({ phrase: randomItem(["kırmızı top","büyük ev","hızlı araba","yeşil ağaç","tatlı elma","küçük kedi","uzun yol","soğuk su","sıcak çorba","mavi deniz","yumuşak yastık","eski ayakkabı","yüksek dağ","parlak yıldız","ıslak havlu","sessiz orman","sarı balon","derin göl","temiz pencere","ağır çanta","kısa merdiven","beyaz bulut","dar sokak","taze ekmek"]) }),
+randomItem: () => ({ phrase: randomItem(PHRASE_POOL) }), uniqueFrom: () => PHRASE_POOL, itemFrom: (w) => ({ phrase: w }),
 renderItem: (item) => `<div class="name-cell phrase-cell">${item.phrase}</div>`,
 stages: [
 {
@@ -5779,6 +5784,9 @@ let hapticEnabled = true;
 let expertAdaptiveEnabled = false;
 
 function currentCombo(){ return SEQUENCE[currentIndex]; }
+/* KURAL (düzen): satır biçimli grup gösteren çalışmalar (Örüntü Tamamlama, Görsel Analoji, Farklı Olanı Bul) telefonda okunur olsun diye iki sütun ve tam satırla gelir;
+   öğe sayısı Okul Sonrası 12/16/20, Okul Öncesi 8/10/12 */
+const ROW_GROUP_DIMS = () => isPre() ? [{rows:4, cols:2}, {rows:5, cols:2}, {rows:6, cols:2}] : [{rows:6, cols:2}, {rows:8, cols:2}, {rows:10, cols:2}];
 function currentTier(){
 const base = TIERS[currentCombo().t];
 const exForDims = currentCategoryExercises()[currentCombo().e];
@@ -5804,7 +5812,8 @@ function itemsFullyEqual(a, b, attrs){
 return attrs.every(k => a[k] === b[k]);
 }
 
-function generateGrid(exercise, rows, cols){ if(exercise.id === "syllable-count"){ const pool = shuffleArray(SYLLABLE_WORDS); return Array.from({length: rows * cols}, (_, i) => Object.assign({}, pool[i % pool.length])); } /* Hece Sayma: ızgara karıştırılmış listeden kurulur, tekrar olmaz */
+function generateGrid(exercise, rows, cols){
+if(exercise.uniqueFrom){ const pool = shuffleArray(exercise.uniqueFrom()); return Array.from({length: rows * cols}, (_, i) => exercise.itemFrom(pool[i % pool.length])); }   /* tekrarsız liste */ if(exercise.id === "syllable-count"){ const pool = shuffleArray(SYLLABLE_WORDS); return Array.from({length: rows * cols}, (_, i) => Object.assign({}, pool[i % pool.length])); } /* Hece Sayma: ızgara karıştırılmış listeden kurulur, tekrar olmaz */
 if(exercise.isMt) return mtBuild();
 if(exercise.isRt) return rtBuild();
 if(exercise.isChoice) return chBuild();
@@ -6086,6 +6095,27 @@ const CAT_STREAK_KEY = "wm_cat_streak_v1", CAT_SNOOZE_DAYS = 14;
 function catStreakAll(){ try{ return JSON.parse(localStorage.getItem(CAT_STREAK_KEY) || "{}"); }catch(e){ return {}; } }
 function catStreakSave(d){ try{ localStorage.setItem(CAT_STREAK_KEY, JSON.stringify(d)); }catch(e){} }
 function catPlayerName(){ return (appMode === "aile" && typeof famProfile === "function") ? famProfile() : currentPlayerName; }
+/* KURAL (kademe geçişi): okul öncesi ↔ okul sonrası geçişlerinde motive edici ifade kullanılır. İniş bir başarısızlık gibi anlatılmaz ("geri", "düştün", "başaramadın" yok);
+   temeli sağlamlaştırma olarak anlatılır. Çıkışta kutlama (konfeti). Yetişkine geçiş anında, çocuğa o alanı bir sonraki açışında gösterilir. */
+const CAT_CHEER = {
+  up:   ["Süpersin! {alan} alanında bir üst kademeye geçtin 🌟", "Emeğinin karşılığını aldın! {alan} alanında yeni ve daha heyecanlı çalışmalar seni bekliyor 🚀", "Harika gidiyorsun! {alan} alanında artık okul çağı çalışmalarındasın 🎉", "Çok çalıştın, çok da başardın! {alan} alanında yeni bir maceraya hazırsın ⭐"],
+  down: ["{alan} alanında temelleri sağlamlaştırıyoruz; her adım seni daha da güçlendirecek 💪", "En yüksek kuleler sağlam temellerle yükselir. {alan} alanında adım adım ilerliyoruz 🧱", "Biraz daha pratikle çok daha hızlı olacaksın. {alan} alanında yeni çalışmalar seni bekliyor 🌱", "Her usta işe temelden başlar. {alan} alanında birlikte güçleniyoruz ✨"]
+};
+const CAT_CHEER_ADULT = {
+  up: "Tebrikler! {ad}, {alan} alanında Okul Sonrası kademesine geçti. Yeni çalışmalar biraz daha zorlayıcı olabilir; ilk günlerde küçük hatalar olağandır.",
+  down: "{ad}, {alan} alanında bir süre Okul Öncesi kademesinde çalışacak. Bu ara basamak, temeli sağlamlaştırıp daha emin adımlarla ilerlemesi içindir; diğer alanlar değişmez. Başarı geldikçe uygulama Okul Sonrası'nı yeniden önerecek."
+};
+function catCheerText(kind, catLabel, name){ const pool = CAT_CHEER[kind] || []; return (pool[Math.floor(Math.random() * pool.length)] || "").replace("{alan}", catLabel).replace("{ad}", name || ""); }
+function catCheerAdult(kind, catLabel, name){ return (CAT_CHEER_ADULT[kind] || "").replace("{alan}", catLabel).replace("{ad}", name || "Çocuk"); }
+const CAT_CHEER_KEY = "wm_cat_cheer_v1";
+function catCheerQueue(name, catId, target){ try{ const d = JSON.parse(localStorage.getItem(CAT_CHEER_KEY) || "{}"), n = (name || "").trim(); if(!n) return; d[n] = d[n] || {}; d[n][catId] = { target, at: Date.now() }; localStorage.setItem(CAT_CHEER_KEY, JSON.stringify(d)); }catch(e){} }
+function catCheerShow(name, catId){ try{ const d = JSON.parse(localStorage.getItem(CAT_CHEER_KEY) || "{}"), n = (name || "").trim(); const q = d[n] && d[n][catId]; if(!q) return false; delete d[n][catId]; localStorage.setItem(CAT_CHEER_KEY, JSON.stringify(d));
+  const c = CATEGORIES.find(x => x.id === catId); if(!c) return false; const kind = q.target === "post" ? "up" : "down"; setTimeout(() => { try{ showLevelFlash(catCheerText(kind, c.label, n), "levelup"); if(kind === "up") celebrateSave(); }catch(e){} }, 450); return true; }catch(e){ return false; } }
+/* Yetişkin onayıyla geçiş: yetişkine açıklama + çocuğa bir sonraki açılışta motive edici ifade */
+function catLevelTransition(catId, name, target, by, opts){ opts = opts || {}; const c = CATEGORIES.find(x => x.id === catId); if(!c) return; const prev = catLevelFor(catId, name); setCatLevel(catId, name, target, by); if(prev === target) return;
+  const kind = target === "post" ? "up" : "down"; catCheerQueue(name, catId, target);
+  if(opts.now){ try{ catCheerShow(name, catId); }catch(e){} } else { try{ showLevelFlash(kind === "up" ? `🌟 ${c.label}: Okul Sonrası kademesine geçildi` : `🌱 ${c.label}: Okul Öncesi kademesinde temeli sağlamlaştırıyoruz`, "levelup"); if(kind === "up") celebrateSave(); }catch(e){} }
+  if(opts.explain !== false){ setTimeout(() => { try{ zaAlert(catCheerAdult(kind, c.label, name)); }catch(e){} }, 700); } }
 const CAT_PENDING_KEY = "wm_cat_pending_v1";
 function catPendingAll(){ try{ return JSON.parse(localStorage.getItem(CAT_PENDING_KEY) || "{}"); }catch(e){ return {}; } }
 function catPendingSave(d){ try{ localStorage.setItem(CAT_PENDING_KEY, JSON.stringify(d)); }catch(e){} }
@@ -6106,13 +6136,13 @@ function catPendingCardHtml(name){
 const n = (name || "").trim(); if(!n || n === "Misafir" || n === "Oyuncu") return "";
 const list = catPendingList(n); if(!list.length) return "";
 return list.map(p => { const c = CATEGORIES.find(x => x.id === p.catId); if(!c) return ""; const info = catLevelInfo(c.id, n); const locked = appMode === "aile" && info.by === "uzman" && !catLevelEntry(c.id, n);
-  const txt = p.target === "pre" ? `${escHTML(n)}, Zihin Adaları'nda ${escHTML(c.label)} duraklarında okul sonrası Başlangıç'ta art arda zorlandı. Bu alanda Okul Öncesi kademesine geçilsin mi?` : `${escHTML(n)}, Zihin Adaları'nda ${escHTML(c.label)} duraklarında okul öncesi Zor düzeyini art arda başardı. Bu alanda Okul Sonrası kademesine geçilsin mi?`;
+  const txt = p.target === "pre" ? `Zihin Adaları'nda ${escHTML(c.label)} durakları ${escHTML(n)} için şimdilik biraz zorlayıcı görünüyor. Okul Öncesi kademesinde temeli sağlamlaştırıp daha emin ilerleyebilir. Bu alanda Okul Öncesi'ne geçilsin mi?` : `Harika! ${escHTML(n)}, Zihin Adaları'nda ${escHTML(c.label)} duraklarında Okul Öncesi Zor düzeyini art arda başardı. Okul Sonrası kademesine geçmeye hazır görünüyor. Geçilsin mi?`;
   return `<div class="fh-rec cat-pending" data-cat="${c.id}" data-target="${p.target}"><div class="fh-rec-h">Kademe önerisi</div><div style="font-size:14px;line-height:1.4;margin:4px 0 8px">${txt}</div>${locked ? `<small style="color:#5B6B78;font-weight:700">Bu alanın kademesini uzman belirledi; uzmanınıza iletin.</small>` : `<div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="cat-level-btn on" data-pend="go">Geç</button><button type="button" class="cat-level-btn auto" data-pend="later">Şimdi değil</button></div>`}</div>`; }).join("");
 }
 function catPendingBind(box, name, rerender){
 box.querySelectorAll(".cat-pending").forEach(card => { const cid = card.dataset.cat, target = card.dataset.target;
   card.querySelectorAll("[data-pend]").forEach(b => b.addEventListener("click", (ev) => { ev.stopPropagation(); const n = (name || "").trim();
-    if(b.dataset.pend === "go"){ setCatLevel(cid, n, target, appMode === "uzman" ? "uzman" : "aile"); catPendingClear(n, cid); showLevelFlash(`${(CATEGORIES.find(x => x.id === cid) || {}).label}: ${target === "pre" ? "Okul Öncesi" : "Okul Sonrası"} kademesine geçildi`, "levelup"); }
+    if(b.dataset.pend === "go"){ catPendingClear(n, cid); catLevelTransition(cid, n, target, appMode === "uzman" ? "uzman" : "aile"); }
     else { const d = catStreakAll(); d[n] = d[n] || {}; d[n][cid] = d[n][cid] || { good: 0, bad: 0 }; d[n][cid].snoozeUntil = Date.now() + CAT_SNOOZE_DAYS * 864e5; catStreakSave(d); catPendingClear(n, cid); }
     try{ rerender(); }catch(e){} })); });
 }
@@ -6125,19 +6155,18 @@ if(j.isBad){ st.bad = (lvl === "post" && t === 0) ? st.bad + 1 : 0; st.good = 0;
 catStreakSave(d);
 if(st.snoozeUntil && st.snoozeUntil > Date.now()) return;
 let target = null, msg = "";
-if(lvl === "post" && st.bad >= 2){ target = "pre"; msg = `${n}, ${cat.label} alanında okul sonrası Başlangıç'ta art arda iki kez zorlandı. Bu alanda Okul Öncesi kademesine geçilsin mi? Diğer alanlar değişmez.`; }
-if(lvl === "pre" && st.good >= 2){ target = "post"; msg = `${n}, ${cat.label} alanında okul öncesi Zor düzeyini art arda iki kez başardı. Bu alanda Okul Sonrası kademesine geçilsin mi? Diğer alanlar değişmez.`; }
+if(lvl === "post" && st.bad >= 2){ target = "pre"; msg = `${cat.label} alanında Okul Sonrası Başlangıç, ${n} için şimdilik biraz zorlayıcı görünüyor. Okul Öncesi kademesinde temeli sağlamlaştırıp daha emin adımlarla ilerleyebilir. Bu alanda Okul Öncesi'ne geçilsin mi? Diğer alanlar değişmez.`; }
+if(lvl === "pre" && st.good >= 2){ target = "post"; msg = `Harika! ${n}, ${cat.label} alanında Okul Öncesi Zor düzeyini art arda iki kez başardı. Bu alanda Okul Sonrası kademesine geçmeye hazır görünüyor. Geçilsin mi? Diğer alanlar değişmez.`; }
 if(!target) return;
 if(appMode === "aile" && catLevelInfo(cat.id, n).by === "uzman" && !catLevelEntry(cat.id, n)) return;   /* uzman belirlemişse aileye sorulmaz */
 const ok = await zaConfirm(msg);
 const d2 = catStreakAll(); d2[n] = d2[n] || {}; d2[n][cat.id] = d2[n][cat.id] || {}; d2[n][cat.id].good = 0; d2[n][cat.id].bad = 0;
 if(!ok){ d2[n][cat.id].snoozeUntil = Date.now() + CAT_SNOOZE_DAYS * 864e5; catStreakSave(d2); return; }
 catStreakSave(d2);
-setCatLevel(cat.id, n, target, appMode === "uzman" ? "uzman" : "aile");
+catLevelTransition(cat.id, n, target, appMode === "uzman" ? "uzman" : "aile", { now: true });
 const exId = ex.id, ci = currentCategoryIndex; applyPlacedLevel(cat.id, n);
 selectCategory(ci);
 try{ const exs = currentCategoryExercises(); const e = exs.findIndex(x => x.id === exId); if(e >= 0){ const tt = target === "pre" ? tierMax(exs[e]) : 0; const idx = findSeqIndex(tt, e); if(idx >= 0) goToIndex(idx); } }catch(e){}
-showLevelFlash(target === "pre" ? `${cat.label}: Okul Öncesi kademesine geçildi` : `${cat.label}: Okul Sonrası kademesine geçildi`, "levelup");
 }
 
 let audioCtx = null;
@@ -8779,7 +8808,7 @@ const program = Object.assign({}, l.program || {}, { levels, updatedAt: Date.now
 try{ await updateDoc(doc(db, "links", l.id || l.code), { program }); l.program = program; }catch(e){ console.error("Kategori düzeyi aileye gönderilemedi:", e); }
 }
 /* Kategori açılırken o kategorinin düzeyini uygula */
-function applyPlacedLevel(catId, name){ try{ const n = (name != null ? name : currentPlayerName) || ""; const L = catLevelFor(catId, n); if(L && L !== readingLevel){ readingLevel = L; try{ applyLevelDefaultThresholds(L); }catch(e){} } }catch(e){} }
+function applyPlacedLevel(catId, name){ try{ const n = (name != null ? name : currentPlayerName) || ""; try{ catCheerShow(n, catId); }catch(e){}   /* çocuğa: bu alanı ilk açışında motive edici ifade */ const L = catLevelFor(catId, n); if(L && L !== readingLevel){ readingLevel = L; try{ applyLevelDefaultThresholds(L); }catch(e){} } }catch(e){} }
 /* KURAL (Değerlendirme turu): sonuç, kategorilere göre tek bir özet tabloda gösterilir — Kategori | Kademe (Okul Öncesi / Okul Sonrası) | Düzey (Başlangıç / Orta / Zor); tur sonunda ve Değerlendirme turu panelinde aynı tablo */
 function placeTableHtml(dom, opts){ opts = opts || {}; const cats = CATEGORIES.filter(c => !c.hidden); const rows = cats.map(c => { const d = placeDomFor(c.id); const v = d && dom ? dom[d.k] : null; if(typeof v !== "number") return `<tr><td>${escHTML(c.label)}</td><td colspan="2" class="pt-na">—</td></tr>`;
   const pre = v < 3, tier = stepTier(v); return `<tr><td>${escHTML(c.label)}</td><td><span class="pt-k ${pre ? "pre" : "post"}">${pre ? "Okul Öncesi" : "Okul Sonrası"}</span></td><td><span class="pt-t t${tier}">${PLACE_TIER[tier]}</span></td></tr>`; }).join("");
@@ -10863,6 +10892,12 @@ window.addEventListener("resize", () => { clearTimeout(window._mtResizeT); windo
 
 const Q = (t) => `<b>"${t}"</b>`;
 const EYE = (d) => Q(`Ekranda bir top var. Başını hiç oynatma; top nereye giderse sadece gözlerinle onu takip et. ${d}`);
+/* KURAL (uyum, düzen ve denge — uygulamanın bütünü için):
+   İÇERİK UYUMU: yönerge, ekrandaki içerik ve puanlama birbiriyle çelişmez (yönergede geçen sayı/hedef tahtadakiyle aynı; dönüşümlü izlerde tam çift; hatırlama listelerinde tekrar yok; Aşama 1'de sorulmayan özellik gösterilmez).
+   MANTIK UYUMU: düzey geçişleri, kategori kademesi, Değerlendirme turu, ödev ve planlar aynı kademe/düzey ölçeğini kullanır (okul öncesi 0–2, okul sonrası 3–5).
+   DÜZEN UYUMU: hiçbir sayfa yatay taşmaz, ızgarada son satır eksik kalmaz, uyaran kutusu çökmez, ana sayfalar aynı iskeleti (başlık, büyük kart, 2×2 kart) kullanır, renkler tek paletten gelir, geri bildirim ✓/✗ taşır.
+   DENGE: her kategoride en az 15 çalışma, her bölümde en az 3 çalışma, her kategorinin en az %70'i Okul Öncesi'nde de var, her kategorinin Zihin Adaları'nda en az 8 durağı ve Değerlendirme turunda bir alanı var, her çalışmanın her aşaması için yönerge var, aşama sayısı 1–3.
+   Bu kurallar her teslimden önce kural denetimiyle (rules_check) sınanır. */
 /* KURAL (yönergeler): Q(...) içindeki yeşil metin çocuğa okunur. Düzgün Türkçe, tam cümleler; önce ne olacağını, sonra çocuğun ne yapacağını anlatır;
    tek kelimelik ya da kopuk komut olmaz ("Tersini yap." gibi); kısalık uğruna anlatım bozulmaz; düzeye özgü kural (eşler, sıra) yetişkin notunda değil çocuğun cümlesinde geçer;
    ekrandaki eylemle birebir örtüşür (dokun/söyle/vur/çiz); çalışmayla çelişen ifade olmaz. Q dışındaki metin yetişkine yöneliktir ve kısa tutulur.
@@ -11771,7 +11806,7 @@ return best;
 
 /* Dikey ekran (telefon ve tablet): öğe sayısını koruyup tahtanın genişlik ve yüksekliğine göre en büyük kare hücreyi veren satır/sütun düzenini seç.
    Satırın anlam taşıdığı ya da tek satırlık dizi gösteren çalışmalar dışarıda. */
-const NO_REFLOW = new Set(["position-recall","digit-span","word-list-recall","sentence-repeat","color-recall","shape-recall","sequence-pattern","visual-analogy","nback-shape","nback-color","nback-number"]);
+const NO_REFLOW = new Set(["odd-one-out","position-recall","digit-span","word-list-recall","sentence-repeat","color-recall","shape-recall","sequence-pattern","visual-analogy","nback-shape","nback-color","nback-number"]);
 function pickPortraitDims(n, board, rows0, cols0){ try{ if(rows0 < 2 || cols0 < 2 || NO_REFLOW.has(currentExercise().id)) return null; const cs = getComputedStyle(board); const w = board.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
   const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0;
   const focus = document.documentElement.classList.contains("run-focus") && window._rfMax; const availAll = focus ? window._rfMax : Math.max(window.innerHeight - board.getBoundingClientRect().top - barH - 12 - 90, window.innerHeight * 0.62); /* odak dışında sayfa kaydırılabilir: başlık uzun olsa da tahta ekranın en az %62'si kadar yer alabilir (aksi hâlde seçici ham sütuna düşüp hücreleri sıkıştırıyordu) */   /* odak dışında "Geçmiş Sonuçları Gör" için yer kalsın */
@@ -11793,7 +11828,9 @@ let track = "1fr", colTrack = null, rowTrack = null;
 if(landscapeMQ.matches){
 const best = pickLandscapeDims(currentGrid.length, board);
 if(best){ rows = best.rows; cols = best.cols; track = "minmax(0, 1fr)"; }
-} else { const best = pickPortraitDims(currentGrid.length, board, rows, cols); if(best){ rows = best.rows; cols = best.cols; colTrack = best.cw + "px"; rowTrack = best.cell + "px"; } }
+} else { const best = pickPortraitDims(currentGrid.length, board, rows, cols); if(best){ rows = best.rows; cols = best.cols; colTrack = best.cw + "px"; rowTrack = best.cell + "px"; }
+  const RG = { "sequence-pattern": 4.2, "visual-analogy": 3.4, "odd-one-out": 2.3 }[currentExercise().id];   /* satır biçimli gruplar: iki sütun, satır yüksekliği içeriğin oranına göre (daireler basık görünmez) */
+  if(RG){ const cs = getComputedStyle(board); const w = board.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); const gx = parseFloat(cs.columnGap) || 10; const cw = Math.floor((w - (cols - 1) * gx) / cols); colTrack = cw + "px"; rowTrack = Math.max(40, Math.round(cw / RG)) + "px"; } }
 board.style.gridTemplateColumns = `repeat(${cols}, ${colTrack || track})`;
 board.style.gridTemplateRows = `repeat(${rows}, ${rowTrack || track})`; board.style.justifyContent = colTrack ? "center" : ""; board.style.alignContent = rowTrack ? "center" : "";
 board.classList.toggle("wide-grid", cols >= 5 || rows >= 5); centerLastRow(board, cols); renderRowDividers(board, rows, cols);
@@ -13280,7 +13317,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.24-m";
+const APP_VERSION = "2026.10.24-p";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -15384,7 +15421,7 @@ const info = catLevelInfo(cat.id, n), srcTxt = { uzman: "uzman seçti", aile: "a
 const row = document.createElement("span"); row.className = "cat-level-row";
 const locked = appMode === "aile" && info.by === "uzman";
 const mk = (lvl, txt) => { const b = document.createElement("button"); b.type = "button"; b.className = "cat-level-btn" + (info.lvl === lvl ? " on" : ""); b.textContent = txt; b.disabled = locked;
-  b.addEventListener("click", (ev) => { ev.stopPropagation(); if(locked || info.lvl === lvl) return; setCatLevel(cat.id, n, lvl, appMode === "uzman" ? "uzman" : "aile"); onChange(); }); return b; };
+  b.addEventListener("click", (ev) => { ev.stopPropagation(); if(locked || info.lvl === lvl) return; catLevelTransition(cat.id, n, lvl, appMode === "uzman" ? "uzman" : "aile", { explain: false }); onChange(); }); return b; };
 row.innerHTML = `<span class="cat-level-lbl">Kademe · <b>${info.lvl === "pre" ? "Okul Öncesi" : "Okul Sonrası"}</b> <small>(${escHTML(srcTxt)})</small></span>`;
 const btns = document.createElement("span"); btns.className = "cat-level-btns"; btns.appendChild(mk("pre", "Okul Öncesi")); btns.appendChild(mk("post", "Okul Sonrası"));
 if(!locked && (info.by === "uzman" || info.by === "aile")){ const auto = document.createElement("button"); auto.type = "button"; auto.className = "cat-level-btn auto"; auto.textContent = "Otomatik"; auto.title = "Seçimi kaldır: Değerlendirme turu ya da genel düzey kullanılır";
