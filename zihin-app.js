@@ -8810,8 +8810,10 @@ const answer = (ok) => { if(placeRun !== R || R.item !== myItem || R.answered ==
   if(warm){ R.warmDone[d.k] = true; gameSfx(ok ? "correct" : "pop"); return setTimeout(placeNext, 450); }
   R.n++; if(ok) R.hits++; gameSfx(ok ? "correct" : "pop"); if(R.n < 2) return setTimeout(placeNext, 450);
   const h = R.hits; R.n = 0; R.hits = 0; R.visits++; let done = false, res = R.step;
-  if(h === 2){ if(R.dir < 0 || R.step >= PLACE_STEPS - 1 || R.visits >= 3) done = true; else { R.dir = 1; R.step++; } }   /* alan başına en çok 3 basamak: tur kısa kalır, ince ayarı uyarlamalı zorluk yapar */
-  else if(h === 0){ if(R.dir > 0){ done = true; res = R.step - 1; } else if(R.step <= 0 || R.visits >= 3){ done = true; res = Math.max(0, R.step - (R.step > 0 ? 1 : 0)); } else { R.dir = -1; R.step--; } }
+  /* KURAL (Değerlendirme turu): gerçek uyarlama — her alanda 2/2 doğru bir basamak yukarı, 0/2 bir basamak aşağı; okul sonrası ile okul öncesi basamakları arasında serbestçe geçilir
+     (ör. görsel bellekte 5 → 4 → 3 → 2 resme kadar iner); 1/2 ya da yön değişimi olunca o basamakta durulur; basamak sayısı sınırlı değildir, yalnızca güvenlik için alan başına en çok 6 tur */
+  if(h === 2){ if(R.dir < 0 || R.step >= PLACE_STEPS - 1 || R.visits >= 6) done = true; else { R.dir = 1; R.step++; } }
+  else if(h === 0){ if(R.dir > 0){ done = true; res = R.step - 1; } else if(R.step <= 0){ done = true; res = 0; } else if(R.visits >= 6){ done = true; res = Math.max(0, R.step - 1); } else { R.dir = -1; R.step--; } }
   else done = true; /* 1/2: bu basamak */
   if(done){ R.res[d.k] = Math.max(0, Math.min(PLACE_STEPS - 1, res)); R.di++; R.step = R.base; R.dir = 0; R.visits = 0; return setTimeout(placeNext, 550); }
   setTimeout(placeNext, 450); };
@@ -8848,7 +8850,7 @@ const show = () => { if(!(placeRun === R && R.item === myItem)) return; if(k < s
 let pos = 0; el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q">Gördüğün <b>sırayla</b> dokun</div><div class="place-opts" style="grid-template-columns:repeat(3, 96px)">${opts.map((x, i) => `<button type="button" class="wm-pic" data-po-s="${i}" style="width:96px;height:96px;padding:5px">${qzPic(x.src)}</button>`).join("")}</div></div>`;
 el.querySelectorAll("[data-po-s]").forEach(b => b.onclick = () => { if(pos < 0) return; const x = opts[Number(b.dataset.poS)]; if(x === seq[pos]){ b.classList.add("ok"); pos++; if(pos >= seq.length){ pos = -1; answer(true); } } else { b.classList.add("bad"); pos = -1; answer(false); } }); };
 show(); return; }
-const N = [2,3,4,5,6,7][TT], seen = pool.slice(0, N), tgt = randomItem(seen), opts = shuffleArray([tgt].concat(pool.slice(N, N + (pre ? 2 : 3)))); if(R.lastIdx != null && opts.indexOf(tgt) === R.lastIdx){ const j = (R.lastIdx + 1 + Math.floor(Math.random() * (opts.length - 1))) % opts.length; [opts[R.lastIdx], opts[j]] = [opts[j], opts[R.lastIdx]]; } R.lastIdx = opts.indexOf(tgt); R.cur = { tgt, opts };
+const N = [1,2,3,4,5,6][TT], seen = pool.slice(0, N), tgt = randomItem(seen)   /* görsel bellek: basamak başına resim sayısı 1…6 (okul sonrası Başlangıç 4; gerekirse 3 → 2 → 1) */, opts = shuffleArray([tgt].concat(pool.slice(N, N + (pre ? 2 : 3)))); if(R.lastIdx != null && opts.indexOf(tgt) === R.lastIdx){ const j = (R.lastIdx + 1 + Math.floor(Math.random() * (opts.length - 1))) % opts.length; [opts[R.lastIdx], opts[j]] = [opts[j], opts[R.lastIdx]]; } R.lastIdx = opts.indexOf(tgt); R.cur = { tgt, opts };
 el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q">Resimlere iyi bak…</div><div class="place-opts" style="grid-template-columns:repeat(${Math.min(N, 4)}, 80px)">${seen.map(x => `<div class="wm-card" style="width:80px;height:80px;padding:5px">${qzPic(x.src)}</div>`).join("")}</div></div>`;
 setTimeout(() => { if(!(placeRun === R && R.item === myItem)) return; el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q">Bunlardan hangisi <b>vardı</b>?</div><div class="place-opts" style="grid-template-columns:repeat(${Math.min(opts.length, 3)}, 96px)">${opts.map((x, i) => `<button type="button" class="wm-pic" data-po-v="${i}" style="width:96px;height:96px;padding:5px">${qzPic(x.src)}</button>`).join("")}</div></div>`;
 el.querySelectorAll("[data-po-v]").forEach(b => b.onclick = () => { if(R.answered === myItem) return; const ok = opts[Number(b.dataset.poV)] === tgt; b.classList.add(ok ? "ok" : "bad"); answer(ok); }); }, (pre ? 1600 : 1100) * N); }
@@ -13209,7 +13211,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.24-e";
+const APP_VERSION = "2026.10.24-f";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
