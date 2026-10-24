@@ -2267,7 +2267,7 @@ readingLevel: ["pre","post"],
 label: "Meyve - Sebze",
 attrs: ["name","size"],
 randomItem: () => ({ name: randomItem(isPre() ? PRE_FRUITS_AND_VEGGIES : FRUITS_AND_VEGGIES), size: randomItem(["large","small"]) }),
-renderItem: (item) => fruitVegSVG(item.name, item.size),
+renderItem: (item) => fruitVegSVG(item.name, currentStageIndex === 0 ? "large" : item.size),   /* Aşama 1'de boy sorulmaz: tüm resimler aynı boyda */
 stages: [
 {
 label: "Aşama 1 · Meyve/Sebze",
@@ -8793,6 +8793,8 @@ const PLACE_SEEN_KEY = "wm_place_seen_v1";
 function placeSeenAll(){ try{ return JSON.parse(localStorage.getItem(PLACE_SEEN_KEY) || "{}"); }catch(e){ return {}; } }
 function placeHash(str){ let h = 5381; for(let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
 function placeKey(tr){ const t = String(tr.say || tr.prompt || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim(); const o = (tr.opts || []).map(x => String(x).replace(/\s+/g, "")).sort().join("|"); return t.slice(0, 60) + "#" + placeHash(String(tr.stim || "").replace(/\s+/g, "") + "§" + o); }
+/* KURAL: seçenek ızgarasında son satır eksik kalmaz (4 → 2×2, 6 → 3×2, 8 → 4×2, 9 → 3×3) */
+function placeOptCols(n){ return n <= 3 ? n : n === 4 ? 2 : n === 8 ? 4 : (n % 3 === 0 ? 3 : n % 2 === 0 ? Math.min(4, n / 2) : 3); }
 function placeQz(q, step, name){ const save = currentCombo, keep = readingLevel; let trials; try{ readingLevel = stepLvl(step); currentCombo = () => Object.assign({}, save(), { t: stepTier(step) }); trials = QZ[q](); } finally { currentCombo = save; readingLevel = keep; }
   if(!Array.isArray(trials) || !trials.length) return null; const n = (name || "").trim(); const all = placeSeenAll(); const seen = (all[n] && all[n][q]) || []; const R = placeRun; const used = (R && R.usedKeys) || new Set();
   const keyed = trials.map(tr => ({ tr, k: placeKey(tr) })); let cands = keyed.filter(x => !used.has(x.k) && !seen.includes(x.k)); if(!cands.length) cands = keyed.filter(x => !used.has(x.k)); if(!cands.length) cands = keyed;
@@ -8834,9 +8836,9 @@ const answer = (ok) => { if(placeRun !== R || R.item !== myItem || R.answered ==
   if(done){ R.res[d.k] = Math.max(0, Math.min(PLACE_STEPS - 1, res)); R.di++; R.step = placeNextStart(R); R.dir = 0; R.visits = 0; return setTimeout(placeNext, 550); }
   setTimeout(placeNext, 450); };
 if(d.kind === "qz"){ const tr = placeQz(d.q, TT, R.name); R.cur = tr; const t0 = performance.now(), lim = d.lim ? d.lim[pre ? 0 : 1] : null;
-const cell = Math.min(tr.cell || 104, (window.innerWidth - 60) / Math.min(tr.opts.length, 3));
+const cell = Math.min(tr.cell || 104, (window.innerWidth - 60) / placeOptCols(tr.opts.length));
 el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q">${tr.prompt || ""}</div>${tr.say && tr.replay ? `<button type="button" class="qz-replay" id="placeRep">🔊 Bir daha dinle</button>` : ""}<div class="place-stim"><div class="ps-in">${tr.stim || ""}</div></div>
-<div class="place-opts" style="grid-template-columns:repeat(${Math.min(tr.opts.length, tr.text ? 2 : 3)}, ${tr.text ? "minmax(0,1fr)" : cell + "px"})">${tr.opts.map((o, i) => `<button type="button" class="wm-pic${tr.text ? " qz-txt" : ""}" data-po-a="${i}" style="${tr.text ? "min-height:64px" : `width:${cell}px;height:${cell}px`};padding:6px">${o}</button>`).join("")}</div></div>`;
+<div class="place-opts" style="grid-template-columns:repeat(${tr.text ? Math.min(tr.opts.length, 2) : placeOptCols(tr.opts.length)}, ${tr.text ? "minmax(0,1fr)" : cell + "px"})">${tr.opts.map((o, i) => `<button type="button" class="wm-pic${tr.text ? " qz-txt" : ""}" data-po-a="${i}" style="${tr.text ? "min-height:64px" : `width:${cell}px;height:${cell}px`};padding:6px">${o}</button>`).join("")}</div></div>`;
 { const st = el.querySelector(".place-stim"), c = st && st.querySelector(".ps-in"); if(c){ const maxH = window.innerHeight * 0.36, f = Math.min(1, st.clientWidth / Math.max(1, c.scrollWidth), maxH / Math.max(1, c.scrollHeight)); if(f < 1){ c.style.transform = `scale(${f})`; c.style.transformOrigin = "center top"; st.style.height = (c.scrollHeight * f) + "px"; } } }
 if(tr.say) speakText(tr.say || String(tr.prompt || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()); const rp = document.getElementById("placeRep"); if(rp) rp.onclick = () => speakText(tr.say || String(tr.prompt || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim());
 el.querySelectorAll("[data-po-a]").forEach(b => b.onclick = () => { if(R.answered === myItem) return; const ok = Number(b.dataset.poA) === tr.ans && (!lim || performance.now() - t0 <= lim); b.classList.add(ok ? "ok" : "bad"); answer(ok); }); return; }
@@ -8963,6 +8965,7 @@ const sideButtons = () => [{ id:"L", html:'<span style="font-size:30px;font-weig
 /* ===== Yürütücü İşlev · Paket 2 (Ketleme B) · veri ve yardımcılar ===== */
 (function topHomeStyle(){ try{ if(document.getElementById("topHomeStyle")) return; const st = document.createElement("style"); st.id = "topHomeStyle"; st.textContent = `#lsMore .top{gap:6px}#lsMore .top h1{white-space:nowrap;font-size:clamp(16px,4.9vw,26px);min-width:0;flex:0 1 auto}#lsMore .top-btns{gap:5px;flex:none}#lsMore .top-btns .home-btn.inl{width:36px;height:36px;margin-left:0}#lsMore .top-btns .home-btn.inl svg{width:19px;height:19px}@media (max-width:440px){#lsMore .top-btns .cloud-badge{font-size:0;padding:0;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;gap:0}#lsMore .top-btns .cloud-badge .ui-icon-slot{width:18px;height:18px;margin:0;display:flex;align-items:center;justify-content:center}#lsMore .top-btns .cloud-badge .ui-icon-slot svg{width:18px;height:18px;display:block}}`; document.head.appendChild(st); }catch(e){} })();
 /* KURAL (ana sayfalar): Uzman ve Aile sayfasının en üstünde sayfa adı ("Uzman Etkinlik Sayfası" / "Aile Etkinlik Sayfası", uygulamanın başlık yazı tipiyle); dört kısayol kartı iki satırda yan yana 2×2 düğme olarak durur */
+(function placeStimStyle(){ try{ if(document.getElementById("placeStimStyle")) return; const st = document.createElement("style"); st.id = "placeStimStyle"; st.textContent = `/* KURAL: uyaran kutusu yüzdeli içerikte çökmesin (Değerlendirme turu "ortadaki büyük ok" görünmüyordu) */.ps-in > div:only-child[style*="height:100%"]{width:min(62vw,240px) !important;height:min(62vw,240px) !important}`; document.head.appendChild(st); }catch(e){} })();
 (function homeGridStyle(){ try{ if(document.getElementById("homeGridStyle")) return; const st = document.createElement("style"); st.id = "homeGridStyle"; st.textContent = `.home-title{margin:0;text-align:center;font-size:24px;line-height:1.15;letter-spacing:-.01em}
 .fh-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
 .fh-grid .fh-week{display:grid;grid-template-columns:34px minmax(0,1fr);column-gap:9px;row-gap:3px;align-items:center;padding:10px 11px;min-height:0;height:100%;position:relative}
@@ -11731,7 +11734,8 @@ const gy = parseFloat(cs.rowGap) || 6;
 const hasText = !!board.querySelector(".name-cell, .stroop-cell, .phrase-cell");
 const hasPair = !!board.querySelector(".pair-cell"), hasOdd = !!board.querySelector(".odd-group"); const aspect = hasPair ? 2.1 : hasOdd ? 2.4 : (hasText ? 1.7 : 1);
 let best = null;
-for(let c = 1; c <= n; c++){
+const exactL = []; for(let c = 2; c < n; c++) if(n % c === 0) exactL.push(c);   /* son satır eksik kalmasın */
+for(const c of (exactL.length ? exactL : Array.from({length: n}, (_, i) => i + 1))){
 const r = Math.ceil(n / c);
 const cw = (w - (c-1)*gx) / c;
 const ch = (h - (r-1)*gy) / r;
@@ -11750,7 +11754,9 @@ function pickPortraitDims(n, board, rows0, cols0){ try{ if(rows0 < 2 || cols0 < 
   const focus = document.documentElement.classList.contains("run-focus") && window._rfMax; const availAll = focus ? window._rfMax : Math.max(window.innerHeight - board.getBoundingClientRect().top - barH - 12 - 90, window.innerHeight * 0.62); /* odak dışında sayfa kaydırılabilir: başlık uzun olsa da tahta ekranın en az %62'si kadar yer alabilir (aksi hâlde seçici ham sütuna düşüp hücreleri sıkıştırıyordu) */   /* odak dışında "Geçmiş Sonuçları Gör" için yer kalsın */
   const h = availAll - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 16; if(!(w > 0 && h > 120)) return null;
   const gx = parseFloat(cs.columnGap) || 10, gy = parseFloat(cs.rowGap) || 26; const hasText = !!board.querySelector(".name-cell, .stroop-cell, .phrase-cell"); const hasPair = !!board.querySelector(".pair-cell"), hasOdd = !!board.querySelector(".odd-group"); const aspect = hasPair ? 2.1 : hasOdd ? 2.4 : (hasText ? 1.7 : 1);
-  let best = null; for(let c = 2; c <= n; c++){ const r = Math.ceil(n / c); if(r < 1 || c * r - n > c - 1) continue; const cw = (w - (c - 1) * gx) / c, ch = (h - (r - 1) * gy) / r; if(cw <= 0 || ch <= 0) continue; const cell = Math.min(cw / aspect, ch); const rem = n % c; const score = cell - (c * r - n) * 0.5 - (rem && rem <= Math.floor(c / 2) ? cell * 0.18 : 0);   /* son satırda yarıdan az kart kalan dizilim cezalı */ if(!best || score > best.score) best = { cols:c, rows:r, cell:Math.floor(cell), cw:Math.floor(Math.min(cw, cell * aspect)), score }; }
+  /* KURAL: tahtada son satır eksik kalmaz — öğe sayısını tam bölen bir sütun sayısı varsa yalnız onlar denenir (15 öğe → 3×5 ya da 5×3, 4 sütun + 1 boş hücre değil) */
+  const exact = []; for(let c = 2; c < n; c++) if(n % c === 0) exact.push(c); const tryCols = exact.length ? exact : Array.from({length: Math.max(0, n - 1)}, (_, i) => i + 2);
+  let best = null; for(const c of tryCols){ const r = Math.ceil(n / c); if(r < 1 || c * r - n > c - 1) continue; const cw = (w - (c - 1) * gx) / c, ch = (h - (r - 1) * gy) / r; if(cw <= 0 || ch <= 0) continue; const cell = Math.min(cw / aspect, ch); const rem = n % c; const score = cell - (c * r - n) * 0.5 - (rem && rem <= Math.floor(c / 2) ? cell * 0.18 : 0);   /* son satırda yarıdan az kart kalan dizilim cezalı */ if(!best || score > best.score) best = { cols:c, rows:r, cell:Math.floor(cell), cw:Math.floor(Math.min(cw, cell * aspect)), score }; }
   return best; }catch(e){ return null; } }
 function applyBoardLayout(){
 if(applyingBoardLayout) return;
@@ -13251,7 +13257,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.24-k";
+const APP_VERSION = "2026.10.24-l";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
