@@ -8949,6 +8949,10 @@ const GR_TXT = { guclu:["Güçlü yön","t2"], gelisiyor:["Gelişiyor","t1"], pr
 /* KURAL (Gelişim haritası görünümü): bölüm başlıkları dokununca açılır/kapanır; emoji yerine uygulamanın renk paletinde çizgi simgeler; zemin ve kartlar ana sayfayla aynı renk düzeninde */
 function grIc(k, col, bg){ return `<span class="gr-ic" style="background:${bg};color:${col}">${icI(k, 18, col)}</span>`; }
 const GR_OPEN = new Set();
+/* KURAL (açılır bölümler): Gelişim haritası ve Etkinlik Raporları'nda başlıklar dokununca açılır; bir bölüm açılınca açık olan diğeri kapanır */
+let RP_OPEN = { recent: null, summary: null };
+function rpAccordion(container, kind, itemSel, headSel, keyOf){ try{ const items = [...container.querySelectorAll(itemSel)]; items.forEach(it => { const head = it.querySelector(headSel); if(!head) return; it.classList.add("rp-acc"); head.classList.add("rp-head"); if(!head.querySelector(".rp-chev")) head.insertAdjacentHTML("beforeend", '<span class="rp-chev" aria-hidden="true"></span>'); const k = keyOf(it); if(RP_OPEN[kind] === k) it.classList.add("open");
+  head.setAttribute("role", "button"); head.tabIndex = 0; head.onclick = () => { const willOpen = !it.classList.contains("open"); items.forEach(o => o.classList.remove("open")); if(willOpen){ it.classList.add("open"); RP_OPEN[kind] = k; } else RP_OPEN[kind] = null; }; }); }catch(e){} }
 function grSec(id, icon, col, bg, title, body){ return `<details class="gr-acc" data-sec="${id}"${GR_OPEN.has(id) ? " open" : ""}><summary>${grIc(icon, col, bg)}<span class="gr-acc-t">${title}</span><span class="gr-chev" aria-hidden="true"></span></summary><div class="gr-acc-b">${body}</div></details>`; }
 function growthOngoingHtml(nm){ try{ const rows = []; const lv = famLvl();
   let prog = null; try{ prog = typeof familyProgram === "function" ? familyProgram() : null; }catch(e){}
@@ -8976,7 +8980,7 @@ ${growthOngoingHtml(nm)}
 ${P ? grSec("degerlendirme", "clip", "#1E5FA8", "#DDF1FF", `Son değerlendirme turu · ${new Date(P.t).toLocaleDateString("tr-TR")}`, `${placeTableHtml(P.dom)}<div class="fam-sub" style="font-weight:600;margin:6px 0 4px">${growthPlaceCompare(nm, P)}</div>`) : grSec("degerlendirme", "clip", "#1E5FA8", "#DDF1FF", "Değerlendirme turu", `<div class="fam-sub" style="font-weight:600;margin:4px 0">Henüz yapılmadı. Ana sayfadaki “Değerlendirme turu” ile her alanın başlangıç kademesi ve düzeyi belirlenir.</div>`)}
 <div class="fam-sub" style="font-weight:600;margin:10px 0 20px">Bu sayfa çocuğunuzun uygulamadaki çalışmalarını özetler; başka çocuklarla karşılaştırma yapmaz ve tanı koymaz.</div></div>`;
 el.style.display = "flex"; el.scrollTop = 0;
-el.querySelectorAll("details.gr-acc").forEach(d => d.addEventListener("toggle", () => { if(d.open) GR_OPEN.add(d.dataset.sec); else GR_OPEN.delete(d.dataset.sec); }));
+el.querySelectorAll("details.gr-acc").forEach(d => d.addEventListener("toggle", () => { if(d.open){ GR_OPEN.clear(); GR_OPEN.add(d.dataset.sec); el.querySelectorAll("details.gr-acc[open]").forEach(o => { if(o !== d) o.open = false; }); } else GR_OPEN.delete(d.dataset.sec); }));   /* bir bölüm açılınca diğeri kapanır */
 el.querySelectorAll("[data-gr]").forEach(b => b.onclick = () => { el.style.display = "none"; if(b.dataset.gr === "link"){ try{ showLinkScreen(); }catch(e){} } }); }
 
 /* ===== Yürütücü İşlev · Paket 1 (Ketleme A) · veri ve yardımcılar ===== */
@@ -9030,6 +9034,7 @@ const sideButtons = () => [{ id:"L", html:'<span style="font-size:30px;font-weig
 /* KURAL (düzen): ilerleme noktaları (deneme göstergesi) ve yanındaki Isınma etiketi her zaman kartın içinde kalır — nokta sayısı artınca noktalar ve aralıklar küçülür, satır taşmaz */
 (function dotsFitStyle(){ try{ if(document.getElementById("dotsFitStyle")) return; const st = document.createElement("style"); st.id = "dotsFitStyle"; st.textContent = `.wm-dots{flex-wrap:nowrap !important;justify-content:center;align-items:center;width:100%;max-width:100%;min-width:0;box-sizing:border-box;padding:0 4px;gap:clamp(2px,1.1vw,6px) !important;overflow:hidden}.wm-dots i{flex:0 1 10px;min-width:4px;width:auto !important;height:auto !important;aspect-ratio:1/1}.wm-dots .qz-warm.in{flex:0 0 auto}.place-dots{max-width:100%;flex-wrap:nowrap;min-width:0}.place-dots span{flex:0 1 auto;min-width:4px}`; document.head.appendChild(st); }catch(e){} })();
 /* KURAL (içerik uyumu): komutu kim veriyorsa (Ayı / Ejderha gibi) komut yazısı onun söz balonunda durur; hareket kartında yalnız hareketin resmi ve "dokun = yap" olur */
+(function rpAccStyle(){ try{ if(document.getElementById("rpAccStyle")) return; const st = document.createElement("style"); st.id = "rpAccStyle"; st.textContent = `.rp-head{cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none}.rp-chev{margin-left:auto;width:9px;height:9px;border-right:3px solid #0A847E;border-bottom:3px solid #0A847E;transform:rotate(45deg);margin-right:6px;margin-bottom:3px;transition:transform .2s;flex:none}.rp-acc.open .rp-chev{transform:rotate(-135deg);margin-bottom:-3px}.rp-grp{margin:0 0 6px}.rp-grp .player-group-header{padding:10px 4px}.rp-grp:not(.open) .rp-body{display:none}.summary-card.rp-acc:not(.open) .summary-metric{display:none}html.is-printing .rp-body,html.is-printing .summary-card .summary-metric,#printArea .summary-card .summary-metric,#printArea .rp-body{display:block !important}#printArea .rp-chev{display:none}`; document.head.appendChild(st); }catch(e){} })();
 (function growthStyle(){ try{ if(document.getElementById("growthStyle")) return; const st = document.createElement("style"); st.id = "growthStyle"; st.textContent = `#growthScreen{background:var(--bg) !important}#growthScreen .adv-t1{color:#0A847E}#growthScreen .adv-t2{color:var(--ink)}#growthScreen .gr-sum{border:2px solid #E3ECEA;box-shadow:0 3px 0 var(--edge)}.gr-sl{display:flex;align-items:center;gap:10px;margin:2px 0}.gr-ic{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;flex:none}.gr-acc{background:#fff;border:2px solid #E3ECEA;border-radius:18px;box-shadow:0 3px 0 var(--edge);margin:10px 0;overflow:hidden}.gr-acc>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;font-weight:900;font-size:16px;color:var(--ink)}.gr-acc>summary::-webkit-details-marker{display:none}.gr-acc-t{flex:1;min-width:0}.gr-chev{width:10px;height:10px;border-right:3px solid #0A847E;border-bottom:3px solid #0A847E;transform:rotate(45deg);margin:0 4px 4px 0;transition:transform .2s}.gr-acc[open] .gr-chev{transform:rotate(-135deg);margin:4px 4px 0 0}.gr-acc-b{padding:2px 10px 12px}.gr-acc-b .gr-row{background:#F7FAFB;border:1.5px solid #EEF3F2}.gr-lv{display:inline-block;font-style:normal;font-weight:900;font-size:11.5px;border-radius:8px;padding:2px 7px;margin:3px 6px 0 0}.gr-lv.pre{background:#FFF1D6;color:#9A6B00}.gr-lv.post{background:#DDF5E7;color:#1B7A45}#growthScreen .place-table-wrap{margin:4px 0}`; document.head.appendChild(st); }catch(e){} })();
 (function placeStimStyle(){ try{ if(document.getElementById("placeStimStyle")) return; const st = document.createElement("style"); st.id = "placeStimStyle"; st.textContent = `/* KURAL: uyaran kutusu yüzdeli içerikte çökmesin (Değerlendirme turu "ortadaki büyük ok" görünmüyordu) */.ps-in > div:only-child[style*="height:100%"]{width:min(62vw,240px) !important;height:min(62vw,240px) !important}`; document.head.appendChild(st); }catch(e){} })();
 (function homeGridStyle(){ try{ if(document.getElementById("homeGridStyle")) return; const st = document.createElement("style"); st.id = "homeGridStyle"; st.textContent = `.home-title{margin:0;text-align:center;font-size:24px;line-height:1.15;letter-spacing:-.01em}
@@ -12666,6 +12671,7 @@ const maxAvg = Math.max(...catSummaries.map(c=> c.avgMs), 1);
 catSummaries.forEach(cs=>{
 wrap.insertAdjacentHTML("beforeend", summaryCardHTML(cs, maxCount, maxAvg));
 });
+rpAccordion(wrap, "summary", ".summary-card", ".summary-card-head", el => (el.querySelector(".summary-card-title") || {}).textContent || "");
 
 if(untried.length){
 const u = document.createElement("div");
@@ -12758,10 +12764,12 @@ const maxMs = Math.max(...list.map(r=>r.ms), 1);
 
 players.forEach(player=>{
 const sessions = byPlayer[player].slice(-5).reverse();
+const grp = document.createElement("div"); grp.className = "rp-grp"; grp.dataset.key = player; container.appendChild(grp);
 const header = document.createElement("div");
 header.className = "player-group-header";
 header.innerHTML = `${avatarHTML(player,20)} <span>${escHTML(player)} · ${byPlayer[player].length} çalışma</span>`;
-container.appendChild(header);
+grp.appendChild(header);
+const body = document.createElement("div"); body.className = "rp-body"; grp.appendChild(body);
 
 sessions.forEach(r=>{
 const card = document.createElement("div");
@@ -12775,9 +12783,10 @@ card.innerHTML = `
 <div class="rc-meta">${r.tier}${r.errors ? " · " + r.errors + " hata" : " · Hatasız"} · ${formatDateShort(r.t)}</div>
 <div class="rc-bar-wrap"><div class="rc-bar" style="width:${pct}%"></div></div>
 `;
-container.appendChild(card);
+body.appendChild(card);
 });
 });
+rpAccordion(container, "recent", ".rp-grp", ".player-group-header", el => el.dataset.key);
 }
 
 function renderPlayerOptions(){
@@ -13334,7 +13343,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.24-u";
+const APP_VERSION = "2026.10.24-v";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
