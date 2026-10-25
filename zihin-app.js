@@ -6718,7 +6718,7 @@ board.style.gridTemplateColumns = ""; board.style.gridTemplateRows = ""; board.c
 if(!chState) return;
 const st = chState, sp = st.spec, isLs = landscapeMQ.matches;
 const W = (board.clientWidth || 360) - 24, H = isLs ? (board.clientHeight || 280) - 16 : Math.min(560 * tabletScale(), window.innerHeight - 280);
-const stimSize = Math.floor(Math.min(isLs ? H - 20 : 220, W * (isLs ? 0.42 : 0.75)));
+const stimSize = Math.floor(Math.min(isLs ? H - 20 : 220 * tabletScale(), W * (isLs ? 0.42 : 0.75)));   /* tablette uyaran büyür */
 const tr = st.trials[st.idx];
 const stim = st.phase === "idle" ? (predictOn() ? predictHTML(st) : `<span class="hold">▶ Başlat'a bas</span>`) : st.phase === "done" ? (predictOn() && st.pred != null ? predictResult(st) : `<span class="hold">Bitti!</span>`) : st.phase === "gap" ? "" : sp.stim(tr, stimSize, st.ctx);   /* Tahmin Et – Yap – Karşılaştır katmanı: işaretli çalışmalarda */
 const buttons = sp.buttons(st.ctx, tr);   /* deneme bazlı düğmeler (Hızlı Seç: yer ve kural değişimi); tapStim: seçim resmin kendisine dokunarak */
@@ -9054,6 +9054,46 @@ const sideButtons = () => [{ id:"L", html:'<span style="font-size:30px;font-weig
 (function simpleFlowStyle(){ try{ if(document.getElementById("simpleFlowStyle")) return; const st = document.createElement("style"); st.id = "simpleFlowStyle"; st.textContent = `#whoScreen .hm-seg .hm-col.hm-hide,.hm-seg .hm-col.hm-hide,.hm-col.hm-hide{display:none !important}#hmEtk .hm-seg.solo{grid-template-columns:minmax(0,1fr) !important}#hmEtk .hm-seg.solo .hm-col{flex-direction:row !important}#hmEtk .hm-seg.solo .hm-col > button{flex:1 1 0;min-width:0}.consent-sum{text-align:left;margin:6px 0 10px;padding-left:20px;font-size:15px;line-height:1.45;color:var(--ink);font-weight:700}.consent-sum li{margin:4px 0}.consent-more{text-align:left;margin:0 0 10px}.consent-more>summary{cursor:pointer;font-weight:800;color:#0A847E;margin:4px 0 6px}.role-card{display:flex !important;align-items:center;gap:12px;width:100%;text-align:left;margin:10px 0;cursor:pointer;background:#fff;border:2px solid #DDE6EE;border-bottom-width:5px;border-radius:22px;padding:14px}.role-card .hm-ic{width:54px;height:54px;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;flex:none}.role-card b{display:block;font-size:18px;color:var(--ink)}.role-card span span{display:block;font-size:13px;color:#4A5A66;font-weight:700;margin-top:2px}#roleScreen{position:fixed;inset:0;z-index:120;align-items:center;justify-content:center;overflow-y:auto;padding:20px}`; document.head.appendChild(st); }catch(e){} })();
 (function glossStyle(){ try{ if(document.getElementById("glossStyle")) return; const st = document.createElement("style"); st.id = "glossStyle"; st.textContent = `#aboutScreen .gr-acc{margin:0 0 14px}.gloss{margin:0;padding:2px 4px}#aboutCategoryList .ab-acc{display:block !important;padding:0 !important}#aboutCategoryList .ab-head{display:flex;align-items:center;gap:12px;width:100%;background:none;border:0;padding:12px 2px;font:inherit;text-align:left;cursor:pointer;color:inherit}#aboutCategoryList .ab-head .about-cat-title{flex:1;min-width:0;margin:0}#aboutCategoryList .ab-acc:not(.open) .ab-body{display:none}#aboutCategoryList .ab-body{padding:0 2px 14px 58px}#aboutCategoryList .ab-acc.open .rp-chev{transform:rotate(-135deg);margin-bottom:-3px}.gloss dt{font-weight:900;color:#0A5F5A;font-size:15px;margin-top:10px}.gloss dd{margin:2px 0 0;color:var(--ink);font-size:14px;line-height:1.4;font-weight:600}`; document.head.appendChild(st); }catch(e){} })();
 (function kbFitStyle(){ try{ if(document.getElementById("kbFitStyle")) return; const st = document.createElement("style"); st.id = "kbFitStyle"; st.textContent = `#whoSheet,#zaDlg{top:var(--vvtop,0px) !important;bottom:auto !important;height:var(--vvh,100%) !important;overflow-y:auto;-webkit-overflow-scrolling:touch}#whoSheet .mola-card,#zaDlg .zd-card{max-height:calc(var(--vvh,100vh) - 24px);overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box}html.kb-open #whoSheet,html.kb-open #zaDlg{align-items:flex-start !important;padding-top:10px !important}html.kb-open #whoSheet .mola-card{padding-top:16px}`; document.head.appendChild(st); }catch(e){} })();
+/* KURAL (tablet): yatay tablette çalışma sayfası iki sütun — solda başlık/yönerge/süre, sağda geniş etkinlik tahtası; dikey tablette içerik ekran genişliğini kullanır. Kenarlarda boş alan kalmaz. */
+(function tabletStyle(){ try{ if(document.getElementById("tabletStyle")) return; const st = document.createElement("style"); st.id = "tabletStyle"; st.textContent = `
+@media (min-width: 1000px) and (orientation: landscape) and (min-height: 600px){
+  .app,.controls{max-width:min(1280px,97vw) !important}
+  #mainApp:not([style*="display: none"]):not([style*="display:none"]){display:grid !important;grid-template-columns:minmax(330px,36%) minmax(0,1fr);column-gap:20px;align-items:start}
+  #mainApp > *{grid-column:1;min-width:0}
+  #mainApp > #board{grid-column:2;grid-row:1 / span 40;align-self:start;margin-top:0 !important}
+  #mainApp > #dots,#mainApp > #touchStatus{grid-column:2}
+}
+@media (min-width: 700px) and (orientation: portrait){
+  .app,.controls{max-width:min(980px,96vw) !important}
+}
+@media (min-width: 700px) and (min-height: 600px){
+  .ch-btns{max-width:min(680px,100%) !important;gap:14px !important}
+  .ch-btn{min-height:96px !important;font-size:1.25em}
+  .tab-fit{width:100%;transform-origin:top center}
+}
+@media (min-width: 1000px) and (orientation: landscape) and (min-height: 600px){
+  #lsMore .top h1{font-size:20px !important}
+  #lsMore .top{flex-wrap:wrap;row-gap:6px}
+}`; document.head.appendChild(st); }catch(e){} })();
+/* KURAL (tablet): dokunmalı çalışmaların (ızgara ve göz takibi dışındaki) içerikleri telefon genişliğine göre tasarlandı; tablette tahta genişliğine göre büyütülür (en çok 1,6 kat), ekrana sığmayacaksa küçültülmez ama taşmaz. Ölçek sayfa başına sabittir, aşama içinde zıplamaz. */
+(function tabletFit(){ try{
+  let k = 1, key = "", busy = false;
+  const isTab = () => Math.min(innerWidth, innerHeight) >= 700;
+  const eligible = () => { try{ const ex = currentExercise(); if(!ex) return false; if(ex.isMotion || /^eye-/.test(ex.id)) return false; return !!(ex.isMt || ex.isRt || ex.isWm) && !ex.isChoice; }catch(e){ return false; } };
+  const apply = () => { if(busy) return; const b = document.getElementById("board"); if(!b) return; busy = true; try{
+    let w = b.querySelector(":scope > .tab-fit"); const want = isTab() && eligible();
+    if(!want){ if(w){ while(w.firstChild) b.insertBefore(w.firstChild, w); w.remove(); } return; }
+    if(!w || b.children.length > 1){ if(!w){ w = document.createElement("div"); w.className = "tab-fit"; } [...b.childNodes].filter(n => n !== w).forEach(n => w.appendChild(n)); if(!w.parentNode) b.appendChild(w); }
+    const pk = (typeof currentIndex !== "undefined" ? currentIndex : "") + "|" + innerWidth + "x" + innerHeight;
+    if(pk !== key){ key = pk; w.style.zoom = 1; w.style.width = "100%"; const bw = b.clientWidth - 16; let x0 = 1e9, x1 = -1e9; w.querySelectorAll("*").forEach(e => { if(e.children.length) return; const r = e.getBoundingClientRect(); if(r.width < 2 || r.height < 2) return; x0 = Math.min(x0, r.left); x1 = Math.max(x1, r.right); }); const cw = x1 > x0 ? x1 - x0 : bw, ch = Math.max(1, w.scrollHeight); const avail = innerHeight - b.getBoundingClientRect().top - 96;
+      k = Math.min(1.6, Math.max(1, bw / cw)); if(ch * k > avail && avail > 200) k = Math.max(1, Math.min(k, avail / ch)); }   /* ölçek: gerçek içerik genişliği tahtaya sığacak kadar; yükseklik ekrana sığar */
+    w.style.zoom = k; w.style.width = (100 / k) + "%"; w.style.margin = "0 auto";   /* yakınlaştırılmış kutu yine tahta genişliğinde kalır */
+    if(k > 1){ const br = b.getBoundingClientRect(); let bad = b.scrollWidth > b.clientWidth + 2; if(!bad) w.querySelectorAll("*").forEach(e => { if(bad || e.children.length) return; const r = e.getBoundingClientRect(); if(r.width > 1 && (r.right > br.right + 2 || r.left < br.left - 2)) bad = true; });
+      if(bad){ k = 1; w.style.zoom = 1; w.style.width = "100%"; } }   /* KURAL: büyütme hiçbir zaman taşmaya yol açmaz; taşarsa o sayfada büyütme kapanır */
+  } finally { busy = false; } };
+  const start = () => { const b = document.getElementById("board"); if(!b){ setTimeout(start, 400); return; } new MutationObserver(() => { if(!busy) requestAnimationFrame(apply); }).observe(b, { childList: true }); addEventListener("resize", () => { key = ""; apply(); }); };
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
+}catch(e){} })();
 (function rpAccStyle(){ try{ if(document.getElementById("rpAccStyle")) return; const st = document.createElement("style"); st.id = "rpAccStyle"; st.textContent = `.rp-head{cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none}.rp-chev{margin-left:auto;width:9px;height:9px;border-right:3px solid #0A847E;border-bottom:3px solid #0A847E;transform:rotate(45deg);margin-right:6px;margin-bottom:3px;transition:transform .2s;flex:none}.rp-acc.open .rp-chev{transform:rotate(-135deg);margin-bottom:-3px}.rp-grp{margin:0 0 6px}.rp-grp .player-group-header{padding:10px 4px}.rp-grp:not(.open) .rp-body{display:none}.summary-card.rp-acc:not(.open) .summary-metric{display:none}html.is-printing .rp-body,html.is-printing .summary-card .summary-metric,#printArea .summary-card .summary-metric,#printArea .rp-body{display:block !important}#printArea .rp-chev{display:none}`; document.head.appendChild(st); }catch(e){} })();
 (function growthStyle(){ try{ if(document.getElementById("growthStyle")) return; const st = document.createElement("style"); st.id = "growthStyle"; st.textContent = `#growthScreen .adv-t1{color:#0A847E}#growthScreen .adv-t2{color:var(--ink)}#growthScreen .gr-sum{border:2px solid #E3ECEA;box-shadow:0 3px 0 var(--edge)}.gr-sl{display:flex;align-items:center;gap:10px;margin:2px 0}.gr-ic{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;flex:none}.gr-acc{background:#fff;border:2px solid #E3ECEA;border-radius:18px;box-shadow:0 3px 0 var(--edge);margin:10px 0;overflow:hidden}.gr-acc>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;font-weight:900;font-size:16px;color:var(--ink)}.gr-acc>summary::-webkit-details-marker{display:none}.gr-acc-t{flex:1;min-width:0}.gr-chev{width:10px;height:10px;border-right:3px solid #0A847E;border-bottom:3px solid #0A847E;transform:rotate(45deg);margin:0 4px 4px 0;transition:transform .2s}.gr-acc[open] .gr-chev{transform:rotate(-135deg);margin:4px 4px 0 0}.gr-acc-b{padding:2px 10px 12px}.gr-acc-b .gr-row{background:#F7FAFB;border:1.5px solid #EEF3F2}.gr-lv{display:inline-block;font-style:normal;font-weight:900;font-size:11.5px;border-radius:8px;padding:2px 7px;margin:3px 6px 0 0}.gr-lv.pre{background:#FFF1D6;color:#9A6B00}.gr-lv.post{background:#DDF5E7;color:#1B7A45}#growthScreen .place-table-wrap{margin:4px 0}`; document.head.appendChild(st); }catch(e){} })();
 (function placeStimStyle(){ try{ if(document.getElementById("placeStimStyle")) return; const st = document.createElement("style"); st.id = "placeStimStyle"; st.textContent = `/* KURAL: uyaran kutusu yüzdeli içerikte çökmesin (Değerlendirme turu "ortadaki büyük ok" görünmüyordu) */.ps-in > div:only-child[style*="height:100%"]{width:min(62vw,240px) !important;height:min(62vw,240px) !important}`; document.head.appendChild(st); }catch(e){} })();
@@ -13364,7 +13404,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.25-e";
+const APP_VERSION = "2026.10.25-f";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
