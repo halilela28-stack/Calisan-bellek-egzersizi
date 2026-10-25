@@ -8699,6 +8699,7 @@ Object.assign(EMO_MAP, {
   "🔎": () => EMO_SVG('<circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/>'),
   "⭐": () => `<svg viewBox="0 0 24 24" width="1.1em" height="1.1em" aria-hidden="true" style="vertical-align:-0.15em"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9L12 2.6Z" fill="#F5B301" stroke="#C98A00" stroke-width="1.2" stroke-linejoin="round"/></svg>`,
   "☆": () => `<svg viewBox="0 0 24 24" width="1.1em" height="1.1em" aria-hidden="true" style="vertical-align:-0.15em"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9L12 2.6Z" fill="none" stroke="#B9C3CD" stroke-width="1.6" stroke-linejoin="round"/></svg>`,
+  "🎈": () => gimg("molaBalloon") ? EMO_IMG(gimg("molaBalloon"), 1.6) : null, "🤸": () => gimg("molaStretch") ? EMO_IMG(gimg("molaStretch"), 1.6) : null, "👀": () => gimg("molaSenses") ? EMO_IMG(gimg("molaSenses"), 1.3) : null,
   /* düğme ve küçük işaretler: çizgi simge */
   "🚰": () => EMO_SVG('<path d="M4 8h9a3 3 0 0 1 3 3v1"/><path d="M8 5h3M9.5 5v3"/><path d="M16 15c0 1.2-.9 2.4-1.5 3-.6-.6-1.5-1.8-1.5-3s1.5-3 1.5-3 1.5 1.8 1.5 3Z"/>'),
   "🪣": () => EMO_SVG('<path d="M5 8h14l-1.6 11a1.5 1.5 0 0 1-1.5 1.3H8.1a1.5 1.5 0 0 1-1.5-1.3L5 8Z"/><path d="M5 8a7 7 0 0 1 14 0"/>'),
@@ -9211,6 +9212,15 @@ html.gi-ok .pk-plank.bad span{box-shadow:inset 0 0 0 40px rgba(229,72,77,.55)}
 .rl-light.gi b{font-size:22px}.rl-light.gi.green b{color:#1B7A45}.rl-light.gi.red b{color:#C9353A}
 `; document.head.appendChild(st); }catch(e){} })();
 (function emoStyle(){ try{ if(document.getElementById("emoStyle")) return; const st = document.createElement("style"); st.id = "emoStyle"; st.textContent = `.emo-ic{display:inline-flex;align-items:center;justify-content:center;line-height:1}.rhy-drum .emo-ic img{height:.95em !important}`; document.head.appendChild(st); }catch(e){} })();
+(function islArtStyle(){ try{ if(document.getElementById("islArtStyle")) return; const st = document.createElement("style"); st.id = "islArtStyle"; st.textContent = `
+.isl-island.has-art{background:none !important;border:0 !important;box-shadow:none !important;border-radius:0 !important;height:164px !important;padding:0 !important;justify-content:flex-start !important;gap:0 !important;overflow:visible}
+.isl-island.has-art .isl-art{width:100%;max-width:210px;height:118px;object-fit:contain;display:block;margin:0 auto;filter:drop-shadow(0 6px 4px rgba(8,50,90,.28));pointer-events:none}
+.isl-island.has-art .isl-lbl{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:1px;margin-top:-10px;background:rgba(255,255,255,.94);border:2px solid var(--ic,#DDE6EE);border-radius:14px;padding:3px 12px 4px;box-shadow:0 3px 0 rgba(31,42,51,.12);max-width:100%}
+.isl-island.has-art .nm{font-size:15px;line-height:1.15;color:#1F2A33}
+.isl-island.has-art .lk{top:4px;right:8%}
+.isl-island.has-art .here{position:absolute !important;top:-8px !important;bottom:auto !important;left:50% !important;right:auto !important;transform:translateX(-50%) !important;width:auto !important;height:auto !important;min-height:0 !important;padding:3px 12px !important;white-space:nowrap;font-size:12px !important;line-height:1.3 !important;border-radius:999px !important;z-index:2}
+.isl-island.has-art .isl-grow{top:30%}
+`; document.head.appendChild(st); }catch(e){} })();
 (function rpAccStyle(){ try{ if(document.getElementById("rpAccStyle")) return; const st = document.createElement("style"); st.id = "rpAccStyle"; st.textContent = `.rp-head{cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none}.rp-chev{margin-left:auto;width:9px;height:9px;border-right:3px solid #0A847E;border-bottom:3px solid #0A847E;transform:rotate(45deg);margin-right:6px;margin-bottom:3px;transition:transform .2s;flex:none}.rp-acc.open .rp-chev{transform:rotate(-135deg);margin-bottom:-3px}.rp-grp{margin:0 0 6px}.rp-grp .player-group-header{padding:10px 4px}.rp-grp:not(.open) .rp-body{display:none}.summary-card.rp-acc:not(.open) .summary-metric{display:none}html.is-printing .rp-body,html.is-printing .summary-card .summary-metric,#printArea .summary-card .summary-metric,#printArea .rp-body{display:block !important}#printArea .rp-chev{display:none}`; document.head.appendChild(st); }catch(e){} })();
 (function growthStyle(){ try{ if(document.getElementById("growthStyle")) return; const st = document.createElement("style"); st.id = "growthStyle"; st.textContent = `#growthScreen .adv-t1{color:#0A847E}#growthScreen .adv-t2{color:var(--ink)}#growthScreen .gr-sum{border:2px solid #E3ECEA;box-shadow:0 3px 0 var(--edge)}.gr-sl{display:flex;align-items:center;gap:10px;margin:2px 0}.gr-ic{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;flex:none}.gr-acc{background:#fff;border:2px solid #E3ECEA;border-radius:18px;box-shadow:0 3px 0 var(--edge);margin:10px 0;overflow:hidden}.gr-acc>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;font-weight:900;font-size:16px;color:var(--ink)}.gr-acc>summary::-webkit-details-marker{display:none}.gr-acc-t{flex:1;min-width:0}.gr-chev{width:10px;height:10px;border-right:3px solid #0A847E;border-bottom:3px solid #0A847E;transform:rotate(45deg);margin:0 4px 4px 0;transition:transform .2s}.gr-acc[open] .gr-chev{transform:rotate(-135deg);margin:4px 4px 0 0}.gr-acc-b{padding:2px 10px 12px}.gr-acc-b .gr-row{background:#F7FAFB;border:1.5px solid #EEF3F2}.gr-lv{display:inline-block;font-style:normal;font-weight:900;font-size:11.5px;border-radius:8px;padding:2px 7px;margin:3px 6px 0 0}.gr-lv.pre{background:#FFF1D6;color:#9A6B00}.gr-lv.post{background:#DDF5E7;color:#1B7A45}#growthScreen .place-table-wrap{margin:4px 0}`; document.head.appendChild(st); }catch(e){} })();
 (function placeStimStyle(){ try{ if(document.getElementById("placeStimStyle")) return; const st = document.createElement("style"); st.id = "placeStimStyle"; st.textContent = `/* KURAL: uyaran kutusu yüzdeli içerikte çökmesin (Değerlendirme turu "ortadaki büyük ok" görünmüyordu) */.ps-in > div:only-child[style*="height:100%"],.ps-in > svg:only-child{width:min(62vw,240px) !important;height:min(62vw,240px) !important;display:block}.ps-in svg polygon,.place-opts svg polygon{vector-effect:non-scaling-stroke}`; document.head.appendChild(st); }catch(e){} })();
@@ -13522,7 +13532,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.25-r";
+const APP_VERSION = "2026.10.25-s";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -14299,6 +14309,8 @@ const here = hereIsl && hereIsl.id === isl.id ? `<span class="here">Buradasın</
 const palms = isl.legacy ? PALM_SVG : (i % 2 ? PALM_SVG.replace('class="palm"', 'class="palm l"') : PALM_SVG);
 if(here) herePos = { left, top, right: i % 2 === 0 };
 const grow = isl.legacy || isl.special ? "" : (() => { const n = gxIslGrowth(isl.id); return n ? `<span class="isl-grow">${GROW_SVG.slice(0, n).join("")}</span>` : ""; })();
+const art = gimg("isl_" + isl.id) || (isl.legacy ? null : gimg("isl_base"));   /* KURAL (görsellik): adalar kullanıcının ürettiği 3B ada görselleriyle; görsel yoksa eski renkli ada */
+if(art) return `<button type="button" class="isl-island has-art${locked ? " locked" : ""}" data-isl="${isl.id}" style="left:${left}%;top:${top}px;">${lock}<img class="isl-art" src="${art}" alt=""><span class="isl-lbl" style="--ic:${isl.color}"><span class="nm">${isl.name}</span>${stars}${extra}</span>${here}${grow}</button>`;
 return `<button type="button" class="isl-island${locked ? " locked" : ""}" data-isl="${isl.id}" style="left:${left}%;top:${top}px;background:${isl.color};">${palms}<span class="ico">${GAME_ISLAND_ICONS[isl.id] || ""}</span>${lock}<span class="nm">${isl.name}</span>${stars}${extra}${here}${grow}</button>`;
 }).join("");
 const mapW = map.clientWidth || 360, mapH = GAME_ISLANDS.length * H + 40;
