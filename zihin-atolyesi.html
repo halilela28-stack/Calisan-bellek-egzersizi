@@ -2791,22 +2791,12 @@ button, input, select, textarea, option{ font-family:inherit; }
 <div class="onboard-slide active" data-slide="0">
 <div class="onboard-emoji" id="onboardIcon0"></div>
 <h2>Zihin Atölyesi</h2>
-<p>Zihnin için <b>hızlı, oyunsu mini antrenmanlar.</b><br>Isınmaya hazır mısın?</p>
+<p>Dikkat ve bellek becerileri için <b>kısa, oyunlu çalışmalar.</b><br>Yetişkinle birlikte ya da çocuk tek başına oynar.</p>
 </div>
 <div class="onboard-slide" data-slide="1">
 <div class="onboard-emoji" id="onboardIcon1"></div>
-<h2>Yetişkinle ya da tek başına</h2>
-<p><b>Bilişsel Etkinlik:</b> uzman ya da aile yönergeyi verir, çocuk cevaplar.<br><b>Bilişsel Oyun:</b> çocuk Zihin Adaları'nda tek başına oynar, uygulama puanlar ve yıldız verir.</p>
-</div>
-<div class="onboard-slide" data-slide="2">
-<div class="onboard-emoji" id="onboardIcon2"></div>
-<h2>10 kategori, 3 düzey</h2>
-<p>İşlemleme hızından göz takibine, çalışan bellekten planlamaya. <b>Okul Öncesi ve Okul Sonrası</b> için ayrı içerik; <b>Başlangıç'tan Zor Düzey'e</b> zorluk kendiliğinden ayarlanır.</p>
-</div>
-<div class="onboard-slide" data-slide="3">
-<div class="onboard-emoji" id="onboardIcon3"></div>
 <h2>Uzman ve aile birlikte</h2>
-<p>Uzman <b>program atar</b>, aile <b>"Bugünün oturumu"</b> ile evde uygular, sonuçlar uzmana ulaşır. Her çalışma saniye saniye ölçülür; haftalık özette gelişimi görürsün.</p>
+<p>Uzman <b>çalışma planı</b> hazırlar, aile evde <b>“Bugünün oturumu”</b> ile uygular. Zorluk çocuğa göre kendiliğinden ayarlanır, gelişim haftalık olarak görülür.</p>
 <p class="disclaimer-note">Zihin Atölyesi bir eğitim ve egzersiz uygulamasıdır. Tanı koymaz, tedavi veya klinik değerlendirme yerine geçmez.</p>
 </div>
 </div>
@@ -2834,11 +2824,14 @@ button, input, select, textarea, option{ font-family:inherit; }
 <div class="consent-inner">
 <span class="consent-icon" id="consentIconSlot"></span>
 <h2>Gizlilik ve Onay</h2>
+<ul class="consent-sum"><li>Çalışma sonuçları (ad, süre, hata sayısı, düzey) kaydedilir.</li><li>Bir uzmana bağlanırsanız sonuçlar yalnızca onayınızla o uzmanla paylaşılır.</li><li>Uygulama tanı koymaz, tedavi yerine geçmez.</li></ul>
+<details class="consent-more"><summary>Ayrıntılar</summary>
 <p class="consent-text">
 Bu uygulama; çalışma sonuçlarını (isim, süre, hata sayısı, düzey) kalıcı olarak buluta kaydeder. Bir uzmana bağlanırsan, bağlandığın çocuğun sonuçları ayrıca onayınla o uzmanla paylaşılır.
 Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener">Gizlilik Politikası</a>'nı inceleyebilirsin.
 </p>
 <p class="consent-text disclaimer-note"><b>Önemli:</b> Zihin Atölyesi bir eğitim ve egzersiz uygulamasıdır. Tanı koymaz, tedavi veya klinik değerlendirme yerine geçmez. Süreler standart bir test değildir ve yaş veya sınıf normlarıyla karşılaştırılmaz. Gelişimsel, öğrenmeyle ilgili ya da sağlıkla ilgili bir kaygın varsa bir uzmana (hekim, psikolog, uzman eğitimci) başvurmanı öneririz.</p>
+</details>
 <label class="consent-checkbox-row">
 <input type="checkbox" id="consentCheckbox">
 <span>Bu uygulamayı çocuğum adına ve onun yararına kullandığımı, Gizlilik Politikası'nı okuduğumu ve verilerin bu kapsamda işlenmesini kabul ettiğimi onaylıyorum.</span>
@@ -2998,7 +2991,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.24-w</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.10.25-b</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -3028,7 +3021,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div id="pinBox"></div>
 </div>
 <div class="settings-group" style="flex-direction:column;align-items:stretch;gap:6px">
-<div class="settings-label">Bu cihaz uzman cihazı<br><span style="font-size:12px;font-weight:600;color:var(--ink-soft)">Açıkken ana ekranda Uzman girişi seçili gelir.</span></div>
+<div class="settings-label">Bu cihazı kullanan<br><span style="font-size:12px;font-weight:600;color:var(--ink-soft)">Ana sayfada yalnızca bu rolün düğmeleri görünür. Dokunarak değiştirin.</span></div>
 <button type="button" class="fam-chip" id="expertDevBtn" style="align-self:flex-start"></button>
 </div>
 
@@ -3086,7 +3079,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-divider"></div>
 
 <div class="settings-label" style="margin-bottom:8px;">Uyarlamalı zorluk eşikleri (Aile girişi)</div>
-<p class="settings-note" style="margin-bottom:10px;">Varsayılanlar çocuğun seviyesine (Okul Öncesi / Okul Sonrası) göre ayarlanır; buradan istediğin an değiştirebilirsin.</p>
+<p class="settings-note" style="margin-bottom:10px;">Varsayılanlar çocuğun okul dönemine (Okul Öncesi / Okul Sonrası) göre ayarlanır; buradan istediğin an değiştirebilirsin.</p>
 
 <div class="settings-slider-row">
 <span class="settings-slider-label">Hızlı sayılma süresi (öğe başına sn)</span>
@@ -3114,8 +3107,8 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <p class="settings-note" style="margin-bottom:10px;">Bir kişiyi sildiğinde o kişiye ait tüm çalışma sonuçları, düzey değişiklikleri ve kişi kaydı kalıcı olarak silinir. Bu işlem geri alınamaz.</p>
 <div id="personDataList" class="person-data-list"></div>
 <p class="settings-note" style="margin-top:8px;"><a href="gizlilik-politikasi.html" target="_blank" rel="noopener">Gizlilik Politikası</a></p>
-<p class="settings-note" style="margin-top:4px;"><a href="#" id="settingsAboutLink">Hakkında ve kategoriler</a></p>
-<p class="settings-note" style="margin-top:4px;">Tanıtımı tekrar göster: <a href="#" id="settingsModeTourLink">Ana ekran</a> <a href="#" id="settingsLevelTourLink" style="display:none">Düzey</a> · <a href="#" id="settingsCategoryTourLink">Kategori</a> · <a href="#" id="settingsTourLink">Çalışma ekranı</a></p>
+<p class="settings-note" style="margin-top:4px;"><a href="#" id="settingsAboutLink">Hakkında ve alanlar</a></p>
+<p class="settings-note" style="margin-top:4px;">Tanıtımı tekrar göster: <a href="#" id="settingsModeTourLink">Ana ekran</a> <a href="#" id="settingsLevelTourLink" style="display:none">Düzey</a> · <a href="#" id="settingsCategoryTourLink">Alan</a> · <a href="#" id="settingsTourLink">Çalışma ekranı</a></p>
 <p class="settings-note disclaimer-note" style="margin-top:10px;"><b>Önemli:</b> Zihin Atölyesi bir eğitim ve egzersiz uygulamasıdır. Tanı koymaz, tedavi veya klinik değerlendirme yerine geçmez. Süreler standart bir test değildir ve yaş veya sınıf normlarıyla karşılaştırılmaz.</p>
 
 <div class="settings-divider"></div>
@@ -3130,10 +3123,10 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-screen" id="emptyCategoryScreen" style="display:none;">
 <div class="settings-inner">
 <div class="settings-header">
-<h2 id="emptyCategoryTitle">Kategori</h2>
+<h2 id="emptyCategoryTitle">Alan</h2>
 <button class="icon-btn" id="closeEmptyCategoryBtn">✕</button>
 </div>
-<p class="settings-note">Bu kategoride okul öncesi çalışma henüz yok. Çalışmalar hazırlandıkça burada görünecek.</p>
+<p class="settings-note">Bu alanda okul öncesi çalışma henüz yok. Çalışmalar hazırlandıkça burada görünecek.</p>
 </div>
 </div>
 
@@ -3165,12 +3158,12 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 
 <div class="category-screen" id="categoryScreen" style="display:none;">
 <button class="flow-back-btn" id="categoryBackBtn" aria-label="Geri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg></button>
-<button class="flow-info-btn" id="aboutBtn" aria-label="Kategoriler hakkında"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="10.5" x2="12" y2="16"/><circle cx="12" cy="7.3" r="1" fill="currentColor" stroke="none"/></svg></button>
+<button class="flow-info-btn" id="aboutBtn" aria-label="Alanlar hakkında"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="10.5" x2="12" y2="16"/><circle cx="12" cy="7.3" r="1" fill="currentColor" stroke="none"/></svg></button>
 <div class="category-inner">
 <div class="family-home" id="familyHome" style="display:none;"></div>
 <div class="family-home" id="expertHome" style="display:none;"></div>
 <h2>Ne üzerinde çalışalım?</h2>
-<p class="category-sub">Bir kategori seç, istersen sonra değiştirebilirsin.</p>
+<p class="category-sub">Bir alan seç, istersen sonra değiştirebilirsin.</p>
 <div class="category-list" id="categoryList"></div>
 </div>
 </div>
@@ -3182,7 +3175,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <button class="icon-btn" id="closeAboutBtn">✕</button>
 </div>
 <p class="settings-note" style="margin-bottom:16px;">Zihnin için hızlı, oyunsu mini antrenmanlar. Hız, dikkat ve bellek gün boyu hep devrede — bu atölye onlara yönelik kısa alıştırmalar sunar.</p>
-<p class="settings-note" style="margin-bottom:16px;">Her kategorinin altındaki "güçlü olduğunda / zorlandığında" örnekleri genel eğilimleri anlatır; bir tanı veya değerlendirme değildir.</p>
+<p class="settings-note" style="margin-bottom:16px;">Her alanın altındaki "güçlü olduğunda / zorlandığında" örnekleri genel eğilimleri anlatır; bir tanı veya değerlendirme değildir.</p>
 <div id="aboutCategoryList"></div>
 <p class="settings-note" style="margin-top:16px;">Zihin Atölyesi bir eğitim ve egzersiz uygulamasıdır. Tanı koymaz, tedavi veya klinik değerlendirme yerine geçmez.</p>
 <button class="save-result-btn" id="closeAboutBtn2" style="display:none">Kapat</button>
@@ -3307,7 +3300,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 </div>
 </div>
 <div class="top" style="margin-top:-6px;">
-<button class="mode-switch" id="categorySwitchBtn" aria-label="Geri: Kategori"><span class="category-switch-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg></span><span id="categoryIconSlot" class="category-switch-icon"></span> <span id="categoryLabel">Kategori</span></button>
+<button class="mode-switch" id="categorySwitchBtn" aria-label="Geri: Alan"><span class="category-switch-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg></span><span id="categoryIconSlot" class="category-switch-icon"></span> <span id="categoryLabel">Alan</span></button>
 <span class="page-indicator" id="pageIndicator">Sayfa 1 / 12</span>
 </div>
 
@@ -3439,14 +3432,14 @@ dispatchFbReady();
 }
 </script>
 <script>setTimeout(function(){ if(window.__zaReady) return; var d=document.createElement('div'); d.style.cssText='position:fixed;inset:0;z-index:99999;background:#F6FBFA;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;text-align:center;color:#1D2B36'; d.innerHTML='<div style="max-width:420px"><div style="font-size:22px;font-weight:800;margin-bottom:10px">Uygulama dosyaları yüklenemedi</div><div style="font-size:15px;line-height:1.5">Bu sayfa yanındaki <b>zihin-app.js</b> ve <b>zihin-gorsel</b> dosyalarıyla birlikte çalışır. Altı dosyanın da aynı klasöre yüklendiğinden emin olun ve sayfayı yenileyin.<br><br><span style="color:#5B6B78">Claude içindeki önizlemede bu sürüm açılmaz; önizleme için zihin-atolyesi-onizleme.html dosyasını kullanın.</span></div><button onclick="location.reload()" style="margin-top:16px;padding:12px 22px;border:0;border-radius:14px;background:#0A847E;color:#fff;font-size:16px;font-weight:800">Yenile</button></div>'; document.body.appendChild(d); }, 9000);</script>
-<script>window.ZA_HTML_VERSION = "2026.10.24-w";</script>
-<script src="zihin-app.js?v=2026.10.24-w"></script>
+<script>window.ZA_HTML_VERSION = "2026.10.25-b";</script>
+<script src="zihin-app.js?v=2026.10.25-b"></script>
 <div id="imgBar" style="position:fixed;left:0;top:0;height:3px;width:100%;background:rgba(0,0,0,.06);z-index:9999;pointer-events:none"><div id="imgProg" style="height:100%;width:0;background:#1FA463;transition:width .3s"></div></div>
 <div id="imgWarn" style="display:none;position:fixed;left:12px;right:12px;bottom:92px;z-index:9997;background:#FFF4E5;color:#9A3412;border:2px solid #F59E0B;border-radius:14px;padding:10px 14px;font-weight:700;font-size:14px;text-align:center"></div>
 <div id="imgOverlay" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,.92);z-index:9998;align-items:center;justify-content:center;flex-direction:column;gap:14px;font-weight:800;color:#1F2A37;padding:24px;text-align:center"><div id="imgTitle" style="font-size:20px">Resimler yükleniyor…</div><div style="width:min(320px,80%);height:10px;background:#E6ECF2;border-radius:999px;overflow:hidden"><div id="imgProg2" style="height:100%;width:0;background:#1FA463;transition:width .3s"></div></div><div id="imgPct" style="font-size:15px;color:#5B6B7A">%0</div><div style="font-size:13px;color:#5B6B7A;font-weight:600">Yalnızca ilk açılışta sürer; sonraki açılışlarda resimler cihazdan gelir.</div></div>
 <script>
 (function(){ /* Resim dosyaları arkada, paralel yüklenir; uygulama beklemeden açılır. Yüklenen dosya eski/eksikse (ör. eski service worker önbelleği) önbelleği atlayarak yeniden indirilir. */
-  const v = "2026.10.24-w"; const files = [["zihin-gorsel-1.js", 4.5, "TASTE_IMAGES.simit"], ["zihin-gorsel-2.js", 3.1, "PART_IMAGES"], ["zihin-gorsel-3.js", 2.7, "NEW_IMAGES_5"], ["zihin-gorsel-4.js", 0.4, "EF_IMAGES.yaratik_10"]];   /* sonda: dosyaya en son eklenen resim (dosya eskiyse yoktur) */ const total = files.reduce((a, f) => a + f[1], 0); let got = 0, done = 0;
+  const v = "2026.10.25-b"; const files = [["zihin-gorsel-1.js", 4.5, "TASTE_IMAGES.simit"], ["zihin-gorsel-2.js", 3.1, "PART_IMAGES"], ["zihin-gorsel-3.js", 2.7, "NEW_IMAGES_5"], ["zihin-gorsel-4.js", 0.4, "EF_IMAGES.yaratik_10"]];   /* sonda: dosyaya en son eklenen resim (dosya eskiyse yoktur) */ const total = files.reduce((a, f) => a + f[1], 0); let got = 0, done = 0;
   const show = () => { const pct = Math.round(got / total * 100); ["imgProg", "imgProg2"].forEach(id => { const el = document.getElementById(id); if(el) el.style.width = pct + "%"; }); const p = document.getElementById("imgPct"); if(p) p.textContent = "%" + pct; };
   const has = (name) => { try{ return eval("typeof " + name) !== "undefined" && eval(name) != null; }catch(e){ return false; } };
   const finish = async () => { const bar = document.getElementById("imgBar"); if(bar) setTimeout(() => bar.style.display = "none", 600); window.__imgMissing = files.filter(f => !has(f[2])).map(f => f[0] + " (" + f[2].replace(/^.*\./, "") + " resmi yok)");

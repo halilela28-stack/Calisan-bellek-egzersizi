@@ -6105,12 +6105,12 @@ function catPlayerName(){ return (appMode === "aile" && typeof famProfile === "f
 /* KURAL (kademe geçişi): okul öncesi ↔ okul sonrası geçişlerinde motive edici ifade kullanılır. İniş bir başarısızlık gibi anlatılmaz ("geri", "düştün", "başaramadın" yok);
    temeli sağlamlaştırma olarak anlatılır. Çıkışta kutlama (konfeti). Yetişkine geçiş anında, çocuğa o alanı bir sonraki açışında gösterilir. */
 const CAT_CHEER = {
-  up:   ["Süpersin! {alan} alanında bir üst kademeye geçtin 🌟", "Emeğinin karşılığını aldın! {alan} alanında yeni ve daha heyecanlı çalışmalar seni bekliyor 🚀", "Harika gidiyorsun! {alan} alanında artık okul çağı çalışmalarındasın 🎉", "Çok çalıştın, çok da başardın! {alan} alanında yeni bir maceraya hazırsın ⭐"],
+  up:   ["Süpersin! {alan} alanında bir üst basamağa geçtin 🌟", "Emeğinin karşılığını aldın! {alan} alanında yeni ve daha heyecanlı çalışmalar seni bekliyor 🚀", "Harika gidiyorsun! {alan} alanında artık okul çağı çalışmalarındasın 🎉", "Çok çalıştın, çok da başardın! {alan} alanında yeni bir maceraya hazırsın ⭐"],
   down: ["{alan} alanında temelleri sağlamlaştırıyoruz; her adım seni daha da güçlendirecek 💪", "En yüksek kuleler sağlam temellerle yükselir. {alan} alanında adım adım ilerliyoruz 🧱", "Biraz daha pratikle çok daha hızlı olacaksın. {alan} alanında yeni çalışmalar seni bekliyor 🌱", "Her usta işe temelden başlar. {alan} alanında birlikte güçleniyoruz ✨"]
 };
 const CAT_CHEER_ADULT = {
-  up: "Tebrikler! {ad}, {alan} alanında Okul Sonrası kademesine geçti. Yeni çalışmalar biraz daha zorlayıcı olabilir; ilk günlerde küçük hatalar olağandır.",
-  down: "{ad}, {alan} alanında bir süre Okul Öncesi kademesinde çalışacak. Bu ara basamak, temeli sağlamlaştırıp daha emin adımlarla ilerlemesi içindir; diğer alanlar değişmez. Başarı geldikçe uygulama Okul Sonrası'nı yeniden önerecek."
+  up: "Tebrikler! {ad}, {alan} alanında Okul Sonrası çalışmalarına geçti. Yeni çalışmalar biraz daha zorlayıcı olabilir; ilk günlerde küçük hatalar olağandır.",
+  down: "{ad}, {alan} alanında bir süre Okul Öncesi çalışmalarıyla ilerleyecek. Bu ara basamak, temeli sağlamlaştırıp daha emin adımlarla ilerlemesi içindir; diğer alanlar değişmez. Başarı geldikçe uygulama Okul Sonrası'nı yeniden önerecek."
 };
 function catCheerText(kind, catLabel, name){ const pool = CAT_CHEER[kind] || []; return (pool[Math.floor(Math.random() * pool.length)] || "").replace("{alan}", catLabel).replace("{ad}", name || ""); }
 function catCheerAdult(kind, catLabel, name){ return (CAT_CHEER_ADULT[kind] || "").replace("{alan}", catLabel).replace("{ad}", name || "Çocuk"); }
@@ -6121,7 +6121,7 @@ function catCheerShow(name, catId){ try{ const d = JSON.parse(localStorage.getIt
 /* Yetişkin onayıyla geçiş: yetişkine açıklama + çocuğa bir sonraki açılışta motive edici ifade */
 function catLevelTransition(catId, name, target, by, opts){ opts = opts || {}; const c = CATEGORIES.find(x => x.id === catId); if(!c) return; const prev = catLevelFor(catId, name); setCatLevel(catId, name, target, by); if(prev === target) return;
   const kind = target === "post" ? "up" : "down"; catCheerQueue(name, catId, target);
-  if(opts.now){ try{ catCheerShow(name, catId); }catch(e){} } else { try{ showLevelFlash(kind === "up" ? `🌟 ${c.label}: Okul Sonrası kademesine geçildi` : `🌱 ${c.label}: Okul Öncesi kademesinde temeli sağlamlaştırıyoruz`, "levelup"); if(kind === "up") celebrateSave(); }catch(e){} }
+  if(opts.now){ try{ catCheerShow(name, catId); }catch(e){} } else { try{ showLevelFlash(kind === "up" ? `🌟 ${c.label}: Okul Sonrası çalışmalarına geçildi` : `🌱 ${c.label}: Okul Öncesi çalışmalarıyla temeli sağlamlaştırıyoruz`, "levelup"); if(kind === "up") celebrateSave(); }catch(e){} }
   if(opts.explain !== false){ setTimeout(() => { try{ zaAlert(catCheerAdult(kind, c.label, name)); }catch(e){} }, 700); } }
 const CAT_PENDING_KEY = "wm_cat_pending_v1";
 function catPendingAll(){ try{ return JSON.parse(localStorage.getItem(CAT_PENDING_KEY) || "{}"); }catch(e){ return {}; } }
@@ -6143,8 +6143,8 @@ function catPendingCardHtml(name){
 const n = (name || "").trim(); if(!n || n === "Misafir" || n === "Oyuncu") return "";
 const list = catPendingList(n); if(!list.length) return "";
 return list.map(p => { const c = CATEGORIES.find(x => x.id === p.catId); if(!c) return ""; const info = catLevelInfo(c.id, n); const locked = appMode === "aile" && info.by === "uzman" && !catLevelEntry(c.id, n);
-  const txt = p.target === "pre" ? `Zihin Adaları'nda ${escHTML(c.label)} durakları ${escHTML(n)} için şimdilik biraz zorlayıcı görünüyor. Okul Öncesi kademesinde temeli sağlamlaştırıp daha emin ilerleyebilir. Bu alanda Okul Öncesi'ne geçilsin mi?` : `Harika! ${escHTML(n)}, Zihin Adaları'nda ${escHTML(c.label)} duraklarında Okul Öncesi Zor düzeyini art arda başardı. Okul Sonrası kademesine geçmeye hazır görünüyor. Geçilsin mi?`;
-  return `<div class="fh-rec cat-pending" data-cat="${c.id}" data-target="${p.target}"><div class="fh-rec-h">Kademe önerisi</div><div style="font-size:14px;line-height:1.4;margin:4px 0 8px">${txt}</div>${locked ? `<small style="color:#5B6B78;font-weight:700">Bu alanın kademesini uzman belirledi; uzmanınıza iletin.</small>` : `<div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="cat-level-btn on" data-pend="go">Geç</button><button type="button" class="cat-level-btn auto" data-pend="later">Şimdi değil</button></div>`}</div>`; }).join("");
+  const txt = p.target === "pre" ? `Zihin Adaları'nda ${escHTML(c.label)} durakları ${escHTML(n)} için şimdilik biraz zorlayıcı görünüyor. Okul Öncesi çalışmalarıyla temeli sağlamlaştırıp daha emin ilerleyebilir. Bu alanda Okul Öncesi'ne geçilsin mi?` : `Harika! ${escHTML(n)}, Zihin Adaları'nda ${escHTML(c.label)} duraklarında Okul Öncesi Zor düzeyini art arda başardı. Okul Sonrası çalışmalarına geçmeye hazır görünüyor. Geçilsin mi?`;
+  return `<div class="fh-rec cat-pending" data-cat="${c.id}" data-target="${p.target}"><div class="fh-rec-h">Okul dönemi önerisi</div><div style="font-size:14px;line-height:1.4;margin:4px 0 8px">${txt}</div>${locked ? `<small style="color:#5B6B78;font-weight:700">Bu alanın okul dönemini uzman belirledi; uzmanınıza iletin.</small>` : `<div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="cat-level-btn on" data-pend="go">Geç</button><button type="button" class="cat-level-btn auto" data-pend="later">Şimdi değil</button></div>`}</div>`; }).join("");
 }
 function catPendingBind(box, name, rerender){
 box.querySelectorAll(".cat-pending").forEach(card => { const cid = card.dataset.cat, target = card.dataset.target;
@@ -6162,8 +6162,8 @@ if(j.isBad){ st.bad = (lvl === "post" && t === 0) ? st.bad + 1 : 0; st.good = 0;
 catStreakSave(d);
 if(st.snoozeUntil && st.snoozeUntil > Date.now()) return;
 let target = null, msg = "";
-if(lvl === "post" && st.bad >= 2){ target = "pre"; msg = `${cat.label} alanında Okul Sonrası Başlangıç, ${n} için şimdilik biraz zorlayıcı görünüyor. Okul Öncesi kademesinde temeli sağlamlaştırıp daha emin adımlarla ilerleyebilir. Bu alanda Okul Öncesi'ne geçilsin mi? Diğer alanlar değişmez.`; }
-if(lvl === "pre" && st.good >= 2){ target = "post"; msg = `Harika! ${n}, ${cat.label} alanında Okul Öncesi Zor düzeyini art arda iki kez başardı. Bu alanda Okul Sonrası kademesine geçmeye hazır görünüyor. Geçilsin mi? Diğer alanlar değişmez.`; }
+if(lvl === "post" && st.bad >= 2){ target = "pre"; msg = `${cat.label} alanında Okul Sonrası Başlangıç, ${n} için şimdilik biraz zorlayıcı görünüyor. Okul Öncesi çalışmalarıyla temeli sağlamlaştırıp daha emin adımlarla ilerleyebilir. Bu alanda Okul Öncesi'ne geçilsin mi? Diğer alanlar değişmez.`; }
+if(lvl === "pre" && st.good >= 2){ target = "post"; msg = `Harika! ${n}, ${cat.label} alanında Okul Öncesi Zor düzeyini art arda iki kez başardı. Bu alanda Okul Sonrası çalışmalarına geçmeye hazır görünüyor. Geçilsin mi? Diğer alanlar değişmez.`; }
 if(!target) return;
 if(appMode === "aile" && catLevelInfo(cat.id, n).by === "uzman" && !catLevelEntry(cat.id, n)) return;   /* uzman belirlemişse aileye sorulmaz */
 const ok = await zaConfirm(msg);
@@ -8749,7 +8749,7 @@ el.querySelectorAll("[data-adv-play]").forEach(b => b.onclick = () => { el.style
 
 const PLACE_KEY = "wm_place_v2", PLACE_REDO_DAYS = 42;
 /* Değerlendirme turu: her kategori ayrı alan; her alanda 6 basamaklı tek merdiven
-   (Okul Öncesi Başlangıç/Orta/Zor → Okul Sonrası Başlangıç/Orta/Zor). Seviye yaşa göre değil, alanda yapabildiğine göre belirlenir;
+   (Okul Öncesi Başlangıç/Orta/Zor → Okul Sonrası Başlangıç/Orta/Zor). Düzey yaşa göre değil, alanda yapabildiğine göre belirlenir;
    yaş yalnızca başlangıç basamağını seçer. */
 const PLACE_DOMS = [
 { k:"hiz",     nm:"İşlemleme hızı",       cats:["islemleme-hizi","oyun-parki"], kind:"qz", q:"sem-decide", lim:[6000, 4500] },
@@ -8820,7 +8820,7 @@ function applyPlacedLevel(catId, name){ try{ const n = (name != null ? name : cu
 function placeTableHtml(dom, opts){ opts = opts || {}; const cats = CATEGORIES.filter(c => !c.hidden); const rows = cats.map(c => { const d = placeDomFor(c.id); const v = d && dom ? dom[d.k] : null; if(typeof v !== "number") return `<tr><td>${escHTML(c.label)}</td><td colspan="2" class="pt-na">—</td></tr>`;
   const pre = v < 3, tier = stepTier(v); return `<tr><td>${escHTML(c.label)}</td><td><span class="pt-k ${pre ? "pre" : "post"}">${pre ? "Okul Öncesi" : "Okul Sonrası"}</span></td><td><span class="pt-t t${tier}">${PLACE_TIER[tier]}</span></td></tr>`; }).join("");
   const n = cats.filter(c => { const d = placeDomFor(c.id); return d && dom && typeof dom[d.k] === "number"; }), post = n.filter(c => dom[placeDomFor(c.id).k] >= 3).length;
-  return `<div class="place-table-wrap"><table class="place-table"><thead><tr><th>Kategori</th><th>Kademe</th><th>Düzey</th></tr></thead><tbody>${rows}</tbody></table>${opts.foot === false ? "" : `<div class="pt-foot">${post} kategori Okul Sonrası · ${n.length - post} kategori Okul Öncesi</div>`}</div>`; }
+  return `<div class="place-table-wrap"><table class="place-table"><thead><tr><th>Alan</th><th>Okul dönemi</th><th>Düzey</th></tr></thead><tbody>${rows}</tbody></table>${opts.foot === false ? "" : `<div class="pt-foot">${post} alan Okul Sonrası · ${n.length - post} alan Okul Öncesi</div>`}</div>`; }
 function placeSummary(p){ if(!p) return ""; const e = Object.entries(p.dom), nm = (k) => (PLACE_DOMS.find(d => d.k === k) || {}).nm; const post = e.filter(([, v]) => v >= 3).length;
   const hi = e.filter(([, v]) => v >= 4).map(([k]) => nm(k)).filter(Boolean), lo = e.filter(([, v]) => v <= 1).map(([k]) => nm(k)).filter(Boolean);
   return [`${post} alan Okul Sonrası, ${e.length - post} alan Okul Öncesi`, hi.length ? `Güçlü: ${hi.join(", ")}` : "", lo.length ? `Gelişen: ${lo.join(", ")}` : ""].filter(Boolean).join(" · "); }
@@ -8913,7 +8913,7 @@ try{ if(gameProfile() === R.name){ const g = gxGet(); g.light = (g.light || 0) +
 const el = document.getElementById("placeScreen");
 el.innerHTML = `<div class="adv-wrap place-done" style="text-align:center"><div class="place-done-top"><div style="width:64px;height:64px;flex:0 0 64px">${zihniSVG("happy")}</div><div style="text-align:left"><div class="mola-h" style="margin:0">Değerlendirme turu bitti!</div><div class="mola-s" style="margin:2px 0 0">Harikaydın! +5 ışık</div></div></div>
 ${placeTableHtml(R.res)}
-<div class="fam-sub place-note">Yetişkin için: seviye yaşa göre değil, her alanda yapabildiğine göre belirlendi. Çalışmalar buradan başlar, sonra performansa göre kendiliğinden ayarlanır.</div>
+<div class="fam-sub place-note">Yetişkin için: düzey yaşa göre değil, her alanda yapabildiğine göre belirlendi. Çalışmalar buradan başlar, sonra performansa göre kendiliğinden ayarlanır.</div>
 <div class="mola-list" style="max-width:300px;margin:0 auto"><button type="button" id="placeDone" class="place-cta"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="m7.5 12.5 3 3 6-6.5"></path></svg>Tamam</button></div></div>`;
 speakText("Değerlendirme turu bitti! Harikaydın!");
 document.getElementById("placeDone").onclick = () => { el.style.display = "none"; try{ if(document.getElementById("islandScreen").style.display === "flex") showIslandMap(); }catch(e){} try{ renderPlaceSettings(); }catch(e){} }; }
@@ -8960,14 +8960,14 @@ function growthOngoingHtml(nm){ try{ const rows = []; const lv = famLvl();
   const hw = (prog && Array.isArray(prog.hw) ? prog.hw : []).filter(id => exerciseById(id));
   if(hw.length) rows.push(`<div class="gr-row"><div><b>Uzman ödevleri</b><span>${hw.map(id => escHTML(exerciseById(id).label)).join(", ")}</span></div><em class="t1">${hw.length} ödev</em></div>`);
   let dev = null; try{ dev = devPlanGet(nm, lv); }catch(e){} const open = dev && Array.isArray(dev.items) ? dev.items.filter(it => exerciseById(it.id)) : [];
-  if(open.length) rows.push(`<div class="gr-row"><div><b>Gelişim ödevleri</b><span>${open.map(it => escHTML(exerciseById(it.id).label) + " (" + escHTML((CATEGORIES.find(c => c.id === it.cat) || {}).label || "") + ")").join(", ")}</span></div><em class="t1">${open.length} açık</em></div>`);
+  if(open.length) rows.push(`<div class="gr-row"><div><b>Önerilen çalışmalar</b><span>${open.map(it => escHTML(exerciseById(it.id).label) + " (" + escHTML((CATEGORIES.find(c => c.id === it.cat) || {}).label || "") + ")").join(", ")}</span></div><em class="t1">${open.length} açık</em></div>`);
   if(prog && prog.target){ const tc = CATEGORIES.find(c => c.id === prog.target) || OKUL_SKILLS.find(c => c.id === prog.target); if(tc) rows.push(`<div class="gr-row"><div><b>Program hedefi</b><span>${escHTML(tc.label)}${(prog.days || []).length ? " · " + prog.days.map(d => DAY_SHORT[d]).join(", ") : ""}</span></div><em class="t0">Program</em></div>`); }
   else { try{ const tg = typeof famTarget === "function" ? famTarget() : null; const tc = tg && (CATEGORIES.find(c => c.id === tg) || OKUL_SKILLS.find(c => c.id === tg)); if(tc && appMode === "aile") rows.push(`<div class="gr-row"><div><b>Bugünün oturumu</b><span>Hedef alan: ${escHTML(tc.label)}</span></div><em class="t0">Bu hafta</em></div>`); }catch(e){} }
   const pend = (typeof catPendingList === "function" ? catPendingList(nm) : []).map(p => { const c = CATEGORIES.find(x => x.id === p.catId); return c ? escHTML(c.label) + " → " + (p.target === "pre" ? "Okul Öncesi" : "Okul Sonrası") : ""; }).filter(Boolean);
-  if(pend.length) rows.push(`<div class="gr-row"><div><b>Kademe önerisi bekliyor</b><span>${pend.join(", ")}</span></div><em class="t1">Karar bekliyor</em></div>`);
+  if(pend.length) rows.push(`<div class="gr-row"><div><b>Okul dönemi önerisi bekliyor</b><span>${pend.join(", ")}</span></div><em class="t1">Karar bekliyor</em></div>`);
   return grSec("suren", "blocks", "#5A2D8C", "#EEE6FA", "Süren çalışmalar", rows.length ? `<div class="gr-list">${rows.join("")}</div>` : `<div class="fam-sub" style="font-weight:600;margin:4px 0">Şu an açık ödev ya da program yok.</div>`); }catch(e){ return ""; } }
 function growthPlaceCompare(nm, P){ try{ const ch = []; CATEGORIES.filter(c => !c.hidden).forEach(c => { const d = placeDomFor(c.id); const v = d && P.dom ? P.dom[d.k] : null; if(typeof v !== "number") return; const now = catLevelFor(c.id, nm), was = v < 3 ? "pre" : "post"; if(now !== was) ch.push(`${escHTML(c.label)}: ${was === "pre" ? "Okul Öncesi" : "Okul Sonrası"} → ${now === "pre" ? "Okul Öncesi" : "Okul Sonrası"}`); });
-  return ch.length ? `O günden bu yana kademesi değişen alanlar: ${ch.join(" · ")}` : "Tüm alanlar hâlâ değerlendirmedeki kademede çalışıyor."; }catch(e){ return ""; } }
+  return ch.length ? `O günden bu yana okul dönemi değişen alanlar: ${ch.join(" · ")}` : "Tüm alanlar hâlâ değerlendirmedeki okul döneminde çalışıyor."; }catch(e){ return ""; } }
 function showGrowth(){ const nm = famProfile(); let el = document.getElementById("growthScreen"); if(!el){ el = document.createElement("div"); el.id = "growthScreen"; document.body.appendChild(el); }
 const D = growthData(nm), strong = D.filter(x => x.st === "guclu").map(x => x.c.label), grow = D.filter(x => x.st === "gelisiyor").map(x => x.c.label), sup = D.filter(x => x.support), P = placeGet(nm);
 const linked = typeof familyLinkLocal === "function" && familyLinkLocal();
@@ -8977,7 +8977,7 @@ ${sup.length ? `<div class="gr-note"><b>Bir öneri:</b> ${sup.map(x => x.c.label
 ${grSec("alanlar", "pin", "#0A847E", "#DDF3F0", "Alanlar · şu anki çalışma düzeyi", `<div class="gr-list">${D.map(x => `<div class="gr-row"><div><b>${x.c.label}</b><span>${x.lvlNow ? `<i class="gr-lv ${x.lvlNow}">${x.lvlNow === "pre" ? "Okul Öncesi" : "Okul Sonrası"}${x.tierNow != null ? " · " + TIERS[x.tierNow].label.replace(" Düzey", "") : ""}</i>` : ""}${x.n ? `${x.n} çalışma` : ""}${x.n && x.stars ? " · " : ""}${x.stars ? `${x.stars} ${icI("star", 13, "#E0A100")}` : ""}${x.crowns ? ` · ${x.crowns} taç` : ""}</span></div><em class="${GR_TXT[x.st][1]}">${GR_TXT[x.st][0]}</em></div>`).join("")}</div>`)}
 ${growthOngoingHtml(nm)}
   ${(() => { const O = growthData(nm, OKUL_SKILLS).filter(x => famExIds(x.c.id).length >= 3); return grSec("okul", "book", "#9A6B00", "#FFF1D6", "Okul becerileri", `<div class="gr-list">${O.map(x => `<div class="gr-row"><div><b>${x.c.label}</b><span>${x.n ? `${x.n} çalışma` : ""}${x.n && x.stars ? " · " : ""}${x.stars ? `${x.stars} ${icI("star", 13, "#E0A100")}` : ""}</span></div><em class="${GR_TXT[x.st][1]}">${GR_TXT[x.st][0]}</em></div>`).join("")}</div><div class="fam-sub" style="font-weight:600;margin:6px 0">Bir okul becerisini günlük oturumun hedefi yapmak için “Bugünün oturumu” ekranında hedef alanı değiştirin.</div>`); })()}
-${P ? grSec("degerlendirme", "clip", "#1E5FA8", "#DDF1FF", `Son değerlendirme turu · ${new Date(P.t).toLocaleDateString("tr-TR")}`, `${placeTableHtml(P.dom)}<div class="fam-sub" style="font-weight:600;margin:6px 0 4px">${growthPlaceCompare(nm, P)}</div>`) : grSec("degerlendirme", "clip", "#1E5FA8", "#DDF1FF", "Değerlendirme turu", `<div class="fam-sub" style="font-weight:600;margin:4px 0">Henüz yapılmadı. Ana sayfadaki “Değerlendirme turu” ile her alanın başlangıç kademesi ve düzeyi belirlenir.</div>`)}
+${P ? grSec("degerlendirme", "clip", "#1E5FA8", "#DDF1FF", `Son değerlendirme turu · ${new Date(P.t).toLocaleDateString("tr-TR")}`, `${placeTableHtml(P.dom)}<div class="fam-sub" style="font-weight:600;margin:6px 0 4px">${growthPlaceCompare(nm, P)}</div>`) : grSec("degerlendirme", "clip", "#1E5FA8", "#DDF1FF", "Değerlendirme turu", `<div class="fam-sub" style="font-weight:600;margin:4px 0">Henüz yapılmadı. Ana sayfadaki “Değerlendirme turu” ile her alanın başlangıç okul dönemi ve düzeyi belirlenir.</div>`)}
 <div class="fam-sub" style="font-weight:600;margin:10px 0 20px">Bu sayfa çocuğunuzun uygulamadaki çalışmalarını özetler; başka çocuklarla karşılaştırma yapmaz ve tanı koymaz.</div></div>`;
 el.style.display = "flex"; el.scrollTop = 0;
 el.querySelectorAll("details.gr-acc").forEach(d => d.addEventListener("toggle", () => { if(d.open){ GR_OPEN.clear(); GR_OPEN.add(d.dataset.sec); el.querySelectorAll("details.gr-acc[open]").forEach(o => { if(o !== d) o.open = false; }); } else GR_OPEN.delete(d.dataset.sec); }));   /* bir bölüm açılınca diğeri kapanır */
@@ -9051,6 +9051,7 @@ const sideButtons = () => [{ id:"L", html:'<span style="font-size:30px;font-weig
 #settingsScreen .settings-note,#historyScreen .settings-note{color:#4A5A66}
 #settingsScreen .set-sec > summary{display:flex !important;align-items:center;justify-content:flex-start;text-align:left;gap:0}
 `; document.head.appendChild(st); }catch(e){} })();
+(function simpleFlowStyle(){ try{ if(document.getElementById("simpleFlowStyle")) return; const st = document.createElement("style"); st.id = "simpleFlowStyle"; st.textContent = `#whoScreen .hm-seg .hm-col.hm-hide,.hm-seg .hm-col.hm-hide,.hm-col.hm-hide{display:none !important}#hmEtk .hm-seg.solo{grid-template-columns:minmax(0,1fr) !important}#hmEtk .hm-seg.solo .hm-col{flex-direction:row !important}#hmEtk .hm-seg.solo .hm-col > button{flex:1 1 0;min-width:0}.consent-sum{text-align:left;margin:6px 0 10px;padding-left:20px;font-size:15px;line-height:1.45;color:var(--ink);font-weight:700}.consent-sum li{margin:4px 0}.consent-more{text-align:left;margin:0 0 10px}.consent-more>summary{cursor:pointer;font-weight:800;color:#0A847E;margin:4px 0 6px}.role-card{display:flex !important;align-items:center;gap:12px;width:100%;text-align:left;margin:10px 0;cursor:pointer;background:#fff;border:2px solid #DDE6EE;border-bottom-width:5px;border-radius:22px;padding:14px}.role-card .hm-ic{width:54px;height:54px;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;flex:none}.role-card b{display:block;font-size:18px;color:var(--ink)}.role-card span span{display:block;font-size:13px;color:#4A5A66;font-weight:700;margin-top:2px}#roleScreen{position:fixed;inset:0;z-index:120;align-items:center;justify-content:center;overflow-y:auto;padding:20px}`; document.head.appendChild(st); }catch(e){} })();
 (function rpAccStyle(){ try{ if(document.getElementById("rpAccStyle")) return; const st = document.createElement("style"); st.id = "rpAccStyle"; st.textContent = `.rp-head{cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none}.rp-chev{margin-left:auto;width:9px;height:9px;border-right:3px solid #0A847E;border-bottom:3px solid #0A847E;transform:rotate(45deg);margin-right:6px;margin-bottom:3px;transition:transform .2s;flex:none}.rp-acc.open .rp-chev{transform:rotate(-135deg);margin-bottom:-3px}.rp-grp{margin:0 0 6px}.rp-grp .player-group-header{padding:10px 4px}.rp-grp:not(.open) .rp-body{display:none}.summary-card.rp-acc:not(.open) .summary-metric{display:none}html.is-printing .rp-body,html.is-printing .summary-card .summary-metric,#printArea .summary-card .summary-metric,#printArea .rp-body{display:block !important}#printArea .rp-chev{display:none}`; document.head.appendChild(st); }catch(e){} })();
 (function growthStyle(){ try{ if(document.getElementById("growthStyle")) return; const st = document.createElement("style"); st.id = "growthStyle"; st.textContent = `#growthScreen .adv-t1{color:#0A847E}#growthScreen .adv-t2{color:var(--ink)}#growthScreen .gr-sum{border:2px solid #E3ECEA;box-shadow:0 3px 0 var(--edge)}.gr-sl{display:flex;align-items:center;gap:10px;margin:2px 0}.gr-ic{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;flex:none}.gr-acc{background:#fff;border:2px solid #E3ECEA;border-radius:18px;box-shadow:0 3px 0 var(--edge);margin:10px 0;overflow:hidden}.gr-acc>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;font-weight:900;font-size:16px;color:var(--ink)}.gr-acc>summary::-webkit-details-marker{display:none}.gr-acc-t{flex:1;min-width:0}.gr-chev{width:10px;height:10px;border-right:3px solid #0A847E;border-bottom:3px solid #0A847E;transform:rotate(45deg);margin:0 4px 4px 0;transition:transform .2s}.gr-acc[open] .gr-chev{transform:rotate(-135deg);margin:4px 4px 0 0}.gr-acc-b{padding:2px 10px 12px}.gr-acc-b .gr-row{background:#F7FAFB;border:1.5px solid #EEF3F2}.gr-lv{display:inline-block;font-style:normal;font-weight:900;font-size:11.5px;border-radius:8px;padding:2px 7px;margin:3px 6px 0 0}.gr-lv.pre{background:#FFF1D6;color:#9A6B00}.gr-lv.post{background:#DDF5E7;color:#1B7A45}#growthScreen .place-table-wrap{margin:4px 0}`; document.head.appendChild(st); }catch(e){} })();
 (function placeStimStyle(){ try{ if(document.getElementById("placeStimStyle")) return; const st = document.createElement("style"); st.id = "placeStimStyle"; st.textContent = `/* KURAL: uyaran kutusu yüzdeli içerikte çökmesin (Değerlendirme turu "ortadaki büyük ok" görünmüyordu) */.ps-in > div:only-child[style*="height:100%"]{width:min(62vw,240px) !important;height:min(62vw,240px) !important}`; document.head.appendChild(st); }catch(e){} })();
@@ -10928,6 +10929,7 @@ window.addEventListener("resize", () => { clearTimeout(window._mtResizeT); windo
 
 const Q = (t) => `<b>"${t}"</b>`;
 const EYE = (d) => Q(`Ekranda bir top var. Başını hiç oynatma; top nereye giderse sadece gözlerinle onu takip et. ${d}`);
+/* KURAL (terimler): arayüzde tek ad — 10 beceri alanı için "alan" (kategori değil), Başlangıç/Orta/Zor için "düzey" (seviye değil), Okul Öncesi/Okul Sonrası için "okul dönemi" (kademe/seviye değil), otomatik ödevler için "önerilen çalışma" (gelişim ödevi değil); içerikteki anlam kategorileri (meyve, hayvan…) bu kuralın dışındadır */
 /* KURAL (uyum, düzen ve denge — uygulamanın bütünü için):
    İÇERİK UYUMU: yönerge, ekrandaki içerik ve puanlama birbiriyle çelişmez (yönergede geçen sayı/hedef tahtadakiyle aynı; dönüşümlü izlerde tam çift; hatırlama listelerinde tekrar yok; Aşama 1'de sorulmayan özellik gösterilmez).
    MANTIK UYUMU: düzey geçişleri, kategori kademesi, Değerlendirme turu, ödev ve planlar aynı kademe/düzey ölçeğini kullanır (okul öncesi 0–2, okul sonrası 3–5).
@@ -12409,7 +12411,7 @@ thisWeekKeys.includes(dayKey(ev.t)) &&
 (currentReportPlayer === "Herkes" || ev.player === currentReportPlayer)
 );
 if(upThisWeek.length > 0){
-comments.push(`Bu hafta ${upThisWeek.length} kez zorluk seviyesi otomatik yükseltildi.`);
+comments.push(`Bu hafta ${upThisWeek.length} kez zorluk düzeyi otomatik yükseltildi.`);
 }
 
 return comments;
@@ -12551,12 +12553,12 @@ function summaryLede(name, stats){
 const who = name === "Herkes" ? "" : name;
 if(appMode === "uzman"){
 return who
-? `${who} için kayıtlı ${stats.totalSessions} çalışma oturumu bulunuyor (${stats.distinctDays} farklı gün, ${stats.catCount}/${stats.totalCatCount} kategori).`
-: `Kayıtlı ${stats.totalSessions} çalışma oturumu bulunuyor (${stats.distinctDays} farklı gün, ${stats.catCount}/${stats.totalCatCount} kategori).`;
+? `${who} için kayıtlı ${stats.totalSessions} çalışma oturumu bulunuyor (${stats.distinctDays} farklı gün, ${stats.catCount}/${stats.totalCatCount} alan).`
+: `Kayıtlı ${stats.totalSessions} çalışma oturumu bulunuyor (${stats.distinctDays} farklı gün, ${stats.catCount}/${stats.totalCatCount} alan).`;
 }
 return who
-? `${who}, şimdiye kadar ${stats.totalSessions} kez çalıştı (${stats.distinctDays} farklı gün). ${stats.catCount}/${stats.totalCatCount} kategoriden alıştırma denendi.`
-: `Şimdiye kadar toplam ${stats.totalSessions} çalışma yapıldı (${stats.distinctDays} farklı gün). ${stats.catCount}/${stats.totalCatCount} kategoriden alıştırma denendi.`;
+? `${who}, şimdiye kadar ${stats.totalSessions} kez çalıştı (${stats.distinctDays} farklı gün). ${stats.catCount}/${stats.totalCatCount} alandan alıştırma denendi.`
+: `Şimdiye kadar toplam ${stats.totalSessions} çalışma yapıldı (${stats.distinctDays} farklı gün). ${stats.catCount}/${stats.totalCatCount} alandan alıştırma denendi.`;
 }
 
 function summaryDateOnly(ts){
@@ -12571,7 +12573,7 @@ lines.push(`Tarih: ${summaryDateOnly(Date.now())}`);
 lines.push("");
 lines.push(`Toplam çalışma: ${stats.totalSessions}`);
 lines.push(`Farklı gün: ${stats.distinctDays}`);
-lines.push(`Denenen kategori: ${stats.catCount}/${stats.totalCatCount}`);
+lines.push(`Denenen alan: ${stats.catCount}/${stats.totalCatCount}`);
 lines.push(`Genel hatasız tamamlama oranı: %${stats.overallRate}`);
 lines.push("");
 lines.push("KATEGORİ BAZLI:");
@@ -12622,7 +12624,7 @@ const allRaw = loadSessions();
 container.innerHTML = "";
 
 if(allRaw.length === 0){
-container.innerHTML = `<div class="history-empty"><span class="history-empty-icon">${uiIconSVG("grid")}</span>Henüz kayıtlı sonuç yok. Birkaç çalışma tamamlandığında burada kategori bazlı özet görünecek.</div>`;
+container.innerHTML = `<div class="history-empty"><span class="history-empty-icon">${uiIconSVG("grid")}</span>Henüz kayıtlı sonuç yok. Birkaç çalışma tamamlandığında burada alan bazlı özet görünecek.</div>`;
 return;
 }
 
@@ -12673,7 +12675,7 @@ overview.className = "summary-overview";
 overview.innerHTML = `
 <div class="summary-overview-item"><div class="summary-overview-value">${stats.totalSessions}</div><div class="summary-overview-label">Toplam çalışma</div></div>
 <div class="summary-overview-item"><div class="summary-overview-value">${stats.distinctDays}</div><div class="summary-overview-label">Farklı gün</div></div>
-<div class="summary-overview-item"><div class="summary-overview-value">${stats.catCount}/${stats.totalCatCount}</div><div class="summary-overview-label">Denenen kategori</div></div>
+<div class="summary-overview-item"><div class="summary-overview-value">${stats.catCount}/${stats.totalCatCount}</div><div class="summary-overview-label">Denenen alan</div></div>
 <div class="summary-overview-item"><div class="summary-overview-value">%${stats.overallRate}</div><div class="summary-overview-label">Genel hatasız oranı</div></div>
 `;
 wrap.appendChild(overview);
@@ -13145,7 +13147,7 @@ applyCalm();
 try{ renderPlaceSettings(); }catch(e){}
 try{ renderAcctSettings(); }catch(e){}
 const pt = document.getElementById("predToggle");
-{ const eb = document.getElementById("expertDevBtn"); if(eb){ const upd = () => { const on = isExpertDevice(); eb.textContent = on ? "Açık ✓" : "Kapalı"; eb.classList.toggle("on", on); }; upd(); eb.onclick = () => { try{ localStorage.setItem(EXPERT_DEV_KEY, isExpertDevice() ? "0" : "1"); }catch(e){} upd(); }; } }
+{ const eb = document.getElementById("expertDevBtn"); if(eb){ const upd = () => { const r = homeRole() || (isExpertDevice() ? "uzman" : null); eb.textContent = r === "uzman" ? "Uzman" : r === "aile" ? "Aile" : "İkisi de"; eb.classList.toggle("on", !!r); }; upd(); eb.onclick = () => { const r = homeRole() || (isExpertDevice() ? "uzman" : null); const next = r === "aile" ? "uzman" : r === "uzman" ? null : "aile"; if(next) setHomeRole(next); else { try{ localStorage.removeItem(HOME_ROLE_KEY); localStorage.setItem(EXPERT_DEV_KEY, "0"); }catch(e){} } upd(); }; } }
 if(pt){ pt.checked = predOn(); pt.addEventListener("change", e => { try{ localStorage.setItem(PRED_KEY, e.target.checked ? "1" : "0"); }catch(_){} }); }
 const ct = document.getElementById("captionToggle");
 if(ct){ ct.checked = captionOn(); ct.addEventListener("change", e => { try{ localStorage.setItem(CAPTION_KEY, e.target.checked ? "1" : "0"); }catch(_){} }); }
@@ -13256,11 +13258,11 @@ ${reportsBtnHtml("fhReportsBtn")}
 ${recommendedCardHtml()}
 ${catPendingCardHtml(famProfile())}
 <div class="fh-grid">
-<button type="button" class="fh-week" id="fhHwBtn" style="position:relative"><span class="ic" style="background:var(--teal-tint);color:var(--teal-dark)">${icI("clip", 22, "#0A847E")}</span><span><div class="t1">Ödevlerim</div><div class="t2">Uzman ve gelişim ödevleri</div></span>${famProfile() === "Oyuncu" ? "" : hwBadgeHtml(hwBadgeCount(famProfile(), famLvl()))}</button>
+<button type="button" class="fh-week" id="fhHwBtn" style="position:relative"><span class="ic" style="background:var(--teal-tint);color:var(--teal-dark)">${icI("clip", 22, "#0A847E")}</span><span><div class="t1">Ödevlerim</div><div class="t2">Uzman ödevleri ve önerilen çalışmalar</div></span>${famProfile() === "Oyuncu" ? "" : hwBadgeHtml(hwBadgeCount(famProfile(), famLvl()))}</button>
 <button type="button" class="fh-week" id="fhGrowBtn"><span class="ic" style="background:#FFF3C4;color:#9A6B00">${icI("sprout", 22, "#9A6B00")}</span><span><div class="t1">Gelişim haritası</div><div class="t2">Güçlü yönler ve gelişen alanlar</div></span></button>
 <button type="button" class="fh-week" id="fhWeekBtn"><span class="ic">${I_CHART}</span><span><div class="t1">Bu hafta</div><div class="t2">Çalışılan günler ve kısa gelişim özeti</div></span></button>
 <button type="button" class="fh-week" id="fhLinkBtn"><span class="ic" style="background:var(--teal-tint);color:var(--teal-dark)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></span>
-<span><div class="t1">${familyLinkLocal() ? "Uzmanınıza bağlı" : "Uzmana bağlan"}</div><div class="t2">${familyLinkLocal() ? (() => { const pr = familyProgram(); if(!pr) return "Uzmanınızın programı bekleniyor"; const tg = pr.target ? famCatName(pr.target) : ""; const days = (pr.days || []).map(d => DAY_SHORT[d]).filter(Boolean).join(", "); const parts = [tg ? "Program: " + tg : "Program hazırlanıyor", days].filter(Boolean); return parts.join(" · "); })() : (otherLevelLink() ? "Bu çocuğun uzman programı " + (famLvl() === "pre" ? "Okul Sonrası" : "Okul Öncesi") + " seviyesinde; seviyeyi değiştirin" : "Uzmanınızın verdiği kodu girin")}</div></span></button>
+<span><div class="t1">${familyLinkLocal() ? "Uzmanınıza bağlı" : "Uzmana bağlan"}</div><div class="t2">${familyLinkLocal() ? (() => { const pr = familyProgram(); if(!pr) return "Uzmanınızın programı bekleniyor"; const tg = pr.target ? famCatName(pr.target) : ""; const days = (pr.days || []).map(d => DAY_SHORT[d]).filter(Boolean).join(", "); const parts = [tg ? "Program: " + tg : "Program hazırlanıyor", days].filter(Boolean); return parts.join(" · "); })() : (otherLevelLink() ? "Bu çocuğun uzman programı " + (famLvl() === "pre" ? "Okul Sonrası" : "Okul Öncesi") + " için; çocuğun okul dönemini değiştirin" : "Uzmanınızın verdiği kodu girin")}</div></span></button>
 </div>`;
 box.style.display = "flex";
 const needPerson = () => famProfile() === "Oyuncu" && !familyLinkLocal();
@@ -13360,7 +13362,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.24-w";
+const APP_VERSION = "2026.10.25-b";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -13674,7 +13676,7 @@ w.innerHTML = `<div><h2 class="fam-h">Danışan ekle</h2><div class="fam-sub">Ai
 ${fbOk() ? "" : needCloudHtml()}
 <div class="fam-card" style="display:flex;flex-direction:column;gap:14px">
 <div class="ex-field"><label for="exChildName">Kişi seç ya da yeni ad yaz</label>${(() => { const linked = new Set((expertLinks || []).map(x => (x.childName || "").trim().toLocaleLowerCase("tr"))); const av = whoNames().filter(n => !linked.has(n.toLocaleLowerCase("tr"))); return av.length ? `<div class="ex-pick">${av.map(n => `<button type="button" class="fam-chip" data-pick="${escHTML(n)}">${escHTML(n)}</button>`).join("")}</div>` : ""; })()}<input id="exChildName" class="ex-input" placeholder="Yeni kişinin adı" maxlength="40"><div class="fam-sub" style="font-weight:600;margin-top:4px">Kayıtlı bir kişiyi seçerseniz, bu cihazda onunla yaptığınız çalışmalar ödevlendirmede de görünür.</div></div>
-<div class="ex-field"><label>Seviye</label><div class="ex-seg" style="grid-template-columns:1fr 1fr"><button type="button" data-lvl="pre">Okul Öncesi</button><button type="button" data-lvl="post" class="on">Okul Sonrası</button></div></div>
+<div class="ex-field"><label>Okul dönemi</label><div class="ex-seg" style="grid-template-columns:1fr 1fr"><button type="button" data-lvl="pre">Okul Öncesi</button><button type="button" data-lvl="post" class="on">Okul Sonrası</button></div></div>
 <div class="ex-err" id="exNewErr"></div>
 <button type="button" class="fam-cta" id="exCreateBtn">Kod oluştur</button>
 </div>`;
@@ -13716,7 +13718,7 @@ const draw = () => {
 readingLevel = l.level || "post";
 const exs = mainsOf(p.target);
 const b = weekBars(l);
-w.innerHTML = `<div style="display:flex;align-items:flex-start;gap:10px"><h2 class="fam-h" style="flex:1">${escHTML(l.childName || "Danışan")}</h2><button type="button" class="fam-chip" id="exRenameBtn" style="flex:none">Adı düzenle</button></div><div><div class="fam-sub">${l.level === "pre" ? "Okul Öncesi" : "Okul Sonrası"} · ${l.familyUid ? "aile bağlı" : "aile henüz bağlanmadı"}</div>${(() => { try{ const diff = CATEGORIES.filter(c => !c.hidden).map(c => [c, catLevelInfo(c.id, l.childName)]).filter(([c, i]) => i.by !== "genel" && i.lvl !== (l.level || "post")); return diff.length ? `<div class="fam-sub" style="margin-top:4px">Kademesi farklı alanlar: ${diff.map(([c, i]) => escHTML(c.label) + " (" + (i.lvl === "pre" ? "Okul Öncesi" : "Okul Sonrası") + ")").join(", ")}</div>` : ""; }catch(e){ return ""; } })()}</div>
+w.innerHTML = `<div style="display:flex;align-items:flex-start;gap:10px"><h2 class="fam-h" style="flex:1">${escHTML(l.childName || "Danışan")}</h2><button type="button" class="fam-chip" id="exRenameBtn" style="flex:none">Adı düzenle</button></div><div><div class="fam-sub">${l.level === "pre" ? "Okul Öncesi" : "Okul Sonrası"} · ${l.familyUid ? "aile bağlı" : "aile henüz bağlanmadı"}</div>${(() => { try{ const diff = CATEGORIES.filter(c => !c.hidden).map(c => [c, catLevelInfo(c.id, l.childName)]).filter(([c, i]) => i.by !== "genel" && i.lvl !== (l.level || "post")); return diff.length ? `<div class="fam-sub" style="margin-top:4px">Okul dönemi farklı alanlar: ${diff.map(([c, i]) => escHTML(c.label) + " (" + (i.lvl === "pre" ? "Okul Öncesi" : "Okul Sonrası") + ")").join(", ")}</div>` : ""; }catch(e){ return ""; } })()}</div>
 ${(l.childName || "").trim() ? `<div class="fam-card" style="display:flex;flex-direction:column;gap:6px"><button type="button" class="fam-cta" id="exStartBtn">▶ ${escHTML(l.childName.trim())} ile oturum başlat</button><div class="fam-sub" style="font-weight:600">Çalışmalar bu cihazda <b>${escHTML(l.childName.trim())}</b> adıyla kaydedilir; ödevlendirme bu kayıtları kullanır.</div></div>` : ""}
 ${!l.familyUid ? `<div class="fam-card" style="display:flex;flex-direction:column;gap:10px"><div style="font-weight:900">Bağlantı kodu</div><div class="ex-code">${fmtCode(code)}</div>
 <div class="fam-sub" style="font-weight:600">Aile, uygulamada <b>Bilişsel Etkinlik → Aile → Uzmana bağlan</b> bölümüne bu kodu girer.</div>
@@ -13764,7 +13766,7 @@ const devBox = document.getElementById("exDevCard"); const devFill = () => { con
 const hm = document.getElementById("hwManBtn"); if(hm) hm.onclick = async () => { if(!hwSel.size){ showLevelFlash("Önce listeden sayfa işaretleyin.", "down"); return; } const add = [...hwSel].filter(id => !p.hw.includes(id)); const next = p.hw.concat(add);
 if(next.length > 4){ showLevelFlash(`En fazla 4 ödev olabilir (şu an ${p.hw.length}).`, "down"); return; }
 try{ const off = add.filter(id => { const ex = exerciseById(id), c = CATEGORIES.find(x => x.exerciseIds.includes(id)); if(!ex || !c) return false; return !ex.readingLevel.includes(catLevelFor(c.id, l.childName)); });
-  if(off.length){ const c0 = CATEGORIES.find(x => x.exerciseIds.includes(off[0])); const lv = catLevelFor(c0.id, l.childName); const ok = await zaConfirm(`${off.map(id => exerciseById(id).label).join(", ")}: ${l.childName || "çocuk"} için ${c0.label} alanının kademesi ${lv === "pre" ? "Okul Öncesi" : "Okul Sonrası"}; bu sayfa o kademede yok. Yine de ödev verilsin mi? Ödev kendi kademesinde açılır.`); if(!ok) return; } }catch(e){}
+  if(off.length){ const c0 = CATEGORIES.find(x => x.exerciseIds.includes(off[0])); const lv = catLevelFor(c0.id, l.childName); const ok = await zaConfirm(`${off.map(id => exerciseById(id).label).join(", ")}: ${l.childName || "çocuk"} için ${c0.label} alanının okul dönemi ${lv === "pre" ? "Okul Öncesi" : "Okul Sonrası"}; bu sayfa o dönemde yok. Yine de ödev verilsin mi? Ödev kendi döneminde açılır.`); if(!ok) return; } }catch(e){}
 p.hw = next; hwSel.clear(); await saveProg(`${add.length} sayfa ödev olarak eklendi ✓`); draw(); };
 w.querySelectorAll("[data-d]").forEach(x => x.onclick = () => { const d = +x.dataset.d; p.days = p.days.includes(d) ? p.days.filter(v => v !== d) : p.days.concat([d]).sort(); draw(); });
 w.querySelectorAll("[data-m]").forEach(x => x.onclick = () => { p.minutes = +x.dataset.m; draw(); });
@@ -15462,17 +15464,17 @@ return cat.exerciseIds.some(id => exerciseById(id).readingLevel.includes("pre"))
 /* Kategori kartı · düzey satırı: etkin kademe, kaynağı ve elle seçim (uzman / aile). Uzman belirlediyse aile değiştiremez. */
 function renderCatLevelRow(host, cat, onChange){
 const n = (catPlayerName() || "").trim(); if(!n || n === "Misafir" || n === "Oyuncu") return null;
-const info = catLevelInfo(cat.id, n), srcTxt = { uzman: "uzman seçti", aile: "aile seçti", degerlendirme: "Değerlendirme turu", genel: "genel düzey" }[info.by] || "";
+const info = catLevelInfo(cat.id, n), srcTxt = { uzman: "uzman seçti", aile: "aile seçti", degerlendirme: "Değerlendirme turu", genel: "varsayılan" }[info.by] || "";
 const row = document.createElement("span"); row.className = "cat-level-row";
 const locked = appMode === "aile" && info.by === "uzman";
 const mk = (lvl, txt) => { const b = document.createElement("button"); b.type = "button"; b.className = "cat-level-btn" + (info.lvl === lvl ? " on" : ""); b.textContent = txt; b.disabled = locked;
   b.addEventListener("click", (ev) => { ev.stopPropagation(); if(locked || info.lvl === lvl) return; catLevelTransition(cat.id, n, lvl, appMode === "uzman" ? "uzman" : "aile", { explain: false }); onChange(); }); return b; };
-row.innerHTML = `<span class="cat-level-lbl">Kademe · <b>${info.lvl === "pre" ? "Okul Öncesi" : "Okul Sonrası"}</b> <small>(${escHTML(srcTxt)})</small></span>`;
+row.innerHTML = `<span class="cat-level-lbl">Okul dönemi · <b>${info.lvl === "pre" ? "Okul Öncesi" : "Okul Sonrası"}</b> <small>(${escHTML(srcTxt)})</small></span>`;
 const btns = document.createElement("span"); btns.className = "cat-level-btns"; btns.appendChild(mk("pre", "Okul Öncesi")); btns.appendChild(mk("post", "Okul Sonrası"));
 if(!locked && (info.by === "uzman" || info.by === "aile")){ const auto = document.createElement("button"); auto.type = "button"; auto.className = "cat-level-btn auto"; auto.textContent = "Otomatik"; auto.title = "Seçimi kaldır: Değerlendirme turu ya da genel düzey kullanılır";
   auto.addEventListener("click", (ev) => { ev.stopPropagation(); setCatLevel(cat.id, n, null); onChange(); }); btns.appendChild(auto); }
 row.appendChild(btns);
-if(locked){ const nt = document.createElement("small"); nt.className = "cat-level-note"; nt.textContent = "Bu alanın kademesini uzman belirledi."; row.appendChild(nt); }
+if(locked){ const nt = document.createElement("small"); nt.className = "cat-level-note"; nt.textContent = "Bu alanın okul dönemini uzman belirledi."; row.appendChild(nt); }
 return row;
 }
 /* Ana sayfa başlıklarını sığdır: metin kesilmez, kartın dışına taşmaz; gerekirse yazı boyu adım adım küçülür (en az 12px) */
@@ -15544,7 +15546,7 @@ list.appendChild(card);
 
 const TOURS = {
 home: { key: "wm_tour_home_seen_v1", steps: [
-{sel:"#hmHead", title:"Kim çalışacak?", text:"Çalışacak kişiyi buradan seç. Liste en son çalışandan başlar; yaşı ve seviyeyi listedeki ⚙︎ ile değiştirebilirsin."},
+{sel:"#hmHead", title:"Kim çalışacak?", text:"Çalışacak kişiyi buradan seç. Liste en son çalışandan başlar; yaşı ve okul dönemini listedeki ⚙︎ ile değiştirebilirsin."},
 {sel:"#hmResume", title:"Kaldığın yerden devam", text:"Seçili kişinin en son yaptığı çalışmaya tek dokunuşla döner."},
 {sel:"#hmAdd", title:"Kişi ekle", text:"Yeni bir çocuk ekle. Eklenince kısa bir Değerlendirme Turu ile başlangıç düzeyleri belirlenir."},
 {sel:"#hmGuest", title:"Misafir girişi", text:"Kayıt tutmadan denemek için."},
@@ -15571,13 +15573,13 @@ steps: [
 category: {
 key: "wm_tour_category_seen_v2",
 steps: [
-{sel:"#aboutBtn", title:"Bilgi", text:"Uygulamayı ve her kategorinin neyi çalıştırdığını anlatan Hakkında sayfasını açar."},
+{sel:"#aboutBtn", title:"Bilgi", text:"Uygulamayı ve her alanın neyi çalıştırdığını anlatan Hakkında sayfasını açar."},
 {sel:"#fhTodayBtn", title:"Bugünün oturumu", text:"Yaklaşık 12 dakikalık hazır oturum: ısınma, iki ana çalışma ve kapanış. Hangi çalışmayı seçeceğini düşünmene gerek kalmaz."},
 {sel:".fh-rec", title:"Uzmanın önerdiği çalışmalar", text:"Uzman program atadıysa önerdiği çalışmalar burada; 'Aç' ile tek dokunuşta başlar."},
 {sel:"#fhWeekBtn", title:"Bu hafta", text:"Çalışılan günler ve rakam yerine anlamla yazılmış kısa gelişim özeti."},
 {sel:"#fhLinkBtn", title:"Uzmana bağlan", text:"Uzmanının verdiği kodu girersen program onun atadığına göre kurulur ve sonuçlar ona da gider."},
 {sel:"#exHomeBtn", title:"Danışanlarım", text:"Danışan ekle, aileye bağlantı kodu ver, haftalık program ata ve sonuçları uzaktan izle."},
-{sel:"#categoryList .category-card", title:"Kategoriler", text:"Çalışmak istediğin kategoriye dokun. Her kategori farklı bir bilişsel beceriyi çalıştırır; istediğin an kategori ekranından değiştirebilirsin."}
+{sel:"#categoryList .category-card", title:"Alanlar", text:"Çalışmak istediğin alana dokun. Her alan farklı bir bilişsel beceriyi çalıştırır; istediğin an alan ekranından değiştirebilirsin."}
 ]
 },
 islands: {
@@ -15603,7 +15605,7 @@ steps: [
 expert: {
 key: "wm_tour_expert_seen_v1",
 steps: [
-{sel:"#exNewBtn", title:"Danışan ekle", text:"Çocuğun adını ve seviyesini girin; uygulama aileye vereceğiniz 8 karakterlik bir bağlantı kodu üretir."},
+{sel:"#exNewBtn", title:"Danışan ekle", text:"Çocuğun adını ve okul dönemini girin; uygulama aileye vereceğiniz 8 karakterlik bir bağlantı kodu üretir."},
 {sel:"#expertWrap .ex-client", title:"Danışan kartı", text:"Bu haftaki programdan tamamlanan günler çubuk olarak görünür. Karta dokunarak program atayabilir (hedef alan, günler, süre, önerilen çalışmalar) ve son sonuçları izleyebilirsiniz."}
 ]
 },
@@ -15614,10 +15616,10 @@ steps: [
 {sel:"#cloudBadge",        title:"Kayıt durumu",    text:"Bulut: sonuçlar çevrimiçi kaydediliyor. Yerel: bağlantı yok, sonuçlar bu cihazda bekliyor ve bağlantı gelince otomatik yüklenir.", menu:true},
 {sel:"#settingsBtn",       title:"Ayarlar",         text:"Ses, görünüm ve yazı boyutu, otomatik zorluk eşikleri, hesap ve bulut eşitleme, Uzman PIN\'i, kayıtlı kişiler ve sürüm bilgisi burada.", menu:true},
 {sel:"#modeSwitchBtn",     title:"Görünüm",         text:"Bilişsel Etkinlik'te hangi girişte olduğunu gösterir (Uzman ya da Aile). Dokununca o girişin sayfasına dönersin. Ana menü için bulutun yanındaki ev düğmesine dokun.", menu:true},
-{sel:"#categorySwitchBtn", title:"Kategori",        text:"Şu an çalıştığın kategoriyi gösterir. Dokununca başka bir kategori seçebilirsin.", menu:true},
-{sel:"#pageIndicator",     title:"Sayfa",           text:"Hangi düzeyde olduğunu ve bu kategoride kaçıncı sayfada olduğunu gösterir.", menu:true},
+{sel:"#categorySwitchBtn", title:"Alan",        text:"Şu an çalıştığın alanı gösterir. Dokununca başka bir alan seçebilirsin.", menu:true},
+{sel:"#pageIndicator",     title:"Sayfa",           text:"Hangi düzeyde olduğunu ve bu alanda kaçıncı sayfada olduğunu gösterir.", menu:true},
 {sel:"#tierRow",           title:"Düzey",           text:"Başlangıç, Orta ya da Zor düzeyi buradan seç. Düzey yükseldikçe çalışma zorlaşır: daha çok öge, daha çok çeşit, daha hızlı hareket gibi.", menu:true},
-{sel:"#exerciseRow",       title:"Çalışmalar",      text:"Bu kategorideki çalışmalar burada; yana kaydırarak diğerlerini görebilirsin. Bazı kategorilerde başlıklar (Ketleme, Esneklik, Planlama) çalışmaları gruplar.", menu:true},
+{sel:"#exerciseRow",       title:"Çalışmalar",      text:"Bu alandaki çalışmalar burada; yana kaydırarak diğerlerini görebilirsin. Bazı alanlarda başlıklar (Ketleme, Esneklik, Planlama) çalışmaları gruplar.", menu:true},
 {sel:"#stageRow",          title:"Aşamalar",        text:"Aynı çalışmanın aşamaları; genelde giderek zorlaşır (ör. önce ad, sonra ad + renk).", menu:true},
 {sel:"#playerRow",         title:"Kim çalışıyor?",  text:"Ana ekranda seçtiğin kişi burada görünür; gerekirse buradan değiştirebilir ya da yeni kişi ekleyebilirsin. Sonuçlar bu kişinin adına kaydedilir.", menu:true},
 {sel:"#instructionBox",    title:"Yönerge",         text:"Çocuğa ne söyleyeceğin ve varsa örnek cevap burada yazıyor.", menu:true},
@@ -15645,12 +15647,17 @@ const cs = getComputedStyle(el);
 return cs.display !== "none" && cs.visibility !== "hidden";
 }
 
-function scheduleTour(kind, screenId){
+/* KURAL (sadelik): tanıtım turu açık bir pencerenin (Kişi ekle, rol sorusu, Değerlendirme turu, onay kutusu) üstüne açılmaz; pencere kapanınca başlar */
+function tourBlockedByModal(){ return ["whoSheet","roleScreen","placeScreen","zaDlg","consentScreen","onboardScreen"].some(id => { const e = document.getElementById(id); return e && getComputedStyle(e).display !== "none" && e.getBoundingClientRect().height > 0; }) || !!document.querySelector(".who-sheet[style*='flex'], .mola-sheet[style*='flex']"); }
+function scheduleTour(kind, screenId, tries){
 if(tourSeen(kind)) return;
 if(typeof gameMode !== "undefined" && gameMode) return;
+tries = tries || 0;
 setTimeout(()=>{
-if(document.getElementById(screenId).style.display !== "none") startTour(kind, false);
-}, 500);
+if(document.getElementById(screenId).style.display === "none") return;
+if(tourBlockedByModal()){ if(tries < 120) scheduleTour(kind, screenId, tries + 1); return; }
+startTour(kind, false);
+}, tries ? 1500 : 500);
 }
 
 function computeTourSteps(kind){
@@ -15871,7 +15878,7 @@ document.getElementById("categoryScreen").style.display = "block";
 }
 
 let onboardStep = 0;
-const ONBOARD_SLIDES = 4;
+const ONBOARD_SLIDES = 2;   /* KURAL (sadelik): tanıtım iki ekran, terimsiz */
 
 function renderOnboardDots(){
 const dots = document.getElementById("onboardDots");
@@ -16122,6 +16129,15 @@ groups.filter(g => lab(g).startsWith("Sorun giderme")).forEach(g => { g.style.di
 const EXPERT_DEV_KEY = "wm_expert_device";
 let viaWho = true, whoNew = null;
 function isExpertDevice(){ try{ return localStorage.getItem(EXPERT_DEV_KEY) === "1"; }catch(e){ return false; } }
+/* KURAL (sadelik): ilk açılışta bir kez "Bu cihazı kim kullanacak?" sorulur; ana sayfada yalnızca o rolün düğmeleri görünür (Ayarlar'dan değişir). Rol seçilmemiş eski cihazlarda iki rol de görünür. */
+const HOME_ROLE_KEY = "wm_home_role";
+function homeRole(){ try{ const r = localStorage.getItem(HOME_ROLE_KEY); return r === "uzman" || r === "aile" ? r : null; }catch(e){ return null; } }
+function setHomeRole(r){ try{ localStorage.setItem(HOME_ROLE_KEY, r); localStorage.setItem(EXPERT_DEV_KEY, r === "uzman" ? "1" : "0"); }catch(e){} }
+function showRolePick(done){ let el = document.getElementById("roleScreen"); if(!el){ el = document.createElement("div"); el.id = "roleScreen"; el.className = "consent-screen"; document.body.appendChild(el); }
+  el.innerHTML = `<div class="consent-inner" style="text-align:left"><h2 style="text-align:center">Bu cihazı kim kullanacak?</h2><p class="consent-text" style="text-align:center">Ana sayfada yalnızca sizin işinize yarayan düğmeler görünür. Sonra Ayarlar'dan değiştirebilirsiniz.</p>
+  <button type="button" class="hm-card role-card" data-role="aile"><span class="hm-ic" style="background:#FFF1D6;color:#9A6B00">${hmIc("home")}</span><span><b>Aile</b><span>Evde çocuğumla çalışacağım</span></span></button>
+  <button type="button" class="hm-card role-card" data-role="uzman"><span class="hm-ic" style="background:#DDF3F0;color:#0A847E">${hmIc("brief")}</span><span><b>Uzman</b><span>Öğretmen, terapist ya da psikoloğum; danışanlarıma plan hazırlayacağım</span></span></button></div>`;
+  el.style.display = "flex"; el.querySelectorAll("[data-role]").forEach(b => b.onclick = () => { setHomeRole(b.dataset.role); el.style.display = "none"; try{ setEtkinlikView(b.dataset.role); }catch(e){} done && done(); }); }
 function whoNames(){ const bad = new Set(["Misafir","Oyuncu","Tarama",""]), set = new Set();
 [].concat(playersList || [], Object.keys(playerReadingLevels || {}), Object.keys(gameStoreAll() || {})).forEach(n => { n = String(n || "").trim(); if(!bad.has(n)) set.add(n); });
 let T = {}; try{ T = JSON.parse(localStorage.getItem("wm_who_last") || "{}"); }catch(e){}
@@ -16141,8 +16157,8 @@ try{ hideGameScreens(); exitGameMode(); hideFamScreens(); hideLinkScreens(); }ca
 if(typeof openList === "boolean") whoListOpen = openList;
 let el = document.getElementById("whoScreen"); if(!el){ el = document.createElement("div"); el.id = "whoScreen"; document.body.appendChild(el); }
 const names = whoNames(), sel = whoSelGet(), guest = sel === "__guest__", cur = guest ? "" : (names.includes(sel) ? sel : ""), view = getEtkinlikView(), L = cur ? lastFor(cur) : null;
-const sub = (n) => { const a = ageOf(n), lv = getPlayerLevel(n), st = whoStars(n); return [a ? (a >= 12 ? "12+ yaş" : `${a} yaş`) : "", (() => { const P = placeGet(n); if(P && P.dom){ const v = Object.values(P.dom), post = v.filter(x => x >= 3).length; return post === v.length ? "Değerlendirme: Okul Sonrası" : post === 0 ? "Değerlendirme: Okul Öncesi" : `Değerlendirme: ${post} alan Okul Sonrası`; } return lv ? (lv === "pre" ? "Okul Öncesi" : "Okul Sonrası") : "seviye seçilmedi"; })(), st ? `⭐ ${st}` : ""].filter(Boolean).join(" · "); };
-const row = (n, i) => `<div class="hm-row${n === cur ? " on" : ""}" data-hsel="${escHTML(n)}"><span class="hm-av" style="background:hsl(${whoHue(n)},70%,88%)">${whoAvatar(n)}</span><div class="hm-tx"><b>${escHTML(n)}</b><span>${sub(n)}</span></div>${n === cur ? `<i class="hm-ck">✓</i>` : ""}<button type="button" class="hm-gear" data-hgear="${escHTML(n)}" aria-label="Seviye ve yaş">⚙︎</button></div>`;
+const sub = (n) => { const a = ageOf(n), lv = getPlayerLevel(n), st = whoStars(n); return [a ? (a >= 12 ? "12+ yaş" : `${a} yaş`) : "", (() => { const P = placeGet(n); if(P && P.dom){ const v = Object.values(P.dom), post = v.filter(x => x >= 3).length; return post === v.length ? "Değerlendirme: Okul Sonrası" : post === 0 ? "Değerlendirme: Okul Öncesi" : `Değerlendirme: ${post} alan Okul Sonrası`; } return lv ? (lv === "pre" ? "Okul Öncesi" : "Okul Sonrası") : "okul dönemi seçilmedi"; })(), st ? `⭐ ${st}` : ""].filter(Boolean).join(" · "); };
+const row = (n, i) => `<div class="hm-row${n === cur ? " on" : ""}" data-hsel="${escHTML(n)}"><span class="hm-av" style="background:hsl(${whoHue(n)},70%,88%)">${whoAvatar(n)}</span><div class="hm-tx"><b>${escHTML(n)}</b><span>${sub(n)}</span></div>${n === cur ? `<i class="hm-ck">✓</i>` : ""}<button type="button" class="hm-gear" data-hgear="${escHTML(n)}" aria-label="Okul dönemi ve yaş">⚙︎</button></div>`;
 el.innerHTML = `<div class="hm-wrap">
 <div class="hm-top"><div class="hm-brand"><span class="hm-logo">${zihniSVG("happy")}</span><b>Zihin Atölyesi</b></div><button type="button" class="hm-set" id="hmSet" aria-label="Ayarlar">⚙︎</button></div>
 <div class="hm-lab">Kim çalışacak?</div>
@@ -16154,7 +16170,7 @@ ${L && L.player && names.includes(L.player) && MODE_NAMES[L.mode] ? `<button typ
 <div class="hm-duo"><button type="button" class="hm-add hm-add-out" id="hmAdd">＋ Kişi ekle</button><button type="button" class="hm-guest-b" id="hmGuest">${hmIc("user")} Misafir girişi</button></div>
 
 <div class="hm-card hm-mode" id="hmEtk"><div class="hm-mh"><span class="hm-ic etk">${hmIc("users")}</span><div><b>Bilişsel Etkinlik</b><span>Uzmanla veya aileyle birlikte</span></div><i class="hm-go">›</i></div>
-<div class="hm-seg"><div class="hm-col uz"><button type="button" data-hview="uzman" class="${view === "uzman" ? "on" : ""}">${hmIc("brief")} Uzman</button><button type="button" class="hm-sub" id="hmClients">${hmIc("users")} Danışanlar</button></div><div class="hm-col ai"><button type="button" data-hview="aile" class="${view === "aile" ? "on" : ""}">${hmIc("home")} Aile</button><button type="button" class="hm-sub" id="hmHw"><span style="position:relative;display:inline-flex">${hmIc("clip")}${cur ? hwBadgeHtml(hwBadgeCount(cur, getPlayerLevel(cur) || "post"), true) : ""}</span> Ödevlerim</button></div></div></div>
+<div class="hm-seg${homeRole() ? " solo" : ""}"><div class="hm-col uz${homeRole() === "aile" ? " hm-hide" : ""}"><button type="button" data-hview="uzman" class="${view === "uzman" ? "on" : ""}">${hmIc("brief")} Uzman</button><button type="button" class="hm-sub" id="hmClients">${hmIc("users")} Danışanlar</button></div><div class="hm-col ai${homeRole() === "uzman" ? " hm-hide" : ""}"><button type="button" data-hview="aile" class="${view === "aile" ? "on" : ""}">${hmIc("home")} Aile</button><button type="button" class="hm-sub" id="hmHw"><span style="position:relative;display:inline-flex">${hmIc("clip")}${cur ? hwBadgeHtml(hwBadgeCount(cur, getPlayerLevel(cur) || "post"), true) : ""}</span> Ödevlerim</button></div></div></div>
 <div class="hm-card hm-mode" id="hmGame"><div class="hm-mh"><span class="hm-ic oyun">${zihniSVG("happy")}</span><div><b>Bilişsel Oyun</b><span>Çocuk deneyimi · Zihin Adaları</span></div><i class="hm-go oy">›</i></div><div class="hm-motto">${hmMotto()}</div></div>
 </div>`;
 el.style.display = "flex"; try{ scheduleTour("home", "whoScreen"); }catch(e){}
@@ -16172,7 +16188,7 @@ if($("hmClients")) $("hmClients").onclick = (ev) => { ev.stopPropagation(); expe
 const need = (mode) => { if(guest) return whoGuestEnter(mode); if(!cur){ whoListOpen = true; showWho(); showLevelFlash(names.length ? "Önce kimin çalışacağını seçin" : "Önce bir kişi ekleyin", "down"); return; } whoEnter(cur, mode); };
 $("hmEtk").onclick = () => { if(getEtkinlikView() === "uzman") expertGate(() => need("uzman")); else need("aile"); };
 $("hmGame").onclick = () => need("cocuk"); }
-function whoGuestEnter(mode){ const sh = whoSheet(`<div class="mola-h">Misafir</div><div class="mola-s">Hangi seviyede?</div><div class="mola-list"><button type="button" data-gl="pre"><span>🧸</span>Okul Öncesi</button><button type="button" data-gl="post"><span>🎒</span>Okul Sonrası</button></div>`);
+function whoGuestEnter(mode){ const sh = whoSheet(`<div class="mola-h">Misafir</div><div class="mola-s">Hangi okul döneminde?</div><div class="mola-list"><button type="button" data-gl="pre"><span>🧸</span>Okul Öncesi</button><button type="button" data-gl="post"><span>🎒</span>Okul Sonrası</button></div>`);
 sh.querySelectorAll("[data-gl]").forEach(b => b.onclick = () => { sh.style.display = "none"; const lv = b.dataset.gl; document.getElementById("whoScreen").style.display = "none"; readingLevel = lv; try{ applyLevelDefaultThresholds(lv); }catch(e){}
 if(mode === "cocuk"){ appMode = "cocuk"; currentPlayerName = ""; showIslandMap(); } else { try{ exitGameMode(); hideFamScreens(); setEtkinlikView(mode); }catch(e){} appMode = mode; pendingLevelPlayerName = ""; pendingLevelPlayerIsNew = false; chooseReadingLevel(lv); } }); }
 
@@ -16184,13 +16200,13 @@ const levelForAge = (a) => a <= 6 ? "pre" : "post";
 function ageChips(attr){ return `<div class="age-chips">${[3,4,5,6,7,8,9,10,11,12].map(a => `<button type="button" ${attr}="${a}">${a === 12 ? "12+" : a}</button>`).join("")}</div>`; }
 function whoSheet(html){ html = String(html).replace(/<span>📱<\/span>/g, `<span class="ws-ic">${hmIc("phone")}</span>`).replace(/<span>🧹<\/span>/g, `<span class="ws-ic">${hmIc("trash")}</span>`).replace(/<span>🔒<\/span>/g, `<span class="ws-ic">${hmIc("lock")}</span>`).replace(/<span>🔓<\/span>/g, `<span class="ws-ic">${hmIc("unlock")}</span>`).replace(/<span>🧸<\/span>/g, `<span class="ws-ic">${hmIc("blocks")}</span>`).replace(/<span>🎒<\/span>/g, `<span class="ws-ic">${hmIc("book")}</span>`).replace(/<span>🏝️<\/span>/g, `<span class="ws-ic">${hmIc("island")}</span>`).replace(/<span>🔑<\/span>/g, `<span class="ws-ic">${hmIc("key")}</span>`).replace(/<span>✨<\/span>/g, `<span class="ws-ic">${hmIc("star")}</span>`);   /* emoji yerine çizgi simge */ let sh = document.getElementById("whoSheet"); if(!sh){ sh = document.createElement("div"); sh.id = "whoSheet"; document.body.appendChild(sh); } sh.innerHTML = `<div class="mola-card" style="position:relative"><button type="button" class="sheet-x" aria-label="Kapat">✕</button>${html}</div>`; sh.querySelector(".sheet-x").onclick = () => { sh.style.display = "none"; }; sh.style.display = "flex"; sh.onclick = (e) => { if(e.target === sh) sh.style.display = "none"; }; return sh; }
 function whoLevel(n, then, manual){ const a = ageOf(n);
-const sh = whoSheet(manual ? `<div class="mola-h">${escHTML(n)}</div><div class="mola-s">Hangi seviyede çalışsın?</div><div class="mola-list"><button type="button" data-wl="pre"><span>🧸</span>Okul Öncesi</button><button type="button" data-wl="post"><span>🎒</span>Okul Sonrası</button></div><button type="button" class="age-link" data-wage="1">Yaşa göre seçilsin</button>`
-: `<div class="mola-h">${escHTML(n)}</div><div class="mola-s">Kaç yaşında?${a ? ` (şu an ${a})` : ""}</div>${ageChips("data-wa")}<button type="button" class="age-link" data-wman="1">Seviyeyi kendim seçeceğim</button>`);
+const sh = whoSheet(manual ? `<div class="mola-h">${escHTML(n)}</div><div class="mola-s">Hangi okul döneminde çalışsın?</div><div class="mola-list"><button type="button" data-wl="pre"><span>🧸</span>Okul Öncesi</button><button type="button" data-wl="post"><span>🎒</span>Okul Sonrası</button></div><button type="button" class="age-link" data-wage="1">Yaşa göre seçilsin</button>`
+: `<div class="mola-h">${escHTML(n)}</div><div class="mola-s">Kaç yaşında?${a ? ` (şu an ${a})` : ""}</div>${ageChips("data-wa")}<button type="button" class="age-link" data-wman="1">Okul dönemini kendim seçeceğim</button>`);
 sh.querySelectorAll("[data-wl]").forEach(b => b.onclick = () => { rememberPlayerLevel(n, b.dataset.wl); sh.style.display = "none"; then && then(); });
 sh.querySelectorAll("[data-wa]").forEach(b => b.onclick = () => { const v = Number(b.dataset.wa); ageSet(n, v); rememberPlayerLevel(n, levelForAge(v)); sh.style.display = "none"; then && then(); });
 const m = sh.querySelector("[data-wman]"); if(m) m.onclick = () => whoLevel(n, then, true);
 const g = sh.querySelector("[data-wage]"); if(g) g.onclick = () => whoLevel(n, then, false); }
-function whoAdd(){ const sh = whoSheet(`<div class="mola-h">Kişi ekle</div><input id="whoName" class="ex-input" placeholder="Adı" maxlength="40" style="width:100%;margin:8px 0"><div class="mola-s">Kaç yaşında?</div>${ageChips("data-wna")}<button type="button" class="age-link" data-wnman="1">Seviyeyi kendim seçeceğim</button><div class="mola-list" id="whoManual" style="display:none"><button type="button" data-wnl="pre"><span>🧸</span>Okul Öncesi</button><button type="button" data-wnl="post"><span>🎒</span>Okul Sonrası</button></div><div class="ex-err" id="whoErr"></div>`);
+function whoAdd(){ const sh = whoSheet(`<div class="mola-h">Kişi ekle</div><input id="whoName" class="ex-input" placeholder="Adı" maxlength="40" style="width:100%;margin:8px 0"><div class="mola-s">Kaç yaşında?</div>${ageChips("data-wna")}<button type="button" class="age-link" data-wnman="1">Okul dönemini kendim seçeceğim</button><div class="mola-list" id="whoManual" style="display:none"><button type="button" data-wnl="pre"><span>🧸</span>Okul Öncesi</button><button type="button" data-wnl="post"><span>🎒</span>Okul Sonrası</button></div><div class="ex-err" id="whoErr"></div>`);
 sh.querySelector("[data-wnman]").onclick = () => { document.getElementById("whoManual").style.display = ""; };
 setTimeout(() => { try{ document.getElementById("whoName").focus(); }catch(e){} }, 50);
 sh.querySelectorAll("[data-wnl], [data-wna]").forEach(b => b.onclick = () => { const n = cleanPersonName(document.getElementById("whoName").value); if(!n){ document.getElementById("whoErr").textContent = "Önce adı yazın."; return; }
@@ -16240,7 +16256,8 @@ addDoc(collection(db, "consents"), { uid: uid || "bilinmiyor", acceptedAt: Date.
 .catch(e=> console.error("Onay kaydedilemedi:", e));
 }
 document.getElementById("consentScreen").style.display = "none";
-showWho();
+const __afterRole = () => { showWho(); try{ if(!whoNames().length) setTimeout(() => whoAdd(), 300); }catch(e){} };   /* ilk kişi: "Kişi ekle" doğrudan açılır */
+if(!homeRole()) showRolePick(__afterRole); else __afterRole();
 });
 
 showOnboardStep(0);
@@ -16294,8 +16311,6 @@ try{ window.scrollTo(0, 0); }catch(e){}
 
 document.getElementById("onboardIcon0").innerHTML = `<div class="logo-zihni">${zihniSVG("happy")}</div>`;
 document.getElementById("onboardIcon1").innerHTML = uiIconSVG("bulb");
-document.getElementById("onboardIcon2").innerHTML = uiIconSVG("grid");
-document.getElementById("onboardIcon3").innerHTML = uiIconSVG("stopwatch");
 document.getElementById("settingsIconSlot").innerHTML = uiIconSVG("gear");
 document.getElementById("consentIconSlot").innerHTML = uiIconSVG("shield");
 document.getElementById("cloudBadgeIcon").innerHTML = uiIconSVG("cloud-off");
@@ -16462,17 +16477,17 @@ function showHwScreen(){ hideFamScreens(); hideLinkScreens(); hwScreenOpen = tru
   if(devItems.length){ devHtml = devItems.map(it => { const A = devAttempts(it, player, now), sn = it.snooze > now, c = sn ? DEV_ST.snooze : A.n ? DEV_ST.go : DEV_ST.none; const tl = (TIERS[it.ti] || TIERS[0]).label;
       const ex = it.kind === "explore"; return `<div class="fam-card" style="margin-bottom:8px;${sn ? "opacity:.65;" : ""}"><button type="button" data-devopen="${it.id}" data-devti="${it.ti}" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;font:inherit;color:inherit;background:none;border:0;padding:0"><span style="flex:1;min-width:0"><span style="display:flex;align-items:center;gap:6px;font-weight:900;font-size:15px">${icI(it.kind === "strong" ? "star" : ex ? "search" : "sprout", 17, it.kind === "strong" ? "#A9632A" : ex ? "#0A847E" : "#1B7A3D")}${escHTML(famLabel(it.id))}</span><span class="fam-sub" style="display:block;font-weight:600;margin-top:2px">${escHTML(catName(it.id))} · ${escHTML(tl)}${it.kind === "strong" ? " · Güçlü yön" : ex ? " · Tanıma" : ""}</span><span class="fam-sub" style="display:block;font-weight:600;margin-top:2px">${escHTML(it.kind === "strong" ? "İyi yaptığı bir çalışma; kendine güvenini destekler" : ex ? "Bu alanı tanımak için kısa bir çalışma" : (it.reason || ""))}</span><span class="fam-sub" style="display:block;font-weight:700;margin-top:4px;color:#0A847E">${ex ? "Bir kez yapınca tamamlanır" : A.ok >= 1 ? "Bir başarı daha kaldı" : A.n ? `${A.n} kez çalışıldı · iki başarılı deneme gerekiyor` : "İki kez başarıyla yapınca tamamlanır"}</span></span></button><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px">${pill(c)}<button type="button" data-devsnooze="${it.id}" style="min-height:40px;padding:6px 12px;font:inherit;font-size:14px;font-weight:800;color:#0A847E;background:#fff;border:2px solid #D7E2EA;border-radius:12px;cursor:pointer">${sn ? "Ertelemeyi geri al" : "Yarına ertele"}</button></div></div>`; }).join("");
   }
-  else if(plan && plan.off){ devHtml = `<div class="fam-sub" style="font-weight:600;margin:0 2px 4px">Uzmanınız gelişim ödevlerini bu dönem için kapattı.</div>`; }
-  else if(plan && plan.needData){ devHtml = `<div class="fam-card"><div style="font-weight:900">Gelişim ödevlerini hazırlamak için biraz daha çalışma gerekiyor</div><div class="fam-sub" style="font-weight:600;margin-top:4px">Birkaç çalışma yapıldıkça ya da değerlendirme turu tamamlandığında uygulama ${escHTML(player)} için ödevleri kendisi hazırlar.</div><button type="button" class="fam-cta" id="devPlaceBtn" style="margin-top:10px">Değerlendirme turunu başlat</button></div>`; }
+  else if(plan && plan.off){ devHtml = `<div class="fam-sub" style="font-weight:600;margin:0 2px 4px">Uzmanınız önerilen çalışmaları bu dönem için kapattı.</div>`; }
+  else if(plan && plan.needData){ devHtml = `<div class="fam-card"><div style="font-weight:900">Önerilen çalışmaları hazırlamak için biraz daha çalışma gerekiyor</div><div class="fam-sub" style="font-weight:600;margin-top:4px">Birkaç çalışma yapıldıkça ya da değerlendirme turu tamamlandığında uygulama ${escHTML(player)} için ödevleri kendisi hazırlar.</div><button type="button" class="fam-cta" id="devPlaceBtn" style="margin-top:10px">Değerlendirme turunu başlat</button></div>`; }
   else if(plan){ devHtml = `<div class="fam-sub" style="font-weight:600;margin:0 2px 4px">Şu an bütün alanlarda iyi gidiyor. Yeni çalışmalar yapıldıkça burada yeni adımlar çıkabilir.</div>`; }
   if(devDone.length && !devItems.length && plan && !plan.off && doneToday) devHtml = `<div class="fam-card" style="margin-bottom:8px;display:flex;align-items:center;gap:10px">${icI("star", 24, "#1B7A3D")}<div><div style="font-weight:900">Bugünkü ödevler tamamlandı</div><div class="fam-sub" style="font-weight:600;margin-top:2px">Yarın yeni ödevler hazırlanacak.</div></div></div>`;
   devHtml += hwHistoryTable(plan, player, now, catName, dShort);   /* geçmiş ödevler tablosu */
 
   const anyHw = list.length || devItems.length || devDone.length || hwHistRows(plan, now).length; let body = ""; if(devItems.length && plan && plan.needData) devHtml = hwKesifCard(player) + devHtml; else if(devItems.length && plan && hwNeedsKesif(player)) devHtml = hwKesifCard(player, true) + devHtml;
-  if(!anyHw){ body = `<div class="fam-card" style="text-align:center;padding:28px 18px"><div style="width:64px;height:64px;margin:0 auto;border-radius:50%;background:#D9F2EF;display:flex;align-items:center;justify-content:center">${icI("clip", 34, "#0A847E")}</div><div style="font-weight:900;font-size:18px;margin-top:10px">Henüz ödeviniz yok.</div><div class="fam-sub" style="font-weight:600;margin-top:6px">${l ? "Uzmanınız ödev verdiğinde ya da uygulama gelişim ödevi hazırladığında burada görünecek." : "Uzmanınıza bağlandığınızda verdiği ödevler, çalışmalar yapıldıkça da gelişim ödevleri burada görünecek."}</div>${l ? "" : `<button type="button" class="fam-cta" id="hwLinkBtn" style="margin-top:14px">Uzmana bağlan</button>`}</div>`
+  if(!anyHw){ body = `<div class="fam-card" style="text-align:center;padding:28px 18px"><div style="width:64px;height:64px;margin:0 auto;border-radius:50%;background:#D9F2EF;display:flex;align-items:center;justify-content:center">${icI("clip", 34, "#0A847E")}</div><div style="font-weight:900;font-size:18px;margin-top:10px">Henüz ödeviniz yok.</div><div class="fam-sub" style="font-weight:600;margin-top:6px">${l ? "Uzmanınız ödev verdiğinde ya da uygulama bir çalışma önerdiğinde burada görünecek." : "Uzmanınıza bağlandığınızda verdiği ödevler, çalışmalar yapıldıkça da önerilen çalışmalar burada görünecek."}</div>${l ? "" : `<button type="button" class="fam-cta" id="hwLinkBtn" style="margin-top:14px">Uzmana bağlan</button>`}</div>`
       + (plan && plan.needData ? devHtml : hwDevStatusLine(plan, player, lvl)); }
-  else { body = head("brief", "#0A847E", "Uzman ödevleri", list.length ? "Uzmanınızın verdiği ödevler; önce bunlarla başlayın" : "") + expertHtml + head("sprout", "#1B7A3D", "Gelişim ödevleri", "Çalışmalarına göre hazırlanan bir sonraki adımlar") + devHtml
-      + `<details class="fam-card" style="margin-top:10px"><summary style="font-weight:800;cursor:pointer">Bu ödevler nasıl seçilir?</summary><div class="fam-sub" style="font-weight:600;margin-top:8px;line-height:1.55">Uzman ödevlerini uzmanınız verir ve her zaman önceliklidir. Gelişim ödevlerini uygulama, son 60 gündeki çalışmalara bakarak hazırlar: daha çok çalışmaya ihtiyaç duyduğu alanlardan bir çalışma bir alt düzeyden başlar, iyi yaptığı bir alandan da bir çalışma eklenir. Bir ödev iki başarılı denemeyle tamamlanır ve yerine bir sonraki adım gelir. Uzman ödevi varken en fazla bir gelişim ödevi verilir.<br>Uzman ödevlerinde: Başarılı = son denemede en çok 1 hata · Gelişiyor = 2 hata · Tekrar edelim = 3 ve üzeri hata.</div></details>`; }
+  else { body = head("brief", "#0A847E", "Uzman ödevleri", list.length ? "Uzmanınızın verdiği ödevler; önce bunlarla başlayın" : "") + expertHtml + head("sprout", "#1B7A3D", "Önerilen çalışmalar", "Çalışmalarına göre hazırlanan bir sonraki adımlar") + devHtml
+      + `<details class="fam-card" style="margin-top:10px"><summary style="font-weight:800;cursor:pointer">Bu ödevler nasıl seçilir?</summary><div class="fam-sub" style="font-weight:600;margin-top:8px;line-height:1.55">Uzman ödevlerini uzmanınız verir ve her zaman önceliklidir. Önerilen çalışmaları uygulama, son 60 gündeki çalışmalara bakarak hazırlar: daha çok çalışmaya ihtiyaç duyduğu alanlardan bir çalışma bir alt düzeyden başlar, iyi yaptığı bir alandan da bir çalışma eklenir. Bir ödev iki başarılı denemeyle tamamlanır ve yerine bir sonraki adım gelir. Uzman ödevi varken en fazla bir önerilen çalışma verilir.<br>Uzman ödevlerinde: Başarılı = son denemede en çok 1 hata · Gelişiyor = 2 hata · Tekrar edelim = 3 ve üzeri hata.</div></details>`; }
   const todayTotal = devItems.length + doneToday; w.innerHTML = `<div><h2 class="fam-h">Ödevlerim</h2><div class="fam-sub">${escHTML(player)}${todayTotal && doneToday ? ` · Bugün ${doneToday}/${todayTotal} ödev tamamlandı` : ""}</div></div>${body}`;
   ["hwLinkBtn","hwLinkBtn2"].forEach(id => { const lb = document.getElementById(id); if(lb) lb.onclick = () => { try{ showLinkScreen(); }catch(e){} }; });
   const pb = document.getElementById("devPlaceBtn") || document.getElementById("devPlaceBtn2"); if(pb) pb.onclick = () => { try{ hideLinkScreens(); placeStart(player); }catch(e){ console.error(e); } };
@@ -16585,16 +16600,16 @@ function devPlanSync(plan, l){ try{ if(!plan || !l || !l.code) return; const ite
   if(!fbOk()){ queuePendingWrite("links/" + l.code + "/results", rec); return; } const { db, collection, addDoc } = window.__fb; addDoc(collection(db, "links", l.code, "results"), Object.assign({ uid: window.__fb.uid }, rec)).catch(() => {}); }catch(e){} }
 /* Uzman danışan sayfası: ailenin cihazındaki gelişim planı + çevir / kapat */
 function exDevCardHtml(p, dp){ const tl = (t) => (TIERS[t] || TIERS[0]).label; const ago = (t) => { const d = Math.round((Date.now() - t) / 864e5); return d <= 0 ? "bugün" : d === 1 ? "dün" : d + " gün önce"; };
-  let h = `<div style="display:flex;align-items:center;gap:8px">${icI("sprout", 20, "#1B7A3D")}<div style="font-weight:900;font-size:16px">Gelişim ödevleri</div></div><div class="fam-sub" style="font-weight:600">Aile cihazındaki uygulama, çalışma sonuçlarına göre zorlandığı alanlardan ödev hazırlar. Uzman ödevi varken en fazla 1 gelişim ödevi verilir.</div>`;
+  let h = `<div style="display:flex;align-items:center;gap:8px">${icI("sprout", 20, "#1B7A3D")}<div style="font-weight:900;font-size:16px">Önerilen çalışmalar</div></div><div class="fam-sub" style="font-weight:600">Aile cihazındaki uygulama, çalışma sonuçlarına göre zorlandığı alanlardan ödev hazırlar. Uzman ödevi varken en fazla 1 önerilen çalışma verilir.</div>`;
   h += `<div class="ex-seg" style="grid-template-columns:1fr 1fr"><button type="button" data-devoff="0" class="${p.devOff ? "" : "on"}">Açık</button><button type="button" data-devoff="1" class="${p.devOff ? "on" : ""}">Kapalı</button></div>`;
   if(p.devOff) return h + `<div class="fam-sub" style="font-weight:600">Kapalı: aile yalnızca sizin verdiğiniz ödevleri görür.</div>`;
   if(!dp) return h + `<div class="fam-sub" style="font-weight:600">Aile cihazından henüz gelişim planı gelmedi. Aile uygulamayı güncelleyip Ödevlerim ekranını açtığında burada görünür.</div>`;
   if(dp.off) h += `<div class="fam-sub" style="font-weight:600">Aile cihazı en son kapalı durumu bildirdi; açık olarak kaydettiğinizde yeniden hazırlanır.</div>`;
-  if(!(dp.items || []).length) h += `<div class="fam-sub" style="font-weight:600">${dp.needData ? "Aile cihazında henüz yeterli çalışma yok; gelişim ödevi hazırlanmadı." : "Şu an açık gelişim ödevi yok."}</div>`;
+  if(!(dp.items || []).length) h += `<div class="fam-sub" style="font-weight:600">${dp.needData ? "Aile cihazında henüz yeterli çalışma yok; çalışma önerisi hazırlanmadı." : "Şu an açık önerilen çalışma yok."}</div>`;
   else h += (dp.items || []).map(it => { const inHw = (p.hw || []).includes(it.id); return `<div class="ex-row"><div class="tx"><div class="t1">${icI(it.kind === "strong" ? "star" : "sprout", 15, it.kind === "strong" ? "#A9632A" : "#1B7A3D")} ${famLabel(it.id)}</div><div class="fam-sub" style="font-weight:600">${famCatName(it.cat)} · ${escHTML(tl(it.ti))}${it.kind === "strong" ? " · güçlü yön" : it.kind === "explore" ? " · tanıma" : ""}${it.kind === "explore" ? "" : ` · ${it.oks || 0}/2 başarı`}${it.snooze > Date.now() ? " · ertelendi" : ""}</div></div>${inHw ? `<span class="hw-in">${icI("pin", 13, "#0A847E")} ödevde</span>` : it.kind === "strong" ? "" : `<button type="button" class="fam-cta ghost" data-devhw="${it.id}" style="width:auto;min-height:40px;padding:6px 10px;font-size:13px">Uzman ödevine çevir</button>`}</div>`; }).join("");
   if((dp.done || []).length) h += `<div class="fam-sub" style="font-weight:600">${icI("star", 14, "#1B7A3D")} Tamamlananlar: ${dp.done.slice(-5).reverse().map(d => famLabel(d.id)).join(", ")}</div>`;
   return h + `<div class="fam-sub" style="font-weight:600">Son güncelleme: ${ago(dp.t)}</div>`; }
-function exDevCardWire(box, p, saveProg, redraw){ box.querySelectorAll("[data-devoff]").forEach(b => b.onclick = async () => { const v = b.dataset.devoff === "1"; if(!!p.devOff === v) return; p.devOff = v; await saveProg(v ? "Gelişim ödevleri kapatıldı ✓" : "Gelişim ödevleri açıldı ✓"); redraw(); });
+function exDevCardWire(box, p, saveProg, redraw){ box.querySelectorAll("[data-devoff]").forEach(b => b.onclick = async () => { const v = b.dataset.devoff === "1"; if(!!p.devOff === v) return; p.devOff = v; await saveProg(v ? "Önerilen çalışmalar kapatıldı ✓" : "Önerilen çalışmalar açıldı ✓"); redraw(); });
   box.querySelectorAll("[data-devhw]").forEach(b => b.onclick = async () => { const id = b.dataset.devhw; p.hw = p.hw || []; if(p.hw.includes(id)) return; if(p.hw.length >= 4){ showLevelFlash("En fazla 4 ödev olabilir.", "down"); return; } p.hw = p.hw.concat([id]); await saveProg("Uzman ödevine çevrildi ✓"); redraw(); }); }
 
 /* ===== Gelişim ödevleri · Aşama 5: Zihin Adaları ===== */
@@ -16610,13 +16625,13 @@ function hwBadgeCount(name, lvl){ const keepP = currentPlayerName, keepL = readi
     let dev = 0; try{ const plan = devPlanRefresh(name, readingLevel, { expertCount: act.length, off: !!(l && l.program && l.program.devOff), excludeIds: act.map(e => e.id) }); dev = (plan.items || []).filter(i => !(i.snooze > Date.now())).length; }catch(e){} return exp + dev; }catch(e){ return 0; } finally{ currentPlayerName = keepP; readingLevel = keepL; } }
 function hwBadgeHtml(n, inset){ if(!n) return ""; return `<span class="hw-badge" aria-label="${n} ödev" style="position:absolute;${inset ? "top:-13px;right:-8px;min-width:19px;height:19px;font-size:11px;padding:0 4px;border-width:1.5px;" : "top:-7px;right:-7px;"}min-width:24px;height:24px;padding:0 6px;border-radius:12px;background:#D62839;color:#fff;font-weight:900;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-sizing:border-box">${n > 9 ? "9+" : n}</span>`; }
 /* Boş durumda velinin nedenini anlayacağı kısa satır */
-function hwDevStatusLine(plan, player, lvl){ let t; if(!plan) t = "Gelişim ödevleri şu an hazırlanamadı; daha sonra yeniden deneyin."; else if(plan.off) t = "Uzmanınız gelişim ödevlerini bu dönem için kapattı.";
+function hwDevStatusLine(plan, player, lvl){ let t; if(!plan) t = "Önerilen çalışmalar şu an hazırlanamadı; daha sonra yeniden deneyin."; else if(plan.off) t = "Uzmanınız önerilen çalışmaları bu dönem için kapattı.";
   else { let S = null; try{ S = perfSummary(player, { lvl }); }catch(e){} const ok = S ? Object.values(S.domains).filter(d => d.state !== "veri-az").length : 0; const all = S ? Object.keys(S.domains).length : 0; t = !S ? "Şu an bütün alanlarda iyi gidiyor." : ok >= all ? `Son 60 günde ${S.records} çalışma kaydı var. Şu an bütün alanlarda iyi gidiyor; yeni çalışmalar yapıldıkça burada yeni adımlar çıkabilir.` : `Son 60 günde ${S.records} çalışma kaydı var; ${ok} alanda yeterli veri var, ${all - ok} alanda henüz az. Diğer alanlardan da çalıştıkça ödevler hazırlanır.`; }
   return `<div class="fam-sub" style="font-weight:600;margin:10px 4px 0;text-align:center">${t}</div>`; }
 
 /* Değerlendirme turu önerisi: hiç yapılmadıysa */
 function hwNeedsKesif(player){ try{ const p = placeGet(player); return !p || !p.res || !Object.keys(p.res).length; }catch(e){ return false; } }
-function hwKesifCard(player, soft){ if(soft && !hwNeedsKesif(player)) return ""; return `<div class="fam-card" style="margin-bottom:8px"><div style="font-weight:900">${soft ? "Değerlendirme turu henüz yapılmadı" : "Gelişim ödevlerini hazırlamak için biraz daha çalışma gerekiyor"}</div><div class="fam-sub" style="font-weight:600;margin-top:4px">Değerlendirme turu, ${escHTML(player)} için her alanda uygun başlangıç düzeyini bulur; böylece ödevler daha doğru hazırlanır.</div><button type="button" class="fam-cta" id="${soft ? "devPlaceBtn2" : "devPlaceBtn"}" style="margin-top:10px">Değerlendirme turunu başlat</button></div>`; }
+function hwKesifCard(player, soft){ if(soft && !hwNeedsKesif(player)) return ""; return `<div class="fam-card" style="margin-bottom:8px"><div style="font-weight:900">${soft ? "Değerlendirme turu henüz yapılmadı" : "Önerilen çalışmaları hazırlamak için biraz daha çalışma gerekiyor"}</div><div class="fam-sub" style="font-weight:600;margin-top:4px">Değerlendirme turu, ${escHTML(player)} için her alanda uygun başlangıç düzeyini bulur; böylece ödevler daha doğru hazırlanır.</div><button type="button" class="fam-cta" id="${soft ? "devPlaceBtn2" : "devPlaceBtn"}" style="margin-top:10px">Değerlendirme turunu başlat</button></div>`; }
 
 /* ===== Ödev oturumu: ödevler kendi içinde ayrı bir akış ===== */
 let hwRun = null;
@@ -16628,7 +16643,7 @@ function hwRunStep(dir){ if(!hwRun) return; const j = hwRun.idx + dir; if(j < 0 
 function hwRunEnd(){ hwRun = null; hwBarRender(); hideHwDone(); }
 function hwRunCheck(){ if(hwRun && !hwRun.switching && currentExercise() && currentExercise().id !== hwRun.cur) hwRunEnd(); }
 function hwBarRender(){ let bar = document.getElementById("hwBar"); if(!hwRun){ if(bar) bar.remove(); return; } if(!bar){ const ib = document.getElementById("instructionBox"); if(!ib) return; bar = document.createElement("div"); bar.id = "hwBar"; ib.parentNode.insertBefore(bar, ib); }
-  const it = hwRun.items[hwRun.idx], n = hwRun.items.length, tag = it.kind === "expert" ? "Uzman ödevi" : it.kind === "explore" ? "Tanıma ödevi" : it.kind === "strong" ? "Güçlü yön" : "Gelişim ödevi";
+  const it = hwRun.items[hwRun.idx], n = hwRun.items.length, tag = it.kind === "expert" ? "Uzman ödevi" : it.kind === "explore" ? "Tanıma ödevi" : it.kind === "strong" ? "Güçlü yön" : "Önerilen";
   bar.style.cssText = "display:flex;align-items:center;gap:10px;background:#D9F2EF;border:2px solid #A7DDD6;border-radius:16px;padding:10px 12px;margin:0 0 10px";
   bar.innerHTML = `${icI("clip", 22, "#0A847E")}<div style="flex:1;min-width:0"><div style="font-weight:900;font-size:15px;color:#0B5F5A">Ödev ${hwRun.idx + 1}/${n} · ${escHTML(famLabel(it.id))}</div><div style="font-weight:700;font-size:13px;color:#2F6F69">${tag} · Sonraki ile sıradaki ödeve geçilir</div></div><button type="button" id="hwBarBack" style="flex:none;min-height:42px;padding:6px 12px;border-radius:12px;border:2px solid #0A847E;background:#fff;color:#0A847E;font:inherit;font-weight:800;font-size:14px;cursor:pointer">Ödevlerim</button>`;
   document.getElementById("hwBarBack").onclick = () => { hwRunEnd(); showHwScreen(); }; }
