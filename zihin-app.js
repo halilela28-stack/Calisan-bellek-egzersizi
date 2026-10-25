@@ -8692,6 +8692,13 @@ Object.assign(EMO_MAP, {
   /* kullanıcının ürettiği sahne nesneleri */
   "📦": () => gimg("box") ? EMO_IMG(gimg("box"), 1.15) : null, "🧺": () => gimg("basket") ? EMO_IMG(gimg("basket"), 1.35) : null,
   "🗿": () => gimg("statue") ? EMO_IMG(gimg("statue"), 1.25) : null, "🔔": () => gimg("bell") ? EMO_IMG(gimg("bell"), 1.1) : null,
+  /* çocuk ekranları: pusula, kilit, şimşek, büyüteç; yıldızlar uygulamanın kendi yıldızı */
+  "🧭": () => EMO_SVG('<circle cx="12" cy="12" r="9.5"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z" fill="currentColor" fill-opacity=".25"/>'),
+  "🔒": () => EMO_SVG('<rect x="5" y="10.5" width="14" height="10" rx="2.2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>'),
+  "⚡": () => EMO_SVG('<path d="M13 2.5 5.5 13.5H11L10 21.5l8-11.5h-5.5L13 2.5Z" fill="currentColor" fill-opacity=".2"/>'),
+  "🔎": () => EMO_SVG('<circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/>'),
+  "⭐": () => `<svg viewBox="0 0 24 24" width="1.1em" height="1.1em" aria-hidden="true" style="vertical-align:-0.15em"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9L12 2.6Z" fill="#F5B301" stroke="#C98A00" stroke-width="1.2" stroke-linejoin="round"/></svg>`,
+  "☆": () => `<svg viewBox="0 0 24 24" width="1.1em" height="1.1em" aria-hidden="true" style="vertical-align:-0.15em"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9L12 2.6Z" fill="none" stroke="#B9C3CD" stroke-width="1.6" stroke-linejoin="round"/></svg>`,
   /* düğme ve küçük işaretler: çizgi simge */
   "🚰": () => EMO_SVG('<path d="M4 8h9a3 3 0 0 1 3 3v1"/><path d="M8 5h3M9.5 5v3"/><path d="M16 15c0 1.2-.9 2.4-1.5 3-.6-.6-1.5-1.8-1.5-3s1.5-3 1.5-3 1.5 1.8 1.5 3Z"/>'),
   "🪣": () => EMO_SVG('<path d="M5 8h14l-1.6 11a1.5 1.5 0 0 1-1.5 1.3H8.1a1.5 1.5 0 0 1-1.5-1.3L5 8Z"/><path d="M5 8a7 7 0 0 1 14 0"/>'),
@@ -8699,10 +8706,10 @@ Object.assign(EMO_MAP, {
   "🛒": () => EMO_SVG('<path d="M3 4h2.5l2.2 10.5h10l2-7.5H6.4"/><circle cx="9" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/>'),
   "🏁": () => EMO_SVG('<path d="M5 21V4"/><path d="M5 4h12l-2.5 4L17 12H5" fill="currentColor" fill-opacity=".15"/><path d="M9 4v8M13 4v8M5 8h12"/>')
 });
-const EMO_RE = new RegExp("(" + Object.keys(EMO_MAP).join("|") + ")", "u");
+const EMO_RE = new RegExp("(" + Object.keys(EMO_MAP).map(k => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")(\uFE0F)?", "u");
 function emojiFix(root){ try{ if(!root) return; const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: (n) => (n.nodeValue && EMO_RE.test(n.nodeValue) && n.parentNode && !(n.parentNode.namespaceURI || "").includes("svg") && !/^(TEXTAREA|SCRIPT|STYLE|INPUT|OPTION)$/.test(n.parentNode.nodeName)) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT }); const list = []; while(w.nextNode()) list.push(w.currentNode);
-  list.forEach(n => { const parts = n.nodeValue.split(EMO_RE); if(parts.length < 2) return; const frag = document.createDocumentFragment(); let changed = false; parts.forEach(pt => { if(EMO_MAP[pt]){ const h = EMO_MAP[pt](); if(h){ const sp = document.createElement("span"); sp.className = "emo-ic"; sp.innerHTML = h; frag.appendChild(sp); changed = true; return; } } if(pt) frag.appendChild(document.createTextNode(pt)); }); if(changed) n.parentNode.replaceChild(frag, n); }); }catch(e){} }
-(function emojiWatch(){ const start = () => { let q = false; const run = () => { q = false; ["board", "placeScreen", "lsInstructionBox"].forEach(id => emojiFix(document.getElementById(id))); document.querySelectorAll(".say-toast, #sayToast, .ch-key").forEach(emojiFix); }; new MutationObserver(() => { if(!q){ q = true; requestAnimationFrame(run); } }).observe(document.body, { childList: true, subtree: true, characterData: true }); run(); }; if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start(); })();
+  list.forEach(n => { const parts = n.nodeValue.split(EMO_RE).filter(x => x !== undefined && x !== "\uFE0F"); if(parts.length < 2) return; const frag = document.createDocumentFragment(); let changed = false; parts.forEach(pt => { if(EMO_MAP[pt]){ const h = EMO_MAP[pt](); if(h){ const sp = document.createElement("span"); sp.className = "emo-ic"; sp.innerHTML = h; frag.appendChild(sp); changed = true; return; } } if(pt) frag.appendChild(document.createTextNode(pt)); }); if(changed) n.parentNode.replaceChild(frag, n); }); }catch(e){} }
+(function emojiWatch(){ const start = () => { let q = false; const run = () => { q = false; ["board", "placeScreen", "lsInstructionBox", "islandScreen", "islandStopsScreen", "closetSheet", "molaScreen", "kidResultScreen", "childModeScreen", "advScreen", "gameBar"].forEach(id => emojiFix(document.getElementById(id))); document.querySelectorAll(".say-toast, #sayToast, .ch-key").forEach(emojiFix); }; new MutationObserver(() => { if(!q){ q = true; requestAnimationFrame(run); } }).observe(document.body, { childList: true, subtree: true, characterData: true }); run(); }; if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start(); })();
 function srcKey(s){ return s.length + ":" + s.slice(40, 72) + s.slice(-24); }
 /* tahtaya gelen her resim, saydam hâli varsa onunla değiştirilir (renkli sahnede beyaz kutu kalmaz; beyaz zeminde görünüm aynıdır) */
 (function cutoutSwap(){ try{ const run = (root) => { if(typeof CUTOUT_BY_SRC === "undefined") return; root.querySelectorAll("img").forEach(im => { if(im.dataset.cut) return; const s = im.getAttribute("src") || ""; if(s.slice(0, 11) !== "data:image/") return; const c = CUTOUT_BY_SRC[srcKey(s)]; im.dataset.cut = "1"; if(c) im.src = c; }); };
@@ -13515,7 +13522,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.25-q";
+const APP_VERSION = "2026.10.25-r";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
