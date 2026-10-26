@@ -8912,7 +8912,7 @@ function placeOffer(name){ if(!name || name === "Misafir") return; let el = docu
 el.innerHTML = `<div class="mola-card"><div style="width:90px;height:90px;margin:0 auto">${zihniSVG("happy")}</div><div class="mola-h">Değerlendirme turu</div><div class="mola-s"><b>${escHTML(name)}</b> için Zihni ile 6–8 dakikalık bir değerlendirme turu oynansın mı? On alanın her birinde çocuğun yapabildiği yer bulunur; çalışmalar oradan başlar.</div>
 <div class="mola-list"><button type="button" data-po="go"><span>🧭</span>Şimdi oyna</button><button type="button" data-po="later"><span>⏰</span>Sonra</button></div></div>`;
 el.style.display = "flex"; el.querySelector('[data-po="go"]').onclick = () => { el.style.display = "none"; placeStart(name); }; el.querySelector('[data-po="later"]').onclick = () => { el.style.display = "none"; }; }
-function placeStart(name){ let prof = null; try{ prof = getPlayerLevel(name); }catch(e){} const base = (prof || readingLevel) === "pre" ? 1 : 3;
+function placeStart(name){ pauseTour(); let prof = null; try{ prof = getPlayerLevel(name); }catch(e){} const base = (prof || readingLevel) === "pre" ? 1 : 3;
 placeRun = { name, base, di:0, step: base, dir:0, hits:0, n:0, visits:0, res:{}, items:0, warmDone:{} };
 let el = document.getElementById("placeScreen"); if(!el){ el = document.createElement("div"); el.id = "placeScreen"; document.body.appendChild(el); }
 el.style.display = "flex"; el.innerHTML = `<div class="adv-wrap" style="text-align:center"><div style="width:110px;height:110px;margin:20px auto 6px">${zihniSVG("happy")}</div><div class="mola-h">Zihni ile değerlendirme turu!</div><div class="mola-s">On küçük oyun var. Elinden geldiğince dikkatli oyna, acele etmene gerek yok.</div><div class="mola-list" style="max-width:300px;margin:0 auto"><button type="button" id="placeGo" class="place-cta"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M10 8.5v7l5.5-3.5z" fill="currentColor"></path></svg>Başla</button></div></div>`;
@@ -13565,7 +13565,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.25-v";
+const APP_VERSION = "2026.10.25-x";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -15850,8 +15850,14 @@ if(!el) return false;
 const r = el.getBoundingClientRect();
 if(r.width < 4 || r.height < 4) return false;
 const cs = getComputedStyle(el);
-return cs.display !== "none" && cs.visibility !== "hidden";
+if(cs.display === "none" || cs.visibility === "hidden") return false;
+/* KURAL (tanıtım): başka bir ekranın/pencerenin altında kalan öğe gösterilmez (boş yer vurgulanmasın); içi boş öğe de atlanır */
+try{ if(r.bottom > 0 && r.top < innerHeight){ const x = Math.max(1, Math.min(innerWidth - 1, r.left + r.width / 2)), y = Math.max(1, Math.min(innerHeight - 1, r.top + Math.min(r.height / 2, 24))); const stack = document.elementsFromPoint(x, y).filter(e => !e.closest("#tourOverlay, #tourSpot, #tourBubble, #tourArrow")); const top = stack[0]; if(top && !el.contains(top) && !top.contains(el)){ let n = top; while(n && n !== document.body){ if(getComputedStyle(n).position === "fixed" && !n.contains(el)) return false; n = n.parentElement; } }   /* hedefin üstünde, onu içermeyen sabit bir katman (ekran, pencere, kapat düğmesi) varsa hedef örtülüdür */ } }catch(e){}
+if(!(el.innerText || "").trim() && !el.querySelector("img,svg,canvas,input,select,button,.cell")) return false;
+return true;
 }
+/* bir pencere ya da Değerlendirme turu açılınca süren tanıtım durdurulur ve "görüldü" sayılmaz; ekran yeniden açılınca baştan gösterilir */
+function pauseTour(){ try{ if(!tourState) return; const k = tourState.kind, forced = !tourState.mandatory; endTour(); if(!forced && TOURS[k]) localStorage.removeItem(TOURS[k].key); }catch(e){} }
 
 /* KURAL (sadelik): tanıtım turu açık bir pencerenin (Kişi ekle, rol sorusu, Değerlendirme turu, onay kutusu) üstüne açılmaz; pencere kapanınca başlar */
 function tourBlockedByModal(){ return ["whoSheet","roleScreen","placeScreen","zaDlg","consentScreen","onboardScreen"].some(id => { const e = document.getElementById(id); return e && getComputedStyle(e).display !== "none" && e.getBoundingClientRect().height > 0; }) || !!document.querySelector(".who-sheet[style*='flex'], .mola-sheet[style*='flex']"); }
@@ -16342,7 +16348,7 @@ function isExpertDevice(){ try{ return localStorage.getItem(EXPERT_DEV_KEY) === 
 const HOME_ROLE_KEY = "wm_home_role";
 function homeRole(){ try{ const r = localStorage.getItem(HOME_ROLE_KEY); return r === "uzman" || r === "aile" ? r : null; }catch(e){ return null; } }
 function setHomeRole(r){ try{ localStorage.setItem(HOME_ROLE_KEY, r); localStorage.setItem(EXPERT_DEV_KEY, r === "uzman" ? "1" : "0"); }catch(e){} }
-function showRolePick(done){ let el = document.getElementById("roleScreen"); if(!el){ el = document.createElement("div"); el.id = "roleScreen"; el.className = "consent-screen"; document.body.appendChild(el); }
+function showRolePick(done){ pauseTour(); let el = document.getElementById("roleScreen"); if(!el){ el = document.createElement("div"); el.id = "roleScreen"; el.className = "consent-screen"; document.body.appendChild(el); }
   el.innerHTML = `<div class="consent-inner" style="text-align:left"><h2 style="text-align:center">Bu cihazı kim kullanacak?</h2><p class="consent-text" style="text-align:center">Ana sayfada yalnızca sizin işinize yarayan düğmeler görünür. Sonra Ayarlar'dan değiştirebilirsiniz.</p>
   <button type="button" class="hm-card role-card" data-role="aile"><span class="hm-ic" style="background:#FFF1D6;color:#9A6B00">${hmIc("home")}</span><span><b>Aile</b><span>Evde çocuğumla çalışacağım</span></span></button>
   <button type="button" class="hm-card role-card" data-role="uzman"><span class="hm-ic" style="background:#DDF3F0;color:#0A847E">${hmIc("brief")}</span><span><b>Uzman</b><span>Öğretmen, terapist ya da psikoloğum; danışanlarıma plan hazırlayacağım</span></span></button></div>`;
@@ -16418,7 +16424,7 @@ function ageChips(attr){ return `<div class="age-chips">${[3,4,5,6,7,8,9,10,11,1
     setTimeout(() => { try{ el.blur(); }catch(_){} const next = box && box.querySelector("[data-wna], .mola-list button, .zd-yes, .save-result-btn, button.primary"); if(next) setTimeout(() => { try{ next.scrollIntoView({ block: "nearest", behavior: "smooth" }); }catch(_){} }, 250); }, 0);   /* son alanda Enter: klavye kapanır, onay düğmesi görünür */
   });
 }catch(e){} })();
-function whoSheet(html){ html = String(html).replace(/<span>📱<\/span>/g, `<span class="ws-ic">${hmIc("phone")}</span>`).replace(/<span>🧹<\/span>/g, `<span class="ws-ic">${hmIc("trash")}</span>`).replace(/<span>🔒<\/span>/g, `<span class="ws-ic">${hmIc("lock")}</span>`).replace(/<span>🔓<\/span>/g, `<span class="ws-ic">${hmIc("unlock")}</span>`).replace(/<span>🧸<\/span>/g, `<span class="ws-ic">${hmIc("blocks")}</span>`).replace(/<span>🎒<\/span>/g, `<span class="ws-ic">${hmIc("book")}</span>`).replace(/<span>🏝️<\/span>/g, `<span class="ws-ic">${hmIc("island")}</span>`).replace(/<span>🔑<\/span>/g, `<span class="ws-ic">${hmIc("key")}</span>`).replace(/<span>✨<\/span>/g, `<span class="ws-ic">${hmIc("star")}</span>`);   /* emoji yerine çizgi simge */ let sh = document.getElementById("whoSheet"); if(!sh){ sh = document.createElement("div"); sh.id = "whoSheet"; document.body.appendChild(sh); } sh.innerHTML = `<div class="mola-card" style="position:relative"><button type="button" class="sheet-x" aria-label="Kapat">✕</button>${html}</div>`; sh.querySelector(".sheet-x").onclick = () => { sh.style.display = "none"; }; sh.style.display = "flex"; sh.onclick = (e) => { if(e.target === sh) sh.style.display = "none"; }; return sh; }
+function whoSheet(html){ pauseTour(); html = String(html).replace(/<span>📱<\/span>/g, `<span class="ws-ic">${hmIc("phone")}</span>`).replace(/<span>🧹<\/span>/g, `<span class="ws-ic">${hmIc("trash")}</span>`).replace(/<span>🔒<\/span>/g, `<span class="ws-ic">${hmIc("lock")}</span>`).replace(/<span>🔓<\/span>/g, `<span class="ws-ic">${hmIc("unlock")}</span>`).replace(/<span>🧸<\/span>/g, `<span class="ws-ic">${hmIc("blocks")}</span>`).replace(/<span>🎒<\/span>/g, `<span class="ws-ic">${hmIc("book")}</span>`).replace(/<span>🏝️<\/span>/g, `<span class="ws-ic">${hmIc("island")}</span>`).replace(/<span>🔑<\/span>/g, `<span class="ws-ic">${hmIc("key")}</span>`).replace(/<span>✨<\/span>/g, `<span class="ws-ic">${hmIc("star")}</span>`);   /* emoji yerine çizgi simge */ let sh = document.getElementById("whoSheet"); if(!sh){ sh = document.createElement("div"); sh.id = "whoSheet"; document.body.appendChild(sh); } sh.innerHTML = `<div class="mola-card" style="position:relative"><button type="button" class="sheet-x" aria-label="Kapat">✕</button>${html}</div>`; sh.querySelector(".sheet-x").onclick = () => { sh.style.display = "none"; }; sh.style.display = "flex"; sh.onclick = (e) => { if(e.target === sh) sh.style.display = "none"; }; return sh; }
 function whoLevel(n, then, manual){ const a = ageOf(n);
 const sh = whoSheet(manual ? `<div class="mola-h">${escHTML(n)}</div><div class="mola-s">Hangi okul döneminde çalışsın?</div><div class="mola-list"><button type="button" data-wl="pre"><span>🧸</span>Okul Öncesi</button><button type="button" data-wl="post"><span>🎒</span>Okul Sonrası</button></div><button type="button" class="age-link" data-wage="1">Yaşa göre seçilsin</button>`
 : `<div class="mola-h">${escHTML(n)}</div><div class="mola-s">Kaç yaşında?${a ? ` (şu an ${a})` : ""}</div>${ageChips("data-wa")}<button type="button" class="age-link" data-wman="1">Okul dönemini kendim seçeceğim</button>`);
