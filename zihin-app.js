@@ -13628,7 +13628,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.26-w";
+const APP_VERSION = "2026.10.26-x";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -14537,7 +14537,11 @@ let _trVoice = null;
 /* KURAL (okuma sesi): uygulama cihazdaki en doğal Türkçe sesi kendiliğinden seçer; Ayarlar > Okuma sesi'nden ses ve hız elle seçilebilir, seçim saklanır; seçilen ses cihazda yoksa en iyisine döner */
 const VOICE_KEY = "wm_voice_v1";
 const VOICE_SAMPLES = ["Ekranda şekiller var. Soldan sağa, satır satır her şeklin adını hızlıca söyle.", "Merhaba, ben Zihni! Bugün birlikte oynayalım mı?", "Zihni, ekmek, kırmızı, toprak, çiçek, kalem.", "Sana bir durum anlatacağım. Sen böyle bir durumda ne yaparsın? Anlat.", "Harika! Yeni bir yıldız kazandın!"];
-function voicePref(){ try{ return JSON.parse(localStorage.getItem(VOICE_KEY) || "{}") || {}; }catch(e){ return {}; } }
+/* KURAL: iPhone/iPad'de standart okuma ayarı (kullanıcının iPhone'da en iyi bulduğu): hız %124, ton %128, cümle arası duraklama açık; kullanıcı kendi ayarını yaparsa onunki geçerli, "sıfırla" bu standarda döner. Diğer cihazlarda hız %100, ton %100 */
+function isAppleTouch(){ try{ return /iPad|iPhone|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && "ontouchend" in document); }catch(e){ return false; } }
+function voiceDefaults(){ return isAppleTouch() ? { rateV: 1.24, pitchV: 1.28, pause: true, rate: "hizli" } : {}; }
+function voicePrefStored(){ try{ return JSON.parse(localStorage.getItem(VOICE_KEY) || "{}") || {}; }catch(e){ return {}; } }
+function voicePref(){ return Object.assign({}, voiceDefaults(), voicePrefStored()); }
 function voiceRateMul(){ const p = voicePref(); if(typeof p.rateV === "number") return p.rateV; const r = p.rate; return r === "yavas" ? 0.86 : r === "hizli" ? 1.14 : 1; }
 function voicePitch(base){ const p = voicePref(); return Math.max(0.5, Math.min(2, (base || 1) * (typeof p.pitchV === "number" ? p.pitchV : 1))); }
 /* KURAL (okuma sesi ince ayarı): okumadan önce metin hazırlanır — kullanıcının okunuş düzeltmeleri uygulanır, tırnak/simgeler okunmaz, "…" ve "·" kısa duraklamaya döner; "cümle arası duraklama" açıksa her cümle ayrı okunur */
@@ -14573,7 +14577,7 @@ function renderVoiceSettings(){ try{ let g = document.getElementById("voiceGroup
           <div style="display:flex;gap:6px"><input id="vFixA" placeholder="Yazılışı" style="flex:1;min-width:0;padding:9px;border-radius:10px;border:1.5px solid var(--line,#DDE6EE);font:inherit;font-size:16px"><input id="vFixB" placeholder="Okunuşu" style="flex:1;min-width:0;padding:9px;border-radius:10px;border:1.5px solid var(--line,#DDE6EE);font:inherit;font-size:16px"><button type="button" id="vFixAdd" style="padding:9px 12px;border-radius:10px;border:none;background:var(--teal,#0F8B85);color:#fff;font:inherit;font-weight:800">Ekle</button></div></div>
         <button type="button" id="vReset" style="padding:9px;border-radius:12px;border:1.5px solid var(--line,#DDE6EE);background:#fff;font:inherit;font-weight:700">Ses ayarlarını sıfırla</button>
       </div></details>`;
-  const save = (o) => { try{ localStorage.setItem(VOICE_KEY, JSON.stringify(Object.assign(voicePref(), o))); }catch(e){} _trVoice = pickTurkishVoice(); };
+  const save = (o) => { try{ localStorage.setItem(VOICE_KEY, JSON.stringify(Object.assign(voicePrefStored(), o))); }catch(e){} _trVoice = pickTurkishVoice(); };
   const sel = g.querySelector("#voiceSel"); if(sel) sel.onchange = () => { save({ name: sel.value }); speakText("Merhaba, ben Zihni. Hadi birlikte çalışalım!"); };
   const tr = g.querySelector("#voiceTry"); if(tr) tr.onclick = () => speakText("Merhaba, ben Zihni. Hadi birlikte çalışalım!");
   g.querySelectorAll("[data-vrate]").forEach(b => b.onclick = () => { save({ rate: b.dataset.vrate, rateV: b.dataset.vrate === "yavas" ? 0.86 : b.dataset.vrate === "hizli" ? 1.14 : 1 }); renderVoiceSettings(); speakText("Bu hızla okuyacağım."); });
