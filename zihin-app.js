@@ -8814,7 +8814,7 @@ const ch = ADV[k], tasks = advTasks(k), done = (A.done[k] || []), allDone = task
 const canFind = cur && allDone && !got && !ch.final, canLight = cur && allDone && ch.final && !A.lit;
 const frags = `<div class="adv-frags">${ADV.slice(0, 7).map((_, i) => `<span class="adv-f${A.frag.includes(i) ? " on" : ""}"></span>`).join("")}</div>`;
 el.innerHTML = `<div class="adv-wrap"><div class="adv-top"><button type="button" class="mola-x" data-adv="close">✕</button><div><div class="adv-t1">Macera · Bölüm ${k + 1}/8</div><div class="adv-t2">${ch.nm}</div></div>${frags}</div>
-<div class="adv-scene${ch.final && !A.lit ? " dark" : ""}"><img src="${ADV_IMAGES[k]}" alt="">${canFind || canLight ? `<button type="button" class="adv-glow" data-adv="${canLight ? "light" : "frag"}" style="left:${ch.g[0]}%;top:${ch.g[1]}%" aria-label="Parça"></button>` : ""}<div class="adv-zihni">${zihniSVG(allDone ? "happy" : "happy")}</div></div>
+<div class="adv-scene${ch.final && !A.lit ? " dark" : ""}"><img src="${ADV_IMAGES[k]}" alt="">${canFind || canLight ? `<button type="button" class="adv-glow" data-adv="${canLight ? "light" : "frag"}" style="left:${ch.g[0]}%;top:${ch.g[1]}%" aria-label="Parça"></button>` : ""}<div class="adv-zihni">${zihniSVG(allDone ? "cheer" : "point")}</div></div>
 <div class="adv-tx">${got ? "Bu bölümün parçasını buldun! ✨" : ch.final && A.lit ? "Fener yeniden yanıyor! Adalar artık güvende. Harika bir macera oldu! 🎉" : canFind ? "Görevler tamam! Şimdi sahnedeki <b>parlayan parçayı bul ve dokun</b>." : canLight ? "Görevler tamam! <b>Fenere dokun</b> ve ışığı yak." : ch.tx}</div>
 <div class="adv-tasks">${tasks.map(id => { const ex = exerciseById(id), ok = done.includes(id); return `<div class="adv-task${ok ? " ok" : ""}"><span>${ok ? "✓" : "★"}</span><b>${gameChildLabel(ex)}</b>${cur && !ok ? `<button type="button" class="isl-play" data-adv-play="${id}">Oyna</button>` : ok ? `<em>tamam</em>` : ""}</div>`; }).join("")}</div>
 <div class="adv-nav">${k > 0 ? `<button type="button" class="wm-btn diff" data-adv="prev">◀ Önceki</button>` : "<span></span>"}${k < A.ch ? `<button type="button" class="wm-btn diff" data-adv="next">Sonraki ▶</button>` : got && k < 7 ? `<button type="button" class="wm-btn same" data-adv="go">Sonraki bölüm ▶</button>` : "<span></span>"}</div></div>`;
@@ -8947,7 +8947,7 @@ el.style.display = "flex"; el.querySelector('[data-po="go"]').onclick = () => { 
 function placeStart(name){ pauseTour(); let prof = null; try{ prof = getPlayerLevel(name); }catch(e){} const base = (prof || readingLevel) === "pre" ? 1 : 3;
 placeRun = { name, base, di:0, step: base, dir:0, hits:0, n:0, visits:0, res:{}, items:0, warmDone:{}, order: PLACE_DOMS.map((_, i) => i), st:{} };
 let el = document.getElementById("placeScreen"); if(!el){ el = document.createElement("div"); el.id = "placeScreen"; document.body.appendChild(el); }
-el.style.display = "flex"; el.innerHTML = `<div class="adv-wrap" style="text-align:center"><div style="width:110px;height:110px;margin:20px auto 6px">${zihniSVG("happy")}</div><div class="mola-h">Zihni ile değerlendirme turu!</div><div class="mola-s">On küçük oyun var. Elinden geldiğince dikkatli oyna, acele etmene gerek yok.</div><div class="mola-list" style="max-width:300px;margin:0 auto"><button type="button" id="placeGo" class="place-cta"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M10 8.5v7l5.5-3.5z" fill="currentColor"></path></svg>Başla</button></div></div>`;
+el.style.display = "flex"; el.innerHTML = `<div class="adv-wrap" style="text-align:center"><div style="width:110px;height:110px;margin:20px auto 6px">${zihniSVG("wave")}</div><div class="mola-h">Zihni ile değerlendirme turu!</div><div class="mola-s">On küçük oyun var. Elinden geldiğince dikkatli oyna, acele etmene gerek yok.</div><div class="mola-list" style="max-width:300px;margin:0 auto"><button type="button" id="placeGo" class="place-cta"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M10 8.5v7l5.5-3.5z" fill="currentColor"></path></svg>Başla</button></div></div>`;
 speakText("Zihni ile değerlendirme turuna hazır mısın?"); document.getElementById("placeGo").onclick = placeNext; placeExitBtn(); }
 /* KURAL (Değerlendirme turu): sonraki alanın başlangıç basamağı önceki alanların sonuçlarına göre belirlenir (tamamlanan alanların ortalaması; ilk alan çocuğun genel düzeyinden başlar) — zorlanan çocuk sonraki alanlara aşağıdan, güçlü çocuk yukarıdan başlar, tur hem kısa hem isabetli olur */
 function placeNextStart(R){ const v = Object.values(R.res || {}).filter(x => typeof x === "number"); if(!v.length) return R.base; const m = (v.reduce((a, b) => a + b, 0) + R.base) / (v.length + 1);   /* genel düzey bir "ön bilgi" olarak ortalamaya katılır: ilk alandaki tek sonuç her şeyi belirlemez */ return Math.max(0, Math.min(PLACE_STEPS - 1, Math.round(m))); }
@@ -9014,7 +9014,7 @@ el.querySelectorAll("[data-po-v]").forEach(b => b.onclick = () => { if(R.answere
 function placeFinish(){ const R = placeRun; placeRun = null; { const x = document.getElementById("placeX"); if(x) x.style.display = "none"; } const rec = { t: Date.now(), dom: R.res, items: R.items, base: R.base, qn: R.qn || {} }; placeSave(R.name, rec);
 try{ if(gameProfile() === R.name){ const g = gxGet(); g.light = (g.light || 0) + 5; gxSave(g); } }catch(e){}
 const el = document.getElementById("placeScreen");
-el.innerHTML = `<div class="adv-wrap place-done" style="text-align:center"><div class="place-done-top"><div style="width:64px;height:64px;flex:0 0 64px">${zihniSVG("happy")}</div><div style="text-align:left"><div class="mola-h" style="margin:0">Değerlendirme turu bitti!</div><div class="mola-s" style="margin:2px 0 0">Harikaydın! +5 ışık</div></div></div>
+el.innerHTML = `<div class="adv-wrap place-done" style="text-align:center"><div class="place-done-top"><div style="width:64px;height:64px;flex:0 0 64px">${zihniSVG("cheer")}</div><div style="text-align:left"><div class="mola-h" style="margin:0">Değerlendirme turu bitti!</div><div class="mola-s" style="margin:2px 0 0">Harikaydın! +5 ışık</div></div></div>
 ${placeTableHtml(R.res, { qn: R.qn || {} })}
 <div class="fam-sub place-note">Yetişkin için: düzey yaşa göre değil, her alanda yapabildiğine göre belirlendi. Çalışmalar buradan başlar, sonra performansa göre kendiliğinden ayarlanır.</div>
 <div class="mola-list" style="max-width:300px;margin:0 auto"><button type="button" id="placeDone" class="place-cta"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="m7.5 12.5 3 3 6-6.5"></path></svg>Tamam</button></div></div>`;
@@ -12528,7 +12528,7 @@ const FINISH_MSGS = ["Harika iş!", "Süpersin!", "Bitti, aferin!", "Çok güzel
 let __finishT = null;
 function finishCard(){ if(!confettiEnabled || document.documentElement.classList.contains("calm") || gameMode) return; let el = document.getElementById("finishCard"); if(!el){ el = document.createElement("div"); el.id = "finishCard"; el.setAttribute("aria-live", "polite"); document.body.appendChild(el); }
   const msg = FINISH_MSGS[Math.floor(Math.random() * FINISH_MSGS.length)]; const star = `<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9L12 2.6Z" fill="#F5B301" stroke="#C98A00" stroke-width="1.2" stroke-linejoin="round"/></svg>`;
-  el.innerHTML = `<div class="fc-card"><div class="fc-z">${zihniSVG("happy")}</div><div class="fc-t">${msg}</div><div class="fc-s">${star}${star}${star}</div></div>`; el.classList.remove("on"); void el.offsetWidth; el.classList.add("on"); clearTimeout(__finishT); __finishT = setTimeout(() => el.classList.remove("on"), 1600); }
+  el.innerHTML = `<div class="fc-card"><div class="fc-z">${zihniSVG("cheer")}</div><div class="fc-t">${msg}</div><div class="fc-s">${star}${star}${star}</div></div>`; el.classList.remove("on"); void el.offsetWidth; el.classList.add("on"); clearTimeout(__finishT); __finishT = setTimeout(() => el.classList.remove("on"), 1600); }
 function celebrateSave(){
 if(!confettiEnabled) return;
 let layer = document.getElementById("confettiLayer");
@@ -13360,7 +13360,14 @@ document.getElementById("readingLevelScreen").style.display = "flex";
 
 
 
-function mascotSVG(mood){
+/* KURAL (Zihni): Zihni kullanıcının ürettiği 3B görsellerle gösterilir (9 poz: happy, cheer, encourage, sleepy, wave, think, point, again, listen); her pozda kafa aynı yere oturtulmuştur, giysiler (7 adet) her pozda kafaya ve gözlere göre yerleşir; görsel yoksa eski çizim yedek olarak kullanılır */
+function zihniPose(mood){ try{ if(typeof ZIHNI_IMG === "undefined" || !ZIHNI_IMG || !ZIHNI_IMG.poses) return null; return ZIHNI_IMG.poses[mood] || ZIHNI_IMG.poses.happy || null; }catch(e){ return null; } }
+function mascotSVG(mood){ const p = zihniPose(mood || "happy"); if(!p) return mascotSVGOld(mood); return `<svg class="zmascot zimg" viewBox="0 0 120 120" aria-hidden="true" style="overflow:visible"><g class="bob"><image href="${p.u}" x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" preserveAspectRatio="none"/></g></svg>`; }
+function zihniAcc(id, p){ try{ const A = (typeof ZIHNI_IMG !== "undefined" && ZIHNI_IMG.acc) ? ZIHNI_IMG.acc[id] : null; if(!A) return ACC_SVG[id] || ""; p = p || zihniPose("happy") || {}; const G = { explorer:[76, 32, 0.93], crown:[46, 22, 1], flowers:[64, 27, 0.86], bow:[30, 84, 0.5], scarf:[46, 71, 0], cape:[100, 40, 0] }; let w, x, y;
+  if(id === "glasses"){ const cx = p.ex || 60, cy = p.ey || 49; w = Math.max(40, (p.es || 22) * 2.05); const h = w * A.ar; x = cx - w / 2; y = cy - h / 2 - 1; }
+  else { const g = G[id] || [50, 30, 1]; w = g[0]; const h = w * A.ar; x = 60 - w / 2; y = g[1] - h * g[2]; }
+  return `<image href="${A.u}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${(w * A.ar).toFixed(1)}" preserveAspectRatio="none"/>`; }catch(e){ return ACC_SVG[id] || ""; } }
+function mascotSVGOld(mood){
 mood = mood || "happy";
 const body = "#3DCFC2", shade = "#22AFA3", dark = "#1C2B39";
 const arm = (d, cls) => `<path class="${cls || ""}" d="${d}" fill="none" stroke="${shade}" stroke-width="13" stroke-linecap="round"/><path class="${cls || ""}" d="${d}" fill="none" stroke="${body}" stroke-width="9" stroke-linecap="round"/>`;
@@ -13616,7 +13623,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.26-o";
+const APP_VERSION = "2026.10.26-q";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -13978,14 +13985,14 @@ ${!l.familyUid ? `<div class="fam-card" style="display:flex;flex-direction:colum
 <div class="fam-sub" style="font-weight:600">Aile, uygulamada <b>Bilişsel Etkinlik → Aile → Uzmana bağlan</b> bölümüne bu kodu girer.</div>
 <button type="button" class="fam-cta ghost" id="exShareBtn">Kodu paylaş</button></div>` : ""}
 ${l.familyUid ? `<div class="fam-card"><div style="font-weight:900;font-size:16px">Son sonuçlar</div><div id="exResults"><div class="fam-sub" style="font-weight:600;margin-top:6px">Yükleniyor…</div></div></div>` : ""}
-${(() => { const W = hwWeakPages(l.childName); const lv = readingLevel;
+${(() => { const W = hwWeakPages(l.childName); try{ window.__hwDrawn = { code, sig: W.list.map(x => x.id).join(",") + "|" + W.total }; }catch(e){} const lv = readingLevel;
 return `<div class="fam-card" style="display:flex;flex-direction:column;gap:10px"><div style="font-weight:900;font-size:16px">Ödevlendirme</div>
 <div class="fam-sub" style="font-weight:600">Bu cihazda <b>${escHTML(l.childName || "danışan")}</b> adıyla yaptığınız son 45 günlük oturumlara göre zorlandığı sayfalar (son 3 denemenin yarısından fazlasında 2+ hata ya da son denemede 3+ hata).</div>
 ${p.hw.length ? `<div><div style="font-weight:800;margin-bottom:6px">Verilen ödevler</div><div class="fam-chips">${p.hw.map(id => { const cf = expertCfgFor(l.childName, [id])[id]; return `<button type="button" class="fam-chip on" data-hwx="${id}">${icI("pin", 15, "#0A847E")} ${famLabel(id)}${cf ? ` <small>(${escHTML(cfgLabel(id, cf))})</small>` : ""} ✕</button>`; }).join("")}</div><div class="fam-sub" style="font-weight:600;margin-top:4px">Ödevler, sizin bu çocukla en son çalıştığınız aşama ve düzeyde açılır.</div></div>` : ""}
 ${W.list.length ? `<div>${W.list.slice(0, 8).map(x => `<div class="ex-row" data-hws="${x.id}"><div class="tx"><div class="t1">${famLabel(x.id)}${p.hw.includes(x.id) ? " · " + icI("pin", 14, "#0A847E") : ""}</div><div class="fam-sub" style="font-weight:600">${famCatName(x.cat)} · son: ${x.err} hata, ${escHTML(x.tier || "")} · başarı %${x.rate} (${x.n} deneme)</div></div>${p.hw.includes(x.id) ? `<span class="hw-in">${icI("pin", 13, "#0A847E")} ödevde</span>` : `<span class="ex-check${hwSel.has(x.id) ? " on" : ""}">${hwSel.has(x.id) ? I_CHECK : ""}</span>`}</div>`).join("")}</div>
 <div style="display:flex;gap:8px"><button type="button" class="fam-cta" id="hwAutoBtn" style="flex:1">Otomatik ödevlendir</button><button type="button" class="fam-cta ghost" id="hwManBtn" style="flex:1">Seçilenleri ödev yap${hwSel.size ? ` (${hwSel.size})` : ""}</button></div>
 <div class="fam-sub" style="font-weight:600">Otomatik: en çok zorlandığı 4 sayfa ödev olur. Manuel: listeden işaretlediklerinizi ekler. En fazla 4 ödev; aile bunları günlük oturumda öncelikli yapar.</div>`
-: `<div class="fam-sub" style="font-weight:700;color:var(--ink)">${W.total ? "Zorlandığı sayfa görünmüyor; son oturumlar başarılı. 👍" : "Bu cihazda bu danışanla kaydedilmiş oturum yok. Etkinlikte “Kim çalışıyor?” bölümünden danışanın adını seçerek çalışın."}</div>`}</div>`; })()}
+: `<div class="fam-sub" style="font-weight:700;color:var(--ink)">${W.total ? "Zorlandığı sayfa görünmüyor; son oturumlar başarılı. 👍" : "Bu danışan için henüz kayıt yok: ailenin evden gönderdiği sonuç da, bu cihazda yapılmış oturum da bulunmuyor. Aile çalıştıkça ya da siz Etkinlikte “Kim çalışıyor?” bölümünden danışanın adını seçerek çalıştıkça burada zorlandığı sayfalar görünür."}</div>`}</div>`; })()}
 <div class="fam-card" id="exDevCard" style="display:flex;flex-direction:column;gap:10px"></div>
 <div class="fam-card" style="display:flex;flex-direction:column;gap:14px">
 <div style="font-weight:900;font-size:16px">Haftalık program</div>
@@ -14061,8 +14068,9 @@ if(l.familyUid) watchExpertResults(code);
 };
 draw();
 }
-function hwWeakPages(childName){ const nm = (childName || "").trim().toLocaleLowerCase("tr"); if(!nm) return { list:[], total:0 };
-const since = Date.now() - 45 * 864e5, recs = loadSessions().filter(r => (r.player || "").trim().toLocaleLowerCase("tr") === nm && r.t >= since);
+/* KURAL (otomatik ödevlendirme): uzmanın danışan sayfasında "zorlandığı sayfalar" hem uzmanın cihazındaki oturumlardan hem de ailenin evden gönderdiği sonuçlardan (bağlantının sonuç kaydı) hesaplanır; aynı kayıt iki kez sayılmaz */
+function hwWeakPages(childName){ const nm = (childName || "").trim().toLocaleLowerCase("tr"); if(!nm) return { list:[], total:0 }; const since = Date.now() - 45 * 864e5; let recs = loadSessions().filter(r => (r.player || "").trim().toLocaleLowerCase("tr") === nm && r.t >= since);
+  try{ if(typeof expertView !== "undefined" && expertView && expertView.code && Array.isArray(expertResults) && expertResults.length){ const seen = new Set(recs.map(r => r.t + "|" + r.exerciseLabel)); expertResults.forEach(r => { if(r && r.exerciseLabel && typeof r.t === "number" && r.t >= since && !seen.has(r.t + "|" + r.exerciseLabel)){ seen.add(r.t + "|" + r.exerciseLabel); recs.push(r); } }); } }catch(e){}
 const by = {}; recs.forEach(r => { (by[r.exerciseLabel] = by[r.exerciseLabel] || []).push(r); });
 const list = [];
 for(const [label, arr] of Object.entries(by)){ const ex = EXERCISES.find(e => e.label === label || (e.oldLabels || []).includes(label)); if(!ex) continue;
@@ -14081,7 +14089,7 @@ if(!fbOk()) return;
 if(expertResultsUnsub){ expertResultsUnsub(); expertResultsUnsub = null; }
 const { db, collection, onSnapshot } = window.__fb;
 expertResultsUnsub = onSnapshot(collection(db, "links", code, "results"), snap => {
-const allR = snap.docs.map(d => d.data()); expertDevPlan = allR.filter(r => r && r.kind === "devplan").sort((a, b) => b.t - a.t)[0] || null; expertResults = allR.filter(r => !r || r.kind !== "devplan").sort((a, b) => b.t - a.t); try{ const dc = document.getElementById("exDevCard"); if(dc && typeof window.__exDevDraw === "function") window.__exDevDraw(); }catch(e){}
+const allR = snap.docs.map(d => d.data()); expertDevPlan = allR.filter(r => r && r.kind === "devplan").sort((a, b) => b.t - a.t)[0] || null; expertResults = allR.filter(r => !r || r.kind !== "devplan").sort((a, b) => b.t - a.t); try{ const dc = document.getElementById("exDevCard"); if(dc && typeof window.__exDevDraw === "function") window.__exDevDraw(); }catch(e){} try{ const hd = window.__hwDrawn; if(hd && hd.code === code && expertView && expertView.code === code && document.getElementById("expertScreen") && document.getElementById("expertScreen").style.display !== "none"){ const l0 = (expertLinks || []).find(x => x.id === code); if(l0){ const W2 = hwWeakPages(l0.childName); const sig2 = W2.list.map(x => x.id).join(",") + "|" + W2.total; if(sig2 !== hd.sig && !(document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))){ hd.sig = sig2; setTimeout(() => { try{ if(expertView.code === code) renderExpertClient(code); }catch(e){} }, 0); } } } }catch(e){}   /* ailenin sonuçları gelince zorlandığı sayfalar kartı yenilenir */
 const box = document.getElementById("exResults"); if(!box) return;
 const short = (l) => { const i = String(l).indexOf(": "); return i >= 0 ? l.slice(i + 2) : l; };
 box.innerHTML = expertResults.length ? expertResults.slice(0, 12).map(r => `<div class="ex-row"><div class="tx"><div class="t1">${escHTML(short(String(r.exerciseLabel || "")))}</div>
@@ -14926,8 +14934,8 @@ if(!(currentPlayerName || "").trim()) return s;
 const w = gxGet().worn || {}; const ids = Object.values(w).filter(Boolean);
 if(!ids.length) return s;
 s = s.replace('viewBox="0 0 120 120"', 'viewBox="0 -14 120 134"');
-if(w.back) s = s.replace('<g class="bob">', '<g class="bob">' + ACC_SVG[w.back]);
-const front = ["face","neck","head"].map(k => w[k] ? ACC_SVG[w[k]] : "").join("");
+const pz = zihniPose(mood || "happy"); if(w.back) s = s.replace('<g class="bob">', '<g class="bob">' + zihniAcc(w.back, pz));
+const front = ["neck","face","head"].map(k => w[k] ? zihniAcc(w[k], pz) : "").join("");
 return s.replace(/<\/g><\/svg>\s*$/, front + "</g></svg>");
 }
 function gxUnlockNew(g){ const got = []; ACCS.forEach(a => { if(!g.owned.includes(a.id) && a.ok(g)){ g.owned.push(a.id); got.push(a); } }); return got; }
@@ -15000,7 +15008,7 @@ const sheet = document.getElementById("closetSheet");
 const draw = () => { const g2 = gxGet();
 document.getElementById("closetPreview").innerHTML = zihniSVG("happy");
 document.getElementById("closetList").innerHTML = ACCS.map(a => { const own = g2.owned.includes(a.id), on = g2.worn[a.slot] === a.id;
-return `<button type="button" class="cl-item${own ? "" : " locked"}${on ? " on" : ""}" data-acc="${a.id}"><svg viewBox="0 -14 120 134" class="cl-ico">${a.slot === "back" ? ACC_SVG[a.id] : ""}<ellipse cx="60" cy="47" rx="37" ry="33" fill="#3DCFC2" opacity="${own ? 0.35 : 0.15}"/>${a.slot !== "back" ? ACC_SVG[a.id] : ""}</svg><span class="cl-nm">${a.nm}</span><span class="cl-need">${own ? (on ? "Takılı · çıkar" : "Tak") : "🔒 " + a.need}</span></button>`; }).join("");
+return `<button type="button" class="cl-item${own ? "" : " locked"}${on ? " on" : ""}" data-acc="${a.id}"><svg viewBox="0 -14 120 134" class="cl-ico">${a.slot === "back" ? zihniAcc(a.id) : ""}<ellipse cx="60" cy="47" rx="34" ry="34" fill="#3DCFC2" opacity="${own ? 0.35 : 0.15}"/>${a.slot !== "back" ? zihniAcc(a.id) : ""}</svg><span class="cl-nm">${a.nm}</span><span class="cl-need">${own ? (on ? "Takılı · çıkar" : "Tak") : "🔒 " + a.need}</span></button>`; }).join("");
 };
 draw(); sheet.style.display = "flex";
 const nin = document.getElementById("mascotNameIn"); nin.value = (gxGet().mname || "");
@@ -16224,7 +16232,7 @@ document.getElementById("consentScreen").style.display = "flex";
 }
 }
 
-document.getElementById("returnSplashIcon").innerHTML = `<div class="logo-zihni">${zihniSVG("happy")}</div>`;
+document.getElementById("returnSplashIcon").innerHTML = `<div class="logo-zihni">${zihniSVG("wave")}</div>`;
 document.getElementById("returnSloganText").textContent = randomItem(RETURN_SLOGANS);
 document.getElementById("returnSplashBtn").addEventListener("click", proceedAfterOnboarding);
 const LAST_KEY = "wm_last_v1";
@@ -16586,7 +16594,7 @@ document.getElementById("categoryScreen").style.display = "block";
 try{ window.scrollTo(0, 0); }catch(e){}
 });
 
-document.getElementById("onboardIcon0").innerHTML = `<div class="logo-zihni">${zihniSVG("happy")}</div>`;
+document.getElementById("onboardIcon0").innerHTML = `<div class="logo-zihni">${zihniSVG("wave")}</div>`;
 document.getElementById("onboardIcon1").innerHTML = uiIconSVG("bulb");
 document.getElementById("settingsIconSlot").innerHTML = uiIconSVG("gear");
 document.getElementById("consentIconSlot").innerHTML = uiIconSVG("shield");
