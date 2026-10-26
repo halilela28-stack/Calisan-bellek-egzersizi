@@ -5923,10 +5923,15 @@ return `${m}:${s}.${tenths}`;
 }
 
 function tickTimer(){
+if(timerPausedAt) return;
 elapsedMs = Date.now() - timerStartedAt;
 document.getElementById("timerDisplay").textContent = formatTime(elapsedMs);
 }
 
+/* KURAL (süre): yalnızca yetişkinin değerlendirdiği ara ekranlarda (ör. Gözünü Ayırma'da "Gözünü noktadan ayırdı mı?") kronometre durur; çocuk yeniden çalışmaya başlayınca kaldığı yerden devam eder */
+let timerPausedAt = 0;
+function setTimerPaused(on){ if(!timerRunning){ timerPausedAt = 0; return; } const disp = document.getElementById("timerDisplay"); if(on && !timerPausedAt){ elapsedMs = Date.now() - timerStartedAt; timerPausedAt = Date.now(); clearInterval(timerInterval); disp.textContent = formatTime(elapsedMs); disp.classList.add("paused"); clearInterval(window.__pausePoll); window.__pausePoll = setInterval(() => { if(!timerPausedAt){ clearInterval(window.__pausePoll); return; } syncJudgePause(); }, 150); } else if(!on && timerPausedAt){ timerStartedAt += Date.now() - timerPausedAt; timerPausedAt = 0; clearInterval(timerInterval); timerInterval = setInterval(tickTimer, 100); disp.classList.remove("paused"); } }
+function syncJudgePause(){ try{ const st = mtState; setTimerPaused(!!(timerRunning && st && st.kind === "fix" && st.phase === "judge")); }catch(e){} }
 let recallHideTimeout = null;
 
 function recallListen(){ try{ const st = currentExercise().stages[currentStageIndex]; return !!(currentExercise().isRecall && st && st.listen); }catch(e){ return false; } }
@@ -6014,6 +6019,7 @@ recallHideTimeout = setTimeout(() => { showLevelFlash("Şimdi hatırlamaya çal�
 
 function stopTimer(){ window._lastStopAt = Date.now(); document.documentElement.classList.remove("board-run"); runFocusOff();   // süre bitimi zamanlayıcısı, son durağın ödül ekranını atlamasın
 clearInterval(timerInterval);
+if(timerPausedAt){ timerPausedAt = 0; } try{ document.getElementById("timerDisplay").classList.remove("paused"); }catch(e){}
 timerRunning = false;
 addTouchMissesOnStop();
 stopEyeMotion();
@@ -6034,6 +6040,7 @@ if(gameMode){ setTimeout(gameAfterStop, 400); try{ renderGameWho(); }catch(e){} 
 }
 
 function resetTimer(){
+timerPausedAt = 0; try{ document.getElementById("timerDisplay").classList.remove("paused"); }catch(e){}
 document.documentElement.classList.remove("board-run"); runFocusOff();
 clearInterval(timerInterval);
 timerRunning = false;
@@ -6979,9 +6986,9 @@ key: () => `<div class="ch-key" style="font-weight:800;font-size:13px;color:var(
 CHOICE["motion-dir"] = {
 setup: () => ({ D: ["l", "r"].concat(Math.min(currentCombo().t, 2) === 2 ? ["u", "d"] : []) }),
 trials_make: (n) => mdTrials(n),
-stim: (t, sz) => { const col = t.rule === "point" ? "#1FA463" : "#FF9500", [mx, my] = MD_VEC[t.move], amp = Math.round(sz * 0.3), px = Math.round(sz * 0.22);
-  const arrows = [[-0.5, -0.5], [0.5, -0.5], [0, 0], [-0.5, 0.5], [0.5, 0.5]].map(([x, y]) => `<div style="position:absolute;left:${50 + x * 40}%;top:${50 + y * 40}%;width:${px}px;height:${px}px;margin:-${px / 2}px">${stopArrowSVG(t.point, col, px)}</div>`).join("");
-  return `<div style="position:relative;width:100%;height:100%;overflow:hidden;border-radius:16px;box-shadow:inset 0 0 0 5px ${col}"><div style="position:absolute;left:${-mx * 12}%;top:${-my * 12}%;width:100%;height:100%;--mx:${mx * amp}px;--my:${my * amp}px;animation:efMove ${isPre() ? 1.4 : 1.1}s linear infinite">${arrows}</div></div>`; },
+stim: (t, sz) => { const col = t.rule === "point" ? "#1FA463" : "#FF9500", [mx, my] = MD_VEC[t.move], px = Math.round(sz * 0.2);   /* KURAL: kayan oklar çerçevenin içinde kalır (kayma kutunun %10'u ileri–geri, simetrik) */
+  const arrows = [[-0.5, -0.5], [0.5, -0.5], [0, 0], [-0.5, 0.5], [0.5, 0.5]].map(([x, y]) => `<div style="position:absolute;left:${50 + x * 32}%;top:${50 + y * 32}%;width:${px}px;height:${px}px;margin:-${px / 2}px">${stopArrowSVG(t.point, col, px)}</div>`).join("");
+  return `<div style="position:relative;width:100%;height:100%;overflow:hidden;border-radius:16px;box-shadow:inset 0 0 0 5px ${col}"><div style="position:absolute;left:${-mx * 10}%;top:${-my * 10}%;width:100%;height:100%;--mx:${mx * 20}%;--my:${my * 20}%;animation:efMove ${isPre() ? 1.4 : 1.1}s linear infinite">${arrows}</div></div>`; },
 buttons: (c) => dirButtons(c.D),
 correct: (t) => t.ans,
 window: () => (isPre() ? [3000, 2600, 2400] : [2400, 2000, 1700])[Math.min(currentCombo().t, 2)], gap: 300, cols: 4, wideStim: true,
@@ -9248,6 +9255,8 @@ html:not(.calm) #board .ch-btn.bad,html:not(.calm) #placeScreen .ch-btn.bad,html
 #finishCard .fc-z{width:70px;height:70px}#finishCard .fc-t{font-weight:900;font-size:22px;color:#0A5F5A}#finishCard .fc-s{display:flex;gap:4px}
 @media (prefers-reduced-motion: reduce){#finishCard{transition:opacity .15s linear;transform:none !important}}
 `; document.head.appendChild(st); }catch(e){} })();
+(function wrapMtRender(){ try{ const _r = renderMtBoard; renderMtBoard = function(){ const out = _r.apply(this, arguments); syncJudgePause(); return out; }; }catch(e){} })();
+(function timerPauseStyle(){ try{ const st = document.createElement("style"); st.textContent = `#timerDisplay.paused{opacity:.45}`; document.head.appendChild(st); }catch(e){} })();
 (function rpAccStyle(){ try{ if(document.getElementById("rpAccStyle")) return; const st = document.createElement("style"); st.id = "rpAccStyle"; st.textContent = `.rp-head{cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none}.rp-chev{margin-left:auto;width:9px;height:9px;border-right:3px solid #0A847E;border-bottom:3px solid #0A847E;transform:rotate(45deg);margin-right:6px;margin-bottom:3px;transition:transform .2s;flex:none}.rp-acc.open .rp-chev{transform:rotate(-135deg);margin-bottom:-3px}.rp-grp{margin:0 0 6px}.rp-grp .player-group-header{padding:10px 4px}.rp-grp:not(.open) .rp-body{display:none}.summary-card.rp-acc:not(.open) .summary-metric{display:none}html.is-printing .rp-body,html.is-printing .summary-card .summary-metric,#printArea .summary-card .summary-metric,#printArea .rp-body{display:block !important}#printArea .rp-chev{display:none}`; document.head.appendChild(st); }catch(e){} })();
 (function growthStyle(){ try{ if(document.getElementById("growthStyle")) return; const st = document.createElement("style"); st.id = "growthStyle"; st.textContent = `#growthScreen .adv-t1{color:#0A847E}#growthScreen .adv-t2{color:var(--ink)}#growthScreen .gr-sum{border:2px solid #E3ECEA;box-shadow:0 3px 0 var(--edge)}.gr-sl{display:flex;align-items:center;gap:10px;margin:2px 0}.gr-ic{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;flex:none}.gr-acc{background:#fff;border:2px solid #E3ECEA;border-radius:18px;box-shadow:0 3px 0 var(--edge);margin:10px 0;overflow:hidden}.gr-acc>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;font-weight:900;font-size:16px;color:var(--ink)}.gr-acc>summary::-webkit-details-marker{display:none}.gr-acc-t{flex:1;min-width:0}.gr-chev{width:10px;height:10px;border-right:3px solid #0A847E;border-bottom:3px solid #0A847E;transform:rotate(45deg);margin:0 4px 4px 0;transition:transform .2s}.gr-acc[open] .gr-chev{transform:rotate(-135deg);margin:4px 4px 0 0}.gr-acc-b{padding:2px 10px 12px}.gr-acc-b .gr-row{background:#F7FAFB;border:1.5px solid #EEF3F2}.gr-lv{display:inline-block;font-style:normal;font-weight:900;font-size:11.5px;border-radius:8px;padding:2px 7px;margin:3px 6px 0 0}.gr-lv.pre{background:#FFF1D6;color:#9A6B00}.gr-lv.post{background:#DDF5E7;color:#1B7A45}#growthScreen .place-table-wrap{margin:4px 0}`; document.head.appendChild(st); }catch(e){} })();
 (function placeStimStyle(){ try{ if(document.getElementById("placeStimStyle")) return; const st = document.createElement("style"); st.id = "placeStimStyle"; st.textContent = `/* KURAL: uyaran kutusu yüzdeli içerikte çökmesin (Değerlendirme turu "ortadaki büyük ok" görünmüyordu) */.ps-in > div:only-child[style*="height:100%"],.ps-in > svg:only-child{width:min(62vw,240px) !important;height:min(62vw,240px) !important;display:block}.ps-in svg polygon,.place-opts svg polygon{vector-effect:non-scaling-stroke}`; document.head.appendChild(st); }catch(e){} })();
@@ -10282,10 +10291,10 @@ const tr = st.trials[ti], ah = isLs ? H - 30 : Math.min(H - 30, 420);
 info = st.phase === "fb" ? `İzleme: <b>%${Math.round((st.last || 0) * 100)}</b> ${st.last >= 0.7 ? "· harika!" : "· biraz daha yakından izle"}` : `Parmağını <b>topun üstünde tut</b>, top nereye giderse onunla git · ${ti + 1}/${st.trials.length}`;
 body = `<div id="ftArea" style="position:relative;width:100%;height:${ah}px;background:var(--panel);border:2px solid var(--line);border-radius:18px;overflow:hidden;touch-action:none"><div id="ftDot" class="ft-dot" style="left:${(ftPos(tr.p, 0)[0] * W) - 18}px;top:${ftPos(tr.p, 0)[1] * ah - 18}px"></div></div>`;
 } else if(st.kind === "ecount"){
-const tr = st.trials[ti], ah = isLs ? H - 120 : Math.min(H - 150, 340);
+const tr = st.trials[ti], ah = Math.max(170, isLs ? H - 120 : Math.min(H - 175, 340));   /* KURAL: tek ekran — alan, değerlendirme satırı ve Sonraki birlikte görünür */
 info = tr.onlyStar ? "Parmağını kullanmadan, <b>yalnızca yıldızları</b> gözünle say" : "Parmağını kullanmadan, <b>gözünle</b> soldan sağa say";
 body = `<div style="position:relative;width:100%;height:${ah}px;background:var(--panel);border:2px solid var(--line);border-radius:18px;overflow:hidden">${tr.items.map(it => `<div style="position:absolute;left:${it.x}%;top:${it.y}%;width:30px;height:30px">${shapeSVG(it.sh, it.c)}</div>`).join("")}</div>` +
-`<div class="aud-key" style="text-align:center;margin-top:6px">Doğru sayı: <b>${tr.ans}</b> · Çocuk gözle (parmak kullanmadan) doğru saydı mı?</div><div class="aud-key" style="text-align:center;margin-top:6px">Yetişkin: yanlış ya da eksikse <b>Hata sayısı +</b></div><div class="wm-btns" style="margin:6px auto 0"><button type="button" class="wm-btn same" data-judge="9">Sonraki ▶</button></div>`;
+`<div style="display:flex;align-items:center;gap:10px;margin-top:8px"><div class="aud-key" style="flex:1;text-align:left;margin:0;line-height:1.35">Doğru sayı: <b>${tr.ans}</b> · gözle doğru saydı mı? Yanlış ya da eksikse <b>Hata sayısı +</b></div><button type="button" class="wm-btn same" data-judge="9" style="flex:0 0 auto;min-width:0;padding:0 18px">Sonraki ▶</button></div>`;
 } else if(st.kind === "nword"){
 if(st.phase === "learn"){ const x = st.learn[st.li], sz = Math.min(isLs ? H - 70 : 200, W * 0.6); info = `<b>Yeni arkadaşlarla tanış</b> · ${Math.max(0, st.li + 1)}/${st.learn.length}`;
 body = x ? `<div style="display:flex;${isLs ? "" : "flex-direction:column;"}gap:10px;align-items:center;justify-content:center"><div class="wm-card" style="width:${sz}px;height:${sz}px;padding:6px"><img src="${CREATURE_IMAGES[x.ci]}" alt="" style="width:100%;height:100%;object-fit:contain"></div><div style="font-size:30px;font-weight:900;color:var(--teal-dark)">${x.nm}</div></div>` : ""; }
@@ -10299,10 +10308,10 @@ body = dots + `<div style="display:flex;gap:6px;justify-content:center;flex-wrap
 } else if(st.kind === "per"){
 const tr = st.trials[ti], ah = isLs ? H - 20 : Math.min(H - 20, 440);
 info = `Gözün <b>ortadaki noktada</b>; kenarda yıldız çıkınca dokun · ${ti + 1}/${st.trials.length}`;
-body = `<div style="position:relative;width:100%;height:${ah}px;background:var(--panel);border:2px solid var(--line);border-radius:18px;overflow:hidden"><div style="position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#E5484D;box-shadow:0 0 0 6px rgba(229,72,77,.2)"></div>${st.phase === "show" ? `<div data-mt="t" style="position:absolute;left:${tr.pos[0]}%;top:${tr.pos[1]}%;width:54px;height:54px;margin:-27px 0 0 -27px;cursor:pointer">${shapeSVG(tr.lure ? "circle" : "star", tr.lure ? "#2E6FD8" : "#F5A524")}</div>` : ""}</div>`;
+body = `<div style="position:relative;width:100%;height:${ah}px;background:var(--panel);border:2px solid var(--line);border-radius:18px;overflow:hidden"><div style="position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#E5484D;box-shadow:0 0 0 6px rgba(229,72,77,.2)"></div>${st.phase === "show" ? `<div data-mt="t" style="position:absolute;left:clamp(30px, ${tr.pos[0]}%, calc(100% - 30px));top:clamp(30px, ${tr.pos[1]}%, calc(100% - 30px));width:54px;height:54px;margin:-27px 0 0 -27px;cursor:pointer">${shapeSVG(tr.lure ? "circle" : "star", tr.lure ? "#2E6FD8" : "#F5A524")}</div>` : ""}</div>`;
 } else if(st.kind === "fix"){
 const tr = st.trials[ti], ah = isLs ? H - 20 : Math.min(H - 20, 420);
-if(st.phase === "judge"){ info = "<b>Gözünü noktadan ayırdı mı?</b>"; body = dots + `<div class="aud-key" style="text-align:center">${tr.secs} sn boyunca çocuğun gözlerini izlediniz. Gözünü kırmızı noktadan hiç ayırmadan durabildi mi?</div><div class="aud-key" style="text-align:center;margin-top:6px">Yetişkin: gözünü ayırdıysa <b>Hata sayısı +</b></div><div class="wm-btns" style="margin:6px auto 0"><button type="button" class="wm-btn same" data-judge="9">Sonraki ▶</button></div>`; }
+if(st.phase === "judge"){ info = "<b>Gözünü noktadan ayırdı mı?</b> <span style=\"font-weight:700;color:var(--muted)\">· süre durdu</span>"; body = dots + `<div class="aud-key" style="text-align:center">${tr.secs} sn boyunca çocuğun gözlerini izlediniz. Gözünü kırmızı noktadan hiç ayırmadan durabildi mi?</div><div class="aud-key" style="text-align:center;margin-top:6px">Yetişkin: gözünü ayırdıysa <b>Hata sayısı +</b></div><div class="wm-btns" style="margin:6px auto 0"><button type="button" class="wm-btn same" data-judge="9">Sonraki ▶</button></div>`; }
 else { info = `<b>Kırmızı noktaya bak</b>, gözünü ayırma · ${tr.secs} sn`; body = `<div id="fixArea" style="position:relative;width:100%;height:${ah}px;background:var(--panel);border:2px solid var(--line);border-radius:18px;overflow:hidden"><div style="position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:#E5484D"></div></div>`; }
 } else if(st.kind === "dual"){
 const tr = st.trials[ti], ah = isLs ? H - 44 : Math.min(H - 20, 420);
@@ -13565,7 +13574,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.25-x";
+const APP_VERSION = "2026.10.26-b";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
