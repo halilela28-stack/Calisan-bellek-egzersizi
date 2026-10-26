@@ -5934,7 +5934,9 @@ document.getElementById("timerDisplay").textContent = formatTime(elapsedMs);
 /* KURAL (süre): yalnızca yetişkinin değerlendirdiği ara ekranlarda (ör. Gözünü Ayırma'da "Gözünü noktadan ayırdı mı?") kronometre durur; çocuk yeniden çalışmaya başlayınca kaldığı yerden devam eder */
 let timerPausedAt = 0;
 function setTimerPaused(on){ if(!timerRunning){ timerPausedAt = 0; return; } const disp = document.getElementById("timerDisplay"); if(on && !timerPausedAt){ elapsedMs = Date.now() - timerStartedAt; timerPausedAt = Date.now(); clearInterval(timerInterval); disp.textContent = formatTime(elapsedMs); disp.classList.add("paused"); clearInterval(window.__pausePoll); window.__pausePoll = setInterval(() => { if(!timerPausedAt){ clearInterval(window.__pausePoll); return; } syncJudgePause(); }, 150); } else if(!on && timerPausedAt){ timerStartedAt += Date.now() - timerPausedAt; timerPausedAt = 0; clearInterval(timerInterval); timerInterval = setInterval(tickTimer, 100); disp.classList.remove("paused"); } }
-function syncJudgePause(){ try{ const st = mtState; setTimerPaused(!!(timerRunning && st && st.kind === "fix" && st.phase === "judge")); }catch(e){} }
+function syncJudgePause(){ try{ const st = mtState; setTimerPaused(!!(timerRunning && ((st && st.kind === "fix" && st.phase === "judge") || document.hidden))); }catch(e){} }
+/* KURAL (arka plan): uygulama arka plana geçince (ekran kilidi, başka uygulama, gelen arama) çalışan kronometre durur ve konuşma kesilir; geri dönülünce süre kaldığı yerden devam eder — arka planda geçen süre sonuca eklenmez */
+document.addEventListener("visibilitychange", () => { try{ if(document.hidden){ try{ speechSynthesis.cancel(); }catch(e){} } syncJudgePause(); }catch(e){} });
 let recallHideTimeout = null;
 
 function recallListen(){ try{ const st = currentExercise().stages[currentStageIndex]; return !!(currentExercise().isRecall && st && st.listen); }catch(e){ return false; } }
@@ -12179,6 +12181,7 @@ function fitTextCells(board){ const textEls = Array.from(board.querySelectorAll(
   textEls.forEach(el=>{ el.style.fontSize = Math.max(floor, size) + "px"; });
   /* son güvence: ekrandaki sütun sayısı hücre sayısını bölmüyorsa (son satır eksik), bölen bir sütun sayısına geçilir */
   try{ const n = board.querySelectorAll(":scope > .cell").length, cc = (getComputedStyle(board).gridTemplateColumns || "").split(" ").filter(Boolean).length; if(n > 1 && cc > 1 && n % cc){ let c = cc; while(c > 1 && n % c) c--; /* bölen yoksa tek sütun (okunaklı liste) */ board.classList.add("txt-wrap"); board.style.setProperty("--txt-cols", c); let z = Math.max(floor, size); textEls.forEach(el => el.style.fontSize = z + "px"); } }catch(e){} }
+(function iosInputGuard(){ try{ const st = document.createElement("style"); st.textContent = `@media (pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=hidden]),select,textarea{font-size:max(16px,1em)}}`; document.head.appendChild(st); }catch(e){} })();   /* KURAL (iPhone/iPad): dokunmatik cihazda giriş alanları en az 16px — Safari alana dokununca sayfayı yakınlaştırmaz */
 (function touchSizeStyle(){ try{ const st = document.createElement("style"); st.textContent = `#board button{min-height:40px}#board .pk-plank{padding-top:7px !important;padding-bottom:7px !important;box-sizing:content-box}#board svg circle[data-mt]{pointer-events:all}`; document.head.appendChild(st); }catch(e){} })();   /* KURAL (dokunma alanı): tahtadaki düğmeler en az 40px yüksekliğinde; köprü tahtalarının dokunma alanı büyütüldü */
 (function txtWrapStyle(){ try{ const st = document.createElement("style"); st.textContent = `#board.txt-wrap{grid-template-columns:repeat(var(--txt-cols,2), minmax(0,1fr)) !important;background-image:none !important}#board.txt-wrap::before,#board.txt-wrap::after{display:none !important}#board.txt-wrap .cell{border-bottom:1px solid var(--line,#DDE6EE) !important}#board.txt-wrap .cell{width:auto !important;justify-self:stretch !important;max-width:none !important;min-width:0 !important;min-height:48px;height:auto !important}#board.txt-wrap .name-cell{white-space:normal !important;overflow-wrap:break-word;line-height:1.25;text-align:center;height:auto !important;padding:4px 2px}`; document.head.appendChild(st); }catch(e){} })();
 function renderDots(){
@@ -13612,7 +13615,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.26-m";
+const APP_VERSION = "2026.10.26-n";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
