@@ -7382,7 +7382,7 @@ function sayTask(t, rate){
 try{
 if(captionOn() || !ttsUsable()) showCaption(t);
 if(!("speechSynthesis" in window)) return;
-const u = new SpeechSynthesisUtterance(t); u.lang = "tr-TR"; u.rate = rate || 0.85; u.pitch = 1.0;
+const u = new SpeechSynthesisUtterance(t); u.lang = "tr-TR"; u.rate = (rate || 0.85) * voiceRateMul(); u.pitch = 1.0;
 _trVoice = _trVoice || pickTurkishVoice(); if(_trVoice) u.voice = _trVoice; u.onerror = () => showCaption(t); _ttsSpeak(u);
 }catch(e){}
 }
@@ -13628,7 +13628,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.26-t";
+const APP_VERSION = "2026.10.26-u";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -14534,15 +14534,28 @@ else speakText(childInstructionText());
 }
 
 let _trVoice = null;
-function pickTurkishVoice(){
-try{
-const vs = speechSynthesis.getVoices().filter(v => /^tr/i.test(v.lang));
-if(!vs.length) return null;
-const score = (v) => (/(premium|enhanced|neural|natural|geliştirilmiş)/i.test(v.name) ? 10 : 0) + (/google/i.test(v.name) ? 4 : 0) + (/yelda|emel|filiz|seda/i.test(v.name) ? 3 : 0) + (v.localService ? 1 : 0);
-return vs.sort((a, b) => score(b) - score(a))[0];
-}catch(e){ return null; }
-}
-try{ if(window.speechSynthesis) speechSynthesis.onvoiceschanged = () => { _trVoice = pickTurkishVoice(); }; }catch(e){}
+/* KURAL (okuma sesi): uygulama cihazdaki en doğal Türkçe sesi kendiliğinden seçer; Ayarlar > Okuma sesi'nden ses ve hız elle seçilebilir, seçim saklanır; seçilen ses cihazda yoksa en iyisine döner */
+const VOICE_KEY = "wm_voice_v1";
+function voicePref(){ try{ return JSON.parse(localStorage.getItem(VOICE_KEY) || "{}") || {}; }catch(e){ return {}; } }
+function voiceRateMul(){ const r = voicePref().rate; return r === "yavas" ? 0.86 : r === "hizli" ? 1.14 : 1; }
+function trVoices(){ try{ return speechSynthesis.getVoices().filter(v => /^tr/i.test(v.lang)); }catch(e){ return []; } }
+function voiceScore(v){ return (/(premium|enhanced|neural|natural|gelişmiş|geliştirilmiş|yüksek|improved|superior)/i.test(v.name) ? 10 : 0) + (/samsung/i.test(v.name) ? 6 : 0) + (/google/i.test(v.name) ? 4 : 0) + (/yelda|emel|filiz|seda|ahmet/i.test(v.name) ? 3 : 0) + (/compact|kompakt/i.test(v.name) ? -3 : 0) + (v.localService ? 1 : 0); }
+function pickTurkishVoice(){ try{ const vs = trVoices(); if(!vs.length) return null; const want = voicePref().name; if(want){ const f = vs.find(v => v.name === want); if(f) return f; } return vs.slice().sort((a, b) => voiceScore(b) - voiceScore(a))[0]; }catch(e){ return null; } }
+function voiceLabel(v){ const q = voiceScore(v) >= 10 ? "doğal" : voiceScore(v) >= 4 ? "iyi" : "standart"; return `${v.name} · ${q}`; }
+function renderVoiceSettings(){ try{ let g = document.getElementById("voiceGroup"); if(!g){ const lab = [...document.querySelectorAll("#settingsScreen .settings-label")].find(x => /^Altyazı/.test(x.textContent.trim())); const host = lab ? lab.closest(".settings-group") : null; if(!host) return; g = document.createElement("div"); g.className = "settings-group"; g.id = "voiceGroup"; g.style.display = "block"; host.parentNode.insertBefore(g, host.nextSibling); }
+  const vs = trVoices(), cur = pickTurkishVoice(), pref = voicePref(), r = pref.rate || "normal", ios = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) && "ontouchend" in document;
+  const help = ios ? "Daha doğal ses için: iPhone Ayarlar → Erişilebilirlik → Seslendirme İçeriği → Sesler → Türkçe → <b>Yelda (Gelişmiş)</b> sesini indirin, sonra burada seçin." : "Daha doğal ses için: telefon Ayarlar → Genel yönetim → <b>Metin okuma</b> (Metin okuma çıkışı) → tercih edilen motor <b>Samsung</b> ya da <b>Google</b> → Türkçe ses verisini indirin, sonra burada seçin.";
+  g.innerHTML = `<div class="settings-label">Okuma sesi<br><span style="font-size:12px;font-weight:600;color:var(--ink-soft)">Yönergeleri ve soruları okuyan ses. Uygulama cihazdaki en doğal Türkçe sesi kendisi seçer; isterseniz değiştirin.</span></div>
+    ${vs.length ? `<div style="display:flex;gap:8px;margin-top:10px;align-items:center"><select id="voiceSel" style="flex:1;min-width:0;padding:10px 8px;border-radius:12px;border:1.5px solid var(--line,#DDE6EE);font:inherit;font-size:16px;font-weight:700;background:#fff;text-overflow:ellipsis">${vs.map(v => `<option value="${escHTML(v.name)}"${cur && v.name === cur.name ? " selected" : ""}>${escHTML(voiceLabel(v))}</option>`).join("")}</select><button type="button" id="voiceTry" style="flex:0 0 auto;padding:10px 16px;border-radius:12px;font:inherit;font-weight:800;border:1.5px solid var(--teal,#0F8B85);background:#fff;color:var(--teal-dark,#0B5F5A)">Dinle</button></div>` : `<div style="margin-top:8px;font-weight:700;color:#B4532A">Bu cihazda Türkçe ses bulunamadı; yönergeler altyazıyla gösterilir.</div>`}
+    <div style="display:flex;gap:6px;margin-top:10px">${[["yavas","Yavaş"],["normal","Normal"],["hizli","Hızlı"]].map(([k, t]) => `<button type="button" data-vrate="${k}" style="flex:1;padding:10px 6px;border-radius:12px;font:inherit;font-weight:800;border:1.5px solid ${r === k ? "var(--teal,#0F8B85)" : "var(--line,#DDE6EE)"};background:${r === k ? "var(--teal,#0F8B85)" : "#fff"};color:${r === k ? "#fff" : "var(--ink,#1C2B39)"}">${t}</button>`).join("")}</div>
+    <div style="font-size:12px;font-weight:600;color:var(--ink-soft);margin-top:10px;line-height:1.45">${help}</div>`;
+  const save = (o) => { try{ localStorage.setItem(VOICE_KEY, JSON.stringify(Object.assign(voicePref(), o))); }catch(e){} _trVoice = pickTurkishVoice(); };
+  const sel = g.querySelector("#voiceSel"); if(sel) sel.onchange = () => { save({ name: sel.value }); speakText("Merhaba, ben Zihni. Hadi birlikte çalışalım!"); };
+  const tr = g.querySelector("#voiceTry"); if(tr) tr.onclick = () => speakText("Merhaba, ben Zihni. Hadi birlikte çalışalım!");
+  g.querySelectorAll("[data-vrate]").forEach(b => b.onclick = () => { save({ rate: b.dataset.vrate }); renderVoiceSettings(); speakText("Bu hızla okuyacağım."); });
+}catch(e){} }
+try{ if(window.speechSynthesis) speechSynthesis.onvoiceschanged = () => { _trVoice = pickTurkishVoice(); try{ if(document.getElementById("voiceGroup")) renderVoiceSettings(); }catch(e){} }; }catch(e){}
+(function voiceSettingsHook(){ const tryIt = () => { try{ renderVoiceSettings(); }catch(e){} }; setTimeout(tryIt, 600); setTimeout(tryIt, 3000); try{ new MutationObserver(() => { const sc = document.getElementById("settingsScreen"); if(sc && sc.style.display !== "none" && !document.getElementById("voiceGroup")) tryIt(); }).observe(document.body, { attributes: true, subtree: true, attributeFilter: ["style"] }); }catch(e){} })();
 function _ttsSpeak(u){ try{ const busy = speechSynthesis.speaking || speechSynthesis.pending; if(busy) speechSynthesis.cancel(); try{ speechSynthesis.resume(); }catch(e){}
 if(busy) setTimeout(() => { try{ speechSynthesis.speak(u); }catch(e){} }, 120); else speechSynthesis.speak(u); }catch(e){} }
 function speakText(t, opts){
@@ -14555,7 +14568,7 @@ const u = new SpeechSynthesisUtterance(t);
 u.onstart = () => { if(_ttsMissed && _ttsMissed.t === t) _ttsMissed = null; };   // gerçekten çaldıysa tekrar okunmasın
 u.onerror = () => showCaption(t);
 u.lang = "tr-TR";
-u.rate = (opts && opts.rate) || 0.85; u.pitch = (opts && opts.pitch) || 1.0;
+u.rate = ((opts && opts.rate) || 0.85) * voiceRateMul(); u.pitch = (opts && opts.pitch) || 1.0;
 _trVoice = _trVoice || pickTurkishVoice();
 if(_trVoice) u.voice = _trVoice;
 _ttsSpeak(u);
