@@ -8920,7 +8920,7 @@ el.innerHTML = `<div class="mola-card"><div style="width:90px;height:90px;margin
 <div class="mola-list"><button type="button" data-po="go"><span>🧭</span>Şimdi oyna</button><button type="button" data-po="later"><span>⏰</span>Sonra</button></div></div>`;
 el.style.display = "flex"; el.querySelector('[data-po="go"]').onclick = () => { el.style.display = "none"; placeStart(name); }; el.querySelector('[data-po="later"]').onclick = () => { el.style.display = "none"; }; }
 function placeStart(name){ pauseTour(); let prof = null; try{ prof = getPlayerLevel(name); }catch(e){} const base = (prof || readingLevel) === "pre" ? 1 : 3;
-placeRun = { name, base, di:0, step: base, dir:0, hits:0, n:0, visits:0, res:{}, items:0, warmDone:{} };
+placeRun = { name, base, di:0, step: base, dir:0, hits:0, n:0, visits:0, res:{}, items:0, warmDone:{}, order: PLACE_DOMS.map((_, i) => i), st:{} };
 let el = document.getElementById("placeScreen"); if(!el){ el = document.createElement("div"); el.id = "placeScreen"; document.body.appendChild(el); }
 el.style.display = "flex"; el.innerHTML = `<div class="adv-wrap" style="text-align:center"><div style="width:110px;height:110px;margin:20px auto 6px">${zihniSVG("happy")}</div><div class="mola-h">Zihni ile değerlendirme turu!</div><div class="mola-s">On küçük oyun var. Elinden geldiğince dikkatli oyna, acele etmene gerek yok.</div><div class="mola-list" style="max-width:300px;margin:0 auto"><button type="button" id="placeGo" class="place-cta"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M10 8.5v7l5.5-3.5z" fill="currentColor"></path></svg>Başla</button></div></div>`;
 speakText("Zihni ile değerlendirme turuna hazır mısın?"); document.getElementById("placeGo").onclick = placeNext; placeExitBtn(); }
@@ -8929,21 +8929,26 @@ function placeNextStart(R){ const v = Object.values(R.res || {}).filter(x => typ
 function placeExitBtn(){ const el = document.getElementById("placeScreen"); let x = document.getElementById("placeX"); if(x){ x.style.display = "flex"; return; } x = document.createElement("button"); x.id = "placeX"; x.type = "button"; x.className = "place-x mola-x"; x.setAttribute("aria-label", "Değerlendirme turundan çık"); x.textContent = "✕";
 x.onclick = async () => { if(!await zaConfirm("Değerlendirme turundan çıkılsın mı? Sonuçlar kaydedilmez; turu daha sonra yeniden başlatabilirsiniz.")) return; placeRun = null; el.style.display = "none"; x.style.display = "none"; try{ speechSynthesis.cancel(); }catch(e){} try{ if(document.getElementById("islandScreen").style.display === "flex") showIslandMap(); }catch(e){} };
 document.body.appendChild(x); }
-function placeNext(){ const R = placeRun; if(!R) return; if(R.di >= PLACE_DOMS.length) return placeFinish(); setTimeout(placeExitBtn, 0);
+/* KURAL (Değerlendirme turu, yapı): alanlar dönüşümlü sorulur — bir alanda en çok 2 soru (bir tur) arka arkaya gelir, sonra sıradaki alana geçilir; tüm alanlar (kategoriler) tur tur ölçülür. Hızlı iniş: başlangıçta 0/2 ise iki basamak birden inilir; inişteyken ya da en kolay basamakta ilk soru da yanlışsa ikinci soru sorulmadan alan bitirilir/iner (en kolayda bile yapamayan çocuğa aynı görev üst üste verilmez); alan başına en çok 4 tur. */
+function placeSaveDom(R){ R.st[R.di] = { step: R.step, dir: R.dir, visits: R.visits }; }
+function placeLoadDom(R, i){ R.di = i; const s0 = R.st[i]; if(s0){ R.step = s0.step; R.dir = s0.dir; R.visits = s0.visits; } else { R.step = placeNextStart(R); R.dir = 0; R.visits = 0; } R.n = 0; R.hits = 0; }
+function placeRotate(R, finished){ if(!R.order){ if(finished){ R.di++; R.step = placeNextStart(R); R.dir = 0; R.visits = 0; } return; } let pos = R.order.indexOf(R.di); if(pos < 0){ R.order = PLACE_DOMS.map((_, i) => i).filter(i => R.res[PLACE_DOMS[i].k] == null); pos = Math.max(0, R.order.indexOf(R.di)); } if(finished){ R.order = R.order.filter(i => i !== R.di); delete R.st[R.di]; if(!R.order.length){ R.di = PLACE_DOMS.length; return; } placeLoadDom(R, R.order[pos % R.order.length]); } else { placeSaveDom(R); placeLoadDom(R, R.order[(pos + 1) % R.order.length]); } }
+function placeNext(){ const R = placeRun; if(!R) return; if(R.di >= PLACE_DOMS.length || (R.order && !R.order.length)) return placeFinish(); setTimeout(placeExitBtn, 0);
 const d = PLACE_DOMS[R.di]; R.items++; const myItem = R.item = (R.item || 0) + 1;
-const warm = !R.warmDone[d.k] && R.n === 0 && R.visits === 0 && (R.di === 0 || d.kind === "cups" || d.kind === "listen"); const TT = warm ? 0 : R.step; const pre = TT < 3; const el = document.getElementById("placeScreen");
-const head = `${warm ? `<div class="qz-warm" style="margin-top:calc(8px + env(safe-area-inset-top))">${icI("sprout", 15, "#1B7A3D")} Isınma</div>` : ""}<div class="place-top"><div class="place-dots">${PLACE_DOMS.map((_, i) => `<span class="${i < R.di ? "done" : i === R.di ? "cur" : ""}"></span>`).join("")}</div></div>`;
+const warm = !R.warmDone[d.k] && R.n === 0 && R.visits === 0 && (R.items === 1 || d.kind === "cups" || d.kind === "listen"); const TT = warm ? 0 : R.step; const pre = TT < 3; const el = document.getElementById("placeScreen");
+const head = `${warm ? `<div class="qz-warm" style="margin-top:calc(8px + env(safe-area-inset-top))">${icI("sprout", 15, "#1B7A3D")} Isınma</div>` : ""}<div class="place-top"><div class="place-dots">${PLACE_DOMS.map((dd, i) => `<span class="${R.res[dd.k] != null ? "done" : i === R.di ? "cur" : ""}"></span>`).join("")}</div></div>`;
 const answer = (ok) => { if(placeRun !== R || R.item !== myItem || R.answered === myItem) return; R.answered = myItem;
   if(warm){ R.warmDone[d.k] = true; gameSfx(ok ? "correct" : "pop"); return setTimeout(placeNext, 450); }
-  R.n++; if(ok) R.hits++; gameSfx(ok ? "correct" : "pop"); if(R.n < 2) return setTimeout(placeNext, 450);
+  R.n++; if(ok) R.hits++; gameSfx(ok ? "correct" : "pop"); if(R.n < 2){ if(!ok && (R.dir < 0 || R.step <= 0)) R.n = 2; /* inişte ya da en kolayda ilk soru da yanlış: ikinci soru sorulmaz */ else return setTimeout(placeNext, 450); }
   const h = R.hits; R.n = 0; R.hits = 0; R.visits++; let done = false, res = R.step;
   /* KURAL (Değerlendirme turu): gerçek uyarlama — her alanda 2/2 doğru bir basamak yukarı, 0/2 bir basamak aşağı; okul sonrası ile okul öncesi basamakları arasında serbestçe geçilir
      (ör. görsel bellekte 5 → 4 → 3 → 2 resme kadar iner); 1/2 ya da yön değişimi olunca o basamakta durulur; basamak sayısı sınırlı değildir, yalnızca güvenlik için alan başına en çok 6 tur */
-  if(h === 2){ if(R.dir < 0 || R.step >= PLACE_STEPS - 1 || R.visits >= 6) done = true; else { R.dir = 1; R.step++; } }
-  else if(h === 0){ if(R.dir > 0){ done = true; res = R.step - 1; } else if(R.step <= 0){ done = true; res = 0; } else if(R.visits >= 6){ done = true; res = Math.max(0, R.step - 1); } else { R.dir = -1; R.step--; } }
+  if(h === 2){ if(R.dir < 0 || R.step >= PLACE_STEPS - 1 || R.visits >= 4) done = true; else { R.dir = 1; R.step++; } }
+  else if(h === 0){ if(R.dir > 0){ done = true; res = R.step - 1; } else if(R.step <= 0){ done = true; res = 0; } else if(R.visits >= 4){ done = true; res = Math.max(0, R.step - 1); } else { const jump = (R.dir === 0 && R.step >= 2) ? 2 : 1; R.dir = -1; R.step -= jump; } }
   else done = true; /* 1/2: bu basamak */
-  if(done){ R.res[d.k] = Math.max(0, Math.min(PLACE_STEPS - 1, res)); R.di++; R.step = placeNextStart(R); R.dir = 0; R.visits = 0; return setTimeout(placeNext, 550); }
-  setTimeout(placeNext, 450); };
+  if(done) R.res[d.k] = Math.max(0, Math.min(PLACE_STEPS - 1, res));
+  placeRotate(R, done); setTimeout(placeNext, done ? 550 : 450); };
+R._answer = answer;   /* test kancası (otomatik denetim) */
 if(d.kind === "qz"){ const tr = placeQz(d.q, TT, R.name); R.cur = tr; const t0 = performance.now(), lim = d.lim ? d.lim[pre ? 0 : 1] : null;
 const cell = Math.min(tr.cell || 104, (window.innerWidth - 60) / placeOptCols(tr.opts.length));   /* tablette büyütmeyi sayfa ölçeği (tabUi) yapar */
 el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q">${tr.prompt || ""}</div>${tr.say && tr.replay ? `<button type="button" class="qz-replay" id="placeRep">🔊 Bir daha dinle</button>` : ""}<div class="place-stim"><div class="ps-in">${tr.stim || ""}</div></div>
@@ -13574,7 +13579,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.26-b";
+const APP_VERSION = "2026.10.26-c";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
