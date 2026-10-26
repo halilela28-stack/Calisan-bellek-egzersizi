@@ -7382,7 +7382,7 @@ function sayTask(t, rate){
 try{
 if(captionOn() || !ttsUsable()) showCaption(t);
 if(!("speechSynthesis" in window)) return;
-const u = new SpeechSynthesisUtterance(t); u.lang = "tr-TR"; u.rate = (rate || 0.85) * voiceRateMul(); u.pitch = 1.0;
+const u = new SpeechSynthesisUtterance(ttsPrep(t).join(" ")); u.lang = "tr-TR"; u.rate = (rate || 0.85) * voiceRateMul(); u.pitch = voicePitch(1.0);
 _trVoice = _trVoice || pickTurkishVoice(); if(_trVoice) u.voice = _trVoice; u.onerror = () => showCaption(t); _ttsSpeak(u);
 }catch(e){}
 }
@@ -13628,7 +13628,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.26-u";
+const APP_VERSION = "2026.10.26-w";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -14536,23 +14536,59 @@ else speakText(childInstructionText());
 let _trVoice = null;
 /* KURAL (okuma sesi): uygulama cihazdaki en doğal Türkçe sesi kendiliğinden seçer; Ayarlar > Okuma sesi'nden ses ve hız elle seçilebilir, seçim saklanır; seçilen ses cihazda yoksa en iyisine döner */
 const VOICE_KEY = "wm_voice_v1";
+const VOICE_SAMPLES = ["Ekranda şekiller var. Soldan sağa, satır satır her şeklin adını hızlıca söyle.", "Merhaba, ben Zihni! Bugün birlikte oynayalım mı?", "Zihni, ekmek, kırmızı, toprak, çiçek, kalem.", "Sana bir durum anlatacağım. Sen böyle bir durumda ne yaparsın? Anlat.", "Harika! Yeni bir yıldız kazandın!"];
 function voicePref(){ try{ return JSON.parse(localStorage.getItem(VOICE_KEY) || "{}") || {}; }catch(e){ return {}; } }
-function voiceRateMul(){ const r = voicePref().rate; return r === "yavas" ? 0.86 : r === "hizli" ? 1.14 : 1; }
+function voiceRateMul(){ const p = voicePref(); if(typeof p.rateV === "number") return p.rateV; const r = p.rate; return r === "yavas" ? 0.86 : r === "hizli" ? 1.14 : 1; }
+function voicePitch(base){ const p = voicePref(); return Math.max(0.5, Math.min(2, (base || 1) * (typeof p.pitchV === "number" ? p.pitchV : 1))); }
+/* KURAL (okuma sesi ince ayarı): okumadan önce metin hazırlanır — kullanıcının okunuş düzeltmeleri uygulanır, tırnak/simgeler okunmaz, "…" ve "·" kısa duraklamaya döner; "cümle arası duraklama" açıksa her cümle ayrı okunur */
+const TTS_BASE_FIX = [];
+/* İsteğe bağlı: iki ünsüzün yan yana geldiği hece sınırına (Zih|ni, ek|mek) küçük bir ayırıcı konur; tek ünsüzlü geçişlere (me|ra|ba) dokunulmaz */
+function ttsSyllableSoften(x, sep){ const V = "aeıioöuüâîûAEIİOÖUÜÂÎÛ"; return x.replace(/[A-Za-zÇĞİÖŞÜçğıöşüÂÎÛâîû]{4,}/g, w => { const isV = (ch) => V.indexOf(ch) >= 0; const vi = []; for(let i = 0; i < w.length; i++) if(isV(w[i])) vi.push(i); if(vi.length < 2) return w; const cut = []; for(let k = 0; k + 1 < vi.length; k++){ const gap = vi[k + 1] - vi[k] - 1; if(gap >= 2) cut.push(vi[k + 1] - 1); } if(!cut.length) return w; let out = ""; for(let i = 0; i < w.length; i++){ if(cut.includes(i)) out += sep; out += w[i]; } return out; }); }
+function ttsPrep(t){ let x = String(t || ""); try{ const fx = (voicePref().fixes || []).concat(TTS_BASE_FIX); fx.forEach(f => { if(!f || !f.a) return; const esc = f.a.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); const re = new RegExp("(^|[^\\p{L}])(" + esc + ")(?=$|[^\\p{L}])", "giu"); x = x.replace(re, (m, pre) => pre + (f.b || "")); }); }catch(e){}
+  x = x.replace(/[“”"«»„]/g, "").replace(/…/g, ". ").replace(/\s·\s/g, ", ").replace(/\s+/g, " ").trim();
+  if(voicePref().syl) x = ttsSyllableSoften(x, voicePref().sylSep === "space" ? " " : "-");
+  if(!voicePref().pause) return [x];
+  const parts = x.replace(/([.!?])\s+/g, "$1\n").split("\n").map(y => y.trim()).filter(Boolean); return parts.length ? parts : [x]; }   /* geriye bakan regex kullanılmaz (eski iPhone'larda betiği çökertir) */
 function trVoices(){ try{ return speechSynthesis.getVoices().filter(v => /^tr/i.test(v.lang)); }catch(e){ return []; } }
 function voiceScore(v){ return (/(premium|enhanced|neural|natural|gelişmiş|geliştirilmiş|yüksek|improved|superior)/i.test(v.name) ? 10 : 0) + (/samsung/i.test(v.name) ? 6 : 0) + (/google/i.test(v.name) ? 4 : 0) + (/yelda|emel|filiz|seda|ahmet/i.test(v.name) ? 3 : 0) + (/compact|kompakt/i.test(v.name) ? -3 : 0) + (v.localService ? 1 : 0); }
 function pickTurkishVoice(){ try{ const vs = trVoices(); if(!vs.length) return null; const want = voicePref().name; if(want){ const f = vs.find(v => v.name === want); if(f) return f; } return vs.slice().sort((a, b) => voiceScore(b) - voiceScore(a))[0]; }catch(e){ return null; } }
 function voiceLabel(v){ const q = voiceScore(v) >= 10 ? "doğal" : voiceScore(v) >= 4 ? "iyi" : "standart"; return `${v.name} · ${q}`; }
-function renderVoiceSettings(){ try{ let g = document.getElementById("voiceGroup"); if(!g){ const lab = [...document.querySelectorAll("#settingsScreen .settings-label")].find(x => /^Altyazı/.test(x.textContent.trim())); const host = lab ? lab.closest(".settings-group") : null; if(!host) return; g = document.createElement("div"); g.className = "settings-group"; g.id = "voiceGroup"; g.style.display = "block"; host.parentNode.insertBefore(g, host.nextSibling); }
+function renderVoiceSettings(){ try{ let g = document.getElementById("voiceGroup"); if(!g){ const lab = [...document.querySelectorAll("#settingsScreen .settings-label")].find(x => /^Altyazı/.test(x.textContent.trim())); const host = lab ? lab.closest(".settings-group") : null; if(!host) return; g = document.createElement("div"); g.className = "settings-group"; g.id = "voiceGroup"; g.style.display = "block"; g.style.minWidth = "0"; g.style.overflow = "hidden"; host.parentNode.insertBefore(g, host.nextSibling); }
   const vs = trVoices(), cur = pickTurkishVoice(), pref = voicePref(), r = pref.rate || "normal", ios = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) && "ontouchend" in document;
   const help = ios ? "Daha doğal ses için: iPhone Ayarlar → Erişilebilirlik → Seslendirme İçeriği → Sesler → Türkçe → <b>Yelda (Gelişmiş)</b> sesini indirin, sonra burada seçin." : "Daha doğal ses için: telefon Ayarlar → Genel yönetim → <b>Metin okuma</b> (Metin okuma çıkışı) → tercih edilen motor <b>Samsung</b> ya da <b>Google</b> → Türkçe ses verisini indirin, sonra burada seçin.";
   g.innerHTML = `<div class="settings-label">Okuma sesi<br><span style="font-size:12px;font-weight:600;color:var(--ink-soft)">Yönergeleri ve soruları okuyan ses. Uygulama cihazdaki en doğal Türkçe sesi kendisi seçer; isterseniz değiştirin.</span></div>
     ${vs.length ? `<div style="display:flex;gap:8px;margin-top:10px;align-items:center"><select id="voiceSel" style="flex:1;min-width:0;padding:10px 8px;border-radius:12px;border:1.5px solid var(--line,#DDE6EE);font:inherit;font-size:16px;font-weight:700;background:#fff;text-overflow:ellipsis">${vs.map(v => `<option value="${escHTML(v.name)}"${cur && v.name === cur.name ? " selected" : ""}>${escHTML(voiceLabel(v))}</option>`).join("")}</select><button type="button" id="voiceTry" style="flex:0 0 auto;padding:10px 16px;border-radius:12px;font:inherit;font-weight:800;border:1.5px solid var(--teal,#0F8B85);background:#fff;color:var(--teal-dark,#0B5F5A)">Dinle</button></div>` : `<div style="margin-top:8px;font-weight:700;color:#B4532A">Bu cihazda Türkçe ses bulunamadı; yönergeler altyazıyla gösterilir.</div>`}
     <div style="display:flex;gap:6px;margin-top:10px">${[["yavas","Yavaş"],["normal","Normal"],["hizli","Hızlı"]].map(([k, t]) => `<button type="button" data-vrate="${k}" style="flex:1;padding:10px 6px;border-radius:12px;font:inherit;font-weight:800;border:1.5px solid ${r === k ? "var(--teal,#0F8B85)" : "var(--line,#DDE6EE)"};background:${r === k ? "var(--teal,#0F8B85)" : "#fff"};color:${r === k ? "#fff" : "var(--ink,#1C2B39)"}">${t}</button>`).join("")}</div>
-    <div style="font-size:12px;font-weight:600;color:var(--ink-soft);margin-top:10px;line-height:1.45">${help}</div>`;
+    <div style="font-size:12px;font-weight:600;color:var(--ink-soft);margin-top:10px;line-height:1.45">${help}</div>
+    <details id="voiceFine" style="margin-top:12px;min-width:0;max-width:100%;overflow:hidden"${window.__vfOpen ? " open" : ""}><summary style="font-weight:800;cursor:pointer">İnce ayar</summary>
+      <div style="margin-top:10px;display:grid;grid-template-columns:minmax(0,1fr);gap:12px;min-width:0">
+        <label style="font-weight:700">Hız: <b id="vRateV">${Math.round(voiceRateMul() * 100)}%</b><input type="range" id="vRate" min="60" max="130" step="2" value="${Math.round(voiceRateMul() * 100)}" style="width:100%"></label>
+        <label style="font-weight:700">Ton (incelik): <b id="vPitchV">${Math.round((pref.pitchV || 1) * 100)}%</b><input type="range" id="vPitch" min="70" max="140" step="2" value="${Math.round((pref.pitchV || 1) * 100)}" style="width:100%"></label>
+        <label style="display:flex;gap:8px;align-items:center;font-weight:700"><input type="checkbox" id="vPause"${pref.pause ? " checked" : ""}> Cümleler arasında kısa duraklama</label>
+        <label style="display:flex;gap:8px;align-items:flex-start;font-weight:700"><input type="checkbox" id="vSyl"${pref.syl ? " checked" : ""} style="margin-top:3px"> <span>Yan yana iki sessiz harfte yavaşla<br><span style="font-size:12px;font-weight:600;color:var(--ink-soft)">"Zihni", "ekmek" gibi kelimelerde hece arasına küçük bir ayrım koyar.</span></span></label>
+        <div style="display:flex;gap:6px;align-items:center;font-size:13px;font-weight:700${pref.syl ? "" : ";opacity:.45;pointer-events:none"}">Ayrım biçimi: ${[["dash","Kısa çizgi"],["space","Boşluk"]].map(([k, t]) => `<button type="button" data-vsep="${k}" style="flex:1;padding:7px 6px;border-radius:10px;font:inherit;font-weight:800;border:1.5px solid ${(pref.sylSep || "dash") === k ? "var(--teal,#0F8B85)" : "var(--line,#DDE6EE)"};background:${(pref.sylSep || "dash") === k ? "var(--teal,#0F8B85)" : "#fff"};color:${(pref.sylSep || "dash") === k ? "#fff" : "var(--ink,#1C2B39)"}">${t}</button>`).join("")}</div>
+        <div style="display:flex;gap:8px"><select id="vSample" style="flex:1;min-width:0;padding:9px 8px;border-radius:12px;border:1.5px solid var(--line,#DDE6EE);font:inherit;font-size:16px;background:#fff">${VOICE_SAMPLES.map((x, i) => `<option value="${i}">${escHTML(x.slice(0, 40))}${x.length > 40 ? "…" : ""}</option>`).join("")}</select><button type="button" id="vSampleGo" style="flex:0 0 auto;padding:9px 14px;border-radius:12px;font:inherit;font-weight:800;border:1.5px solid var(--teal,#0F8B85);background:#fff;color:var(--teal-dark,#0B5F5A)">Dinle</button></div>
+        <div><div style="font-weight:800;margin-bottom:6px">Okunuş düzeltmeleri</div><div style="font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:6px">Yanlış okunan bir kelimeyi, okunmasını istediğiniz biçimde yazın (ör. "Zihni" → "Zih-ni").</div>
+          ${(pref.fixes || []).map((f, i) => `<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><span style="flex:1;font-weight:700">${escHTML(f.a)} → ${escHTML(f.b)}</span><button type="button" data-vfdel="${i}" style="padding:6px 10px;border-radius:10px;border:1.5px solid var(--line,#DDE6EE);background:#fff;font:inherit;font-weight:700">Sil</button></div>`).join("")}
+          <div style="display:flex;gap:6px"><input id="vFixA" placeholder="Yazılışı" style="flex:1;min-width:0;padding:9px;border-radius:10px;border:1.5px solid var(--line,#DDE6EE);font:inherit;font-size:16px"><input id="vFixB" placeholder="Okunuşu" style="flex:1;min-width:0;padding:9px;border-radius:10px;border:1.5px solid var(--line,#DDE6EE);font:inherit;font-size:16px"><button type="button" id="vFixAdd" style="padding:9px 12px;border-radius:10px;border:none;background:var(--teal,#0F8B85);color:#fff;font:inherit;font-weight:800">Ekle</button></div></div>
+        <button type="button" id="vReset" style="padding:9px;border-radius:12px;border:1.5px solid var(--line,#DDE6EE);background:#fff;font:inherit;font-weight:700">Ses ayarlarını sıfırla</button>
+      </div></details>`;
   const save = (o) => { try{ localStorage.setItem(VOICE_KEY, JSON.stringify(Object.assign(voicePref(), o))); }catch(e){} _trVoice = pickTurkishVoice(); };
   const sel = g.querySelector("#voiceSel"); if(sel) sel.onchange = () => { save({ name: sel.value }); speakText("Merhaba, ben Zihni. Hadi birlikte çalışalım!"); };
   const tr = g.querySelector("#voiceTry"); if(tr) tr.onclick = () => speakText("Merhaba, ben Zihni. Hadi birlikte çalışalım!");
-  g.querySelectorAll("[data-vrate]").forEach(b => b.onclick = () => { save({ rate: b.dataset.vrate }); renderVoiceSettings(); speakText("Bu hızla okuyacağım."); });
+  g.querySelectorAll("[data-vrate]").forEach(b => b.onclick = () => { save({ rate: b.dataset.vrate, rateV: b.dataset.vrate === "yavas" ? 0.86 : b.dataset.vrate === "hizli" ? 1.14 : 1 }); renderVoiceSettings(); speakText("Bu hızla okuyacağım."); });
+  const fd = g.querySelector("#voiceFine"); if(fd) fd.ontoggle = () => { window.__vfOpen = fd.open; };
+  const rr = g.querySelector("#vRate"), pp = g.querySelector("#vPitch"), sm = g.querySelector("#vSample");
+  const sample = () => speakText(VOICE_SAMPLES[+(sm ? sm.value : 0)] || VOICE_SAMPLES[0]);
+  if(rr){ rr.oninput = () => { g.querySelector("#vRateV").textContent = rr.value + "%"; }; rr.onchange = () => { const v = +rr.value / 100; save({ rateV: v, rate: v < 0.93 ? "yavas" : v > 1.07 ? "hizli" : "normal" }); sample(); }; }
+  if(pp){ pp.oninput = () => { g.querySelector("#vPitchV").textContent = pp.value + "%"; }; pp.onchange = () => { save({ pitchV: +pp.value / 100 }); sample(); }; }
+  const pz = g.querySelector("#vPause"); if(pz) pz.onchange = () => { save({ pause: pz.checked }); sample(); };
+  const sy = g.querySelector("#vSyl"); if(sy) sy.onchange = () => { save({ syl: sy.checked }); window.__vfOpen = true; renderVoiceSettings(); speakText(VOICE_SAMPLES[2]); };
+  g.querySelectorAll("[data-vsep]").forEach(b => b.onclick = () => { save({ sylSep: b.dataset.vsep }); window.__vfOpen = true; renderVoiceSettings(); speakText(VOICE_SAMPLES[2]); });
+  const sg = g.querySelector("#vSampleGo"); if(sg) sg.onclick = sample;
+  const fa = g.querySelector("#vFixAdd"); if(fa) fa.onclick = () => { const a = (g.querySelector("#vFixA").value || "").trim(), b = (g.querySelector("#vFixB").value || "").trim(); if(!a || !b) return; const fx = (voicePref().fixes || []).filter(f => f.a.toLocaleLowerCase("tr") !== a.toLocaleLowerCase("tr")).concat([{ a, b }]); save({ fixes: fx }); window.__vfOpen = true; renderVoiceSettings(); speakText(a); };
+  g.querySelectorAll("[data-vfdel]").forEach(b => b.onclick = () => { const fx = (voicePref().fixes || []).slice(); fx.splice(+b.dataset.vfdel, 1); save({ fixes: fx }); window.__vfOpen = true; renderVoiceSettings(); });
+  const rs = g.querySelector("#vReset"); if(rs) rs.onclick = () => { try{ localStorage.removeItem(VOICE_KEY); }catch(e){} _trVoice = pickTurkishVoice(); window.__vfOpen = true; renderVoiceSettings(); };
 }catch(e){} }
 try{ if(window.speechSynthesis) speechSynthesis.onvoiceschanged = () => { _trVoice = pickTurkishVoice(); try{ if(document.getElementById("voiceGroup")) renderVoiceSettings(); }catch(e){} }; }catch(e){}
 (function voiceSettingsHook(){ const tryIt = () => { try{ renderVoiceSettings(); }catch(e){} }; setTimeout(tryIt, 600); setTimeout(tryIt, 3000); try{ new MutationObserver(() => { const sc = document.getElementById("settingsScreen"); if(sc && sc.style.display !== "none" && !document.getElementById("voiceGroup")) tryIt(); }).observe(document.body, { attributes: true, subtree: true, attributeFilter: ["style"] }); }catch(e){} })();
@@ -14564,14 +14600,12 @@ if(!t) return;
 if(speechMuted() || captionOn() || !("speechSynthesis" in window) || !ttsUsable()) showCaption(t);   // altyazı: ayar açıkken, ses kapalıyken ya da Türkçe ses yokken
 if(!("speechSynthesis" in window) || speechMuted()) return;
 if(!_ttsUnlocked) _ttsMissed = { t, opts, at: Date.now() };
-const u = new SpeechSynthesisUtterance(t);
-u.onstart = () => { if(_ttsMissed && _ttsMissed.t === t) _ttsMissed = null; };   // gerçekten çaldıysa tekrar okunmasın
-u.onerror = () => showCaption(t);
-u.lang = "tr-TR";
-u.rate = ((opts && opts.rate) || 0.85) * voiceRateMul(); u.pitch = (opts && opts.pitch) || 1.0;
-_trVoice = _trVoice || pickTurkishVoice();
-if(_trVoice) u.voice = _trVoice;
-_ttsSpeak(u);
+const chunks = ttsPrep(t); _trVoice = _trVoice || pickTurkishVoice();
+chunks.forEach((c, i) => { const u = new SpeechSynthesisUtterance(c);
+  if(i === 0){ u.onstart = () => { if(_ttsMissed && _ttsMissed.t === t) _ttsMissed = null; }; u.onerror = () => showCaption(t); }   // gerçekten çaldıysa tekrar okunmasın
+  u.lang = "tr-TR"; u.rate = ((opts && opts.rate) || 0.85) * voiceRateMul(); u.pitch = voicePitch((opts && opts.pitch) || 1.0);
+  if(_trVoice) u.voice = _trVoice;
+  if(i === 0) _ttsSpeak(u); else setTimeout(() => { try{ speechSynthesis.speak(u); }catch(e){} }, 150); });
 }catch(e){}
 }
 let _ttsUnlocked = false, _ttsMissed = null;
