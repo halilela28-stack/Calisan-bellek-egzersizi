@@ -8976,7 +8976,7 @@ const answer = (ok) => { if(placeRun !== R || R.item !== myItem || R.answered ==
 R._answer = answer;   /* test kancası (otomatik denetim) */
 if(d.kind === "qz"){ const tr = placeQz(d.q, TT, R.name); R.cur = tr; const t0 = performance.now(), lim = d.lim ? d.lim[pre ? 0 : 1] : null;
 const cell = Math.min(tr.cell || 104, (window.innerWidth - 60) / placeOptCols(tr.opts.length));   /* tablette büyütmeyi sayfa ölçeği (tabUi) yapar */
-el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q">${tr.prompt || ""}</div>${tr.say && tr.replay ? `<button type="button" class="qz-replay" id="placeRep">🔊 Bir daha dinle</button>` : ""}<div class="place-stim"><div class="ps-in">${tr.stim || ""}</div></div>
+el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q place-q-z"><span class="pq-z" aria-hidden="true">${zihniSVG("think")}</span><span>${tr.prompt || ""}</span></div>${tr.say && tr.replay ? `<button type="button" class="qz-replay" id="placeRep">🔊 Bir daha dinle</button>` : ""}<div class="place-stim"><div class="ps-in">${tr.stim || ""}</div></div>
 <div class="place-opts" style="grid-template-columns:repeat(${tr.text ? Math.min(tr.opts.length, 2) : placeOptCols(tr.opts.length)}, ${tr.text ? "minmax(0,1fr)" : cell + "px"})">${tr.opts.map((o, i) => `<button type="button" class="wm-pic${tr.text ? " qz-txt" : ""}" data-po-a="${i}" style="${tr.text ? "min-height:64px" : `width:${cell}px;height:${cell}px`};padding:6px">${o}</button>`).join("")}</div></div>`;
 { const st = el.querySelector(".place-stim"), c = st && st.querySelector(".ps-in"); if(c){ const maxH = window.innerHeight * 0.36, f = Math.min(1, st.clientWidth / Math.max(1, c.scrollWidth), maxH / Math.max(1, c.scrollHeight)); if(f < 1){ c.style.transform = `scale(${f})`; c.style.transformOrigin = "center top"; st.style.height = (c.scrollHeight * f) + "px"; } } }
 if(tr.say) speakText(tr.say || String(tr.prompt || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()); const rp = document.getElementById("placeRep"); if(rp) rp.onclick = () => speakText(tr.say || String(tr.prompt || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim());
@@ -8995,7 +8995,7 @@ if(d.kind === "cups"){ /* Göz takip: yıldız bir bardağın altında; bardakla
   return; }
 if(d.kind === "listen"){ /* Sözel bellek: sözcükleri dinler, duyduğu resimlere dokunur */
   const K = [2,3,3,4,5,6][TT], P = placeNamedPool(), words = P.slice(0, K), opts = shuffleArray(words.concat(P.slice(K, K + (pre ? 2 : 3)))); R.cur = { words, opts };
-  el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q">İyi <b>dinle</b>…</div><div style="font-size:72px;text-align:center;margin:40px 0" aria-hidden="true">👂</div></div>`;
+  el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q">İyi <b>dinle</b>…</div><div style="width:120px;height:120px;margin:28px auto" aria-hidden="true">${zihniSVG("listen")}</div></div>`;
   const say = words.map(x => x.n).join(", "); setTimeout(() => { if(placeRun === R && R.item === myItem) speakText(say); }, 300);
   setTimeout(() => { if(!(placeRun === R && R.item === myItem)) return; let found = 0, over = false;
     el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q">Duyduğun <b>resimlere</b> dokun (${K})</div><div class="place-opts" style="grid-template-columns:repeat(3, 96px)">${opts.map((x, i) => `<button type="button" class="wm-pic" data-po-l="${i}" style="width:96px;height:96px;padding:5px">${qzPic(x.src)}</button>`).join("")}</div></div>`;
@@ -13361,13 +13361,17 @@ document.getElementById("readingLevelScreen").style.display = "flex";
 
 
 /* KURAL (Zihni): Zihni kullanıcının ürettiği 3B görsellerle gösterilir (9 poz: happy, cheer, encourage, sleepy, wave, think, point, again, listen); her pozda kafa aynı yere oturtulmuştur, giysiler (7 adet) her pozda kafaya ve gözlere göre yerleşir; görsel yoksa eski çizim yedek olarak kullanılır */
+/* KURAL (Zihni): eski çizim hiçbir yerde kalmaz — görsel paketi yüklenmeden çizilmiş Zihni'ler, paket gelince yeni görselle (giysileriyle) değiştirilir */
+function zihniRefresh(){ try{ if(typeof ZIHNI_IMG === "undefined") return false; document.querySelectorAll("svg.zmascot:not(.zimg)").forEach(sv => { const m = sv.getAttribute("data-mood") || "happy"; const t = document.createElement("div"); t.innerHTML = sv.getAttribute("data-zw") ? zihniSVG(m) : mascotSVG(m); const n = t.firstElementChild; if(n){ n.setAttribute("class", (sv.getAttribute("class") || "zmascot").replace(/\bzmascot\b/, "zmascot zimg")); sv.replaceWith(n); } }); return true; }catch(e){ return false; } }
+(function zihniWait(){ let k = 0; const tick = () => { if(zihniRefresh()){ setTimeout(zihniRefresh, 1500); return; } if(++k < 120) setTimeout(tick, 250); }; setTimeout(tick, 200); })();
 function zihniPose(mood){ try{ if(typeof ZIHNI_IMG === "undefined" || !ZIHNI_IMG || !ZIHNI_IMG.poses) return null; return ZIHNI_IMG.poses[mood] || ZIHNI_IMG.poses.happy || null; }catch(e){ return null; } }
 function mascotSVG(mood){ const p = zihniPose(mood || "happy"); if(!p) return mascotSVGOld(mood); return `<svg class="zmascot zimg" viewBox="0 0 120 120" aria-hidden="true" style="overflow:visible"><g class="bob"><image href="${p.u}" x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" preserveAspectRatio="none"/></g></svg>`; }
 function zihniAcc(id, p){ try{ const A = (typeof ZIHNI_IMG !== "undefined" && ZIHNI_IMG.acc) ? ZIHNI_IMG.acc[id] : null; if(!A) return ACC_SVG[id] || ""; p = p || zihniPose("happy") || {}; const G = { explorer:[76, 32, 0.93], crown:[46, 22, 1], flowers:[64, 27, 0.86], bow:[30, 84, 0.5], scarf:[46, 71, 0], cape:[100, 40, 0] }; let w, x, y;
   if(id === "glasses"){ const cx = p.ex || 60, cy = p.ey || 49; w = Math.max(40, (p.es || 22) * 2.05); const h = w * A.ar; x = cx - w / 2; y = cy - h / 2 - 1; }
   else { const g = G[id] || [50, 30, 1]; w = g[0]; const h = w * A.ar; x = 60 - w / 2; y = g[1] - h * g[2]; }
   return `<image href="${A.u}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${(w * A.ar).toFixed(1)}" preserveAspectRatio="none"/>`; }catch(e){ return ACC_SVG[id] || ""; } }
-function mascotSVGOld(mood){
+function mascotSVGOld(mood){ mood = mood || "happy"; return mascotSVGOldDraw(mood).replace('<svg class="zmascot"', `<svg data-mood="${mood}" class="zmascot"`); }
+function mascotSVGOldDraw(mood){
 mood = mood || "happy";
 const body = "#3DCFC2", shade = "#22AFA3", dark = "#1C2B39";
 const arm = (d, cls) => `<path class="${cls || ""}" d="${d}" fill="none" stroke="${shade}" stroke-width="13" stroke-linecap="round"/><path class="${cls || ""}" d="${d}" fill="none" stroke="${body}" stroke-width="9" stroke-linecap="round"/>`;
@@ -13623,7 +13627,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.26-q";
+const APP_VERSION = "2026.10.26-r";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -14503,7 +14507,10 @@ case "go":      sfxTone(ctx, N.C5, t, 0.1, "triangle", 0.18); sfxTone(ctx, N.G5,
 }
 }catch(e){}
 }
-function gameSfx(kind){ if(typeof gameMode !== "undefined" && gameMode) sfx(kind); }
+function gameSfx(kind){ if(typeof gameMode !== "undefined" && gameMode){ sfx(kind); if(kind === "wrong") zihniAgain(); } }
+/* KURAL: oyun modunda yanlış cevaptan sonra köşede 1,1 sn "Olsun, bir daha!" diyen Zihni çıkar (en çok 3 sn'de bir; dokunmayı engellemez; Sade görünümde ve hareketi azalt ayarında yalnız belirip kaybolur) */
+let _zAgainT = 0; function zihniAgain(){ try{ const now = Date.now(); if(now - _zAgainT < 3000) return; _zAgainT = now; let el = document.getElementById("zAgain"); if(!el){ el = document.createElement("div"); el.id = "zAgain"; el.setAttribute("aria-hidden", "true"); document.body.appendChild(el); } el.innerHTML = `<span class="za-z">${zihniSVG("again")}</span><span class="za-t">Olsun, bir daha!</span>`; el.classList.remove("on"); void el.offsetWidth; el.classList.add("on"); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove("on"), 1100); }catch(e){} }
+(function zihniPoseStyle(){ try{ const st = document.createElement("style"); st.textContent = `.place-q-z{display:flex;align-items:center;justify-content:center;gap:8px}.place-q-z .pq-z{flex:0 0 44px;width:44px;height:44px;display:block}#zAgain{position:fixed;left:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:9500;display:flex;align-items:center;gap:6px;padding:4px 14px 4px 4px;background:#fff;border-radius:999px;box-shadow:0 6px 18px rgba(16,42,67,.18);pointer-events:none;opacity:0;transform:translateY(16px);transition:opacity .2s,transform .2s}#zAgain.on{opacity:1;transform:none}#zAgain .za-z{width:54px;height:54px;display:block}#zAgain .za-t{font-weight:900;color:#0B5F5A;font-size:15px}html.calm #zAgain,@media (prefers-reduced-motion: reduce){#zAgain{transition:none}}`; document.head.appendChild(st); }catch(e){} })();
 
 const SPEECH_MUTE_KEY = "wm_speech_mute_v1";
 function speechMuted(){ try{ return localStorage.getItem(SPEECH_MUTE_KEY) === "1"; }catch(e){ return false; } }
@@ -14929,7 +14936,7 @@ bow:      '<path d="M60 83 L45 74 L45 92 Z" fill="#E5484D"/><path d="M60 83 L75 
 scarf:    '<path d="M27 70 Q60 88 93 70 L94 79 Q60 97 26 79 Z" fill="#FF8A3D"/><path d="M78 82 L84 102 L74 103 L70 85 Z" fill="#FF8A3D"/><path d="M30 74 Q60 90 90 74" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="4 5" opacity=".7"/>'
 };
 function zihniSVG(mood){
-let s = mascotSVG(mood);
+let s = mascotSVG(mood); s = s.replace('<svg ', `<svg data-zw="1" data-mood="${mood || "happy"}" `);
 if(!(currentPlayerName || "").trim()) return s;
 const w = gxGet().worn || {}; const ids = Object.values(w).filter(Boolean);
 if(!ids.length) return s;
@@ -15008,7 +15015,7 @@ const sheet = document.getElementById("closetSheet");
 const draw = () => { const g2 = gxGet();
 document.getElementById("closetPreview").innerHTML = zihniSVG("happy");
 document.getElementById("closetList").innerHTML = ACCS.map(a => { const own = g2.owned.includes(a.id), on = g2.worn[a.slot] === a.id;
-return `<button type="button" class="cl-item${own ? "" : " locked"}${on ? " on" : ""}" data-acc="${a.id}"><svg viewBox="0 -14 120 134" class="cl-ico">${a.slot === "back" ? zihniAcc(a.id) : ""}<ellipse cx="60" cy="47" rx="34" ry="34" fill="#3DCFC2" opacity="${own ? 0.35 : 0.15}"/>${a.slot !== "back" ? zihniAcc(a.id) : ""}</svg><span class="cl-nm">${a.nm}</span><span class="cl-need">${own ? (on ? "Takılı · çıkar" : "Tak") : "🔒 " + a.need}</span></button>`; }).join("");
+return `<button type="button" class="cl-item${own ? "" : " locked"}${on ? " on" : ""}" data-acc="${a.id}"><svg viewBox="0 -14 120 134" class="cl-ico">${a.slot === "back" ? zihniAcc(a.id) : ""}${(() => { const z = zihniPose("happy"); return z ? `<image href="${z.u}" x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" opacity="${own ? 0.4 : 0.18}" preserveAspectRatio="none"/>` : ""; })()}${a.slot !== "back" ? zihniAcc(a.id) : ""}</svg><span class="cl-nm">${a.nm}</span><span class="cl-need">${own ? (on ? "Takılı · çıkar" : "Tak") : "🔒 " + a.need}</span></button>`; }).join("");
 };
 draw(); sheet.style.display = "flex";
 const nin = document.getElementById("mascotNameIn"); nin.value = (gxGet().mname || "");
