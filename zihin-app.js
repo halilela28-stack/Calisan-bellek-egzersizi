@@ -5830,7 +5830,7 @@ if(exercise.isPlan) return exercise.plan();
 if(exercise.isTrail) return exercise.trail();
 if(exercise.isSort) return exercise.sortDeck();
 if(exercise.isFlanker) return exercise.flankerGroups();             // Flanker: 5'li çerçeveli gruplar
-if(exercise.makeGrid) return exercise.makeGrid(rows * cols);
+if(exercise.makeGrid) return touchSpread(exercise.makeGrid(rows * cols), cols, exercise);
 if(exercise.isSeqRows) return exercise.osRows();
 if(exercise.isAuditory) return exercise.audTrials();
 if(exercise.isScatter) return exercise.scatterItems();
@@ -6566,7 +6566,7 @@ wmLater(() => { st.idx++; if(st.idx >= st.seq.length) wmFinish(); else wmSameSho
 function wmSeqRound(){
 const st = wmState;
 st.seq = []; const K = st.pics.length;
-while(st.seq.length < st.len){ const i = Math.floor(Math.random() * K); if(st.seq[st.seq.length-1] !== i) st.seq.push(i); }
+if(st.len <= K){ st.seq = shuffleArray(Array.from({length: K}, (_, i) => i)).slice(0, st.len); } else { while(st.seq.length < st.len){ const i = Math.floor(Math.random() * K); if(st.seq[st.seq.length-1] !== i) st.seq.push(i); } }   /* KURAL: resim sayısı yettikçe dizide her resim bir kez geçer (aynı resim iki kez yanmaz) */
 st.pos = 0; st.tapped = {}; st.nums = {}; st.phase = "show"; st.lit = null; renderWmBoard();
 const on = isPre() ? 850 : 700, off = 300;
 st.seq.forEach((pi, k) => {
@@ -8919,6 +8919,14 @@ function qzBalancePos(trials, exId){ if(!Array.isArray(trials)) return trials; c
 function qzBalanceNum(trials){ if(!Array.isArray(trials)) return trials; const hist = [], use = {}; trials.forEach(t => { try{ if(!t || !Array.isArray(t.opts) || typeof t.ans !== "number" || t.ans < 0) return; const raw = t.opts.map(o => String(o)); if(raw.some(o => /👏/.test(o))) return; const plain = raw.map(o => o.replace(/<[^>]+>/g, "").trim()); if(!plain.every(x => /^\d+$/.test(x))) return; const k = plain.length, a = +plain[t.ans]; if(k < 3) return; const tmpl = (v) => raw[t.ans].replace(new RegExp("(^|>)(\\s*)" + a + "(\\s*)(<|$)"), "$1$2" + v + "$3$4"); use[k] = use[k] || new Array(k).fill(0); let allowed = Array.from({length: k}, (_, i) => i).filter(r => a - r >= 1); if(hist.length >= 2 && hist[hist.length - 1] === hist[hist.length - 2]) allowed = allowed.filter(r => r !== hist[hist.length - 1]); if(!allowed.length) return; const minU = Math.min(...allowed.map(r => use[k][r])); const r = randomItem(allowed.filter(x => use[k][x] === minU)); const vals = []; for(let i = r; i >= 1; i--) vals.push(a - i); vals.push(a); for(let i = 1; vals.length < k; i++) vals.push(a + i); const nopts = vals.map(v => tmpl(v)); if(new Set(nopts).size < k) return;   /* şablon sayıyı değiştiremediyse dokunma */ t.opts = nopts; t.ans = r; use[k][r]++; hist.push(r); }catch(e){} }); return trials; }
 /* sırası anlamlı seçeneklerde (sayı, hece sayısı, terazi yönü) cevap konumu içerikten gelir; aynı cevap üst üste 3. kez gelmesin diye denemelerin sırası değiştirilir (ısınma denemelerine dokunulmaz) */
 function qzBreakRuns(trials, from){ if(!Array.isArray(trials)) return trials; const A = (t) => t && typeof t.ans === "number" ? t.ans : null; for(let i = Math.max(2, from || 0); i < trials.length; i++){ const x = A(trials[i]); if(x == null || x !== A(trials[i-1]) || x !== A(trials[i-2])) continue; for(let j = i + 1; j < trials.length; j++){ const y = A(trials[j]); if(y != null && y !== x && (j + 1 >= trials.length || A(trials[j+1]) !== x || A(trials[j-1]) !== x)){ const tmp = trials[i]; trials[i] = trials[j]; trials[j] = tmp; break; } } } return trials; }
+/* KURAL (diziliş, dokunmalı): hedefler satırlara dengeli dağılır — her satıra düşen hedef sayısı birbirine yakındır (bir satırda yığılmaz, mümkünse boş satır kalmaz); aynı resim yan yana gelmez */
+const TOUCH_SPREAD = new Set(["cat-fruit","cat-cold","cat-living","pairs-touch","touch-card","touch-animal"]);
+function touchSpread(grid, cols, ex){ try{ if(!ex || !ex.isTouch || !TOUCH_SPREAD.has(ex.id) || !Array.isArray(grid) || cols < 2) return grid; const R = Math.ceil(grid.length / cols); if(R < 2) return grid; const tg = grid.filter(x => x && x.go), ot = grid.filter(x => !(x && x.go)); if(!tg.length || !ot.length) return grid;
+  const quota = new Array(R).fill(Math.floor(tg.length / R)); shuffleArray(Array.from({length: R}, (_, i) => i)).slice(0, tg.length % R).forEach(i => quota[i]++);
+  const sk = (x) => x && (x.src || x.k || x.n || JSON.stringify(x));
+  for(let attempt = 0; attempt < 12; attempt++){ const T = shuffleArray(tg.slice()), O = shuffleArray(ot.slice()), out = []; let ok = true;
+    for(let r = 0; r < R; r++){ const w = Math.min(cols, grid.length - r * cols); let q = Math.min(quota[r], w, T.length); const row = T.splice(0, q).concat(O.splice(0, w - q)); while(row.length < w && T.length) row.push(T.shift()); while(row.length < w && O.length) row.push(O.shift()); let best = null; for(let k = 0; k < 8; k++){ const rr = shuffleArray(row.slice()); if(rr.every((x, i) => i === 0 || sk(x) !== sk(rr[i - 1]))){ best = rr; break; } } if(!best){ ok = false; best = row; } out.push(...best); }
+    if(ok || attempt === 11) return out.length === grid.length ? out : grid; } }catch(e){} return grid; }
 let placeRun = null;
 function placePool(){ const C = qzCats(), seen = new Set(), out = []; const add = (arr) => (arr || []).forEach(x => { if(x && x.src && !seen.has(x.src)){ seen.add(x.src); out.push(x); } });
 add(picPool()); ["wild","vehicle","toy","meyve","sebze","clothes","kitchen"].forEach(k => add(C[k] && C[k].items));
@@ -9270,6 +9278,16 @@ html:not(.calm) #board .ch-btn.bad,html:not(.calm) #placeScreen .ch-btn.bad,html
 #finishCard .fc-z{width:70px;height:70px}#finishCard .fc-t{font-weight:900;font-size:22px;color:#0A5F5A}#finishCard .fc-s{display:flex;gap:4px}
 @media (prefers-reduced-motion: reduce){#finishCard{transition:opacity .15s linear;transform:none !important}}
 `; document.head.appendChild(st); }catch(e){} })();
+/* KURAL (diziliş, hızlı tepki): doğru tepki (sol/sağ, renk, şekil…) üst üste en çok 3 kez (iki seçenekli) ya da 2 kez (çok seçenekli) aynı gelir; denemelerin sırası buna göre değiştirilir (ilk deneme yerinde kalır) */
+function chBreakRuns(){ try{ const st = chState, c = CHOICE[currentExercise().id]; if(!st || !Array.isArray(st.trials) || !c || !c.correct) return; const T = st.trials, key = (t) => { try{ const v = c.correct(t, st.cfg); return v == null ? null : String(v); }catch(e){ return null; } }; const vals = new Set(T.map(key).filter(v => v != null)); if(vals.size < 2) return; const lim = vals.size === 2 ? 3 : 2; const cur = [st.ti, st.i, st.idx, st.n].find(v => typeof v === "number"); const from = Math.max(1, (cur || 0) + 1);
+  /* sol–sağ simetrik denemeler (ör. Sayı Stroop): taraf çevrilerek sol/sağ sayısı eşitlenir ve uzun diziler kırılır */
+  const opp = (x) => x === "L" ? "R" : x === "R" ? "L" : x; const flip = (t) => { const L = t.L; t.L = t.R; t.R = L; ["valSide","moreSide","side","ans"].forEach(f => { if(t[f] === "L" || t[f] === "R") t[f] = opp(t[f]); }); };
+  if(T.every(t => t && t.L && t.R)){ const idx = T.map((t, i) => i).filter(i => i >= from); let nl = T.filter(t => key(t) === "L").length, nr = T.filter(t => key(t) === "R").length; for(const i of shuffleArray(idx)){ if(Math.abs(nl - nr) <= 1) break; const k0 = key(T[i]); if((k0 === "L" && nl > nr) || (k0 === "R" && nr > nl)){ flip(T[i]); if(k0 === "L"){ nl--; nr++; } else { nr--; nl++; } } } for(let i = Math.max(from, 3); i < T.length; i++){ const k0 = key(T[i]); if(k0 && k0 === key(T[i-1]) && k0 === key(T[i-2]) && k0 === key(T[i-3])) flip(T[i]); } }
+  const K = T.map(key); const runAt = (i) => { let r = 1; for(let j = i - 1; j >= 0 && K[j] === K[i]; j--) r++; return r; };
+  for(let pass = 0; pass < 8; pass++){ let changed = false; for(let i = from; i < T.length; i++){ if(K[i] == null || runAt(i) <= lim) continue; for(let j = i + 1; j < T.length; j++){ if(K[j] == null || K[j] === K[i]) continue; const ti = T[i]; T[i] = T[j]; T[j] = ti; const ki = K[i]; K[i] = K[j]; K[j] = ki; changed = true; break; } } if(!changed) break; } }catch(e){} }
+/* git–gitme çalışmalarında oturum "dokunma" denemesiyle başlamaz (Bağlamlı Tepki hariç: orada ilk resim tanım gereği hedef olamaz) */
+function chFirstGo(){ try{ const st = chState, id = currentExercise().id, c = CHOICE[id]; if(!st || !Array.isArray(st.trials) || !c || !c.correct || id === "context-go") return; const isNo = (t) => { try{ return c.correct(t, st.cfg) == null; }catch(e){ return false; } }; if(!isNo(st.trials[0])) return; const j = st.trials.findIndex((t, i) => i > 0 && !isNo(t)); if(j > 0){ const tmp = st.trials[0]; st.trials[0] = st.trials[j]; st.trials[j] = tmp; } }catch(e){} }
+(function wrapChStart(){ try{ const _s = chStart; chStart = function(){ try{ if(chState && chState.phase === "idle") chFirstGo(); }catch(e){} const out = _s.apply(this, arguments); chBreakRuns(); return out; }; }catch(e){} })();
 (function wrapMtRender(){ try{ const _r = renderMtBoard; renderMtBoard = function(){ try{ const st = mtState; if(st && (st.kind === "quiz" || st.kind === "wseen" || st.kind === "bag") && !st._balanced && Array.isArray(st.trials)){ const exId = (currentExercise() || {}).id; qzBalancePos(st.trials, exId); if(st.kind === "quiz" && !["syl-touch","sem-decide","absurd-touch","rhyme-touch","sent-verify","arrow-touch","balance"].includes(exId)) qzBalanceNum(st.trials); if(st.kind === "quiz") qzBreakRuns(st.trials, st.warmN || 0); st._balanced = true; } }catch(e){} const out = _r.apply(this, arguments); syncJudgePause(); return out; }; }catch(e){} })();
 (function timerPauseStyle(){ try{ const st = document.createElement("style"); st.textContent = `#timerDisplay.paused{opacity:.45}`; document.head.appendChild(st); }catch(e){} })();
 (function placeVisStyle(){ try{ const st = document.createElement("style"); st.textContent = `
@@ -13594,7 +13612,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.26-e";
+const APP_VERSION = "2026.10.26-h";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
