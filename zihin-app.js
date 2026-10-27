@@ -6920,8 +6920,8 @@ window: () => (isPre() ? [2000, 1700, 1700] : [1600, 1300, 1300])[Math.min(curre
 CHOICE["bear-dragon"] = {
 trials_make: (n) => { const t = Math.min(currentCombo().t, 2), nD = Math.round(n * [0.3, 0.35, 0.4][t]); const who = balancedSeq(n, ["bear","dragon"], 2, [n - nD, nD]); let prev = -1;
   return who.map(w => { const m = pickDifferent(SIMON_MOVES, prev); prev = m; return { m, bear: w === "bear" }; }); },
-stim: (t, sz) => { const st = chState, fb = st && st.phase === "feedback"; const bc = fb ? (st.picked === "go" ? (st.flash === "ok" ? "var(--good)" : "var(--bad)") : (st.flash === "bad" ? "var(--good)" : "#E6ECF2")) : "#E6ECF2";   /* harekete dokunmak = yapmak */
-  return `<div style="display:flex;align-items:center;justify-content:center;gap:3%;width:100%;height:100%;position:relative"><div style="width:42%;height:92%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;pointer-events:none"><img src="${t.bear ? WILD_IMAGES.bear : efImg("ejderha")}" alt="" style="width:92%;height:58%;object-fit:contain"><div style="position:relative;max-width:100%;background:#fff;border:3px solid ${t.bear ? "#B07A3E" : "#3E8E5B"};border-radius:14px;padding:6px 8px;box-sizing:border-box;text-align:center"><span style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-bottom:10px solid ${t.bear ? "#B07A3E" : "#3E8E5B"}"></span><b style="font-size:${Math.max(12, Math.round(sz * 0.068))}px;line-height:1.15;color:#1F2A33">“${cap(MOVES[t.m])}!”</b></div></div><div data-ch="go" style="width:52%;height:90%;border-radius:16px;background:#F2F5F8;border:4px solid ${bc};box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer${fb && st.flash === "bad" && st.picked === "go" ? ";box-shadow:0 0 0 4px rgba(229,72,77,.35)" : ""}"><img src="${MOVE_IMAGES[t.m]}" alt="" style="width:86%;height:74%;object-fit:contain;pointer-events:none"><span style="font-size:12px;font-weight:800;color:#5B6B78;pointer-events:none">dokun = yap</span></div>${chSideNote(fb && st.flash === "bad" ? (t.bear ? "Ayı söyledi — yapmalıydın" : "Ejderha söyledi — yapmamalıydın") : "")}</div>`; },
+stim: (t, sz) => { const st = chState, fb = st && st.phase === "feedback"; const bc = fb ? (st.picked === "go" ? (st.flash === "ok" ? "var(--good)" : "var(--bad)") : (st.flash === "bad" ? "var(--good)" : "#E6ECF2")) : "#E6ECF2";   
+  return `<div style="display:flex;align-items:center;justify-content:center;gap:3%;width:100%;height:100%;position:relative"><div style="width:42%;height:92%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;pointer-events:none"><img src="${t.bear ? WILD_IMAGES.bear : efImg("ejderha")}" alt="" style="width:92%;height:58%;object-fit:contain"><div style="position:relative;max-width:100%;background:#fff;border:3px solid ${t.bear ? "#B07A3E" : "#3E8E5B"};border-radius:14px;padding:6px 8px;box-sizing:border-box;text-align:center"><span style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-bottom:10px solid ${t.bear ? "#B07A3E" : "#3E8E5B"}"></span><b style="font-size:${Math.max(12, Math.round(sz * 0.068))}px;line-height:1.15;color:#1F2A33">“${cap(MOVES[t.m])}!”</b></div></div><div data-ch="go" style="width:52%;height:90%;border-radius:16px;background:#F2F5F8;border:4px solid ${bc};box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer${fb && st.flash === "bad" && st.picked === "go" ? ";box-shadow:0 0 0 4px rgba(229,72,77,.35)" : ""}"><img src="${MOVE_IMAGES[t.m]}" alt="" style="width:86%;height:74%;object-fit:contain;pointer-events:none"></div>${chSideNote(fb && st.flash === "bad" ? (t.bear ? "Ayı söyledi — yapmalıydın" : "Ejderha söyledi — yapmamalıydın") : "")}</div>`; },
 buttons: () => [], tapStim: true,
 correct: (t) => t.bear ? "go" : null,
 window: () => (isPre() ? [2200, 2000, 1800] : [1800, 1600, 1400])[Math.min(currentCombo().t, 2)], gap: 320, cols: 1, wideStim: true,
@@ -9081,7 +9081,7 @@ const support = n >= 5 && days >= 14 && R < 0.4 && !up;
 return { c, n, stars, crowns, st, support, R, lvlNow, lvlBy, tierNow }; }); }
 const GR_TXT = { guclu:["Güçlü yön","t2"], gelisiyor:["Gelişiyor","t1"], pratik:["Pratik sürüyor","t0"], az:["Henüz az veri","tz"] };
 /* KURAL (Gelişim haritası): son güncellemelere göre — her alanda şu anki kademe ve düzey (kategori kademesi + son kayıt), ilerleme okul öncesi/okul sonrası tek ölçekte hesaplanır,
-   "Süren çalışmalar" (uzman ödevleri, açık gelişim ödevleri, bugünün oturumu, bekleyen kademe önerileri) ve son Değerlendirme turu tablosu (tarih + o günden bu yana değişen alanlar) gösterilir */
+   "Süren çalışmalar" (uzman ödevleri, açık gelişim ödevleri, bugünün etkinlikleri, bekleyen kademe önerileri) ve son Değerlendirme turu tablosu (tarih + o günden bu yana değişen alanlar) gösterilir */
 /* KURAL (Gelişim haritası görünümü): bölüm başlıkları dokununca açılır/kapanır; emoji yerine uygulamanın renk paletinde çizgi simgeler; zemin ve kartlar ana sayfayla aynı renk düzeninde */
 function grIc(k, col, bg){ return `<span class="gr-ic" style="background:${bg};color:${col}">${icI(k, 18, col)}</span>`; }
 const GR_OPEN = new Set();
@@ -9098,7 +9098,7 @@ function growthOngoingHtml(nm){ try{ const rows = []; const lv = famLvl();
   let dev = null; try{ dev = devPlanGet(nm, lv); }catch(e){} const open = dev && Array.isArray(dev.items) ? dev.items.filter(it => exerciseById(it.id)) : [];
   if(open.length) rows.push(`<div class="gr-row"><div><b>Önerilen çalışmalar</b><span>${open.map(it => escHTML(exerciseById(it.id).label) + " (" + escHTML((CATEGORIES.find(c => c.id === it.cat) || {}).label || "") + ")").join(", ")}</span></div><em class="t1">${open.length} açık</em></div>`);
   if(prog && prog.target){ const tc = CATEGORIES.find(c => c.id === prog.target) || OKUL_SKILLS.find(c => c.id === prog.target); if(tc) rows.push(`<div class="gr-row"><div><b>Program hedefi</b><span>${escHTML(tc.label)}${(prog.days || []).length ? " · " + prog.days.map(d => DAY_SHORT[d]).join(", ") : ""}</span></div><em class="t0">Program</em></div>`); }
-  else { try{ const tg = typeof famTarget === "function" ? famTarget() : null; const tc = tg && (CATEGORIES.find(c => c.id === tg) || OKUL_SKILLS.find(c => c.id === tg)); if(tc && appMode === "aile") rows.push(`<div class="gr-row"><div><b>Bugünün oturumu</b><span>Hedef alan: ${escHTML(tc.label)}</span></div><em class="t0">Bu hafta</em></div>`); }catch(e){} }
+  else { try{ const tg = typeof famTarget === "function" ? famTarget() : null; const tc = tg && (CATEGORIES.find(c => c.id === tg) || OKUL_SKILLS.find(c => c.id === tg)); if(tc && appMode === "aile") rows.push(`<div class="gr-row"><div><b>Bugünün etkinlikleri</b><span>Hedef alan: ${escHTML(tc.label)}</span></div><em class="t0">Bu hafta</em></div>`); }catch(e){} }
   const pend = (typeof catPendingList === "function" ? catPendingList(nm) : []).map(p => { const c = CATEGORIES.find(x => x.id === p.catId); return c ? escHTML(c.label) + " → " + (p.target === "pre" ? "Okul Öncesi" : "Okul Sonrası") : ""; }).filter(Boolean);
   if(pend.length) rows.push(`<div class="gr-row"><div><b>Okul dönemi önerisi bekliyor</b><span>${pend.join(", ")}</span></div><em class="t1">Karar bekliyor</em></div>`);
   return grSec("suren", "blocks", "#5A2D8C", "#EEE6FA", "Süren çalışmalar", rows.length ? `<div class="gr-list">${rows.join("")}</div>` : `<div class="fam-sub" style="font-weight:600;margin:4px 0">Şu an açık ödev ya da program yok.</div>`); }catch(e){ return ""; } }
@@ -9112,7 +9112,7 @@ el.innerHTML = `<div class="adv-wrap"><div class="adv-top"><button type="button"
 ${sup.length ? `<div class="gr-note"><b>Bir öneri:</b> ${sup.map(x => x.c.label).join(", ")} alanında bir süredir zorlanma görünüyor. Bu bir değerlendirme ya da tanı değildir; çocuklar farklı hızlarda gelişir. İsterseniz bu özeti bir çocuk gelişim uzmanı, özel eğitim öğretmeni ya da dil ve konuşma terapistiyle paylaşabilirsiniz.${linked ? ` <i>Uzmanınız bu sonuçları görebiliyor.</i>` : `<button type="button" class="fam-cta ghost" data-gr="link" style="margin-top:8px">Uzmana bağlan</button>`}</div>` : ""}
 ${grSec("alanlar", "pin", "#0A847E", "#DDF3F0", "Alanlar · şu anki çalışma düzeyi", `<div class="gr-list">${D.map(x => `<div class="gr-row"><div><b>${x.c.label}</b><span>${x.lvlNow ? `<i class="gr-lv ${x.lvlNow}">${x.lvlNow === "pre" ? "Okul Öncesi" : "Okul Sonrası"}${x.tierNow != null ? " · " + TIERS[x.tierNow].label.replace(" Düzey", "") : ""}</i>` : ""}${x.n ? `${x.n} çalışma` : ""}${x.n && x.stars ? " · " : ""}${x.stars ? `${x.stars} ${icI("star", 13, "#E0A100")}` : ""}${x.crowns ? ` · ${x.crowns} taç` : ""}</span></div><em class="${GR_TXT[x.st][1]}">${GR_TXT[x.st][0]}</em></div>`).join("")}</div>`)}
 ${growthOngoingHtml(nm)}
-  ${(() => { const O = growthData(nm, OKUL_SKILLS).filter(x => famExIds(x.c.id).length >= 3); return grSec("okul", "book", "#9A6B00", "#FFF1D6", "Okul becerileri", `<div class="gr-list">${O.map(x => `<div class="gr-row"><div><b>${x.c.label}</b><span>${x.n ? `${x.n} çalışma` : ""}${x.n && x.stars ? " · " : ""}${x.stars ? `${x.stars} ${icI("star", 13, "#E0A100")}` : ""}</span></div><em class="${GR_TXT[x.st][1]}">${GR_TXT[x.st][0]}</em></div>`).join("")}</div><div class="fam-sub" style="font-weight:600;margin:6px 0">Bir okul becerisini günlük oturumun hedefi yapmak için “Bugünün oturumu” ekranında hedef alanı değiştirin.</div>`); })()}
+  ${(() => { const O = growthData(nm, OKUL_SKILLS).filter(x => famExIds(x.c.id).length >= 3); return grSec("okul", "book", "#9A6B00", "#FFF1D6", "Okul becerileri", `<div class="gr-list">${O.map(x => `<div class="gr-row"><div><b>${x.c.label}</b><span>${x.n ? `${x.n} çalışma` : ""}${x.n && x.stars ? " · " : ""}${x.stars ? `${x.stars} ${icI("star", 13, "#E0A100")}` : ""}</span></div><em class="${GR_TXT[x.st][1]}">${GR_TXT[x.st][0]}</em></div>`).join("")}</div><div class="fam-sub" style="font-weight:600;margin:6px 0">Bir okul becerisini günlük oturumun hedefi yapmak için “Bugünün etkinlikleri” ekranında hedef alanı değiştirin.</div>`); })()}
 ${P ? grSec("degerlendirme", "clip", "#1E5FA8", "#DDF1FF", `Son değerlendirme turu · ${new Date(P.t).toLocaleDateString("tr-TR")}`, `${placeTableHtml(P.dom)}<div class="fam-sub" style="font-weight:600;margin:6px 0 4px">${growthPlaceCompare(nm, P)}</div>`) : grSec("degerlendirme", "clip", "#1E5FA8", "#DDF1FF", "Değerlendirme turu", `<div class="fam-sub" style="font-weight:600;margin:4px 0">Henüz yapılmadı. Ana sayfadaki “Değerlendirme turu” ile her alanın başlangıç okul dönemi ve düzeyi belirlenir.</div>`)}
 <div class="fam-sub" style="font-weight:600;margin:10px 0 20px">Bu sayfa çocuğunuzun uygulamadaki çalışmalarını özetler; başka çocuklarla karşılaştırma yapmaz ve tanı koymaz.</div></div>`;
 el.style.display = "flex"; el.scrollTop = 0;
@@ -9169,7 +9169,7 @@ const sideButtons = () => [{ id:"L", html:'<span style="font-size:30px;font-weig
 /* KURAL (ana sayfalar): Uzman ve Aile sayfasının en üstünde sayfa adı ("Uzman Etkinlik Sayfası" / "Aile Etkinlik Sayfası", uygulamanın başlık yazı tipiyle); dört kısayol kartı iki satırda yan yana 2×2 düğme olarak durur */
 /* KURAL (düzen): ilerleme noktaları (deneme göstergesi) ve yanındaki Isınma etiketi her zaman kartın içinde kalır — nokta sayısı artınca noktalar ve aralıklar küçülür, satır taşmaz */
 (function dotsFitStyle(){ try{ if(document.getElementById("dotsFitStyle")) return; const st = document.createElement("style"); st.id = "dotsFitStyle"; st.textContent = `.wm-dots{flex-wrap:nowrap !important;justify-content:center;align-items:center;width:100%;max-width:100%;min-width:0;box-sizing:border-box;padding:0 4px;gap:clamp(2px,1.1vw,6px) !important;overflow:hidden}.wm-dots i{flex:0 1 10px;min-width:4px;width:auto !important;height:auto !important;aspect-ratio:1/1}.wm-dots .qz-warm.in{flex:0 0 auto}.place-dots{max-width:100%;flex-wrap:nowrap;min-width:0}.place-dots span{flex:0 1 auto;min-width:4px}`; document.head.appendChild(st); }catch(e){} })();
-/* KURAL (içerik uyumu): komutu kim veriyorsa (Ayı / Ejderha gibi) komut yazısı onun söz balonunda durur; hareket kartında yalnız hareketin resmi ve "dokun = yap" olur */
+/* KURAL (içerik uyumu): komutu kim veriyorsa (Ayı / Ejderha gibi) komut yazısı onun söz balonunda durur; hareket kartında yalnız hareketin resmi olur; çalışma yalnız dokunma üzerinedir ("dokun = yap" / "dokunmak yapmak demek" ifadeleri kullanılmaz) */
 /* KURAL (tek görünüm): çalışma sayfaları dışındaki bütün yetişkin sayfaları ana sayfanın görünüşünü kullanır — açık turkuaz geçişli zemin, koyu turkuaz kalın başlık,
    beyaz kartlar (2 px açık kenarlık + 5 px alt kenar, 22 px köşe), kare beyaz kapat/geri düğmesi, turkuaz etkin sekme; çocuk oyun ekranları (adalar, mola, ödül) kendi görünüşünde kalır */
 (function pageThemeStyle(){ try{ if(document.getElementById("pageThemeStyle")) return; const st = document.createElement("style"); st.id = "pageThemeStyle"; st.textContent = `
@@ -11331,7 +11331,7 @@ const INSTR_SHORT = {
 "anti-touch":       [() => Q("Ekranda mavi bir top belirecek. Topun olduğu tarafa değil, tam karşı tarafın okuna dokun. Top solda çıkarsa sağ oka, sağda çıkarsa sol oka bas.")],
 "hayling":          [() => `Cümleyi okuyun, son kelimeyi söylemeden durun: ${Q("Sana bir cümle okuyacağım ama sonunu söylemeyeceğim. Sen cümleyi uygun bir kelimeyle tamamla.")}`, () => `Cümleyi okuyun, son kelimeyi söylemeden durun: ${Q("Sana bir cümle okuyacağım ama sonunu söylemeyeceğim. Sen cümleye hiç uymayan, alakasız bir kelime söyle. Uyan kelimeyi söylersen olmaz.")}`],
 "zihni-says":       [() => `Komutları okuyun: ${Q("Sana komutlar vereceğim. Komut ‘Zihni diyor ki’ diye başlıyorsa yap. ‘Zihni diyor ki’ demeden söylersem yapma, olduğun gibi dur.")}`],
-"bear-dragon":      [() => Q("Ayı ile ejderha sana hareketler söyleyecek. Komutu ayı veriyorsa hareketin resmine dokun; dokunmak yapmak demek. Komutu ejderha veriyorsa dokunma, bekle.")],
+"bear-dragon":      [() => Q("Ayı ile ejderha sana hareketler söyleyecek. Komutu ayı veriyorsa hareketin resmine dokun. Komutu ejderha veriyorsa dokunma, bekle.")],
 "opp-do":           [() => `Komutları okuyun: ${Q(oppKidText("htks"))}`],
 "hand-game":        [() => `Elinizle gösterin: ${Q(oppKidText("hand"))}`],
 "tap-reverse":      [() => Q("Ekranda yumruk resmi göreceksin. Bir yumruk görürsen büyük düğmeye iki kez vur. İki yumruk görürsen bir kez vur. Yani hep gördüğünün tersi kadar vur.")],
@@ -13532,13 +13532,14 @@ if(hwIds.length){ const h = hwIds.slice(), pickH = []; while(pickH.length < Math
 if(fixed.length > 2 && !hwIds.length){ const f = fixed.slice(); fixed = []; while(fixed.length < 2 && f.length){ fixed.push(f.splice(Math.floor(rnd() * f.length), 1)[0]); } }   // önerilenlerden her gün 2'si
 let m1 = fixed[0] || pick(mains); let rest = mains.filter(x => x !== m1); let m2 = fixed[1] || (rest.length ? pick(rest) : m1);
 if(fixed.length === 1 && m2 === m1){ rest = mains.filter(x => x !== m1); m2 = rest.length ? pick(rest) : m1; }
-let closePool = CATEGORIES.flatMap(c => c.id === target ? [] : c.exerciseIds).filter(id => { const ex = exerciseById(id); return ex && ex.readingLevel.includes(famLvl()) && isGameEligible(ex); });
-if(!closePool.length) closePool = CATEGORIES.flatMap(c => c.exerciseIds).filter(id => isGameEligible(exerciseById(id)) && exerciseById(id).readingLevel.includes(famLvl()));
+let closePool = CATEGORIES.flatMap(c => c.id === target ? [] : c.exerciseIds).filter(id => { const ex = exerciseById(id); return ex && exLvlOk(id) && isGameEligible(ex); });   /* KURAL: günlük plandaki her adım, çalışmanın açılacağı alan düzeyinde (okul dönemi) gerçekten bulunan bir çalışmadır */
+if(!closePool.length) closePool = CATEGORIES.flatMap(c => c.exerciseIds).filter(id => exerciseById(id) && isGameEligible(exerciseById(id)) && exLvlOk(id));
 const close = pick(closePool.filter(x => x !== m1 && x !== m2));
 return { target, steps:[warm, m1, m2, close], done:[false, false, false, false] };
 }
 function todayPlan(){
 const st = famStoreGet(DAILY_KEY), k = famProfile() + "|" + famLvl() + "|" + todayKey();
+try{ if(st[k] && Array.isArray(st[k].steps) && st[k].steps.some(id => !exLvlOk(id))){ const old = st[k], nw = buildTodayPlan(); nw.done = nw.steps.map((id, i) => !!(old.done && old.done[i] && old.steps[i] === id)); nw.progSig = old.progSig; st[k] = nw; famStoreSet(DAILY_KEY, st); } }catch(e){}   /* bugün kaydedilmiş planda açılamayan adım varsa plan onarılır */
 const progSig = (() => { const p = typeof familyProgram === "function" ? familyProgram() : null; return p ? [p.target, (p.mains || []).join("+"), (p.hw || []).join("+")].join("|") : ""; })();
 if(st[k] && (st[k].progSig || "") !== progSig && !st[k].done.some(Boolean)){ delete st[k]; }
 if(!st[k] || st[k].target !== famTarget()){
@@ -13571,7 +13572,7 @@ const C = 2 * Math.PI * 26, off = C * (1 - n / 4);
 box.innerHTML = `<h2 class="home-title">Aile Etkinlik Sayfası</h2>
 <button type="button" class="fh-today" id="fhTodayBtn">
 <span class="fh-ring"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="7"/><circle cx="32" cy="32" r="26" fill="none" stroke="#FFC21A" stroke-width="7" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/></svg><b>${n}/4</b></span>
-<span class="fh-tx"><div class="fh-t1">${all ? "Bugün tamam!" : "Bugünün oturumu"}</div><div class="fh-t2">${famProfile() === "Oyuncu" ? "Önce kişi seçin" : escHTML(famProfile())} · yaklaşık 12 dakika · hedef: ${famCatName(plan.target)}</div></span>
+<span class="fh-tx"><div class="fh-t1">${all ? "Bugün tamam!" : "Bugünün etkinlikleri"}</div><div class="fh-t2">${famProfile() === "Oyuncu" ? "Önce kişi seçin" : escHTML(famProfile())} · yaklaşık 12 dakika · hedef: ${famCatName(plan.target)}</div></span>
 <span class="fh-go">${all ? "Gör" : (n ? "Devam" : "Başla")}</span></button>
 ${reportsBtnHtml("fhReportsBtn")}
 ${recommendedCardHtml()}
@@ -13621,7 +13622,7 @@ ${(() => { const pr = familyProgram(); if(!pr) return `<div class="fam-target">B
 const today = (pr.days || []).includes(todayDayIdx());
 return `<div class="fam-target">Uzmanınızın programı: <b>${famCatName(plan.target)}</b></div>${today ? "" : `<div class="fam-note" style="text-align:left">Bugün programda yok (${(pr.days || []).map(d => DAY_SHORT[d]).join(", ")}). İsterseniz yine de çalışabilirsiniz.</div>`}`; })()}
 ${chips}
-${done ? `<div class="fam-card fam-done"><div class="m">${mascotSVG("cheer")}</div><div class="fam-h" style="font-size:22px">Bugünün oturumu tamam!</div><div class="fam-sub">Harika bir iş çıkardınız. Yarın yeni çalışmalar sizi bekliyor.</div></div>` : ""}
+${done ? `<div class="fam-card fam-done"><div class="m">${mascotSVG("cheer")}</div><div class="fam-h" style="font-size:22px">Bugünün etkinlikleri tamam!</div><div class="fam-sub">Harika bir iş çıkardınız. Yarın yeni çalışmalar sizi bekliyor.</div></div>` : ""}
 <div class="fam-steps">${steps}</div>
 ${done ? `<button type="button" class="fam-cta" id="famWeekCta">${I_CHART} Bu haftanın özetini gör</button>`
 : `<button type="button" class="fam-cta" id="famStartCta"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M7 4.5v15l12-7.5z"/></svg> ${n ? (cur + 1) + ". adımla devam et" : "Oturumu başlat"}</button>`}
@@ -13681,7 +13682,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.27-n";
+const APP_VERSION = "2026.10.27-p";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -14281,7 +14282,7 @@ let insightHtml = insights.slice(0, 4).map(x => `<div class="fam-insight">${icon
 if(!insightHtml){
 insightHtml = thisW.length
 ? `<div class="fam-insight">${icon("up")}<div><div class="t1">İyi bir başlangıç</div><div class="t2">Bu hafta ${labels.length} farklı çalışma yapıldı. Gelecek hafta aynı çalışmalar tekrarlandıkça burada gelişim karşılaştırması görünecek.</div></div></div>`
-: `<div class="fam-insight">${icon("try")}<div><div class="t1">Henüz bu hafta çalışılmadı</div><div class="t2">"Bugünün oturumu" ile başlayabilirsiniz; yaklaşık 12 dakika sürer.</div></div></div>`;
+: `<div class="fam-insight">${icon("try")}<div><div class="t1">Henüz bu hafta çalışılmadı</div><div class="t2">"Bugünün etkinlikleri" ile başlayabilirsiniz; yaklaşık 12 dakika sürer.</div></div></div>`;
 }
 const opts = famTargetOptions(), cur = famTarget(), ni = (opts.findIndex(c => c.id === cur) + 1) % Math.max(1, opts.length);
 const nextTarget = opts.length ? famCatName(opts[ni].id) : "";
@@ -14295,7 +14296,7 @@ document.getElementById("weekWrap").innerHTML = `
 <div class="fam-card"><div style="font-size:15px;font-weight:900">Öne çıkanlar</div>${insightHtml}</div>
 <div class="fam-card"><div style="font-size:15px;font-weight:900;margin-bottom:6px">Gelecek hafta önerisi</div>
 <div class="fam-sub" style="font-weight:600;line-height:1.5">Haftada 4–5 gün, günde 10–15 dakika. ${nextTarget ? `Hedef alanı <b style="color:var(--ink)">${nextTarget}</b> olabilir.` : ""}</div></div>
-<button type="button" class="fam-cta ghost" id="weekTodayBtn">Bugünün oturumuna dön</button>`;
+<button type="button" class="fam-cta ghost" id="weekTodayBtn">Bugünün etkinliklerine dön</button>`;
 document.getElementById("weekScreen").style.display = "flex";
 document.getElementById("weekScreen").scrollTop = 0;
 document.getElementById("weekTodayBtn").onclick = showToday;
@@ -15858,7 +15859,7 @@ function fitHomeTitles(box){ try{ if(!box) return; const fit = (el, min, oneLine
 /* Etkinlik Raporları düğmesi: büyük yeşil kartla aynı boy ve stil */
 function reportsBtnHtml(id){ return `<button type="button" class="fh-today fh-reports" id="${id}"><span class="fh-rep-ic">${uiIconSVG("chart")}</span><span class="fh-tx"><div class="fh-t1">Etkinlik Raporları</div><div class="fh-t2">Son sonuçlar · haftalık rapor · özet</div></span><span class="fh-rep-go" aria-hidden="true"><svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M10.5 8l4 4-4 4"></path></svg></span></button>`; }
 /* KURAL (sadelik): bilgi (i) düğmesiyle açılan Hakkında ekranının başında kısa kavram sözlüğü; terimler arayüzdeki tek adlarla aynıdır */
-const GLOSSARY = [["Alan", "Uygulamadaki 10 beceri grubundan biri (ör. Çalışan Bellek, Sözel Kavrama)."], ["Bölüm", "Bir alanın içindeki çalışma grubu (ör. Yürütücü İşlev'de Ketleme)."], ["Çalışma ve aşama", "Her sayfa bir çalışmadır; aşamalar aynı çalışmanın adım adım zorlaşan hâlleridir."], ["Düzey", "Başlangıç, Orta, Zor. Çocuğun sonuçlarına göre kendiliğinden değişir."], ["Okul dönemi", "Okul Öncesi ya da Okul Sonrası içerik. Her alan için ayrı belirlenebilir."], ["Değerlendirme turu", "Her alanda çocuğun nereden başlayacağını belirleyen kısa tur."], ["Bugünün oturumu", "Ailenin evde her gün uyguladığı yaklaşık 12 dakikalık plan."], ["Ödev ve önerilen çalışma", "Ödevi uzman verir; önerilen çalışmayı uygulama, çocuğun sonuçlarına göre hazırlar."], ["Zihin Adaları", "Çocuğun tek başına oynadığı oyun bölümü; duraklarda yıldız, macerada ışık toplar."]];
+const GLOSSARY = [["Alan", "Uygulamadaki 10 beceri grubundan biri (ör. Çalışan Bellek, Sözel Kavrama)."], ["Bölüm", "Bir alanın içindeki çalışma grubu (ör. Yürütücü İşlev'de Ketleme)."], ["Çalışma ve aşama", "Her sayfa bir çalışmadır; aşamalar aynı çalışmanın adım adım zorlaşan hâlleridir."], ["Düzey", "Başlangıç, Orta, Zor. Çocuğun sonuçlarına göre kendiliğinden değişir."], ["Okul dönemi", "Okul Öncesi ya da Okul Sonrası içerik. Her alan için ayrı belirlenebilir."], ["Değerlendirme turu", "Her alanda çocuğun nereden başlayacağını belirleyen kısa tur."], ["Bugünün etkinlikleri", "Ailenin evde her gün uyguladığı yaklaşık 12 dakikalık plan."], ["Ödev ve önerilen çalışma", "Ödevi uzman verir; önerilen çalışmayı uygulama, çocuğun sonuçlarına göre hazırlar."], ["Zihin Adaları", "Çocuğun tek başına oynadığı oyun bölümü; duraklarda yıldız, macerada ışık toplar."]];
 function renderGlossary(){ try{ const host = document.getElementById("aboutCategoryList"); if(!host || document.getElementById("aboutGlossary")) return; const d = document.createElement("details"); d.id = "aboutGlossary"; d.className = "gr-acc"; d.open = ABOUT_OPEN === "__gloss"; d.addEventListener("toggle", () => { if(d.dataset.sync){ delete d.dataset.sync; return; } if(d.open && ABOUT_OPEN !== "__gloss") aboutToggle("__gloss"); else if(!d.open && ABOUT_OPEN === "__gloss") ABOUT_OPEN = null; }); d.innerHTML = `<summary>${grIc("book", "#0A847E", "#DDF3F0")}<span class="gr-acc-t">Kavramlar</span><span class="gr-chev" aria-hidden="true"></span></summary><div class="gr-acc-b"><dl class="gloss">${GLOSSARY.map(([t, x]) => `<dt>${t}</dt><dd>${x}</dd>`).join("")}</dl></div>`; host.parentNode.insertBefore(d, host); }catch(e){} }
 function renderCatGroups(host, cat, realIndex){
 if(!host || host.dataset.built) return; host.dataset.built = "1";
@@ -15951,7 +15952,7 @@ category: {
 key: "wm_tour_category_seen_v2",
 steps: [
 {sel:"#aboutBtn", title:"Bilgi", text:"Uygulamayı ve her alanın neyi çalıştırdığını anlatan Hakkında sayfasını açar."},
-{sel:"#fhTodayBtn", title:"Bugünün oturumu", text:"Yaklaşık 12 dakikalık hazır oturum: ısınma, iki ana çalışma ve kapanış. Hangi çalışmayı seçeceğini düşünmene gerek kalmaz."},
+{sel:"#fhTodayBtn", title:"Bugünün etkinlikleri", text:"Yaklaşık 12 dakikalık hazır oturum: ısınma, iki ana çalışma ve kapanış. Hangi çalışmayı seçeceğini düşünmene gerek kalmaz."},
 {sel:".fh-rec", title:"Uzmanın önerdiği çalışmalar", text:"Uzman program atadıysa önerdiği çalışmalar burada; 'Aç' ile tek dokunuşta başlar."},
 {sel:"#fhWeekBtn", title:"Bu hafta", text:"Çalışılan günler ve rakam yerine anlamla yazılmış kısa gelişim özeti."},
 {sel:"#fhLinkBtn", title:"Uzmana bağlan", text:"Uzmanının verdiği kodu girersen program onun atadığına göre kurulur ve sonuçlar ona da gider."},
