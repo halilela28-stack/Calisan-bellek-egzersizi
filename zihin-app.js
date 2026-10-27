@@ -8295,6 +8295,8 @@ const others = names.filter(x => x !== nm);
 const opts = [fig(poly(P, ox, oy) + extra())].concat(shuffleArray(others).slice(0, 2).map(o => fig(poly(polys[o], 20 + Math.random() * 30, 20 + Math.random() * 30) + extra())));
 const stim = `<svg viewBox="-32 -32 100 100" width="100%" height="100%"><g fill="none" stroke="#E5484D" stroke-width="2.4">${poly(P, 0, 0)}</g></svg>`;
 const o = shuffleArray([0, 1, 2]); return { stim, opts: o.map(i => opts[i]), ans: o.indexOf(0), prompt:"Üstteki şekil <b>hangisinin içinde gizli</b>?", fixed:true, cell:110 }; }); }
+/* KURAL: Görsel Tamamlama'da yakınlaştırma resmin çözünürlüğünü aşmaz (ekranda en çok 1 piksel = 1 resim pikseli; kutu ~300 px). 1024 px resimler gelince istenen 2,2 / 2,8 kat kendiliğinden kullanılır */
+const CLS_NAT = {}; function clsZoom(x, pre){ const want = pre ? 2.2 : 2.8; let n = CLS_NAT[x.src]; if(n === undefined){ try{ const im = new Image(); im.src = x.src; n = Math.max(im.naturalWidth || 0, im.naturalHeight || 0); if(n) CLS_NAT[x.src] = n; }catch(e){ n = 0; } } if(!n) n = 560; return Math.max(1.6, Math.min(want, +(n / 300).toFixed(2))); }
 function clsTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 4 : 5, out = [];
 const pool = picPool().concat(qzCats().wild.items, qzCats().vehicle.items);
 for(let k = 0; k < N; k++){ const [a, b, c, d] = shuffleArray(pool).slice(0, 4); let stim, opts, prompt = "Bu <b>ne</b>?";
@@ -8302,7 +8304,7 @@ const full = (x) => qzPic(x.src);
 if(pre && t === 0){ const side = randomItem(["left","right","top","bottom"]), ins = { left:"0 50% 0 0", right:"0 0 0 50%", top:"0 0 50% 0", bottom:"50% 0 0 0" }[side];
 stim = `<div style="width:100%;height:100%;clip-path:inset(${ins})">${full(a)}</div>`; opts = [full(a), full(b), full(c)]; prompt = "Resmin <b>yarısı</b> görünüyor: bu ne?"; }
 else if((pre && t === 1) || (!pre && t === 0)){ const ox = 15 + Math.random() * 70, oy = 15 + Math.random() * 70;
-stim = `<div style="width:100%;height:100%;overflow:hidden;border-radius:10px"><img src="${a.src}" alt="" style="width:100%;height:100%;object-fit:contain;transform:scale(${pre ? 2.2 : 2.8});transform-origin:${ox}% ${oy}%"></div>`;
+stim = `<div style="width:100%;height:100%;overflow:hidden;border-radius:10px"><img src="${a.src}" alt="" style="width:100%;height:100%;object-fit:contain;transform:scale(${clsZoom(a, pre)});transform-origin:${ox}% ${oy}%"></div>`;
 opts = pre ? [full(a), full(b), full(c)] : [full(a), full(b), full(c), full(d)]; prompt = "Bir <b>parçası</b> görünüyor: hangisinin parçası?"; }
 else if(pre && t === 2){ const sh = randomItem(["circle","rect","triangle","star"]), col = "#3A4A5C";
 const shp = { circle:`<circle cx="50" cy="50" r="34"/>`, rect:`<rect x="16" y="16" width="68" height="68"/>`, triangle:`<polygon points="50,14 88,82 12,82"/>`, star:`<polygon points="50,10 61,38 92,40 67,58 76,88 50,70 24,88 33,58 8,40 39,38"/>` };
@@ -12234,6 +12236,7 @@ function fitTextCells(board){ const textEls = Array.from(board.querySelectorAll(
 (function stripStyle(){ try{ const st = document.createElement("style"); st.textContent = `#exerciseRow{overflow-y:hidden !important;overscroll-behavior-y:none;overscroll-behavior-x:contain;padding:4px 2px 10px !important;margin-bottom:6px !important;scrollbar-width:none;align-items:center}#exerciseRow::-webkit-scrollbar{display:none}`; document.head.appendChild(st); }catch(e){} })();   /* KURAL: etkinlik şeridi yalnız yana kayar; aşağı-yukarı esnemez, düğmeler (gölgeleriyle) kesilmez, kaydırma çubuğu görünmez */
 (function attnStyle(){ try{ const st = document.createElement("style"); st.textContent = `@keyframes zaAttn{0%,100%{transform:none;box-shadow:0 0 0 0 rgba(15,139,133,0)}30%{transform:scale(1.04);box-shadow:0 0 0 6px rgba(15,139,133,.35)}60%{transform:none;box-shadow:0 0 0 10px rgba(15,139,133,0)}}#saveResultBtn.attn,#playerRow.attn{animation:zaAttn .9s ease-out 2}@media (prefers-reduced-motion: reduce){#saveResultBtn.attn,#playerRow.attn{animation:none;outline:3px solid #0F8B85}}`; document.head.appendChild(st); }catch(e){} })();   /* "önce kaydet" uyarısında Kaydet düğmesi kısa süre vurgulanır */
 (function stickyDoneStyle(){ try{ const st = document.createElement("style"); st.textContent = `#board .wm-btns:has([data-mtbtn$="-done"]){position:sticky;bottom:0;z-index:6;padding:8px 0 6px;margin-bottom:0 !important;background:linear-gradient(to bottom, rgba(255,255,255,0), var(--card,#fff) 35%)}`; document.head.appendChild(st); }catch(e){} })();   /* KURAL: tahta kaydırılabilir olsa da "Bitti" düğmesi tahtanın altında hep görünür (yapışık) */
+(function picCapStyle(){ try{ const st = document.createElement("style"); st.textContent = `div:has(> img[style*="transform:scale("]){max-width:300px;max-height:300px;margin-left:auto;margin-right:auto}#placeScreen .ps-in:has(img):not(:has(img ~ img)):not(:has(.wm-grid)):not(:has(.ri-box)){max-width:340px;max-height:340px;margin-left:auto;margin-right:auto}`; document.head.appendChild(st); }catch(e){} })();   /* KURAL: tek resimli uyaran tablette de en çok ~340 px (Değerlendirme turu), yakınlaştırılan parça en çok 300 px — resim çözünürlüğünün üstüne büyütülmez */
 (function noDistortStyle(){ try{ const st = document.createElement("style"); st.textContent = `.emo-ic img,#board img,#placeScreen img{object-fit:contain}`; document.head.appendChild(st); }catch(e){} })();   /* KURAL: resimler basık/uzamış gösterilmez (oran korunur) */
 (function touchSizeStyle(){ try{ const st = document.createElement("style"); st.textContent = `#board button{min-height:40px}#board .pk-plank{padding-top:7px !important;padding-bottom:7px !important;box-sizing:content-box}#board svg circle[data-mt]{pointer-events:all}`; document.head.appendChild(st); }catch(e){} })();   /* KURAL (dokunma alanı): tahtadaki düğmeler en az 40px yüksekliğinde; köprü tahtalarının dokunma alanı büyütüldü */
 (function txtWrapStyle(){ try{ const st = document.createElement("style"); st.textContent = `#board.txt-wrap{grid-template-columns:repeat(var(--txt-cols,2), minmax(0,1fr)) !important;background-image:none !important}#board.txt-wrap::before,#board.txt-wrap::after{display:none !important}#board.txt-wrap .cell{border-bottom:1px solid var(--line,#DDE6EE) !important}#board.txt-wrap .cell{width:auto !important;justify-self:stretch !important;max-width:none !important;min-width:0 !important;min-height:48px;height:auto !important}#board.txt-wrap .name-cell{white-space:normal !important;overflow-wrap:break-word;line-height:1.25;text-align:center;height:auto !important;padding:4px 2px}`; document.head.appendChild(st); }catch(e){} })();
@@ -13682,7 +13685,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.27-p";
+const APP_VERSION = "2026.10.27-q";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
