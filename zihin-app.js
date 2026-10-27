@@ -3408,11 +3408,11 @@ let items;
 if(dimension === "shape"){
 const sameShape = randomItem(SHAPES);
 let oddShape; do{ oddShape = randomItem(SHAPES); } while(oddShape === sameShape);
-items = [0,1,2].map(i => ({ shape: i===oddIndex ? oddShape : sameShape, color: randomItem(COLORS) }));
+const c0 = randomItem(COLORS); items = [0,1,2].map(i => ({ shape: i===oddIndex ? oddShape : sameShape, color: c0 }));
 } else {
 const sameColor = randomItem(COLORS);
 let oddColor; do{ oddColor = randomItem(COLORS); } while(oddColor === sameColor);
-items = [0,1,2].map(i => ({ shape: randomItem(SHAPES), color: i===oddIndex ? oddColor : sameColor }));
+const s0 = randomItem(SHAPES); items = [0,1,2].map(i => ({ shape: s0, color: i===oddIndex ? oddColor : sameColor }));   /* KURAL: farklı olan tek bir özellikte ayrılır; diğer özellik herkeste aynı (iki ayrı "farklı" çıkmaz) */
 }
 return { items, dimension, oddIndex };
 },
@@ -7559,7 +7559,7 @@ const opts = sides.map(x => `<span style="font-size:30px;font-weight:900">${x}</
 return { stim: `<div style="transform:rotate(${rot}deg);width:100%;height:100%">${polygonSVG(n, col)}</div>`, opts, ans: sides.indexOf(n), prompt:"Bu şeklin <b>kaç kenarı</b> var?", fixed:true }; }); },
 "odd-touch": () => { const t = currentCombo().t, N = qzOpts([4, 6, 9][t], [3, 4, 6][t]);
 return Array.from({length: qzTrials(6, 4)}, () => { const dim = t === 2 && !isPre() ? randomItem(["rot","size","color"]) : randomItem(["shape","color"]);
-const sh = randomItem(SHAPES.filter(x => x !== "circle")), col = randomItem(COLORS); let oddSh = sh, oddCol = col, rot = 0, sc = 1;
+const sh = dim === "rot" ? randomItem(["star","heart","triangle"]) : randomItem(SHAPES.filter(x => x !== "circle")), col = randomItem(COLORS);   /* KURAL: farklı olan gözle görülür farklı olmalı — dönme farkı yalnız döndürünce değişen şekillerde (dikdörtgen/daire 180° dönünce aynı görünür) */ let oddSh = sh, oddCol = col, rot = 0, sc = 1;
 if(dim === "shape") oddSh = randomItem(SHAPES.filter(x => x !== sh)); else if(dim === "color") oddCol = randomItem(COLORS.filter(x => x !== col)); else if(dim === "rot") rot = 180; else sc = 0.7;
 const opts = Array.from({length:N}, (_, i) => i === 0 ? `<div style="width:100%;height:100%;transform:rotate(${rot}deg) scale(${sc})">${shapeSVG(oddSh, oddCol)}</div>` : shapeSVG(sh, col));
 return qzMake("", opts, 0, { prompt:"<b>Farklı olan</b> hangisi?" }); }); },
@@ -7991,7 +7991,18 @@ out.push({ stim: isPre() ? "" : `<div style="font-size:${!isPre() && t === 2 ? 1
 return shuffleArray(out); }
 const CP_BALL = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r || 9}" fill="#F5A524" stroke="#C77800" stroke-width="2"/>`;
 const CP_TABLE = `<rect x="22" y="50" width="56" height="7" rx="2" fill="#B9773A"/><rect x="26" y="57" width="5" height="33" fill="#8B5A2B"/><rect x="69" y="57" width="5" height="33" fill="#8B5A2B"/>`;
-function cpDraw(rel){ const v = (inner) => `<svg viewBox="0 0 100 100" width="100%" height="100%">${inner}</svg>`;
+/* KURAL (gerçek nesne): Kavram Bilgisi'nde top–kutu ilişkileri (önünde, arkasında, arasında, dışında) kullanıcının kutu görseli ve gerçek top resmiyle; elma sayma gerçek elma ve hasır sepetle çizilir. Görsel yoksa eski çizim yedektir. Masa, açık kutu ve dolu/boş bardak görselleri gelince onlar da gerçek nesneye geçer */
+function cpImg(key, x, y, w, h){ const u = gimg(key); return u ? `<image href="${u}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="xMidYMax meet"/>` : ""; }
+function cpDrawReal(rel){ if(!gimg("box") || !gimg("cpBall")) return null; const v = (inner) => `<svg viewBox="0 0 100 100" width="100%" height="100%">${inner}</svg>`; const B = (x, y, w) => cpImg("box", x, y + w * 0.07, w, w * 0.78),   /* kutu resminin altındaki boşluk kadar aşağı: zemine otursun */ BALL = (cx, cy, d) => cpImg("cpBall", cx - d / 2, cy - d / 2, d, d), SH = (cx, w) => `<ellipse cx="${cx}" cy="91" rx="${w / 2}" ry="2.6" fill="rgba(0,0,0,.12)"/>`;
+  switch(rel){
+    case "front":  return v(SH(50, 60) + B(20, 90 - 60 * 0.78, 60) + BALL(50, 80, 22));
+    case "behind": return v(SH(50, 60) + BALL(62, 40, 24) + B(20, 90 - 60 * 0.78, 60));
+    case "out":    return v(SH(34, 46) + SH(84, 18) + B(11, 90 - 46 * 0.78, 46) + BALL(84, 81, 18));
+    case "between":return v(SH(20, 30) + SH(80, 30) + B(5, 90 - 30 * 0.78, 30) + B(65, 90 - 30 * 0.78, 30) + BALL(50, 82, 18));
+    case "left":   return v(SH(53, 30) + SH(83, 30) + B(38, 90 - 30 * 0.78, 30) + B(68, 90 - 30 * 0.78, 30) + BALL(16, 82, 18));
+    case "ontop":  return v(SH(20, 30) + SH(80, 30) + B(5, 90 - 30 * 0.78, 30) + B(65, 90 - 30 * 0.78, 30) + BALL(20, 90 - 30 * 0.78 + 30 * 0.07 - 8, 18));
+  } return null; }
+function cpDraw(rel, oldStyle){ if(!oldStyle && !["on","under","next","in"].includes(rel)){ const r = cpDrawReal(rel); if(r) return r; } const v = (inner) => `<svg viewBox="0 0 100 100" width="100%" height="100%">${inner}</svg>`;
 const back = `<rect x="30" y="44" width="40" height="10" fill="#9DB7D6"/>`, front = (h) => `<rect x="30" y="${h}" width="40" height="${88 - h}" fill="#5B8BD0"/>`;
 switch(rel){
 case "on": return v(CP_TABLE + CP_BALL(50, 41));
@@ -8009,7 +8020,7 @@ const CP_CRATE_OPEN = `<polygon points="24,56 34,38 76,38 66,56" fill="#C9DCF2" 
 const CP_CRATE_FRONT = `<rect x="24" y="56" width="42" height="32" fill="#5B8BD0" stroke="#3F6FB5" stroke-width="2"/>`;
 const CP_PHRASE = { on:"masanın üstünde", under:"masanın altında", next:"masanın yanında", in:"kutunun içinde", out:"kutunun dışında", front:"kutunun önünde", behind:"kutunun arkasında", between:"iki kutunun arasında" };
 const CP_FAM = { on:["on","under","next"], under:["on","under","next"], next:["on","under","next"], in:["in","out"], out:["in","out"], front:["front","behind","out"], behind:["front","behind","out"], between:["between","left","ontop"] };
-function cpApples(n){ const pts = [[30,40],[55,40],[80,40],[30,68],[55,68],[80,68],[42,54],[68,54]].slice(0, n); return `<svg viewBox="0 0 100 100" width="100%" height="100%"><rect x="10" y="22" width="80" height="66" rx="8" fill="none" stroke="#B9773A" stroke-width="4"/>${pts.map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="9" fill="#E5484D"/><rect x="${p[0] - 1}" y="${p[1] - 13}" width="2.5" height="6" fill="#2F7D32"/>`).join("")}</svg>`; }
+function cpApples(n){ if(gimg("basket") && (typeof CUTOUT_IMAGES !== "undefined" && CUTOUT_IMAGES["f-apple"])){ const A = CUTOUT_IMAGES["f-apple"]; const pts = [[34,44],[52,42],[70,44],[43,52],[61,52],[26,52],[78,52],[52,34]].slice(0, n); return `<svg viewBox="0 0 100 100" width="100%" height="100%"><ellipse cx="50" cy="93" rx="38" ry="3" fill="rgba(0,0,0,.12)"/>${cpImg("basket", 6, 22, 88, 72)}${pts.map(q => `<image href="${A}" x="${q[0] - 9}" y="${q[1] - 9}" width="18" height="18"/>`).join("")}</svg>`; } const pts = [[30,40],[55,40],[80,40],[30,68],[55,68],[80,68],[42,54],[68,54]].slice(0, n); return `<svg viewBox="0 0 100 100" width="100%" height="100%"><rect x="10" y="22" width="80" height="66" rx="8" fill="none" stroke="#B9773A" stroke-width="4"/>${pts.map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="9" fill="#E5484D"/><rect x="${p[0] - 1}" y="${p[1] - 13}" width="2.5" height="6" fill="#2F7D32"/>`).join("")}</svg>`; }
 function cpGlass(f){ const h = 60 * f; return `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M30 18 L36 88 L64 88 L70 18" fill="none" stroke="#6B8AA6" stroke-width="4"/>${f > 0 ? `<path d="M${36 - 6 * f * 0} ${88 - h} L64 ${88 - h} L64 88 L36 88 Z" fill="#7CC4F2" opacity=".85"/>` : ""}</svg>`; }
 function cpTrials(){ const t = currentCombo().t, pre = isPre();
 const types = pre ? ["pos","pair","qty","pair","size","fill"].concat(t > 0 ? ["pos"] : []) : ["pos","pair","pos","qty","size","fill","logic","pair"];
@@ -8018,11 +8029,11 @@ for(let k = 0; k < N; k++){ const ty = types[k % types.length]; let opts, ans = 
 if(ty === "pair"){ const cand = CP_PAIRS.filter(x => !usedPair.has(x[0])), P = randomItem(cand.length ? cand : CP_PAIRS); usedPair.add(P[0]); const side = Math.random() < 0.5 ? 0 : 1;
 opts = [qzPic(CONCEPT_IMAGES[P[0]]), qzPic(CONCEPT_IMAGES[P[1]])]; ans = side; say = P[2 + side]; prompt = P[4 + side]; }
 else if(ty === "pos"){ const pool = pre ? [["on","under","in","out"], ["on","under","next","in","out"], ["on","under","next","in","out","front","behind"]][Math.min(t, 2)] : [["on","under","next","in","out"], ["on","under","next","in","out","front","behind"], ["on","under","next","in","out","front","behind","between"]][Math.min(t, 2)]; /* Zor: önünde/arkasında (öncesi), arasında (sonrası) */
-const rel = randomItem(pool), fam = CP_FAM[rel].slice(0, pre ? 3 : 3); opts = fam.map(r => cpDraw(r)); ans = fam.indexOf(rel); say = `Topun ${CP_PHRASE[rel]} olduğu resmi göster.`; prompt = `Top <b>${CP_PHRASE[rel]}</b>`; }
+const rel = randomItem(pool), fam = CP_FAM[rel].slice(0, pre ? 3 : 3); const oldStyle = fam.includes("in") && !gimg("boxOpen"); opts = fam.map(r => cpDraw(r, oldStyle));   /* seçenekler hep aynı biçimde: içinde/dışında ikilisi açık kutu görseli gelene kadar çizimle */ ans = fam.indexOf(rel); say = `Topun ${CP_PHRASE[rel]} olduğu resmi göster.`; prompt = `Top <b>${CP_PHRASE[rel]}</b>`; }
 else if(ty === "qty"){ const mode = pre ? randomItem(["most","least"]) : randomItem(["most","least","none"]); let ns = shuffleArray(pre ? [1, 3, 6] : [0, 2, 4, 7]);
 if(mode !== "none" && !pre) ns = shuffleArray([1, 3, 5, 7]); opts = ns.map(n => cpApples(n));
 ans = mode === "most" ? ns.indexOf(Math.max(...ns)) : mode === "least" ? ns.indexOf(Math.min(...ns)) : ns.indexOf(0);
-say = mode === "most" ? "En çok elma olan kutuyu göster." : mode === "least" ? "En az elma olan kutuyu göster." : "Hiç elma olmayan kutuyu göster."; prompt = mode === "most" ? "<b>En çok</b> elma olan kutu" : mode === "least" ? "<b>En az</b> elma olan kutu" : "<b>Hiç</b> elma olmayan kutu"; }
+const kap = gimg("basket") ? "sepet" : "kutu", kapI = gimg("basket") ? "sepeti" : "kutuyu"; say = mode === "most" ? `En çok elma olan ${kapI} göster.` : mode === "least" ? `En az elma olan ${kapI} göster.` : `Hiç elma olmayan ${kapI} göster.`; prompt = mode === "most" ? `<b>En çok</b> elma olan ${kap}` : mode === "least" ? `<b>En az</b> elma olan ${kap}` : `<b>Hiç</b> elma olmayan ${kap}`; }
 else if(ty === "size"){ const p = randomItem(picPool()), sc = shuffleArray(pre ? [0.45, 0.72, 1] : [0.45, 0.62, 0.8, 1]), big = Math.random() < 0.5;
 opts = sc.map(s => qzPic(p.src, s)); ans = sc.indexOf(big ? Math.max(...sc) : Math.min(...sc)); say = big ? "En büyük olanı göster." : "En küçük olanı göster."; prompt = big ? "<b>En büyük</b> olan" : "<b>En küçük</b> olan"; }
 else if(ty === "fill"){ const modes = pre ? ["full","empty"] : ["full","empty","half"], m = randomItem(modes), fs = { full:1, empty:0, half:0.5 };
@@ -8766,9 +8777,12 @@ return Array.from({length:5}, () => { const gap = pre ? 2 + Math.floor(Math.rand
 if(two){ for(let g = 0; g < 200; g++){ const a = 1 + Math.floor(Math.random() * (gap - 1)), b = gap - a, d1 = 1 + Math.floor(Math.random() * 6), d2 = 1 + Math.floor(Math.random() * 6); if(d1 === d2 || [a, b].includes(d1) || [a, b].includes(d2)) continue;   /* çeldiriciler birbirinden ve doğru tahtalardan farklı */ const opts = shuffleArray([a, b, d1, d2]);
 let pairs = 0; for(let i = 0; i < 4; i++) for(let j = i + 1; j < 4; j++) if(opts[i] + opts[j] === gap) pairs++; if(pairs === 1) return { gap, opts, two }; } }
 let opts = shuffleArray(Array.from(new Set([gap, gap - 1, gap + 1, gap + 2].filter(x => x >= 1)))).slice(0, pre ? 3 : 4); if(!opts.includes(gap)) opts[0] = gap; return { gap, opts, two:false }; }); }
-function geTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 5 : 6, pool = picPool().concat(qzCats().wild.items);
+/* KURAL (gölge eşleme): gölge, resmin saydam (zemini silinmiş) hâlinden yapılır; saydam hâli olmayan resim gölge sorusunda kullanılmaz (aksi hâlde kare siyah leke çıkar) */
+function geCut(x){ try{ return (typeof CUTOUT_BY_SRC !== "undefined" && CUTOUT_BY_SRC[srcKey(x.src)]) || null; }catch(e){ return null; } }
+(function silFilterDefs(){ try{ const st0 = document.createElement("style"); st0.textContent = `.ge-sil img{filter:url(#zSil) opacity(.85);clip-path:inset(5%)}.ge-sil.cut img{filter:brightness(0) opacity(.85)}.ge-sil *{background:transparent !important;border-color:transparent !important;box-shadow:none !important}`; document.head.appendChild(st0); const add = () => { if(document.getElementById("zSilDefs")) return; const d = document.createElement("div"); d.id = "zSilDefs"; d.setAttribute("aria-hidden", "true"); d.style.cssText = "position:absolute;width:0;height:0;overflow:hidden"; d.innerHTML = '<svg width="0" height="0"><filter id="zSil" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -5 -5 -5 0 12.4"/></filter></svg>'; document.body.appendChild(d); }; if(document.body) add(); else document.addEventListener("DOMContentLoaded", add); }catch(e){} })();
+function geTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 5 : 6, pool0 = picPool().concat(qzCats().wild.items), pool1 = pool0.filter(x => geCut(x)), pool = pool1.length >= 8 ? pool1 : pool0;
 return Array.from({length:N}, () => { const [a, ...rest] = shuffleArray(pool).slice(0, pre ? 3 : 4), rot = t === 2 ? randomItem([90, 180, -90]) : 0, flip = t >= 1 && Math.random() < 0.5;
-const sil = (x, r, f) => `<div style="width:100%;height:100%;filter:brightness(0) opacity(.85);transform:rotate(${r}deg)${f ? " scaleX(-1)" : ""}">${qzPic(x.src)}</div>`;
+const sil = (x, r, f) => { const c = geCut(x); return `<div class="ge-sil${c ? " cut" : ""}" style="width:100%;height:100%;transform:rotate(${r}deg)${f ? " scaleX(-1)" : ""}">${qzPic(c || x.src)}</div>`; };   /* saydam hâli yoksa beyaz zemini saydamlaştıran süzgeçle gölge yapılır */
 const opts = [sil(a, rot, flip)].concat(rest.map(x => sil(x, t === 2 ? randomItem([0, 90, 180]) : 0, false)));
 return qzMake(`<div style="width:120px;height:120px;margin:0 auto">${qzPic(a.src)}</div>`, opts, 0, { prompt: t === 2 ? "Hangi gölge onun? (Gölge dönmüş olabilir)" : "Hangi <b>gölge</b> onun?", raw:true, fixed:true, cell:100 }); }); }
 function bkCfg(){ const t = currentCombo().t, pre = isPre(), n = pre ? [4, 5, 5][t] : [5, 6, 7][t], clouds = pre ? [1, 1, 2][t] : [1, 2, 3][t], ms = (pre ? [1300, 1100, 950] : [1000, 850, 700])[t];
@@ -12190,6 +12204,7 @@ function fitTextCells(board){ const textEls = Array.from(board.querySelectorAll(
 /* KURAL: Değerlendirme turu ekranı yüksekliğe sığmazsa (alçak yatay ekran) içerik orantılı küçültülür; seçenekler ekranın altında kalmaz */
 (function placeFitHeight(){ try{ const fit = () => { const el = document.getElementById("placeScreen"); if(!el || el.style.display === "none") return; const w = el.querySelector(".adv-wrap"); if(!w) return; w.style.zoom = ""; const avail = el.clientHeight - 12, h = w.getBoundingClientRect().height; if(h > avail && avail > 200){ w.style.zoom = Math.max(0.78, avail / h).toFixed(3); } }; let t = 0; new MutationObserver(() => { clearTimeout(t); t = setTimeout(fit, 30); }).observe(document.body, { childList: true, subtree: true }); window.addEventListener("resize", () => setTimeout(fit, 60)); }catch(e){} })();
 (function placeStableStyle(){ try{ const st = document.createElement("style"); st.textContent = `#placeScreen .place-q.pq-stable{min-height:2.7em;display:flex;align-items:center;justify-content:center;text-align:center}.hm-set{display:inline-flex !important;align-items:center;justify-content:center;padding:0 !important;line-height:0}.hm-set svg{display:block;margin:0 auto}`; document.head.appendChild(st); }catch(e){} })();   /* KURAL: Değerlendirme turunda soru satırı en az iki satır yer kaplar (yazı değişince bardaklar/seçenekler kaymaz); ana sayfadaki ayar dişlisi kutusunda ortalı */
+(function riLayoutStyle(){ try{ const st = document.createElement("style"); st.textContent = `.ri-box{min-width:0 !important;overflow:hidden}.ri-items{grid-template-columns:repeat(2,minmax(0,1fr)) !important}.ri-i{min-width:0;overflow:hidden;display:flex;align-items:center;justify-content:center}.ri-i svg,.ri-i img{width:100% !important;height:auto !important;max-width:100%;max-height:100%}`; document.head.appendChild(st); }catch(e){} })();   /* KURAL: kural bulma kutuları ekrana sığar, kartlar kutudan taşmaz */
 (function touchSizeStyle(){ try{ const st = document.createElement("style"); st.textContent = `#board button{min-height:40px}#board .pk-plank{padding-top:7px !important;padding-bottom:7px !important;box-sizing:content-box}#board svg circle[data-mt]{pointer-events:all}`; document.head.appendChild(st); }catch(e){} })();   /* KURAL (dokunma alanı): tahtadaki düğmeler en az 40px yüksekliğinde; köprü tahtalarının dokunma alanı büyütüldü */
 (function txtWrapStyle(){ try{ const st = document.createElement("style"); st.textContent = `#board.txt-wrap{grid-template-columns:repeat(var(--txt-cols,2), minmax(0,1fr)) !important;background-image:none !important}#board.txt-wrap::before,#board.txt-wrap::after{display:none !important}#board.txt-wrap .cell{border-bottom:1px solid var(--line,#DDE6EE) !important}#board.txt-wrap .cell{width:auto !important;justify-self:stretch !important;max-width:none !important;min-width:0 !important;min-height:48px;height:auto !important}#board.txt-wrap .name-cell{white-space:normal !important;overflow-wrap:break-word;line-height:1.25;text-align:center;height:auto !important;padding:4px 2px}`; document.head.appendChild(st); }catch(e){} })();
 function renderDots(){
@@ -13634,7 +13649,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.27-a";
+const APP_VERSION = "2026.10.27-c";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
