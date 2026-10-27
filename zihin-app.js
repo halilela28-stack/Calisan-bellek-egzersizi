@@ -4791,7 +4791,7 @@ attrs: [],
 makeGrid: (n) => makeDayNightGrid(n).map(x => ({ v: x.k === "sun" ? 1 : 2 })),
 randomItem: () => ({ v: 1 }),
 renderItem: (item) => numberHTML(item.v, "#1F2A33"),
-stages: [ { label: "Aşama 1 · Aynı Dünya", instruction: () => ``, example: (item) => item.v === 1 ? "bir" : "iki" }, { label: "Aşama 2 · Zıt Dünya", instruction: () => ``, example: (item) => item.v === 1 ? "iki" : "bir" } ]
+stages: [ { label: "Tersini Söyle", instruction: () => ``, example: (item) => item.v === 1 ? "iki" : "bir" } ]   /* KURAL: Zıt Dünya tek aşamalı (yalnız tersini söyleme) */
 },
 {
 id: "grass-snow",
@@ -10369,10 +10369,17 @@ const tr = st.trials[ti], ah = isLs ? H - 30 : Math.min(H - 30, 420);
 info = st.phase === "fb" ? `İzleme: <b>%${Math.round((st.last || 0) * 100)}</b> ${st.last >= 0.7 ? "· harika!" : "· biraz daha yakından izle"}` : `Parmağını <b>topun üstünde tut</b>, top nereye giderse onunla git · ${ti + 1}/${st.trials.length}`;
 body = `<div id="ftArea" style="position:relative;width:100%;height:${ah}px;background:var(--panel);border:2px solid var(--line);border-radius:18px;overflow:hidden;touch-action:none"><div id="ftDot" class="ft-dot" style="left:${(ftPos(tr.p, 0)[0] * W) - 18}px;top:${ftPos(tr.p, 0)[1] * ah - 18}px"></div></div>`;
 } else if(st.kind === "ecount"){
-const tr = st.trials[ti], ah = Math.max(170, isLs ? H - 120 : Math.min(H - 175, 340));   /* KURAL: tek ekran — alan, değerlendirme satırı ve Sonraki birlikte görünür */
+const tr = st.trials[ti], ah = Math.max(160, isLs ? H - 130 : Math.min(H - 200, 340));   /* KURAL: tek ekran — alan, değerlendirme satırı ve Sonraki birlikte görünür */
 info = tr.onlyStar ? "Parmağını kullanmadan, <b>yalnızca yıldızları</b> gözünle say" : "Parmağını kullanmadan, <b>gözünle</b> soldan sağa say";
-body = `<div style="position:relative;width:100%;height:${ah}px;background:var(--panel);border:2px solid var(--line);border-radius:18px;overflow:hidden">${tr.items.map(it => `<div style="position:absolute;left:${it.x}%;top:${it.y}%;width:30px;height:30px">${shapeSVG(it.sh, it.c)}</div>`).join("")}</div>` +
-`<div style="display:flex;align-items:center;gap:10px;margin-top:8px"><div class="aud-key" style="flex:1;text-align:left;margin:0;line-height:1.35">Doğru sayı: <b>${tr.ans}</b> · gözle doğru saydı mı? Yanlış ya da eksikse <b>Hata sayısı +</b></div><button type="button" class="wm-btn same" data-judge="9" style="flex:0 0 auto;min-width:0;padding:0 18px">Sonraki ▶</button></div>`;
+/* KURAL (Gözle Say): 1) şekiller görünür, çocuk gözüyle sayar, "Devam"a basar; 2) şekiller kalkar, sayılar çıkar, çocuk saydığı sayıya dokunur (doğru yeşil, yanlış kırmızı; yanlışta hata kendiliğinden +1); 3) "Sonraki ▶" ile yeni sayfa */
+    if(st.ecTi !== ti){ st.ecTi = ti; st.ecPhase = "count"; st.ecPick = null; const A = tr.ans, cand = []; for(let d = 1; cand.length < 3 && d < 6; d++){ if(A + d <= 30) cand.push(A + d); if(cand.length < 3 && A - d >= 1) cand.push(A - d); } const nums = shuffleArray([A].concat(cand.slice(0, 3))); st.ecNums = nums; }
+    if(st.ecPhase === "count"){
+      body = `<div style="position:relative;width:100%;height:${ah}px;background:var(--panel);border:2px solid var(--line);border-radius:18px;overflow:hidden">${tr.items.map(it => `<div style="position:absolute;left:${it.x}%;top:${it.y}%;width:30px;height:30px">${shapeSVG(it.sh, it.c)}</div>`).join("")}</div>` + `<div class="wm-btns" style="margin:10px auto 0;display:flex;justify-content:center"><button type="button" class="wm-btn same" data-ecstep="cont" style="min-width:150px">Devam ▶</button></div>`;
+    } else {
+      info = st.ecPhase === "fb" ? (st.ecPick === tr.ans ? "Doğru! <b>" + tr.ans + "</b> tane" : "Doğrusu <b>" + tr.ans + "</b> tane") : (tr.onlyStar ? "Kaç <b>yıldız</b> saydın? Sayıya dokun" : "Kaç tane saydın? <b>Sayıya</b> dokun");
+      const cell = Math.min(96, Math.floor((W - 30) / 2));
+      body = `<div class="wm-grid" style="grid-template-columns:repeat(2, ${cell}px);justify-content:center;gap:12px;margin:8px auto">${st.ecNums.map(n => { const cls = st.ecPhase === "fb" ? (n === tr.ans ? " ok" : (n === st.ecPick ? " bad" : "")) : ""; return `<button type="button" class="wm-pic${cls}" data-ecans="${n}" style="width:${cell}px;height:${cell}px;font:inherit;font-weight:900;font-size:${Math.round(cell * 0.42)}px;color:var(--ink,#1C2B39)">${n}</button>`; }).join("")}</div>` + (st.ecPhase === "fb" ? `<div class="wm-btns" style="margin:10px auto 0;display:flex;justify-content:center"><button type="button" class="wm-btn same" data-judge="9" style="min-width:150px">Sonraki ▶</button></div>` : "");
+    }
 } else if(st.kind === "nword"){
 if(st.phase === "learn"){ const x = st.learn[st.li], sz = Math.min(isLs ? H - 70 : 200, W * 0.6); info = `<b>Yeni arkadaşlarla tanış</b> · ${Math.max(0, st.li + 1)}/${st.learn.length}`;
 body = x ? `<div style="display:flex;${isLs ? "" : "flex-direction:column;"}gap:10px;align-items:center;justify-content:center"><div class="wm-card" style="width:${sz}px;height:${sz}px;padding:6px"><img src="${CREATURE_IMAGES[x.ci]}" alt="" style="width:100%;height:100%;object-fit:contain"></div><div style="font-size:30px;font-weight:900;color:var(--teal-dark)">${x.nm}</div></div>` : ""; }
@@ -11279,7 +11286,7 @@ const INSTR_SHORT = {
 "color-obj":        [() => Q("Ekranda resimler var ve her resim renkli bir kartın üstünde duruyor. Hangi resmin hangi renkte olduğuna iyi bak ve aklında tut. Sonra her resim için hangi renk kartta olduğunu seç.")],
 "pic-order":        [() => Q("Resimler tek tek gelecek; hangi resmin hangi sırada geldiğine iyi bak ve aklında tut. Bitince resimler karışık görünecek; onlara geliş sırasıyla dokun.")],
 "finger-trace":     [() => Q("Ekranda bir top var. Parmağını topun üstüne koy. Top nereye giderse parmağınla onunla birlikte git; parmağını kaldırma.")],
-"eye-count":        [() => `Çocuğa söyleyin: ${Q(!isPre() && currentCombo().t === 2 ? "Ekranda karışık şekiller var. Parmağını kullanmadan, sadece yıldızları gözünle soldan sağa say ve kaç tane olduğunu söyle." : "Ekranda şekiller var. Parmağını kullanmadan, sadece gözünle soldan sağa say ve kaç tane olduğunu söyle.")}`],
+"eye-count":        [() => `Çocuğa söyleyin: ${Q(!isPre() && currentCombo().t === 2 ? "Ekranda karışık şekiller var. Parmağını kullanmadan, sadece yıldızları gözünle soldan sağa say. Bitince Devam'a bas ve saydığın sayıya dokun." : "Ekranda şekiller var. Parmağını kullanmadan, sadece gözünle soldan sağa say. Bitince Devam'a bas ve saydığın sayıya dokun.")}`],
 "listen-answer":    [() => Q("Sana kısa bir hikâye okunacak; dikkatle dinle. Sonra hikâyedeki bir an sorulacak. Resimlerden o anı gösterene dokun.")],
 "rhyme-done":       [() => `Okuyun: ${Q("Sana bir tekerleme okuyacağım ama sonunu söylemeyeceğim. Dinle; sonunu sen tamamla.")}`],
 "new-word":         [() => Q("Ekranda yeni arkadaşlar var; her birinin adını duyacaksın. Adlarını dinle ve aklında tut. Sonra bir ad sorulacak; o arkadaşı bul ve ona dokun.")],
@@ -11315,7 +11322,7 @@ const INSTR_SHORT = {
 "less-more":        [() => Q("İki tabakta yiyecekler var. Bu oyunda az olan tabağa dokunursan çok olanı kazanırsın. Çok olanı kazanmak için hangi tabağa dokunmalısın?")],
 "context-go":       [() => Q(`Resimler tek tek gelecek. Önce ${ANIMAL_NAMES[axCue]} gelip hemen arkasından ${ANIMAL_NAMES[axTgt]} gelirse DOKUN düğmesine bas. Başka bir resim gelince basma.`)],
 "distract":         [() => Q("Ortada bir ok göreceksin. Ok hangi yöne bakıyorsa alttaki aynı yönlü oka dokun."), () => Q("Ortada bir ok göreceksin. Etrafında resimler uçuşacak ve sesler gelecek; onlara bakma. Ortadaki ok hangi yöne bakıyorsa alttaki aynı yönlü oka dokun.")],
-"opp-world":        [() => Q("Ekranda 1 ve 2 rakamları var. Hangi rakamı görürsen onu söyle; hızlı ol."), () => Q("Şimdi tersini söyleyeceksin. 1 görünce ‘iki’ de, 2 görünce ‘bir’ de. Hızlı ol ama şaşırma.")],
+"opp-world":        [() => Q("Ekranda 1 ve 2 rakamları var. Tersini söyleyeceksin: 1 görünce ‘iki’ de, 2 görünce ‘bir’ de. Hızlı ol ama şaşırma.")],
 "grass-snow":       [() => Q("Ekranda çimen ya da kar resmi gelecek. Çimen gelince beyaz kutuya dokun, kar gelince yeşil kutuya dokun. Yani hep tersi rengi seçeceksin.")],
 "rev-arrow":        [() => Q("Ekranda oklar var. Her ok için baktığı yönü söyle: ‘yukarı’ ya da ‘aşağı’."), () => Q("Şimdi tersini söyleyeceksin. Ok yukarı bakıyorsa ‘aşağı’ de, aşağı bakıyorsa ‘yukarı’ de.")],
 "num-stroop":       [() => Q("Ekranda iki tarafta rakamlar olacak. Rakamın kaç olduğuna bakma; hangi tarafta daha çok rakam varsa o tarafa dokun."), () => Q("Ekranda iki tarafta rakamlar olacak. Kaç tane olduğuna bakma; hangi taraftaki rakam daha büyükse o tarafa dokun.")],
@@ -11627,7 +11634,7 @@ return {
 "less-more":[0, "Kuralı Söyle", "Dokunmadan önce söyle: ‘Azı gösteririm, çoğu alırım.’"],
 "context-go":[0, "Öncekini Söyle", "Her resimde içinden söyle: ‘Önceki neydi?’ Sonra karar ver."],
 "distract":[1, "Ortaya Kilitlen", "Gözünü ortadaki oktan ayırma; kenardakilere bakma."],
-"opp-world":[1, "Kendine Söyle", "Rakamı görünce içinden ‘tersi’ de, sonra söyle."],
+"opp-world":[0, "Kendine Söyle", "Rakamı görünce içinden ‘tersi’ de, sonra söyle."],
 "grass-snow":[0, "Kendine Söyle", "Resmi görünce içinden ‘tersi’ de, sonra dokun."],
 "rev-arrow":[1, "Kendine Söyle", "Oku görünce içinden ‘tersi’ de, sonra söyle."],
 "num-stroop":[0, "Sadece Say", "Rakamı okuma; parmağınla tek tek say, sonra dokun."],
@@ -12223,6 +12230,7 @@ function fitTextCells(board){ const textEls = Array.from(board.querySelectorAll(
 (function riLayoutStyle(){ try{ const st = document.createElement("style"); st.textContent = `.ri-box{min-width:0 !important;overflow:hidden}.ri-items{grid-template-columns:repeat(2,minmax(0,1fr)) !important}.ri-i{min-width:0;overflow:hidden;display:flex;align-items:center;justify-content:center}.ri-i svg,.ri-i img{width:100% !important;height:auto !important;max-width:100%;max-height:100%}`; document.head.appendChild(st); }catch(e){} })();   /* KURAL: kural bulma kutuları ekrana sığar, kartlar kutudan taşmaz */
 /* KURAL: kart/hücre içindeki yazı (sayı, kelime) kartından taşmaz — sığmazsa yazı küçülür (en az 10px) */
 (function fitCardText(){ try{ const fit = () => { const b = document.getElementById("board"); if(!b) return; b.querySelectorAll(".wm-pic > b, .wm-card > b, .wm-pic > span, .wm-card > span").forEach(t => { const par = t.parentElement; if(!par || t.querySelector("img,svg")) return; t.style.fontSize = t.dataset.fs0 || t.style.fontSize; const avail = par.clientWidth - 6; if(avail <= 0) return; if(!t.dataset.fs0) t.dataset.fs0 = t.style.fontSize || getComputedStyle(t).fontSize; const w = t.scrollWidth; if(w > avail){ const cur = parseFloat(getComputedStyle(t).fontSize); t.style.fontSize = Math.max(10, Math.floor(cur * avail / w)) + "px"; t.style.letterSpacing = "0"; t.style.whiteSpace = "nowrap"; } }); }; let tm = 0; const go = () => { clearTimeout(tm); tm = setTimeout(fit, 20); }; const start = () => { const b = document.getElementById("board"); if(!b) return setTimeout(start, 500); new MutationObserver(go).observe(b, { childList: true, subtree: true }); window.addEventListener("resize", go); }; start(); }catch(e){} })();
+(function ecountClicks(){ try{ document.addEventListener("click", (e) => { const st = (typeof mtState !== "undefined") ? mtState : null; if(!st || st.kind !== "ecount" || !timerRunning) return; const c = e.target.closest("[data-ecstep]"); if(c){ st.ecPhase = "answer"; renderMtBoard(); return; } const a = e.target.closest("[data-ecans]"); if(a && st.ecPhase === "answer"){ const tr = st.trials[st.ti], n = +a.dataset.ecans; st.ecPick = n; st.ecPhase = "fb"; if(n !== tr.ans){ currentErrorCount++; const ce = document.getElementById("errorCount"); if(ce) ce.textContent = String(currentErrorCount); try{ gameSfx("wrong"); }catch(e2){} } else { try{ gameSfx("correct"); }catch(e2){} } renderMtBoard(); } }, true); }catch(e){} })();
 (function stripStyle(){ try{ const st = document.createElement("style"); st.textContent = `#exerciseRow{overflow-y:hidden !important;overscroll-behavior-y:none;overscroll-behavior-x:contain;padding:4px 2px 10px !important;margin-bottom:6px !important;scrollbar-width:none;align-items:center}#exerciseRow::-webkit-scrollbar{display:none}`; document.head.appendChild(st); }catch(e){} })();   /* KURAL: etkinlik şeridi yalnız yana kayar; aşağı-yukarı esnemez, düğmeler (gölgeleriyle) kesilmez, kaydırma çubuğu görünmez */
 (function attnStyle(){ try{ const st = document.createElement("style"); st.textContent = `@keyframes zaAttn{0%,100%{transform:none;box-shadow:0 0 0 0 rgba(15,139,133,0)}30%{transform:scale(1.04);box-shadow:0 0 0 6px rgba(15,139,133,.35)}60%{transform:none;box-shadow:0 0 0 10px rgba(15,139,133,0)}}#saveResultBtn.attn,#playerRow.attn{animation:zaAttn .9s ease-out 2}@media (prefers-reduced-motion: reduce){#saveResultBtn.attn,#playerRow.attn{animation:none;outline:3px solid #0F8B85}}`; document.head.appendChild(st); }catch(e){} })();   /* "önce kaydet" uyarısında Kaydet düğmesi kısa süre vurgulanır */
 (function stickyDoneStyle(){ try{ const st = document.createElement("style"); st.textContent = `#board .wm-btns:has([data-mtbtn$="-done"]){position:sticky;bottom:0;z-index:6;padding:8px 0 6px;margin-bottom:0 !important;background:linear-gradient(to bottom, rgba(255,255,255,0), var(--card,#fff) 35%)}`; document.head.appendChild(st); }catch(e){} })();   /* KURAL: tahta kaydırılabilir olsa da "Bitti" düğmesi tahtanın altında hep görünür (yapışık) */
@@ -13673,7 +13681,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.27-k";
+const APP_VERSION = "2026.10.27-n";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -14582,9 +14590,9 @@ let _trVoice = null;
 /* KURAL (okuma sesi): uygulama cihazdaki en doğal Türkçe sesi kendiliğinden seçer; Ayarlar > Okuma sesi'nden ses ve hız elle seçilebilir, seçim saklanır; seçilen ses cihazda yoksa en iyisine döner */
 const VOICE_KEY = "wm_voice_v1";
 const VOICE_SAMPLES = ["Ekranda şekiller var. Soldan sağa, satır satır her şeklin adını hızlıca söyle.", "Merhaba, ben Zihni! Bugün birlikte oynayalım mı?", "Zihni, ekmek, kırmızı, toprak, çiçek, kalem.", "Sana bir durum anlatacağım. Sen böyle bir durumda ne yaparsın? Anlat.", "Harika! Yeni bir yıldız kazandın!"];
-/* KURAL: iPhone/iPad'de standart okuma ayarı (kullanıcının iPhone'da en iyi bulduğu): hız %124, ton %128, cümle arası duraklama açık; kullanıcı kendi ayarını yaparsa onunki geçerli, "sıfırla" bu standarda döner. Diğer cihazlarda hız %100, ton %100 */
+/* KURAL: iPhone/iPad'de standart okuma ayarı (kullanıcının seçtiği): hız %120, ton %120, cümle arası duraklama açık; kullanıcı kendi ayarını yaparsa onunki geçerli, "sıfırla" bu standarda döner. Diğer cihazlarda hız %100, ton %100 */
 function isAppleTouch(){ try{ return /iPad|iPhone|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && "ontouchend" in document); }catch(e){ return false; } }
-function voiceDefaults(){ return isAppleTouch() ? { rateV: 1.24, pitchV: 1.28, pause: true, rate: "hizli" } : {}; }
+function voiceDefaults(){ return isAppleTouch() ? { rateV: 1.20, pitchV: 1.20, pause: true, rate: "hizli" } : {}; }
 function voicePrefStored(){ try{ return JSON.parse(localStorage.getItem(VOICE_KEY) || "{}") || {}; }catch(e){ return {}; } }
 function voicePref(){ return Object.assign({}, voiceDefaults(), voicePrefStored()); }
 function voiceRateMul(){ const p = voicePref(); if(typeof p.rateV === "number") return p.rateV; const r = p.rate; return r === "yavas" ? 0.86 : r === "hizli" ? 1.14 : 1; }
