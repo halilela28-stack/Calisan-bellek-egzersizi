@@ -5982,7 +5982,7 @@ const open = document.getElementById("recallCheck").open; renderRecallChecklist(
 });
 
 setInterval(() => { try{ ensureInteractiveStop(); }catch(e){} }, 400);
-function startTimer(){ if(!(typeof gameMode !== "undefined" && gameMode) && !(currentPlayerName || "").trim() && document.getElementById("mainApp").style.display !== "none" && !window.__qaNoPlayerGuard){ try{ const row = document.getElementById("playerRow"); row.scrollIntoView({ behavior:"smooth", block:"center" }); row.classList.remove("attn"); void row.offsetWidth; row.classList.add("attn"); }catch(e){} showToast("Başlamadan önce kimin çalıştığını seçin", "err"); return; }
+function startTimer(){ window.__zaStartAt = Date.now(); if(!(typeof gameMode !== "undefined" && gameMode) && !(currentPlayerName || "").trim() && document.getElementById("mainApp").style.display !== "none" && !window.__qaNoPlayerGuard){ try{ const row = document.getElementById("playerRow"); row.scrollIntoView({ behavior:"smooth", block:"center" }); row.classList.remove("attn"); void row.offsetWidth; row.classList.add("attn"); }catch(e){} showToast("Başlamadan önce kimin çalıştığını seçin", "err"); return; }
 window._incomplete = false; setLsOpen(false);
 timerStartedAt = Date.now() - elapsedMs;
 timerInterval = setInterval(tickTimer, 100);
@@ -8818,7 +8818,9 @@ const sil = (x, r, f) => { const c = geCut(x); return `<div class="ge-sil${c ? "
 const opts = [sil(a, rot, flip)].concat(rest.map(x => sil(x, t === 2 ? randomItem([0, 90, 180]) : 0, false)));
 return qzMake(`<div style="width:120px;height:120px;margin:0 auto">${qzPic(a.src)}</div>`, opts, 0, { prompt: t === 2 ? "Hangi gölge onun? (Gölge dönmüş olabilir)" : "Hangi <b>gölge</b> onun?", raw:true, fixed:true, cell:100 }); }); }
 function bkCfg(){ const t = currentCombo().t, pre = isPre(), n = pre ? [4, 5, 5][t] : [5, 6, 7][t], clouds = pre ? [1, 1, 2][t] : [1, 2, 3][t], ms = (pre ? [1300, 1100, 950] : [1000, 850, 700])[t];
-return { n, walls: mazeGen(n), clouds, ms }; }
+return { n, walls: escBraid(mazeGen(n), n), clouds, ms }; }
+/* KURAL (Kaçış): labirentte birkaç ek geçit (döngü) açılır — bulut tek yolu kapatıp oyunu bitirilemez yapmasın. Gerçek hızda 200'er oyunluk benzetimde bütün düzeylerde 10 dakikada bitmeyen oyun 0 */
+function escBraid(W, n){ try{ let k = n, g = 0; while(k > 0 && g++ < 500){ const i = Math.floor(Math.random() * n * n), d = []; if(i % n < n - 1 && W[i].e) d.push("e"); if(i + n < n * n && W[i].s) d.push("s"); if(!d.length) continue; const x = d[Math.floor(Math.random() * d.length)]; if(x === "e"){ W[i].e = 0; W[i + 1].w = 0; } else { W[i].s = 0; W[i + n].n = 0; } k--; } }catch(e){} return W; }
 
 function rlCfg(){ const t = currentCombo().t, pre = isPre(); return { grace: (pre ? [1000, 850, 700] : [800, 650, 500])[t], green: pre ? [1600, 3200] : [900, 2600], red: [1200, 2000], speed: (pre ? [16, 14, 12] : [13, 11, 10])[t] }; }
 function wtTrials(){ const t = currentCombo().t, pre = isPre(), kinds = pre ? [1, 2, 2][t] : [2, 3, 3][t], hide = !pre && t >= 1 || pre && t === 2;
@@ -10147,7 +10149,7 @@ renderMtBoard(); },
 "flu-ord"(){ const st = mtState; if(st.phase !== "run") return; st.ord++; renderMtBoard(); },
 ...Object.fromEntries([0, 1, 2, 3, 4].map(k => ["fs-c" + k, () => { const st = mtState; if(st.phase !== "input") return; st.sel = k; renderMtBoard(); }])),
 "fs-done"(){ const st = mtState; if(st.phase !== "input") return; const ev = fsEvaluate(st); st.res = ev.wrong; ev.wrong.forEach(() => mtErr()); if(!ev.wrong.size) gameSfx("correct");
-if(st.naming){ st.phase = "name"; st.ng = Object.keys(ev.groups).map(Number); st.groupsOf = ev.groups; st.ni = 0; renderMtBoard(); return; }
+if(st.naming && ev.groups && Object.keys(ev.groups).length){ st.phase = "name"; st.ng = Object.keys(ev.groups).map(Number);   /* hiç grup kurulmadan Bitti'ye basılırsa adlandırma atlanır (önceden hata veriyordu) */ st.groupsOf = ev.groups; st.ni = 0; renderMtBoard(); return; }
 st.phase = "fb"; renderMtBoard(); mtLater(() => mtFinish(), ev.wrong.size ? 1800 : 700); },
 "qz-replay"(){ const st = mtState, tr = st.trials && st.trials[st.ti]; if(tr && tr.say) sayTask(tr.say, 0.85); },
 "draw-undo"(){ const st = mtState; if(st.phase !== "input") return; st.mine = new Set(); st.sel = -1; renderMtBoard(); },
@@ -13342,7 +13344,7 @@ clearAllSessions();
 let playerPromptResolvedAt = 0;
 let awaitingPlayerChoice = false;
 
-document.getElementById("timerBtn").addEventListener("click", ()=>{ if(timerRunning){ window._manualStop = true; stopTimer(); return; }
+document.getElementById("timerBtn").addEventListener("click", ()=>{ if(timerRunning){ if(Date.now() - (window.__zaStartAt || 0) < 700) return; window._manualStop = true; stopTimer(); return; }   /* KURAL: Başlat'a yanlışlıkla çift dokunma çalışmayı hemen bitirmez (ilk 0,7 sn Bitir yok sayılır) */
 /* KURAL: tamamlanmış ama kaydedilmemiş çalışmada Başlat yeniden başlatmaz — önce kaydet uyarısı çıkar (↻ ile sıfırlanabilir) */
 try{ const sv = document.getElementById("saveResultBtn"); if(!(typeof gameMode !== "undefined" && gameMode) && !window._incomplete && elapsedMs > 300 && sv && getComputedStyle(sv).display !== "none"){ showToast("Önce sonucu kaydedin (ya da ↻ ile sıfırlayın)", "err"); try{ sv.scrollIntoView({ behavior:"smooth", block:"center" }); sv.classList.remove("attn"); void sv.offsetWidth; sv.classList.add("attn"); }catch(e){} return; } }catch(e){}
 if(typeof gameMode !== "undefined" && gameMode && !(currentPlayerName || "").trim()){ openGameWho(); return; }
@@ -13712,7 +13714,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.27-u";
+const APP_VERSION = "2026.10.27-w";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
