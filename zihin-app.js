@@ -10463,7 +10463,7 @@ body = isLs ? `<div style="display:flex;gap:16px;align-items:center;justify-cont
 const tr = st.trials[ti], imgs = PA_IMAGES[tr.lvl][tr.si], n = tr.n, img = (k) => `<img src="${imgs[k]}" alt="" style="width:100%;height:100%;object-fit:contain">`;
 const sw = Math.min(isLs ? (W * 0.55 - 8 * n) / n : (W - 8 * n) / n, 120), sh = Math.round(sw * 0.8);
 const slots = `<div style="display:flex;gap:6px;justify-content:center;margin-bottom:10px">${Array.from({length:n}, (_, k) => { const ci = st.placed[k]; return `<div class="wm-card" style="width:${sw}px;height:${sh}px;padding:2px;position:relative;${ci == null ? "border-style:dashed" : ""}">${ci != null ? img(tr.cards[ci]) : ""}<span class="num">${k + 1}</span></div>`; }).join("")}</div>`;
-const cw = Math.min(isLs ? Math.min((W * 0.42 - 16) / Math.min(3, n), (H - 40) / (Math.ceil(n / 3) * 0.8 + 0.4)) : (W - 30) / 2, 150), chh = Math.round(cw * 0.8);
+const cw = Math.min(isLs ? Math.min((W * 0.42 - 16) / Math.min(3, n), (H - 40) / (Math.ceil(n / 3) * 0.8 + 0.4)) : (W - 30 - 8 * (Math.max(1, Math.min(3, tr.cards.length - st.placed.filter(x => x != null).length) === 4 ? 2 : (tr.cards.length - st.placed.filter(x => x != null).length) <= 3 ? Math.max(1, tr.cards.length - st.placed.filter(x => x != null).length) : (tr.cards.length - st.placed.filter(x => x != null).length) % 2 === 0 ? 2 : 3) - 1)) / Math.max(1, (tr.cards.length - st.placed.filter(x => x != null).length) <= 3 ? Math.max(1, tr.cards.length - st.placed.filter(x => x != null).length) : (tr.cards.length - st.placed.filter(x => x != null).length) % 2 === 0 ? 2 : 3), 150), chh = Math.round(cw * 0.8);   /* KURAL: kalan kart sayısına göre sütun — son satır eksik kalmaz (3 kart tek satır, 4 kart 2×2; 5 asal olduğundan 3+2) */
 const cards = `<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">${tr.cards.map((c, i) => st.placed.includes(i) ? "" : `<div class="wm-pic${st.bad[i] ? " bad" : ""}" data-mt="${i}" style="width:${cw}px;height:${chh}px;padding:3px">${img(c)}</div>`).join("")}</div>`;
 if(st.phase === "tell"){ info = "<b>Şimdi hikâyeyi anlat</b>";
 body = dots + slots + `<div class="aud-key" style="text-align:center">Beklenen: ${PA_TEXT[tr.lvl][tr.si].slice(1).join(" → ")}. Olayları sırasıyla ve bağlantılı anlatıyor mu?</div><div class="aud-key" style="text-align:center;margin-top:6px">Yetişkin: anlatamadıysa <b>Hata sayısı +</b></div><div class="wm-btns" style="margin:6px auto 0"><button type="button" class="wm-btn same" data-judge="9">Sonraki ▶</button></div>`; }
@@ -13688,7 +13688,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.28-i";
+const APP_VERSION = "2026.10.28-l";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
