@@ -10262,9 +10262,10 @@ body = isLs ? dots + `<div style="display:flex;gap:20px;align-items:center;justi
 const tr = st.trials[ti], n = tr.items.length;
 info = st.phase === "fb" ? "Kırmızı: kaçan ya da yanlış işaretlenen" : "<b>Hatalara</b> dokun, sonra Bitti";
 const d = wmGridDims(n, W, isLs ? H - 140 : H - 140, 48);
-const cell = (it, i) => { const sel = !!st.sel[i]; let mk = sel ? " sel" : ""; if(st.phase === "fb") mk = (!!it.bad === sel) ? (it.bad ? " ok" : "") : " bad"; return `<div class="wm-pic${mk}" data-mt="${i}" style="width:${d.cell}px;height:${d.cell}px;padding:6px">${it.html}${sel && st.phase !== "fb" ? `<span class="sel-mark">✓</span>` : ""}</div>`; };   /* seçildi işareti nötr (turkuaz); kırmızı yalnızca yanlış geri bildirimi */
-body = dots + `<div class="aud-note" style="text-align:center;font-weight:800;margin-bottom:6px;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap"><span>Kural: ${tr.rule}</span><button type="button" data-mtbtn="ferr-say" aria-label="Kuralı tekrar dinle" style="flex:none;width:40px;height:40px;border-radius:50%;border:2px solid #0A847E;background:#fff;color:#0A847E;display:inline-flex;align-items:center;justify-content:center;cursor:pointer"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></button></div><div class="wm-grid" style="grid-template-columns:repeat(${tr.row ? Math.min(n, d.cols * 2 > n ? n : d.cols) : d.cols}, ${tr.row ? Math.min(d.cell, (W - 10 * n) / n) : d.cell}px);">${tr.items.map(cell).join("")}</div>` +
-(st.phase === "input" ? `<div class="wm-btns" style="margin:8px auto 0"><button type="button" class="wm-btn same" data-mtbtn="ferr-done">Bitti</button></div>` : "");
+const colN = tr.row ? Math.min(n, d.cols * 2 > n ? n : d.cols) : d.cols, cw = tr.row ? Math.max(40, Math.min(d.cell, Math.floor((W - 10 * (colN - 1)) / colN))) : d.cell;   /* KURAL: hücre genişliği sütun genişliğiyle aynı — kartlar üst üste binmez */
+const cell = (it, i) => { const sel = !!st.sel[i]; let mk = sel ? " sel" : ""; if(st.phase === "fb") mk = (!!it.bad === sel) ? (it.bad ? " ok" : "") : " bad"; return `<div class="wm-pic${mk}" data-mt="${i}" style="width:${cw}px;height:${cw}px;padding:6px">${it.html}${sel && st.phase !== "fb" ? `<span class="sel-mark">✓</span>` : ""}</div>`; };   /* seçildi işareti nötr (turkuaz); kırmızı yalnızca yanlış geri bildirimi */
+body = dots + `<div class="aud-note" style="text-align:center;font-weight:800;margin-bottom:6px;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap"><span>Kural: ${tr.rule}</span><button type="button" data-mtbtn="ferr-say" aria-label="Kuralı tekrar dinle" style="flex:none;width:40px;height:40px;border-radius:50%;border:2px solid #0A847E;background:#fff;color:#0A847E;display:inline-flex;align-items:center;justify-content:center;cursor:pointer"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></button></div><div class="wm-grid" style="grid-template-columns:repeat(${colN}, ${cw}px);justify-content:center;">${tr.items.map(cell).join("")}</div>` +
+(st.phase === "input" ? `<div class="wm-btns" style="margin:8px auto 0;display:flex;justify-content:center"><button type="button" class="wm-btn same" data-mtbtn="ferr-done">Bitti</button></div>` : "");
 } else if(st.kind === "cups"){
 const tr = st.trials[ti], bw = Math.min(W, 460), cw = Math.min(bw / tr.n * 0.8, ((isLs ? H - 30 : H) - 80) / 1.1), ch = cw * 1.1, bh = ch + 62;
 info = st.phase === "show" ? "<b>Topu takip et…</b>" : st.phase === "ask" ? "Top <b>hangi bardağın</b> altında?" : (st.pick === tr.ball ? "<b>Buldun!</b>" : "Top buradaydı");
@@ -13717,7 +13718,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.28-a";
+const APP_VERSION = "2026.10.28-b";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
