@@ -5,8 +5,9 @@
    - Betikler (zihin-*.js) ve resim dosyaları: önce önbellek; yoksa ağdan alınıp saklanır; aynı dosyanın eski sürümleri silinir.
    - Diğer aynı kaynaklı istekler: önbellekten ver, arkada yenile.
    Sürüm değişince (SW_VERSION) eski önbellekler temizlenir. */
-const SW_VERSION = "2026.10.28-e";
+const SW_VERSION = "2026.10.28-h";
 const CACHE = "za-" + SW_VERSION;
+const CACHE_IMG = "za-img";   /* KURAL: resim paketleri sürüm değişince silinmez; yalnızca içeriği değişen paket (adresindeki özet değişir) yeniden indirilir */
 const CORE = ["./zihin-atolyesi.html", "./zihin-app.js", "./manifest.json"];
 const HTML_TIMEOUT_MS = 4000;
 
@@ -21,7 +22,7 @@ self.addEventListener("install", (ev) => {
 self.addEventListener("activate", (ev) => {
   ev.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))); /* eski service worker önbellekleri dâhil hepsi temizlenir */
+    await Promise.all(keys.filter(k => k !== CACHE && k !== CACHE_IMG).map(k => caches.delete(k))); /* eski service worker önbellekleri dâhil hepsi temizlenir */
     await self.clients.claim();
   })());
 });
@@ -50,7 +51,7 @@ async function networkFirstHtml(req){
 }
 
 async function cacheFirst(req, url){
-  const cache = await caches.open(CACHE);
+  const cache = await caches.open(/zihin-gorsel-/.test(url.pathname) ? CACHE_IMG : CACHE);
   const hit = await cache.match(req);
   if(hit) return hit;
   const res = await fetch(req);

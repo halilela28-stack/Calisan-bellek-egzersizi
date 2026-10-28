@@ -1641,7 +1641,7 @@ const bar = document.querySelector(".controls"); const barH = bar && getComputed
 const mx = Math.max(160, Math.floor(window.innerHeight - barH - top - 10)); document.documentElement.style.setProperty("--boardMax", mx + "px"); window._rfMax = mx;
 if(bd.style.maxHeight) bd.style.maxHeight = ""; delete bd.dataset.rf; delete bd.dataset.rfs; runFocusFit(); }catch(e){} }
 // Odak modunda sabit boyutlu çizen tahtalar: taşarsa öğeler adım adım küçültülüp yeniden çizilir (en fazla %40)
-const FIT_SHRINK = new Set(["zihni","corsi","corsi-verbal","maze","what-do","symmetry","spot-diff","copy-design","vis-draw","class-table","sudoku","plan-cubes","plan-tol","plan-beads","plan-swap","plan-think","trail-animal-fruit","trail-color-shape","trail-numbers","trail-number-month","number-letter"]);
+const FIT_SHRINK = new Set(["zihni","corsi","corsi-verbal","maze","what-do","symmetry","spot-diff","copy-design","vis-draw","class-table","sudoku","plan-cubes","plan-tol","plan-beads","plan-swap","trail-animal-fruit","trail-color-shape","trail-numbers","trail-number-month","number-letter"]);
 function fitShrinkStep(){ try{ const ex = currentExercise(); if(!FIT_SHRINK.has(ex.id) && !QZ[ex.id] && !ex.isMt) return false; /* soru-cevap ve etkileşimli (isMt) tahtalar küçültülebilir */ const k = window._fitK || 1; if(k <= 0.61) return false;
   window._fitK = Math.max(0.6, +(k * 0.9).toFixed(3));
   if(ex.isTrail) renderTrailBoard(); else if(ex.isPlan) renderPlanBoard(); else renderMtBoard(); return true; }catch(e){ return false; } }
@@ -2516,31 +2516,6 @@ randomItem: () => ({}),
 stages: [ { label: "Aşama 1 · Biçimi Farklı, Sayı Aynı", instruction: () => ``, example: () => `` } ]
 },
 {
-id: "number-find-mixed",
-readingLevel: ["pre","post"],
-label: "Karışık Sayı Bulma",
-isScatter: true,
-attrs: [],
-scatterItems: () => {
-const n = scatterCount();
-const fonts = isPre() ? PRE_SCATTER_FONTS : SCATTER_FONTS;
-return assignGlyphStyles(shuffleArray(Array.from({length:n}, (_,i)=>({ text:String(i+1), font:randomItem(fonts), color:randomItem(COLORS) }))));
-},
-renderItem: seqItemHTML,
-stages: [
-{
-label: "Aşama 1 · Küçükten büyüğe",
-instruction: () => `Sayılar farklı yazı tipi, renk ve biçimlerle (döndürülmüş, dalgalı, derinlikli, yana yayılmış, yukarı çekilmiş, içi boş) verilmiştir. Öğrenciye sayfayı gösterin. Ardından <b>"Ben başla dediğimde, 1'den ${trNumSuffix(scatterCount(),"dat")} kadar sayıları sırayla parmağınla göster"</b> deyin.`,
-example: () => ``
-},
-{
-label: "Aşama 2 · Büyükten küçüğe",
-instruction: () => `Sayılar farklı yazı tipi, renk ve biçimlerle (döndürülmüş, dalgalı, derinlikli, yana yayılmış, yukarı çekilmiş, içi boş) verilmiştir. Öğrenciye sayfayı gösterin. Ardından <b>"Ben başla dediğimde, ${trNumSuffix(scatterCount(),"abl")} başlayarak 1'e kadar sayıları sırayla parmağınla göster"</b> deyin.`,
-example: () => ``
-}
-]
-},
-{
 id: "flanker",
 readingLevel: ["pre","post"],
 label: "Ortadakini Söyle",
@@ -2792,16 +2767,6 @@ isChoice: true, attrs: [], speedFactor: 2,
 isDone: () => !!chState && chState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Çerçeveye Göre Seç", instruction: () => ``, example: () => `` } ]
-},
-{
-id: "plan-think",
-readingLevel: ["pre","post"],
-label: "Planlama: Önce Planla",
-isPlan: true, attrs: [], speedFactor: 18,
-isDone: () => !!planState && planState.done,
-plan: () => makePlanProblems(),
-randomItem: () => ({}),
-stages: [{ label: "Önce Düşün", instruction: () => ``, example: () => `` }]
 },
 {
 id: "number-letter",
@@ -7013,7 +6978,7 @@ buttons: (c, t) => (t ? t.opts : []).map((o, i) => ({ id: String(i), html: lfHou
 correct: (t) => String(t.ans), cols: 3, gap: 400, trials: { post:[6, 8, 10], pre:[4, 5, 6] },
 key: () => { const st = chState; if(!st || st.phase !== "done" || !st.rts.length) return ""; const mean = Math.round(st.rts.reduce((a, b) => a + b, 0) / st.rts.length / 100) / 10; return `<div class="ch-key" style="font-weight:800;font-size:13px;color:var(--ink);gap:10px;padding:6px 12px;flex-wrap:wrap;justify-content:center"><span>Ortalama ilk tepki: <b>${mean} sn</b></span><span>Hata: <b>${st.wrong}</b></span><span style="color:#5B6B78">${st.wrong >= 2 && mean < 2.5 ? "hızlı ve hatalı → bakmadan dokunuyor olabilir" : st.wrong === 0 ? "dikkatli karşılaştırdı" : "düşünerek ilerliyor"}</span></div>`; }
 };
-Object.defineProperty(PLN_SPECS, "plan-think", { get(){ return isPre() ? PLN_SPECS["plan-beads"] : PLN_SPECS["plan-tol"]; } });
+
 const PLAN_THINK_MS = () => isPre() ? 4000 : 5000;
 let plnLockTimer = null;
 function plnStartLock(){
@@ -8733,7 +8698,7 @@ const EMO_MAP = {
 function libImg(key){ try{ for(const n of ["HOTCOLD_IMAGES","LIVING_IMAGES","TASTE_IMAGES","PAIR_IMAGES","TOY_IMAGES","OS_IMAGES","WILD_IMAGES","HOUSE_IMAGES","VEHICLE_IMAGES","FRUIT_IMAGES","VEG_IMAGES","FLK_IMAGES","FRUIT_VEG_IMAGES"]){ const o = window[n] || (function(){ try{ return eval(n); }catch(e){ return null; } })(); if(o && o[key]) return o[key]; } }catch(e){} return null; }
 const EMO_IMG = (src, h) => { if(!src) return null; try{ const c = typeof CUTOUT_BY_SRC !== "undefined" && CUTOUT_BY_SRC[srcKey(src)]; if(c) src = c; }catch(e){} return `<img src="${src}" alt="" style="height:${h || 1.3}em;width:auto;vertical-align:-0.3em">`; };
 Object.assign(EMO_MAP, {
-  "🔊": () => '<svg viewBox="0 0 24 24" width="1.05em" height="1.05em" style="vertical-align:-0.15em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" stroke="none"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>', "🐻": () => EMO_IMG(gimg("bear")), "🧺": () => EMO_IMG(gimg("basket")), "🏠": () => '<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.12em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>', "🐾": () => '<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.12em" fill="currentColor"><ellipse cx="12" cy="16" rx="4.6" ry="3.8"/><circle cx="6.3" cy="10.5" r="2.1"/><circle cx="9.6" cy="6.6" r="2.1"/><circle cx="14.4" cy="6.6" r="2.1"/><circle cx="17.7" cy="10.5" r="2.1"/></svg>', "🐲": () => EMO_IMG(gimg("dragon")), "🛒": () => EMO_IMG(gimg("basket")), "👆": () => '<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.12em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11V5a1.5 1.5 0 0 1 3 0v5m0-1a1.5 1.5 0 0 1 3 0v1m0 0a1.5 1.5 0 0 1 3 0v4a6 6 0 0 1-6 6h-1a5 5 0 0 1-4-2l-3-4a1.5 1.5 0 0 1 2.3-1.9L9 14"/></svg>',   /* KURAL: ekranda emoji kalmaz — hoparlör ve parmak çizgi simge, ayı/ejderha/sepet resim */
+  "⏹": () => '<svg viewBox="0 0 24 24" width="0.95em" height="0.95em" style="vertical-align:-0.1em" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2.5"/></svg>', "🔊": () => '<svg viewBox="0 0 24 24" width="1.05em" height="1.05em" style="vertical-align:-0.15em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" stroke="none"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>', "🐻": () => EMO_IMG(gimg("bear")), "🧺": () => EMO_IMG(gimg("basket")), "🏠": () => '<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.12em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>', "🐾": () => '<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.12em" fill="currentColor"><ellipse cx="12" cy="16" rx="4.6" ry="3.8"/><circle cx="6.3" cy="10.5" r="2.1"/><circle cx="9.6" cy="6.6" r="2.1"/><circle cx="14.4" cy="6.6" r="2.1"/><circle cx="17.7" cy="10.5" r="2.1"/></svg>', "🐲": () => EMO_IMG(gimg("dragon")), "🛒": () => EMO_IMG(gimg("basket")), "👆": () => '<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-0.12em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11V5a1.5 1.5 0 0 1 3 0v5m0-1a1.5 1.5 0 0 1 3 0v1m0 0a1.5 1.5 0 0 1 3 0v4a6 6 0 0 1-6 6h-1a5 5 0 0 1-4-2l-3-4a1.5 1.5 0 0 1 2.3-1.9L9 14"/></svg>',   /* KURAL: ekranda emoji kalmaz — hoparlör ve parmak çizgi simge, ayı/ejderha/sepet resim */
   "🚫": () => EMO_MAP["❌"](), "❌": EMO_MAP["❌"],
   "🍎": () => EMO_IMG((typeof CUTOUT_IMAGES !== "undefined" && CUTOUT_IMAGES["f-apple"]) || libImg("apple")),
   "🥕": () => EMO_IMG(libImg("carrot")), "🔥": () => EMO_IMG(libImg("fire")), "❄️": () => EMO_IMG(libImg("snowman")), "❄": () => EMO_IMG(libImg("snowman")),
@@ -8764,7 +8729,7 @@ const EMO_RE = new RegExp("(" + Object.keys(EMO_MAP).map(k => k.replace(/[.*+?^$
 function svgStarFix(root){ try{ root.querySelectorAll("svg text").forEach(t => { const v = (t.textContent || "").replace(/\uFE0F/g, "").trim(); if(v !== "⭐") return; const fs = parseFloat(t.getAttribute("font-size")) || 16, x = parseFloat(t.getAttribute("x")) || 0, y = parseFloat(t.getAttribute("y")) || 0, r = fs * 0.5, cy = y - fs * 0.36; const pts = []; for(let k = 0; k < 10; k++){ const a = -Math.PI / 2 + k * Math.PI / 5, rr = k % 2 ? r * 0.45 : r; pts.push((x + Math.cos(a) * rr).toFixed(1) + "," + (cy + Math.sin(a) * rr).toFixed(1)); } const pg = document.createElementNS("http://www.w3.org/2000/svg", "polygon"); pg.setAttribute("points", pts.join(" ")); pg.setAttribute("fill", "#F5B301"); pg.setAttribute("stroke", "#C98A00"); pg.setAttribute("stroke-width", Math.max(1, fs * 0.05)); pg.setAttribute("stroke-linejoin", "round"); pg.setAttribute("pointer-events", "none"); if(t.id) pg.id = t.id; t.parentNode.replaceChild(pg, t); }); }catch(e){} }   /* SVG içindeki yıldız emojisi → uygulamanın yıldızı (labirent, hayvanat bahçesi, bul ve kaç) */
 function emoRe(){ const n = Object.keys(EMO_MAP).length; if(!emoRe.r || emoRe.n !== n){ emoRe.n = n; emoRe.r = new RegExp("(" + Object.keys(EMO_MAP).map(k => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")(\uFE0F)?", "u"); } return emoRe.r; }   /* sonradan eklenen emoji karşılıkları da tanınır */
 /* KURAL: ekranda emoji görünmez — eşlemesi olmayan emoji (kutlama, ampul vb.) yazıdan silinir; ✓ ✗ işaretleri kalır */
-function emojiStrip(root){ try{ const re = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{2712}\u{2714}-\u{2716}\u{2718}-\u{27BF}\u{2B50}\u{2B55}]\u{FE0F}?/gu; const w = document.createTreeWalker(root || document.body, NodeFilter.SHOW_TEXT); const list = []; let n; while((n = w.nextNode())){ if(n.parentElement && /^(INPUT|TEXTAREA|SCRIPT|STYLE)$/.test(n.parentElement.tagName)) continue; if(re.test(n.nodeValue)){ re.lastIndex = 0; list.push(n); } re.lastIndex = 0; } list.forEach(t => { t.nodeValue = t.nodeValue.replace(re, "").replace(/ {2,}/g, " "); }); }catch(e){} }
+function emojiStrip(root){ try{ const re = /[\u{1F300}-\u{1FAFF}\u{231A}-\u{23FF}\u{2600}-\u{26FF}\u{2700}-\u{2712}\u{2714}-\u{2716}\u{2718}-\u{27BF}\u{2B50}\u{2B55}]\u{FE0F}?/gu; const w = document.createTreeWalker(root || document.body, NodeFilter.SHOW_TEXT); const list = []; let n; while((n = w.nextNode())){ if(n.parentElement && /^(INPUT|TEXTAREA|SCRIPT|STYLE)$/.test(n.parentElement.tagName)) continue; if(re.test(n.nodeValue)){ re.lastIndex = 0; list.push(n); } re.lastIndex = 0; } list.forEach(t => { t.nodeValue = t.nodeValue.replace(re, "").replace(/ {2,}/g, " "); }); }catch(e){} }
 function emojiFix(root){ try{ if(!root) return; svgStarFix(root); const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: (n) => (n.nodeValue && emoRe().test(n.nodeValue) && n.parentNode && !(n.parentNode.namespaceURI || "").includes("svg") && !/^(TEXTAREA|SCRIPT|STYLE|INPUT|OPTION)$/.test(n.parentNode.nodeName)) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT }); const list = []; while(w.nextNode()) list.push(w.currentNode);
   list.forEach(n => { const parts = n.nodeValue.split(emoRe()).filter(x => x !== undefined && x !== "\uFE0F"); if(parts.length < 2) return; const frag = document.createDocumentFragment(); let changed = false; parts.forEach(pt => { if(EMO_MAP[pt]){ const h = EMO_MAP[pt](); if(h){ const sp = document.createElement("span"); sp.className = "emo-ic"; sp.innerHTML = h; frag.appendChild(sp); changed = true; return; } } if(pt) frag.appendChild(document.createTextNode(pt)); }); if(changed) n.parentNode.replaceChild(frag, n); }); }catch(e){} }
 (function emojiWatch(){ const start = () => { let q = false; const run = () => { q = false; emojiFix(document.body); emojiStrip(document.body);   /* KURAL: emoji düzeltmesi bütün sayfada çalışır (düğmeler ve tahta dışı alanlar dahil) */ document.querySelectorAll(".say-toast, #sayToast, .ch-key").forEach(emojiFix); }; new MutationObserver(() => { if(!q){ q = true; requestAnimationFrame(run); } }).observe(document.body, { childList: true, subtree: true, characterData: true }); run(); }; if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start(); })();
@@ -9024,10 +8989,10 @@ function placeRotate(R, finished){ if(R.order && !finished){ R.n = 0; R.hits = 0
   if(!R.order){ if(finished){ R.di++; R.step = placeNextStart(R); R.dir = 0; R.visits = 0; } return; } let pos = R.order.indexOf(R.di); if(pos < 0){ R.order = PLACE_DOMS.map((_, i) => i).filter(i => R.res[PLACE_DOMS[i].k] == null); pos = Math.max(0, R.order.indexOf(R.di)); } if(finished){ R.order = R.order.filter(i => i !== R.di); delete R.st[R.di]; if(!R.order.length){ R.di = PLACE_DOMS.length; return; } placeLoadDom(R, R.order[pos % R.order.length]); } else { placeSaveDom(R); placeLoadDom(R, R.order[(pos + 1) % R.order.length]); } }
 function placeNext(){ const R = placeRun; if(!R) return; if(R.di >= PLACE_DOMS.length || (R.order && !R.order.length)) return placeFinish(); setTimeout(placeExitBtn, 0);
 const d = PLACE_DOMS[R.di]; R.items++; const myItem = R.item = (R.item || 0) + 1;
-const warm = !R.warmDone[d.k] && R.n === 0 && R.visits === 0 && (R.items === 1 || d.kind === "cups" || d.kind === "listen"); const TT = warm ? 0 : R.step; const pre = TT < 3; const el = document.getElementById("placeScreen");
+const warm = !R.warmDone[d.k] && R.n === 0 && R.visits === 0; const TT = R.step;   /* KURAL (Değerlendirme turu, B kararı 2026-10-28): her alan, başlangıç basamağında puanlanmayan bir ısınma sorusuyla başlar; ısınma yanlışsa ölçüm bir alt basamaktan başlar — turun başındaki alanlarda sıra etkisi azalır */ const pre = TT < 3; const el = document.getElementById("placeScreen");
 const head = `${warm ? `<div class="qz-warm" style="margin-top:calc(8px + env(safe-area-inset-top))">${icI("sprout", 15, "#1B7A3D")} Isınma</div>` : ""}<div class="place-top"><div class="place-dots">${PLACE_DOMS.map((dd, i) => `<span class="${R.res[dd.k] != null ? "done" : i === R.di ? "cur" : ""}"></span>`).join("")}</div></div>`;
 const answer = (ok) => { if(placeRun !== R || R.item !== myItem || R.answered === myItem) return; R.answered = myItem;
-  if(warm){ R.warmDone[d.k] = true; gameSfx(ok ? "correct" : "pop"); return setTimeout(placeNext, 450); }
+  if(warm){ R.warmDone[d.k] = true; if(!ok) R.step = Math.max(0, R.step - 1); gameSfx(ok ? "correct" : "pop"); return setTimeout(placeNext, 450); }
   R.n++; if(ok) R.hits++; R.qn = R.qn || {}; R.qn[d.k] = (R.qn[d.k] || 0) + 1; gameSfx(ok ? "correct" : "pop"); if(R.n < 2) return setTimeout(placeNext, 450);   /* her turda 2 soru */
   const h = R.hits; R.n = 0; R.hits = 0; R.visits++; let done = false, res = R.step;
   /* KURAL (Değerlendirme turu): gerçek uyarlama — her alanda 2/2 doğru bir basamak yukarı, 0/2 bir basamak aşağı; okul sonrası ile okul öncesi basamakları arasında serbestçe geçilir
@@ -11292,7 +11257,7 @@ const INSTR_SHORT = {
 "fish-flanker":     [() => Q("Ekranda yan yana balıklar var. Yalnızca ORTADAKİ balığa bak; yandakilere aldırma. Ortadaki balık hangi yöne bakıyorsa alttan o yönün okuna dokun.")],
 "face-go":          [() => Q(`Ekrana yüzler tek tek gelecek. Her yüz gelince DOKUN'a bas. Ama ${trUpper(FACE_NAMES[fgStop])} yüz gelince dokunma, bekle.`)],
 "switch-touch":     [() => Q("Ekrana ön ya da arka tarafı görünen taşıtlar gelecek. Çerçeve yeşilse gördüğünle aynı tarafa, çerçeve turuncuysa ters tarafa dokun: yeşilde önü gördüysen ön'e, turuncuda önü gördüysen arka'ya.")],
-"plan-think":       [() => `${Q("Önce zihninde planla; birkaç saniye sonra dokunabilirsin. En az hamleyle hedefteki gibi yap.")} İsterseniz çocuk kaç hamlede çözeceğini önce söylesin.`],
+
 "hear-find":        [() => Q("Ekranda resimler var. Bazılarının adı okunacak; dinle ve aklında tut. Bitince adı okunan resimlere dokun; sonra Bitti'ye bas.")],
 "dir-follow":       [() => Q("Ekranda resimler var. Sana hangi resimlere, hangi sırayla dokunacağını söyleyeceğim; dinle ve aklında tut. Bitince söylediğim sırayla resimlere dokun.")],
 "vis-miss":         [() => Q("Ekranda resimler var; hepsine iyi bak ve aklında tut. Sonra resimlerden biri kaybolacak. Hangi resmin eksik olduğunu bul; alttan ona dokun.")],
@@ -11548,8 +11513,7 @@ const INSTR_SHORT = {
 "arrow-direction":  [() => Q("Ekranda oklar var. Soldan sağa, satır satır her ok için yukarı mı aşağı mı baktığını söyle."), () => Q("Ekranda oklar var. Her ok için hangi yöne baktığını söyle: yukarı, aşağı ya da sağ."), () => Q("Ekranda oklar var. Her ok için hangi yöne baktığını söyle: yukarı, aşağı, sağ ya da sol.")],
 "edge-count":       [() => Q("Ekranda şekiller var. Her şekil için kenarlarını say ve kaç kenarı olduğunu söyle.")],
 "visual-opposites": [() => Q("Ekranda resimler var. Her resim için ne gördüğünü bir kelimeyle söyle: uzun mu kısa mı, dolu mu boş mu, içinde mi dışında mı gibi."), () => Q("Her resim için önce gördüğünü söyle, sonra onun zıttını söyle.")],
-"number-find-mixed":[() => Q(`1'den ${trNumSuffix(scatterCount(),"dat")} kadar sayıları sırayla göster.`),
-() => Q(`${trNumSuffix(scatterCount(),"abl")} 1'e kadar sayıları geriye doğru göster.`)],
+
 "odd-one-out":      [() => Q("Ekranda üçer şekilden oluşan sıralar var. Her sırada iki şekil birbirine benziyor, biri farklı. Farklı olanın kaçıncı olduğunu söyle: 1, 2 ya da 3."), () => Q("Her sırada farklı olanın kaçıncı olduğunu söyle, sonra neden farklı olduğunu açıkla: rengi mi, şekli mi, boyu mu?")],
 "sequence-pattern": [() => Q("Ekranda renkli şekillerden oluşan sıralar var; renkler belli bir düzenle tekrar ediyor. Düzeni bul ve soru işaretinin yerine hangi rengin geleceğini söyle."), () => Q("Bu kez renkler üçlü bir düzenle tekrar ediyor. Düzeni bul ve soru işaretinin yerine hangi rengin geleceğini söyle.")],
 "visual-analogy":   [() => Q("Ekranda ikişer ikili var: ilk ikilide bir şey değişiyor. Aynı değişiklik ikinci ikilide de olacak. Soru işaretinin yerine hangi renk gelir? Söyle."), () => Q("İlk ikilideki değişikliği bul. Soru işaretinin yerine ne gelir? Şeklini ve rengini söyle.")]
@@ -11628,7 +11592,7 @@ return {
 "size-sort":[0, "İkişer Karşılaştır", "İkişer ikişer karşılaştır: hangisi daha büyük?"],
 "arrow-direction":[0, "Elinle Göster", "Okun yönünü önce elinle göster, sonra söyle."],
 "edge-count":[0, "Parmakla Say", "Bir köşeden başla, parmağınla kenarlara dokunarak say."],
-"number-find-mixed":scan,
+
 "clue-find":[0, "Tek Tek Ele", "Her ipucundan sonra uymayanları içinden ele; geriye kalana bak."],
 "class-table":[0, "Satır ve Sütun", "Parmağınla satırın rengini, sütunun şeklini göster; ikisi de uyuyor mu?"],
 "color-obj":[0, "Birlikte Söyle", "Her resmi rengiyle birlikte içinden söyle: 'kırmızı top'."],
@@ -12266,7 +12230,7 @@ function fitTextCells(board){ const textEls = Array.from(board.querySelectorAll(
       const bb = b.getBoundingClientRect(); if(bt.getBoundingClientRect().bottom > bb.bottom + 1){ const row = bt.closest(".wm-btns") || bt; const wrap = b.querySelector(".wm-wrap") || b.firstElementChild; if(wrap && row.parentElement !== wrap && !row.dataset.lsMoved){ row.dataset.lsMoved = "1"; wrap.appendChild(row); row.style.position = "sticky"; row.style.bottom = "0"; row.style.zIndex = "6"; row.style.background = "var(--card,#fff)"; row.style.paddingTop = "6px"; } } } }catch(e){}   /* yapıştırma yetmezse düğme satırı tahtanın en altına taşınır */   /* yatay telefonda ana düğme satırı tahtanın altına yapışır */ } else if(b.style.maxHeight){ b.style.maxHeight = ""; b.style.overflowY = ""; } };   /* KURAL: yatay telefonda tahta ekranın altına taşmaz; ana düğme ilk bakışta görünür */
   let tm = 0; const go = () => { clearTimeout(tm); tm = setTimeout(() => { fit(); lsFit(); }, 20); }; const start = () => { const b = document.getElementById("board"); if(!b) return setTimeout(start, 500); new MutationObserver(go).observe(b, { childList: true, subtree: true }); window.addEventListener("resize", go); }; start(); }catch(e){} })();
 (function ecountClicks(){ try{ document.addEventListener("click", (e) => { const st = (typeof mtState !== "undefined") ? mtState : null; if(!st || st.kind !== "ecount" || !timerRunning) return; const c = e.target.closest("[data-ecstep]"); if(c){ st.ecPhase = "answer"; renderMtBoard(); return; } const a = e.target.closest("[data-ecans]"); if(a && st.ecPhase === "answer"){ const tr = st.trials[st.ti], n = +a.dataset.ecans; st.ecPick = n; st.ecPhase = "fb"; if(n !== tr.ans){ currentErrorCount++; const ce = document.getElementById("errorCount"); if(ce) ce.textContent = String(currentErrorCount); try{ gameSfx("wrong"); }catch(e2){} } else { try{ gameSfx("correct"); }catch(e2){} } renderMtBoard(); } }, true); }catch(e){} })();
-(function minTextStyle(){ try{ const st = document.createElement("style"); st.textContent = `.pk-plank{position:relative}.pk-plank::after{content:"";position:absolute;inset:-5px}.qz-warm{font-size:12px !important}.tag{font-size:11px !important;padding:1px 5px !important}`; document.head.appendChild(st); }catch(e){} })();   /* KURAL (düzen): ekrandaki hiçbir yazı 11 px'ten küçük olmaz ("Isınma" etiketi 12, BAŞLA/BİTİŞ 11) */
+(function minTextStyle(){ try{ const st = document.createElement("style"); st.textContent = `.time-btn.stop,.timer-btn.running{background-color:#C8373C !important}.exercise-group-label{color:#05625D !important}.fam-step.close .fam-role,.fam-step.close .fam-dot span,.category-badge,.save-hint{color:#9A5600 !important}.fam-step.close .fam-dot span{border-color:#9A5600 !important}`   /* KURAL (erişilebilirlik): yazı karşıtlığı en az 4.5:1 (büyük yazıda 3:1) */ + `.pk-plank{position:relative}.pk-plank::after{content:"";position:absolute;inset:-5px}.qz-warm{font-size:12px !important}.tag{font-size:11px !important;padding:1px 5px !important}`; document.head.appendChild(st); }catch(e){} })();   /* KURAL (düzen): ekrandaki hiçbir yazı 11 px'ten küçük olmaz ("Isınma" etiketi 12, BAŞLA/BİTİŞ 11) */
 (function stripStyle(){ try{ const st = document.createElement("style"); st.textContent = `#exerciseRow{overflow-y:hidden !important;overscroll-behavior-y:none;overscroll-behavior-x:contain;padding:4px 2px 10px !important;margin-bottom:6px !important;scrollbar-width:none;align-items:center}#exerciseRow::-webkit-scrollbar{display:none}`; document.head.appendChild(st); }catch(e){} })();   /* KURAL: etkinlik şeridi yalnız yana kayar; aşağı-yukarı esnemez, düğmeler (gölgeleriyle) kesilmez, kaydırma çubuğu görünmez */
 (function attnStyle(){ try{ const st = document.createElement("style"); st.textContent = `@keyframes zaAttn{0%,100%{transform:none;box-shadow:0 0 0 0 rgba(15,139,133,0)}30%{transform:scale(1.04);box-shadow:0 0 0 6px rgba(15,139,133,.35)}60%{transform:none;box-shadow:0 0 0 10px rgba(15,139,133,0)}}#saveResultBtn.attn,#playerRow.attn{animation:zaAttn .9s ease-out 2}@media (prefers-reduced-motion: reduce){#saveResultBtn.attn,#playerRow.attn{animation:none;outline:3px solid #0F8B85}}`; document.head.appendChild(st); }catch(e){} })();   /* "önce kaydet" uyarısında Kaydet düğmesi kısa süre vurgulanır */
 (function stickyDoneStyle(){ try{ const st = document.createElement("style"); st.textContent = `#timerResetBtn{min-width:40px !important}@media (orientation: landscape) and (max-height: 520px){#board{overflow-y:auto !important;overscroll-behavior:contain}}#board .wm-btns:has([data-mtbtn$="-done"], [data-ecstep], [data-judge="9"]){position:sticky;bottom:0;z-index:6;padding:8px 0 6px;margin-bottom:0 !important;background:linear-gradient(to bottom, rgba(255,255,255,0), var(--card,#fff) 35%)}`; document.head.appendChild(st); }catch(e){} })();   /* KURAL: tahta kaydırılabilir olsa da "Bitti"/"Devam"/"Sonraki" düğmesi tahtanın altında hep görünür (yapışık); yatay telefonda tahta ekran yüksekliğine sığar ve kendi içinde kayar */
@@ -13722,7 +13686,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.28-e";
+const APP_VERSION = "2026.10.28-h";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -17155,6 +17119,6 @@ function altCtx(){ const t = Math.min(currentCombo().t, 2); if(t === 0) return "
   el.addEventListener("pointerup", ev => { if(!st || ev.pointerType === "mouse") return; const ok = Math.hypot(ev.clientX - st.x, ev.clientY - st.y) < 24 && Date.now() - st.t < 900; st = null; if(!ok || el.disabled) return; if(Date.now() - (el._navAt || 0) < 350) return; el._navAt = Date.now(); el._ftAt = Date.now(); el.click(); });
   el.addEventListener("click", ev => { if(ev.isTrusted && Date.now() - (el._ftAt || 0) < 700){ ev.stopImmediatePropagation(); ev.preventDefault(); return; } if(ev.isTrusted){ if(Date.now() - (el._navAt || 0) < 350){ ev.stopImmediatePropagation(); ev.preventDefault(); return; } el._navAt = Date.now(); } }, true); }); })();
 
-function planThinkOn(){ try{ const ex = currentExercise(); if(ex.id === "plan-think") return true; const st = ex.stages && ex.stages[currentStageIndex]; return !!(st && st.think); }catch(e){ return false; } }   /* "Önce Planla" kilidi açık mı */
+function planThinkOn(){ try{ const ex = currentExercise(); const st = ex.stages && ex.stages[currentStageIndex]; return !!(st && st.think); }catch(e){ return false; } }   /* "Önce Planla" kilidi açık mı */
 
 window.__zaReady = true;
