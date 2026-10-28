@@ -6097,7 +6097,7 @@ document.getElementById("saveHint").style.display = "none";
 }
 
 function confirmSaveResult(){ if(elapsedMs <= 300 || window._incomplete) return; if(!gameMode && !(currentPlayerName || "").trim()){ zaAlert("Kaydetmek için önce kimin çalıştığını seçin."); try{ const row = document.getElementById("playerRow"); row.scrollIntoView({ behavior:"smooth", block:"center" }); row.classList.remove("attn"); void row.offsetWidth; row.classList.add("attn"); }catch(e){} return; }
-recordSession(elapsedMs, currentErrorCount); playSound("save"); if(!gameMode){ try{ celebrateSave(); }catch(e){} try{ finishCard(); }catch(e){} }   /* KURAL: Zihni (bitiş kartı) ve konfeti kaydettikten sonra çıkar */
+recordSession(elapsedMs, currentErrorCount); playSound("save"); if(!gameMode){ try{ finishCard(); }catch(e){} }   /* konfeti recordSession içinde bir kez */   /* KURAL: Zihni (bitiş kartı) ve konfeti kaydettikten sonra çıkar */
 if(hwRun){ resetTimer(); setTimeout(() => { try{ showHwDone(); }catch(e){ console.error(e); } }, 120); return; }   /* ödev oturumu: otomatik düzey değişmez, sonuç paneli */
 const __j = (!currentExercise().isMotion && !currentExercise().isRecall && !currentExercise().noAdaptive) ? sessionJudge(elapsedMs, currentErrorCount) : null;
 if(__j && (appMode === "aile" || (appMode === "uzman" && expertAdaptiveEnabled))){
@@ -6294,7 +6294,7 @@ const label = labelFor(t, st);
 currentStageIndex = st;
 goToIndex(findSeqIndex(t, combo.e));
 if(dir === "up"){
-showLevelFlash(`🎉 Harika gidiyorsun! Zorluk artırıldı: ${label}`, "levelup");
+showLevelFlash(`Harika gidiyorsun! Zorluk artırıldı: ${label}`, "levelup");
 playSound("up"); vibrate([40, 60, 40]);
 } else {
 showLevelFlash(`Biraz daha pratik edelim, zorluk azaltıldı: ${label}`, "down");
@@ -6303,10 +6303,11 @@ playSound("down"); vibrate(80);
 logLevelEvent({t: Date.now(), dir, toLabel: label, player});
 }
 
+const skey = player + "|" + ex.id + "|" + currentStageIndex; window.__zaStreak = window.__zaStreak || {}; try{ window.__zaStreak = Object.assign(JSON.parse(localStorage.getItem("za_streak") || "{}"), window.__zaStreak); }catch(e){} successStreak = window.__zaStreak[skey] || 0; const saveStreak = () => { window.__zaStreak[skey] = successStreak; try{ localStorage.setItem("za_streak", JSON.stringify(window.__zaStreak)); }catch(e){} };   /* KURAL: "iki başarılı kayıt → üst düzey" aynı çocuk + aynı çalışma + aynı aşama için sayılır; sayaç kalıcı */
 if(isGood){
-successStreak++;
+successStreak++; saveStreak();
 if(successStreak >= 2){
-successStreak = 0;
+successStreak = 0; saveStreak();
 if(combo.t < tierMax(ex)){
 moveTo(combo.t + 1, currentStageIndex, "up");
 } else if(useStages && currentStageIndex < baseStageCount(ex) - 1){
@@ -6314,15 +6315,13 @@ moveTo(0, currentStageIndex + 1, "up");
 }
 }
 } else if(isBad){
-successStreak = 0;
+successStreak = 0; saveStreak();
 if(combo.t > 0){
 moveTo(combo.t - 1, currentStageIndex, "down");
 } else if(useStages && currentStageIndex > 0 && currentStageIndex < baseStageCount(ex)){
 moveTo(tierMax(ex), currentStageIndex - 1, "down");
 }
-} else {
-successStreak = 0;
-}
+} else { successStreak = 0; saveStreak(); }
 }
 
 function spawnConfetti(container){
@@ -8764,9 +8763,11 @@ Object.assign(EMO_MAP, {
 const EMO_RE = new RegExp("(" + Object.keys(EMO_MAP).map(k => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")(\uFE0F)?", "u");
 function svgStarFix(root){ try{ root.querySelectorAll("svg text").forEach(t => { const v = (t.textContent || "").replace(/\uFE0F/g, "").trim(); if(v !== "⭐") return; const fs = parseFloat(t.getAttribute("font-size")) || 16, x = parseFloat(t.getAttribute("x")) || 0, y = parseFloat(t.getAttribute("y")) || 0, r = fs * 0.5, cy = y - fs * 0.36; const pts = []; for(let k = 0; k < 10; k++){ const a = -Math.PI / 2 + k * Math.PI / 5, rr = k % 2 ? r * 0.45 : r; pts.push((x + Math.cos(a) * rr).toFixed(1) + "," + (cy + Math.sin(a) * rr).toFixed(1)); } const pg = document.createElementNS("http://www.w3.org/2000/svg", "polygon"); pg.setAttribute("points", pts.join(" ")); pg.setAttribute("fill", "#F5B301"); pg.setAttribute("stroke", "#C98A00"); pg.setAttribute("stroke-width", Math.max(1, fs * 0.05)); pg.setAttribute("stroke-linejoin", "round"); pg.setAttribute("pointer-events", "none"); if(t.id) pg.id = t.id; t.parentNode.replaceChild(pg, t); }); }catch(e){} }   /* SVG içindeki yıldız emojisi → uygulamanın yıldızı (labirent, hayvanat bahçesi, bul ve kaç) */
 function emoRe(){ const n = Object.keys(EMO_MAP).length; if(!emoRe.r || emoRe.n !== n){ emoRe.n = n; emoRe.r = new RegExp("(" + Object.keys(EMO_MAP).map(k => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")(\uFE0F)?", "u"); } return emoRe.r; }   /* sonradan eklenen emoji karşılıkları da tanınır */
+/* KURAL: ekranda emoji görünmez — eşlemesi olmayan emoji (kutlama, ampul vb.) yazıdan silinir; ✓ ✗ işaretleri kalır */
+function emojiStrip(root){ try{ const re = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{2712}\u{2714}-\u{2716}\u{2718}-\u{27BF}\u{2B50}\u{2B55}]\u{FE0F}?/gu; const w = document.createTreeWalker(root || document.body, NodeFilter.SHOW_TEXT); const list = []; let n; while((n = w.nextNode())){ if(n.parentElement && /^(INPUT|TEXTAREA|SCRIPT|STYLE)$/.test(n.parentElement.tagName)) continue; if(re.test(n.nodeValue)){ re.lastIndex = 0; list.push(n); } re.lastIndex = 0; } list.forEach(t => { t.nodeValue = t.nodeValue.replace(re, "").replace(/ {2,}/g, " "); }); }catch(e){} }
 function emojiFix(root){ try{ if(!root) return; svgStarFix(root); const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: (n) => (n.nodeValue && emoRe().test(n.nodeValue) && n.parentNode && !(n.parentNode.namespaceURI || "").includes("svg") && !/^(TEXTAREA|SCRIPT|STYLE|INPUT|OPTION)$/.test(n.parentNode.nodeName)) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT }); const list = []; while(w.nextNode()) list.push(w.currentNode);
   list.forEach(n => { const parts = n.nodeValue.split(emoRe()).filter(x => x !== undefined && x !== "\uFE0F"); if(parts.length < 2) return; const frag = document.createDocumentFragment(); let changed = false; parts.forEach(pt => { if(EMO_MAP[pt]){ const h = EMO_MAP[pt](); if(h){ const sp = document.createElement("span"); sp.className = "emo-ic"; sp.innerHTML = h; frag.appendChild(sp); changed = true; return; } } if(pt) frag.appendChild(document.createTextNode(pt)); }); if(changed) n.parentNode.replaceChild(frag, n); }); }catch(e){} }
-(function emojiWatch(){ const start = () => { let q = false; const run = () => { q = false; emojiFix(document.body);   /* KURAL: emoji düzeltmesi bütün sayfada çalışır (düğmeler ve tahta dışı alanlar dahil) */ document.querySelectorAll(".say-toast, #sayToast, .ch-key").forEach(emojiFix); }; new MutationObserver(() => { if(!q){ q = true; requestAnimationFrame(run); } }).observe(document.body, { childList: true, subtree: true, characterData: true }); run(); }; if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start(); })();
+(function emojiWatch(){ const start = () => { let q = false; const run = () => { q = false; emojiFix(document.body); emojiStrip(document.body);   /* KURAL: emoji düzeltmesi bütün sayfada çalışır (düğmeler ve tahta dışı alanlar dahil) */ document.querySelectorAll(".say-toast, #sayToast, .ch-key").forEach(emojiFix); }; new MutationObserver(() => { if(!q){ q = true; requestAnimationFrame(run); } }).observe(document.body, { childList: true, subtree: true, characterData: true }); run(); }; if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start(); })();
 /* saydam hâl yalnızca renkli zeminde kullanılır; beyaz kartta özgün (kenar boşluklu, daha keskin) resim kalır */
 function onColored(im){ try{ let e = im.parentElement; for(let i = 0; i < 6 && e && e.id !== "board"; i++){ const cs = getComputedStyle(e); if(cs.backgroundImage && cs.backgroundImage !== "none" && !/url/.test(cs.backgroundImage)) return true; const m = (cs.backgroundColor || "").match(/[\d.]+/g); if(m && m.length >= 3 && (m.length < 4 || +m[3] > 0)){ return (+m[0] < 240 || +m[1] < 240 || +m[2] < 240); } e = e.parentElement; } return false; }catch(e){ return true; } }
 function srcKey(s){ return s.length + ":" + s.slice(40, 72) + s.slice(-24); }
@@ -12337,6 +12338,9 @@ refreshHistoryIfVisible();
 
 let firestoreReady = false;
 let sessionHistory = [];
+/* KURAL (veri): internetsiz kaydedilen çalışmalar uygulama yeniden açılınca da raporlarda görünür (buluta gidene kadar bekleyen kayıtlardan) */
+function pendingSessionRecs(){ try{ return loadPendingWrites().filter(x => x && x.coll === "sessions" && x.data).map(x => Object.assign({}, x.data)); }catch(e){ return []; } }
+setTimeout(() => { try{ if(!sessionHistory.length){ sessionHistory = pendingSessionRecs(); } }catch(e){} }, 0);
 let levelEvents = [];
 
 function updateCloudBadge(){
@@ -12370,7 +12374,7 @@ const mine = (name)=> query(collection(db, name), where("uid", "==", uid));
 const byT = (a, b)=> (a.t || 0) - (b.t || 0);
 
 onSnapshot(mine("sessions"), (snap)=>{
-sessionHistory = snap.docs.map(d=>d.data()).sort(byT);
+sessionHistory = snap.docs.map(d=>d.data()).concat(pendingSessionRecs()).sort(byT);   /* henüz buluta gitmemiş kayıtlar da listede */
 firestoreReady = true;
 updateCloudBadge();
 refreshHistoryIfVisible();
@@ -13008,7 +13012,7 @@ const stats = {
 totalSessions: all.length,
 distinctDays,
 catCount: catSummaries.length,
-totalCatCount: CATEGORIES.length,
+totalCatCount: CATEGORIES.filter(c => !c.hidden).length,   /* KURAL (rapor): "Denenen alan" paydası yalnız görünen 10 alanı sayar */
 overallRate
 };
 
@@ -13718,7 +13722,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.28-b";
+const APP_VERSION = "2026.10.28-e";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
