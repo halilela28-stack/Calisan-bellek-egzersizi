@@ -7401,16 +7401,16 @@ const M = (isPre() ? [2, 3, 4] : [3, 4, 6])[t], ids = shuffleArray(FACE_ID_IMAGE
 const study = ids.slice(0, M); return { mode:"recog", study, opts: shuffleArray(ids.slice(0, M * 2)) };
 }
 const SCENES = [
-{ k:"room", objs:["ball","clock","cat","lamp"], not:["pencil"], q:[["Yerde ne vardı?","Kırmızı bir top"],["Sandalyede ne vardı?","Uyuyan bir kedi"],["Yatak ne renkti?","Mavi"],["Perdeler ne renkti?","Sarı"],["Duvarda ne asılıydı?","Saat"],["Masadaki lamba ne renkti?","Yeşil"],["Yastıkta ne resmi vardı?","Sarı yıldız"],["Halıda ne resmi vardı?","Yıldızlar"]] },
-{ k:"kitchen", objs:["pot","apples","glass","bowl","flowers"], not:["ball"], q:[["Tabakta ne vardı?","Elma"],["Ocaktaki tencere ne renkti?","Kırmızı"],["Masada kaç bardak vardı?","2"],["Buzdolabının üstünde ne vardı?","Saksıda çiçek"],["Yerde ne vardı?","Kırmızı mama kabı"],["Pencereden ne görünüyordu?","Güneş (ve ağaçlar)"],["Tabakta kaç elma vardı?","3"],["Buzdolabı ne renkti?","Beyaz"]] },
+{ k:"room", objs:["ball","clock","cat","lamp"], not:["apples"], q:[["Halının üstünde hangi top vardı?","Kırmızı bir top"],["Sandalyede ne oturuyordu?","Bir kedi"],["Yatak örtüsü ne renkti?","Mavi"],["Perdeler ne renkti?","Sarı"],["Pencerenin yanında duvarda ne asılıydı?","Saat"],["Komodindeki lamba ne renkti?","Yeşil"],["Halıda ne vardı?","Bir oyuncak uçak"],["Halının üstünde ne resmi vardı?","Yıldızlar"]] }   /* KURAL: sahne soruları sahnenin kendi resmindeki ayrıntılarla birebir uyuşur (yeni oda resmi 2026-10-28) */,
+{ k:"kitchen", objs:["pot","apples","glass","bowl"], not:["ball"], q:[["Tabakta ne vardı?","Elma"],["Ocaktaki tencere ne renkti?","Kırmızı"],["Masada kaç bardak vardı?","2"],["Buzdolabının üstünde ne vardı?","Saksıda bitki"],["Yerde ne vardı?","Kırmızı mama kabı"],["Pencereden ne görünüyordu?","Güneş (ve ağaçlar)"],["Tabakta kaç elma vardı?","3"],["Buzdolabı ne renkti?","Beyaz"]] },
 { k:"park", objs:["balloon","bucket","bird","grandpa"], not:[], q:[["Salıncakta kim vardı?","Bir kız"],["Kaydıraktan kim kayıyordu?","Bir oğlan"],["Bankta kim oturuyordu?","Bir dede"],["Balon ne renkti?","Kırmızı"],["Ağaçta ne vardı?","Bir kuş"],["Yerde ne vardı?","Mavi bir kova"],["Kızın elbisesi ne renkti?","Pembe"],["Dedenin gözünde ne vardı?","Gözlük"]] },
-{ k:"class", objs:["backpack","pencil","map","plant"], not:["apples","flowers"], q:[["Tahtada ne resmi vardı?","Güneş"],["Duvarda ne asılıydı?","Harita"],["Öğretmen masasında hangi meyve vardı?","Elma"],["Sandalyede ne vardı?","Mor bir çanta"],["Yerde ne vardı?","Kırmızı bir kalem"],["Öğretmenin hırkası ne renkti?","Mor"],["Masadaki kitap ne renkti?","Mavi"],["Pencerenin önünde ne vardı?","Saksıda bitki"]] }
+{ k:"class", objs:["backpack","pencil","map","plant"], not:["ball","cat"], q:[["Tahtada ne resmi vardı?","Güneş"],["Duvarda ne asılıydı?","Harita"],["Öğretmen masasında hangi meyve vardı?","Elma"],["Sandalyede ne vardı?","Mor bir çanta"],["Yerde ne vardı?","Kırmızı bir kalem"],["Öğretmenin hırkası ne renkti?","Mor"],["Masadaki kitap ne renkti?","Mavi"],["Pencerenin önünde ne vardı?","Saksıda bitki"]] }
 ];
 const SCENE_NAMES = { room:"Çocuk odası", kitchen:"Mutfak", park:"Park", class:"Sınıf" };
 let lastSceneK = null;
 function pickScene(){ const sc = shuffleArray(SCENES).find(x => x.k !== lastSceneK) || SCENES[0]; lastSceneK = sc.k; return sc; }
 const sceneStudyMs = () => (isPre() ? [20000, 16000, 12000] : [15000, 12000, 9000])[currentCombo().t];
-function sceneImgHTML(k, W, H, isLs){ const w = Math.min(W, isLs ? (H - 30) * 1.5 : 520); return `<img src="${SCENE_IMAGES[k]}" alt="" style="display:block;width:${w}px;max-width:100%;border-radius:14px;margin:0 auto">`; }
+function sceneImgHTML(k, W, H, isLs){ const w = Math.min(W, isLs ? (H - 30) * 1.5 : 520); return `<img src="${SCENE_IMAGES[k]}" alt="" style="display:block;width:${w}px;max-width:100%;max-height:${isLs ? H - 30 : Math.round(innerHeight * 0.58)}px;object-fit:contain;border-radius:14px;margin:0 auto">`;   /* dikey sahne resmi ekrandan taşmaz */ }
 const studyBar = (ms) => `<div style="height:8px;background:var(--line);border-radius:6px;overflow:hidden;margin:6px auto 0;max-width:520px"><div style="height:100%;background:var(--teal);animation:studyBar ${ms * (window.__wmSpeed || 1)}ms linear forwards"></div></div>`;
 
 const SN_PLURAL = { 1:"1'leri", 2:"2'leri", 3:"3'leri", 4:"4'leri", 5:"5'leri", 6:"6'ları", 7:"7'leri", 8:"8'leri", 9:"9'ları" };
@@ -8553,7 +8553,7 @@ function sbuildTrials(){ const t = currentCombo().t; return shuffleArray(SB_BANK
 const WH_FIX = (q) => q.replace(/vardı\?/g, "var?").replace(/asılıydı\?/g, "asılı?").replace(/oturuyordu\?/g, "oturuyor?").replace(/kayıyordu\?/g, "kayıyor?").replace(/renkti\?/g, "renk?").replace(/ydı\?/g, "?").replace(/dı\?/g, "?");
 function whTrials(){ const t = currentCombo().t, sc = pickScene(), N = [4, 5, 6][t], allA = SCENES.flatMap(s => s.q.map(x => x[1]));
 return shuffleArray(sc.q).slice(0, N).map(([q, a]) => { const near = shuffleArray(sc.q.map(x => x[1]).filter(x => x !== a)), far = shuffleArray(allA.filter(x => x !== a && !near.includes(x)));
-return qzMake(`<img class="wh-img" src="${SCENE_IMAGES[sc.k]}" alt="" style="display:block;width:100%;max-width:340px;border-radius:12px;margin:0 auto">`, [a].concat(near.slice(0, t >= 1 ? 2 : 1), far).slice(0, t === 0 ? 3 : 4).map(x => `<b style="font-size:16px">${x}</b>`), 0, { prompt:`<b>${WH_FIX(q)}</b>`, raw:true, fixed:true, text:true, say: WH_FIX(q), replay:true }); }); }
+return qzMake(`<img class="wh-img" src="${SCENE_IMAGES[sc.k]}" alt="" style="display:block;width:100%;max-width:340px;max-height:46vh;object-fit:contain;border-radius:12px;margin:0 auto">`, [a].concat(near.slice(0, t >= 1 ? 2 : 1), far).slice(0, t === 0 ? 3 : 4).map(x => `<b style="font-size:16px">${x}</b>`), 0, { prompt:`<b>${WH_FIX(q)}</b>`, raw:true, fixed:true, text:true, say: WH_FIX(q), replay:true }); }); }
 function sdTrials(){ const t = currentCombo().t, pre = isPre(), slots = pre ? [6, 6, 6, 9][t] : [8, 9, 12, 12][t], D = pre ? [2, 3, 4, 4][t] : [3, 4, 5, 6][t], cols = slots <= 6 ? 3 : slots <= 9 ? 3 : 4;
 return Array.from({length: pre ? 2 : 2}, () => { const base = Array.from({length:slots}, () => ({ sh: randomItem(["circle","square","triangle","star","heart"]), col: randomItem(COLORS) }));
 const diff = shuffleArray(base.map((_, i) => i)).slice(0, D), right = base.map((b, i) => { if(!diff.includes(i)) return Object.assign({}, b); const kind = randomItem(["col","sh","gone"]);
@@ -8771,7 +8771,7 @@ const n = R * C, b = []; let tiles = Array.from({length:n}, (_, i) => i), blank 
 for(let k = 0; k < mv; k++){ const r = Math.floor(blank / C), c = blank % C, nb = [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]].filter(([y, x]) => y >= 0 && y < R && x >= 0 && x < C).map(([y, x]) => y * C + x).filter(x => x !== last);
 const s = randomItem(nb); [tiles[blank], tiles[s]] = [tiles[s], tiles[blank]]; last = blank; blank = s; }
 if(tiles.every((v, i) => v === i)){ const s = blank - 1 >= 0 && (blank % C) > 0 ? blank - 1 : blank + 1; [tiles[blank], tiles[s]] = [tiles[s], tiles[blank]]; blank = s; }
-return { R, C, tiles, blank, par: mv, limit: mv * 3 + 6, img: randomItem([SCENE_IMAGES.room, SCENE_IMAGES.kitchen, SCENE_IMAGES.park, SCENE_IMAGES.class].filter(Boolean)) }; }
+return { R, C, tiles, blank, par: mv, limit: mv * 3 + 6, img: randomItem([SCENE_IMAGES.room_pz || SCENE_IMAGES.room, SCENE_IMAGES.kitchen_pz || SCENE_IMAGES.kitchen, SCENE_IMAGES.park_pz || SCENE_IMAGES.park, SCENE_IMAGES.class_pz || SCENE_IMAGES.class].filter(Boolean))   /* KURAL: kaydırmalı bulmacada resim tahtanın 4:3 oranına kırpılmış hâliyle kullanılır (basık/uzamış olmaz) */ }; }
 function kkTrials(){ const t = currentCombo().t, pre = isPre(), two = !pre && t === 2;
 return Array.from({length:5}, () => { const gap = pre ? [2, 2, 3][Math.min(t, 2)] + Math.floor(Math.random() * [2, 3, 3][Math.min(t, 2)]) : 3 + Math.floor(Math.random() * (t === 0 ? 3 : 5));   /* KURAL: Köprü okul öncesinde de düzeyle zorlaşır (boşluk 2–3 → 2–4 → 3–5) */
 if(two){ for(let g = 0; g < 200; g++){ const a = 1 + Math.floor(Math.random() * (gap - 1)), b = gap - a, d1 = 1 + Math.floor(Math.random() * 6), d2 = 1 + Math.floor(Math.random() * 6); if(d1 === d2 || [a, b].includes(d1) || [a, b].includes(d2)) continue;   /* çeldiriciler birbirinden ve doğru tahtalardan farklı */ const opts = shuffleArray([a, b, d1, d2]);
@@ -13688,7 +13688,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.28-l";
+const APP_VERSION = "2026.10.28-n";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
