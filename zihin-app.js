@@ -5949,6 +5949,7 @@ const open = document.getElementById("recallCheck").open; renderRecallChecklist(
 setInterval(() => { try{ ensureInteractiveStop(); }catch(e){} }, 400);
 function startTimer(){ window.__zaStartAt = Date.now(); if(!(typeof gameMode !== "undefined" && gameMode) && !(currentPlayerName || "").trim() && document.getElementById("mainApp").style.display !== "none" && !window.__qaNoPlayerGuard){ try{ const row = document.getElementById("playerRow"); row.scrollIntoView({ behavior:"smooth", block:"center" }); row.classList.remove("attn"); void row.offsetWidth; row.classList.add("attn"); }catch(e){} showToast("Başlamadan önce kimin çalıştığını seçin", "err"); return; }
 window._incomplete = false; setLsOpen(false);
+if(elapsedMs < 50){ currentErrorCount = 0; const ce0 = document.getElementById("errorCount"); if(ce0) ce0.textContent = "0"; }   /* KURAL: yeni başlayan çalışmada hata sayısı 0'dan başlar (başlamadan önce artırılmış sayı taşınmaz); arka plandan dönüşte sayı korunur */
 timerStartedAt = Date.now() - elapsedMs;
 timerInterval = setInterval(tickTimer, 100);
 timerRunning = true;
@@ -13321,6 +13322,7 @@ let awaitingPlayerChoice = false;
 document.getElementById("timerBtn").addEventListener("click", ()=>{ if(timerRunning){ if(Date.now() - (window.__zaStartAt || 0) < 700) return; window._manualStop = true; stopTimer(); return; }   /* KURAL: Başlat'a yanlışlıkla çift dokunma çalışmayı hemen bitirmez (ilk 0,7 sn Bitir yok sayılır) */
 /* KURAL: tamamlanmış ama kaydedilmemiş çalışmada Başlat yeniden başlatmaz — önce kaydet uyarısı çıkar (↻ ile sıfırlanabilir) */
 try{ const sv = document.getElementById("saveResultBtn"); if(!(typeof gameMode !== "undefined" && gameMode) && !window._incomplete && elapsedMs > 300 && sv && getComputedStyle(sv).display !== "none"){ showToast("Önce sonucu kaydedin (ya da ↻ ile sıfırlayın)", "err"); try{ sv.scrollIntoView({ behavior:"smooth", block:"center" }); sv.classList.remove("attn"); void sv.offsetWidth; sv.classList.add("attn"); }catch(e){} return; } }catch(e){}
+if(elapsedMs < 50){ currentErrorCount = 0; const ce1 = document.getElementById("errorCount"); if(ce1) ce1.textContent = "0"; }   /* Başlat'a basılır basılmaz hata sayısı sıfırlanır (geri sayımlı çalışmalar dahil) */
 if(typeof gameMode !== "undefined" && gameMode && !(currentPlayerName || "").trim()){ openGameWho(); return; }
 const famLocked = document.documentElement.classList.contains("session-mode") || document.documentElement.classList.contains("rec-mode");
 if(famLocked && !(currentPlayerName || "").trim()){ pickPerson(() => { try{ pinAssignedChild(); }catch(e){} }, { noGuest:true }); return; }
@@ -13688,7 +13690,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.28-p";
+const APP_VERSION = "2026.10.28-q";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */

@@ -5,7 +5,7 @@
    - Betikler (zihin-*.js) ve resim dosyaları: önce önbellek; yoksa ağdan alınıp saklanır; aynı dosyanın eski sürümleri silinir.
    - Diğer aynı kaynaklı istekler: önbellekten ver, arkada yenile.
    Sürüm değişince (SW_VERSION) eski önbellekler temizlenir. */
-const SW_VERSION = "2026.10.28-p";
+const SW_VERSION = "2026.10.28-q";
 const CACHE = "za-" + SW_VERSION;
 const CACHE_IMG = "za-img";   /* KURAL: resim paketleri sürüm değişince silinmez; yalnızca içeriği değişen paket (adresindeki özet değişir) yeniden indirilir */
 const CORE = ["./zihin-atolyesi.html", "./zihin-app.js", "./manifest.json"];
