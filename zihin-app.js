@@ -13718,7 +13718,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.29-m";
+const APP_VERSION = "2026.10.29-n";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -17155,3 +17155,5 @@ function altCtx(){ const t = Math.min(currentCombo().t, 2); if(t === 0) return "
 function planThinkOn(){ try{ const ex = currentExercise(); const st = ex.stages && ex.stages[currentStageIndex]; return !!(st && st.think); }catch(e){ return false; } }   /* "Önce Planla" kilidi açık mı */
 
 window.__zaReady = true;
+/* açılış tamamlandı: dosyanın sonuna kadar hatasız çalıştı (boş ekran yardımı için) */
+window.__zaBooted = true;
