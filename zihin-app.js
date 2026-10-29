@@ -5747,6 +5747,8 @@ function nbSeqCells(){ const b = document.getElementById("board"); return b ? [.
 function nbSeqPaint(){ const b = document.getElementById("board"); if(!b || !b.classList.contains("nb-seq")) return; const cells = nbSeqCells(); cells.forEach((c, i) => c.classList.toggle("nb-cur", i === nbSeqIdx)); let h = b.querySelector(".nb-hint"); if(nbSeqIdx >= cells.length - 1){ if(!h){ h = document.createElement("div"); h.className = "nb-hint"; b.appendChild(h); } h.textContent = "Son öğe · çocuk söyleyince Bitir’e basın"; } else if(h) h.remove(); }
 function nbSeqStart(){ const ex = currentExercise(); if(!ex || !NB_SEQ.has(ex.id)) return; const b = document.getElementById("board"); if(!b) return; nbSeqIdx = 0; b.classList.add("nb-seq"); nbSeqPaint(); if(!b._nbSeqBound){ b._nbSeqBound = true; b.addEventListener("click", () => { if(!b.classList.contains("nb-seq") || !timerRunning) return; const cells = nbSeqCells(); if(nbSeqIdx < cells.length - 1){ nbSeqIdx++; nbSeqPaint(); } }); } }
 function nbSeqStop(){ const b = document.getElementById("board"); if(!b) return; b.classList.remove("nb-seq"); b.querySelectorAll(".nb-cur").forEach(c => c.classList.remove("nb-cur")); const h = b.querySelector(".nb-hint"); if(h) h.remove(); }
+/* KURAL: resimli tahtaya özgü düzen kuralları (en küçük hücre, dar satır aralığı) yalnız resimli tahtalara uygulanır; harf, sayı, kelime tahtaları eski dizilimini korur (sütun kaybetmez) */
+function boardIsPic(){ try{ const ex = currentExercise(); const h = String(ex.renderItem((currentGrid || [])[0] || ex.randomItem())); return /<img|<svg/.test(h) && !/name-cell|word-cell|stroop/.test(h); }catch(e){ return false; } }
 function stIx(){ try{ const st = currentExercise().stages[currentStageIndex]; return st && st.strategyOf != null ? st.strategyOf : currentStageIndex; }catch(e){ return currentStageIndex; } }
 function baseStageCount(ex){ return ex.stages.filter(st => st.strategyOf == null).length; }
 let currentGrid = [];
@@ -12156,14 +12158,14 @@ function pickPortraitDims(n, board, rows0, cols0){ try{ if(rows0 < 2 || cols0 < 
   const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0;
   const focus = document.documentElement.classList.contains("run-focus") && window._rfMax; const availAll = focus ? window._rfMax : Math.max(window.innerHeight - board.getBoundingClientRect().top - barH - 12 - 16, window.innerHeight * 0.62); /* odak dışında sayfa kaydırılabilir: başlık uzun olsa da tahta ekranın en az %62'si kadar yer alabilir (aksi hâlde seçici ham sütuna düşüp hücreleri sıkıştırıyordu) */   /* geçmiş düğmesi kaldırıldı: tahta bu alanı da kullanır */
   const h = availAll - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 16; if(!(w > 0 && h > 120)) return null;
-  const gx = parseFloat(cs.columnGap) || 10, gy = (n >= 13 && window.innerWidth < 700) ? 12 : (parseFloat(cs.rowGap) || 26);   /* kalabalık tahtada satır aralığı daralır, resimler büyük kalır */ const hasText = !!board.querySelector(".name-cell, .stroop-cell, .phrase-cell"); const hasPair = !!board.querySelector(".pair-cell"), hasOdd = !!board.querySelector(".odd-group"); const aspect = hasPair ? 2.1 : hasOdd ? 2.4 : (hasText ? 1.7 : 1);
+  const gx = parseFloat(cs.columnGap) || 10, gy = (n >= 13 && window.innerWidth < 700 && boardIsPic()) ? 12 : (parseFloat(cs.rowGap) || 26);   /* kalabalık tahtada satır aralığı daralır, resimler büyük kalır */ const hasText = !!board.querySelector(".name-cell, .stroop-cell, .phrase-cell"); const hasPair = !!board.querySelector(".pair-cell"), hasOdd = !!board.querySelector(".odd-group"); const aspect = hasPair ? 2.1 : hasOdd ? 2.4 : (hasText ? 1.7 : 1);
   /* KURAL: tahtada son satır eksik kalmaz — öğe sayısını tam bölen bir sütun sayısı varsa yalnız onlar denenir (15 öğe → 3×5 ya da 5×3, 4 sütun + 1 boş hücre değil) */
   const exact = []; for(let c = 2; c < n; c++) if(n % c === 0) exact.push(c); const tryCols = exact.length ? exact : Array.from({length: Math.max(0, n - 1)}, (_, i) => i + 2);
   let best = null; for(const c of tryCols){ const r = Math.ceil(n / c); if(r < 1 || c * r - n > c - 1) continue; const cw = (w - (c - 1) * gx) / c, ch = (h - (r - 1) * gy) / r; if(cw <= 0 || ch <= 0) continue; const cell = Math.min(cw / aspect, ch); const rem = n % c; const score = cell - (c * r - n) * 0.5 - (rem && rem <= Math.floor(c / 2) ? cell * 0.18 : 0);   /* son satırda yarıdan az kart kalan dizilim cezalı */ if(!best || score > best.score) best = { cols:c, rows:r, cell:Math.floor(cell), cw:Math.floor(Math.min(cw, cell * aspect)), score }; }
   /* KURAL: telefonda düzey yükselip öğe sayısı artınca resimler sıkışıp küçülmez — hücre en az ekran genişliğinin ~%20'si (64–82 px, okul öncesinde 92'ye kadar); gerekirse tahta biraz kaydırılır */
   { const MINC = Math.round(Math.min(isPre() ? 92 : 82, Math.max(64, window.innerWidth * (isPre() ? 0.24 : 0.2))));
-    if(best && best.cell < MINC && window.innerWidth < 700){ let alt = null;
-      for(const c of tryCols){ const r = Math.ceil(n / c); if(r < 1 || c * r - n > c - 1) continue; const cw = (w - (c - 1) * gx) / c, ch = (h - (r - 1) * gy) / r; const cwA = cw / aspect; if(cwA < MINC * 0.93) continue; const cell = Math.min(cwA, Math.max(Math.min(cwA, ch), MINC)); const rem = n % c; const sc = cell - r * 3 - (rem && rem <= Math.floor(c / 2) ? cell * 0.18 : 0); if(!alt || sc > alt.score) alt = { cols:c, rows:r, cell:Math.floor(cell), cw:Math.floor(Math.min(cw, cell * aspect)), score:sc }; }
+    if(boardIsPic() && best && best.cell < MINC && window.innerWidth < 700){ let alt = null;
+      for(const c of tryCols){ const r = Math.ceil(n / c); if(r < 1 || c * r - n > c - 1) continue; const cw = (w - (c - 1) * gx) / c, ch = (h - (r - 1) * gy) / r; const cwA = cw / aspect; if(cwA < MINC * 0.93) continue; const cell = Math.min(cwA, Math.max(Math.min(cwA, ch), MINC)); const rem = n % c; const sc = c * 100 - r - (rem && rem <= Math.floor(c / 2) ? 50 : 0); if(!alt || sc > alt.score) alt = { cols:c, rows:r, cell:Math.floor(cell), cw:Math.floor(Math.min(cw, cell * aspect)), score:sc }; }
       if(alt) best = alt; } }
   return best; }catch(e){ return null; } }
 function applyBoardLayout(){
@@ -12181,7 +12183,7 @@ if(best){ rows = best.rows; cols = best.cols; track = "minmax(0, 1fr)"; }
 } else { const best = pickPortraitDims(currentGrid.length, board, rows, cols); if(best){ rows = best.rows; cols = best.cols; colTrack = best.cw + "px"; rowTrack = best.cell + "px"; }
   const RG = { "sequence-pattern": 4.2, "visual-analogy": 3.4, "odd-one-out": 2.3 }[currentExercise().id];   /* satır biçimli gruplar: iki sütun, satır yüksekliği içeriğin oranına göre (daireler basık görünmez) */
   if(RG){ const cs = getComputedStyle(board); const w = board.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); const gx = parseFloat(cs.columnGap) || 10; const cw = Math.floor((w - (cols - 1) * gx) / cols); colTrack = cw + "px"; rowTrack = Math.max(40, Math.round(cw / RG)) + "px"; } }
-board.style.rowGap = (!landscapeMQ.matches && currentGrid.length >= 13 && window.innerWidth < 700 && rowTrack) ? "12px" : "";
+board.style.rowGap = (!landscapeMQ.matches && currentGrid.length >= 13 && window.innerWidth < 700 && rowTrack && boardIsPic()) ? "12px" : "";
 board.style.gridTemplateColumns = `repeat(${cols}, ${colTrack || track})`;
 board.style.gridTemplateRows = `repeat(${rows}, ${rowTrack || track})`; board.style.justifyContent = colTrack ? "center" : ""; board.style.alignContent = rowTrack ? "center" : "";
 board.classList.toggle("wide-grid", cols >= 5 || rows >= 5); centerLastRow(board, cols); renderRowDividers(board, rows, cols);
@@ -13713,7 +13715,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.29-i";
+const APP_VERSION = "2026.10.29-j";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
