@@ -6022,7 +6022,10 @@ if(window._incomplete){ document.getElementById("saveResultBtn").style.display =
   try{ const ex = currentExercise(); let rebuilt = false;   /* yarım kalan deneme tahtada asılı kalmasın: etkileşimli tahta başa döner */
     if(ex.isChoice){ chClear(); currentGrid = chBuild(); renderChoiceBoard(); rebuilt = true; } else if(ex.isMt){ mtClear(); currentGrid = mtBuild(); renderMtBoard(); rebuilt = true; } else if(ex.isRt){ rtClear(); currentGrid = rtBuild(); renderRtBoard(); rebuilt = true; } else if(ex.isWm){ wmClearTimers(); currentGrid = wmBuild(); renderWmBoard(); rebuilt = true; }
     if(rebuilt){ elapsedMs = 0; document.getElementById("timerDisplay").textContent = "00:00.0"; currentErrorCount = 0; const ce = document.getElementById("errorCount"); if(ce) ce.textContent = "0"; hint.textContent = "Çalışma tamamlanmadan durduruldu; bu sonuç kaydedilmedi. ▶ Başlat ile baştan başlayabilirsin."; } }catch(e){} }
-else if(elapsedMs > 300){ document.getElementById("saveResultBtn").style.display = "block"; hint.style.display = "block"; hint.textContent = "Çalışmayı bitirdin — hata sayısını kontrol et ve kaydet."; hint.classList.remove("warn"); if(hwRun && !gameMode){ if(perfIsAuto(currentExercise())) setTimeout(() => { try{ confirmSaveResult(); }catch(e){ console.error(e); } }, 80); else hint.textContent = "Ödevi bitirdin — hata sayısını kontrol et ve Kaydet'e bas."; } } }
+else if(elapsedMs > 300){ document.getElementById("saveResultBtn").style.display = "block"; hint.style.display = "block"; hint.textContent = "Çalışmayı bitirdin — hata sayısını kontrol et ve kaydet."; hint.classList.remove("warn");
+/* KURAL: hatayı uygulamanın kendisinin saydığı dokunmalı çalışmalar (seçmeli, arama, iz sürme, sıralama, plan, dokunma, tepki, bellek oyunları) tamamlanınca sonuç kendiliğinden kaydedilir; yetişkinin hata saydığı söylemeli çalışmalarda Kaydet düğmesi kalır */
+const __exA = currentExercise(); if(!hwRun && !gameMode && autoSaveable(__exA) && pageComplete() && !window._autoSavePending){ if((currentPlayerName || "").trim()){ window._autoSavePending = true; document.getElementById("saveResultBtn").style.display = "none"; hint.textContent = "Çalışma bitti — sonuç kendiliğinden kaydediliyor…"; setTimeout(() => { window._autoSavePending = false; try{ confirmSaveResult(); }catch(e){ console.error(e); } }, 450); } else { hint.textContent = "Çalışma bitti — kaydetmek için yukarıdan kimin çalıştığını seçip Kaydet’e basın."; } }
+if(hwRun && !gameMode){ if(perfIsAuto(currentExercise())) setTimeout(() => { try{ confirmSaveResult(); }catch(e){ console.error(e); } }, 80); else hint.textContent = "Ödevi bitirdin — hata sayısını kontrol et ve Kaydet'e bas."; } } }
 /* KURAL (tüm çalışmalar, yeni eklenecekler dahil): çalışma tamamlanınca konfeti. Tek noktadan: süre durunca, yarım bırakılmadıysa. Oyun modunda ödül kartı kendi konfetisini atar. */
 /* (kutlama artık kayıttan sonra: confirmSaveResult) */
 if(!gameMode) requestAnimationFrame(() => { try{ const hn = document.getElementById("saveHint"), sv = document.getElementById("saveResultBtn"); const tg = (hn && getComputedStyle(hn).display !== "none") ? hn : sv; if(!tg || getComputedStyle(tg).display === "none") return; const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; const r = tg.getBoundingClientRect(); if(r.bottom > window.innerHeight - barH - 8 || r.top < 0) pageScroller().scrollBy(0, r.bottom - (window.innerHeight - barH - 16)); }catch(e){} });
@@ -6030,7 +6033,7 @@ if(gameMode){ setTimeout(gameAfterStop, 400); try{ renderGameWho(); }catch(e){} 
 }
 
 function resetTimer(){
-try{ nbSeqStop(); }catch(e){} timerPausedAt = 0; try{ document.getElementById("timerDisplay").classList.remove("paused"); }catch(e){}
+window._autoSavePending = false; try{ nbSeqStop(); }catch(e){} timerPausedAt = 0; try{ document.getElementById("timerDisplay").classList.remove("paused"); }catch(e){}
 document.documentElement.classList.remove("board-run"); runFocusOff();
 clearInterval(timerInterval);
 timerRunning = false;
@@ -6081,7 +6084,7 @@ document.getElementById("saveResultBtn").style.display = "none";
 document.getElementById("saveHint").style.display = "none";
 }
 
-function confirmSaveResult(){ if(elapsedMs <= 300 || window._incomplete) return; if(!gameMode && !(currentPlayerName || "").trim()){ zaAlert("Kaydetmek için önce kimin çalıştığını seçin."); try{ const row = document.getElementById("playerRow"); row.scrollIntoView({ behavior:"smooth", block:"center" }); row.classList.remove("attn"); void row.offsetWidth; row.classList.add("attn"); }catch(e){} return; }
+function confirmSaveResult(){ if(elapsedMs <= 300 || window._incomplete) return; { const __k = currentExercise().id + "|" + Math.round(timerStartedAt || 0) + "|" + Math.round(elapsedMs); if(window._lastSavedKey === __k) return; window._lastSavedKey = __k; }   /* KURAL: aynı çalışma iki kez kaydedilmez (kendiliğinden kayıt ile Kaydet düğmesi çakışsa da) */ if(!gameMode && !(currentPlayerName || "").trim()){ zaAlert("Kaydetmek için önce kimin çalıştığını seçin."); try{ const row = document.getElementById("playerRow"); row.scrollIntoView({ behavior:"smooth", block:"center" }); row.classList.remove("attn"); void row.offsetWidth; row.classList.add("attn"); }catch(e){} return; }
 recordSession(elapsedMs, currentErrorCount); playSound("save"); if(!gameMode){ try{ finishCard(); }catch(e){} }   /* konfeti recordSession içinde bir kez */   /* KURAL: Zihni (bitiş kartı) ve konfeti kaydettikten sonra çıkar */
 if(hwRun){ resetTimer(); setTimeout(() => { try{ showHwDone(); }catch(e){ console.error(e); } }, 120); return; }   /* ödev oturumu: otomatik düzey değişmez, sonuç paneli */
 const __j = (!currentExercise().isMotion && !currentExercise().isRecall && !currentExercise().noAdaptive) ? sessionJudge(elapsedMs, currentErrorCount) : null;
@@ -13715,7 +13718,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.29-k";
+const APP_VERSION = "2026.10.29-l";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -16938,6 +16941,7 @@ try{ const ib = document.getElementById("instructionBox"); if(ib){ iconizeTips(i
 
 /* ===== Gelişim ödevleri · Aşama 1: performans özeti (veri katmanı) ===== */
 function perfSrc(){ return appMode === "cocuk" || (typeof gameMode !== "undefined" && gameMode) ? "oyun" : appMode === "uzman" ? "uzman" : "aile"; }
+function autoSaveable(ex){ return !!(ex && (ex.isTouch || ex.isChoice || ex.isSearch || ex.isTrail || ex.isPlan || ex.isSort || ex.isMt || ex.isWm || ex.isRt)); }
 function perfIsAuto(ex){ return !!(ex && (ex.isTouch || ex.isChoice || ex.isSearch || ex.isTrail || ex.isMotion || ex.isPlan || ex.isSort || (typeof NEW_MT !== "undefined" && NEW_MT.build && NEW_MT.build[ex.id]))); }
 function perfItemCount(ex, layout){ try{ if(typeof chState !== "undefined" && chState && chState.id === ex.id && chState.trials) return chState.trials.length; if(typeof mtState !== "undefined" && mtState && Array.isArray(mtState.trials) && NEW_MT.build[ex.id]) return Math.max(1, mtState.trials.length - (mtState.warmN || 0)); if(ex.isTouch) return Math.max(1, touchGoTotal()); if(Array.isArray(currentGrid) && currentGrid.length) return currentGrid.length; }catch(e){} return layout ? layout.rows * layout.cols : 10; }
 /* Kayıtlar: buluttan yüklenenler + bağlantısızken kuyrukta bekleyenler (yenilemede kaybolmasın), yinelenmeden */
