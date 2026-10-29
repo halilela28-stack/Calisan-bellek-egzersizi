@@ -5805,7 +5805,11 @@ for(let k=0;k<60;k++) probe.push(exercise.randomItem());
 const rich = exercise.attrs.filter(a => new Set(probe.map(p => p[a])).size >= 3);
 const poor = exercise.attrs.filter(a => !rich.includes(a));
 const distinctItems = new Set(probe.map(p => exercise.attrs.map(a => p[a]).join("|"))).size;
-const grid = [];
+/* KURAL (adlandırma tahtası): tahta tahmin edilebilir olmaz — bütün satırlar aynı sırada ya da iki ve daha fazla sütun tek tip (hep aynı şekil/resim) olan tahta yeniden üretilir */
+const predictable = (g) => { try{ const a0 = exercise.attrs[0], R = Math.floor(g.length / cols); if(R < 3 || cols < 2) return false; const rs = []; for(let r = 0; r < R; r++) rs.push(g.slice(r * cols, r * cols + cols).map(x => x[a0]).join(",")); if(new Set(rs).size === 1) return true; let mono = 0; for(let c = 0; c < cols; c++){ const st = new Set(); for(let r = 0; r < R; r++) st.add(g[r * cols + c][a0]); if(st.size === 1) mono++; } return mono >= 2; }catch(e){ return false; } };
+let grid = [];
+for(let attempt = 0; attempt < 30; attempt++){
+grid = [];
 for(let i=0;i<rows*cols;i++){
 let item;
 let tries = 0;
@@ -5815,14 +5819,16 @@ tries++;
 } while(
 tries < 30 &&
 (
-(grid.length > 0 && rich.some(a => item[a] === grid[grid.length-1][a])) ||
+(grid.length > 0 && rich.some(a => item[a] === grid[grid.length-1][a]) && !(attempt >= 20 && grid.length % cols === 0)) ||
 (grid.length > 0 && distinctItems >= 3 && itemsFullyEqual(item, grid[grid.length-1], exercise.attrs)) ||
-(grid.length > 1 && poor.some(a => item[a] === grid[grid.length-1][a] && item[a] === grid[grid.length-2][a])) ||
+(grid.length > 1 && poor.some(a => item[a] === grid[grid.length-1][a] && item[a] === grid[grid.length-2][a] && !(attempt >= 10 && grid.length % cols !== 0))) ||
 (grid.length > 1 && distinctItems >= 6 && itemsFullyEqual(item, grid[grid.length-2], exercise.attrs)) ||
 (i >= cols && distinctItems >= 6 && itemsFullyEqual(item, grid[i-cols], exercise.attrs))
 )
 );
 grid.push(item);
+}
+if(!predictable(grid)) break;
 }
 return verbalUnique(grid, exercise, cols);
 }
@@ -12139,10 +12145,15 @@ function pickPortraitDims(n, board, rows0, cols0){ try{ if(rows0 < 2 || cols0 < 
   const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0;
   const focus = document.documentElement.classList.contains("run-focus") && window._rfMax; const availAll = focus ? window._rfMax : Math.max(window.innerHeight - board.getBoundingClientRect().top - barH - 12 - 16, window.innerHeight * 0.62); /* odak dışında sayfa kaydırılabilir: başlık uzun olsa da tahta ekranın en az %62'si kadar yer alabilir (aksi hâlde seçici ham sütuna düşüp hücreleri sıkıştırıyordu) */   /* geçmiş düğmesi kaldırıldı: tahta bu alanı da kullanır */
   const h = availAll - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 16; if(!(w > 0 && h > 120)) return null;
-  const gx = parseFloat(cs.columnGap) || 10, gy = parseFloat(cs.rowGap) || 26; const hasText = !!board.querySelector(".name-cell, .stroop-cell, .phrase-cell"); const hasPair = !!board.querySelector(".pair-cell"), hasOdd = !!board.querySelector(".odd-group"); const aspect = hasPair ? 2.1 : hasOdd ? 2.4 : (hasText ? 1.7 : 1);
+  const gx = parseFloat(cs.columnGap) || 10, gy = (n >= 13 && window.innerWidth < 700) ? 12 : (parseFloat(cs.rowGap) || 26);   /* kalabalık tahtada satır aralığı daralır, resimler büyük kalır */ const hasText = !!board.querySelector(".name-cell, .stroop-cell, .phrase-cell"); const hasPair = !!board.querySelector(".pair-cell"), hasOdd = !!board.querySelector(".odd-group"); const aspect = hasPair ? 2.1 : hasOdd ? 2.4 : (hasText ? 1.7 : 1);
   /* KURAL: tahtada son satır eksik kalmaz — öğe sayısını tam bölen bir sütun sayısı varsa yalnız onlar denenir (15 öğe → 3×5 ya da 5×3, 4 sütun + 1 boş hücre değil) */
   const exact = []; for(let c = 2; c < n; c++) if(n % c === 0) exact.push(c); const tryCols = exact.length ? exact : Array.from({length: Math.max(0, n - 1)}, (_, i) => i + 2);
   let best = null; for(const c of tryCols){ const r = Math.ceil(n / c); if(r < 1 || c * r - n > c - 1) continue; const cw = (w - (c - 1) * gx) / c, ch = (h - (r - 1) * gy) / r; if(cw <= 0 || ch <= 0) continue; const cell = Math.min(cw / aspect, ch); const rem = n % c; const score = cell - (c * r - n) * 0.5 - (rem && rem <= Math.floor(c / 2) ? cell * 0.18 : 0);   /* son satırda yarıdan az kart kalan dizilim cezalı */ if(!best || score > best.score) best = { cols:c, rows:r, cell:Math.floor(cell), cw:Math.floor(Math.min(cw, cell * aspect)), score }; }
+  /* KURAL: telefonda düzey yükselip öğe sayısı artınca resimler sıkışıp küçülmez — hücre en az ekran genişliğinin ~%20'si (64–82 px, okul öncesinde 92'ye kadar); gerekirse tahta biraz kaydırılır */
+  { const MINC = Math.round(Math.min(isPre() ? 92 : 82, Math.max(64, window.innerWidth * (isPre() ? 0.24 : 0.2))));
+    if(best && best.cell < MINC && window.innerWidth < 700){ let alt = null;
+      for(const c of tryCols){ const r = Math.ceil(n / c); if(r < 1 || c * r - n > c - 1) continue; const cw = (w - (c - 1) * gx) / c, ch = (h - (r - 1) * gy) / r; const cwA = cw / aspect; if(cwA < MINC * 0.93) continue; const cell = Math.min(cwA, Math.max(Math.min(cwA, ch), MINC)); const rem = n % c; const sc = cell - r * 3 - (rem && rem <= Math.floor(c / 2) ? cell * 0.18 : 0); if(!alt || sc > alt.score) alt = { cols:c, rows:r, cell:Math.floor(cell), cw:Math.floor(Math.min(cw, cell * aspect)), score:sc }; }
+      if(alt) best = alt; } }
   return best; }catch(e){ return null; } }
 function applyBoardLayout(){
 if(applyingBoardLayout) return;
@@ -12159,6 +12170,7 @@ if(best){ rows = best.rows; cols = best.cols; track = "minmax(0, 1fr)"; }
 } else { const best = pickPortraitDims(currentGrid.length, board, rows, cols); if(best){ rows = best.rows; cols = best.cols; colTrack = best.cw + "px"; rowTrack = best.cell + "px"; }
   const RG = { "sequence-pattern": 4.2, "visual-analogy": 3.4, "odd-one-out": 2.3 }[currentExercise().id];   /* satır biçimli gruplar: iki sütun, satır yüksekliği içeriğin oranına göre (daireler basık görünmez) */
   if(RG){ const cs = getComputedStyle(board); const w = board.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); const gx = parseFloat(cs.columnGap) || 10; const cw = Math.floor((w - (cols - 1) * gx) / cols); colTrack = cw + "px"; rowTrack = Math.max(40, Math.round(cw / RG)) + "px"; } }
+board.style.rowGap = (!landscapeMQ.matches && currentGrid.length >= 13 && window.innerWidth < 700 && rowTrack) ? "12px" : "";
 board.style.gridTemplateColumns = `repeat(${cols}, ${colTrack || track})`;
 board.style.gridTemplateRows = `repeat(${rows}, ${rowTrack || track})`; board.style.justifyContent = colTrack ? "center" : ""; board.style.alignContent = rowTrack ? "center" : "";
 board.classList.toggle("wide-grid", cols >= 5 || rows >= 5); centerLastRow(board, cols); renderRowDividers(board, rows, cols);
@@ -12233,7 +12245,7 @@ function fitTextCells(board){ const textEls = Array.from(board.querySelectorAll(
       const bb = b.getBoundingClientRect(); if(bt.getBoundingClientRect().bottom > bb.bottom + 1){ const row = bt.closest(".wm-btns") || bt; const wrap = b.querySelector(".wm-wrap") || b.firstElementChild; if(wrap && row.parentElement !== wrap && !row.dataset.lsMoved){ row.dataset.lsMoved = "1"; wrap.appendChild(row); row.style.position = "sticky"; row.style.bottom = "0"; row.style.zIndex = "6"; row.style.background = "var(--card,#fff)"; row.style.paddingTop = "6px"; } } } }catch(e){}   /* yapıştırma yetmezse düğme satırı tahtanın en altına taşınır */   /* yatay telefonda ana düğme satırı tahtanın altına yapışır */ } else if(b.style.maxHeight){ b.style.maxHeight = ""; b.style.overflowY = ""; } };   /* KURAL: yatay telefonda tahta ekranın altına taşmaz; ana düğme ilk bakışta görünür */
   let tm = 0; const go = () => { clearTimeout(tm); tm = setTimeout(() => { fit(); lsFit(); }, 20); }; const start = () => { const b = document.getElementById("board"); if(!b) return setTimeout(start, 500); new MutationObserver(go).observe(b, { childList: true, subtree: true }); window.addEventListener("resize", go); }; start(); }catch(e){} })();
 (function ecountClicks(){ try{ document.addEventListener("click", (e) => { const st = (typeof mtState !== "undefined") ? mtState : null; if(!st || st.kind !== "ecount" || !timerRunning) return; const c = e.target.closest("[data-ecstep]"); if(c){ st.ecPhase = "answer"; renderMtBoard(); return; } const a = e.target.closest("[data-ecans]"); if(a && st.ecPhase === "answer"){ const tr = st.trials[st.ti], n = +a.dataset.ecans; st.ecPick = n; st.ecPhase = "fb"; if(n !== tr.ans){ currentErrorCount++; const ce = document.getElementById("errorCount"); if(ce) ce.textContent = String(currentErrorCount); try{ gameSfx("wrong"); }catch(e2){} } else { try{ gameSfx("correct"); }catch(e2){} } renderMtBoard(); } }, true); }catch(e){} })();
-(function minTextStyle(){ try{ const st = document.createElement("style"); st.textContent = `button > svg:not([width]):not([class]),.fam-cta > svg:not([width]){width:1.4em;height:1.4em;flex:0 0 auto}#board .wm-btns{justify-content:center}.time-btn.stop,.timer-btn.running{background-color:#C8373C !important}.exercise-group-label{color:#05625D !important}.fam-step.close .fam-role,.fam-step.close .fam-dot span,.category-badge,.save-hint{color:#9A5600 !important}.fam-step.close .fam-dot span{border-color:#9A5600 !important}`   /* KURAL (erişilebilirlik): yazı karşıtlığı en az 4.5:1 (büyük yazıda 3:1) */ + `.pk-plank{position:relative}.pk-plank::after{content:"";position:absolute;inset:-5px}.qz-warm{font-size:12px !important}.tag{font-size:11px !important;padding:1px 5px !important}`; document.head.appendChild(st); }catch(e){} })();   /* KURAL (düzen): ekrandaki hiçbir yazı 11 px'ten küçük olmaz ("Isınma" etiketi 12, BAŞLA/BİTİŞ 11) */
+(function minTextStyle(){ try{ const st = document.createElement("style"); st.textContent = `button > svg:not([width]):not([class]),.fam-cta > svg:not([width]){width:1.4em;height:1.4em;flex:0 0 auto}#board .wm-btns{justify-content:center}#tierRow,#exerciseRow{background:var(--panel,#fff);border:2px solid var(--line,#E2E8F0) !important;border-radius:16px !important;padding:4px !important;box-sizing:border-box}#exerciseRow{padding:4px 4px 8px !important;scrollbar-width:none}#exerciseRow::-webkit-scrollbar{display:none}#tierRow .tier-btn{flex:1 1 0}.cloud-badge{background:var(--panel,#fff) !important;border:2px solid var(--line,#C9DDDB) !important;box-shadow:0 3px 0 var(--edge,#CFD8E3);box-sizing:border-box}.cloud-badge.on{border-color:#A9D9B4 !important;color:#2E7D42 !important}.cloud-badge.off{border-color:#E6D3A6 !important;color:#8A6D1D !important}@media (orientation: landscape) and (max-height: 520px){#mainApp .top h1{font-size:20px !important;flex-shrink:0}}@media (max-width: 360px){#mainApp .top h1{font-size:18px !important;flex-shrink:0;letter-spacing:-.2px}#mainApp .top{column-gap:6px}}/* KURAL: sayfa başlığı hiçbir ekranda kesilmez *//* KURAL: düzey düğmeleri ve etkinlik şeridi, aşamalar gibi ortak beyaz bir kutunun içinde; üst köşedeki bulut rozeti de öteki düğmeler gibi beyaz zeminde (durum rengi çerçeve ve simgede) */.time-btn.stop,.timer-btn.running{background-color:#C8373C !important}.exercise-group-label{color:#05625D !important}.fam-step.close .fam-role,.fam-step.close .fam-dot span,.category-badge,.save-hint{color:#9A5600 !important}.fam-step.close .fam-dot span{border-color:#9A5600 !important}`   /* KURAL (erişilebilirlik): yazı karşıtlığı en az 4.5:1 (büyük yazıda 3:1) */ + `.pk-plank{position:relative}.pk-plank::after{content:"";position:absolute;inset:-5px}.qz-warm{font-size:12px !important}.tag{font-size:11px !important;padding:1px 5px !important}`; document.head.appendChild(st); }catch(e){} })();   /* KURAL (düzen): ekrandaki hiçbir yazı 11 px'ten küçük olmaz ("Isınma" etiketi 12, BAŞLA/BİTİŞ 11) */
 (function stripStyle(){ try{ const st = document.createElement("style"); st.textContent = `#exerciseRow{overflow-y:hidden !important;overscroll-behavior-y:none;overscroll-behavior-x:contain;padding:4px 2px 10px !important;margin-bottom:6px !important;scrollbar-width:none;align-items:center}#exerciseRow::-webkit-scrollbar{display:none}`; document.head.appendChild(st); }catch(e){} })();   /* KURAL: etkinlik şeridi yalnız yana kayar; aşağı-yukarı esnemez, düğmeler (gölgeleriyle) kesilmez, kaydırma çubuğu görünmez */
 (function attnStyle(){ try{ const st = document.createElement("style"); st.textContent = `@keyframes zaAttn{0%,100%{transform:none;box-shadow:0 0 0 0 rgba(15,139,133,0)}30%{transform:scale(1.04);box-shadow:0 0 0 6px rgba(15,139,133,.35)}60%{transform:none;box-shadow:0 0 0 10px rgba(15,139,133,0)}}#saveResultBtn.attn,#playerRow.attn{animation:zaAttn .9s ease-out 2}@media (prefers-reduced-motion: reduce){#saveResultBtn.attn,#playerRow.attn{animation:none;outline:3px solid #0F8B85}}`; document.head.appendChild(st); }catch(e){} })();   /* "önce kaydet" uyarısında Kaydet düğmesi kısa süre vurgulanır */
 (function stickyDoneStyle(){ try{ const st = document.createElement("style"); st.textContent = `#timerResetBtn{min-width:40px !important}@media (orientation: landscape) and (max-height: 520px){#board{overflow-y:auto !important;overscroll-behavior:contain}}#board .wm-btns:has([data-mtbtn$="-done"], [data-ecstep], [data-judge="9"]){position:sticky;bottom:0;z-index:6;padding:8px 0 6px;margin-bottom:0 !important;background:linear-gradient(to bottom, rgba(255,255,255,0), var(--card,#fff) 35%)}`; document.head.appendChild(st); }catch(e){} })();   /* KURAL: tahta kaydırılabilir olsa da "Bitti"/"Devam"/"Sonraki" düğmesi tahtanın altında hep görünür (yapışık); yatay telefonda tahta ekran yüksekliğine sığar ve kendi içinde kayar */
@@ -13690,7 +13702,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.28-r";
+const APP_VERSION = "2026.10.28-t";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
