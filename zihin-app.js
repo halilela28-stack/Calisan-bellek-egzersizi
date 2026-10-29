@@ -11364,7 +11364,7 @@ const INSTR_SHORT = {
 "matrix-fill":      [() => Q("Ekranda kutulardan oluşan bir tablo var; bir kutu boş. Satırlara ve sütunlara bak, nasıl bir düzen olduğunu bul. Boş kutuya hangisi gelmeli? Alttan ona dokun.")],
 "rule-induce":      [() => Q("Yeşil kutunun içindeki şekillerin hepsinde ortak bir özellik var; onlara bak ve bu gizli kuralı bul. Alttaki şekillerden hangisi bu kurala uyup yeşil kutuya girer? Ona dokun.")],
 "balance":          [() => isPre() ? Q("Ekranda bir terazi var. Terazinin aşağı inen tarafı daha ağır demektir. Soruyu dinle ve teraziye bakarak doğru cevaba dokun.") : Q("Üstteki teraziler dengede; onlara bakarak hangi şeklin kaç daire ağırlığında olduğunu bul. Son teraziyi dengelemek için kaç daire gerekir? Alttan o sayıya dokun. Dairelerin rengi her soruda değişir.")],
-"block-design":     [() => Q("Üstte bir model desen var. Alttaki bloklara dokunarak modelin tıpatıp aynısını yap; bir bloğa her dokunuşta rengi değişir. Bitince Bitti'ye bas."), () => Q("Model bu kez döndürülmüş duruyor; yanındaki ok modelin gerçek yukarısını gösteriyor. Deseni kafanda düzelt ve bloklarla düz hâlini yap. Bitince Bitti'ye bas.")],
+"block-design":     [() => Q("Üstte bir model desen var. Alttaki bloklara dokunarak modelin tıpatıp aynısını yap; bir bloğa her dokunuşta rengi değişir. Bitince Bitti'ye bas."), () => Q("Üstte bir model desen var ama döndürülmüş duruyor; yanındaki ok modelin gerçek yukarısını gösteriyor. Deseni kafanda düzelt ve alttaki bloklara dokunarak düz hâlini yap. Bitince Bitti'ye bas.")],
 "mental-rot":       [() => Q("Üstte bir şekil var. Alttaki seçeneklerden biri aynı şeklin döndürülmüş hâli, diğerleri farklı. Şekli kafanda çevir ve aynı olana dokun.")],
 "clutter-find":     [() => Q(`Ekranda birbirine karışmış pek çok resim var. Bunların arasında saklanan bütün ${clutTarget || "hedef"} resimlerini bul ve her birine dokun.`)],
 "overlap-count":    [() => Q(isPre() ? "Ekranda üst üste çizilmiş şekiller var. Bunların arasında kaç tane daire var? Say ve alttan o sayıya dokun." : "Ekranda üst üste çizilmiş şekiller var. Bunların arasında kaç tane beşgen var? Say ve alttan o sayıya dokun.")],
@@ -11460,7 +11460,7 @@ const INSTR_SHORT = {
 "wm-where":         [() => Q("Hayvanlar kutulara saklanacak; hangisinin hangi kutuya girdiğine iyi bak. Sonra bir hayvan sorulacak; o hayvanın saklandığı kutuya dokun.")],
 "number-find":      [() => Q(`Ekranda karışık duran sayılar var. 1'den ${trNumSuffix(scatterCount(),"dat")} kadar sayıları sırayla bul ve parmağınla göster.`),
 () => Q(`Ekranda karışık duran sayılar var. ${trNumSuffix(scatterCount(),"abl")} 1'e kadar sayıları geriye doğru bul ve parmağınla göster.`)],
-"syllable-count":   [() => Q("Ekranda kelimeler var. Her kelimenin kaç heceli olduğunu söyle."), () => Q("Her kelimeyi hecelerine ayırarak söyle, sonra kaç hece olduğunu söyle.")],
+"syllable-count":   [() => Q("Ekranda kelimeler var. Her kelimenin kaç heceli olduğunu söyle."), () => Q("Ekranda kelimeler var. Her kelimeyi hecelerine ayırarak söyle, sonra kaç hece olduğunu söyle.")],
 "eye-horizontal":   [() => EYE("Top sağa sola gider.")],
 "eye-vertical":     [() => EYE("Top yukarı aşağı gider.")],
 "eye-diagonal":     [() => EYE("Top sol üstten sağ alta gider.")],
@@ -11511,22 +11511,22 @@ const INSTR_SHORT = {
 "sentence-repeat":  [() => `Öbekleri birlikte okuyun. Kapanınca: ${Q("Ekranda kısa söz öbekleri var; onları birlikte okuyacağız ve sen aklında tutacaksın. Kapanınca hatırladıklarını söyle.")}`, () => `Kapanınca: ${Q("Ekranda kısa söz öbekleri var; onları birlikte okuyup aklında tutacaksın. Kapanınca onları aynı sırayla söyle.")}`, () => `Öbekler gizli; Başlat'a basın, uygulama okusun. Bitince: ${Q("Söz öbeklerini görmeyeceksin, sadece duyacaksın. Dikkatle dinle; bitince duyduklarını söyle.")}`],
 "word-repeat":      [() => `Göstermeden okuyun: ${Q(`Sana ${audLen()} kelime söyleyeceğim; dikkatle dinle. Bitince kelimeleri aynı sırayla tekrar et.`)}`,
 () => `Göstermeden okuyun, ⏱'a basın: ${Q(`Sana ${audLen()} kelime söyleyeceğim; dinle ve aklında tut ama hemen söyleme. Biraz bekleyeceğiz; ben ‘söyle’ deyince kelimeleri aynı sırayla söyle.`)}`],
-"shape-recall":     [() => `Şekilleri birlikte inceleyin. Kapanınca: ${Q("Ekranda şekiller var; onlara iyi bak ve aklında tut. Şekiller kapanınca hangi şekilleri gördüğünü söyle.")}`, () => `Kapanınca: ${Q("Şekillere ve renklerine iyi bak. Şekiller kapanınca her şekli rengiyle birlikte söyle: ‘mavi üçgen’ gibi.")}`],
-"position-recall":  [() => `Dolu daireleri birlikte inceleyin. Kapanınca: ${Q("Ekranda daireler var; bazıları dolu. Dolu dairelerin yerine iyi bak ve aklında tut. Daireler kapanınca hangilerinin dolu olduğunu söyle.")}`, () => `Kapanınca: ${Q("Dolu dairelerin yerine iyi bak. Daireler kapanınca dolu daireleri soldan sağa sırayla söyle.")}`],
-"color-recall":     [() => `Renkleri birlikte inceleyin. Kapanınca: ${Q("Ekranda renkli kartlar var; renklere iyi bak ve aklında tut. Kartlar kapanınca hangi renkleri gördüğünü söyle.")}`, () => `Kapanınca: ${Q("Renklere ve sıralarına iyi bak. Kartlar kapanınca renkleri soldan sağa, aynı sırayla söyle.")}`],
-"word-group":       [() => `Seçenek vermeden sorun: ${Q("Ekranda kelimeler var. Her kelime için hangi grubun üyesi olduğunu söyle: hayvan, taşıt, giysi gibi.")}`, () => Q("Her kelime için önce grubunun adını söyle, sonra o gruptan bir örnek daha söyle.")],
+"shape-recall":     [() => `Şekilleri birlikte inceleyin. Kapanınca: ${Q("Ekranda şekiller var; onlara iyi bak ve aklında tut. Şekiller kapanınca hangi şekilleri gördüğünü söyle.")}`, () => `Kapanınca: ${Q("Ekranda renkli şekiller var; şekillere ve renklerine iyi bak. Şekiller kapanınca her şekli rengiyle birlikte söyle: ‘mavi üçgen’ gibi.")}`],
+"position-recall":  [() => `Dolu daireleri birlikte inceleyin. Kapanınca: ${Q("Ekranda daireler var; bazıları dolu. Dolu dairelerin yerine iyi bak ve aklında tut. Daireler kapanınca hangilerinin dolu olduğunu söyle.")}`, () => `Kapanınca: ${Q("Ekranda daireler var; bazıları dolu. Dolu dairelerin yerine iyi bak. Daireler kapanınca dolu daireleri soldan sağa sırayla söyle.")}`],
+"color-recall":     [() => `Renkleri birlikte inceleyin. Kapanınca: ${Q("Ekranda renkli kartlar var; renklere iyi bak ve aklında tut. Kartlar kapanınca hangi renkleri gördüğünü söyle.")}`, () => `Kapanınca: ${Q("Ekranda renkli kartlar var; renklere ve sıralarına iyi bak. Kartlar kapanınca renkleri soldan sağa, aynı sırayla söyle.")}`],
+"word-group":       [() => `Seçenek vermeden sorun: ${Q("Ekranda kelimeler var. Her kelime için hangi grubun üyesi olduğunu söyle: hayvan, taşıt, giysi gibi.")}`, () => Q("Ekranda kelimeler var. Her kelime için önce grubunun adını söyle, sonra o gruptan bir örnek daha söyle.")],
 "opposite-match":   [() => Q("Ekranda kelimeler var. Her kelimenin zıt anlamlısını söyle: ‘sıcak’ için ‘soğuk’ gibi.")],
-"similarities":     [() => Q("Ekranda ikişer kelime var. Her ikili için bu iki şeyin ortak yönünü söyle: ikisi de ne? Neden birbirine benziyorlar?"), () => Q("Her ikili için önce ortak yönlerini söyle, sonra aynı gruptan bir örnek daha söyle.")],
-"vocabulary":       [() => Q("Ekranda kelimeler var. Her kelime için ne demek olduğunu kendi sözlerinle anlat."), () => Q("Her kelime için önce anlamını söyle, sonra o kelimeyi bir cümlenin içinde kullan.")],
+"similarities":     [() => Q("Ekranda ikişer kelime var. Her ikili için bu iki şeyin ortak yönünü söyle: ikisi de ne? Neden birbirine benziyorlar?"), () => Q("Ekranda ikişer kelime var. Her ikili için önce ortak yönlerini söyle, sonra aynı gruptan bir örnek daha söyle.")],
+"vocabulary":       [() => Q("Ekranda kelimeler var. Her kelime için ne demek olduğunu kendi sözlerinle anlat."), () => Q("Ekranda kelimeler var. Her kelime için önce anlamını söyle, sonra o kelimeyi bir cümlenin içinde kullan.")],
 "practical-reasoning":[() => `Soruyu okuyun: ${Q("Sana bir durum anlatacağım. Sen böyle bir durumda ne yaparsın? Anlat.")}`, () => `Soruyu okuyun: ${Q("Sana bir durum anlatacağım. Böyle bir durumda ne yaparsın ve neden öyle yaparsın? Anlat.")}`],
 "size-sort":        [() => Q("Ekranda aynı şeyin küçük, orta ve büyük hâlleri var. Soldan sağa, satır satır her biri için küçük mü, orta mı, büyük mü olduğunu söyle.")],
 "arrow-direction":  [() => Q("Ekranda oklar var. Soldan sağa, satır satır her ok için yukarı mı aşağı mı baktığını söyle."), () => Q("Ekranda oklar var. Her ok için hangi yöne baktığını söyle: yukarı, aşağı ya da sağ."), () => Q("Ekranda oklar var. Her ok için hangi yöne baktığını söyle: yukarı, aşağı, sağ ya da sol.")],
 "edge-count":       [() => Q("Ekranda şekiller var. Her şekil için kenarlarını say ve kaç kenarı olduğunu söyle.")],
-"visual-opposites": [() => Q("Ekranda resimler var. Her resim için ne gördüğünü bir kelimeyle söyle: uzun mu kısa mı, dolu mu boş mu, içinde mi dışında mı gibi."), () => Q("Her resim için önce gördüğünü söyle, sonra onun zıttını söyle.")],
+"visual-opposites": [() => Q("Ekranda resimler var. Her resim için ne gördüğünü bir kelimeyle söyle: uzun mu kısa mı, dolu mu boş mu, içinde mi dışında mı gibi."), () => Q("Ekranda resimler var. Her resim için önce gördüğünü söyle, sonra onun zıttını söyle.")],
 
-"odd-one-out":      [() => Q("Ekranda üçer şekilden oluşan sıralar var. Her sırada iki şekil birbirine benziyor, biri farklı. Farklı olanın kaçıncı olduğunu söyle: 1, 2 ya da 3."), () => Q("Her sırada farklı olanın kaçıncı olduğunu söyle, sonra neden farklı olduğunu açıkla: rengi mi, şekli mi, boyu mu?")],
+"odd-one-out":      [() => Q("Ekranda üçer şekilden oluşan sıralar var. Her sırada iki şekil birbirine benziyor, biri farklı. Farklı olanın kaçıncı olduğunu söyle: 1, 2 ya da 3."), () => Q("Ekranda üçer şekilden oluşan sıralar var. Her sırada farklı olanın kaçıncı olduğunu söyle, sonra neden farklı olduğunu açıkla: rengi mi, şekli mi, boyu mu?")],
 "sequence-pattern": [() => Q("Ekranda renkli şekillerden oluşan sıralar var; renkler belli bir düzenle tekrar ediyor. Düzeni bul ve soru işaretinin yerine hangi rengin geleceğini söyle."), () => Q("Ekranda renkler üçlü bir düzenle tekrar ediyor. Düzeni bul ve soru işaretinin yerine hangi rengin geleceğini söyle.")],
-"visual-analogy":   [() => Q("Ekranda ikişer ikili var: ilk ikilide bir şey değişiyor. Aynı değişiklik ikinci ikilide de olacak. Soru işaretinin yerine hangi renk gelir? Söyle."), () => Q("İlk ikilideki değişikliği bul. Soru işaretinin yerine ne gelir? Şeklini ve rengini söyle.")]
+"visual-analogy":   [() => Q("Ekranda ikişer ikili var: ilk ikilide bir şey değişiyor. Aynı değişiklik ikinci ikilide de olacak. Soru işaretinin yerine hangi renk gelir? Söyle."), () => Q("Ekranda ikişer ikili var: ilk ikilide bir şey değişiyor. O değişikliği bul. Soru işaretinin yerine ne gelir? Şeklini ve rengini söyle.")]
 };
 const STRATEGIES = (() => {
 const finger = [0, "Parmakla İzle", "Parmağınla her birinin altını göster, satır satır ilerle."];
@@ -13703,7 +13703,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.29-e";
+const APP_VERSION = "2026.10.29-f";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
