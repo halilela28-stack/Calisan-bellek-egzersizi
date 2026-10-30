@@ -4944,16 +4944,6 @@ randomItem: () => ({}),
 stages: [ { label: "Birebir Aynısını Bul", instruction: () => ``, example: () => `` } ]
 },
 {
-id: "self-check",
-readingLevel: ["pre","post"],
-label: "Kendi Hatanı Bul",
-isMt: true, attrs: [], speedFactor: 3,
-errorLabel: "Fark edilmeyen hata + yanlış işaret",
-isDone: () => !!mtState && mtState.phase === "done",
-randomItem: () => ({}),
-stages: [ { label: "Hızlı Yap, Sonra Gözden Geçir", instruction: () => ``, example: () => `` } ]
-},
-{
 id: "safe-box",
 readingLevel: ["pre","post"],
 label: "Hangi Kutu Daha İyi?",
@@ -5555,8 +5545,8 @@ sub:"Ketleme · Esneklik · Planlama · Öz Denetim · Dikkat Kontrolü",
 purpose:"Dikkati yönetme, kural değiştirme, dürtüsel tepkiyi durdurma, planlama, zamanı tahmin etme ve kendi işini denetleme becerilerini çalıştırır.",
 color:"#3A6EA5",
 group:"Hız & Dikkat",
-exerciseIds:["tap-reverse","fish-flanker","stroop","touch-animal","statue","stroop-touch","hold-wait","day-night","plan-beads","day-night-touch","alt-uses","sort-color-shape","opp-do","face-go","fist","num-stroop","rule-shift","trail-number-month","go-no-go","size-stroop","reversal","zoo-map","spatial-stroop","flanker","plan-swap","box-search","sort-animal-size","bear-dragon","zihni-says","water-jars","anti-touch","twenty-q","less-more","hand-game","trail-animal-fruit","key-search","context-go","three-tasks","hayling","grass-snow","sort-color-shape-count","design-fluency","plan-tol","opp-world","distract","time-est","find-error","switch-touch","rev-arrow","number-letter","safe-box","navon","self-check","motion-dir","task-switch","sort-words","keep-track","creature-count","plan-cubes","plus-minus","dual-task","rev-sort","stop-signal","trail-color-shape","cog-est","look-first","vigilance"],
-exerciseGroups:[["Ketleme", ["stroop", "day-night", "opp-do", "go-no-go", "fish-flanker", "stroop-touch", "day-night-touch", "touch-animal", "flanker", "face-go", "num-stroop", "zihni-says", "size-stroop", "spatial-stroop", "bear-dragon", "hand-game", "hayling", "anti-touch", "tap-reverse", "statue", "opp-world", "less-more", "hold-wait", "context-go", "grass-snow", "distract", "rev-arrow"]], ["Esneklik", ["sort-color-shape", "trail-number-month", "sort-animal-size", "trail-animal-fruit", "sort-color-shape-count", "number-letter", "task-switch", "sort-words", "trail-color-shape", "switch-touch", "alt-uses", "fist", "navon", "rule-shift", "plus-minus", "reversal", "motion-dir", "creature-count", "rev-sort"]], ["Planlama", ["plan-beads", "zoo-map", "plan-swap", "box-search", "plan-tol", "water-jars", "plan-cubes", "twenty-q", "key-search", "three-tasks", "design-fluency", "cog-est"]], ["Öz Denetim", ["time-est", "find-error", "look-first", "safe-box", "self-check", "keep-track"]], ["Dikkat Kontrolü", ["dual-task", "stop-signal", "vigilance"]]]
+exerciseIds:["tap-reverse","fish-flanker","stroop","touch-animal","statue","stroop-touch","hold-wait","day-night","plan-beads","day-night-touch","alt-uses","sort-color-shape","opp-do","face-go","fist","num-stroop","rule-shift","trail-number-month","go-no-go","size-stroop","reversal","zoo-map","spatial-stroop","flanker","plan-swap","box-search","sort-animal-size","bear-dragon","zihni-says","water-jars","anti-touch","twenty-q","less-more","hand-game","trail-animal-fruit","key-search","context-go","three-tasks","hayling","grass-snow","sort-color-shape-count","design-fluency","plan-tol","opp-world","distract","time-est","find-error","switch-touch","rev-arrow","number-letter","safe-box","navon","motion-dir","task-switch","sort-words","keep-track","creature-count","plan-cubes","plus-minus","dual-task","rev-sort","stop-signal","trail-color-shape","cog-est","look-first","vigilance"],
+exerciseGroups:[["Ketleme", ["stroop", "day-night", "opp-do", "go-no-go", "fish-flanker", "stroop-touch", "day-night-touch", "touch-animal", "flanker", "face-go", "num-stroop", "zihni-says", "size-stroop", "spatial-stroop", "bear-dragon", "hand-game", "hayling", "anti-touch", "tap-reverse", "statue", "opp-world", "less-more", "hold-wait", "context-go", "grass-snow", "distract", "rev-arrow"]], ["Esneklik", ["sort-color-shape", "trail-number-month", "sort-animal-size", "trail-animal-fruit", "sort-color-shape-count", "number-letter", "task-switch", "sort-words", "trail-color-shape", "switch-touch", "alt-uses", "fist", "navon", "rule-shift", "plus-minus", "reversal", "motion-dir", "creature-count", "rev-sort"]], ["Planlama", ["plan-beads", "zoo-map", "plan-swap", "box-search", "plan-tol", "water-jars", "plan-cubes", "twenty-q", "key-search", "three-tasks", "design-fluency", "cog-est"]], ["Öz Denetim", ["time-est", "find-error", "look-first", "safe-box", "keep-track"]], ["Dikkat Kontrolü", ["dual-task", "stop-signal", "vigilance"]]]
 },
 {
 id:"calisan-bellek",
@@ -9510,7 +9500,7 @@ const LF_ATTRS = { roof:[ACC.kirmizi, ACC.mavi], door:["l", "r"], win:[1, 2], ch
 function lfHouse(a, px){ return `<svg viewBox="0 0 100 100" style="width:${px}px;height:${px}px;display:block"><rect x="18" y="48" width="64" height="40" fill="#FFE1A8" stroke="#1F2A33" stroke-width="2"/><polygon points="12,50 50,18 88,50" fill="${a.roof}" stroke="#1F2A33" stroke-width="2"/>${a.chim ? `<rect x="64" y="24" width="9" height="16" fill="#5B6670" stroke="#1F2A33" stroke-width="1.5"/>` : ""}${a.flag ? `<line x1="50" y1="18" x2="50" y2="4" stroke="#1F2A33" stroke-width="2"/><polygon points="50,5 64,9 50,13" fill="#1FA463"/>` : ""}<rect x="${a.door === "l" ? 24 : 62}" y="64" width="14" height="24" fill="#5B6670" stroke="#1F2A33" stroke-width="1.5"/>${a.win === 1 ? `<rect x="43" y="56" width="14" height="12" fill="#BEE3FF" stroke="#1F2A33" stroke-width="1.5"/>` : `<rect x="${a.door === "l" ? 44 : 24}" y="56" width="12" height="11" fill="#BEE3FF" stroke="#1F2A33" stroke-width="1.5"/><rect x="${a.door === "l" ? 62 : 42}" y="56" width="12" height="11" fill="#BEE3FF" stroke="#1F2A33" stroke-width="1.5"/>`}<circle cx="${a.tree === "l" ? 8 : 92}" cy="76" r="7" fill="${ACC.yesil}"/><rect x="${a.tree === "l" ? 6.5 : 90.5}" y="82" width="3" height="8" fill="#5B6670"/></svg>`; }
 function lfTrials(){ const t = Math.min(currentCombo().t, 2), pre = isPre(), N = (pre ? [4, 5, 6] : [6, 8, 10])[t], nOpt = pre ? 4 : (t === 0 ? 4 : 6), keys = Object.keys(LF_ATTRS);
   return Array.from({length:N}, () => { const base = {}; keys.forEach(k => { base[k] = randomItem(LF_ATTRS[k]); }); const vars = shuffleArray(keys).slice(0, nOpt - 1).map(k => { const v = Object.assign({}, base); v[k] = LF_ATTRS[k].find(x => x !== base[k]); return v; }); const opts = shuffleArray([base].concat(vars)); return { base, opts, ans: opts.indexOf(base) }; }); }
-/* Kendi Hatanı Bul: hızlı ok görevi (geri bildirimsiz), sonra kendi cevaplarını işaretleme */
+/* (2026-10-29: bu çalışma uygulamadan kaldırıldı; yardımcı işlev kullanılmıyor) */
 function scTrials(){ const t = Math.min(currentCombo().t, 2), pre = isPre(), N = (pre ? [8, 10, 12] : [12, 16, 20])[t], D = ["l", "r", "u", "d"].slice(0, pre ? 2 : [2, 4, 4][t]); return { win: (pre ? [1500, 1300, 1100] : [1100, 950, 850])[t], D, items: balancedSeq(N, D, 2).map(d => ({ d, ans:null, ok:null, mark:false })) }; }
 /* Hangi Kutu Daha İyi? (Çocuk Kumar Görevi, Kerr & Zelazo): riskli kutu çok verir ama çok kaybettirir */
 function sfbTrials(){ const t = Math.min(currentCombo().t, 2), N = selCount(), riskLoss = [[0, 4, 0, 5, 0, 6], [0, 5, 0, 6, 0, 7], [0, 5, 6, 0, 0, 7]][t], safeLoss = [0, 1, 0, 0, 1, 0];
@@ -9621,7 +9611,6 @@ mtState = { kind:"flu", fid:id, P: fluPrompt(id), secs: fluSecs(id), ok:0, rep:0
 "twenty-q": () => { mtState = { kind:"twq", trials: twqTrials(), ti:0, wrong:0, phase:"idle", res:[] }; return mtState.trials; },
 "box-search": () => { mtState = { kind:"bsearch", trials: bsTrials(), ti:0, wrong:0, okN:0, phase:"idle", last:-1, show:null }; return mtState.trials; },
 "three-tasks": () => { const c = sixCfg(); mtState = { kind:"six", cfg:c, trials:[{}], ti:0, wrong:0, phase:"idle", left:c.secs, view:"menu", done:{}, lastTask:null, breaks:0, hits:{} }; return mtState.trials; },
-"self-check": () => { const c = scTrials(); mtState = { kind:"selfchk", cfg:c, trials: c.items, ti:0, wrong:0, phase:"idle", view:"run", cur:-1 }; return mtState.trials; },
 "safe-box": () => { const c = sfbTrials(); mtState = { kind:"cgt", cfg:c, trials: Array.from({length: c.N}, (_, i) => ({ swap: c.swap ? Math.random() < 0.5 : !!c.flip })), ti:0, wrong:0, okN:0, stars:10, picks:[], phase:"idle", fb:null }; return mtState.trials; },
 "keep-track": () => { mtState = { kind:"ktrack", trials: ktTrials(), ti:0, wrong:0, okN:0, phase:"idle", si:-1, qi:0 }; return mtState.trials; },
 "vigilance": () => { const d = vigBuild(); mtState = Object.assign({ kind:"vig", i:-1, wrong:0, phase:"idle", hits:0, fa:0, miss:0 }, d); return d.seq; },
@@ -11321,7 +11310,6 @@ const INSTR_SHORT = {
 "dual-task":        [() => Q("İki işi birden yapacaksın: ekranda çıkan yıldızlara dokun, aynı anda duyduğun bip seslerini içinden say. Sonunda kaç bip duyduğunu söyle.")],
 "stop-signal":      [() => Q("Ekrana oklar gelecek. Ok hangi yöne bakıyorsa alttan o yönün düğmesine hızlıca bas. Ama ok kırmızıya dönerse hiçbir düğmeye basma, bekle.")],
 "look-first":       [() => Q("Üstte bir ev var. Alttaki evlerden sadece biri üsttekinin birebir aynısı, ötekilerde küçük bir fark var. Dokunmadan önce hepsine dikkatle bak ve karşılaştır; sonra aynı olana dokun.")],
-"self-check":       [() => `${Q("Ekranda oklar gelecek. Her ok için aynı yöndeki oka hızlıca dokun. Doğru mu yanlış mı ben söylemeyeceğim.")} Bitince: ${Q("Şimdi cevaplarına bak. Sence hangileri yanlıştı? Yanlış olduğunu düşündüklerine dokunup işaretle, sonra ‘Bitti’ye bas.")}`],
 "safe-box":         [() => Q("İki kutu var. Bir kutuya dokununca gülen yüzler yıldız verir, üzgün yüzler yıldız alır. Kutulardan biri daha iyi; hangisinin daha iyi olduğunu bul ve ona dokun.")],
 "keep-track":       [() => `${Q("Resimler tek tek gelecek; hayvanlar, oyuncaklar, meyveler gibi gruplardan. Her gruptan en son gelen resmi aklında tut. Resimler bitince her grubun en son gelenini söyle.")}`],
 "zoo-map":          [() => Q("Bu bir hayvanat bahçesi haritası. Girişten başla, yıldızlı hayvanların hepsine uğra ve çıkışta bitir. Gitmek istediğin yere dokun. Aynı yoldan iki kez geçemezsin; dikkatli plan yap.")],
@@ -11632,7 +11620,6 @@ return {
 "dual-task":[0, "Sesli Say", "Bipleri içinden 'bir, iki, üç' diye say; dokunurken saymayı bırakma."],
 "stop-signal":[0, "Bekle ve Bak", "Basmadan önce bir an oka bak; kırmızı mı?"],
 "look-first":[0, "Parça Parça Karşılaştır", "Çatı, kapı, pencere, baca, bayrak, ağaç: her birini sırayla karşılaştır."],
-"self-check":[0, "Emin Değilsen İşaretle", "Gözden geçirirken ‘burada acele ettim’ dediğin her cevabı işaretle."],
 "safe-box":[0, "Kaybı Say", "Her kutudan kaç kez kaybettiğini içinden say; çok kaybettiren kutudan uzak dur."],
 "keep-track":[0, "Grubu Güncelle", "Her resimde içinden söyle: ‘hayvan: artık kedi.’ Eskisini unut."],
 "zoo-map":[0, "Önce Çiz, Sonra Git", "Dokunmadan önce rotayı parmağınla havada göster; sonra sırayla git."],
@@ -13518,7 +13505,7 @@ setTimeout(hide, calmOn() ? 600 : 1500);
 
 const DAILY_KEY = "wm_daily_v1", TARGET_KEY = "wm_week_target_v1";
 const STEP_META = [
-{ role:"Isınma",      min:2, cls:"",      desc:"Göz Takip · baş sabit, gözle takip" },
+{ role:"Ana çalışma", min:4, cls:"", desc:"Haftanın hedef alanı" },
 { role:"Ana çalışma", min:4, cls:"",      desc:"Haftanın hedef alanı" },
 { role:"Ana çalışma", min:4, cls:"",      desc:"Haftanın hedef alanı" },
 { role:"Kapanış",     min:2, cls:"close", desc:"Çocuk tek başına yapabilir" }
@@ -13533,7 +13520,7 @@ function weekKey(d){ return todayKey(weekStart(d)); }
 function famStoreGet(key){ try{ return JSON.parse(localStorage.getItem(key) || "{}"); }catch(e){ return {}; } }
 function famStoreSet(key, v){ try{ localStorage.setItem(key, JSON.stringify(v)); }catch(e){} }
 function seededRand(seedStr){ let h = 2166136261; for(const c of seedStr){ h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 100000) / 100000; }; }
-const OKUL_SKILLS = [{ id:"okul-fonoloji", label:"Okumaya hazırlık: sesler ve heceler", okul:true, exerciseIds:["syl-touch", "syllable-count", "syl-blend", "rhyme-touch", "rhyme-say", "same-sound", "phon-manip", "nonword", "pk-train", "pk-rhyme"] },{ id:"okul-akicilik", label:"Okuma akıcılığı ve hızlı isimlendirme", okul:true, exerciseIds:["shape-color", "object-name", "number-color", "ran-letter", "sent-verify", "search-letter", "pair-match", "sem-decide"] },{ id:"okul-sayi", label:"Sayı ve erken matematik", okul:true, exerciseIds:["dot-count", "mental-math", "num-pattern", "balance", "pk-bridge", "trail-numbers", "number-find", "count-span"] },{ id:"okul-anlama", label:"Dinlediğini anlama ve yönergeler", okul:true, exerciseIds:["dir-follow", "listen-answer", "sent-pic", "word-pic", "wh-scene", "short-story", "story-recall", "concept-touch", "sent-listen"] },{ id:"okul-dikkat", label:"Sınıfta dikkat ve öz denetim", okul:true, exerciseIds:["go-no-go", "stop-signal", "vigilance", "touch-animal", "dual-task", "find-error", "pk-redlight", "flanker", "bear-dragon", "anti-touch", "hold-wait", "context-go", "self-check", "look-first"] },{ id:"okul-yazma", label:"Yazmaya hazırlık: görsel-motor", okul:true, exerciseIds:["copy-design", "symmetry", "maze", "finger-trace", "block-design", "vis-draw", "trail-animal-fruit"] }];
+const OKUL_SKILLS = [{ id:"okul-fonoloji", label:"Okumaya hazırlık: sesler ve heceler", okul:true, exerciseIds:["syl-touch", "syllable-count", "syl-blend", "rhyme-touch", "rhyme-say", "same-sound", "phon-manip", "nonword", "pk-train", "pk-rhyme"] },{ id:"okul-akicilik", label:"Okuma akıcılığı ve hızlı isimlendirme", okul:true, exerciseIds:["shape-color", "object-name", "number-color", "ran-letter", "sent-verify", "search-letter", "pair-match", "sem-decide"] },{ id:"okul-sayi", label:"Sayı ve erken matematik", okul:true, exerciseIds:["dot-count", "mental-math", "num-pattern", "balance", "pk-bridge", "trail-numbers", "number-find", "count-span"] },{ id:"okul-anlama", label:"Dinlediğini anlama ve yönergeler", okul:true, exerciseIds:["dir-follow", "listen-answer", "sent-pic", "word-pic", "wh-scene", "short-story", "story-recall", "concept-touch", "sent-listen"] },{ id:"okul-dikkat", label:"Sınıfta dikkat ve öz denetim", okul:true, exerciseIds:["go-no-go", "stop-signal", "vigilance", "touch-animal", "dual-task", "find-error", "pk-redlight", "flanker", "bear-dragon", "anti-touch", "hold-wait", "context-go", "look-first"] },{ id:"okul-yazma", label:"Yazmaya hazırlık: görsel-motor", okul:true, exerciseIds:["copy-design", "symmetry", "maze", "finger-trace", "block-design", "vis-draw", "trail-animal-fruit"] }];
 /* KURAL (Bugünün planı / Gelişim ödevleri): çalışmalar kendi kategorisinin kademesinden seçilir, sonuç özeti o kademedeki kayıtlardan hesaplanır; uzman ödevi kendi kademesinde açılır */
 function famLvlFor(catId){ try{ return catLevelFor(catId, famNameOverride || famProfile()); }catch(e){ return famLvl(); } }
 function exLvlOk(id){ const ex = exerciseById(id); if(!ex) return false; const c = CATEGORIES.find(x => x.exerciseIds.includes(id)); return ex.readingLevel.includes(c ? famLvlFor(c.id) : famLvl()); }
@@ -13553,9 +13540,7 @@ return opts.length ? opts[wk % opts.length].id : "islemleme-hizi";
 }
 function setFamTarget(catId){ const st = famStoreGet(TARGET_KEY); st[famProfile() + "|" + famLvl() + "|" + weekKey()] = catId; famStoreSet(TARGET_KEY, st); }
 function isGameEligible(ex){ return !!(ex && (ex.isTouch || ex.isSort || ex.isTrail || ex.isPlan || ex.isSearch)); }
-function buildTodayPlan(){
-const target = famTarget();
-const rnd = seededRand(todayKey() + famProfile() + famLvl() + target);
+function buildTodayPlan(round, exclude){ round = round || 1; exclude = exclude || []; const target = famTarget(); const rnd = seededRand(todayKey() + famProfile() + famLvl() + target + (round > 1 ? "|" + round : ""));
 const pick = (arr) => arr[Math.floor(rnd() * arr.length)];
 const eyeAll = (CATEGORIES.find(c => c.id === "goz-takip") || {exerciseIds:[]}).exerciseIds.filter(id => { const ex = exerciseById(id); return ex && exLvlOk(id) && !(ex.minTier > 0); });
 const eyePref = eyeAll.filter(id => /saccade/.test(id));
@@ -13566,16 +13551,19 @@ const hwIds = prog && Array.isArray(prog.hw) ? prog.hw.filter(id => !!exerciseBy
 let fixed = (prog && prog.target === target && Array.isArray(prog.mains) ? prog.mains.filter(id => mains.includes(id)) : []);
 if(hwIds.length){ const h = hwIds.slice(), pickH = []; while(pickH.length < Math.min(2, h.length)) pickH.push(h.splice(Math.floor(rnd() * h.length), 1)[0]); fixed = pickH.concat(fixed.filter(x => !pickH.includes(x))).slice(0, 2); }
 if(fixed.length > 2 && !hwIds.length){ const f = fixed.slice(); fixed = []; while(fixed.length < 2 && f.length){ fixed.push(f.splice(Math.floor(rnd() * f.length), 1)[0]); } }   // önerilenlerden her gün 2'si
+if(round > 1){ fixed = []; const fresh = mains.filter(x => !exclude.includes(x)); if(fresh.length >= 3) mains.splice(0, mains.length, ...fresh); }   /* sonraki turlarda bugün yapılanlar mümkünse tekrarlanmaz */
 let m1 = fixed[0] || pick(mains); let rest = mains.filter(x => x !== m1); let m2 = fixed[1] || (rest.length ? pick(rest) : m1);
 if(fixed.length === 1 && m2 === m1){ rest = mains.filter(x => x !== m1); m2 = rest.length ? pick(rest) : m1; }
 let closePool = CATEGORIES.flatMap(c => c.id === target ? [] : c.exerciseIds).filter(id => { const ex = exerciseById(id); return ex && exLvlOk(id) && isGameEligible(ex); });   /* KURAL: günlük plandaki her adım, çalışmanın açılacağı alan düzeyinde (okul dönemi) gerçekten bulunan bir çalışmadır */
 if(!closePool.length) closePool = CATEGORIES.flatMap(c => c.exerciseIds).filter(id => exerciseById(id) && isGameEligible(exerciseById(id)) && exLvlOk(id));
-const close = pick(closePool.filter(x => x !== m1 && x !== m2));
-return { target, steps:[warm, m1, m2, close], done:[false, false, false, false] };
-}
+const cp2 = closePool.filter(x => x !== m1 && x !== m2 && !exclude.includes(x)); const close = pick(cp2.length ? cp2 : closePool.filter(x => x !== m1 && x !== m2));
+/* KURAL (Bugün): günün planında ısınma (göz takip) adımı yoktur; dört adım = üç ana çalışma + kapanış, plan ilk adımdan başlar */
+const rest3 = mains.filter(x => x !== m1 && x !== m2); const m0 = rest3.length ? pick(rest3) : (pick(closePool.filter(x => x !== close && x !== m1 && x !== m2)) || m1);
+return { target, steps:[m0, m1, m2, close], done:[false, false, false, false], v:2, round }; }
 function todayPlan(){
 const st = famStoreGet(DAILY_KEY), k = famProfile() + "|" + famLvl() + "|" + todayKey();
 try{ if(st[k] && Array.isArray(st[k].steps) && st[k].steps.some(id => !exLvlOk(id))){ const old = st[k], nw = buildTodayPlan(); nw.done = nw.steps.map((id, i) => !!(old.done && old.done[i] && old.steps[i] === id)); nw.progSig = old.progSig; st[k] = nw; famStoreSet(DAILY_KEY, st); } }catch(e){}   /* bugün kaydedilmiş planda açılamayan adım varsa plan onarılır */
+try{ if(st[k] && !st[k].v){ const old = st[k], nw = buildTodayPlan(); nw.done = nw.steps.map((id) => { const oi = old.steps.indexOf(id); return !!(oi >= 0 && old.done && old.done[oi]); }); nw.progSig = old.progSig; st[k] = nw; famStoreSet(DAILY_KEY, st); } }catch(e){}   /* eski (ısınmalı) plan yeni düzene geçer */
 const progSig = (() => { const p = typeof familyProgram === "function" ? familyProgram() : null; return p ? [p.target, (p.mains || []).join("+"), (p.hw || []).join("+")].join("|") : ""; })();
 if(st[k] && (st[k].progSig || "") !== progSig && !st[k].done.some(Boolean)){ delete st[k]; }
 if(!st[k] || st[k].target !== famTarget()){
@@ -13658,10 +13646,9 @@ ${(() => { const pr = familyProgram(); if(!pr) return `<div class="fam-target">B
 const today = (pr.days || []).includes(todayDayIdx());
 return `<div class="fam-target">Uzmanınızın programı: <b>${famCatName(plan.target)}</b></div>${today ? "" : `<div class="fam-note" style="text-align:left">Bugün programda yok (${(pr.days || []).map(d => DAY_SHORT[d]).join(", ")}). İsterseniz yine de çalışabilirsiniz.</div>`}`; })()}
 ${chips}
-${done ? `<div class="fam-card fam-done"><div class="m">${mascotSVG("cheer")}</div><div class="fam-h" style="font-size:22px">Bugünün etkinlikleri tamam!</div><div class="fam-sub">Harika bir iş çıkardınız. Yarın yeni çalışmalar sizi bekliyor.</div></div>` : ""}
+${done ? `<div class="fam-card fam-done"><div class="m">${mascotSVG("cheer")}</div><div class="fam-h" style="font-size:22px">Bugünün etkinlikleri tamam!</div><div class="fam-sub">Harika bir iş çıkardınız. İsterseniz dört etkinlik daha yapabilirsiniz.</div></div>` : ""}
 <div class="fam-steps">${steps}</div>
-${done ? `<button type="button" class="fam-cta" id="famWeekCta">${I_CHART} Bu haftanın özetini gör</button>`
-: `<button type="button" class="fam-cta" id="famStartCta"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M7 4.5v15l12-7.5z"/></svg> ${n ? (cur + 1) + ". adımla devam et" : "Oturumu başlat"}</button>`}
+${done ? `<button type="button" class="fam-cta" id="famMoreCta"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M7 4.5v15l12-7.5z"/></svg> Devam et: 4 etkinlik daha</button><button type="button" class="fam-cta fam-cta2" id="famWeekCta" style="background:var(--panel,#fff);color:var(--teal-d,#05625D);border:2px solid var(--line,#DDE6EE);margin-top:10px">${I_CHART} Bu haftanın özetini gör</button>` : `<button type="button" class="fam-cta" id="famStartCta"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M7 4.5v15l12-7.5z"/></svg> ${n ? (cur + 1) + ". adımla devam et" : "Oturumu başlat"}</button>`}
 <div class="fam-note">Zorluk her çalışmada çocuğun sonucuna göre kendiliğinden ayarlanır. Her adımın sonunda sonucu kaydedin.</div>`;
 document.getElementById("todayScreen").style.display = "flex";
 document.getElementById("todayScreen").scrollTop = 0;
@@ -13671,12 +13658,13 @@ document.querySelectorAll("#todayWrap [data-target]").forEach(b => b.onclick = (
 setFamTarget(b.dataset.target);
 const st = famStoreGet(DAILY_KEY), k = famProfile() + "|" + famLvl() + "|" + todayKey();
 const old = st[k]; const np = buildTodayPlan();
-if(old){ np.steps[0] = old.steps[0]; np.done[0] = old.done[0]; np.steps[3] = old.steps[3]; np.done[3] = old.done[3]; }
+if(old){ for(let q = 0; q < 4; q++){ if(old.done && old.done[q]){ np.steps[q] = old.steps[q]; np.done[q] = true; } } np.round = old.round || 1; np.used = old.used || []; }
 st[k] = np; famStoreSet(DAILY_KEY, st);
 famTargetEditing = false; showToday();
 });
 const sc = document.getElementById("famStartCta"); if(sc) sc.onclick = () => startSessionStep(cur);
 const wc = document.getElementById("famWeekCta"); if(wc) wc.onclick = showWeek;
+const mc = document.getElementById("famMoreCta"); if(mc) mc.onclick = () => { const pl = todayPlan(); const used = (pl.used || []).concat(pl.steps); const r = (pl.round || 1) + 1; const np = buildTodayPlan(r, used); np.round = r; np.used = used; np.progSig = pl.progSig; saveTodayPlan(np); showToday(); };   /* KURAL (Bugün): dört adım bitince "Devam et: 4 etkinlik daha" seçeneği sunulur; yeni turda bugün yapılanlar mümkünse tekrarlanmaz */
 }
 function startSessionStep(idx){ if(!imagesReady()){ imgWait(() => startSessionStep(idx)); return; }
 try{ exitRecMode(); }catch(e){}
@@ -13718,7 +13706,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.29-n";
+const APP_VERSION = "2026.10.29-p";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -14377,7 +14365,7 @@ park:'<svg viewBox="0 0 24 24" fill="none" stroke="#1D6FB8" stroke-width="2.2" s
 };
 const GAME_ISLANDS = [
 { id:"hiz",    name:"Hız Adası",     color:"#FFB648", ids:["search-object", "search-shape", "trail-numbers", "cat-fruit", "search-symbol", "search-letter", "sdmt-touch", "cat-cold", "quick-sort", "touch-card", "cat-living", "pairs-touch", "dot-count", "sem-decide", "pair-match", "sent-verify"] },
-{ id:"dikkat", name:"Dikkat Adası",  color:"#62D394", ids:["touch-animal", "fish-flanker", "stroop-touch", "day-night-touch", "face-go", "switch-touch", "sort-color-shape", "sort-animal-size", "sort-color-shape-count", "sort-words", "trail-animal-fruit", "trail-color-shape", "number-letter", "trail-number-month", "dual-task", "stop-signal", "vigilance", "bear-dragon", "anti-touch", "tap-reverse", "size-stroop", "num-stroop", "spatial-stroop", "hold-wait", "less-more", "context-go", "distract", "grass-snow", "fist", "rule-shift", "reversal", "navon", "creature-count", "motion-dir", "rev-sort", "look-first", "self-check", "safe-box"] },
+{ id:"dikkat", name:"Dikkat Adası",  color:"#62D394", ids:["touch-animal", "fish-flanker", "stroop-touch", "day-night-touch", "face-go", "switch-touch", "sort-color-shape", "sort-animal-size", "sort-color-shape-count", "sort-words", "trail-animal-fruit", "trail-color-shape", "number-letter", "trail-number-month", "dual-task", "stop-signal", "vigilance", "bear-dragon", "anti-touch", "tap-reverse", "size-stroop", "num-stroop", "spatial-stroop", "hold-wait", "less-more", "context-go", "distract", "grass-snow", "fist", "rule-shift", "reversal", "navon", "creature-count", "motion-dir", "rev-sort", "look-first", "safe-box"] },
 { id:"goz",    name:"Göz Adası",     color:"#B09BFF", fromCategory:"goz-takip" },
 { id:"bellek", name:"Bellek Adası",  color:"#F7D046", ids:["wm-same", "corsi", "zihni", "wm-seq", "span-touch", "market", "wm-where", "running", "lns-touch", "animal-fruit", "cups", "mental-math", "pos-nback", "count-span"] },
 { id:"resim",  name:"Resim Adası",   color:"#FFC9A3", ids:["rt-shapes", "vis-miss", "rt-position", "vis-chg", "rt-colors", "vis-recog", "vis-face", "scene-touch", "vis-draw", "memory-cards", "which-seen", "route-mem", "color-obj", "pic-order"] },
