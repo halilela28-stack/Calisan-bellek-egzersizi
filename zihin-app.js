@@ -6715,7 +6715,7 @@ const tr = st.trials[st.idx];
 const stim = st.phase === "idle" ? (predictOn() ? predictHTML(st) : `<span class="hold">▶ Başlat'a bas</span>`) : st.phase === "done" ? (predictOn() && st.pred != null ? predictResult(st) : `<span class="hold">Bitti!</span>`) : st.phase === "gap" ? "" : sp.stim(tr, stimSize, st.ctx);   /* Tahmin Et – Yap – Karşılaştır katmanı: işaretli çalışmalarda */
 const buttons = sp.buttons(st.ctx, tr);   /* deneme bazlı düğmeler (Hızlı Seç: yer ve kural değişimi); tapStim: seçim resmin kendisine dokunarak */
 const corr = st.phase === "feedback" ? sp.correct(tr, st.ctx) : undefined;
-const btnHtml = sp.tapStim ? (st.phase === "ask" ? `<div class="aud-key" style="text-align:center">Resme dokun</div>` : "") : `<div class="ch-btns" style="grid-template-columns:repeat(${Math.min(buttons.length, sp.cols || buttons.length)}, minmax(0, 1fr));">` + buttons.map(b => {
+const btnHtml = sp.tapStim ? (st.phase === "ask" ? `<div class="aud-key" style="text-align:center">Resme dokun</div>` : "") : `<div class="ch-btns" style="grid-template-columns:repeat(${Math.min(buttons.length, (typeof sp.cols === "function" ? sp.cols(buttons.length) : sp.cols) || buttons.length)}, minmax(0, 1fr));">` + buttons.map(b => {
 let cls = "";
 if(st.phase === "feedback"){ if(b.id === st.picked) cls = st.flash === "ok" ? " ok" : " bad"; else if(b.id === corr && st.flash === "bad") cls = " show"; }
 return `<button type="button" class="ch-btn${cls}" data-ch="${b.id}" ${st.phase === "ask" ? "" : "disabled"} style="${b.style || ""}">${b.html}</button>`; }).join("") + `</div>`;
@@ -6988,9 +6988,7 @@ window: () => (isPre() ? [2600, 2200, 2000] : [2000, 1700, 1500])[Math.min(curre
 /* ===== Yürütücü İşlev · Paket 5 · dokunmalı ===== */
 CHOICE["look-first"] = {
 trials_make: () => lfTrials(),
-stim: (t, sz) => `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;gap:2px"><div class="aud-key" style="font-size:12px">Bunun <b>birebir aynısı</b> hangisi?</div>${lfHouse(t.base, Math.round(sz * 0.78))}</div>`,
-buttons: (c, t) => (t ? t.opts : []).map((o, i) => ({ id: String(i), html: lfHouse(o, 62) })),
-correct: (t) => String(t.ans), cols: 3, gap: 400, trials: { post:[6, 8, 10], pre:[4, 5, 6] },
+stim: (t, sz) => `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;gap:2px"><div class="aud-key" style="font-size:12px">Bunun <b>birebir aynısı</b> hangisi?</div>${lfHouse(t.base, Math.round(sz * 0.66))}</div>`, buttons: (c, t) => (t ? t.opts : []).map((o, i) => ({ id: String(i), html: lfHouse(o, (t.opts.length > 4 ? 84 : 104)) })), correct: (t) => String(t.ans), cols: (n) => n > 4 ? 3 : 2,   /* KURAL: dört seçenek 2×2, altı seçenek 3×2 dizilir; hepsi tek ekranda */ gap: 400, trials: { post:[6, 8, 10], pre:[4, 5, 6] },
 key: () => { const st = chState; if(!st || st.phase !== "done" || !st.rts.length) return ""; const mean = Math.round(st.rts.reduce((a, b) => a + b, 0) / st.rts.length / 100) / 10; return `<div class="ch-key" style="font-weight:800;font-size:13px;color:var(--ink);gap:10px;padding:6px 12px;flex-wrap:wrap;justify-content:center"><span>Ortalama ilk tepki: <b>${mean} sn</b></span><span>Hata: <b>${st.wrong}</b></span><span style="color:#5B6B78">${st.wrong >= 2 && mean < 2.5 ? "hızlı ve hatalı → bakmadan dokunuyor olabilir" : st.wrong === 0 ? "dikkatli karşılaştırdı" : "düşünerek ilerliyor"}</span></div>`; }
 };
 
@@ -9496,10 +9494,34 @@ function sixFinish(){ const st = mtState; if(!st || st.kind !== "six" || st.phas
 function jarCheck(){ const st = mtState; if(!st || st.kind !== "jars") return; const tr = st.trials[st.ti]; if(tr.solved || !tr.lv.some(v => v === tr.goal)) return; tr.solved = true; const extra = Math.max(0, tr.moves - tr.best); for(let k = 0; k < extra; k++) mtErr(); st.okN++; gameSfx("correct"); st.phase = "fb"; renderMtBoard(); mtLater(NEW_MT.next, 1500); }
 /* ===== Yürütücü İşlev · Paket 5 (Öz denetim + sıcak YI) · veri ve yardımcılar ===== */
 /* Önce Bak, Sonra Dokun (MFFT): ev figürü, tek bir ayrıntı farkı */
-const LF_ATTRS = { roof:[ACC.kirmizi, ACC.mavi], door:["l", "r"], win:[1, 2], chim:[true, false], flag:[true, false], tree:["l", "r"] };
-function lfHouse(a, px){ return `<svg viewBox="0 0 100 100" style="width:${px}px;height:${px}px;display:block"><rect x="18" y="48" width="64" height="40" fill="#FFE1A8" stroke="#1F2A33" stroke-width="2"/><polygon points="12,50 50,18 88,50" fill="${a.roof}" stroke="#1F2A33" stroke-width="2"/>${a.chim ? `<rect x="64" y="24" width="9" height="16" fill="#5B6670" stroke="#1F2A33" stroke-width="1.5"/>` : ""}${a.flag ? `<line x1="50" y1="18" x2="50" y2="4" stroke="#1F2A33" stroke-width="2"/><polygon points="50,5 64,9 50,13" fill="#1FA463"/>` : ""}<rect x="${a.door === "l" ? 24 : 62}" y="64" width="14" height="24" fill="#5B6670" stroke="#1F2A33" stroke-width="1.5"/>${a.win === 1 ? `<rect x="43" y="56" width="14" height="12" fill="#BEE3FF" stroke="#1F2A33" stroke-width="1.5"/>` : `<rect x="${a.door === "l" ? 44 : 24}" y="56" width="12" height="11" fill="#BEE3FF" stroke="#1F2A33" stroke-width="1.5"/><rect x="${a.door === "l" ? 62 : 42}" y="56" width="12" height="11" fill="#BEE3FF" stroke="#1F2A33" stroke-width="1.5"/>`}<circle cx="${a.tree === "l" ? 8 : 92}" cy="76" r="7" fill="${ACC.yesil}"/><rect x="${a.tree === "l" ? 6.5 : 90.5}" y="82" width="3" height="8" fill="#5B6670"/></svg>`; }
-function lfTrials(){ const t = Math.min(currentCombo().t, 2), pre = isPre(), N = (pre ? [4, 5, 6] : [6, 8, 10])[t], nOpt = pre ? 4 : (t === 0 ? 4 : 6), keys = Object.keys(LF_ATTRS);
-  return Array.from({length:N}, () => { const base = {}; keys.forEach(k => { base[k] = randomItem(LF_ATTRS[k]); }); const vars = shuffleArray(keys).slice(0, nOpt - 1).map(k => { const v = Object.assign({}, base); v[k] = LF_ATTRS[k].find(x => x !== base[k]); return v; }); const opts = shuffleArray([base].concat(vars)); return { base, opts, ans: opts.indexOf(base) }; }); }
+/* KURAL (Önce Bak, Sonra Dokun): ev, yapboz gibi saydam parçalardan kurulur (gövde, çatı, baca, bayrak, pencere, kapı, ağaç, saksı, çit, güneş, kedi); örnek ile doğru seçenek birebir aynı parçalardan oluşur, her yanlış seçenekte tam olarak bir parça farklıdır. Kolay düzeyde fark belirgindir (çatı rengi, bayrak, ağacın yeri, kapının yeri, pencere sayısı), zorlaştıkça küçülür (pencere biçimi, kapı rengi, duman, saksı, kedi…) */
+const LF_ATTRS = { roof:["r","b","g"], side:["l","r"], winN:[1,2], flag:[true,false], tree:["l","r"], chim:["none","plain","smoke"], door:["gray","brown"], win:["sq","round"], pot:[true,false], fence:[true,false], sun:[true,false], cat:[true,false] };
+const LF_VARY = [["roof","side","winN","flag","tree"], ["roof","side","winN","flag","tree","chim","door","sun","fence"], ["chim","door","win","pot","cat","sun","fence","winN","flag"]];
+function lfHouse(a, px){
+  const P = (typeof LF_PARTS !== "undefined" && LF_PARTS) || window.LF_PARTS || {};
+  const L = (k, css) => P[k] ? `<img src="${P[k]}" alt="" draggable="false" style="${("position:absolute;" + css + ";height:auto;aspect-ratio:auto;max-width:none;max-height:none;min-width:0;min-height:0;margin:0;padding:0;border:0;object-fit:contain;transform:none;pointer-events:none").split(";").filter(Boolean).map(d => d + " !important").join(";")}">` : "";   /* parça ölçüleri seçenek düğmesinin resim kurallarından etkilenmez */
+  const dl = a.side === "l", door = a.door === "brown" ? "door_brown" : "door_gray", win = a.win === "round" ? "win_round" : "win_sq";
+  const wx = a.winN === 1 ? [dl ? 55 : 36] : (dl ? [46, 63] : [27, 44]);
+  return `<div class="lf-house" style="position:relative !important;width:${px}px !important;height:${px}px !important;min-height:${px}px !important;max-height:${px}px !important;display:block !important;overflow:hidden !important;flex:0 0 auto !important;padding:0 !important">`
+    + (a.sun ? L("sun", "left:3%;top:3%;width:15%") : "")
+    + (a.chim !== "none" ? L(a.chim === "smoke" ? "chim_smoke" : "chim", "left:62%;top:20%;width:10%") : "")
+    + (a.flag ? L("flag", "left:48.8%;top:9.5%;width:11%") : "")
+    + L("body", "left:21%;top:47%;width:58%")
+    + L("roof_" + (a.roof || "r"), "left:15%;top:22%;width:70%")
+    + wx.map(x => L(win, `left:${x}%;top:58%;width:12%`)).join("")
+    + L(door, `left:${dl ? 26 : 61}%;top:63%;width:13%`)
+    + (a.pot ? L("pot", `left:${dl ? 40 : 48}%;top:78%;width:9%`) : "")
+    + L("tree", `left:${a.tree === "l" ? 0 : 79}%;top:62%;width:21%`)
+    + (a.fence ? L("fence", `left:${a.tree === "l" ? 76 : 2}%;top:80%;width:22%`) : "")
+    + (a.cat ? L("cat", "left:24%;top:31.5%;width:11%") : "")
+    + `</div>`;
+}
+function lfTrials(){ const t = Math.min(currentCombo().t, 2), pre = isPre(), N = (pre ? [4, 5, 6] : [6, 8, 10])[t], nOpt = pre ? 4 : (t === 0 ? 4 : 6); const vary = LF_VARY[pre ? Math.min(t, 1) : t];
+  return Array.from({length:N}, () => { const base = {}; Object.keys(LF_ATTRS).forEach(k => { base[k] = randomItem(LF_ATTRS[k]); });
+    if(t === 0 || pre){ base.pot = false; base.cat = false; if(t === 0){ base.fence = false; base.sun = false; base.chim = base.chim === "smoke" ? "plain" : base.chim; } }   /* kolay düzeyde sahne sade */
+    const keys = shuffleArray(vary.slice()).slice(0, nOpt - 1);
+    const vars = keys.map(k => { const v = Object.assign({}, base); const others = LF_ATTRS[k].filter(x => x !== base[k] && !(t === 0 && k === "chim" && x === "smoke")); v[k] = randomItem(others); return v; });
+    const opts = shuffleArray([base].concat(vars)); return { base, opts, ans: opts.indexOf(base) }; }); }
 /* (2026-10-29: bu çalışma uygulamadan kaldırıldı; yardımcı işlev kullanılmıyor) */
 function scTrials(){ const t = Math.min(currentCombo().t, 2), pre = isPre(), N = (pre ? [8, 10, 12] : [12, 16, 20])[t], D = ["l", "r", "u", "d"].slice(0, pre ? 2 : [2, 4, 4][t]); return { win: (pre ? [1500, 1300, 1100] : [1100, 950, 850])[t], D, items: balancedSeq(N, D, 2).map(d => ({ d, ans:null, ok:null, mark:false })) }; }
 /* Hangi Kutu Daha İyi? (Çocuk Kumar Görevi, Kerr & Zelazo): riskli kutu çok verir ama çok kaybettirir */
@@ -13706,7 +13728,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.10.29-p";
+const APP_VERSION = "2026.10.30-a";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
