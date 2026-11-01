@@ -13617,7 +13617,7 @@ box.innerHTML = `<h2 class="home-title">Aile Etkinlik Sayfası</h2>
 <span class="fh-ring"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="7"/><circle cx="32" cy="32" r="26" fill="none" stroke="#FFC21A" stroke-width="7" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/></svg><b>${n}/4</b></span>
 <span class="fh-tx"><div class="fh-t1">${all ? "Bugün tamam!" : "Bugünün etkinlikleri"}</div><div class="fh-t2">${famProfile() === "Oyuncu" ? "Önce kişi seçin" : escHTML(famProfile())} · yaklaşık 12 dakika · hedef: ${famCatName(plan.target)}</div></span>
 <span class="fh-go">${all ? "Gör" : (n ? "Devam" : "Başla")}</span></button>
-${reportsBtnHtml("fhReportsBtn")}
+${""/* KURAL: Aile sayfasında Etkinlik Raporları düğmesi yok (Bu hafta ve Gelişim haritası yeterli) */}
 ${recommendedCardHtml()}
 ${catPendingCardHtml(famProfile())}
 <div class="fh-grid">
@@ -13725,7 +13725,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.01-b";
+const APP_VERSION = "2026.11.01-c";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -13958,9 +13958,7 @@ const T = "#0A847E", K = "#A9632A";
 const I = { users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8"/><path d="M18 14.8c2 .7 3.2 2.4 3.6 5.2"/>', hw:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 3 3 5-6"/>', grow:'<path d="M12 21v-9"/><path d="M12 12c0-4 3-7 7-7 0 4-3 7-7 7z"/><path d="M12 14c0-3-2.5-5.5-6-5.5 0 3.5 2.5 5.5 6 5.5z"/>', week:'<path d="M4 20V11M10 20V5M16 20v-6M2 20h20"/>', compass:'<circle cx="12" cy="12" r="9.5"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>' };
 const goTxt = !has ? "Dokun: kişi seç" : canResume ? "Dokun: kaldığı yerden devam" : P ? "Dokun: gelişmesi gereken alanla başla" : "Dokun: ilk alandan başla";
 box.innerHTML = `<h2 class="home-title">Uzman Etkinlik Sayfası</h2>
-<button type="button" class="fh-today ex-today" id="exTodayCard"><span class="ex-av">${has ? escHTML(cur.charAt(0).toLocaleUpperCase("tr")) : "?"}</span>
-<span class="fh-tx"><div class="fh-t1">${has ? escHTML(cur) + " ile seans" : "Seansa başla"}</div><div class="fh-t2">${has ? sumTxt : "Önce çalışacak kişiyi seçin"}</div><div class="fh-t2 ex-go-txt">${goTxt}</div></span>
-<span class="ex-play" aria-hidden="true"><svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M10 8.3v7.4l5.8-3.7z" fill="#FFFFFF"></path></svg></span></button>
+${""/* KURAL: Uzman sayfasında "… ile seans" kartı yok */}
 ${reportsBtnHtml("exReportsBtn")}
 ${has ? catPendingCardHtml(cur) : ""}
 <div class="fh-grid">
@@ -13977,7 +13975,7 @@ try{ requestAnimationFrame(() => fitHomeTitles(box)); fitHomeTitles(box); }catch
 document.getElementById("exHomeBtn").onclick = () => showExpert("list");
 document.getElementById("exGrowBtn").onclick = needPerson(showGrowth);
 document.getElementById("exWeekBtn").onclick = needPerson(showWeek);
-document.getElementById("exTodayCard").onclick = needPerson(() => {
+if(document.getElementById("exTodayCard")) document.getElementById("exTodayCard").onclick = needPerson(() => {
   if(canResume) return resumeLast(L);
   if(P){ const d = PLACE_DOMS.slice().sort((a, b) => (P.dom[a.k] ?? 9) - (P.dom[b.k] ?? 9))[0]; const ci = CATEGORIES.findIndex(c => d.cats.includes(c.id) && !c.hidden); if(ci >= 0) return selectCategory(ci); }
   const first = CATEGORIES.findIndex(c => !c.hidden && c.id === "islemleme-hizi"); selectCategory(first >= 0 ? first : 0); });
@@ -16591,7 +16589,7 @@ el.innerHTML = `<div class="hm-wrap ha-wrap">
 <!-- KURAL (ana sayfa): kişi seçimi, kaldığın yerden devam, kişi ekle ve misafir girişi ana sayfada yok; kişi etkinlik sayfasında seçilir/eklenir -->
 <!-- KURAL (ana sayfa tasarımı · A): selamlama başlığı; turkuaz Bilişsel Etkinlik kartında tam genişlik iki düğme; şeftali Bilişsel Oyun kartında Zihni ve Oyna; altta ünlemli mod notu -->
 <div class="ha-card ha-etk" id="hmEtk" role="group" aria-label="Bilişsel Etkinlik"><div class="ha-eh"><span class="ha-ic">${hmIc("users")}</span><div><b>Bilişsel Etkinlik</b><span>${homeRole() === "uzman" ? "Danışanlarınızla birlikte" : homeRole() === "aile" ? "Çocuğunuzla birlikte" : "Uzmanla veya aileyle birlikte"}</span></div></div><div class="ha-sp"></div>
-${homeRole() === "aile" ? `<button type="button" class="ha-b ha-b1" data-hview="aile">${hmIc("home")}<span class="ha-bt">Aile · bugünün planı</span><i aria-hidden="true">›</i></button><button type="button" class="ha-b ha-b2" id="hmHw"><span style="position:relative;display:inline-flex">${hmIc("clip")}${cur ? hwBadgeHtml(hwBadgeCount(cur, getPlayerLevel(cur) || "post"), true) : ""}</span><span class="ha-bt">Ödevlerim</span><i aria-hidden="true">›</i></button>`
+${homeRole() === "aile" ? `<button type="button" class="ha-b ha-b1" id="hmToday">${hmIc("home")}<span class="ha-bt">Bugünün etkinlikleri</span><i aria-hidden="true">›</i></button><button type="button" class="ha-b ha-b2" id="hmHw"><span style="position:relative;display:inline-flex">${hmIc("clip")}${cur ? hwBadgeHtml(hwBadgeCount(cur, getPlayerLevel(cur) || "post"), true) : ""}</span><span class="ha-bt">Ödevlerim</span><i aria-hidden="true">›</i></button>`
  : homeRole() === "uzman" ? `<button type="button" class="ha-b ha-b1" data-hview="uzman">${hmIc("brief")}<span class="ha-bt">Uzman sayfası</span><i aria-hidden="true">›</i></button><button type="button" class="ha-b ha-b2" id="hmClients">${hmIc("users")}<span class="ha-bt">Danışanlar</span><i aria-hidden="true">›</i></button>`
  : `<button type="button" class="ha-b ha-b1" data-hview="aile">${hmIc("home")}<span class="ha-bt">Aile</span><i aria-hidden="true">›</i></button><button type="button" class="ha-b ha-b2" data-hview="uzman">${hmIc("brief")}<span class="ha-bt">Uzman</span><i aria-hidden="true">›</i></button>`}
 </div>
@@ -16607,6 +16605,7 @@ if($("hmAdd")) $("hmAdd").onclick = whoAdd;
 if($("hmGuest")) $("hmGuest").onclick = () => { whoListOpen = false; whoSelect("__guest__"); };
 if($("hmResume")) $("hmResume").onclick = () => { const go = () => { whoSelSet(L.player); whoTouch(L.player); document.getElementById("whoScreen").style.display = "none"; resumeLast(L); }; if(L.mode === "uzman") expertGate(go); else go(); };
 el.querySelectorAll("[data-hview]").forEach(b => b.onclick = (ev) => { ev.stopPropagation(); const v = b.dataset.hview; try{ setEtkinlikView(v); }catch(e){} if(v === "uzman") expertGate(() => { if(!homeRole()) setHomeRole("uzman"); need("uzman"); }); else { if(!homeRole()) setHomeRole("aile"); need("aile"); } });
+  if($("hmToday")) $("hmToday").onclick = (ev) => { ev.stopPropagation(); withPerson((n) => { try{ whoTouch(n); }catch(e){} currentPlayerName = n; readingLevel = getPlayerLevel(n) || "post"; try{ applyLevelDefaultThresholds(readingLevel); }catch(e){} try{ exitGameMode(); }catch(e){} setEtkinlikView("aile"); appMode = "aile"; viaWho = true; el.style.display = "none"; try{ showToday(); }catch(e){ console.error(e); } }); };   /* KURAL (ana ekran): "Bugünün etkinlikleri" düğmesi Aile sayfası arada görünmeden doğrudan Bugün ekranını açar */
   if($("hmModeSwitch")) $("hmModeSwitch").onclick = async (ev) => { ev.stopPropagation(); const to = homeRole() === "uzman" ? "aile" : "uzman"; const ok = await zaConfirm(`${to === "uzman" ? "Uzman" : "Aile"} moduna geçilecek. Emin misiniz?`); if(!ok) return; const go = () => { setHomeRole(to); try{ setEtkinlikView(to); }catch(e){} showWho(); showToast(`${to === "uzman" ? "Uzman" : "Aile"} moduna geçildi`); }; if(to === "uzman") expertGate(go); else go(); };   /* KURAL: mod geçişi ana sayfanın altındaki ünlemli nottan, onay sorularak yapılır */
 const withPerson = (fn) => { if(cur && !guest) return fn(cur); if(names.length) return pickPerson((n) => { if(!n || n === "Misafir") return; try{ whoSelSet(n); whoTouch(n); }catch(e){} fn(n); }, { noGuest: true }); whoAdd((n) => fn(n)); };   /* KURAL: kişi yoksa listeden seçilir ya da yaşıyla eklenir */
   if($("hmHw")) $("hmHw").onclick = (ev) => { ev.stopPropagation(); if(guest || !cur){ return withPerson(() => { showWho(); setTimeout(() => { const b = document.getElementById("hmHw"); if(b) b.click(); }, 60); }); } try{ whoTouch(cur); }catch(e){} currentPlayerName = cur; readingLevel = getPlayerLevel(cur) || "post"; try{ applyLevelDefaultThresholds(readingLevel); }catch(e){} setEtkinlikView("aile"); appMode = "aile"; viaWho = true; el.style.display = "none"; hwFrom = "home"; try{ showHwScreen(); }catch(e){ console.error(e); } };   /* Ödevlerim: doğrudan, Aile sayfası arada görünmeden */
