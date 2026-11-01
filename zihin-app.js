@@ -6342,8 +6342,8 @@ row.style.display = "";
 currentExercise().stages.forEach((stage, i)=>{
 const btn = document.createElement("button");
 btn.className = "stage-btn" + (i===currentStageIndex ? " active" : "") + (stage.strategyOf != null || /Strateji/.test(stage.label) ? " strat" : "");
-btn.textContent = stage.label;
-if(recCfgNow && recCfgNow.s === i && recCfgNow.id === currentExercise().id){ btn.textContent = stage.label + " · ⭐ Uzman"; btn.classList.add("rec-stage"); }
+btn.textContent = `Aşama ${i + 1}`; btn.title = stage.label;   /* KURAL: aşama düğmelerinde yalnız "Aşama 1", "Aşama 2"… yazar; aşama adı düğmede gösterilmez */
+if(recCfgNow && recCfgNow.s === i && recCfgNow.id === currentExercise().id){ btn.textContent = `Aşama ${i + 1} · ⭐ Uzman`; btn.classList.add("rec-stage"); }
 btn.addEventListener("click", ()=>{
 currentStageIndex = i;
 renderStageRow();
@@ -13727,7 +13727,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.01-d";
+const APP_VERSION = "2026.11.01-e";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
