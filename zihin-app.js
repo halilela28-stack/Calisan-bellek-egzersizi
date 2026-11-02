@@ -4664,15 +4664,6 @@ randomItem: () => ({}),
 stages: [ { label: "Zihni Derse Yap", instruction: () => ``, example: () => `` } ]
 },
 {
-id: "bear-dragon",
-readingLevel: ["pre","post"],
-label: "Ayı–Ejderha",
-isChoice: true, attrs: [], speedFactor: 2.5,   /* "dokunma" denemeleri pencere süresince bekletir: süre eşiği buna göre */
-isDone: () => !!chState && chState.phase === "done",
-randomItem: () => ({}),
-stages: [ { label: "Ayı Derse Yap", instruction: () => ``, example: () => `` } ]
-},
-{
 id: "opp-do",
 readingLevel: ["pre","post"],
 label: "Tersini Yap",
@@ -5545,8 +5536,8 @@ sub:"Ketleme · Esneklik · Planlama · Öz Denetim · Dikkat Kontrolü",
 purpose:"Dikkati yönetme, kural değiştirme, dürtüsel tepkiyi durdurma, planlama, zamanı tahmin etme ve kendi işini denetleme becerilerini çalıştırır.",
 color:"#3A6EA5",
 group:"Hız & Dikkat",
-exerciseIds:["tap-reverse","fish-flanker","stroop","touch-animal","statue","stroop-touch","hold-wait","day-night","plan-beads","day-night-touch","alt-uses","sort-color-shape","opp-do","face-go","fist","num-stroop","rule-shift","trail-number-month","go-no-go","size-stroop","reversal","zoo-map","spatial-stroop","flanker","plan-swap","box-search","sort-animal-size","bear-dragon","zihni-says","water-jars","anti-touch","twenty-q","less-more","hand-game","trail-animal-fruit","key-search","context-go","three-tasks","hayling","grass-snow","sort-color-shape-count","design-fluency","plan-tol","opp-world","distract","time-est","find-error","switch-touch","rev-arrow","number-letter","safe-box","navon","motion-dir","task-switch","sort-words","keep-track","creature-count","plan-cubes","plus-minus","dual-task","rev-sort","stop-signal","trail-color-shape","cog-est","look-first","vigilance"],
-exerciseGroups:[["Ketleme", ["stroop", "day-night", "opp-do", "go-no-go", "fish-flanker", "stroop-touch", "day-night-touch", "touch-animal", "flanker", "face-go", "num-stroop", "zihni-says", "size-stroop", "spatial-stroop", "bear-dragon", "hand-game", "hayling", "anti-touch", "tap-reverse", "statue", "opp-world", "less-more", "hold-wait", "context-go", "grass-snow", "distract", "rev-arrow"]], ["Esneklik", ["sort-color-shape", "trail-number-month", "sort-animal-size", "trail-animal-fruit", "sort-color-shape-count", "number-letter", "task-switch", "sort-words", "trail-color-shape", "switch-touch", "alt-uses", "fist", "navon", "rule-shift", "plus-minus", "reversal", "motion-dir", "creature-count", "rev-sort"]], ["Planlama", ["plan-beads", "zoo-map", "plan-swap", "box-search", "plan-tol", "water-jars", "plan-cubes", "twenty-q", "key-search", "three-tasks", "design-fluency", "cog-est"]], ["Öz Denetim", ["time-est", "find-error", "look-first", "safe-box", "keep-track"]], ["Dikkat Kontrolü", ["dual-task", "stop-signal", "vigilance"]]]
+exerciseIds:["tap-reverse","fish-flanker","stroop","touch-animal","statue","stroop-touch","hold-wait","day-night","plan-beads","day-night-touch","alt-uses","sort-color-shape","opp-do","face-go","fist","num-stroop","rule-shift","trail-number-month","go-no-go","size-stroop","reversal","zoo-map","spatial-stroop","flanker","plan-swap","box-search","sort-animal-size","zihni-says","water-jars","anti-touch","twenty-q","less-more","hand-game","trail-animal-fruit","key-search","context-go","three-tasks","hayling","grass-snow","sort-color-shape-count","design-fluency","plan-tol","opp-world","distract","time-est","find-error","switch-touch","rev-arrow","number-letter","safe-box","navon","motion-dir","task-switch","sort-words","keep-track","creature-count","plan-cubes","plus-minus","dual-task","rev-sort","stop-signal","trail-color-shape","cog-est","look-first","vigilance"],
+exerciseGroups:[["Ketleme", ["stroop", "day-night", "opp-do", "go-no-go", "fish-flanker", "stroop-touch", "day-night-touch", "touch-animal", "flanker", "face-go", "num-stroop", "zihni-says", "size-stroop", "spatial-stroop", "hand-game", "hayling", "anti-touch", "tap-reverse", "statue", "opp-world", "less-more", "hold-wait", "context-go", "grass-snow", "distract", "rev-arrow"]], ["Esneklik", ["sort-color-shape", "trail-number-month", "sort-animal-size", "trail-animal-fruit", "sort-color-shape-count", "number-letter", "task-switch", "sort-words", "trail-color-shape", "switch-touch", "alt-uses", "fist", "navon", "rule-shift", "plus-minus", "reversal", "motion-dir", "creature-count", "rev-sort"]], ["Planlama", ["plan-beads", "zoo-map", "plan-swap", "box-search", "plan-tol", "water-jars", "plan-cubes", "twenty-q", "key-search", "three-tasks", "design-fluency", "cog-est"]], ["Öz Denetim", ["time-est", "find-error", "look-first", "safe-box", "keep-track"]], ["Dikkat Kontrolü", ["dual-task", "stop-signal", "vigilance"]]]
 },
 {
 id:"calisan-bellek",
@@ -6895,16 +6886,6 @@ stim: (t, sz) => { const r = Math.round(sz * 0.2); return `<div style="position:
 buttons: (c) => dirButtons(c.D),
 correct: (t) => DIR_OPP[t.pos],
 window: () => (isPre() ? [2000, 1700, 1700] : [1600, 1300, 1300])[Math.min(currentCombo().t, 2)], gap: 320, cols: 4, wideStim: true
-};
-CHOICE["bear-dragon"] = {
-trials_make: (n) => { const t = Math.min(currentCombo().t, 2), nD = Math.round(n * [0.3, 0.35, 0.4][t]); const who = balancedSeq(n, ["bear","dragon"], 2, [n - nD, nD]); let prev = -1;
-  return who.map(w => { const m = pickDifferent(SIMON_MOVES, prev); prev = m; return { m, bear: w === "bear" }; }); },
-stim: (t, sz) => { const st = chState, fb = st && st.phase === "feedback"; const bc = fb ? (st.picked === "go" ? (st.flash === "ok" ? "var(--good)" : "var(--bad)") : (st.flash === "bad" ? "var(--good)" : "#E6ECF2")) : "#E6ECF2";   
-  return `<div style="display:flex;align-items:center;justify-content:center;gap:3%;width:100%;height:100%;position:relative"><div style="width:42%;height:92%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;pointer-events:none"><img src="${t.bear ? WILD_IMAGES.bear : efImg("ejderha")}" alt="" style="width:92%;height:58%;object-fit:contain"><div style="position:relative;max-width:100%;background:#fff;border:3px solid ${t.bear ? "#B07A3E" : "#3E8E5B"};border-radius:14px;padding:6px 8px;box-sizing:border-box;text-align:center"><span style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-bottom:10px solid ${t.bear ? "#B07A3E" : "#3E8E5B"}"></span><b style="font-size:${Math.max(12, Math.round(sz * 0.068))}px;line-height:1.15;color:#1F2A33">“${cap(MOVES[t.m])}!”</b></div></div><div data-ch="go" style="width:52%;height:90%;border-radius:16px;background:#F2F5F8;border:4px solid ${bc};box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer${fb && st.flash === "bad" && st.picked === "go" ? ";box-shadow:0 0 0 4px rgba(229,72,77,.35)" : ""}"><img src="${MOVE_IMAGES[t.m]}" alt="" style="width:86%;height:74%;object-fit:contain;pointer-events:none"></div>${chSideNote(fb && st.flash === "bad" ? (t.bear ? "Ayı söyledi — yapmalıydın" : "Ejderha söyledi — yapmamalıydın") : "")}</div>`; },
-buttons: () => [], tapStim: true,
-correct: (t) => t.bear ? "go" : null,
-window: () => (isPre() ? [2200, 2000, 1800] : [1800, 1600, 1400])[Math.min(currentCombo().t, 2)], gap: 320, cols: 1, wideStim: true,
-key: () => `<div class="ch-key" style="font-weight:800;font-size:13px;color:var(--ink);gap:12px;padding:6px 12px"><span>🐻 Ayı derse → harekete dokun</span><span>🐲 Ejderha derse → dokunma</span></div>`
 };
 /* ===== Yürütücü İşlev · Paket 2 · dokunmalı çalışmalar ===== */
 CHOICE["less-more"] = {
@@ -9139,7 +9120,7 @@ const HAYL_SENT = {
 2: [["Çok koştuğu için nefes nefese kaldı ve bir bankta oturup …","dinlendi"],["Sabah alarmı duymadığı için okula …","geç kaldı"],["Hava çok soğuktu, bu yüzden gölün üstü …","buz tuttu / dondu"],["Pastayı fırından erken çıkardı, pasta tam …","pişmemişti"],["Kalemi yere düştü ve ucu …","kırıldı"],["Yağmur birden bastırınca şemsiyesi olmayanlar sırılsıklam …","ıslandı"],["Bütün gece ders çalıştığı için sabah çok …","yorgundu / uykusuzdu"],["Kediyi görünce korkan fare hemen deliğine …","kaçtı / saklandı"],["Çiçekleri bir hafta sulamayınca hepsi …","soldu / kurudu"],["Buzdolabının fişi çekilince dondurmalar …","eridi"],["Bardağı masanın kenarına koyunca bardak düşüp …","kırıldı"],["Gözlüğünü evde unuttuğu için yazıları …","okuyamadı"],["Çok fazla şeker yediği için dişi …","ağrıdı / çürüdü"],["Anahtarını kaybettiği için eve …","giremedi"],["Tuzu şekerle karıştırınca çay …","tuzlu oldu"],["Lastiği patlayınca bisikletle devam …","edemedi"],["Telefonun şarjı bitince ekran …","karardı / kapandı"],["Kütüphanede herkes sessizdi, o yüzden fısıltıyla …","konuştular"],["Güneşte uzun süre kalınca cildi …","yandı / kızardı"],["Balonun ipini bırakınca balon gökyüzüne …","uçtu"],["Yolu bilmediği için haritaya …","baktı"],["Ekmeği uzun süre açıkta bırakınca ekmek …","bayatladı / küflendi"],["Işıkları açık unuttuğu için elektrik faturası çok …","yüksek geldi"],["Kar yağınca çocuklar bahçede kardan adam …","yaptı"]]
 };
 function haylTrials(){ const t = Math.min(currentCombo().t, 2), pool = shuffleArray(HAYL_SENT[t].map(x => ({ s: x[0], a: x[1] }))); return pool.slice(0, Math.min(pool.length, selCount())); }
-/* Zihni Diyor ki / Ayı–Ejderha: komut havuzu (hareket kartları; "yere otur" dışarıda) */
+/* Zihni Diyor ki: komut havuzu (hareket kartları; "yere otur" dışarıda) */
 const SIMON_MOVES = [0, 1, 2, 3, 4, 5, 6];
 function simonTrials(){ const t = Math.min(currentCombo().t, 2), N = selCount(), nL = Math.round(N * [0.3, 0.4, 0.5][t]);   /* tuzak oranı düzeyle artar */
   const flags = balancedSeq(N, [true, false], 2, [N - nL, nL]); let prev = -1;
@@ -9533,7 +9514,7 @@ const KT_CATS = () => [{ k:"hayvan", n:"hayvan", items: NB_ANIMALS.filter(k => a
 function ktTrials(){ const t = Math.min(currentCombo().t, 2), pre = isPre(), K = (pre ? [2, 2, 3] : [2, 3, 4])[t], L = (pre ? [6, 8, 10] : [9, 12, 15])[t], R = pre ? 2 : 3, cats = KT_CATS();
   return Array.from({length:R}, () => { const use = shuffleArray(cats).slice(0, K); const seq = []; for(let i = 0; i < L; i++){ const c = use[i % K]; let it; let g = 0; do{ it = randomItem(c.items); g++; } while(g < 20 && seq.length && seq[seq.length - 1].n === it.n); seq.push({ cat: c.k, n: it.n, src: it.src }); } const order = shuffleArray(seq.slice()); const last = {}; order.forEach(x => { last[x.cat] = x.n; }); return { cats: use, seq: order, last, judge: {} }; }); }
 /* Tahmin Et – Yap – Karşılaştır katmanı: işaretli dokunmalı çalışmalarda başlamadan önce tahmin alınır */
-const PREDICT_IDS = new Set(["face-go", "fish-flanker", "switch-touch", "day-night-touch", "stroop-touch", "bear-dragon", "anti-touch", "grass-snow", "context-go", "tap-reverse", "navon", "motion-dir", "rev-sort", "size-stroop", "num-stroop", "spatial-stroop", "distract", "less-more", "creature-count", "look-first"]);   /* tap-reverse artık vuruş sayılan etkileşimli tahta */
+const PREDICT_IDS = new Set(["face-go", "fish-flanker", "switch-touch", "day-night-touch", "stroop-touch", "anti-touch", "grass-snow", "context-go", "tap-reverse", "navon", "motion-dir", "rev-sort", "size-stroop", "num-stroop", "spatial-stroop", "distract", "less-more", "creature-count", "look-first"]);   /* tap-reverse artık vuruş sayılan etkileşimli tahta */
 function predictOn(){ try{ return !gameMode && PREDICT_IDS.has(currentExercise().id) && localStorage.getItem("wm_predict_v1") !== "0"; }catch(e){ return false; } }
 function predictHTML(st){ const n = st.trials.length, p = st.pred == null ? Math.round(n * 0.8) : st.pred; st.pred = p; return `<div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="font-weight:800;font-size:14px;color:#1F2A33">Kaç tanesini doğru yaparsın? <span style="color:#5B6B78">(${n} deneme)</span></div><div style="display:flex;align-items:center;gap:10px"><button type="button" class="wm-btn diff" data-pred="-1" style="min-width:44px;padding:6px 10px">−</button><b style="font-size:30px;min-width:44px;text-align:center">${p}</b><button type="button" class="wm-btn same" data-pred="1" style="min-width:44px;padding:6px 10px">+</button></div><div class="aud-key" style="font-size:12px">sonra ▶ Başlat'a bas</div></div>`; }
 function predictResult(st){ if(st.pred == null) return ""; const got = st.trials.length - st.wrong, d = got - st.pred;   /* kademeli yorum: tam isabet / üstünde / 1 eksik / 2 eksik / daha fazla eksik */
@@ -11365,7 +11346,6 @@ const INSTR_SHORT = {
 "anti-touch":       [() => Q("Ekranda mavi bir top belirecek. Topun olduğu tarafa değil, tam karşı tarafın okuna dokun. Top solda çıkarsa sağ oka, sağda çıkarsa sol oka bas.")],
 "hayling":          [() => `Cümleyi okuyun, son kelimeyi söylemeden durun: ${Q("Sana bir cümle okuyacağım ama sonunu söylemeyeceğim. Sen cümleyi uygun bir kelimeyle tamamla.")}`, () => `Cümleyi okuyun, son kelimeyi söylemeden durun: ${Q("Sana bir cümle okuyacağım ama sonunu söylemeyeceğim. Sen cümleye hiç uymayan, alakasız bir kelime söyle. Uyan kelimeyi söylersen olmaz.")}`],
 "zihni-says":       [() => `Komutları okuyun: ${Q("Sana komutlar vereceğim. Komut ‘Zihni diyor ki’ diye başlıyorsa yap. ‘Zihni diyor ki’ demeden söylersem yapma, olduğun gibi dur.")}`],
-"bear-dragon":      [() => Q("Ayı ile ejderha sana hareketler söyleyecek. Komutu ayı veriyorsa hareketin resmine dokun. Komutu ejderha veriyorsa dokunma, bekle.")],
 "opp-do":           [() => `Komutları okuyun: ${Q(oppKidText("htks"))}`],
 "hand-game":        [() => `Elinizle gösterin: ${Q(oppKidText("hand"))}`],
 "tap-reverse":      [() => Q("Ekranda yumruk resmi göreceksin. Bir yumruk görürsen büyük düğmeye iki kez vur. İki yumruk görürsen bir kez vur. Yani hep gördüğünün tersi kadar vur.")],
@@ -11675,7 +11655,6 @@ return {
 "anti-touch":[0, "Karşıya Hazırlan", "Top çıkmadan iki tarafı da düşün; çıkınca hemen karşıyı seç."],
 "hayling":[1, "Önce Dur", "Aklına ilk gelen kelimeyi söyleme; odadaki bir eşyanın adını söyle."],
 "zihni-says":[0, "Önce Dinle", "Harekete geçmeden önce sor: ‘Zihni diyor ki’ dedi mi?"],
-"bear-dragon":[0, "Önce Kime Bak", "Karta dokunmadan önce komutu kimin verdiğine bak: ayı mı, ejderha mı?"],
 "opp-do":[0, "Tersini Söyle", "Yapmadan önce tersini sesli söyle: ‘Baş değil, ayak.’"],
 "hand-game":[0, "Tersini Söyle", "Göstermeden önce tersini söyle: ‘Yumruk değil, parmak.’"],
 "tap-reverse":[0, "Tersini Söyle", "Vurmadan önce içinden söyle: ‘Bir gördüm, iki vuracağım.’"],
@@ -13541,7 +13520,7 @@ function weekKey(d){ return todayKey(weekStart(d)); }
 function famStoreGet(key){ try{ return JSON.parse(localStorage.getItem(key) || "{}"); }catch(e){ return {}; } }
 function famStoreSet(key, v){ try{ localStorage.setItem(key, JSON.stringify(v)); }catch(e){} }
 function seededRand(seedStr){ let h = 2166136261; for(const c of seedStr){ h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 100000) / 100000; }; }
-const OKUL_SKILLS = [{ id:"okul-fonoloji", label:"Okumaya hazırlık: sesler ve heceler", okul:true, exerciseIds:["syl-touch", "syllable-count", "syl-blend", "rhyme-touch", "rhyme-say", "same-sound", "phon-manip", "nonword", "pk-train", "pk-rhyme"] },{ id:"okul-akicilik", label:"Okuma akıcılığı ve hızlı isimlendirme", okul:true, exerciseIds:["shape-color", "object-name", "number-color", "ran-letter", "sent-verify", "search-letter", "pair-match", "sem-decide"] },{ id:"okul-sayi", label:"Sayı ve erken matematik", okul:true, exerciseIds:["dot-count", "mental-math", "num-pattern", "balance", "pk-bridge", "trail-numbers", "number-find", "count-span"] },{ id:"okul-anlama", label:"Dinlediğini anlama ve yönergeler", okul:true, exerciseIds:["dir-follow", "listen-answer", "sent-pic", "word-pic", "wh-scene", "short-story", "story-recall", "concept-touch", "sent-listen"] },{ id:"okul-dikkat", label:"Sınıfta dikkat ve öz denetim", okul:true, exerciseIds:["go-no-go", "stop-signal", "vigilance", "touch-animal", "dual-task", "find-error", "pk-redlight", "flanker", "bear-dragon", "anti-touch", "hold-wait", "context-go", "look-first"] },{ id:"okul-yazma", label:"Yazmaya hazırlık: görsel-motor", okul:true, exerciseIds:["copy-design", "symmetry", "maze", "finger-trace", "block-design", "vis-draw", "trail-animal-fruit"] }];
+const OKUL_SKILLS = [{ id:"okul-fonoloji", label:"Okumaya hazırlık: sesler ve heceler", okul:true, exerciseIds:["syl-touch", "syllable-count", "syl-blend", "rhyme-touch", "rhyme-say", "same-sound", "phon-manip", "nonword", "pk-train", "pk-rhyme"] },{ id:"okul-akicilik", label:"Okuma akıcılığı ve hızlı isimlendirme", okul:true, exerciseIds:["shape-color", "object-name", "number-color", "ran-letter", "sent-verify", "search-letter", "pair-match", "sem-decide"] },{ id:"okul-sayi", label:"Sayı ve erken matematik", okul:true, exerciseIds:["dot-count", "mental-math", "num-pattern", "balance", "pk-bridge", "trail-numbers", "number-find", "count-span"] },{ id:"okul-anlama", label:"Dinlediğini anlama ve yönergeler", okul:true, exerciseIds:["dir-follow", "listen-answer", "sent-pic", "word-pic", "wh-scene", "short-story", "story-recall", "concept-touch", "sent-listen"] },{ id:"okul-dikkat", label:"Sınıfta dikkat ve öz denetim", okul:true, exerciseIds:["go-no-go", "stop-signal", "vigilance", "touch-animal", "dual-task", "find-error", "pk-redlight", "flanker", "anti-touch", "hold-wait", "context-go", "look-first"] },{ id:"okul-yazma", label:"Yazmaya hazırlık: görsel-motor", okul:true, exerciseIds:["copy-design", "symmetry", "maze", "finger-trace", "block-design", "vis-draw", "trail-animal-fruit"] }];
 /* KURAL (Bugünün planı / Gelişim ödevleri): çalışmalar kendi kategorisinin kademesinden seçilir, sonuç özeti o kademedeki kayıtlardan hesaplanır; uzman ödevi kendi kademesinde açılır */
 function famLvlFor(catId){ try{ return catLevelFor(catId, famNameOverride || famProfile()); }catch(e){ return famLvl(); } }
 function exLvlOk(id){ const ex = exerciseById(id); if(!ex) return false; const c = CATEGORIES.find(x => x.exerciseIds.includes(id)); return ex.readingLevel.includes(c ? famLvlFor(c.id) : famLvl()); }
@@ -13727,7 +13706,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.01-e";
+const APP_VERSION = "2026.11.01-f";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -14384,7 +14363,7 @@ park:'<svg viewBox="0 0 24 24" fill="none" stroke="#1D6FB8" stroke-width="2.2" s
 };
 const GAME_ISLANDS = [
 { id:"hiz",    name:"Hız Adası",     color:"#FFB648", ids:["search-object", "search-shape", "trail-numbers", "cat-fruit", "search-symbol", "search-letter", "sdmt-touch", "cat-cold", "quick-sort", "touch-card", "cat-living", "pairs-touch", "dot-count", "sem-decide", "pair-match", "sent-verify"] },
-{ id:"dikkat", name:"Dikkat Adası",  color:"#62D394", ids:["touch-animal", "fish-flanker", "stroop-touch", "day-night-touch", "face-go", "switch-touch", "sort-color-shape", "sort-animal-size", "sort-color-shape-count", "sort-words", "trail-animal-fruit", "trail-color-shape", "number-letter", "trail-number-month", "dual-task", "stop-signal", "vigilance", "bear-dragon", "anti-touch", "tap-reverse", "size-stroop", "num-stroop", "spatial-stroop", "hold-wait", "less-more", "context-go", "distract", "grass-snow", "fist", "rule-shift", "reversal", "navon", "creature-count", "motion-dir", "rev-sort", "look-first", "safe-box"] },
+{ id:"dikkat", name:"Dikkat Adası",  color:"#62D394", ids:["touch-animal", "fish-flanker", "stroop-touch", "day-night-touch", "face-go", "switch-touch", "sort-color-shape", "sort-animal-size", "sort-color-shape-count", "sort-words", "trail-animal-fruit", "trail-color-shape", "number-letter", "trail-number-month", "dual-task", "stop-signal", "vigilance", "anti-touch", "tap-reverse", "size-stroop", "num-stroop", "spatial-stroop", "hold-wait", "less-more", "context-go", "distract", "grass-snow", "fist", "rule-shift", "reversal", "navon", "creature-count", "motion-dir", "rev-sort", "look-first", "safe-box"] },
 { id:"goz",    name:"Göz Adası",     color:"#B09BFF", fromCategory:"goz-takip" },
 { id:"bellek", name:"Bellek Adası",  color:"#F7D046", ids:["wm-same", "corsi", "zihni", "wm-seq", "span-touch", "market", "wm-where", "running", "lns-touch", "animal-fruit", "cups", "mental-math", "pos-nback", "count-span"] },
 { id:"resim",  name:"Resim Adası",   color:"#FFC9A3", ids:["rt-shapes", "vis-miss", "rt-position", "vis-chg", "rt-colors", "vis-recog", "vis-face", "scene-touch", "vis-draw", "memory-cards", "which-seen", "route-mem", "color-obj", "pic-order"] },
