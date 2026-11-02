@@ -8948,16 +8948,14 @@ const warm = !R.warmDone[d.k] && R.n === 0 && R.visits === 0; const TT = R.step;
 const head = `${warm ? `<div class="qz-warm" style="margin-top:calc(8px + env(safe-area-inset-top))">${icI("sprout", 15, "#1B7A3D")} Isınma</div>` : ""}<div class="place-top"><div class="place-dots">${PLACE_DOMS.map((dd, i) => `<span class="${R.res[dd.k] != null ? "done" : i === R.di ? "cur" : ""}"></span>`).join("")}</div></div>`;
 const answer = (ok) => { if(placeRun !== R || R.item !== myItem || R.answered === myItem) return; R.answered = myItem;
   if(warm){ R.warmDone[d.k] = true; if(!ok) R.step = Math.max(0, R.step - 1); gameSfx(ok ? "correct" : "pop"); return setTimeout(placeNext, 450); }
-  R.n++; if(ok) R.hits++; R.qn = R.qn || {}; R.qn[d.k] = (R.qn[d.k] || 0) + 1; gameSfx(ok ? "correct" : "pop"); if(R.n < 2) return setTimeout(placeNext, 450);   /* her turda 2 soru */
-  const h = R.hits; R.n = 0; R.hits = 0; R.visits++; let done = false, res = R.step;
-  /* KURAL (Değerlendirme turu): gerçek uyarlama — her alanda 2/2 doğru bir basamak yukarı, 0/2 bir basamak aşağı; okul sonrası ile okul öncesi basamakları arasında serbestçe geçilir
-     (ör. görsel bellekte 5 → 4 → 3 → 2 resme kadar iner); 1/2 ya da yön değişimi olunca o basamakta durulur; basamak sayısı sınırlı değildir, yalnızca güvenlik için alan başına en çok 6 tur */
-  /* KURAL (Değerlendirme turu, 2026.10.27): alanlar sırayla, her biri tek blokta ölçülür ve bir daha dönülmez; 1. tur başlangıç basamağında, 2/2 ise 2. tur bir üst basamakta alanın ikinci çalışma türüyle; 0/2'de alan bir alt basamakla biter (yapamadığı şeye geri dönülmez, aşağı inilerek tekrar sorulmaz); 1/2'de o basamakla biter; alan başına 2–4 soru */
-  if(h === 2){ if(R.visits >= 2 || R.step >= PLACE_STEPS - 1) done = true; else { R.dir = 1; R.step++; } }
-  else if(h === 0){ done = true; res = Math.max(0, R.step - 1); }
-  else done = true; /* 1/2: bu basamak */
-  if(done) R.res[d.k] = Math.max(0, Math.min(PLACE_STEPS - 1, res));
-  placeRotate(R, done); setTimeout(placeNext, done ? 550 : 450); };
+  R.n++; if(ok) R.hits++; R.qn = R.qn || {}; R.qn[d.k] = (R.qn[d.k] || 0) + 1; gameSfx(ok ? "correct" : "pop"); /* KURAL (Değerlendirme turu): gerçek uyarlama — her alanda 2/2 doğru bir basamak yukarı, 0/2 bir basamak aşağı; okul sonrası ile okul öncesi basamakları arasında serbestçe geçilir (ör. görsel bellekte 5 → 4 → 3 → 2 resme kadar iner) */ /* KURAL (Değerlendirme turu, basamak iniş-çıkış, 2026-11-02): her alan başlangıç basamağında 2 soruyla ölçülür. 2/2 → bir üst basamağa çıkılır (alanın ikinci çalışma türüyle); 0/2 → bir ALT basamağa inilir ve orada yeniden sorulur (ör. bardak 4 → 3 → 2, resim dizisi 4 → 3 → 2); en kolay basamakta da yapamazsa sonuç en kolay basamaktır. 1/2 → o basamakta durulur. Yön değişince (çıkıştan sonra iniş ya da inişten sonra çıkış) ölçüm biter: çıkıştan sonraki 0/2'de sonuç bir alt basamak, inişten sonraki 2/2'de sonuç o basamaktır. Hızlı iniş: inişteyken ya da en kolay basamakta ilk soru yanlışsa ikinci soru sorulmadan inilir/bitirilir. Alan başına en çok 5 tur. Bu basamak kuralı bütün alan türleri (bardak, resim dizisi, dinle-hatırla, resim hatırlama, soru-cevap) için ortaktır. */
+const earlyDown = !ok && (R.dir === -1 || R.step <= 0); /* hızlı iniş */
+if(R.n < 2 && !earlyDown) return setTimeout(placeNext, 450); /* her turda 2 soru */
+const h = earlyDown ? 0 : R.hits; R.n = 0; R.hits = 0; R.visits++; let done = false, res = R.step; const TOP = PLACE_STEPS - 1, MAXV = 5;
+if(h === 2){ if(R.dir === -1){ done = true; res = R.step; } else if(R.visits >= MAXV || R.step >= TOP){ done = true; res = R.step; } else { R.dir = 1; R.step++; } }
+else if(h === 0){ if(R.step <= 0){ done = true; res = 0; } else if(R.dir === 1){ done = true; res = R.step - 1; } else if(R.visits >= MAXV){ done = true; res = Math.max(0, R.step - 1); } else { R.dir = -1; R.step--; } }
+else { done = true; res = R.step; } /* 1/2: bu basamak */
+if(done) R.res[d.k] = Math.max(0, Math.min(PLACE_STEPS - 1, res)); placeRotate(R, done); setTimeout(placeNext, done ? 550 : 450); };
 R._answer = answer;   /* test kancası (otomatik denetim) */
 if(d.kind === "qz"){ const tr2 = R.visits >= 1 && d.q2 ? placeQz(d.q2, TT, R.name) : null; const tr = tr2 || placeQz(d.q, TT, R.name);   /* 2. turda alanın ikinci çalışma türü (çeşitlilik) */ R.cur = tr; const LIM = tr2 ? d.lim2 : d.lim; const t0 = performance.now(), lim = LIM ? LIM[pre ? 0 : 1] : null;   /* KURAL: süre sınırı alanın hız çalışmasına aittir; ikinci çalışma türü kendi sınırını (ya da sınırsız) kullanır */
 const cell = Math.min(tr.cell || 104, (window.innerWidth - 60) / placeOptCols(tr.opts.length));   /* tablette büyütmeyi sayfa ölçeği (tabUi) yapar */
@@ -8967,7 +8965,7 @@ el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q place-q-z"><spa
 if(tr.say) speakText(tr.say || String(tr.prompt || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()); const rp = document.getElementById("placeRep"); if(rp) rp.onclick = () => speakText(tr.say || String(tr.prompt || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim());
 el.querySelectorAll("[data-po-a]").forEach(b => b.onclick = () => { if(R.answered === myItem) return; const right = Number(b.dataset.poA) === tr.ans, ok = right && (!lim || performance.now() - t0 <= lim); b.classList.add(right ? "ok" : "bad"); answer(ok);   /* KURAL: doğru seçilen cevap hiçbir zaman kırmızı (yanlış) gösterilmez; süre sınırını aşan doğru cevap yeşil görünür, yalnız puanda geçmez */ }); return; }
 if(d.kind === "cups"){ /* Göz takip: yıldız bir bardağın altında; bardaklar yer değiştirir, çocuk gözüyle izler */
-  const C = [3,3,3,4,4,4][TT], S = [2,3,5,5,7,9][TT], ms = [750,650,520,480,400,340][TT];
+  const C = [2,3,3,4,4,4][TT], S = [2,3,4,5,7,9][TT], ms = [800,680,540,480,400,340][TT]; /* KURAL: en kolay basamak 2 bardak; 4 → 3 → 2 bardağa iner */
   const W = Math.min(window.innerWidth - 40, 340), cw = Math.min(84, (W - 14 * (C - 1)) / C), gap = (W - cw * C) / (C - 1); const star = Math.floor(Math.random() * C); const slot = Array.from({length: C}, (_, i) => i);
   const cupSVG = gimg("cupDown") ? `<img src="${gimg("cupDown")}" alt="" style="width:100%;height:100%;object-fit:contain;object-position:bottom;pointer-events:none;filter:drop-shadow(0 4px 3px rgba(0,0,0,.2))">` : `<svg viewBox="0 0 60 70" width="100%" height="100%" aria-hidden="true"><path d="M8 66 L52 66 L44 8 L16 8 Z" fill="#E8894C" stroke="#B4532A" stroke-width="3" stroke-linejoin="round"/><rect x="12" y="3" width="36" height="9" rx="4.5" fill="#B4532A"/></svg>`;   /* KURAL: Değerlendirme turundaki bardak, Bardak Oyunu'ndaki resimle aynıdır */
   el.innerHTML = `<div class="adv-wrap">${head}<div class="place-q pq-stable"><span>Yıldızı <b>gözünle izle</b>: hangi bardağın altında?</span></div><div id="cupsBox" style="position:relative;width:${W}px;height:${Math.round(cw * 1.9)}px;margin:28px auto 0">${slot.map(i => `<button type="button" class="cupw" data-cup="${i}" aria-label="Bardak ${i + 1}" style="position:absolute;left:${Math.round(i * (cw + gap))}px;bottom:0;width:${cw}px;height:${Math.round(cw * 1.9)}px;background:none;border:0;padding:0;transition:left ${Math.round(ms * 0.85)}ms ease-in-out">${i === star ? `<span style="position:absolute;left:0;right:0;bottom:2px;text-align:center;font-size:${Math.round(cw * 0.55)}px;line-height:1">⭐</span>` : ""}<span class="cup" style="position:absolute;left:0;bottom:0;width:${cw}px;height:${Math.round(cw * 1.15)}px;transition:transform 300ms ease;transform:translateY(-${Math.round(cw * 0.7)}px);z-index:2">${cupSVG}</span></button>`).join("")}</div></div>`;
@@ -13658,7 +13656,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.02-c";
+const APP_VERSION = "2026.11.02-d";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
