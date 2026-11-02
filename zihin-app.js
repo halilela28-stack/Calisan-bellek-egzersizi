@@ -4514,15 +4514,6 @@ randomItem: () => ({}),
 stages: [ { label: "Boş Kutuyu Bul", instruction: () => ``, example: () => `` } ]
 },
 {
-id: "rule-induce",
-readingLevel: ["pre","post"],
-label: "Kural Keşfi",
-isMt: true, attrs: [], speedFactor: 7,
-isDone: () => !!mtState && mtState.phase === "done",
-randomItem: () => ({}),
-stages: [ { label: "Kuralı Bul", instruction: () => ``, example: () => `` } ]
-},
-{
 id: "balance",
 readingLevel: ["pre","post"],
 label: "Terazi",
@@ -5506,8 +5497,8 @@ sub:"Ketleme · Esneklik · Planlama · Öz Denetim · Dikkat Kontrolü",
 purpose:"Dikkati yönetme, kural değiştirme, dürtüsel tepkiyi durdurma, planlama, zamanı tahmin etme ve kendi işini denetleme becerilerini çalıştırır.",
 color:"#3A6EA5",
 group:"Hız & Dikkat",
-exerciseIds:["tap-reverse","fish-flanker","stroop","touch-animal","statue","stroop-touch","hold-wait","day-night","plan-beads","day-night-touch","alt-uses","sort-color-shape","opp-do","face-go","fist","num-stroop","rule-shift","trail-number-month","go-no-go","size-stroop","reversal","zoo-map","spatial-stroop","flanker","plan-swap","box-search","sort-animal-size","zihni-says","water-jars","anti-touch","twenty-q","less-more","hand-game","trail-animal-fruit","key-search","context-go","three-tasks","hayling","grass-snow","sort-color-shape-count","design-fluency","plan-tol","opp-world","distract","time-est","find-error","switch-touch","rev-arrow","number-letter","navon","sort-words","keep-track","creature-count","plan-cubes","plus-minus","dual-task","task-switch","rev-sort","stop-signal","trail-color-shape","cog-est","look-first","vigilance"],
-exerciseGroups:[["Ketleme", ["stroop", "day-night", "opp-do", "go-no-go", "fish-flanker", "stroop-touch", "day-night-touch", "touch-animal", "flanker", "face-go", "num-stroop", "zihni-says", "size-stroop", "spatial-stroop", "hand-game", "hayling", "anti-touch", "tap-reverse", "statue", "opp-world", "less-more", "hold-wait", "context-go", "grass-snow", "distract", "rev-arrow"]], ["Esneklik", ["sort-color-shape", "trail-number-month", "sort-animal-size", "trail-animal-fruit", "sort-color-shape-count", "number-letter", "task-switch", "sort-words", "trail-color-shape", "switch-touch", "alt-uses", "fist", "navon", "rule-shift", "plus-minus", "reversal", "creature-count", "rev-sort"]], ["Planlama", ["plan-beads", "zoo-map", "plan-swap", "box-search", "plan-tol", "water-jars", "plan-cubes", "twenty-q", "key-search", "three-tasks", "design-fluency", "cog-est"]], ["Öz Denetim", ["time-est", "find-error", "look-first", "keep-track"]], ["Dikkat Kontrolü", ["dual-task", "stop-signal", "vigilance"]]]
+exerciseIds:["tap-reverse","fish-flanker","stroop","touch-animal","statue","stroop-touch","hold-wait","day-night","plan-beads","day-night-touch","alt-uses","sort-color-shape","opp-do","face-go","fist","num-stroop","rule-shift","trail-number-month","go-no-go","size-stroop","reversal","zoo-map","spatial-stroop","flanker","plan-swap","box-search","sort-animal-size","zihni-says","water-jars","anti-touch","less-more","hand-game","trail-animal-fruit","key-search","context-go","three-tasks","hayling","grass-snow","sort-color-shape-count","design-fluency","plan-tol","opp-world","distract","time-est","find-error","switch-touch","rev-arrow","number-letter","navon","sort-words","keep-track","creature-count","plan-cubes","plus-minus","dual-task","task-switch","rev-sort","stop-signal","trail-color-shape","cog-est","look-first","vigilance"],
+exerciseGroups:[["Ketleme", ["stroop", "day-night", "opp-do", "go-no-go", "fish-flanker", "stroop-touch", "day-night-touch", "touch-animal", "flanker", "face-go", "num-stroop", "zihni-says", "size-stroop", "spatial-stroop", "hand-game", "hayling", "anti-touch", "tap-reverse", "statue", "opp-world", "less-more", "hold-wait", "context-go", "grass-snow", "distract", "rev-arrow"]], ["Esneklik", ["sort-color-shape", "trail-number-month", "sort-animal-size", "trail-animal-fruit", "sort-color-shape-count", "number-letter", "task-switch", "sort-words", "trail-color-shape", "switch-touch", "alt-uses", "fist", "navon", "rule-shift", "plus-minus", "reversal", "creature-count", "rev-sort"]], ["Planlama", ["plan-beads", "zoo-map", "plan-swap", "box-search", "plan-tol", "water-jars", "plan-cubes", "key-search", "three-tasks", "design-fluency", "cog-est"]], ["Öz Denetim", ["time-est", "find-error", "look-first", "keep-track"]], ["Dikkat Kontrolü", ["dual-task", "stop-signal", "vigilance"]]]
 },
 {
 id:"calisan-bellek",
@@ -5583,8 +5574,8 @@ sub:"Örüntü ve Analoji · Sınıflama ve Kural · Neden–Sonuç ve Mantık",
 purpose:"Görsel örüntü ve ilişkileri çözümleyerek sözel olmayan akıl yürütme becerisini çalıştırır: örüntü ve matris tamamlama, analoji, kural keşfi, terazi ve neden–sonuç sıralaması.",
 color:"#B08900",
 group:"Dil & Görsel Analiz",
-exerciseIds:["matrix-fill","pattern-touch","num-pattern","sequence-pattern","analogy-touch","rule-induce","class-table","visual-analogy","sudoku","odd-touch","clue-find","odd-one-out","cause-effect","pic-arrange","balance"],
-exerciseGroups:[["Örüntü ve Analoji", ["matrix-fill", "sequence-pattern", "visual-analogy", "pattern-touch", "num-pattern", "analogy-touch"]], ["Sınıflama ve Kural", ["odd-one-out", "rule-induce", "class-table", "sudoku", "odd-touch", "clue-find"]], ["Neden–Sonuç ve Mantık", ["cause-effect", "pic-arrange", "balance"]]]
+exerciseIds:["matrix-fill","pattern-touch","num-pattern","sequence-pattern","analogy-touch","class-table","twenty-q","visual-analogy","sudoku","odd-touch","clue-find","odd-one-out","cause-effect","pic-arrange","balance"],
+exerciseGroups:[["Örüntü ve Analoji", ["matrix-fill", "sequence-pattern", "visual-analogy", "pattern-touch", "num-pattern", "analogy-touch"]], ["Sınıflama ve Kural", ["odd-one-out", "class-table", "sudoku", "odd-touch", "clue-find", "twenty-q"]], ["Neden–Sonuç ve Mantık", ["cause-effect", "pic-arrange", "balance"]]]
 },
 ];
 
@@ -7506,7 +7497,7 @@ const stim = `<div style="display:flex;align-items:center;gap:6px;justify-conten
 const opts = [D].concat(wrong).slice(0, isPre() ? 3 : 3);
 return qzMake(stim, opts, 0, { prompt:"İlk ikili gibi: <b>soru işaretine</b> hangisi gelir?", raw:true }); }); }
 };
-QZ["sem-decide"] = () => semTrials(); QZ["pk-shadow"] = () => geTrials(); QZ["listen-answer"] = () => laTrials(); QZ["sent-pic"] = () => spTrials(); QZ["sent-verify"] = () => svTrials(); QZ["syl-blend"] = () => sbTrials(); QZ["wh-scene"] = () => whTrials(); QZ["paper-fold"] = () => pfTrials(); QZ["view-from"] = () => vfTrials(); QZ["cause-effect"] = () => ceTrials(); QZ["num-pattern"] = () => npTrials(); QZ["opp-touch"] = () => oppTrials2(); QZ["pattern-touch"] = () => patTrials2(); QZ["analogy-touch"] = () => anaTrials2(); QZ["matrix-fill"] = () => mxTrials(); QZ["rule-induce"] = () => riTrials(); QZ["balance"] = () => balTrials(); QZ["mental-rot"] = () => mrTrials(); QZ["overlap-count"] = () => ovTrials(); QZ["embedded"] = () => embTrials(); QZ["closure"] = () => clsTrials(); QZ["vanalogy-touch"] = () => anlTrials(); QZ["word-pic"] = () => wpTrials(); QZ["proverb-touch"] = () => pmcBuild(); QZ["absurd-touch"] = () => absBuild(); QZ["concept-touch"] = () => cpTrials(); QZ["infer-touch"] = () => imcBuild(); QZ["rhyme-touch"] = () => rhBuild(); QZ["syn-touch"] = () => synBuild(); QZ["part-whole"] = () => pwBuild();
+QZ["sem-decide"] = () => semTrials(); QZ["pk-shadow"] = () => geTrials(); QZ["listen-answer"] = () => laTrials(); QZ["sent-pic"] = () => spTrials(); QZ["sent-verify"] = () => svTrials(); QZ["syl-blend"] = () => sbTrials(); QZ["wh-scene"] = () => whTrials(); QZ["paper-fold"] = () => pfTrials(); QZ["view-from"] = () => vfTrials(); QZ["cause-effect"] = () => ceTrials(); QZ["num-pattern"] = () => npTrials(); QZ["opp-touch"] = () => oppTrials2(); QZ["pattern-touch"] = () => patTrials2(); QZ["analogy-touch"] = () => anaTrials2(); QZ["matrix-fill"] = () => mxTrials(); QZ["balance"] = () => balTrials(); QZ["mental-rot"] = () => mrTrials(); QZ["overlap-count"] = () => ovTrials(); QZ["embedded"] = () => embTrials(); QZ["closure"] = () => clsTrials(); QZ["vanalogy-touch"] = () => anlTrials(); QZ["word-pic"] = () => wpTrials(); QZ["proverb-touch"] = () => pmcBuild(); QZ["absurd-touch"] = () => absBuild(); QZ["concept-touch"] = () => cpTrials(); QZ["infer-touch"] = () => imcBuild(); QZ["rhyme-touch"] = () => rhBuild(); QZ["syn-touch"] = () => synBuild(); QZ["part-whole"] = () => pwBuild();
 function cupsApply(){ const st = mtState, tr = st.trials[st.ti], box = document.getElementById("cupsBox"); if(!box) return; const w = box.clientWidth / tr.n;
 box.querySelectorAll("[data-cup]").forEach(el => { const c = +el.dataset.cup; el.style.left = (st.slot.indexOf(c) * w + w * 0.1) + "px"; el.style.transform = st.lift && c === tr.ball ? "translateY(-46px)" : "translateY(0)"; el.style.transitionDuration = Math.round(tr.ms * 0.8 * (window.__wmSpeed || 1)) + "ms"; }); }
 function rlInner(light){ const im = gimg(light === "green" ? "tlGreen" : "tlRed"); const t = light === "green" ? "Koş!" : "Dur!"; return im ? `<img src="${im}" alt=""><b>${t}</b>` : t; }
@@ -7539,7 +7530,7 @@ mtLater(() => { st.ti++; if(st.ti >= st.trials.length){ mtFinish(); return; } qz
 const QZ_SPREAD_SKIP = new Set(["arrow-touch","edge-touch","overlap-count","syl-touch","balance","sem-decide","absurd-touch","rhyme-touch","sent-verify"]);   // seçenek sırası anlamlı: Evet/Hayır, sayılar, yönler
 /* Seçenek sayısı düzeyle büyür (Okul Öncesi 3-3-4, Okul Sonrası 3-4-5): fazlası atılır, eksiği aynı turdan ya da yakın sayılarla tamamlanır */
 const QZ_D = { pre:[3,3,4], post:[3,4,5] }, QZ_D2 = { pre:[3,4,4], post:[3,4,5] };
-const QZ_TIER_OPTS = { "pattern-touch":QZ_D, "analogy-touch":QZ_D, "pk-shadow":QZ_D, "matrix-fill":QZ_D, "rule-induce":QZ_D, "closure":QZ_D, "syl-blend":QZ_D, "embedded":QZ_D, "proverb-touch":QZ_D, "infer-touch":QZ_D, "listen-answer":QZ_D,
+const QZ_TIER_OPTS = { "pattern-touch":QZ_D, "analogy-touch":QZ_D, "pk-shadow":QZ_D, "matrix-fill":QZ_D, "closure":QZ_D, "syl-blend":QZ_D, "embedded":QZ_D, "proverb-touch":QZ_D, "infer-touch":QZ_D, "listen-answer":QZ_D,
   "opp-touch":{ pre:[3,3,4] }, "mental-rot":{ pre:[3,3,4] }, "word-pic":{ post:[3,4,5] }, "syl-touch":{ post:[3,4,5] }, "balance":{ post:[3,4,4] },
   "paper-fold":QZ_D2, "num-pattern":QZ_D2, "overlap-count":QZ_D2, "concept-touch":{ pre:[2,3,3], post:[2,3,4], capOnly:true }, "view-from":{ post:[2,3,4], capOnly:true } };
 function qzTierOpts(id, trials){ const cfg = QZ_TIER_OPTS[id]; if(!cfg || !Array.isArray(trials)) return trials; const tab = isPre() ? cfg.pre : cfg.post; if(!tab) return trials; const want = tab[Math.min(currentCombo().t, 2)];
@@ -8290,19 +8281,10 @@ const cells = grid.map((c, i) => i === grid.length - 1 ? `<div class="mx-c q">?<
 const stim = `<div class="mx-g" style="grid-template-columns:repeat(${size}, minmax(0,1fr));width:${size === 2 ? 170 : 210}px">${cells}</div>`;
 const opts = [ans].concat(dis).map(aaCell); out.push(qzMake(stim, opts, 0, { prompt:"Matristeki <b>boş kutuya</b> ne gelir?", raw:true, fixed:true, cell:86 })); }
 return out; }
-const RI_RULES = { pre:[ { k:"red", d:"hepsi kırmızı", ok:(c) => c.col === AA_COL[0] }, { k:"circle", d:"hepsi daire", ok:(c) => c.sh === "circle" }, { k:"big", d:"hepsi büyük", ok:(c) => (c.sz || 1) === 1 } ],
-post:[ { k:"outline", d:"hepsinin içi boş", ok:(c) => !!c.outline }, { k:"corner", d:"hepsinin köşesi var", ok:(c) => c.sh !== "circle" }, { k:"dot", d:"hepsinin içinde nokta var", ok:(c) => !!c.dot },
-{ k:"two", d:"hepsinde iki şekil var", ok:(c) => (c.n || 1) === 2 }, { k:"red", d:"hepsi kırmızı", ok:(c) => c.col === AA_COL[0] } ] };
-const RI_TIER = { pre:[["red"], ["red","circle"], ["circle","big"]], post:[["red","corner"], ["outline","two"], ["dot","two","outline"]] };   // kolaydan zora
-function riRand(pre){ const c = { sh: randomItem(AA_SH), col: randomItem(AA_COL), sz: pre ? randomItem([0.6, 1]) : 1 }; if(!pre){ c.outline = Math.random() < 0.5; c.dot = Math.random() < 0.4; c.n = randomItem([1, 2, 3]); } return c; }
-function riTrials(){ const t = currentCombo().t, pre = isPre(), rules = (pre ? RI_RULES.pre : RI_RULES.post).filter(r => RI_TIER[pre ? "pre" : "post"][Math.min(t, 2)].includes(r.k)), K = pre ? [3, 3, 4][t] : [3, 4, 4][t];
-return Array.from({length: pre ? 4 : 5}, () => { const R = randomItem(rules), gen = (want) => { let c, g = 0; do{ c = riRand(pre); } while(R.ok(c) !== want && g++ < 200); return c; };
-let yes, g4 = 0; do{ yes = Array.from({length:K}, () => gen(true)); } while(g4++ < 60 && ((R.k !== "red" && new Set(yes.map(c => c.col)).size < 2) || (R.k !== "circle" && R.k !== "corner" && new Set(yes.map(c => c.sh)).size < 2)));
-const no = Array.from({length:K}, () => gen(false)), ans = gen(true), dis = [], used = new Set([aaKey(ans)]);
-let g3 = 0; while(dis.length < (pre ? 2 : 3) && g3++ < 300){ const d = gen(false); if(!used.has(aaKey(d))){ used.add(aaKey(d)); dis.push(d); } }
-const box = (arr, ok) => `<div class="ri-box ${ok ? "ok" : "no"}"><div class="ri-h">${ok ? "✓ Bunlar" : "✗ Bunlar değil"}</div><div class="ri-items">${arr.map(c => `<div class="ri-i">${aaCell(c)}</div>`).join("")}</div></div>`;
-const stim = `<div style="display:flex;gap:8px;justify-content:center">${box(yes, true)}${box(no, false)}</div>`;
-return qzMake(stim, [ans].concat(dis).map(aaCell), 0, { prompt:"Hangisi <b>✓ grubuna</b> girer?", raw:true, fixed:true, cell:80, rule: R.d }); }); }
+
+   // kolaydan zora
+
+/* (2026-11-02: Kural Keşfi kullanıcı isteğiyle silindi) */
 /* Terazi renk takımları: soru içinde terazi ve seçenekler aynı takımı kullanır */
 const BAL_PALS = [{ circle:ACC.mavi, square:ACC.yesil, triangle:ACC.kirmizi }, { circle:ACC.turuncu, square:ACC.mor, triangle:ACC.mavi }, { circle:ACC.pembe, square:ACC.mavi, triangle:ACC.sari }, { circle:ACC.yesil, square:ACC.kirmizi, triangle:ACC.mavi }];
 let balPal = BAL_PALS[0];
@@ -8804,7 +8786,7 @@ const PLACE_KEY = "wm_place_v2", PLACE_REDO_DAYS = 42;
 const PLACE_DOMS = [
 { k:"hiz",     nm:"İşlemleme hızı",       cats:["islemleme-hizi","oyun-parki"], kind:"qz", q:"sem-decide", lim:[6000, 4500], q2:"pk-shadow", lim2:[9000, 7000] },
 { k:"goz",     nm:"Göz takip",            cats:["goz-takip"],            kind:"cups" },
-{ k:"dikkat",  nm:"Yürütücü işlev",       cats:["yurutucu-islev"],       kind:"qz", q:"arrow-touch", lim:[6000, 4500], q2:"rule-induce" },
+{ k:"dikkat",  nm:"Yürütücü işlev",       cats:["yurutucu-islev"],       kind:"qz", q:"arrow-touch", lim:[6000, 4500] },
 { k:"calisan", nm:"Çalışan bellek",       cats:["calisan-bellek"],       kind:"span" },
 { k:"sozelb",  nm:"Sözel bellek",         cats:["sozel-bellek"],         kind:"listen" },
 { k:"resim",   nm:"Görsel bellek",        cats:["gorsel-bellek"],        kind:"vis" },
@@ -9536,7 +9518,7 @@ mtState = { kind:"flu", fid:id, P: fluPrompt(id), secs: fluSecs(id), ok:0, rep:0
 "copy-design": () => { const t = currentCombo().t, n = !isPre() && t === 2 ? 4 : 3, segs = (isPre() ? [2, 3, 4] : [3, 5, 7])[t]; mtState = { kind:"draw", copy:true, n, trials: Array.from({length:3}, () => drawPattern(n, segs)), ti:0, wrong:0, phase:"idle", mine:new Set(), sel:-1 }; return mtState.trials; },
 "symmetry": () => { mtState = { kind:"sym", trials: symTrials(), ti:0, wrong:0, phase:"idle", mine:{} }; return mtState.trials; },
 "maze": () => { mtState = { kind:"maze", trials: mazeTrials(), ti:0, wrong:0, phase:"idle", pos:0, path:[0] }; return mtState.trials; },
-...Object.fromEntries([["matrix-fill", mxTrials], ["rule-induce", riTrials], ["balance", balTrials]].map(([id, f]) => [id, () => { mtState = { kind:"quiz", qid:id, trials: qzTierOpts(id, f()), ti:0, wrong:0, phase:"idle" }; return mtState.trials; }])),
+...Object.fromEntries([["matrix-fill", mxTrials], ["balance", balTrials]].map(([id, f]) => [id, () => { mtState = { kind:"quiz", qid:id, trials: qzTierOpts(id, f()), ti:0, wrong:0, phase:"idle" }; return mtState.trials; }])),
 "pic-arrange": () => { mtState = { kind:"parr", trials: paTrials(), ti:0, wrong:0, phase:"idle", placed:[], bad:{}, telling: stIx() === 1 && !gameMode }; return mtState.trials; },
 ...Object.fromEntries([["sent-verify", svTrials], ["syl-blend", sbTrials], ["wh-scene", whTrials], ["paper-fold", pfTrials], ["view-from", vfTrials], ["cause-effect", ceTrials], ["num-pattern", npTrials]].map(([id, f]) => [id, () => { mtState = { kind:"quiz", qid:id, trials: qzTierOpts(id, f()), ti:0, wrong:0, phase:"idle" }; return mtState.trials; }])),
 "listen-answer": () => { mtState = { kind:"quiz", qid:"listen-answer", trials: qzTierOpts("listen-answer", laTrials()), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
@@ -11333,7 +11315,6 @@ const INSTR_SHORT = {
 "ran-letter":       [() => `Okuyun: ${Q("Ben ‘başla’ deyince harflerin adını soldan sağa, satır satır, olabildiğince hızlı söyle.")}`],
 "pic-arrange":      [() => Q("Ekranda karışık duran resimler var; hepsi aynı olayı anlatıyor. Önce ne oldu, sonra ne oldu, en sonda ne oldu? Resimlere bu sırayla dokunarak sırala."), () => `Sıraladıktan sonra sorun: ${Q("Sıraladığın resimlere bak. Şimdi bu hikâyeyi başından sonuna bana anlat.")}`],
 "matrix-fill":      [() => Q("Ekranda kutulardan oluşan bir tablo var; bir kutu boş. Satırlara ve sütunlara bak, nasıl bir düzen olduğunu bul. Boş kutuya hangisi gelmeli? Alttan ona dokun.")],
-"rule-induce":      [() => Q("Yeşil kutunun içindeki şekillerin hepsinde ortak bir özellik var; onlara bak ve bu gizli kuralı bul. Alttaki şekillerden hangisi bu kurala uyup yeşil kutuya girer? Ona dokun.")],
 "balance":          [() => isPre() ? Q("Ekranda bir terazi var. Terazinin aşağı inen tarafı daha ağır demektir. Soruyu dinle ve teraziye bakarak doğru cevaba dokun.") : Q("Üstteki teraziler dengede; onlara bakarak hangi şeklin kaç daire ağırlığında olduğunu bul. Son teraziyi dengelemek için kaç daire gerekir? Alttan o sayıya dokun. Dairelerin rengi her soruda değişir.")],
 "block-design":     [() => Q("Üstte bir model desen var. Alttaki bloklara dokunarak modelin tıpatıp aynısını yap; bir bloğa her dokunuşta rengi değişir. Bitince Bitti'ye bas."), () => Q("Üstte bir model desen var ama döndürülmüş duruyor; yanındaki ok modelin gerçek yukarısını gösteriyor. Deseni kafanda düzelt ve alttaki bloklara dokunarak düz hâlini yap. Bitince Bitti'ye bas.")],
 "mental-rot":       [() => Q("Üstte bir şekil var. Alttaki seçeneklerden biri aynı şeklin döndürülmüş hâli, diğerleri farklı. Şekli kafanda çevir ve aynı olana dokun.")],
@@ -11638,7 +11619,6 @@ return {
 "num-pattern":[0, "Farkı Bul", "Ardışık sayılar arasındaki farkı yaz; fark nasıl değişiyor?"],
 "pic-arrange":[0, "Önce–Sonra", "Kendine sor: Hangisi en önce olmuş? Sonra ne olmuş? En son?"],
 "matrix-fill":[0, "Satır, Sonra Sütun", "Önce satırda neyin değiştiğini söyle, sonra sütunda; ikisini birleştir."],
-"rule-induce":[0, "Ortak Olanı Söyle", "Yeşil kutudakilerin hepsinde olan, kırmızılarda olmayan özelliği söyle."],
 "balance":[0, "Yerine Koy", "Dengedeki teraziyi kullan: bir şeklin yerine ona eşit olanları koy, sonra say."],
 "block-design":[0, "Parçalara Böl", "Modeli satır satır incele; her bloğu tek tek kontrol ederek yerleştir."],
 "mental-rot":[0, "Ayırt Edici Parça", "Şeklin ayırt edici bir ucunu bul; döndürünce o uç nereye gider?"],
@@ -13667,7 +13647,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.02-e";
+const APP_VERSION = "2026.11.02-f";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -14331,7 +14311,7 @@ const GAME_ISLANDS = [
 { id:"soz",    name:"Söz Adası",     color:"#FF9EC4", ids:["hear-find", "pal-touch", "story-order", "dir-follow", "pic-seq-touch", "who-said", "rhythm", "tone-seq", "syl-blend", "sent-build", "new-word", "same-sound", "rhyme-touch", "syl-touch"] },
 { id:"kavram", name:"Kavram Adası",  color:"#8FD3FF", ids:["word-pic", "vanalogy-touch", "concept-touch", "absurd-touch", "proverb-touch", "infer-touch", "odd-cat", "sort-pic", "sim-touch", "opp-touch", "free-sort", "def-touch", "syn-touch", "use-touch", "seq-words", "part-whole", "wh-scene", "sent-pic", "listen-answer"] },
 { id:"bulmaca",name:"Bulmaca Adası", color:"#C9A7FF", ids:["block-design", "mental-rot", "clutter-find", "overlap-count", "embedded", "closure", "copy-design", "symmetry", "size-touch", "arrow-touch", "edge-touch", "spot-diff", "paper-fold", "view-from", "same-number"] },
-{ id:"mantik", name:"Mantık Adası",  color:"#A8E6CF", ids:["matrix-fill", "rule-induce", "balance", "odd-touch", "pattern-touch", "analogy-touch", "cause-effect", "sudoku", "num-pattern", "clue-find", "class-table"] },
+{ id:"mantik", name:"Mantık Adası",  color:"#A8E6CF", ids:["matrix-fill", "balance", "odd-touch", "pattern-touch", "analogy-touch", "cause-effect", "sudoku", "num-pattern", "clue-find", "class-table"] },
 { id:"plan",   name:"Plan Adası",    color:"#FF8E7E", ids:["plan-swap", "plan-beads", "plan-tol", "plan-cubes", "maze", "time-est", "find-error", "pic-arrange", "zoo-map", "key-search", "water-jars", "design-fluency", "box-search", "three-tasks"], unlockStars:3 },
 { id:"macera", name:"Macera Adası",  color:"#FFD7A8", special:true, adv:true },
 { id:"usta",   name:"Usta Adası",    color:"#FFE27A", special:true, unlockStars:40, dyn:() => gxUstaStops() },
