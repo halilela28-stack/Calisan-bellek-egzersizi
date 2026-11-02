@@ -7732,7 +7732,9 @@ Object.values(groups).forEach(ids => { const cnt = {}; ids.forEach(i => { cnt[st
 return { groups, wrong };
 }
 
-function snPicPool(){ const C = qzCats(), seen = new Set(); return Object.values(C).flatMap(c => c.items).filter(x => !/\s/.test(x.n) && !seen.has(x.n) && seen.add(x.n)); }
+/* KURAL (ses çalışmaları): çocuğun başka bir adla söyleyebileceği resimler (lamba/masa lambası, fincan/bardak, ayıcık/oyuncak ayı, bebek/oyuncak bebek, saat/çalar saat, yapboz/puzzle, salatalık/hıyar) ilk ses, hece ve son ses havuzuna girmez */
+const SOUND_AMBIG = new Set(["h-lamp", "h-cup", "t-teddy", "t-doll", "h-clock", "t-puzzle", "f-cucumber"]);
+function snPicPool(){ const C = qzCats(), seen = new Set(); return Object.values(C).flatMap(c => c.items).filter(x => !SOUND_AMBIG.has(x.k) && !/\s/.test(x.n) && !seen.has(x.n) && seen.add(x.n)); }
 const trFirst = (w) => w.charAt(0).toLocaleUpperCase("tr-TR");
 function ssBuild(){ const t = currentCombo().t, pool = snPicPool(), by = {}; pool.forEach(x => { (by[trFirst(x.n)] = by[trFirst(x.n)] || []).push(x); });
 const sounds = Object.keys(by).filter(k => by[k].length >= 3), G = (isPre() ? [4, 6, 6] : [6, 8, 9])[t], K = (isPre() ? [2, 2, 3] : [2, 3, 3])[t];
@@ -8022,7 +8024,7 @@ if(pre && m !== "half"){ opts = opts.filter((o, i) => set[i] !== "half"); ans = 
 else { const neg = Math.random() < 0.5, red = ACC.kirmizi, blue = ACC.mavi;
 if(!neg){ const combos = shuffleArray([[red, 1], [red, 0.55], [blue, 1], [blue, 0.55]]); opts = combos.map(([c, s]) => `<div style="width:100%;height:100%;transform:scale(${s})">${shapeSVG("star", c)}</div>`); ans = combos.findIndex(([c, s]) => c === red && s === 1);
 say = "Hem kırmızı hem büyük olanı göster."; prompt = "<b>Hem kırmızı hem büyük</b> olan"; }
-else { const cols = shuffleArray([red, red, red, blue]); opts = cols.map(c => shapeSVG("circle", c)); ans = cols.indexOf(blue); say = "Kırmızı olmayanı göster."; prompt = "Kırmızı <b>olmayan</b>"; } }
+else { const cols = shuffleArray([red, red, red, blue]), shs = shuffleArray(["circle", "square", "triangle", "star"]); opts = cols.map((c, i) => shapeSVG(shs[i], c)); ans = cols.indexOf(blue);   /* KURAL: "olmayan" sorusunda kırmızı çeldiriciler farklı şekillerdir; iki seçenek birebir aynı olmaz */ say = "Kırmızı olmayanı göster."; prompt = "Kırmızı <b>olmayan</b>"; } }
 if(out.length && out[out.length - 1].say === say){ k--; continue; }
 const o = shuffleArray(opts.map((h, i) => i)); out.push({ stim:"", opts: o.map(i => opts[i]), ans: o.indexOf(ans), say, prompt, replay:true, fixed:true, cell:120 }); }
 return out; }
@@ -8304,10 +8306,11 @@ let el = sh === "circle" ? `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}
 if(opt.dot) el += `<circle cx="${cx}" cy="${cy + (sh === "triangle" ? r * 0.25 : 0)}" r="${r * 0.22}" fill="${opt.outline ? col : "#fff"}"/>`;
 return `<g${rot}>${el}</g>`; }
 function aaCell(c){ const n = c.n || 1, r = (n === 1 ? 26 : n === 2 ? 18 : 14) * (c.sz || 1), pos = n === 1 ? [[50, 50]] : n === 2 ? [[30, 50], [70, 50]] : [[25, 62], [50, 36], [75, 62]];
-return `<svg viewBox="0 0 100 100" width="100%" height="100%">${pos.map(([x, y]) => aaShape(c.sh, x, y, r, c.col, c)).join("")}</svg>`; }
+return `<svg viewBox="0 0 100 100" width="100%" height="100%" data-aa="${[c.sh, c.col, n, aaRotVis(c), !!c.outline, !!c.dot].join("|")}" data-sz="${c.sz || 1}">${pos.map(([x, y]) => aaShape(c.sh, x, y, r, c.col, c)).join("")}</svg>`; }
 const aaRotVis = (c) => { const r = ((c.rot || 0) % 360 + 360) % 360; return c.sh === "circle" ? 0 : c.sh === "square" ? r % 90 : r; };   /* görünüşe göre döndürme: daire her açıda, kare 90° katlarında aynı görünür */
 const aaKey = (c) => JSON.stringify([c.sh, c.col, c.n || 1, c.sz || 1, aaRotVis(c), !!c.outline, !!c.dot]);
-function aaDistract(ans, muts, k){ const out = [], seen = new Set([aaKey(ans)]); for(const m of shuffleArray(muts)){ const d = Object.assign({}, ans, m); if(!seen.has(aaKey(d))){ seen.add(aaKey(d)); out.push(d); } if(out.length >= k) break; } return out; }
+/* KURAL (analoji/matris çeldiricileri): kural boyutla ilgili değilse, doğru cevaptan yalnızca boyutuyla ayrılan (aynı şekil, aynı renk, aynı doluluk) çeldirici üretilmez — "aynı şekil" görünümü vermez */
+function aaDistract(ans, muts, k, sizeOk){ const out = [], seen = new Set([aaKey(ans)]); for(const m of shuffleArray(muts)){ const d = Object.assign({}, ans, m); if(!sizeOk && Object.keys(m).every(kk => kk === "sz")) continue; if(!seen.has(aaKey(d))){ seen.add(aaKey(d)); out.push(d); } if(out.length >= k) break; } return out; }
 function mxTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 4 : 5, out = [];
 for(let q = 0; q < N; q++){ let grid, size, muts;
 const [s1, s2, s3] = shuffleArray(AA_SH), [c1, c2, c3] = shuffleArray(AA_COL);
@@ -8324,7 +8327,7 @@ else if(ty === "latinColor") grid.push({ sh:[s1, s2, s3][r], col:[c1, c2, c3][(c
 else if(ty === "rotation") grid.push({ sh:"pointer", col:[c1, c2, c3][r], rot:[0, 90, 180][c] + r * 90 });
 else grid.push({ sh:s1, col:[c1, c2, c3][r], n:c + 1 }); }
 muts = [{ n:1 }, { n:2 }, { n:3 }, { sh:s1 }, { sh:s2 }, { sh:s3 }, { col:c1 }, { col:c2 }, { col:c3 }].concat(ty === "rotation" ? [{ rot:0 }, { rot:90 }, { rot:270 }] : []); }   /* döndürme çeldiricisi yalnızca döndürme sorularında */
-const ans = grid[grid.length - 1], dis = aaDistract(ans, muts, pre ? 2 : 3);
+const ans = grid[grid.length - 1], dis = aaDistract(ans, muts, pre ? 2 : 3, (typeof ty !== "undefined" && ty === "size"));
 const cells = grid.map((c, i) => i === grid.length - 1 ? `<div class="mx-c q">?</div>` : `<div class="mx-c">${aaCell(c)}</div>`).join("");
 const stim = `<div class="mx-g" style="grid-template-columns:repeat(${size}, minmax(0,1fr));width:${size === 2 ? 170 : 210}px">${cells}</div>`;
 const opts = [ans].concat(dis).map(aaCell); out.push(qzMake(stim, opts, 0, { prompt:"Matristeki <b>boş kutuya</b> ne gelir?", raw:true, fixed:true, cell:86 })); }
@@ -8415,7 +8418,7 @@ else if(k === "rotStep") seq = [0, 90, 180, 270].map(r => ({ sh:"pointer", col:c
 else seq = [0, 1, 2, 3, 4, 5].map(i => ({ sh:[s1, s2][i % 2], col:[c1, c2, c3][i % 3] }));   // şekil 2'li, renk 3'lü döngü
 const ans = seq[seq.length - 1], shown = seq.slice(0, -1);
 muts = [{ col:c1 }, { col:c2 }, { col:c3 }, { sh:s1 }, { sh:s2 }, { sh:s3 }, { sz:0.65 }, { sz:0.85 }, { n:2 }, { n:1 }, { rot:90 }, { rot:180 }, { rot:0 }];
-const dis = aaDistract(ans, muts, pre ? 2 : 3);
+const dis = aaDistract(ans, muts, pre ? 2 : 3, k === "sizeGrow");
 const stim = `<div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center">${shown.map(c => `<div class="wm-card" style="width:44px;height:44px;padding:3px">${aaCell(c)}</div>`).join("")}<div class="wm-card" style="width:44px;height:44px;font-weight:900;font-size:22px;border-style:dashed">?</div></div>`;
 out.push(qzMake(stim, [ans].concat(dis).map(aaCell), 0, { prompt:"<b>Sırada</b> hangisi var?", raw:true, fixed:true, cell:84 })); }
 return out; }
@@ -8436,7 +8439,7 @@ const tf = { size:(c) => Object.assign({}, c, { sz:1 }), color:(c) => Object.ass
 dot:(c) => Object.assign({}, c, { dot:true }), rot:(c) => Object.assign({}, c, { rot:90 }), two:(c) => Object.assign({}, c, { col:c2, n:2 }) }[ty];
 const base = (sh) => ty === "size" ? { sh, col:c1, sz:0.55 } : ty === "fill" ? { sh, col:c1, outline:true } : ty === "rot" ? { sh:"pointer", col:sh === s1 ? c1 : c3 } : { sh, col:c1 };
 const A = base(s1), B = tf(A), C = base(s2), D = tf(C);
-const dis = aaDistract(D, [{ sz:0.55 }, { col:c1 }, { col:c3 }, { n:1 }, { n:3 }, { outline:!D.outline }, { dot:!D.dot }, { rot:0 }, { rot:180 }, { sh:s1 }], pre ? 2 : 3);
+const dis = aaDistract(D, [{ sz:0.55 }, { col:c1 }, { col:c3 }, { n:1 }, { n:3 }, { outline:!D.outline }, { dot:!D.dot }, { rot:0 }, { rot:180 }, { sh:s1 }], pre ? 2 : 3, ty === "size");
 const card = (c) => `<div class="wm-card" style="width:62px;height:62px;padding:4px">${aaCell(c)}</div>`;
 const stim = `<div style="display:flex;align-items:center;gap:6px;justify-content:center;flex-wrap:wrap">${card(A)}<b>→</b>${card(B)}<span style="width:10px"></span>${card(C)}<b>→</b><div class="wm-card" style="width:62px;height:62px;font-weight:900;font-size:26px;border-style:dashed">?</div></div>`;
 out.push(qzMake(stim, [D].concat(dis).map(aaCell), 0, { prompt:"İlk ikili gibi: <b>soru işaretine</b> hangisi gelir?", raw:true, fixed:true, cell:86 })); }
@@ -13706,7 +13709,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.01-f";
+const APP_VERSION = "2026.11.02-a";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
