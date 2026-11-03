@@ -7498,8 +7498,8 @@ const opts = [D].concat(wrong).slice(0, isPre() ? 3 : 3);
 return qzMake(stim, opts, 0, { prompt:"İlk ikili gibi: <b>soru işaretine</b> hangisi gelir?", raw:true }); }); }
 };
 QZ["sem-decide"] = () => semTrials(); QZ["pk-shadow"] = () => geTrials(); QZ["listen-answer"] = () => laTrials(); QZ["sent-pic"] = () => spTrials(); QZ["sent-verify"] = () => svTrials(); QZ["syl-blend"] = () => sbTrials(); QZ["wh-scene"] = () => whTrials(); QZ["paper-fold"] = () => pfTrials(); QZ["view-from"] = () => vfTrials(); QZ["cause-effect"] = () => ceTrials(); QZ["num-pattern"] = () => npTrials(); QZ["opp-touch"] = () => oppTrials2(); QZ["pattern-touch"] = () => patTrials2(); QZ["analogy-touch"] = () => anaTrials2(); QZ["matrix-fill"] = () => mxTrials(); QZ["balance"] = () => balTrials(); QZ["mental-rot"] = () => mrTrials(); QZ["overlap-count"] = () => ovTrials(); QZ["embedded"] = () => embTrials(); QZ["closure"] = () => clsTrials(); QZ["vanalogy-touch"] = () => anlTrials(); QZ["word-pic"] = () => wpTrials(); QZ["proverb-touch"] = () => pmcBuild(); QZ["absurd-touch"] = () => absBuild(); QZ["concept-touch"] = () => cpTrials(); QZ["infer-touch"] = () => imcBuild(); QZ["rhyme-touch"] = () => rhBuild(); QZ["syn-touch"] = () => synBuild(); QZ["part-whole"] = () => pwBuild();
-function cupsApply(){ const st = mtState, tr = st.trials[st.ti], box = document.getElementById("cupsBox"); if(!box) return; const w = box.clientWidth / tr.n;
-box.querySelectorAll("[data-cup]").forEach(el => { const c = +el.dataset.cup; el.style.left = (st.slot.indexOf(c) * w + w * 0.1) + "px"; el.style.transform = st.lift && c === tr.ball ? "translateY(-46px)" : "translateY(0)"; el.style.transitionDuration = Math.round(tr.ms * 0.8 * (window.__wmSpeed || 1)) + "ms"; }); }
+function cupsApply(){ const st = mtState, tr = st.trials[st.ti], box = document.getElementById("cupsBox"); if(!box) return; const dur = Math.round(tr.ms * 0.8 * (window.__wmSpeed || 1)) + "ms"; const ball = box.querySelector(".cup-ball"); if(ball){ ball.style.transition = `left ${dur} ease-in-out, opacity ${st.lift ? "120ms" : "0ms"} linear`; ball.style.opacity = st.lift ? "1" : "0"; void ball.offsetWidth; ball.style.left = `calc(${((st.slot.indexOf(tr.ball) + 0.5) * 100 / tr.n).toFixed(3)}% - ${ball.offsetWidth / 2}px)`; }
+box.querySelectorAll("[data-cup]").forEach(el => { const c = +el.dataset.cup; el.style.left = `calc(${((st.slot.indexOf(c) + 0.5) * 100 / tr.n).toFixed(3)}% - ${el.offsetWidth / 2}px)`; el.style.transform = st.lift && c === tr.ball ? "translateY(-46px)" : "translateY(0)"; el.style.transitionDuration = dur; el.style.transitionTimingFunction = "ease-in-out"; el.style.transitionProperty = "left, transform"; }); }
 function rlInner(light){ const im = gimg(light === "green" ? "tlGreen" : "tlRed"); const t = light === "green" ? "Koş!" : "Dur!"; return im ? `<img src="${im}" alt=""><b>${t}</b>` : t; }
 function rlPaint(){ const st = mtState, l = document.getElementById("rlLight"); if(l){ l.className = "rl-light " + st.light + (gimg("tlRed") ? " gi" : ""); l.innerHTML = rlInner(st.light); } }
 function rlFlash(){ sayTask("Yakalandın!"); const a = document.getElementById("rlTrack"); if(a){ a.classList.remove("caught"); void a.offsetWidth; a.classList.add("caught"); } }
@@ -10200,11 +10200,11 @@ body = dots + `<div class="aud-note" style="text-align:center;font-weight:800;ma
 } else if(st.kind === "cups"){
 const tr = st.trials[ti], bw = Math.min(W, 460), cw = Math.min(bw / tr.n * 0.8, ((isLs ? H - 30 : H) - 80) / 1.1), ch = cw * 1.1, bh = ch + 62;
 info = st.phase === "show" ? "<b>Topu takip et…</b>" : st.phase === "ask" ? "Top <b>hangi bardağın</b> altında?" : (st.pick === tr.ball ? "<b>Buldun!</b>" : "Top buradaydı");
-const bsz = Math.round(Math.min(32, cw * 0.55)), ballX = (bw / tr.n) * (st.slot ? st.slot.indexOf(tr.ball) : tr.ball) + bw / tr.n / 2 - bsz / 2;
-const showBall = st.phase === "show" || st.phase === "fb";
-body = dots + `<div id="cupsBox" style="position:relative;width:${bw}px;height:${bh}px;margin:10px auto 0">${showBall ? `<div class="cup-ball" style="left:${ballX}px;top:${bh - 6 - bsz - Math.round(ch * 0.03)}px;width:${bsz}px;height:${bsz}px"></div>` : ""}` +
+const bsz = Math.round(Math.min(32, cw * 0.55)), ballSlot = st.slot ? st.slot.indexOf(tr.ball) : tr.ball;   /* KURAL (Bardak Oyunu): top kendi bardağıyla birlikte hareket eder ve onun tam altında durur; bardak inince top gizlenir (karıştırma sırasında bardakların dışında top görünmez); konumlar kutu genişliğine göre yüzde ile verilir (çizim ile karıştırma aynı ölçüyü kullanır) */
+const showBall = (st.phase === "show" && st.lift) || st.phase === "fb";   /* bardak inikken top çizilmez */
+body = dots + `<div id="cupsBox" style="position:relative;width:${bw}px;height:${bh}px;margin:10px auto 0">${showBall ? `<div class="cup-ball" data-ball="${tr.ball}" style="transition:left 400ms ease-in-out;left:calc(${((ballSlot + 0.5) * 100 / tr.n).toFixed(3)}% - ${bsz / 2}px);top:${bh - 6 - bsz - Math.round(ch * 0.03)}px;width:${bsz}px;height:${bsz}px"></div>` : ""}` +
 Array.from({length: tr.n}, (_, c) => { const slot = st.slot ? st.slot.indexOf(c) : c, lift = (st.phase === "show" && st.lift && c === tr.ball) || (st.phase === "fb" && (c === tr.ball || c === st.pick));
-return `<div class="cup" data-cup="${c}" ${st.phase === "ask" ? `data-mt="${c}"` : ""} style="width:${cw}px;height:${ch}px;left:${slot * bw / tr.n + bw / tr.n * 0.1}px;top:${bh - ch - 6}px;transform:translateY(${lift ? -46 : 0}px)">${gimg("cupDown") ? `<img src="${gimg("cupDown")}" alt="" style="width:100%;height:100%;object-fit:contain;object-position:bottom;pointer-events:none;filter:drop-shadow(0 4px 3px rgba(0,0,0,.2))">` : CUP_SVG(["#E5484D","#2E6FD8","#1FA463","#F5A524","#8B5CF6"][0])}</div>`; }).join("") + `</div>`;
+return `<div class="cup" data-cup="${c}" ${st.phase === "ask" ? `data-mt="${c}"` : ""} style="width:${cw}px;height:${ch}px;left:calc(${((slot + 0.5) * 100 / tr.n).toFixed(3)}% - ${cw / 2}px);top:${bh - ch - 6}px;transform:translateY(${lift ? -46 : 0}px)">${gimg("cupDown") ? `<img src="${gimg("cupDown")}" alt="" style="width:100%;height:100%;object-fit:contain;object-position:bottom;pointer-events:none;filter:drop-shadow(0 4px 3px rgba(0,0,0,.2))">` : CUP_SVG(["#E5484D","#2E6FD8","#1FA463","#F5A524","#8B5CF6"][0])}</div>`; }).join("") + `</div>`;
 } else if(st.kind === "mmath"){
 const tr = st.trials[ti];
 if(st.phase === "show"){ const k = st.si; let main = "";
@@ -13687,7 +13687,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.03-g";
+const APP_VERSION = "2026.11.03-h";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
