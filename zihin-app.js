@@ -13687,7 +13687,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.03-h";
+const APP_VERSION = "2026.11.03-i";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -16467,7 +16467,7 @@ const off = document.getElementById("pinOffBtn"); if(off) off.onclick = () => ex
 function wipeDeviceData(){ const keep = []; for(let i = localStorage.length - 1; i >= 0; i--){ const k = localStorage.key(i); if(k && k.startsWith("wm_")) localStorage.removeItem(k); } try{ sessionStorage.clear(); }catch(e){} }
 
 // ===== HESAP (e-posta) VE BULUT SENKRONU =====
-const SYNC_KEYS = ["wm_game_v1","wm_gamex_v1","wm_game_route_v1","wm_game_limit_v1","wm_place_v1","wm_ages_v1","wm_player_levels_v1","wm_last_v1","wm_last_by","wm_who_last","wm_unlock_seen_v1","wm_mola_v1","wm_daily_v1","wm_week_target_v1","wm_family_links_v1"];
+const SYNC_KEYS = ["wm_game_v1","wm_gamex_v1","wm_game_route_v1","wm_game_limit_v1","wm_place_v1","wm_ages_v1","wm_player_levels_v1","wm_last_v1","wm_last_by","wm_who_last","wm_unlock_seen_v1","wm_mola_v1","wm_daily_v1","wm_week_target_v1","wm_family_links_v1","wm_place_v2","wm_place_seen_v1","wm_cat_levels_v1","wm_cat_streak_v1","wm_cat_pending_v1","wm_devhw_v1"] /* KURAL (eşitleme): kişiye ait her kalıcı veri (değerlendirme sonucu, alan düzeyleri, ödev motoru) hesap eşitlemesine dahildir */;
 const SYNC_T_KEY = "wm_sync_t";
 const syncable = (k) => SYNC_KEYS.includes(k) || k.startsWith("wm_delay_");
 function acct(){ const f = window.__fb; return f && f.authApi ? f.authApi : null; }
@@ -17057,7 +17057,7 @@ function hwDevStatusLine(plan, player, lvl){ let t; if(!plan) t = "Önerilen ça
   return `<div class="fam-sub" style="font-weight:600;margin:10px 4px 0;text-align:center">${t}</div>`; }
 
 /* Değerlendirme turu önerisi: hiç yapılmadıysa */
-function hwNeedsKesif(player){ try{ const p = placeGet(player); return !p || !p.res || !Object.keys(p.res).length; }catch(e){ return false; } }
+function hwNeedsKesif(player){ try{ const p = placeGet(player); return !p || !p.dom || !Object.keys(p.dom).length; }catch(e){ return false; } }   /* KURAL: Değerlendirme turu sonucu kayıtta "dom" alanındadır; "yapıldı mı" denetimi her yerde placeGet + dom ile yapılır */
 function hwKesifCard(player, soft){ if(soft && !hwNeedsKesif(player)) return ""; return `<div class="fam-card" style="margin-bottom:8px"><div style="font-weight:900">${soft ? "Değerlendirme turu henüz yapılmadı" : "Önerilen çalışmaları hazırlamak için biraz daha çalışma gerekiyor"}</div><div class="fam-sub" style="font-weight:600;margin-top:4px">Değerlendirme turu, ${escHTML(player)} için her alanda uygun başlangıç düzeyini bulur; böylece ödevler daha doğru hazırlanır.</div><button type="button" class="fam-cta" id="${soft ? "devPlaceBtn2" : "devPlaceBtn"}" style="margin-top:10px">Değerlendirme turunu başlat</button></div>`; }
 
 /* ===== Ödev oturumu: ödevler kendi içinde ayrı bir akış ===== */
