@@ -6664,7 +6664,7 @@ const st = chState, sp = st.spec, isLs = landscapeMQ.matches;
 const W = (board.clientWidth || 360) - 24, H = isLs ? (board.clientHeight || 280) - 16 : Math.min(560 * tabletScale(), window.innerHeight - 280);
 const stimSize = Math.floor(Math.min(isLs ? H - 20 : 220 * tabletScale(), W * (isLs ? 0.42 : 0.75)));   /* tablette uyaran büyür */
 const tr = st.trials[st.idx];
-const stim = st.phase === "idle" ? (predictOn() ? predictHTML(st) : `<span class="hold">▶ Başlat'a bas</span>`) : st.phase === "done" ? (predictOn() && st.pred != null ? predictResult(st) : `<span class="hold">Bitti!</span>`) : st.phase === "gap" ? "" : sp.stim(tr, stimSize, st.ctx);   /* Tahmin Et – Yap – Karşılaştır katmanı: işaretli çalışmalarda */
+const stim = st.phase === "idle" ? `<span class="hold">▶ Başlat'a bas</span>` : st.phase === "done" ? `<span class="hold">Bitti!</span>` : st.phase === "gap" ? "" : sp.stim(tr, stimSize, st.ctx);   /* Tahmin Et – Yap – Karşılaştır katmanı: işaretli çalışmalarda */
 const buttons = sp.buttons(st.ctx, tr);   /* deneme bazlı düğmeler (Hızlı Seç: yer ve kural değişimi); tapStim: seçim resmin kendisine dokunarak */
 const corr = st.phase === "feedback" ? sp.correct(tr, st.ctx) : undefined;
 const btnHtml = sp.tapStim ? (st.phase === "ask" ? `<div class="aud-key" style="text-align:center">Resme dokun</div>` : "") : `<div class="ch-btns" style="grid-template-columns:repeat(${Math.min(buttons.length, (typeof sp.cols === "function" ? sp.cols(buttons.length) : sp.cols) || buttons.length)}, minmax(0, 1fr));">` + buttons.map(b => {
@@ -9463,15 +9463,11 @@ function scTrials(){ const t = Math.min(currentCombo().t, 2), pre = isPre(), N =
 const KT_CATS = () => [{ k:"hayvan", n:"hayvan", items: NB_ANIMALS.filter(k => animalImg(k)).map(k => ({ n: ANIMAL_NAMES[k], src: animalImg(k) })) }, { k:"oyuncak", n:"oyuncak", items: TOY_KEYS.map(k => ({ n: TOY_NAMES[k], src: TOY_IMAGES[k] })) }, { k:"esya", n:"ev eşyası", items: Object.keys(HOUSE_NAMES).map(k => ({ n: HOUSE_NAMES[k], src: HOUSE_IMAGES[k] })) }, { k:"meyve", n:"meyve", items: ["apple", "banana", "orange", "grapes", "strawberry"].map(k => ({ n: FRUIT_VEG_NAMES[k], src: FRUIT_VEG_IMAGES[k] })) }];
 function ktTrials(){ const t = Math.min(currentCombo().t, 2), pre = isPre(), K = (pre ? [2, 2, 3] : [2, 3, 4])[t], L = (pre ? [6, 8, 10] : [9, 12, 15])[t], R = pre ? 2 : 3, cats = KT_CATS();
   return Array.from({length:R}, () => { const use = shuffleArray(cats).slice(0, K); const seq = []; for(let i = 0; i < L; i++){ const c = use[i % K]; let it; let g = 0; do{ it = randomItem(c.items); g++; } while(g < 20 && seq.length && seq[seq.length - 1].n === it.n); seq.push({ cat: c.k, n: it.n, src: it.src }); } const order = shuffleArray(seq.slice()); const last = {}; order.forEach(x => { last[x.cat] = x.n; }); return { cats: use, seq: order, last, judge: {} }; }); }
-/* Tahmin Et – Yap – Karşılaştır katmanı: işaretli dokunmalı çalışmalarda başlamadan önce tahmin alınır */
-const PREDICT_IDS = new Set(["face-go", "fish-flanker", "switch-touch", "day-night-touch", "stroop-touch", "anti-touch", "grass-snow", "context-go", "tap-reverse", "navon", "rev-sort", "size-stroop", "num-stroop", "spatial-stroop", "distract", "less-more", "creature-count", "look-first"]);   /* tap-reverse artık vuruş sayılan etkileşimli tahta */
-function predictOn(){ try{ return !gameMode && PREDICT_IDS.has(currentExercise().id) && localStorage.getItem("wm_predict_v1") !== "0"; }catch(e){ return false; } }
-function predictHTML(st){ const n = st.trials.length, p = st.pred == null ? Math.round(n * 0.8) : st.pred; st.pred = p; return `<div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="font-weight:800;font-size:14px;color:#1F2A33">Kaç tanesini doğru yaparsın? <span style="color:#5B6B78">(${n} deneme)</span></div><div style="display:flex;align-items:center;gap:10px"><button type="button" class="wm-btn diff" data-pred="-1" style="min-width:60px;min-height:60px;padding:6px 10px;font-size:30px">−</button><b style="font-size:30px;min-width:44px;text-align:center">${p}</b><button type="button" class="wm-btn same" data-pred="1" style="min-width:60px;min-height:60px;padding:6px 10px;font-size:30px">+</button></div><div class="aud-key" style="font-size:12px">sonra ▶ Başlat'a bas</div></div>`; }
-function predictResult(st){ if(st.pred == null) return ""; const got = st.trials.length - st.wrong, d = got - st.pred;   /* kademeli yorum: tam isabet / üstünde / 1 eksik / 2 eksik / daha fazla eksik */
-  const txt = d === 0 ? `<b style="color:var(--good)">Tam isabet! Tahminin birebir tuttu 🎯</b>` : d === 1 ? `<b style="color:var(--good)">Tahmininden bir fazla yaptın, harika!</b>` : d >= 2 ? `<b style="color:var(--good)">Tahminin üstünde, mükemmelsin! 🌟</b>` : d === -1 ? `<b style="color:#2E6FD8">Çok yaklaştın!</b>` : d === -2 ? `<b style="color:#2E6FD8">Yaklaştın!</b>` : `<b style="color:#B45309">Biraz daha tekrar edelim; tahminine yaklaşacaksın.</b>`;
-  return `<div style="font-weight:800;font-size:14px;color:#1F2A33;text-align:center">Tahmin: <b>${st.pred}</b> · Gerçek: <b>${got}</b> / ${st.trials.length}<br>${txt}</div>`; }
-(function initPredictTap(){ try{ document.getElementById("board").addEventListener("click", ev => { const b = ev.target.closest("[data-pred]"); if(!b || !chState || chState.phase !== "idle") return; const n = chState.trials.length; chState.pred = Math.max(0, Math.min(n, (chState.pred == null ? Math.round(n * 0.8) : chState.pred) + Number(b.dataset.pred))); renderChoiceBoard(); }); }catch(e){} })();
-/* Paket 5 · akış yardımcıları */
+/* tap-reverse artık vuruş sayılan etkileşimli tahta */
+
+
+
+/* (2026-11-03: Tahmin özelliği kullanıcı isteğiyle uygulamadan kaldırıldı) */ /* Paket 5 · akış yardımcıları */
 function taprEval(){ const st = mtState; if(!st || st.kind !== "tapr" || st.phase !== "show") return; const tr = st.trials[st.ti], want = tr.k === 1 ? 2 : 1, ok = st.taps === want; if(ok){ st.okN++; gameSfx("correct"); } else mtErr(); st.fb = { ok, want }; st.phase = "fb"; renderMtBoard(); mtLater(NEW_MT.next, ok ? 500 : 1100); }
 function scArm(){ const st = mtState; if(!st || st.kind !== "selfchk" || st.phase !== "run") return; const my = st.cur; mtLater(() => { if(mtState !== st || st.phase !== "run" || st.cur !== my) return; const it = st.trials[my]; if(it.ans == null){ it.ans = "-"; it.ok = false; } scNext(); }, st.cfg.win); }
 function scNext(){ const st = mtState; st.cur++; if(st.cur >= st.trials.length){ st.phase = "review"; st.view = "review"; renderMtBoard(); return; } renderMtBoard(); scArm(); }
@@ -13473,9 +13469,7 @@ if(em){ em.innerHTML = mascotSVG("happy"); em.classList.add("has-mascot"); }
 applyCalm();
 try{ renderPlaceSettings(); }catch(e){}
 try{ renderAcctSettings(); }catch(e){}
-const pt = document.getElementById("predToggle");
 { const eb = document.getElementById("expertDevBtn"); if(eb){ const upd = () => { const r = homeRole() || (isExpertDevice() ? "uzman" : null); eb.textContent = r === "uzman" ? "Uzman" : r === "aile" ? "Aile" : "İkisi de"; eb.classList.toggle("on", !!r); }; upd(); eb.onclick = () => { const r = homeRole() || (isExpertDevice() ? "uzman" : null); const next = r === "aile" ? "uzman" : r === "uzman" ? null : "aile"; if(next) setHomeRole(next); else { try{ localStorage.removeItem(HOME_ROLE_KEY); localStorage.setItem(EXPERT_DEV_KEY, "0"); }catch(e){} } upd(); }; } }
-if(pt){ pt.checked = predOn(); pt.addEventListener("change", e => { try{ localStorage.setItem(PRED_KEY, e.target.checked ? "1" : "0"); }catch(_){} }); }
 const ct = document.getElementById("captionToggle");
 if(ct){ ct.checked = captionOn(); ct.addEventListener("change", e => { try{ localStorage.setItem(CAPTION_KEY, e.target.checked ? "1" : "0"); }catch(_){} }); }
 const t = document.getElementById("calmToggle");
@@ -13691,7 +13685,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.03-c";
+const APP_VERSION = "2026.11.03-d";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -14764,17 +14758,9 @@ const hb = document.getElementById("gameHint"); hb.style.display = needHint ? ""
 window.scrollTo(0, 0);
 gameStop.pred = null;
 const inRoute = (() => { try{ const rr2 = gxRoute(); const k = rr2.steps.findIndex(x => x.id === exId); return k >= 0 && !rr2.done[k]; }catch(e){ return false; } })();
-if(predOn() && inRoute && !ex.isMotion && !gameStop.coop) showPredict();
-else setTimeout(() => { if(gameMode) speakText(`${gameLine("start")} ${childInstructionText()}${needHint ? " İpucu: " + hint : ""}`); }, 450);
+setTimeout(() => { if(gameMode) speakText(`${gameLine("start")} ${childInstructionText()}${needHint ? " İpucu: " + hint : ""}`); }, 450);
 }
-const PRED_KEY = "wm_predict_v1";
-function predOn(){ try{ return localStorage.getItem(PRED_KEY) !== "0"; }catch(e){ return true; } }
-const PRED_TXT = ["Biraz zorlanırım", "Yaparım", "Çok iyi yaparım"], PRED_EMO = ["🙂", "😀", "🤩"];
-function showPredict(){ let el = document.getElementById("predSheet"); if(!el){ el = document.createElement("div"); el.id = "predSheet"; document.body.appendChild(el); }
-el.innerHTML = `<div class="pred-card"><div class="pred-h">Sence bu durak nasıl geçecek?</div><div class="pred-row">${PRED_TXT.map((t, i) => `<button type="button" data-pred="${i}"><span>${PRED_EMO[i]}</span>${t}</button>`).join("")}</div><button type="button" class="age-link" id="predSkip" style="margin-top:10px">Geç</button></div>`;
-try{ emojiFix(el); }catch(e){} el.style.display = "flex"; setTimeout(() => speakText("Sence bu durak nasıl geçecek?"), 250);
-{ const sk = document.getElementById("predSkip"); if(sk) sk.onclick = () => { el.style.display = "none"; setTimeout(() => { if(gameMode) speakText(`${gameLine("start")} ${childInstructionText()}`); }, 250); }; }
-el.querySelectorAll("[data-pred]").forEach(b => b.onclick = () => { if(gameStop) gameStop.pred = Number(b.dataset.pred); el.style.display = "none"; setTimeout(() => { if(gameMode) speakText(`${gameLine("start")} ${childInstructionText()}`); }, 250); }); }
+
 function gameAfterStop(){
 if(!gameMode || !gameStop) return;
 const ex = currentExercise();
@@ -14815,12 +14801,11 @@ try{ catGameStreak(ex, t, good); }catch(e){}
 r.bolt = r.bolt || [false, false, false];
 const onTime = good && !ex.isMotion && !ex.noBolt && gxOnTime(ex, ms), newBolt = onTime && !r.bolt[t]; if(onTime) r.bolt[t] = true;
 gameRecordSave(ex.id, r);
-const outcome = !good ? 0 : (errors === 0 ? 2 : 1), predHit = gameStop.pred != null && gameStop.pred === outcome;
+const outcome = !good ? 0 : (errors === 0 ? 2 : 1), predHit = false;
 const spIsl = GAME_ISLANDS.find(x => x.id === gameStop.islandId && x.special);
 if(spIsl && spIsl.id === "macera"){ try{ advTaskDone(ex.id); }catch(e){} }
 if(spIsl){ gxWeekMark(spIsl.id, ex.id); if(spIsl.id === "usta" && good){ gx0Usta = true; } }
 let gx = []; try{ gx = gxAfterStop(ex.id, spIsl ? ((gxIslandOf(ex.id) || {}).id || null) : gameStop.islandId, { good, newStar, faster, hinted: !!gameStop.hinted, bolt: newBolt, pred: predHit }); }catch(e){ console.error(e); }
-if(gameStop.pred != null) gx.unshift({ k:"pred", t: predHit ? `🎯 Tahminin tuttu: “${PRED_TXT[outcome]}”` : `Tahminin: “${PRED_TXT[gameStop.pred]}” · Sonuç: “${PRED_TXT[outcome]}”` });
 if(newBolt) gx.unshift({ k:"bolt", t:"⚡ Şimşek rozeti! Süre hedefini tutturdun." });
 if(!good && (r.fails && r.fails[t] >= 2)) setTimeout(() => { try{ const c = document.getElementById("grCard"); if(c && !c.querySelector(".mola-inv")){ const d = document.createElement("button"); d.type = "button"; d.className = "mola-inv"; d.textContent = "🌿 Biraz mola verelim mi?"; d.onclick = () => { document.getElementById("gameReward").style.display = "none"; showMola(); }; c.appendChild(d); } }catch(e){} }, 300);
 if(warmedUp) gx.unshift({ k:"up", t:`Isındın! Şimdi yeniden ${GAME_TIER_NAMES[t + 1]} düzeyi deneyebilirsin.` });
@@ -16446,7 +16431,7 @@ function prefsSet(k, v){ const p = prefsGet(); p[k] = v; try{ localStorage.setIt
 (function prefsLoad(){ try{ const p = prefsGet(); if("sound" in p) soundEnabled = !!p.sound; if("haptic" in p) hapticEnabled = !!p.haptic; if("confetti" in p) confettiEnabled = !!p.confetti; expertAdaptiveEnabled = ("expAdapt" in p) ? !!p.expAdapt : true;
 const set = (id, v) => { const e = document.getElementById(id); if(e) e.checked = v; }; set("soundToggle", soundEnabled); set("hapticToggle", hapticEnabled); set("confettiToggle", confettiEnabled); set("expertAdaptiveToggle", expertAdaptiveEnabled);
 [["soundToggle","sound"],["hapticToggle","haptic"],["confettiToggle","confetti"],["expertAdaptiveToggle","expAdapt"]].forEach(([id, k]) => { const e = document.getElementById(id); if(e) e.addEventListener("change", () => prefsSet(k, e.checked)); });
-{ const pt = document.getElementById("predToggle"); if(pt){ if("pred" in p && pt.checked !== !!p.pred){ pt.checked = !!p.pred; pt.dispatchEvent(new Event("change")); } pt.addEventListener("change", () => prefsSet("pred", pt.checked)); } }
+
 if(!("vibrate" in navigator)){ const h = document.getElementById("hapticToggle"); if(h){ h.checked = false; h.disabled = true; const g = h.closest(".settings-group"); const lab = g && g.querySelector(".settings-label"); if(lab && !lab.querySelector(".hap-note")) lab.insertAdjacentHTML("beforeend", `<span class="hap-note" style="display:block;font-size:12px;font-weight:600;color:var(--ink-soft)">Bu cihaz titreşimi desteklemiyor (iPhone'daki tarayıcılar izin vermez).</span>`); } }
 }catch(e){ console.error(e); } })();
 // ===== Ana menü =====
@@ -16480,7 +16465,7 @@ const off = document.getElementById("pinOffBtn"); if(off) off.onclick = () => ex
 function wipeDeviceData(){ const keep = []; for(let i = localStorage.length - 1; i >= 0; i--){ const k = localStorage.key(i); if(k && k.startsWith("wm_")) localStorage.removeItem(k); } try{ sessionStorage.clear(); }catch(e){} }
 
 // ===== HESAP (e-posta) VE BULUT SENKRONU =====
-const SYNC_KEYS = ["wm_game_v1","wm_gamex_v1","wm_game_route_v1","wm_game_limit_v1","wm_place_v1","wm_ages_v1","wm_player_levels_v1","wm_last_v1","wm_last_by","wm_who_last","wm_unlock_seen_v1","wm_predict_v1","wm_mola_v1","wm_daily_v1","wm_week_target_v1","wm_family_links_v1"];
+const SYNC_KEYS = ["wm_game_v1","wm_gamex_v1","wm_game_route_v1","wm_game_limit_v1","wm_place_v1","wm_ages_v1","wm_player_levels_v1","wm_last_v1","wm_last_by","wm_who_last","wm_unlock_seen_v1","wm_mola_v1","wm_daily_v1","wm_week_target_v1","wm_family_links_v1"];
 const SYNC_T_KEY = "wm_sync_t";
 const syncable = (k) => SYNC_KEYS.includes(k) || k.startsWith("wm_delay_");
 function acct(){ const f = window.__fb; return f && f.authApi ? f.authApi : null; }
@@ -16543,10 +16528,10 @@ if(inner){ let wrap = null; [...inner.children].forEach(ch => { const isLab = ch
 if(isLab){ wrap = document.createElement("div"); wrap.className = "settings-group set-loose"; inner.insertBefore(wrap, ch); wrap.appendChild(ch); } else if(stop){ wrap = null; } else if(wrap){ wrap.appendChild(ch); } }); }
 [...document.querySelectorAll("#settingsScreen .set-loose")].forEach(g => { if(g.children.length === 1 && (g.textContent || "").trim() === "Erişilebilirlik"){ const nx = g.nextElementSibling; const lab = nx && nx.querySelector(".settings-label"); if(lab){ lab.insertAdjacentHTML("afterbegin", "<b style=\"display:block;font-size:16px;color:var(--ink);margin-bottom:4px\">Erişilebilirlik</b>"); } g.remove(); } });
 const groups = [...document.querySelectorAll("#settingsScreen .settings-group")]; if(!groups.length) return;
-/* KURAL (sadelik): Ayarlar'da sık kullanılanlar üstte; az kullanılanlar (uyarlamalı zorluk, uzman girişi ayrıntısı, tahmin et, oyun yedeği) "Gelişmiş" başlığında */
+/* KURAL (sadelik): Ayarlar'da sık kullanılanlar üstte; az kullanılanlar (uyarlamalı zorluk, uzman girişi ayrıntısı, oyun yedeği) "Gelişmiş" başlığında */
 const S = [["smile|#0A847E|#DDF3F0|Çocuk", ["Günlük oyun süresi","Başlangıç değerlendirmesi"]],
 ["bulb|#9A6B00|#FFF1D6|Ses ve görünüm", ["Ses efektleri","Altyazı","Sade görünüm","Titreşim","Kutlama","Erişilebilirlik","Yazı boyutu"]], ["lock|#5A2D8C|#EEE6FA|Hesap, veri ve cihaz", ["Hesap ve bulut","Bu cihazı kullanan","Kişiler ve veriler","Uzman PIN"]],
-["key|#3D4F5F|#EEF2F5|Gelişmiş", ["Uyarlamalı zorluk","Uzman girişinde","Tahmin et","Oyun ilerlemesi yedeği"]]];
+["key|#3D4F5F|#EEF2F5|Gelişmiş", ["Uyarlamalı zorluk","Uzman girişinde","Oyun ilerlemesi yedeği"]]];
 const lab = (g) => ((g.querySelector(".settings-label") || {}).textContent || "").trim(); const host = groups[0].parentNode, mark = document.createElement("div"); host.insertBefore(mark, groups[0]);
 S.forEach(([title, keys], k) => { const d = document.createElement("details"); d.className = "set-sec"; if(k === 0) d.open = true; const [ic, col, bg, ttl] = title.split("|"); d.innerHTML = `<summary><span class="gr-ic" style="background:${bg};color:${col};margin-right:10px">${icI(ic, 18, col)}</span>${ttl}</summary>`;   /* emoji yerine palet renginde çizgi simge */
 keys.forEach(key => groups.filter(g => lab(g).startsWith(key)).forEach(g => d.appendChild(g))); if(d.children.length > 1) host.insertBefore(d, mark);
