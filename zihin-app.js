@@ -8794,7 +8794,7 @@ const PLACE_DOMS = [
 { k:"dil",     nm:"Sözel kavrama",        cats:["sozel-kavrama"],        kind:"qz", q:"word-pic", q2:"concept-touch" },
 { k:"gorsel",  nm:"Görsel organizasyon",  cats:["gorsel-organizasyon"],  kind:"qz", q:"mental-rot", q2:"closure" },
 { k:"mantik",  nm:"Algısal akıl yürütme", cats:["algisal-akil-yurutme"], kind:"qz", q:"matrix-fill", q2:"pattern-touch" } ];
-const PLACE_TASK = { hiz:"anlam kararı, gölge eşleme", goz:"bardak takibi", dikkat:"ok yönü, kural bulma", calisan:"sırayı hatırlama", sozelb:"dinle-hatırla", resim:"resimleri hatırlama", sozelo:"farklı olan, benzetme", dil:"söyleneni göster, kavramlar", gorsel:"döndürme, tamamlama", mantik:"matris, örüntü" };   /* sonuç tablosunda her alanın hangi çalışmayla ölçüldüğü yazar */
+const PLACE_TASK = { hiz:"anlam kararı, gölge eşleme", goz:"bardak takibi", dikkat:"ok yönü", calisan:"sırayı hatırlama", sozelb:"dinle-hatırla", resim:"resimleri hatırlama", sozelo:"farklı olan, benzetme", dil:"söyleneni göster, kavramlar", gorsel:"döndürme, tamamlama", mantik:"matris, örüntü" };   /* sonuç tablosunda her alanın hangi çalışmayla ölçüldüğü yazar */
 const PLACE_TIER = ["Başlangıç","Orta","Zor"], PLACE_STEPS = 6;
 const stepLvl = (s) => s >= 3 ? "post" : "pre", stepTier = (s) => s % 3;
 const stepName = (s) => (s >= 3 ? "Okul Sonrası" : "Okul Öncesi") + " · " + PLACE_TIER[s % 3];
@@ -8926,8 +8926,10 @@ el.style.display = "flex"; el.innerHTML = `<div class="adv-wrap" style="text-ali
 speakText("Zihni ile değerlendirme turuna hazır mısın?"); document.getElementById("placeGo").onclick = placeNext; placeExitBtn(); }
 /* KURAL (Değerlendirme turu): sonraki alanın başlangıç basamağı önceki alanların sonuçlarına göre belirlenir (tamamlanan alanların ortalaması; ilk alan çocuğun genel düzeyinden başlar) — zorlanan çocuk sonraki alanlara aşağıdan, güçlü çocuk yukarıdan başlar, tur hem kısa hem isabetli olur */
 function placeNextStart(R){ const v = Object.values(R.res || {}).filter(x => typeof x === "number"); if(!v.length) return R.base; const m = (v.reduce((a, b) => a + b, 0) + R.base) / (v.length + 1);   /* genel düzey bir "ön bilgi" olarak ortalamaya katılır: ilk alandaki tek sonuç her şeyi belirlemez */ return Math.max(0, Math.min(PLACE_STEPS - 1, Math.round(m))); }
+/* KURAL (Değerlendirme turu çıkışı): tur bitince ya da çıkılınca kullanıcı asla boş ekranda kalmaz — açık bir ekran yoksa ana sayfaya dönülür; Zihin Adaları'ndan başlatıldıysa harita yenilenir */
+function placeAfterClose(){ try{ const isl = document.getElementById("islandScreen"); if(isl && isl.style.display === "flex"){ showIslandMap(); return; } const skip = new Set(["placeScreen", "placeX", "placeOffer", "exhPop"]); const vis = [...document.body.children].some(e => { if(skip.has(e.id) || /exh-|toast|sheet|tour|overlay/i.test(e.className || "")) return false; const cs = getComputedStyle(e); if(cs.display === "none" || cs.visibility === "hidden" || cs.position === "fixed" && e.id !== "islandScreen" && !/Screen|Home|mainApp/.test(e.id)) return false; const r = e.getBoundingClientRect(); return r.height > 300 && r.width > 200 && (e.innerText || "").trim().length > 0; }); if(!vis){ try{ goHome(); }catch(e){ location.reload(); } } }catch(e){ try{ goHome(); }catch(_){} } }
 function placeExitBtn(){ const el = document.getElementById("placeScreen"); let x = document.getElementById("placeX"); if(x){ x.style.display = "flex"; return; } x = document.createElement("button"); x.id = "placeX"; x.type = "button"; x.className = "place-x mola-x"; x.setAttribute("aria-label", "Değerlendirme turundan çık"); x.textContent = "✕";
-x.onclick = async () => { if(!await zaConfirm("Değerlendirme turundan çıkılsın mı? Sonuçlar kaydedilmez; turu daha sonra yeniden başlatabilirsiniz.")) return; placeRun = null; el.style.display = "none"; x.style.display = "none"; try{ speechSynthesis.cancel(); }catch(e){} try{ if(document.getElementById("islandScreen").style.display === "flex") showIslandMap(); }catch(e){} };
+x.onclick = async () => { if(!await zaConfirm("Değerlendirme turundan çıkılsın mı? Sonuçlar kaydedilmez; turu daha sonra yeniden başlatabilirsiniz.")) return; placeRun = null; el.style.display = "none"; x.style.display = "none"; try{ speechSynthesis.cancel(); }catch(e){} placeAfterClose(); };
 document.body.appendChild(x); }
 /* KURAL: oyun sahnesinde sepet gerçek hasır sepet görseli (Meyve Sepeti) */
 /* KURAL (Değerlendirme turu, yapı): alanlar dönüşümlü sorulur — bir alanda en çok 2 soru (bir tur) arka arkaya gelir, sonra sıradaki alana geçilir; tüm alanlar (kategoriler) tur tur ölçülür. Hızlı iniş: başlangıçta 0/2 ise iki basamak birden inilir; inişteyken ya da en kolay basamakta ilk soru da yanlışsa ikinci soru sorulmadan alan bitirilir/iner (en kolayda bile yapamayan çocuğa aynı görev üst üste verilmez); alan başına en çok 4 tur. */
@@ -8995,7 +8997,7 @@ ${placeTableHtml(R.res, { qn: R.qn || {} })}
 <div class="fam-sub place-note">Yetişkin için: düzey yaşa göre değil, her alanda yapabildiğine göre belirlendi. Çalışmalar buradan başlar, sonra performansa göre kendiliğinden ayarlanır.</div>
 <div class="mola-list" style="max-width:300px;margin:0 auto"><button type="button" id="placeDone" class="place-cta"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="m7.5 12.5 3 3 6-6.5"></path></svg>Tamam</button></div></div>`;
 speakText("Değerlendirme turu bitti! Harikaydın!");
-document.getElementById("placeDone").onclick = () => { el.style.display = "none"; try{ if(document.getElementById("islandScreen").style.display === "flex") showIslandMap(); }catch(e){} try{ renderPlaceSettings(); }catch(e){} }; }
+document.getElementById("placeDone").onclick = () => { el.style.display = "none"; const px = document.getElementById("placeX"); if(px) px.style.display = "none"; placeAfterClose(); try{ renderPlaceSettings(); }catch(e){} }; }
 function renderPlaceSettings(){ const box = document.getElementById("placeSettingsBox"); if(!box) return; const nm = (currentPlayerName || "").trim();
 if(!nm || nm === "Misafir"){ box.innerHTML = `<span style="font-size:12px;font-weight:600;color:var(--ink-soft)">Önce bir kişi seçin.</span>`; return; }
 const p = placeGet(nm);
@@ -13685,7 +13687,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.03-e";
+const APP_VERSION = "2026.11.03-f";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -16914,7 +16916,7 @@ function showHwScreen(){ hideFamScreens(); hideLinkScreens(); hwScreenOpen = tru
       + `<details class="fam-card" style="margin-top:10px"><summary style="font-weight:800;cursor:pointer">Bu ödevler nasıl seçilir?</summary><div class="fam-sub" style="font-weight:600;margin-top:8px;line-height:1.55">Uzman ödevlerini uzmanınız verir ve her zaman önceliklidir. Önerilen çalışmaları uygulama, son 60 gündeki çalışmalara bakarak hazırlar: daha çok çalışmaya ihtiyaç duyduğu alanlardan bir çalışma bir alt düzeyden başlar, iyi yaptığı bir alandan da bir çalışma eklenir. Bir ödev iki başarılı denemeyle tamamlanır ve yerine bir sonraki adım gelir. Uzman ödevi varken en fazla bir önerilen çalışma verilir.<br>Uzman ödevlerinde: Başarılı = son denemede en çok 1 hata · Gelişiyor = 2 hata · Tekrar edelim = 3 ve üzeri hata.</div></details>`; }
   const todayTotal = devItems.length + doneToday; w.innerHTML = `<div><h2 class="fam-h">Ödevlerim</h2><div class="fam-sub">${escHTML(player)}${todayTotal && doneToday ? ` · Bugün ${doneToday}/${todayTotal} ödev tamamlandı` : ""}</div></div>${body}`;
   ["hwLinkBtn","hwLinkBtn2"].forEach(id => { const lb = document.getElementById(id); if(lb) lb.onclick = () => { try{ showLinkScreen(); }catch(e){} }; });
-  const pb = document.getElementById("devPlaceBtn") || document.getElementById("devPlaceBtn2"); if(pb) pb.onclick = () => { try{ hideLinkScreens(); placeStart(player); }catch(e){ console.error(e); } };
+  const pb = document.getElementById("devPlaceBtn") || document.getElementById("devPlaceBtn2"); if(pb) pb.onclick = () => { try{ placeStart(player); }catch(e){ console.error(e); } };   /* KURAL: tur, altındaki ekran gizlenmeden başlar (bitince o ekrana dönülür) */
   w.querySelectorAll("[data-hwopen]").forEach(b => b.onclick = () => hwRunOpen(b.dataset.hwopen, null));
   w.querySelectorAll("[data-devopen]").forEach(b => b.onclick = () => hwRunOpen(b.dataset.devopen, +b.dataset.devti));
   w.querySelectorAll("[data-devsnooze]").forEach(b => b.onclick = () => { const pl = devPlanGet(player, lvl); if(!pl) return; const it = pl.items.find(x => x.id === b.dataset.devsnooze); if(!it) return; if(it.snooze > Date.now()) delete it.snooze; else { it.snooze = Date.now() + 864e5; it.at = Math.max(it.at, Date.now() - (DEV_STALE_DAYS - 2) * 864e5); } devPlanSave(player, lvl, pl); showHwScreen(); });
