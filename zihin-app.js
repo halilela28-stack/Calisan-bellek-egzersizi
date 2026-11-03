@@ -13687,7 +13687,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.03-j";
+const APP_VERSION = "2026.11.03-k";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -15915,7 +15915,7 @@ function catV2Render(){ const sc = document.getElementById("categoryScreen"); if
   const isA = appMode === "aile", M = isA ? "Aile" : "Uzman";
   if(!top){ top = document.createElement("div"); top.id = "catTop"; inner.insertBefore(top, inner.firstChild); }
   top.style.display = ""; top.innerHTML = `<button type="button" class="ct-btn" id="catTopBack" aria-label="Geri"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#1C2B39" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button><div class="ct-tx"><small>Bilişsel Etkinlik · ${M}</small><b>${M} Etkinlik Sayfası</b></div><span class="ct-tag ${isA ? "a" : "u"}">${M}</span><button type="button" class="ct-btn ct-i" id="catTopInfo" aria-label="Alanlar hakkında"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#0A847E" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button><button type="button" class="ct-btn" id="catTopHome" aria-label="Ana sayfa"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#0A847E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></button>`;
-  document.getElementById("catTopBack").onclick = () => { const b = document.getElementById("categoryBackBtn"); if(b) b.click(); };
+  document.getElementById("catTopBack").onclick = () => { try{ document.getElementById("categoryScreen").style.display = "none"; categoryBackTarget = null; goHome(); }catch(e){ const b = document.getElementById("categoryBackBtn"); if(b) b.click(); } };   /* KURAL: Aile/Uzman sayfasında geri her zaman ana sayfaya döner (son etkinliğe değil) */
   document.getElementById("catTopInfo").onclick = () => { try{ openAboutScreen(); }catch(e){} };
   document.getElementById("catTopHome").onclick = () => { try{ document.getElementById("categoryScreen").style.display = "none"; goHome(); }catch(e){} };
   /* üst kart: eski sayfadaki kahraman kart (Bugünün etkinlikleri / Etkinlik Raporları) kahraman olarak kalır; dört kutu alta taşınır */
