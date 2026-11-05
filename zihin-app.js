@@ -1632,6 +1632,20 @@ function pageComplete(){ try{ const ex = currentExercise(); if((ex.isMt || ex.is
 // ===== Çalışma odak modu (Başlat → Bitir): ayar satırları gizlenir, sayfa sabitlenir, otomatik kaydırma yapılmaz =====
 function pageScroller(){ const ma = document.getElementById("mainApp"); if(ma && /(auto|scroll)/.test(getComputedStyle(ma).overflowY) && ma.scrollHeight > ma.clientHeight + 1) return ma; const b = document.body, cs = getComputedStyle(b); if(/(auto|scroll)/.test(cs.overflowY) && b.scrollHeight > b.clientHeight + 1) return b; return document.scrollingElement || document.documentElement; }
 function pageScrollTop(){ const ma = document.getElementById("mainApp"); return Math.max(window.scrollY || 0, document.body.scrollTop || 0, (document.scrollingElement || document.documentElement).scrollTop || 0, ma ? ma.scrollTop : 0); }
+/* KURAL (Ödevlerim sıkı düzen, 2026-11-06): Ödevlerim sayfası boşlukları azaltılmış sıkı düzendedir — mümkünse tek ekrana sığar (üst boşluk, başlık, bölüm başlıkları, kartlar ve geçmiş tablosu satırları sıkılaştırılmıştır); yazılar 11 px altına inmez */
+(function hwCompact(){ try{ const st = document.createElement("style"); st.id = "za-hw-compact"; st.textContent = [
+ "#linkScreen.za-hw #linkWrap{padding-top:58px !important;padding-bottom:14px !important;padding-left:14px !important;padding-right:14px !important}", "#linkScreen.za-hw .fam-card{line-height:1.3 !important}",
+ "#linkScreen.za-hw #linkWrap > div:first-child{margin-bottom:0 !important}",
+ "#linkScreen.za-hw .fam-title, #linkScreen.za-hw #linkWrap h1, #linkScreen.za-hw #linkWrap h2{font-size:28px !important;line-height:1.1 !important;margin:0 0 2px !important}",
+ "#linkScreen.za-hw .fam-sub{margin-bottom:2px !important;font-size:14px !important}",
+ "#linkScreen.za-hw .fam-card{padding:10px 12px !important;margin-bottom:6px !important}",
+ "#linkScreen.za-hw details.fam-card{padding:10px 12px !important;margin-top:6px !important}",
+ "#linkScreen.za-hw #linkWrap table td, #linkScreen.za-hw #linkWrap table th{padding-top:6px !important;padding-bottom:6px !important}", "#linkScreen.za-hw #linkWrap div[style*=\"margin:14px 2px 6px\"]{margin:8px 2px 4px !important}", "#linkScreen.za-hw #linkWrap div[style*=\"margin:6px 2px 6px\"]{margin:4px 2px 4px !important}"
+ ].join("\n"); (document.head || document.documentElement).appendChild(st); }catch(e){}
+ try{ const f = showHwScreen; showHwScreen = function(){ const r = f.apply(this, arguments); try{ const ls = document.getElementById("linkScreen"); if(ls) ls.classList.add("za-hw"); }catch(e){} return r; }; }catch(e){}
+ try{ const g = hideLinkScreens; hideLinkScreens = function(){ try{ const ls = document.getElementById("linkScreen"); if(ls) ls.classList.remove("za-hw"); }catch(e){} return g.apply(this, arguments); }; }catch(e){} })();
+/* KURAL (durum çubuğu, 2026-11-06): uygulama arka plandan dönünce (başka uygulamaya girip çıkınca) üstteki durum çubuğu rengi uygulamanın rengine yeniden ayarlanır (iPhone'da gri kalıyordu) */
+(function statusBarFix(){ try{ const C = "#EEF3F3"; const fix = () => { try{ const m = document.querySelector('meta[name="theme-color"]'); if(!m) return; m.setAttribute("content", "#EEF3F2"); requestAnimationFrame(() => { m.setAttribute("content", C); }); document.documentElement.style.backgroundColor = C; }catch(e){} }; document.addEventListener("visibilitychange", () => { if(!document.hidden) setTimeout(fix, 60); }); window.addEventListener("pageshow", fix); window.addEventListener("focus", () => setTimeout(fix, 30)); }catch(e){} })();
 /* KURAL (ana sayfa kişi seçimi, 2026-11-05): ana sayfada kişi listesi ana sayfanın kendi penceresinde açılır (Değiştir ve kişi gerektiren düğmeler); oyunun "Kim oynuyor?" penceresi ana sayfada gizli kalıp sonra etkinlik sayfasında çıkmaz */
 function zaHomePick(cur, cb){ try{ const esc = (x) => String(x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;"); const sh = whoSheet(`<div class="mola-h">Kim çalışıyor?</div><div class="mola-list hp-list">${whoNames().map(nm => `<button type="button" data-hp="${esc(nm)}"${nm === cur ? ' class="on"' : ""}>${avatarHTML(nm, 30)}<span class="hp-ln">${esc(nm)}</span>${nm === cur ? '<span class="hp-ok">Seçili</span>' : ""}</button>`).join("")}</div>`); sh.querySelectorAll("[data-hp]").forEach(b => b.onclick = () => { sh.style.display = "none"; try{ cb(b.dataset.hp); }catch(e){} }); }catch(e){} }
 /* KURAL (ana sayfa · B, 2026-11-05 — kullanıcının onayladığı taslak B): "Merhaba!" altında kişi satırı; turkuaz kartta solda iki düğmenin toplam yüksekliğinde "Bilişsel Etkinlik" düğmesi (alanlar sayfasını açar), sağda Bugünün etkinlikleri ve Ödevlerim üst üste; kartlar orantılı küçültülür, iki kart aynı boydadır. Eski "ana sayfada kişi seçimi/ekleme yok" kuralının yerine */
@@ -13741,7 +13755,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.06-a";
+const APP_VERSION = "2026.11.06-b";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
