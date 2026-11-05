@@ -1632,6 +1632,8 @@ function pageComplete(){ try{ const ex = currentExercise(); if((ex.isMt || ex.is
 // ===== Çalışma odak modu (Başlat → Bitir): ayar satırları gizlenir, sayfa sabitlenir, otomatik kaydırma yapılmaz =====
 function pageScroller(){ const ma = document.getElementById("mainApp"); if(ma && /(auto|scroll)/.test(getComputedStyle(ma).overflowY) && ma.scrollHeight > ma.clientHeight + 1) return ma; const b = document.body, cs = getComputedStyle(b); if(/(auto|scroll)/.test(cs.overflowY) && b.scrollHeight > b.clientHeight + 1) return b; return document.scrollingElement || document.documentElement; }
 function pageScrollTop(){ const ma = document.getElementById("mainApp"); return Math.max(window.scrollY || 0, document.body.scrollTop || 0, (document.scrollingElement || document.documentElement).scrollTop || 0, ma ? ma.scrollTop : 0); }
+/* KURAL (odak, 2026-11-05): Bugünün etkinlikleri ve Ödevlerim oturumunda Başlat'a basınca üstteki oturum çubuğu (Bugün · ADIM · kişi) ve ödev çubuğu gizlenir; odak modunun "ayar satırları gizlenir" kuralı gereği Kişi/Düzey/Aşama çipleri de çalışırken gizlenir; tahta bu yeri kullanarak büyür; çalışma bitince ya da durunca çubuk geri gelir. Süre, Bitir ve hata sayacı ekranda kalır */
+(function sessionBarFocusCSS(){ try{ if(document.getElementById("za-sb-focus")) return; const st = document.createElement("style"); st.id = "za-sb-focus"; st.textContent = "html.run-focus .session-bar, html.run-focus #hwBar, html.run-focus #exHead .exh-chips{display:none !important}"; (document.head || document.documentElement).appendChild(st); }catch(e){} })();
 function runFocusOn(){ if(window.__TANI_NOFOCUS) return; const h = document.documentElement; try{ const ma = document.getElementById("mainApp"); if(ma) ma.scrollTop = 0; document.body.scrollTop = 0; window.scrollTo(0, 0); const sc = document.scrollingElement; if(sc) sc.scrollTop = 0; }catch(e){} window._fitK = 1; h.classList.add("run-focus"); try{ document.body.scrollTop = 0; window.scrollTo(0, 0); }catch(e){} runFocusSize(); runFocusWatch(); runFocusRepaint(); }
 // iPhone: düzen değişikliğinden sonra tahtayı zorla yeniden çizdir (çizilmeden kalan alanlar için)
 function runFocusRepaint(){ const bd = document.getElementById("board"); if(!bd) return; const kick = () => { try{ bd.style.visibility = "hidden"; void bd.offsetHeight; bd.style.visibility = ""; }catch(e){} }; requestAnimationFrame(() => { kick(); setTimeout(kick, 120); setTimeout(kick, 400); }); }
@@ -13695,7 +13697,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.04-b";
+const APP_VERSION = "2026.11.05-a";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
