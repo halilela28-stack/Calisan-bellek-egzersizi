@@ -1632,13 +1632,19 @@ function pageComplete(){ try{ const ex = currentExercise(); if((ex.isMt || ex.is
 // ===== Çalışma odak modu (Başlat → Bitir): ayar satırları gizlenir, sayfa sabitlenir, otomatik kaydırma yapılmaz =====
 function pageScroller(){ const ma = document.getElementById("mainApp"); if(ma && /(auto|scroll)/.test(getComputedStyle(ma).overflowY) && ma.scrollHeight > ma.clientHeight + 1) return ma; const b = document.body, cs = getComputedStyle(b); if(/(auto|scroll)/.test(cs.overflowY) && b.scrollHeight > b.clientHeight + 1) return b; return document.scrollingElement || document.documentElement; }
 function pageScrollTop(){ const ma = document.getElementById("mainApp"); return Math.max(window.scrollY || 0, document.body.scrollTop || 0, (document.scrollingElement || document.documentElement).scrollTop || 0, ma ? ma.scrollTop : 0); }
+/* KURAL (konuşma, 2026-11-05): etkinlikten/oyundan çıkınca (Harita, ana sayfa, oyun bitişi) konuşma hemen susar, altyazı balonu kapanır, bekleyen ve "kaçırılıp ilk dokunuşta okunacak" konuşmalar iptal edilir — çıkış dokunuşu önceki etkinliğin yönergesini haritada okutmaz */
+function zaStopSpeech(){ try{ window.__zaSpGen = (window.__zaSpGen || 0) + 1; }catch(e){} try{ _ttsMissed = null; }catch(e){} try{ if(window.speechSynthesis) speechSynthesis.cancel(); }catch(e){} try{ hideCaption(); }catch(e){} try{ (window._rlTs || []).forEach(clearTimeout); window._rlTs = []; }catch(e){} }
+(function(){ try{ const f1 = showIslandMap; showIslandMap = function(){ zaStopSpeech(); return f1.apply(this, arguments); }; }catch(e){} try{ const f2 = goHome; goHome = function(){ zaStopSpeech(); return f2.apply(this, arguments); }; }catch(e){} try{ const f3 = exitGameMode; exitGameMode = function(){ zaStopSpeech(); return f3.apply(this, arguments); }; }catch(e){} try{ const f4 = hideGameScreens; hideGameScreens = function(){ zaStopSpeech(); return f4.apply(this, arguments); }; }catch(e){} ["openCategoryScreen", "showToday", "showWho"].forEach(n => { try{ const f = (0, eval)(n); if(typeof f !== "function") return; const w = function(){ zaStopSpeech(); return f.apply(this, arguments); }; if(n === "openCategoryScreen") openCategoryScreen = w; else if(n === "showToday") showToday = w; else showWho = w; }catch(e){} }); })();
+/* KURAL (otomatik hata, 2026-11-05): yanlışı uygulamanın kendisinin saydığı dokunmalı oyunlarda (oyun modu dahil) − ve + düğmeleri görünmez; hata sayısı yalnızca okunur olarak görünür ve her yanlışta kendiliğinden artar. Elle sayılan (söylemeli) çalışmalarda − ve + kalır */
+function zaAutoErrClass(){ try{ const ex = currentExercise(); const auto = !!ex && isInteractiveExercise(ex) && !usesManualErrors(ex) && !(typeof mtState !== "undefined" && mtState && mtState.manual); document.documentElement.classList.toggle("za-autoerr", auto); }catch(e){} }
+(function(){ try{ const _ra = renderAll; renderAll = function(){ const r = _ra.apply(this, arguments); zaAutoErrClass(); return r; }; }catch(e){} try{ const go = () => { const b = document.getElementById("board"); if(!b) return setTimeout(go, 500); new MutationObserver(() => zaAutoErrClass()).observe(b, { childList: true }); zaAutoErrClass(); }; if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go(); }catch(e){} })();
 /* Başlat'ta başlık/çipler/çubuk gizlendiği, Bitir'de geri geldiği için tahta o anda bir kez yeniden yerleştirilir (resim boyu değişmez, yalnız yer); çalışma sürerken tahta dondurulur */
 function zaSessionRelayout(){ try{ const h = document.documentElement; if(typeof boardIsPic === "function" && !boardIsPic()) return; const go = () => { try{ window._zaLaidGrid = null; applyBoardLayout(); if(typeof runFocusFit === "function") runFocusFit(); }catch(e){} }; requestAnimationFrame(go); setTimeout(go, 150); }catch(e){} }
 /* KURAL (odak, 2026-11-05 — kullanıcı kuralı 4): Başlat'a basınca yönerge, süre satırı (Bitir) ve hata sayısı görünür kalır; başlık satırı, Kişi/Düzey/Aşama çipleri, Bugün/ödev çubuğu ve alttaki Önceki · Karıştır · Sonraki düğmeleri gizlenir; Bitir'e basınca hepsi geri gelir. Süre ve hata satırları oranlı küçüktür (hata düğmeleri 46 px) */
 (function sessionBarFocusCSS(){ try{ if(document.getElementById("za-sb-focus")) return; const st = document.createElement("style"); st.id = "za-sb-focus"; st.textContent = [
   "html.za-running .session-bar, html.za-running #hwBar, html.za-running #exHead{display:none !important}",
   "html.run-focus.za-running .controls{display:none !important}",
-  "html.run-focus.run-tight #errorRow{display:flex !important;visibility:visible !important}",
+  "html.za-autoerr #mainApp #errorRow{display:flex !important;visibility:visible !important}", "html.za-autoerr #mainApp #errorRow .error-btn{display:none !important}", "html.za-autoerr #mainApp #errorRow{justify-content:space-between}",
   "html.exh-on:not(.game-mode) #mainApp .timer-row{padding:4px 8px 4px 14px !important;min-height:0 !important}",
   "html.exh-on:not(.game-mode) #timerDisplay{font-size:22px !important}",
   "html.exh-on:not(.game-mode) #timerBtn, html.exh-on:not(.game-mode) #timerResetBtn{padding-top:7px !important;padding-bottom:7px !important;font-size:14px !important}",
@@ -7304,6 +7310,7 @@ function hideCaption(){ const el = document.getElementById("ttsCaption"); if(el)
 try{ if("speechSynthesis" in window){ speechSynthesis.getVoices(); setTimeout(() => { window.__ttsVoicesTried = true; }, 2500); } }catch(e){}
 function sayTask(t, rate){
 try{
+{ const ma = document.getElementById("mainApp"); if(!ma || getComputedStyle(ma).display === "none") return; } /* etkinlik ekranı kapalıyken (haritaya/ana sayfaya dönülmüşse) gecikmeli yönerge okunmaz */
 if(captionOn() || !ttsUsable()) showCaption(t);
 if(!("speechSynthesis" in window)) return;
 const u = new SpeechSynthesisUtterance(ttsPrep(t).join(" ")); u.lang = "tr-TR"; u.rate = (rate || 0.85) * voiceRateMul(); u.pitch = voicePitch(1.0);
@@ -10803,7 +10810,8 @@ function mtLater(fn, ms){ const st = mtState; mtTimers.push(setTimeout(() => { i
 function qzWarmup(id){ const st = mtState; if(!st || st.kind !== "quiz" || !Array.isArray(st.trials) || st.trials.length < 3 || st.warmN != null) return;
 const N = st.trials.length, W = Math.max(1, Math.round(N * 0.3)), t = currentCombo().t; st.warmN = W;
 if(t > 0){ const save = currentCombo; try{ currentCombo = () => Object.assign({}, save(), { t: t - 1 }); NEW_MT.build[id](); const E = (mtState && mtState.trials) || []; const sc = (q) => (String((q && (q.stim || q.prompt)) || "").replace(/<[^>]+>/g, " ").match(/[.!?](\s|$)/g) || []).length; const med = (A) => { const v = A.map(sc).sort((x, y) => x - y); return v.length ? v[Math.floor(v.length / 2)] : 0; }; if(E.length && med(E.slice(0, W)) === med(st.trials.slice(W))) for(let i = 0; i < W && i < E.length; i++) st.trials[i] = E[i];   /* soru biçimi (cümle sayısı) aynıysa alt düzeyden ısın; farklıysa (Zor: iki cümle) bu düzeyin sorularıyla ısın */ }catch(e){ console.error(e); } finally{ currentCombo = save; mtState = st; } } }
-function mtErr(){ if(mtState && mtState.kind === "quiz" && mtState.warmN && mtState.ti < mtState.warmN){ mtState.warmErr = (mtState.warmErr || 0) + 1; try{ vibrate(40); }catch(e){} gameSfx("wrong"); return; }
+/* KURAL (otomatik hata, 2026-11-05): dokunmalı oyunlarda her yanlış dokunuş kendiliğinden sayılır ve kayda geçer — ısınma soruları dahil (önceden ısınmadaki yanlışlar sayılmıyordu, bu yüzden ilk 2–3 yanlış görünmüyordu) */
+function mtErr(){ if(mtState && mtState.kind === "quiz" && mtState.warmN && mtState.ti < mtState.warmN){ mtState.warmErr = (mtState.warmErr || 0) + 1; mtState.wrong++; setErrorCount(currentErrorCount + 1); try{ vibrate(40); }catch(e){} gameSfx("wrong"); return; }
 mtState.wrong++; setErrorCount(currentErrorCount + 1); try{ vibrate(60); }catch(e){} gameSfx("wrong"); }
 function mtFinish(extra){
 const st = mtState; st.phase = "done"; renderMtBoard(); stopTimer();
@@ -13713,7 +13721,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.05-c";
+const APP_VERSION = "2026.11.05-e";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -14723,25 +14731,25 @@ function renderVoiceSettings(){ try{ let g = document.getElementById("voiceGroup
 try{ if(window.speechSynthesis) speechSynthesis.onvoiceschanged = () => { _trVoice = pickTurkishVoice(); try{ if(document.getElementById("voiceGroup")) renderVoiceSettings(); }catch(e){} }; }catch(e){}
 (function voiceSettingsHook(){ const tryIt = () => { try{ renderVoiceSettings(); }catch(e){} }; setTimeout(tryIt, 600); setTimeout(tryIt, 3000); try{ new MutationObserver(() => { const sc = document.getElementById("settingsScreen"); if(sc && sc.style.display !== "none" && !document.getElementById("voiceGroup")) tryIt(); }).observe(document.body, { attributes: true, subtree: true, attributeFilter: ["style"] }); }catch(e){} })();
 function _ttsSpeak(u){ try{ const busy = speechSynthesis.speaking || speechSynthesis.pending; if(busy) speechSynthesis.cancel(); try{ speechSynthesis.resume(); }catch(e){}
-if(busy) setTimeout(() => { try{ speechSynthesis.speak(u); }catch(e){} }, 120); else speechSynthesis.speak(u); }catch(e){} }
+if(busy){ const g0 = window.__zaSpGen || 0; setTimeout(() => { if((window.__zaSpGen || 0) !== g0) return; try{ speechSynthesis.speak(u); }catch(e){} }, 120); } else speechSynthesis.speak(u); }catch(e){} }
 function speakText(t, opts){
 try{
 if(!t) return;
 if(speechMuted() || captionOn() || !("speechSynthesis" in window) || !ttsUsable()) showCaption(t);   // altyazı: ayar açıkken, ses kapalıyken ya da Türkçe ses yokken
 if(!("speechSynthesis" in window) || speechMuted()) return;
-if(!_ttsUnlocked) _ttsMissed = { t, opts, at: Date.now() };
+if(!_ttsUnlocked) _ttsMissed = { t, opts, at: Date.now(), g: window.__zaSpGen || 0 };
 const chunks = ttsPrep(t); _trVoice = _trVoice || pickTurkishVoice();
 chunks.forEach((c, i) => { const u = new SpeechSynthesisUtterance(c);
-  if(i === 0){ u.onstart = () => { if(_ttsMissed && _ttsMissed.t === t) _ttsMissed = null; }; u.onerror = () => showCaption(t); }   // gerçekten çaldıysa tekrar okunmasın
+  if(i === 0){ u.onstart = () => { if(_ttsMissed && _ttsMissed.t === t) _ttsMissed = null; }; { const g0 = window.__zaSpGen || 0; u.onerror = (ev) => { if((window.__zaSpGen || 0) !== g0) return; if(ev && /cancel|interrupt/i.test(String(ev.error || ""))) return; showCaption(t); }; } }   // gerçekten çaldıysa tekrar okunmasın
   u.lang = "tr-TR"; u.rate = ((opts && opts.rate) || 0.85) * voiceRateMul(); u.pitch = voicePitch((opts && opts.pitch) || 1.0);
   if(_trVoice) u.voice = _trVoice;
-  if(i === 0) _ttsSpeak(u); else setTimeout(() => { try{ speechSynthesis.speak(u); }catch(e){} }, 150); });
+  if(i === 0) _ttsSpeak(u); else { const g0 = window.__zaSpGen || 0; setTimeout(() => { if((window.__zaSpGen || 0) !== g0) return; try{ speechSynthesis.speak(u); }catch(e){} }, 150); } });
 }catch(e){}
 }
 let _ttsUnlocked = false, _ttsMissed = null;
 function ttsUnlock(){ if(_ttsUnlocked || !("speechSynthesis" in window)) return; _ttsUnlocked = true;
 try{ speechSynthesis.getVoices(); const m = _ttsMissed; _ttsMissed = null;
-if(m && Date.now() - m.at < 6000 && !speechMuted()) speakText(m.t, m.opts); else { const u = new SpeechSynthesisUtterance(" "); u.volume = 0; u.lang = "tr-TR"; speechSynthesis.speak(u); } }catch(e){} }
+{ const u = new SpeechSynthesisUtterance(" "); u.volume = 0; u.lang = "tr-TR"; speechSynthesis.speak(u); } if(m && Date.now() - m.at < 6000 && !speechMuted()){ const g0 = m.g || 0; setTimeout(() => { if(g0 !== (window.__zaSpGen || 0)) return; speakText(m.t, m.opts); }, 60); } /* kaçırılan konuşma, dokunuş bir çıkış düğmesine değilse okunur (çıkış konuşma sırasını değiştirir) */ }catch(e){} }
 ["touchend","pointerup","click","keydown"].forEach(ev => document.addEventListener(ev, ttsUnlock, { capture: true, passive: true }));
 const GAME_LINES = {
 start:   ["Hadi başlayalım!", "Hazır mısın?", "Haydi bakalım!", "Yeni bir macera!"],
