@@ -5,7 +5,7 @@
    - Betikler (zihin-*.js) ve resim dosyaları: önce önbellek; yoksa ağdan alınıp saklanır; aynı dosyanın eski sürümleri silinir.
    - Diğer aynı kaynaklı istekler: önbellekten ver, arkada yenile.
    Sürüm değişince (SW_VERSION) eski önbellekler temizlenir. */
-const SW_VERSION = "2026.11.04-a";
+const SW_VERSION = "2026.11.04-b";
 const CACHE = "za-" + SW_VERSION;
 const CACHE_IMG = "za-img";   /* KURAL: resim paketleri sürüm değişince silinmez; yalnızca içeriği değişen paket (adresindeki özet değişir) yeniden indirilir */
 const CORE = ["./zihin-atolyesi.html", "./zihin-app.js", "./manifest.json"];
@@ -14,7 +14,8 @@ const HTML_TIMEOUT_MS = 4000;
 self.addEventListener("install", (ev) => {
   ev.waitUntil((async () => {
     const c = await caches.open(CACHE);
-    await Promise.all(CORE.map(u => c.add(new Request(u, { cache: "reload" })).catch(() => {})));
+    /* KURAL (güncelleme, 2026-11-04): çekirdek dosyalar her seferinde değişen bir ek ile istenir — GitHub Pages'in önbelleği atlanır, eski HTML/betik önbelleğe girmez */
+    await Promise.all(CORE.map(async u => { try{ const res = await fetch(u + (u.includes("?") ? "&" : "?") + "_sw=" + Date.now(), { cache: "no-store" }); if(res && res.ok) await c.put(u, res); }catch(e){} }));
     await self.skipWaiting();
   })());
 });
@@ -41,7 +42,8 @@ async function networkFirstHtml(req){
   const cache = await caches.open(CACHE);
   try{
     const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), HTML_TIMEOUT_MS);
-    const res = await fetch(req.url, { signal: ctrl.signal, cache: "no-cache", credentials: "same-origin" }); clearTimeout(t); /* HTML her açılışta sunucuya sorulur (GitHub Pages'in 10 dakikalık önbelleği atlanır) */
+    const u = new URL(req.url); u.searchParams.set("_sw", String(Date.now())); /* KURAL (güncelleme): HTML her açılışta değişen bir ekle istenir; GitHub Pages'in 10 dakikalık önbelleği eski HTML döndüremez */
+    const res = await fetch(u.href, { signal: ctrl.signal, cache: "no-store", credentials: "same-origin" }); clearTimeout(t); /* HTML her açılışta sunucuya sorulur (GitHub Pages'in 10 dakikalık önbelleği atlanır) */
     if(res && res.ok){ cache.put("./zihin-atolyesi.html", res.clone()); }
     return res;
   }catch(e){
