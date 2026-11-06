@@ -1632,6 +1632,7 @@ function pageComplete(){ try{ const ex = currentExercise(); if((ex.isMt || ex.is
 // ===== Çalışma odak modu (Başlat → Bitir): ayar satırları gizlenir, sayfa sabitlenir, otomatik kaydırma yapılmaz =====
 function pageScroller(){ const ma = document.getElementById("mainApp"); if(ma && /(auto|scroll)/.test(getComputedStyle(ma).overflowY) && ma.scrollHeight > ma.clientHeight + 1) return ma; const b = document.body, cs = getComputedStyle(b); if(/(auto|scroll)/.test(cs.overflowY) && b.scrollHeight > b.clientHeight + 1) return b; return document.scrollingElement || document.documentElement; }
 function pageScrollTop(){ const ma = document.getElementById("mainApp"); return Math.max(window.scrollY || 0, document.body.scrollTop || 0, (document.scrollingElement || document.documentElement).scrollTop || 0, ma ? ma.scrollTop : 0); }
+(function grRouteCSS(){ try{ const st = document.createElement("style"); st.id = "za-gr-route"; st.textContent = "#gameReward .gr-btns{flex-wrap:wrap !important} #grRouteBtn.gr-primary{order:-1 !important;flex:1 1 100% !important;grid-column:1 / -1 !important;display:flex;align-items:center;justify-content:center;gap:12px;width:100%;margin:0 0 4px !important} #grRouteBtn .gr-play{flex:0 0 auto;width:38px;height:38px;border-radius:50%;background:#fff;color:#7a3f00;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 2px 0 rgba(0,0,0,.18), inset 0 0 0 2px rgba(122,63,0,.18)} #grRouteBtn .gr-play svg{width:22px;height:22px;margin-left:3px}"; (document.head || document.documentElement).appendChild(st); }catch(e){} })();
 /* KURAL (Ödevlerim sıkı düzen, 2026-11-06): Ödevlerim sayfası boşlukları azaltılmış sıkı düzendedir — mümkünse tek ekrana sığar (üst boşluk, başlık, bölüm başlıkları, kartlar ve geçmiş tablosu satırları sıkılaştırılmıştır); yazılar 11 px altına inmez */
 (function hwCompact(){ try{ const st = document.createElement("style"); st.id = "za-hw-compact"; st.textContent = [
  "#linkScreen.za-hw #linkWrap{padding-top:58px !important;padding-bottom:14px !important;padding-left:14px !important;padding-right:14px !important}", "#linkScreen.za-hw .fam-card{line-height:1.3 !important}",
@@ -13755,7 +13756,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.06-b";
+const APP_VERSION = "2026.11.06-c";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -14925,7 +14926,7 @@ let nxt = over ? null : gxRouteNext(); if(nxt && nxt.id === ex.id) nxt = null;
 if(!nxt && !over){ try{ const isl = GAME_ISLANDS.find(i => i.id === gameStop.islandId); if(isl && !isl.special){ const ids = gameIslandStops(isl), k = ids.indexOf(ex.id); const order = ids.slice(k + 1).concat(ids.slice(0, Math.max(0, k)));
 const nid = order.find(id => gameStars(id) < 3) || null; if(nid) nxt = { id: nid, isl: isl.id }; } }catch(e){} }
 const rb = document.getElementById("grRouteBtn"); rb.style.display = nxt ? "" : "none";
-if(nxt){ rb.dataset.play = nxt.id; rb.dataset.isl = nxt.isl; const nx = exerciseById(nxt.id); rb.textContent = `▶ Sıradaki durak: ${nx ? gameChildLabel(nx) : ""}`; rb.classList.add("gr-primary"); if(rb.parentNode && rb.parentNode.firstElementChild !== rb) rb.parentNode.prepend(rb); }
+if(nxt){ rb.dataset.play = nxt.id; rb.dataset.isl = nxt.isl; const nx = exerciseById(nxt.id); rb.innerHTML = `<span class="gr-play" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M8 5.2v13.6c0 .8.9 1.3 1.6.8l10-6.8c.6-.4.6-1.2 0-1.6l-10-6.8C8.9 3.9 8 4.4 8 5.2z" fill="currentColor"/></svg></span><span>Sıradaki durak: ${nx ? escHTML(gameChildLabel(nx)) : ""}</span>`; rb.classList.add("gr-primary"); /* KURAL (ödül ekranı, 2026-11-06): "Sıradaki durak" düğmesi Haritaya dön · Bir daha satırının hemen üstündedir; başlama üçgeni beyaz yuvarlak içinde belirgin */ { const row = document.querySelector("#gameReward .gr-btns"); if(row && row.firstElementChild !== rb) row.insertBefore(rb, row.firstChild); } /* alttaki sabit (yapışık) düğme alanının içinde, iki düğmenin üstünde tam genişlik */ }
 const leftSec = (() => { try{ return gxAllowedSec() - gxUsedSec(); }catch(e){ return 9999; } })();
 let mb = document.getElementById("grMolaNear"); if(mb) mb.remove();
 if(!over && leftSec > 0 && leftSec <= 180){ lines.push(L(I_SP, "#2E7D5B", "Son bir durak daha, sonra Mola Adası'nda dinlenelim 🌿").replace('class="gr-line"', 'class="gr-line gx"'));
