@@ -13785,7 +13785,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.06-g";
+const APP_VERSION = "2026.11.06-h";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -16712,7 +16712,7 @@ ${homeRole() === "aile" ? `<button type="button" class="ha-b ha-b1" id="hmToday"
  : homeRole() === "uzman" ? `<button type="button" class="ha-b ha-b1" data-hview="uzman">${hmIc("brief")}<span class="ha-bt">Uzman sayfası</span><i aria-hidden="true">›</i></button><button type="button" class="ha-b ha-b2" id="hmClients">${hmIc("users")}<span class="ha-bt">Danışanlar</span><i aria-hidden="true">›</i></button>`
  : `<button type="button" class="ha-b ha-b1" data-hview="aile">${hmIc("home")}<span class="ha-bt">Aile</span><i aria-hidden="true">›</i></button><button type="button" class="ha-b ha-b2" data-hview="uzman">${hmIc("brief")}<span class="ha-bt">Uzman</span><i aria-hidden="true">›</i></button>`}</div>
 </div>
-<div class="ha-card ha-game" id="hmGame" role="button" tabindex="0" aria-label="Bilişsel Oyun, Zihin Adaları"><div class="ha-gt"><b>Bilişsel Oyun</b><span>Zihin Adaları · çocuk tek başına</span><span class="ha-play"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>Oyna</span></div><span class="ha-z">${zihniSVG("cheer")}</span></div>
+<div class="ha-card ha-game" id="hmGame" role="button" tabindex="0" aria-label="Bilişsel Oyun, Zihin Adaları"><div class="ha-gt"><b>Bilişsel Oyun</b><span>Zihin Adaları · eğlenerek gelişelim</span><span class="ha-play"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>Oyna</span></div><span class="ha-z">${zihniSVG("cheer")}</span></div>
 ${homeRole() ? `<div class="hm-mode-note" id="hmModeNote" role="note"><span class="hm-bang" aria-hidden="true">!</span><span class="hm-mn-tx">Şu an <b>${homeRole() === "uzman" ? "Uzman" : "Aile"}</b> modundasınız.</span><button type="button" class="hm-mn-btn" id="hmModeSwitch">${homeRole() === "uzman" ? "Aile" : "Uzman"} moduna geç</button></div>` : ""} </div>`;
 el.style.display = "flex"; try{ scheduleTour("home", "whoScreen"); }catch(e){}
 const $ = (id) => document.getElementById(id);
