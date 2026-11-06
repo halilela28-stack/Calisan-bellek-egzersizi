@@ -1633,10 +1633,30 @@ function pageComplete(){ try{ const ex = currentExercise(); if((ex.isMt || ex.is
 function pageScroller(){ const ma = document.getElementById("mainApp"); if(ma && /(auto|scroll)/.test(getComputedStyle(ma).overflowY) && ma.scrollHeight > ma.clientHeight + 1) return ma; const b = document.body, cs = getComputedStyle(b); if(/(auto|scroll)/.test(cs.overflowY) && b.scrollHeight > b.clientHeight + 1) return b; return document.scrollingElement || document.documentElement; }
 function pageScrollTop(){ const ma = document.getElementById("mainApp"); return Math.max(window.scrollY || 0, document.body.scrollTop || 0, (document.scrollingElement || document.documentElement).scrollTop || 0, ma ? ma.scrollTop : 0); }
 (function grRouteCSS(){ try{ const st = document.createElement("style"); st.id = "za-gr-route"; st.textContent = "#gameReward .gr-btns{flex-wrap:wrap !important} #grRouteBtn.gr-primary{order:-1 !important;flex:1 1 100% !important;grid-column:1 / -1 !important;display:flex;align-items:center;justify-content:center;gap:12px;width:100%;margin:0 0 4px !important} #grRouteBtn .gr-play{flex:0 0 auto;width:38px;height:38px;border-radius:50%;background:#fff;color:#7a3f00;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 2px 0 rgba(0,0,0,.18), inset 0 0 0 2px rgba(122,63,0,.18)} #grRouteBtn .gr-play svg{width:22px;height:22px;margin-left:3px}"; (document.head || document.documentElement).appendChild(st); }catch(e){} })();
+/* resimli seçeneklerde ilk çizimden sonra tahtanın altında boş yer kaldıysa resimler bir kez o yeri de kullanarak yeniden çizilir (soru başına bir kez) */
+function zaPicGrow(f, self, args){ try{ if(typeof mtState === "undefined" || !mtState || mtState.kind !== "quiz" || !timerRunning || landscapeMQ.matches) return; const g = document.querySelector("#board .wm-grid"); if(!g || !g.querySelector("img")) return; const k = zaFitKey(); if(window._zaPicHK === k) return; window._zaPicHK = k; window._zaPicH = 0; const free = Math.floor(window.innerHeight - 18 - g.getBoundingClientRect().bottom); if(free > 30){ window._zaPicH = Math.floor(g.getBoundingClientRect().height + free); f.apply(self, args); } }catch(e){} }
+/* resimli seçenekler için dizilim: son satırı eksik kalmayan dizilimler arasında resimleri en büyük yapan seçilir */
+function zaPicDims(count, W, H, cap){ const c = []; for(let cols = 1; cols <= count; cols++){ const rows = Math.ceil(count / cols); const empty = cols * rows - count; const cell = Math.floor(Math.min(cap, (W - (cols - 1) * 10) / cols, (H - (rows - 1) * 10) / rows)); c.push({ cols, rows, cell, empty }); } const minE = Math.min(...c.map(x => x.empty)); const pool = c.filter(x => x.empty === minE); pool.sort((x, y) => y.cell - x.cell); const p = pool[0]; return { cols: p.cols, rows: p.rows, cell: Math.max(56, p.cell) }; }
+(function islTabsCSS(){ try{ const st = document.createElement("style"); st.id = "za-isl-tabs"; st.textContent = [
+ "#islTabs.cd-like{background:transparent !important;border:0 !important;box-shadow:none !important;border-radius:0 !important;display:flex !important;justify-content:stretch !important;gap:0 !important;padding:6px 10px calc(10px + env(safe-area-inset-bottom,0px)) !important}",
+ "#islTabs.cd-like .cd-b{position:relative;flex:1;min-width:0;border:0;border-radius:0;background:linear-gradient(180deg,color-mix(in srgb,var(--c) 88%,#fff),var(--c));color:#fff !important;padding:9px 2px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:inherit;font-weight:900;font-size:11.5px;cursor:pointer;box-shadow:inset 0 2px 0 rgba(255,255,255,.35),0 6px 0 var(--d),0 14px 16px rgba(8,40,90,.22)}",
+ "#islTabs.cd-like .cd-b+.cd-b{border-left:1.5px solid rgba(255,255,255,.55)}",
+ "#islTabs.cd-like .cd-b:first-child{border-radius:18px 0 0 18px}",
+ "#islTabs.cd-like .cd-b:last-child{border-radius:0 18px 18px 0}",
+ "#islTabs.cd-like .cd-b span{white-space:nowrap;line-height:1.1}",
+ "#islTabs.cd-like .cd-b.on{box-shadow:inset 0 -4px 0 #fff,inset 0 2px 0 rgba(255,255,255,.35),0 6px 0 var(--d),0 14px 16px rgba(8,40,90,.22)}",
+ "#islTabs.cd-like .cd-b:active{transform:translateY(3px);box-shadow:inset 0 2px 0 rgba(255,255,255,.35),0 3px 0 var(--d)}"
+ ].join("\n"); (document.head || document.documentElement).appendChild(st); }catch(e){} })();
+/* KURAL (tuş dizisi, 2026-11-06): ses/renk dizisi tuşlarında (Ton dizisi, Simon) yanan tuş ile sönük tuşlar arasındaki fark belirgindir — izleme evresinde sönük tuşlar soluk ve az doygun, yanan tuş tam parlak, daha doygun, büyür ve kendi renginde parlar; dokunma evresinde tuşlar yarı parlak görünür */
+(function toneKeyCSS(){ try{ const st = document.createElement("style"); st.id = "za-tone-keys"; st.textContent = [
+ ".tone-k{opacity:.32 !important;filter:saturate(.5) brightness(.97);transition:opacity .06s, filter .06s, transform .08s, box-shadow .08s}",
+ ".tone-k[data-mt]{opacity:.78 !important;filter:saturate(.85)}",
+ ".tone-k.lit{opacity:1 !important;filter:saturate(1.45) brightness(1.2) !important;transform:scale(1.09) !important;box-shadow:0 0 0 6px #fff, 0 0 26px 12px var(--kc, rgba(255,255,255,.9)), 0 10px 18px rgba(0,0,0,.25) !important;position:relative;z-index:2}"
+ ].join("\n"); (document.head || document.documentElement).appendChild(st); }catch(e){} })();
 /* KURAL (tahta ölçeği, 2026-11-06): çalışırken tahtaya sığmayan içerik küçültülür, ama küçültme yalnız o soru/evre için geçerlidir — yeni denemeye, yeni evreye (ör. cümle → resimleri hatırlama), yeni probleme geçince ölçek yeniden 1'den başlar. Önceden küçültme tek yönlüydü: uzun bir evrede küçülen tahta sonraki denemelerde de küçük kalıyordu (Resimli Dinleme Aralığı ikinci tekrarda küçülüyordu) */
 function zaFitKey(){ try{ const ex = currentExercise(); let s = ex ? ex.id : ""; if(typeof mtState !== "undefined" && mtState){ const m = mtState; s += "|" + [m.kind, m.ti, m.si, m.phase, m.round, m.p].map(v => v == null ? "" : v).join(","); } if(typeof planState !== "undefined" && planState) s += "|p" + planState.p; if(typeof trailState !== "undefined" && trailState) s += "|t" + (Array.isArray(currentGrid) ? currentGrid.length : 0) + ":" + (trailState.page || 0); return s; }catch(e){ return ""; } }
 function zaFitReset(){ try{ if(window.__zaNoFitReset) return; const k = zaFitKey(); if(k === window._zaFitKey) return; window._zaFitKey = k; if((window._fitK || 1) !== 1){ window._fitK = 1; } const bd = document.getElementById("board"); if(bd){ delete bd.dataset.rf; delete bd.dataset.rfs; } }catch(e){} }
-(function(){ ["renderMtBoard", "renderPlanBoard", "renderTrailBoard"].forEach(n => { try{ const f = (0, eval)(n); if(typeof f !== "function") return; const w = function(){ zaFitReset(); return f.apply(this, arguments); }; if(n === "renderMtBoard") renderMtBoard = w; else if(n === "renderPlanBoard") renderPlanBoard = w; else renderTrailBoard = w; }catch(e){} }); })();
+(function(){ ["renderMtBoard", "renderPlanBoard", "renderTrailBoard"].forEach(n => { try{ const f = (0, eval)(n); if(typeof f !== "function") return; const w = function(){ zaFitReset(); const r = f.apply(this, arguments); if(n === "renderMtBoard") zaPicGrow(f, this, arguments); return r; }; if(n === "renderMtBoard") renderMtBoard = w; else if(n === "renderPlanBoard") renderPlanBoard = w; else renderTrailBoard = w; }catch(e){} }); })();
 /* KURAL (Ödevlerim sıkı düzen, 2026-11-06): Ödevlerim sayfası boşlukları azaltılmış sıkı düzendedir — mümkünse tek ekrana sığar (üst boşluk, başlık, bölüm başlıkları, kartlar ve geçmiş tablosu satırları sıkılaştırılmıştır); yazılar 11 px altına inmez */
 (function hwCompact(){ try{ const st = document.createElement("style"); st.id = "za-hw-compact"; st.textContent = [
  "#linkScreen.za-hw #linkWrap{padding-top:58px !important;padding-bottom:14px !important;padding-left:14px !important;padding-right:14px !important}", "#linkScreen.za-hw .fam-card{line-height:1.3 !important}",
@@ -6472,7 +6492,7 @@ return { W, H, isLs };
 }
 /* Tablet katsayısı: ekranın kısa kenarı 700 noktayı geçiyorsa (iPad) resimler ve alanlar %50 büyür; telefonda 1 */
 function tabletScale(){ const m = Math.min(window.innerWidth, window.innerHeight); return m >= 700 ? 1.5 : m >= 600 ? 1.25 : 1; }
-function wmGridDims(count, W, H, maxCell){ maxCell = Math.min(170, Math.max(maxCell, 110) * tabletScale()) * (window._fitK || 1);   /* yer varsa hücreler en az 110 noktaya kadar büyüyebilir; genişlik/yükseklik yine sınırlar */
+function wmGridDims(count, W, H, maxCell, cap){ maxCell = Math.min(cap || 170, Math.max(maxCell, 110) * tabletScale()) * (window._fitK || 1);   /* yer varsa hücreler en az 110 noktaya kadar büyüyebilir; genişlik/yükseklik yine sınırlar */
 const cands = [];
 for(let cols = 1; cols <= count; cols++){
 const rows = Math.ceil(count / cols);
@@ -7614,7 +7634,12 @@ if(st.phase === "idle") return { info:"▶ Başlat'a bas", body: dots };
 if(st.phase === "done") return { info:"Bitti!", body: dots };
 const stimH = tr.stim && tr.stimBig ? `<div class="wm-card" style="width:${Math.min(isLs ? H - 30 : 220 * tabletScale() * (window._fitK || 1), W * 0.6)}px;height:${Math.min(isLs ? H - 30 : 220 * tabletScale() * (window._fitK || 1), W * 0.6)}px;margin:0 auto 8px;padding:6px">${tr.stim}</div>` : tr.stim ? (tr.raw ? `<div style="margin:2px 0 8px">${tr.stim}</div>` : `<div class="wm-card" style="width:${Math.min(isLs ? H * 0.5 : 130 * tabletScale() * (window._fitK || 1), W * 0.4)}px;height:${Math.min(isLs ? H * 0.5 : 130 * tabletScale() * (window._fitK || 1), W * 0.4)}px;margin:0 auto 8px;padding:6px">${tr.stim}</div>`) : "";
 const replay = tr.replay ? `<button type="button" class="wm-btn diff qz-replay" data-mtbtn="qz-replay">🔊 Bir daha dinle</button>` : "";
-const n = tr.opts.length, d = wmGridDims(n, isLs ? W * (tr.stim ? 0.55 : tr.replay ? 0.7 : 0.9) : W, isLs ? H - 40 : Math.max(120, H - (tr.stim ? (tr.raw ? 120 : 150) : 30) - (tr.replay ? 50 : 0)), (tr.cell || (tr.fixed ? 80 : 120)) * (window._fitK || 1));   /* yer varsa seçenek resimleri 120 noktaya kadar büyür */
+/* KURAL (resimli seçenekler, 2026-11-06): yalnız resimden oluşan seçenekler (Cümle–Resim, Kavram, Sözcük–Resim gibi) ekranda kalan yere göre büyür — çalışırken tahtanın altındaki boş alan da kullanılır, hücre 260 noktaya kadar çıkabilir; sütun sayısı resimler en büyük olacak biçimde seçilir */
+    const picOpts = !tr.text && tr.opts.length > 0 && tr.opts.every(o => /<img/.test(String(o && o.html != null ? o.html : o)));
+    let qH = isLs ? H - 40 : Math.max(120, H - (tr.stim ? (tr.raw ? 120 : 150) : 30) - (tr.replay ? 50 : 0));
+    if(picOpts && !isLs){ try{ const bd = document.getElementById("board"); if(bd && timerRunning){ const avail = Math.floor(window.innerHeight - bd.getBoundingClientRect().top - 44 - 64 - (tr.stim ? (tr.raw ? 110 : 160) : 0) - (tr.replay ? 62 : 0)); if(avail > qH) qH = avail; } }catch(e){} }
+    if(picOpts && !isLs && window._zaPicH && window._zaPicHK === zaFitKey()) qH = Math.max(qH, window._zaPicH); /* ilk çizimden sonra ölçülen gerçek boş alan */
+    const n = tr.opts.length, d = picOpts ? zaPicDims(n, isLs ? W * (tr.stim ? 0.55 : tr.replay ? 0.7 : 0.9) : W, qH, 260 * (window._fitK || 1)) : wmGridDims(n, isLs ? W * (tr.stim ? 0.55 : tr.replay ? 0.7 : 0.9) : W, qH, (tr.cell || (tr.fixed ? 80 : 120)) * (window._fitK || 1));   /* yer varsa seçenek resimleri 120 noktaya kadar büyür */
 const grid = tr.text ? `<div class="qz-txt-grid" style="grid-template-columns:repeat(${n % 2 ? 1 : 2}, minmax(0, 1fr))">` /* KURAL (yazılı seçenekler, 2026-11-04): tek sayıda (3, 5) yazılı seçenek tek sütunda alt alta dizilir — 2 sütunda son satır eksik kalıyor ve doğru cevap sağ sütuna yalnız üçte bir düşüyordu; çift sayıda seçenek 2 sütun */ + tr.opts.map((o, i) => { const mk = st.phase === "fb" ? (i === tr.ans ? " ok" : (i === st.pick ? " bad" : "")) : "";
 return `<div class="wm-pic qz-txt${mk}" data-mt="${i}">${o}</div>`; }).join("") + `</div>`
 : `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + tr.opts.map((o, i) => {
@@ -10362,7 +10387,7 @@ const c = st.cfg; info = st.phase === "play" ? `<b>İzle ve dinle…</b> dizi ${
 if(st.lh){ const ah = isLs ? H - 20 : Math.min(H - 20, 420);
 body = `<div class="pk-sea" style="height:${ah}px">${c.pts.map((p, k) => `<div class="pk-lh" data-pad="${k}" ${st.phase === "input" ? `data-mt="${k}"` : ""} style="left:${p[0]}%;top:${p[1]}%"><div class="off">${LH_SVG(false, k)}</div><div class="on">${LH_SVG(true, k)}</div></div>`).join("")}</div>`; }
 else { const kw = Math.min(isLs ? (H - 60) / 2 : 130, (W - 30) / 2);
-body = `<div style="display:grid;grid-template-columns:repeat(2, ${kw}px);gap:10px;justify-content:center">${TONE_KEYS.map((k, i) => `<button type="button" class="tone-k pk-pad" data-pad="${i}" ${st.phase === "input" ? `data-mt="${i}"` : ""} style="width:${kw}px;height:${kw}px;background:${k.c}"></button>`).join("")}</div>`; }
+body = `<div style="display:grid;grid-template-columns:repeat(2, ${kw}px);gap:10px;justify-content:center">${TONE_KEYS.map((k, i) => `<button type="button" class="tone-k pk-pad" data-pad="${i}" ${st.phase === "input" ? `data-mt="${i}"` : ""} style="width:${kw}px;height:${kw}px;background:${k.c};--kc:${k.c}"></button>`).join("")}</div>`; }
 } else if(st.kind === "clue"){
 const tr = st.trials[ti], d = wmGridDims(tr.cands.length, isLs ? W * 0.55 : W, isLs ? H - 40 : H - 130, 100);
 info = st.phase === "clues" ? `<b>İpuçlarını dinle…</b> ${st.shown}/${tr.clues.length}` : st.phase === "ask" ? "İpuçlarına uyan <b>tek şekil</b> hangisi?" : (st.pick != null && tr.cands[st.pick] === tr.tg ? "<b>Buldun!</b>" : "Doğrusu yeşil olan");
@@ -10454,7 +10479,7 @@ body = dots + `<div class="qz-txt-grid" style="grid-template-columns:repeat(4, m
 } else if(st.kind === "tone"){
 const seq = st.trials[ti], kw = Math.min(isLs ? (H - 60) / 2 : 120, (W - 30) / 2);
 info = st.phase === "play" ? (st.lights ? "<b>İzle ve dinle…</b>" : "<b>Yalnızca dinle…</b>") : st.phase === "input" ? `<b>Aynı sırayla</b> dokun · ${st.pos}/${seq.length}` : "";
-body = dots + `<div style="display:grid;grid-template-columns:repeat(2, ${kw}px);gap:10px;justify-content:center">${TONE_KEYS.map((k, i) => `<button type="button" class="tone-k${st.lit === i ? " lit" : ""}" ${st.phase === "input" ? `data-mt="${i}"` : ""} style="width:${kw}px;height:${kw}px;background:${k.c}"></button>`).join("")}</div>`;
+body = dots + `<div style="display:grid;grid-template-columns:repeat(2, ${kw}px);gap:10px;justify-content:center">${TONE_KEYS.map((k, i) => `<button type="button" class="tone-k${st.lit === i ? " lit" : ""}" ${st.phase === "input" ? `data-mt="${i}"` : ""} style="width:${kw}px;height:${kw}px;background:${k.c};--kc:${k.c}"></button>`).join("")}</div>`;
 } else if(st.kind === "wseen"){
 const tr = st.trials[ti], sz = Math.min(isLs ? H - 50 : 200, W * 0.6);
 if(st.phase === "show"){ info = "<b>İyice bak!</b>"; body = dots + `<div class="wm-card" style="width:${sz}px;height:${sz}px;padding:6px;margin:0 auto">${tr.study}</div>`; }
@@ -13760,7 +13785,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.06-d";
+const APP_VERSION = "2026.11.06-g";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
@@ -14612,7 +14637,9 @@ function islRenderV2(){ const sc = document.getElementById("islandScreen"); if(!
   /* alt sekmeler */
   let tb = document.getElementById("islTabs"); if(!tb){ tb = document.createElement("nav"); tb.id = "islTabs"; tb.setAttribute("aria-label", "Zihin Adaları"); dock.appendChild(tb); }
   const T = [["harita", "Harita", "#14A39A", '<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>'], ["rota", "Rota", "#8B6CF6", '<circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H15a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6.5"/>'], ["dolap", "Dolap", "#FF9F2E", '<rect x="3" y="9" width="18" height="11" rx="2"/><path d="M3 13h18M5 9a7 5 0 0 1 14 0M12 12v3"/>'], ["cikis", "Çıkış", "#3D9BF0", '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>']];
-  tb.innerHTML = T.map(([k, t, c, d]) => `<button type="button" data-isltab="${k}" class="${k === "harita" ? "on" : ""}" style="--tc:${c}"><span class="tb-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${d}</svg></span>${t}</button>`).join("");
+  /* KURAL (ada alt çubuğu, 2026-11-06): Zihin Adaları'nın alt düğmeleri Aile/Uzman sayfasının alt çubuğuyla aynı tasarımdadır — bitişik dört renkli düğme, beyaz simge ve yazı, uçları yuvarlak, alt gölgeli; bulunulan sekme beyaz alt çizgiyle belirtilir */
+    const DARK = { harita:["#14A39A","#0A6E68"], rota:["#7D5CF0","#5537C4"], dolap:["#E8861C","#A95A06"], cikis:["#3D8FE0","#1F63AE"] };
+    tb.classList.add("cd-like"); tb.innerHTML = T.map(([k, t, c, d]) => `<button type="button" data-isltab="${k}" class="cd-b${k === "harita" ? " on" : ""}" style="--c:${DARK[k] ? DARK[k][0] : c};--d:${DARK[k] ? DARK[k][1] : c};--tc:${c}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg><span>${t}</span></button>`).join("");
   /* adaların etiketlerine Aç / Kapat */
   document.querySelectorAll("#islandMap .isl-island").forEach(b => { const isl = GAME_ISLANDS.find(x => x.id === b.dataset.isl); if(!isl || isl.legacy || isl.special || isl.mola || isl.adv || b.classList.contains("locked")) return; const lbl = b.querySelector(".isl-lbl") || b; const op = window.islOpenId === isl.id; if(op) b.classList.add("open"); lbl.insertAdjacentHTML("beforeend", `<span class="isl-oc" aria-hidden="true">${op ? "Kapat ▴" : "Aç ▾"}</span>`); b.setAttribute("aria-expanded", op ? "true" : "false"); });
 }
