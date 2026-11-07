@@ -1665,6 +1665,20 @@ function zaTapRestore(){ try{ const t = window.__zaTap; if(!t) return; const lef
 function zaFitKey(){ try{ const ex = currentExercise(); let s = ex ? ex.id : ""; if(typeof mtState !== "undefined" && mtState){ const m = mtState; s += "|" + [m.kind, m.ti, m.si, m.phase, m.round, m.p].map(v => v == null ? "" : v).join(","); } if(typeof planState !== "undefined" && planState) s += "|p" + planState.p; if(typeof trailState !== "undefined" && trailState) s += "|t" + (Array.isArray(currentGrid) ? currentGrid.length : 0) + ":" + (trailState.page || 0); return s; }catch(e){ return ""; } }
 function zaFitReset(){ try{ if(window.__zaNoFitReset) return; const k = zaFitKey(); if(k === window._zaFitKey) return; window._zaFitKey = k; if((window._fitK || 1) !== 1){ window._fitK = 1; } const bd = document.getElementById("board"); if(bd){ delete bd.dataset.rf; delete bd.dataset.rfs; } }catch(e){} }
 (function(){ ["renderMtBoard", "renderPlanBoard", "renderTrailBoard"].forEach(n => { try{ const f = (0, eval)(n); if(typeof f !== "function") return; const w = function(){ zaFitReset(); const r = f.apply(this, arguments); if(n === "renderMtBoard") zaPicGrow(f, this, arguments); try{ zaTapRestore(); }catch(e){} return r; }; if(n === "renderMtBoard") renderMtBoard = w; else if(n === "renderPlanBoard") renderPlanBoard = w; else renderTrailBoard = w; }catch(e){} }); })();
+/* KURAL (Bugün tamamlandı tek ekran, 2026-11-07): bugünün dört etkinliği bitince sayfa tek ekrana sığar — kutlama kartı yatay ve küçük (Zihni solda), tamamlanan adımlar tek satır (yalnız ✓ ve çalışma adı), Devam et ve haftanın özeti düğmeleri ince */
+(function todayDoneCompact(){ try{ const st = document.createElement("style"); st.id = "za-today-done"; st.textContent = [
+ "#todayWrap .fam-done{display:grid !important;grid-template-columns:54px 1fr;align-items:center;column-gap:10px;text-align:left !important;padding:8px 12px !important;margin:4px 0 4px !important}",
+ "#todayWrap .fam-done .m{grid-row:1 / span 2;width:54px !important;height:54px !important;margin:0 !important}",
+ "#todayWrap .fam-done .m svg, #todayWrap .fam-done .m img{width:54px !important;height:54px !important}",
+ "#todayWrap .fam-done .fam-h{font-size:17px !important;line-height:1.15 !important;margin:0 !important}",
+ "#todayWrap .fam-done .fam-sub{font-size:12.5px !important;line-height:1.25 !important;margin:2px 0 0 !important}",
+ "#todayWrap:has(.fam-done) .fam-sc{padding:6px 12px !important;margin-bottom:5px !important}",
+ "#todayWrap:has(.fam-done) .fam-name{font-size:16px !important;line-height:1.15 !important}",
+ "#todayWrap:has(.fam-done) .fam-desc{font-size:12px !important;line-height:1.2 !important}",
+ "#todayWrap:has(.fam-done) .fam-dot span{transform:scale(.8)}", "#todayWrap:has(.fam-done) .fam-role, #todayWrap:has(.fam-done) .fam-desc{display:none !important}", "#todayWrap:has(.fam-done) .fam-sc{padding:6px 12px !important;margin-bottom:2px !important}", "#todayWrap:has(.fam-done) .fam-step{min-height:0 !important}",
+ "#todayWrap #famMoreCta, #todayWrap #famWeekCta{min-height:42px !important;padding-top:8px !important;padding-bottom:8px !important;font-size:16px !important}",
+ "#todayWrap #famWeekCta{margin-top:6px !important}", "#todayWrap:has(.fam-done) .fam-steps{margin-bottom:2px !important}", "#todayWrap:has(.fam-done){padding-top:44px !important}"
+ ].join("\n"); (document.head || document.documentElement).appendChild(st); }catch(e){} })();
 /* KURAL (Bugün tek sayfa, 2026-11-07): Bugünün etkinlikleri sayfası boşlukları azaltılmış sıkı düzendedir — hedef satırı, dört adım kartı ve Oturumu başlat düğmesi telefonda tek ekrana sığar; Ödevlerim bir kez daha sıkılaştırıldı (başlık, bölüm başlıkları, kartlar, geçmiş tablosu); yazılar 11 px altına inmez */
 (function todayCompact(){ try{ const st = document.createElement("style"); st.id = "za-today-compact"; st.textContent = [
  "#todayWrap{padding-top:58px !important;padding-bottom:10px !important}",
@@ -13831,7 +13845,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.07-h";
+const APP_VERSION = "2026.11.07-i";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
