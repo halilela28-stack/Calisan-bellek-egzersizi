@@ -1665,6 +1665,27 @@ function zaTapRestore(){ try{ const t = window.__zaTap; if(!t) return; const lef
 function zaFitKey(){ try{ const ex = currentExercise(); let s = ex ? ex.id : ""; if(typeof mtState !== "undefined" && mtState){ const m = mtState; s += "|" + [m.kind, m.ti, m.si, m.phase, m.round, m.p].map(v => v == null ? "" : v).join(","); } if(typeof planState !== "undefined" && planState) s += "|p" + planState.p; if(typeof trailState !== "undefined" && trailState) s += "|t" + (Array.isArray(currentGrid) ? currentGrid.length : 0) + ":" + (trailState.page || 0); return s; }catch(e){ return ""; } }
 function zaFitReset(){ try{ if(window.__zaNoFitReset) return; const k = zaFitKey(); if(k === window._zaFitKey) return; window._zaFitKey = k; if((window._fitK || 1) !== 1){ window._fitK = 1; } const bd = document.getElementById("board"); if(bd){ delete bd.dataset.rf; delete bd.dataset.rfs; } }catch(e){} }
 (function(){ ["renderMtBoard", "renderPlanBoard", "renderTrailBoard"].forEach(n => { try{ const f = (0, eval)(n); if(typeof f !== "function") return; const w = function(){ zaFitReset(); const r = f.apply(this, arguments); if(n === "renderMtBoard") zaPicGrow(f, this, arguments); try{ zaTapRestore(); }catch(e){} return r; }; if(n === "renderMtBoard") renderMtBoard = w; else if(n === "renderPlanBoard") renderPlanBoard = w; else renderTrailBoard = w; }catch(e){} }); })();
+/* KURAL (Bugün tek sayfa, 2026-11-07): Bugünün etkinlikleri sayfası boşlukları azaltılmış sıkı düzendedir — hedef satırı, dört adım kartı ve Oturumu başlat düğmesi telefonda tek ekrana sığar; Ödevlerim bir kez daha sıkılaştırıldı (başlık, bölüm başlıkları, kartlar, geçmiş tablosu); yazılar 11 px altına inmez */
+(function todayCompact(){ try{ const st = document.createElement("style"); st.id = "za-today-compact"; st.textContent = [
+ "#todayWrap{padding-top:58px !important;padding-bottom:10px !important}",
+ "#todayWrap .fam-h{font-size:24px !important;line-height:1.1 !important}",
+ "#todayWrap .fam-sub{font-size:13px !important}",
+ "#todayWrap .fam-target{padding:7px 10px !important;margin:8px 0 8px !important;font-size:13px !important;line-height:1.25 !important}",
+ "#todayWrap .fam-target button{padding:6px 10px !important;min-height:34px !important}",
+ "#todayWrap .fam-steps{margin:0 !important}",
+ "#todayWrap .fam-sc{padding:8px 12px !important;margin-bottom:6px !important}",
+ "#todayWrap .fam-sc b, #todayWrap .fam-sc .fam-sn{line-height:1.15 !important}",
+ "#todayWrap .fam-sc .fam-sk, #todayWrap .fam-sc small{font-size:11.5px !important}",
+ "#todayWrap .fam-cta{min-height:48px !important;padding-top:10px !important;padding-bottom:10px !important;margin-top:4px !important}",
+ "#todayWrap .fam-note{margin-top:6px !important;font-size:11.5px !important;line-height:1.3 !important}",
+ "#linkScreen.za-hw #linkWrap{padding-top:50px !important}",
+ "#linkScreen.za-hw .fam-h{font-size:24px !important}",
+ "#linkScreen.za-hw #linkWrap div[style*=\"margin:14px 2px 6px\"], #linkScreen.za-hw #linkWrap div[style*=\"margin:8px 2px 4px\"]{margin:6px 2px 3px !important}",
+ "#linkScreen.za-hw #linkWrap div[style*=\"margin:14px 2px 6px\"] .fam-sub, #linkScreen.za-hw #linkWrap div[style*=\"margin:6px 2px 6px\"] .fam-sub{font-size:12.5px !important;line-height:1.25 !important}",
+ "#linkScreen.za-hw #linkWrap .fam-card{padding:8px 11px !important;margin-bottom:5px !important;line-height:1.25 !important}", "#linkScreen.za-hw #linkWrap .fam-card .fam-sub{margin-top:2px !important;font-size:13px !important}", "#linkScreen.za-hw #linkWrap .fam-card button:not(.fam-cta){min-height:34px !important;padding:5px 12px !important}", "#linkScreen.za-hw #linkWrap .fam-card [style*=\"margin-top:10px\"], #linkScreen.za-hw #linkWrap .fam-card [style*=\"margin-top:8px\"]{margin-top:6px !important}", "#linkScreen.za-hw #linkWrap > div[style*=\"display:flex;align-items:center;gap:8px\"]{margin:6px 0 3px !important}", "#linkScreen.za-hw #linkWrap > .fam-sub{font-size:13px !important;margin-bottom:2px !important}",
+ "#linkScreen.za-hw .fam-cta{min-height:44px !important;padding-top:8px !important;padding-bottom:8px !important;margin-top:6px !important}",
+ "#linkScreen.za-hw #linkWrap table td, #linkScreen.za-hw #linkWrap table th{padding-top:4px !important;padding-bottom:4px !important}"
+ ].join("\n"); (document.head || document.documentElement).appendChild(st); }catch(e){} })();
 /* KURAL (Ödevlerim sıkı düzen, 2026-11-06): Ödevlerim sayfası boşlukları azaltılmış sıkı düzendedir — mümkünse tek ekrana sığar (üst boşluk, başlık, bölüm başlıkları, kartlar ve geçmiş tablosu satırları sıkılaştırılmıştır); yazılar 11 px altına inmez */
 (function hwCompact(){ try{ const st = document.createElement("style"); st.id = "za-hw-compact"; st.textContent = [
  "#linkScreen.za-hw #linkWrap{padding-top:58px !important;padding-bottom:14px !important;padding-left:14px !important;padding-right:14px !important}", "#linkScreen.za-hw .fam-card{line-height:1.3 !important}",
@@ -10706,10 +10727,10 @@ else { info = `<b>Her grubun en son geleni söyle.</b>`;
 } else if(st.kind === "movesay"){
 const seq = st.trials[ti];
 if(st.phase === "listen"){ info = "<b>Dinle…</b>"; body = dots + SPEAKER_HTML(true); }
-else { const c = Math.min(isLs ? H - 140 : 110, (W - 30) / seq.length - 8);
-info = "<b>Şimdi yap!</b> Hareketleri aynı sırayla yap.";
-body = dots + `<div class="aud-key" style="text-align:center;margin-bottom:4px">Doğru sıra: <b>${seq.map(i => MOVES[i]).join(" → ")}</b></div><div style="display:flex;gap:6px;justify-content:center">${seq.map((i, k) => `<div class="wm-card" style="width:${c}px;height:${c}px;position:relative"><img src="${MOVE_IMAGES[i]}" alt="" style="width:100%;height:100%;object-fit:contain"><span class="num">${k + 1}</span></div>`).join("")}</div>` +
-`<div class="aud-key" style="text-align:center;margin-top:6px">Yetişkin: yanlış ya da eksikse <b>Hata sayısı +</b></div><div class="wm-btns" style="margin:6px auto 0"><button type="button" class="wm-btn same" data-judge="9">Sonraki ▶</button></div>`; }
+else { info = "<b>Şimdi yap!</b> Hareketleri aynı sırayla yap."; const cards = (c) => `<div style="display:flex;gap:8px;justify-content:center;flex:0 0 auto">${seq.map((i, k) => `<div class="wm-card" style="width:${c}px;height:${c}px;position:relative;overflow:visible"><img src="${MOVE_IMAGES[i]}" alt="" style="width:100%;height:100%;object-fit:contain"><span class="num" style="position:absolute;right:4px;bottom:2px;font-size:${Math.max(14, Math.round(c * 0.16))}px">${k + 1}</span></div>`).join("")}</div>`, key = `<div class="aud-key" style="text-align:center">Doğru sıra: <b>${seq.map(i => MOVES[i]).join(" → ")}</b></div>`, note = `<div class="aud-key" style="text-align:center">Yetişkin: yanlış ya da eksikse <b>Hata sayısı +</b></div>`, btn = `<div class="wm-btns" style="position:static;margin:0 auto;transform:none"><button type="button" class="wm-btn same" data-judge="9">Sonraki ▶</button></div>`;
+/* KURAL (yatay ekran, 2026-11-07): Hareket Sırası yatay ekranda iki sütundur — solda resimler kalan yüksekliğe göre büyük, sağda doğru sıra, yetişkin notu ve Sonraki; Sonraki yazının üstüne binmez. Dikeyde resimlerin numarası kartın içinde, kartı kesmez */
+if(isLs){ const c = Math.max(56, Math.floor(Math.min(H - 40, (W * 0.58 - 8 * (seq.length - 1)) / seq.length, 150))); body = dots + `<div style="display:flex;align-items:center;justify-content:center;gap:18px">${cards(c)}<div style="display:flex;flex-direction:column;gap:8px;align-items:center;max-width:40%">${key}${note}${btn}</div></div>`; }
+else { const c = Math.min(110, (W - 30) / seq.length - 8); body = dots + `<div style="margin-bottom:6px">${key}</div>${cards(c)}<div style="margin-top:6px">${note}</div><div style="margin-top:6px">${btn}</div>`; } }
 } else if(st.kind === "storyord"){
 const tr = st.trials[ti], simg = (c) => `<img src="${STORY_SEQ_IMAGES[c.si][c.k]}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:10px">`;
 if(st.phase === "study"){ const k = st.si, w = Math.min(W - 20, isLs ? (H - 70) * 2 : 340);
@@ -11134,7 +11155,7 @@ board.style.display = "block"; board.style.minHeight = ""; board.style.padding =
 board.style.gridTemplateColumns = ""; board.style.gridTemplateRows = ""; board.classList.remove("wide-grid");
 if(!mtState) return;
 const st = mtState, isLs = landscapeMQ.matches;
-const W = (board.clientWidth || 360) - 24, H = isLs ? (board.clientHeight || 280) - 60 : Math.min(460 * tabletScale(), window.innerHeight - 330);
+const W = (board.clientWidth || 360) - 24, H = isLs ? Math.max((board.clientHeight || 280), Math.floor(window.innerHeight - board.getBoundingClientRect().top - 8)) - 60 : Math.min(460 * tabletScale(), window.innerHeight - 330); /* KURAL (yatay ekran, 2026-11-07): yatay ekranda tahta yüksekliği, tahtanın o anki içeriğine göre değil ekranda kalan yere göre hesaplanır — önceden küçük içerik küçük tahta, küçük tahta küçük içerik doğuruyordu (resimler 12–40 px kalıyordu) */
 let info = "", body = "";
 if(st.kind === "corsi" || st.kind === "corsi-verbal"){
 corsiLayout();
@@ -13806,7 +13827,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.07-c";
+const APP_VERSION = "2026.11.07-e";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
