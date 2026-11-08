@@ -1647,7 +1647,7 @@ function zaPicDims(count, W, H, cap){ const c = []; for(let cols = 1; cols <= co
  "#islTabs.cd-like .cd-b.on{box-shadow:inset 0 -4px 0 #fff,inset 0 2px 0 rgba(255,255,255,.35),0 6px 0 var(--d),0 14px 16px rgba(8,40,90,.22)}",
  "#islTabs.cd-like .cd-b:active{transform:translateY(3px);box-shadow:inset 0 2px 0 rgba(255,255,255,.35),0 3px 0 var(--d)}"
  ].join("\n"); (document.head || document.documentElement).appendChild(st); }catch(e){} })();
-(function cellSvgFit(){ try{ const st = document.createElement("style"); st.id = "za-cell-svg"; st.textContent = "#board > .cell > svg{max-width:100%;max-height:100%;margin:auto}"; (document.head || document.documentElement).appendChild(st); }catch(e){} })();
+(function cellSvgFit(){ try{ const st = document.createElement("style"); st.id = "za-cell-svg"; st.textContent = "#board > .cell > svg{max-width:100%;max-height:100%;margin:auto} #board > .cell > svg{width:86% !important;height:86% !important} /* KURAL (şekil payı, 2026-11-08): şekiller hücrenin %86'sını kaplar; kalp ve üçgen gibi hücreyi dolduran şekiller ayırıcı çizgiye yapışmaz, dikdörtgen ve daireyle dengeli görünür */"; (document.head || document.documentElement).appendChild(st); }catch(e){} })();
 /* KURAL (tuş dizisi, 2026-11-06): ses/renk dizisi tuşlarında (Ton dizisi, Simon) yanan tuş ile sönük tuşlar arasındaki fark belirgindir — izleme evresinde sönük tuşlar soluk ve az doygun, yanan tuş tam parlak, daha doygun, büyür ve kendi renginde parlar; dokunma evresinde tuşlar yarı parlak görünür */
 (function toneKeyCSS(){ try{ const st = document.createElement("style"); st.id = "za-tone-keys"; st.textContent = [
  ".tone-k{opacity:.32 !important;filter:saturate(.5) brightness(.97);transition:opacity .06s, filter .06s, transform .08s, box-shadow .08s}",
@@ -12290,29 +12290,7 @@ applyingBoardLayout = false;
 function centerLastRow(board, cols){ try{ const items = [...board.children].filter(e => e.classList && e.classList.contains("cell")); items.forEach(e => { e.style.gridColumn = ""; e.style.gridColumnStart = ""; e.style.justifySelf = ""; e.style.width = ""; e.style.maxWidth = ""; }); const n = items.length, rem = n % cols; if(!cols || cols < 2 || !rem) return;
   const last = items.slice(n - rem); if(rem === 1){ last[0].style.gridColumn = "1 / -1"; last[0].style.justifySelf = "center"; const w = items[0].getBoundingClientRect().width; last[0].style.width = w ? w + "px" : ""; last[0].style.maxWidth = w ? w + "px" : ""; return; }
   if((cols - rem) % 2 === 0) last[0].style.gridColumnStart = String((cols - rem) / 2 + 1); }catch(e){} }
-function renderRowDividers(board, rows, cols){
-board.querySelectorAll(".row-divider").forEach(el => el.remove());
-if(rows <= 1 || cols <= 0) return;
-const cs = getComputedStyle(board);
-const padLeft = parseFloat(cs.paddingLeft) || 0;
-const padRight = parseFloat(cs.paddingRight) || 0;
-const rowGapPx = parseFloat(cs.rowGap) || 0;
-const boardRect = board.getBoundingClientRect();
-for(let r = 0; r < rows - 1; r++){
-const cell = board.children[r * cols];
-if(!cell) continue;
-const cellRect = cell.getBoundingClientRect();
-const lineY = (cellRect.bottom - boardRect.top) + rowGapPx / 2;
-const line = document.createElement("div");
-line.className = "row-divider";
-line.style.top = lineY + "px";
-line.style.left = padLeft + "px";
-line.style.right = padRight + "px";
-board.appendChild(line);
-}
-}
-
-function setLsOpen(open){
+function renderRowDividers(board, rows, cols, noRaf){ board.querySelectorAll(".row-divider").forEach(el => el.remove()); if(rows <= 1 || cols <= 0) return; const cs = getComputedStyle(board); const padLeft = parseFloat(cs.paddingLeft) || 0; const padRight = parseFloat(cs.paddingRight) || 0; const rowGapPx = parseFloat(cs.rowGap) || 0; const boardRect = board.getBoundingClientRect(); const bt = boardRect.top + (board.clientTop || 0); /* KURAL (satır çizgisi, 2026-11-08): ayırıcı çizgi iki satırın tam ortasındadır — üstteki satırın alt kenarı ile alttaki satırın üst kenarının ortasına çizilir, tahtanın üst kenar çizgisi hesaba katılır; yerleşim bir kare sonra değişmişse çizgiler yeniden hizalanır (önceden çizgi alt satırın üstüne yapışıyordu) */ for(let r = 0; r < rows - 1; r++){ const cell = board.children[r * cols], next = board.children[(r + 1) * cols]; if(!cell) continue; const ar = cell.getBoundingClientRect(); const cr = next ? next.getBoundingClientRect() : null; const mid = (cr && cr.top >= ar.bottom - 1) ? (ar.bottom + cr.top) / 2 : ar.bottom + rowGapPx / 2; const line = document.createElement("div"); line.className = "row-divider"; line.style.top = (mid - bt) + "px"; line.style.left = padLeft + "px"; line.style.right = padRight + "px"; board.appendChild(line); } if(!noRaf && !board.__zaDivRaf){ board.__zaDivRaf = requestAnimationFrame(() => { board.__zaDivRaf = 0; try{ if(board.querySelector(".row-divider") && board.children[cols]) renderRowDividers(board, rows, cols, true); }catch(e){} }); } } function setLsOpen(open){
 document.documentElement.classList.toggle("ls-open", !!open);
 const btn = document.getElementById("lsToggleBtn");
 if(btn) btn.setAttribute("aria-expanded", open ? "true" : "false");
@@ -13846,7 +13824,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.08-i";
+const APP_VERSION = "2026.11.08-j";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 const RUNTIME_CSS = `
 /* Uzman panosu: seans kartı oynat simgesi (2026.10.18) */
