@@ -92,3 +92,16 @@ const ff = Math.min(1, Math.max(0, f));
 return { x: cur.x + (target.x-cur.x)*ff, y: cur.y + (target.y-cur.y)*ff };
 };
 }
+
+/* 7. adım: yanlışlıkla silinen tanımlar geri alındı (başvuruları yorum/dize içinde "//" bulunan satırlarda kaldığı için gözden kaçmıştı) */
+const FRUITS = ["apple","banana","grapes","strawberry","orange"];
+
+const VEGETABLES = ["carrot","tomato","cucumber","pepper","broccoli"];
+
+const GLYPH_STYLES = ["rotate","wave","depth","wide","tall","outline"];
+
+const PRE_GLYPH_STYLES = ["rotate","wide","tall","outline"];
+
+let peTriggers = [{shape:"triangle", color:"#0072B2"}];
+
+const RHYME_TIPS = "Kelimenin başını değiştir, sonunu koru; uydurma kelime de olur.";

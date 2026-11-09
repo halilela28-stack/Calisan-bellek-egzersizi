@@ -43,13 +43,7 @@ html += `<div class="aud-row"><div class="aud-num">B</div><div class="aud-body">
 `<div style="font-weight:800">A listesi, B'den sonra (okumadan)</div>` + ckRow(L.A.map((w, i) => ckChip("A2", i, w, ckMarks["A2:" + i])).join(""));
 return html + `</div>`;
 }
-function llScore(){
-const L = currentGrid[0], n = L.A.length;
-if(L.delayed){ const miss = n - ckCount("D", n), rm = L.R.filter((w, i) => L.A.includes(w) && !ckMarks["R:" + i]).length, rf = L.R.filter((w, i) => !L.A.includes(w) && ckMarks["R:" + i]).length; return miss + rm + rf; }
-const T = isPre() ? LL_TRIALS.pre : LL_TRIALS.post, blocks = Array.from({length:T}, (_, k) => "t" + k).concat(["A2"]);
-const used = blocks.filter(b => Object.keys(ckMarks).some(k => k.startsWith(b + ":") && ckMarks[k])); const last = used.length ? used[used.length - 1] : "t0";
-return n - ckCount(last, n);
-}
+/* llScore: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 const CL_BANK = { "meyve":["elma","armut","muz","kiraz","çilek","üzüm","karpuz"], "hayvan":["kedi","inek","at","tavşan","aslan","kuş","koyun"], "taşıt":["araba","otobüs","tren","uçak","gemi","bisiklet","kamyon"], "giysi":["gömlek","pantolon","çorap","şapka","ceket","etek","eldiven"],
   "sebze":["havuç","patates","soğan","salatalık","domates","biber","ıspanak"], "renk":["kırmızı","mavi","sarı","yeşil","mor","turuncu","pembe"], "mobilya":["masa","sandalye","dolap","koltuk","yatak","kitaplık","sehpa"], "mutfak eşyası":["kaşık","çatal","tabak","bardak","tencere","bıçak","tava"],
   "okul eşyası":["kalem","defter","silgi","cetvel","çanta","kitap","makas"], "meslek":["doktor","öğretmen","aşçı","pilot","itfaiyeci","berber","polis"], "müzik aleti":["davul","gitar","piyano","keman","flüt","bağlama","zil"], "kuş":["serçe","kartal","güvercin","karga","baykuş","papağan","leylek"],
@@ -72,7 +66,7 @@ return `<div class="aud-list"><div class="aud-note">Kelimeleri karışık sıray
 L.groups.map((g, gi) => `<div style="font-weight:800">${cap(CL_PLURAL[g.c])}</div>` + ckRow(g.w.map((w, i) => ckChip(gi, i, w, ckMarks[gi + ":" + i], { 1:"✓", 2:"◐" })).join(""))).join("") +
 `<div class="aud-note">İpucuyla çok kelime ekleniyorsa bilgi bellekte var, geri getirme stratejisi desteklenmeli.</div></div>`;
 }
-function clScore(){ const L = currentGrid[0]; let free = 0; L.groups.forEach((g, gi) => g.w.forEach((w, i) => { if(ckMarks[gi + ":" + i] === 1) free++; })); return L.flat.length - free; }
+/* clScore: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 const NW_BANK = {
 2:["tipo","nake","fumi","gobe","lesu","vuka","zemo","dafi","rugo","meti"],
 3:["tabuke","linome","gosefa","mipura","dalefo","kuvami","senolu","bilaso","femuri","nokatu"],
@@ -337,7 +331,7 @@ else { st.marks[i] = "bad"; mtErr(); st.reveal = true; st.phase = "fb"; renderMt
 }
 function seqNext(){ const st = mtState; st.ti++; if(st.ti >= st.trials.length){ mtFinish(); return; } seqShow(); }
 
-function renderMtBoard(){ zaFitReset(); try{
+function renderMtBoard(){ try{ const st = mtState; if(st && (st.kind === "quiz" || st.kind === "wseen" || st.kind === "bag") && !st._balanced && Array.isArray(st.trials)){ const exId = (currentExercise() || {}).id; if(st.kind === "quiz") qzDedupe(st, exId); qzBalancePos(st.trials, exId); if(st.kind === "quiz" && !["syl-touch","sem-decide","absurd-touch","rhyme-touch","sent-verify","arrow-touch","balance"].includes(exId)) qzBalanceNum(st.trials); if(st.kind === "quiz"){ qzBreakRuns(st.trials, st.warmN || 0); qzFixRuns(st, exId); } st._balanced = true; } }catch(e){} /* soru düzeni dengeleme (eski sarmalayıcı, 7. adımda içeri alındı) */  zaFitReset(); try{
 const board = document.getElementById("board");
 board.style.display = "block"; board.style.minHeight = ""; board.style.padding = landscapeMQ.matches ? "6px 8px" : "12px";
 board.style.gridTemplateColumns = ""; board.style.gridTemplateRows = ""; board.classList.remove("wide-grid");
@@ -477,7 +471,7 @@ return `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${d
 }
 }
 board.innerHTML = `<div class="wm-wrap"><div class="wm-info">${info}</div>${body}</div>`;
-}finally{ try{ zaPicGrow(renderMtBoardCore, this, arguments); }catch(e){} try{ zaTapRestore(); }catch(e){} } }
+}finally{ try{ zaPicGrow(renderMtBoardCore, this, arguments); }catch(e){} try{ zaTapRestore(); }catch(e){}  try{ const b = document.getElementById("board"); if(b){ emojiFix(b); emojiStrip(b); } }catch(e){} syncJudgePause(); } }
 /* zaPicGrow için kancasız yeniden çizim (sarmalayıcıların kaldırılması, 2026-11-09) */
 function renderMtBoardCore(){
 const board = document.getElementById("board");

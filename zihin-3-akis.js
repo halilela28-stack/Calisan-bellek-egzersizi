@@ -797,18 +797,7 @@ moveTo(tierMax(ex), currentStageIndex - 1, "down");
 } else { successStreak = 0; saveStreak(); }
 }
 
-function spawnConfetti(container){
-const colors = ["#2E6F6E","#F2A65A","#3A6EA5","#4F9D5A","#CC79A7"];
-for(let i=0;i<14;i++){
-const piece = document.createElement("span");
-piece.className = "confetti-piece";
-piece.style.left = Math.round(Math.random()*100) + "%";
-piece.style.background = colors[Math.floor(Math.random()*colors.length)];
-piece.style.animationDelay = Math.round(Math.random()*150) + "ms";
-container.appendChild(piece);
-setTimeout(()=>{ piece.remove(); }, 1100);
-}
-}
+/* spawnConfetti: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 
 function showToast(text, type){ let t = document.getElementById("zaToast"); if(!t){ t = document.createElement("div"); t.id = "zaToast"; document.body.appendChild(t); }
 t.textContent = text; t.className = type === "down" ? "warn" : "ok"; t.style.display = "block"; clearTimeout(t._h); t._h = setTimeout(() => { t.style.display = "none"; }, 3200); }
@@ -1173,7 +1162,7 @@ chState = { id, spec, ctx, trials, idx:0, wrong:0, phase:"idle", flash:"", rts:[
 try{ renderInstruction(); }catch(e){}   /* yönerge, yeni kurulan dizinin rastgele seçimine (ör. dur yüzü) göre yeniden yazılır */
 return trials;
 }
-function chStart(){ if(!chState || chState.phase !== "idle") return; chNext(); }
+function chStart(){ try{ if(chState && chState.phase === "idle") chFirstGo(); }catch(e){} try{ if(!chState || chState.phase !== "idle") return; chNext(); }finally{ chBreakRuns(); } }
 function chNext(){
 const st = chState;
 if(st.idx >= st.trials.length){ st.phase = "done"; renderChoiceBoard(); stopTimer(); showLevelFlash(st.wrong ? `Bitti! ${st.wrong} hata.` : "Bitti! Hiç hata yok 🎉", st.wrong ? "down" : "levelup"); return; }
@@ -1268,7 +1257,7 @@ function balancedSeq(n, values, maxRun, counts){ const want = counts || values.m
   return out.length === n ? out : (best || []); }
 /* Balıklar Hangi Yöne?: canlıların hepsi resimde SAĞA bakar; L = aynalanmış. N = yönsüz çeldirici. */
 const FISH_KINDS_BY_TIER = [["fish","turtle"], ["fish","shark","turtle","seahorse"], ["fish","shark","turtle","seahorse"]], FISH_NEUTRAL = ["octopus","starfish","crab"];   /* ortadaki canlı her denemede değişir */
-let fishKindPrev = null;
+/* fishKindPrev: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 function fishSpec(){ const t = Math.min(currentCombo().t, 2); return isPre()
   ? [{ side:1, cong:0.6, neu:0,   jitter:false }, { side:2, cong:0.5, neu:0,   jitter:false }, { side:2, cong:0.4, neu:0.2, jitter:true }][t]
   : [{ side:2, cong:0.5, neu:0,   jitter:false }, { side:2, cong:0.4, neu:0.2, jitter:true }, { side:3, cong:0.35, neu:0.2, jitter:true }][t]; }
@@ -1304,7 +1293,7 @@ function qsRules(){ const W = WILD_IMAGES, H = HOUSE_IMAGES, V = VEHICLE_IMAGES,
     giyilir: { a:{ id:"yes", l:"GİYİLİR", e:"👕", pool: [P.shoe, X.sock, X.slipper, OB.jacket, OB.tshirt, OB.jeans, S.boots_yellow, S.beanie_red, S.cap_blue] }, b:{ id:"no", l:"GİYİLMEZ", e:"🚫", pool: house.concat([T.ball, P.hammer, F.apple, P.phone, T.drum]) } } }; }
 const QS_TIER = { pre:[["animal","tasit"], ["yenir","giyilir","meyve"], ["ucar","suda","sicak"]], post:[["animal","canli"], ["yenir","tasit","giyilir"], ["ucar","suda","sicak","meyve"]] }   /* düzeyler örtüşmez: somut görsel ayrım → işlev/özellik → bilgi ve çıkarım */;
 let qsRuleKey = null, qsRulePrev = null;
-function qsPools(){ const R = qsRules(); return isPre() ? { animal: R.animal.a.pool, thing: R.animal.b.pool, trickA: [], trickT: [] } : { animal: R.canli.a.pool, thing: R.canli.b.pool, trickA: R.canli.a.trick, trickT: R.canli.b.trick }; }   /* eski arayüz (testler ve olası dış kullanım) */
+/* qsPools: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */   /* eski arayüz (testler ve olası dış kullanım) */
 function qsPickRule(){ const pool = (isPre() ? QS_TIER.pre : QS_TIER.post)[Math.min(currentCombo().t, 2)]; qsRuleKey = pool.length > 1 ? pickDifferent(pool, qsRulePrev) : pool[0]; return qsRuleKey; }
 function qsRule(){ const R = qsRules()[qsRuleKey || qsPickRule()]; ["a","b"].forEach(sd => { R[sd].pool = (R[sd].pool || []).filter(Boolean); if(R[sd].trick) R[sd].trick = R[sd].trick.filter(Boolean); }); return R; }
 /* yönelme eki: büyük ünlü uyumu + ünlüyle bitiyorsa kaynaştırma y */

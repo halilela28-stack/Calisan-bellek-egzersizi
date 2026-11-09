@@ -45,7 +45,7 @@ const SHAPE_COLORS_BY_TIER = [
 COLORS
 ];
 
-const PRE_RATIO = 3/5;
+/* PRE_RATIO: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 const PRE_GRID_DIMS = [ {rows:3, cols:3}, {rows:3, cols:4}, {rows:3, cols:5} ];
 const PRE_SHAPES = ["circle","triangle","rect"];
 const PRE_COLORS = [COLORS[0], COLORS[2], COLORS[3]];
@@ -64,24 +64,14 @@ const SCATTER_FONTS = [
 const PRE_SCATTER_FONTS = [SCATTER_FONTS[0], SCATTER_FONTS[1], SCATTER_FONTS[3]];
 const TURKISH_LETTERS = ["A","B","C","Ç","D","E","F","G","Ğ","H","I","İ","J"];
 function scatterCount(){ const t = currentTier(); return t.rows * t.cols; }
-const GLYPH_STYLES = ["rotate","wave","depth","wide","tall","outline"];
-const PRE_GLYPH_STYLES = ["rotate","wide","tall","outline"];
+/* GLYPH_STYLES: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
+/* PRE_GLYPH_STYLES: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 function darkerColor(hex, k){
 const m = /^#([0-9a-f]{6})$/i.exec(hex || ""); if(!m) return "rgba(0,0,0,0.45)";
 const n = parseInt(m[1],16), f = c => Math.round(c*k);
 return `rgb(${f(n>>16&255)},${f(n>>8&255)},${f(n&255)})`;
 }
-function assignGlyphStyles(items){
-const pool = isPre() ? PRE_GLYPH_STYLES : GLYPH_STYLES;
-let prev = null;
-items.forEach(it => {
-let st, g = 0;
-do{ st = randomItem(pool); g++; } while(st === prev && g < 10);
-it.style = st; prev = st;
-if(st === "rotate"){ const a = 20 + Math.round(Math.random()*25); it.rot = (Math.random() < 0.5 ? -a : a); }
-});
-return items;
-}
+/* assignGlyphStyles: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 function seqItemHTML(item){
 const esc = String(item.text);
 if(!item.style){
@@ -352,9 +342,7 @@ const OS_SEQUENCES = [
 ["seed","sprout","tree"],
 ["baby","kid","adult"], ["wheat","flour","breadloaf"], ["snowpile","snowman2","snowmelt"], ["milk","yogurt","cheese"], ["batter","cakebaked","cakeslice"]
 ];
-const OS_NAMES = {egg:"yumurta", chick:"civciv", hen:"tavuk", seed:"tohum", sprout:"fide", sunflower:"ayçiçeği",
-caterpillar:"tırtıl", cocoon:"koza", butterfly:"kelebek", frogspawn:"kurbağa yumurtası", tadpole:"iribaş", frog:"kurbağa",
-apple:"elma", applebite:"ısırılmış elma", applecore:"elma koçanı", tree:"ağaç", baby:"bebek", kid:"çocuk", adult:"yetişkin", wheat:"buğday", flour:"un", breadloaf:"ekmek", snowpile:"kar", snowman2:"kardan adam", snowmelt:"eriyen kardan adam", milk:"süt", yogurt:"yoğurt", cheese:"peynir", batter:"kek hamuru", cakebaked:"pişmiş kek", cakeslice:"dilimlenmiş kek"};
+/* OS_NAMES: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 const OS_ROWS_BY_TIER = [5, 6, 7];
 const OS_DISTRACT_BY_TIER = [2, 3, 4];
 const PRE_OS_ROWS_BY_TIER = [2, 3, 3];
@@ -561,46 +549,7 @@ return v;
 }
 function trUpper(t){ return String(t).toLocaleUpperCase("tr-TR"); }
 
-function makeTargetGrid(n, targets, rate, maxRun, lureRate){
-const isTarget = (it) => targets.some(t => (!t.shape || t.shape === it.shape) && (!t.color || t.color === it.color));
-const shapesPool = isPre() ? PRE_SHAPES : SHAPES;
-const colorsPool = isPre() ? PRE_COLORS : COLORS;
-const tCount = Math.max(1, Math.round(n * rate));
-const lCount = Math.min(n - tCount, Math.round(n * (lureRate || 0)));
-let flags, g = 0;
-do{
-flags = shuffleArray(Array.from({length:n}, (_, i) => i < tCount ? "T" : (i < tCount + lCount ? "L" : "N")));
-let run = 0, ok = true;
-for(const f of flags){ run = f === "T" ? run + 1 : 0; if(run > maxRun){ ok = false; break; } }
-if(ok) break;
-g++;
-} while(g < 500);
-const items = [];
-let tIdx = Math.floor(Math.random() * targets.length);
-flags.forEach((f, i) => {
-const prev = items[i-1];
-let it, k = 0;
-do{
-if(f === "T"){
-const t = targets[(tIdx + k) % targets.length];
-it = { shape: t.shape || shapesPool[Math.floor(Math.random()*shapesPool.length)],
-color: t.color || colorsPool[Math.floor(Math.random()*colorsPool.length)] };
-} else if(f === "L"){
-const t = targets[Math.floor(Math.random()*targets.length)];
-const keepShape = t.shape && (!t.color || Math.random() < 0.5);
-it = keepShape
-? { shape: t.shape, color: colorsPool[Math.floor(Math.random()*colorsPool.length)] }
-: { shape: shapesPool[Math.floor(Math.random()*shapesPool.length)], color: t.color || colorsPool[Math.floor(Math.random()*colorsPool.length)] };
-} else {
-it = { shape: shapesPool[Math.floor(Math.random()*shapesPool.length)], color: colorsPool[Math.floor(Math.random()*colorsPool.length)] };
-}
-k++;
-} while(k < 60 && ((f !== "T" && isTarget(it)) || (prev && prev.shape === it.shape && prev.color === it.color)));
-if(f === "T") tIdx++;
-items.push(it);
-});
-return items;
-}
+/* makeTargetGrid: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 
 
 const FACE_NAMES = {happy:"mutlu", surprised:"şaşkın", sleepy:"uykulu", sad:"üzgün", angry:"kızgın"};
@@ -754,22 +703,10 @@ clearTimeout(window._flkResizeT);
 window._flkResizeT = setTimeout(() => { try{ if(currentExercise().isFlanker) renderFlankerBoard(); }catch(e){} }, 150);
 });
 
-let peTriggers = [{shape:"triangle", color:"#0072B2"}];
-function pickPeTriggers(){
-const lastKey = peTriggers.map(t => t.shape + t.color).join("|");
-let tr, g = 0;
-do{
-const shapes = shuffleArray(SHAPES), colors = shuffleArray(COLORS);
-tr = stIx() === 1
-? [{shape:shapes[0], color:colors[0]}, {shape:shapes[1], color:colors[1]}]
-: [{shape:shapes[0], color:colors[0]}];
-g++;
-} while(g < 20 && tr.map(t => t.shape + t.color).join("|") === lastKey);
-peTriggers = tr;
-return tr;
-}
-function peName(t){ return trUpper(`${COLOR_NAMES[t.color]} ${SHAPE_NAMES[t.shape]}`); }
-function peMatch(item){ return peTriggers.findIndex(t => t.shape === item.shape && t.color === item.color); }
+/* peTriggers: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
+/* pickPeTriggers: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
+/* peName: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
+/* peMatch: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 
 let ptTimes = [15];
 function pickPtTimes(){
@@ -1132,7 +1069,7 @@ if(!dist.has(k)){ dist.set(k, d + 1); q.push(nx); states.push(nx); }
 }
 return { dist, states };
 }
-function plnMinMoves(start, goal, caps){ return plnBFS(start, caps).dist.get(plnKey(goal)); }
+/* plnMinMoves: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 function plnRandomState(items, caps){
 let st, g = 0;
 do{
@@ -1632,16 +1569,12 @@ function pageComplete(){ try{ const ex = currentExercise(); if((ex.isMt || ex.is
 
 // ===== Çalışma odak modu (Başlat → Bitir): ayar satırları gizlenir, sayfa sabitlenir, otomatik kaydırma yapılmaz =====
 function pageScroller(){ const ma = document.getElementById("mainApp"); if(ma && /(auto|scroll)/.test(getComputedStyle(ma).overflowY) && ma.scrollHeight > ma.clientHeight + 1) return ma; const b = document.body, cs = getComputedStyle(b); if(/(auto|scroll)/.test(cs.overflowY) && b.scrollHeight > b.clientHeight + 1) return b; return document.scrollingElement || document.documentElement; }
-function pageScrollTop(){ const ma = document.getElementById("mainApp"); return Math.max(window.scrollY || 0, document.body.scrollTop || 0, (document.scrollingElement || document.documentElement).scrollTop || 0, ma ? ma.scrollTop : 0); }
-(function grRouteCSS(){ try{ /* stil: zihin-stil.css */ }catch(e){} })();
+/* pageScrollTop: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 /* resimli seçeneklerde ilk çizimden sonra tahtanın altında boş yer kaldıysa resimler bir kez o yeri de kullanarak yeniden çizilir (soru başına bir kez) */
 function zaPicGrow(f, self, args){ try{ if(typeof mtState === "undefined" || !mtState || mtState.kind !== "quiz" || !timerRunning || landscapeMQ.matches) return; const g = document.querySelector("#board .wm-grid"); if(!g || !g.querySelector("img")) return; const k = zaFitKey(); if(window._zaPicHK === k) return; window._zaPicHK = k; window._zaPicH = 0; const free = Math.floor(window.innerHeight - 18 - g.getBoundingClientRect().bottom); if(free > 30){ window._zaPicH = Math.floor(g.getBoundingClientRect().height + free); f.apply(self, args); } }catch(e){} }
 /* resimli seçenekler için dizilim: son satırı eksik kalmayan dizilimler arasında resimleri en büyük yapan seçilir */
 function zaPicDims(count, W, H, cap){ const c = []; for(let cols = 1; cols <= count; cols++){ const rows = Math.ceil(count / cols); const empty = cols * rows - count; const cell = Math.floor(Math.min(cap, (W - (cols - 1) * 10) / cols, (H - (rows - 1) * 10) / rows)); c.push({ cols, rows, cell, empty }); } const minE = Math.min(...c.map(x => x.empty)); const pool = c.filter(x => x.empty === minE); pool.sort((x, y) => y.cell - x.cell); const p = pool[0]; return { cols: p.cols, rows: p.rows, cell: Math.max(56, p.cell) }; }
-(function islTabsCSS(){ try{ /* stil: zihin-stil.css */ }catch(e){} })();
-(function cellSvgFit(){ try{ /* stil: zihin-stil.css */ }catch(e){} })();
 /* KURAL (tuş dizisi, 2026-11-06): ses/renk dizisi tuşlarında (Ton dizisi, Simon) yanan tuş ile sönük tuşlar arasındaki fark belirgindir — izleme evresinde sönük tuşlar soluk ve az doygun, yanan tuş tam parlak, daha doygun, büyür ve kendi renginde parlar; dokunma evresinde tuşlar yarı parlak görünür */
-(function toneKeyCSS(){ try{ /* stil: zihin-stil.css */ }catch(e){} })();
 /* KURAL (dokunma geri bildirimi, 2026-11-07): etkileşimli tahtalarda dokunulan düğme/kart (sayı, harf, resim, ✓/✗, Saydım…) dokunur dokunmaz kısa bir süre içe göçer ve turkuaz halkayla belirir; tahta dokunuşla yeniden çizilse de aynı öğe vurgulanır (önceden yeniden çizim vurguyu siliyordu, Say ve Hatırla'da basıldığı anlaşılmıyordu) */
 const ZA_TAP_ATTRS = ["data-mt", "data-mtbtn", "data-judge", "data-o", "data-peg", "data-cube", "data-i", "data-pad", "data-ch", "data-rt", "data-cup", "data-cat", "data-code", "data-pic", "data-osr", "data-osc", "data-rc", "data-g"]; const ZA_TAP_SEL = ZA_TAP_ATTRS.map(x => "[" + x + "]").join(",");
 function zaTapKey(el){ for(const a of ZA_TAP_ATTRS) if(el.hasAttribute(a)) return a + "=" + el.getAttribute(a); return ""; }
@@ -1664,33 +1597,25 @@ const avail = this.avail(board, padV); const W = board.clientWidth - padH; const
   /* satır ayırıcı çizgiler */
   dividers(board, rows, cols, noRaf){ board.querySelectorAll(".row-divider").forEach(el => el.remove()); if(rows <= 1 || cols <= 0) return; const cs = getComputedStyle(board); const padLeft = parseFloat(cs.paddingLeft) || 0; const padRight = parseFloat(cs.paddingRight) || 0; const rowGapPx = parseFloat(cs.rowGap) || 0; const boardRect = board.getBoundingClientRect(); const bt = boardRect.top + (board.clientTop || 0); /* KURAL (satır çizgisi, 2026-11-08): ayırıcı çizgi iki satırın tam ortasındadır — üstteki satırın alt kenarı ile alttaki satırın üst kenarının ortasına çizilir, tahtanın üst kenar çizgisi hesaba katılır; yerleşim bir kare sonra değişmişse çizgiler yeniden hizalanır (önceden çizgi alt satırın üstüne yapışıyordu) */ for(let r = 0; r < rows - 1; r++){ const cell = board.children[r * cols], next = board.children[(r + 1) * cols]; if(!cell) continue; const ar = cell.getBoundingClientRect(); const cr = next ? next.getBoundingClientRect() : null; const mid = (cr && cr.top >= ar.bottom - 1) ? (ar.bottom + cr.top) / 2 : ar.bottom + rowGapPx / 2; const line = document.createElement("div"); line.className = "row-divider"; line.style.top = (mid - bt) + "px"; line.style.left = padLeft + "px"; line.style.right = padRight + "px"; board.appendChild(line); } if(!noRaf && !board.__zaDivRaf){ board.__zaDivRaf = requestAnimationFrame(() => { board.__zaDivRaf = 0; try{ if(board.querySelector(".row-divider") && board.children[cols]) ZA_BOARD.dividers(board, rows, cols, true); }catch(e){} }); } }
 };
-function zaRunAvail(board, padV){ return ZA_BOARD.avail(board, padV); }
+/* zaRunAvail: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 function renderRowDividers(board, rows, cols, noRaf){ return ZA_BOARD.dividers(board, rows, cols, noRaf); }
 /* KURAL (tahta ölçeği, 2026-11-06): çalışırken tahtaya sığmayan içerik küçültülür, ama küçültme yalnız o soru/evre için geçerlidir — yeni denemeye, yeni evreye (ör. cümle → resimleri hatırlama), yeni probleme geçince ölçek yeniden 1'den başlar. Önceden küçültme tek yönlüydü: uzun bir evrede küçülen tahta sonraki denemelerde de küçük kalıyordu (Resimli Dinleme Aralığı ikinci tekrarda küçülüyordu) */
 function zaFitKey(){ try{ const ex = currentExercise(); let s = ex ? ex.id : ""; if(typeof mtState !== "undefined" && mtState){ const m = mtState; s += "|" + [m.kind, m.ti, m.si, m.phase, m.round, m.p].map(v => v == null ? "" : v).join(","); } if(typeof planState !== "undefined" && planState) s += "|p" + planState.p; if(typeof trailState !== "undefined" && trailState) s += "|t" + (Array.isArray(currentGrid) ? currentGrid.length : 0) + ":" + (trailState.page || 0); return s; }catch(e){ return ""; } }
 function zaFitReset(){ try{ if(window.__zaNoFitReset) return; const k = zaFitKey(); if(k === window._zaFitKey) return; window._zaFitKey = k; if((window._fitK || 1) !== 1){ window._fitK = 1; } const bd = document.getElementById("board"); if(bd){ delete bd.dataset.rf; delete bd.dataset.rfs; } }catch(e){} }
 
-(function devCardCSS(){ try{ /* stil: zihin-stil.css */ }catch(e){} })();
-(function exhXCSS(){ try{ /* stil: zihin-stil.css */ }catch(e){} })();
-(function osFreshCSS(){ try{ /* stil: zihin-stil.css */ }catch(e){} })();
 /* KURAL (ödev kartı düğmesi, 2026-11-08): Ödevlerim'de henüz başlanmamış ödevin kartında pasif "Henüz başlanmadı / Henüz yapılmadı" rozeti yerine etkin, turkuaz "Etkinliğe başla" düğmesi vardır (başlanmışsa "Devam et"); dokununca ödev açılır. Ertelenmiş ödevde "Yarına ertelendi" rozeti kalır */
-(function hwGoCSS(){ try{ /* stil: zihin-stil.css */ }catch(e){} })();
 /* KURAL (Bugün tamamlandı tek ekran, 2026-11-07): bugünün dört etkinliği bitince sayfa tek ekrana sığar — kutlama kartı yatay ve küçük (Zihni solda), tamamlanan adımlar tek satır (yalnız ✓ ve çalışma adı), Devam et ve haftanın özeti düğmeleri ince */
-(function todayDoneCompact(){ try{ /* stil: zihin-stil.css */ }catch(e){} })();
 /* KURAL (Bugün tek sayfa, 2026-11-07): Bugünün etkinlikleri sayfası boşlukları azaltılmış sıkı düzendedir — hedef satırı, dört adım kartı ve Oturumu başlat düğmesi telefonda tek ekrana sığar; Ödevlerim bir kez daha sıkılaştırıldı (başlık, bölüm başlıkları, kartlar, geçmiş tablosu); yazılar 11 px altına inmez */
-(function todayCompact(){ try{ /* stil: zihin-stil.css */ }catch(e){} })();
 /* KURAL (Ödevlerim sıkı düzen, 2026-11-06): Ödevlerim sayfası boşlukları azaltılmış sıkı düzendedir — mümkünse tek ekrana sığar (üst boşluk, başlık, bölüm başlıkları, kartlar ve geçmiş tablosu satırları sıkılaştırılmıştır); yazılar 11 px altına inmez */
 (function hwCompact(){ try{ /* stil: zihin-stil.css */ }catch(e){}
 
  })();
 /* KURAL (durum çubuğu kök neden, 2026-11-07): gizli altyazı balonu ekranın en üstünde koyu renkli olarak (yalnız saydam) duruyordu; iPhone durum çubuğunun rengini en üstteki sabit öğeden aldığı için uygulamaya dönünce üst kısım koyu/gri kalıyordu. Gizli altyazı balonu artık hiç yer kaplamaz (display:none); üst kenarda koyu renkli gizli sabit öğe bulunmaz */
-(function capHideCSS(){ try{ /* stil: zihin-stil.css */ }catch(e){} })();
 /* KURAL (durum çubuğu, 2026-11-06): uygulama arka plandan dönünce (başka uygulamaya girip çıkınca) üstteki durum çubuğu rengi uygulamanın rengine yeniden ayarlanır (iPhone'da gri kalıyordu) */
 (function statusBarFix(){ try{ const C = "#EEF3F3"; const fix = () => { try{ const m = document.querySelector('meta[name="theme-color"]'); if(!m) return; m.setAttribute("content", "#EEF3F2"); requestAnimationFrame(() => { m.setAttribute("content", C); }); document.documentElement.style.backgroundColor = C; }catch(e){} }; document.addEventListener("visibilitychange", () => { if(!document.hidden) setTimeout(fix, 60); }); window.addEventListener("pageshow", fix); window.addEventListener("focus", () => setTimeout(fix, 30)); }catch(e){} })();
 /* KURAL (ana sayfa kişi seçimi, 2026-11-05): ana sayfada kişi listesi ana sayfanın kendi penceresinde açılır (Değiştir ve kişi gerektiren düğmeler); oyunun "Kim oynuyor?" penceresi ana sayfada gizli kalıp sonra etkinlik sayfasında çıkmaz */
 function zaHomePick(cur, cb){ try{ const esc = (x) => String(x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;"); const sh = whoSheet(`<div class="mola-h">Kim çalışıyor?</div><div class="mola-list hp-list">${whoNames().map(nm => `<button type="button" data-hp="${esc(nm)}"${nm === cur ? ' class="on"' : ""}>${avatarHTML(nm, 30)}<span class="hp-ln">${esc(nm)}</span>${nm === cur ? '<span class="hp-ok">Seçili</span>' : ""}</button>`).join("")}</div>`); sh.querySelectorAll("[data-hp]").forEach(b => b.onclick = () => { sh.style.display = "none"; try{ cb(b.dataset.hp); }catch(e){} }); }catch(e){} }
 /* KURAL (ana sayfa · B, 2026-11-05 — kullanıcının onayladığı taslak B): "Merhaba!" altında kişi satırı; turkuaz kartta solda iki düğmenin toplam yüksekliğinde "Bilişsel Etkinlik" düğmesi (alanlar sayfasını açar), sağda Bugünün etkinlikleri ve Ödevlerim üst üste; kartlar orantılı küçültülür, iki kart aynı boydadır. Eski "ana sayfada kişi seçimi/ekleme yok" kuralının yerine */
-(function homeBCSS(){ try{ if(document.getElementById("za-home-b")) return; /* stil: zihin-stil.css */ }catch(e){} })();
 /* KURAL (kişi, 2026-11-05): etkinlik sayfasında kişi değişince seçim kalıcı olur (ana sayfa, Bugün, Ödevlerim, Gelişim, oyun aynı kişiyi kullanır) ve o kişinin kendi verileri hemen uygulanır — alanın okul dönemi, çalışmanın son düzeyi; aynı çalışma o kişinin düzeyinde yeniden açılır */
 function zaPersonChanged(n){ try{ if(!n || n === "__new__") return; try{ whoSelSet(n); whoTouch(n); }catch(e){} if(typeof timerRunning !== "undefined" && timerRunning) return; const ma = document.getElementById("mainApp"); if(!ma || getComputedStyle(ma).display === "none") return; const ex = currentExercise(); if(!ex) return; const exId = ex.id, ci = currentCategoryIndex; selectCategory(ci); const e = currentCategoryExercises().findIndex(x => x.id === exId); if(e < 0) return; const t = Math.max(lastTierFor(exId), exerciseById(exId).minTier || 0); const idx = findSeqIndex(Math.min(t, tierMax(exerciseById(exId))), e); if(idx != null && idx >= 0) goToIndex(idx); }catch(e){} }
 /* KURAL (yönerge sesi, 2026-11-06): (1) oyunda yönerge kesilmez — yönerge okunurken Başla'ya basılırsa oyun yönerge bitince başlar, "Başla!" sesi atlanır, oyunun kendi sesleri yönergeden sonra gelir; (2) Bilişsel Etkinlik sayfalarında da (Aile/Uzman, Bugün, Ödevlerim) yönerge sayfa açılınca okunur, Başlat'a basınca okuma durur; (3) yönerge kutusunda "Yönerge:" yazısının önünde hoparlör düğmesi vardır — sesi kapatır/açar, açınca yönergeyi yeniden okur */
@@ -1746,7 +1671,6 @@ function zaAutoErrClass(){ try{ const ex = currentExercise(); const auto = !!ex 
 /* Başlat'ta başlık/çipler/çubuk gizlendiği, Bitir'de geri geldiği için tahta o anda bir kez yeniden yerleştirilir (resim boyu değişmez, yalnız yer); çalışma sürerken tahta dondurulur */
 function zaSessionRelayout(){ try{ const h = document.documentElement; if(typeof boardIsPic === "function" && !boardIsPic()) return; const go = () => { try{ window._zaLaidGrid = null; applyBoardLayout(); if(typeof runFocusFit === "function") runFocusFit(); }catch(e){} }; requestAnimationFrame(go); setTimeout(go, 150); }catch(e){} }
 /* KURAL (odak, 2026-11-05 — kullanıcı kuralı 4): Başlat'a basınca yönerge, süre satırı (Bitir) ve hata sayısı görünür kalır; başlık satırı, Kişi/Düzey/Aşama çipleri, Bugün/ödev çubuğu ve alttaki Önceki · Karıştır · Sonraki düğmeleri gizlenir; Bitir'e basınca hepsi geri gelir. Süre ve hata satırları oranlı küçüktür (hata düğmeleri 46 px) */
-(function sessionBarFocusCSS(){ try{ if(document.getElementById("za-sb-focus")) return; /* stil: zihin-stil.css */ }catch(e){} })();
 function runFocusOn(){ if(window.__TANI_NOFOCUS) return; const h = document.documentElement; try{ const ma = document.getElementById("mainApp"); if(ma) ma.scrollTop = 0; document.body.scrollTop = 0; window.scrollTo(0, 0); const sc = document.scrollingElement; if(sc) sc.scrollTop = 0; }catch(e){} window._fitK = 1; h.classList.add("run-focus"); try{ document.body.scrollTop = 0; window.scrollTo(0, 0); }catch(e){} runFocusSize(); runFocusWatch(); runFocusRepaint(); }
 // iPhone: düzen değişikliğinden sonra tahtayı zorla yeniden çizdir (çizilmeden kalan alanlar için)
 function runFocusRepaint(){ const bd = document.getElementById("board"); if(!bd) return; const kick = () => { try{ bd.style.visibility = "hidden"; void bd.offsetHeight; bd.style.visibility = ""; }catch(e){} }; requestAnimationFrame(() => { kick(); setTimeout(kick, 120); setTimeout(kick, 400); }); }
@@ -1809,7 +1733,7 @@ window._trlResizeT = setTimeout(() => { try{ if(currentExercise().isTrail) rende
 });
 function trailExampleText(k){ return currentGrid.slice(0, k).map(it => it.t === "text" ? it.s : "").filter(Boolean).join(" → "); }
 
-const SORT_COLORS4 = [{c:ACC.kirmizi, n:"kırmızı"}, {c:ACC.yesil, n:"yeşil"}, {c:ACC.sari, n:"sarı"}, {c:ACC.mavi, n:"mavi"}];
+/* SORT_COLORS4: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 const SORT_WORD_COLORS = [{c:ACC.kirmizi, n:"kırmızı"}, {c:ACC.mavi, n:"mavi"}, {c:ACC.yesil, n:"yeşil"}, {c:ACC.mor, n:"mor"}];
 function sortShapeSVG(shape, color){
 switch(shape){
@@ -1881,9 +1805,9 @@ face: faceWord,
 wide: true        // kelimeler için geniş (yatay) kartlar, örnek kartlar 2x2
 }
 };
-const SORT_PER_PHASE = [6, 8, 10];
+/* SORT_PER_PHASE: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 const sortRefN = () => isPre() ? 4 : ([2, 3, 4][currentCombo().t] || 4);   /* üç boyutlu sıralamada örnek kart sayısı düzeye göre 2-3-4 */
-const PRE_SORT_PER_PHASE = [4, 5, 6];
+/* PRE_SORT_PER_PHASE: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 let sortState = null;
 let sortLastRules = "";
 function sortSpec(){ return SORT_SPECS[currentExercise().id]; }
@@ -2075,62 +1999,10 @@ const OBJECT_CATEGORY = {lion:"hayvan", zebra:"hayvan", monkey:"hayvan", dog:"ha
 
 
 
-function objectSVG(object, color){
-const c = color;
-switch(object){
-case "cat":
-return `<svg viewBox="0 0 100 100">
-<path d="M25 15 L38 38 L18 40 Z" fill="${c}"/>
-<path d="M75 15 L62 38 L82 40 Z" fill="${c}"/>
-<circle cx="50" cy="58" r="34" fill="${c}"/>
-</svg>`;
-case "dog":
-return `<svg viewBox="0 0 100 100">
-<ellipse cx="15" cy="62" rx="11" ry="26" fill="${c}"/>
-<ellipse cx="85" cy="62" rx="11" ry="26" fill="${c}"/>
-<circle cx="50" cy="45" r="28" fill="${c}"/>
-<ellipse cx="50" cy="70" rx="18" ry="14" fill="${c}"/>
-</svg>`;
-case "bird":
-return `<svg viewBox="0 0 100 100">
-<circle cx="44" cy="56" r="30" fill="${c}"/>
-<circle cx="68" cy="38" r="15" fill="${c}"/>
-<path d="M81 36 L96 40 L81 45 Z" fill="${c}"/>
-<path d="M28 56 L4 48 L26 68 Z" fill="${c}"/>
-</svg>`;
-case "hat":
-return `<svg viewBox="0 0 100 100">
-<ellipse cx="50" cy="72" rx="44" ry="9" fill="${c}"/>
-<rect x="26" y="18" width="48" height="54" rx="8" fill="${c}"/>
-</svg>`;
-case "shoe":
-return `<svg viewBox="0 0 100 100">
-<path d="M8 74 C8 60 16 53 26 51 L44 43 C52 39 60 40 61 46 C63 52 71 50 80 47 C92 43 98 53 95 64 L94 74 Z" fill="${c}"/>
-</svg>`;
-case "shirt":
-return `<svg viewBox="0 0 100 100">
-<path d="M35 10 L15 25 L25 42 L35 36 L35 90 L65 90 L65 36 L75 42 L85 25 L65 10 C65 18 58 22 50 22 C42 22 35 18 35 10 Z" fill="${c}"/>
-</svg>`;
-case "icecream":
-return `<svg viewBox="0 0 100 100">
-<path d="M34 52 L50 94 L66 52 Z" fill="${c}"/>
-<path d="M20 46 C20 30 33 18 50 18 C67 18 80 30 80 46 C80 54 70 58 50 58 C30 58 20 54 20 46 Z" fill="${c}"/>
-</svg>`;
-case "cake":
-return `<svg viewBox="0 0 100 100">
-<path d="M28 45 L72 45 L80 88 L20 88 Z" fill="${c}"/>
-<rect x="30" y="28" width="40" height="19" rx="4" fill="${c}"/>
-<rect x="46" y="8" width="8" height="18" fill="${c}"/>
-</svg>`;
-case "pizza":
-return `<svg viewBox="0 0 100 100">
-<path d="M50 10 L92 88 C92 88 71 77 50 77 C29 77 8 88 8 88 Z" fill="${c}"/>
-</svg>`;
-}
-}
+/* objectSVG: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 
-const FRUITS = ["apple","banana","grapes","strawberry","orange"];
-const VEGETABLES = ["carrot","tomato","cucumber","pepper","broccoli"];
+/* FRUITS: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
+/* VEGETABLES: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 const FRUITS_AND_VEGGIES = [...FRUITS, ...VEGETABLES];
 const PRE_FRUITS_AND_VEGGIES = [...FRUITS.slice(0,3), ...VEGETABLES.slice(0,3)];
 const FRUIT_VEG_NAMES = {

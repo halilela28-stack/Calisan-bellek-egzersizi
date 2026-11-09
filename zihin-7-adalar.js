@@ -247,8 +247,6 @@ case "go":      sfxTone(ctx, N.C5, t, 0.1, "triangle", 0.18); sfxTone(ctx, N.G5,
 function gameSfx(kind){ if(typeof gameMode !== "undefined" && gameMode){ sfx(kind); if(kind === "wrong") zihniAgain(); } }
 /* KURAL: oyun modunda yanlış cevaptan sonra köşede 1,1 sn "Olsun, bir daha!" diyen Zihni çıkar (en çok 3 sn'de bir; dokunmayı engellemez; Sade görünümde ve hareketi azalt ayarında yalnız belirip kaybolur) */
 let _zAgainT = 0; function zihniAgain(){ try{ const now = Date.now(); if(now - _zAgainT < 3000) return; _zAgainT = now; let el = document.getElementById("zAgain"); if(!el){ el = document.createElement("div"); el.id = "zAgain"; el.setAttribute("aria-hidden", "true"); document.body.appendChild(el); } el.innerHTML = `<span class="za-z">${zihniSVG("again")}</span><span class="za-t">Olsun, bir daha!</span>`; el.classList.remove("on"); void el.offsetWidth; el.classList.add("on"); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove("on"), 1100); }catch(e){} }
-(function zihniPoseStyle(){ try{ /* stil: zihin-stil.css */ }catch(e){} })();
-
 const SPEECH_MUTE_KEY = "wm_speech_mute_v1";
 function speechMuted(){ try{ return localStorage.getItem(SPEECH_MUTE_KEY) === "1"; }catch(e){ return false; } }
 const SPK_ON  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h4l5 4v-13l-5 4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
@@ -820,7 +818,7 @@ const score = (id) => { const r = gameRecord(id); return (r.lastBad ? -100 : 0) 
 const out = [], seenIsl = new Set();
 for(const id of all.slice().sort((a, b) => score(a) - score(b))){ const isl = gxIslandOf(id); if(isl && seenIsl.has(isl.id) && out.length < 5) continue; out.push(id); if(isl) seenIsl.add(isl.id); if(out.length >= 6) break; }
 return out; }
-const MOLA_KEY = "wm_mola_v1";
+/* MOLA_KEY: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 function showMola(){ let el = document.getElementById("molaScreen"); if(!el){ el = document.createElement("div"); el.id = "molaScreen"; document.body.appendChild(el); }
 el.innerHTML = `<div class="mola-card"><button type="button" class="mola-x" data-mola="close">✕</button><div style="width:90px;height:90px;margin:0 auto">${zihniSVG("happy")}</div><div class="mola-h">Mola Adası</div><div class="mola-s">Biraz dinlenelim. Hangisini yapalım?</div>
 <div class="mola-list"><button type="button" data-mola="breath"><span>🎈</span>Nefes Balonu</button><button type="button" data-mola="stretch"><span>🤸</span>Esneme Zamanı</button><button type="button" data-mola="senses"><span>👀</span>5-4-3-2-1</button></div></div>`;
@@ -896,7 +894,7 @@ rd.readAsText(f);
 });
 })();
 
-function chooseReadingLevel(level){
+function chooseReadingLevel(level){ try{
 readingLevel = level;
 applyLevelDefaultThresholds(level);
 if(pendingLevelPlayerName){
@@ -921,7 +919,7 @@ categoryBackTarget = "readingLevelScreen";
 document.getElementById("readingLevelScreen").style.display = "none";
 renderCategoryList();
 document.getElementById("categoryScreen").style.display = "block";
-}
+}finally{ try{ if(appMode === "aile" || appMode === "uzman") lastSave(appMode, currentPlayerName); }catch(e){} } }
 
 
 function hideAllKidScreens(){

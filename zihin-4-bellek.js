@@ -505,8 +505,8 @@ const FLU_SWITCH_POOL = [ [ [["HAYVAN","hayvan"],["YİYECEK","yiyecek"]], [["MEY
 let fluSwPick = {}, fluSwAt = 0;
 function fluSwitchSet(force){ const pre = isPre(), t = currentCombo().t, k = (pre ? "pre" : "post") + t, pool = (pre ? FLU_SWITCH_PRE_POOL : FLU_SWITCH_POOL)[t]; if(force && Date.now() - fluSwAt < 400) force = false;   /* aynı açılışta ikinci çağrı yeniden seçmez */
 if(force) fluSwAt = Date.now(); if(force || fluSwPick[k] == null){ let i, g = 0; do{ i = Math.floor(Math.random() * pool.length); g++; } while(g < 10 && i === fluSwPick[k]); fluSwPick[k] = i; } return pool[fluSwPick[k]]; }
-const FLU_SWITCH_PRE = [ [["HAYVAN","hayvan"],["YİYECEK","yiyecek"]], [["RENK","renk"],["HAYVAN","hayvan"]], [["HAYVAN","hayvan"],["YİYECEK","yiyecek"],["RENK","renk"]] ];
-const FLU_SWITCH = [ [["HAYVAN","hayvan"],["YİYECEK","yiyecek"]], [["MEYVE","meyve"],["GİYSİ","giysi"]], [["HAYVAN","hayvan"],["YİYECEK","yiyecek"],["TAŞIT","taşıt"]] ];
+/* FLU_SWITCH_PRE: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
+/* FLU_SWITCH: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 let fluTarget = {};
 function fluSecs(fid){ if(fid === "alt-uses") return (isPre() ? [45, 60, 60] : [60, 90, 90])[currentCombo().t]; return (isPre() ? [30, 45, 60] : [45, 60, 60])[currentCombo().t]; }
 function fluPick(fid, force){
@@ -539,7 +539,7 @@ return `<div class="aud-list"><div class="aud-note">Kelimeleri okuyun; çocuk <b
 `<div class="aud-row"><div class="aud-num">↓</div><div class="aud-body"><div class="aud-words">${L.flat.map(x => x.w).join(" – ")}</div></div></div>` +
 `` +
 L.groups.map((g, gi) => `<div style="font-weight:800">${cap(GS_PLURAL[g.c])}</div>` + ckRow(g.w.map((w, i) => ckChip(gi, i, w, ckMarks[gi + ":" + i])).join(""))).join("") + `</div>`; }
-function gsScore(){ const L = currentGrid[0]; let ok = 0; L.groups.forEach((g, gi) => g.w.forEach((w, i) => { if(ckMarks[gi + ":" + i]) ok++; })); return L.flat.length - ok; }
+/* gsScore: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 function spGroups(){
 const ta = ["dog","cat","cow","rabbit","elephant","parrot"].map(k => ({ src: TA_ANIMALS[k](), n:k }));
 const C = qzCats();
@@ -622,12 +622,10 @@ function swBuildPre(){ const t = currentCombo().t, A = SW_PRE_ANIMALS(), sets = 
 return Array.from({length:3}, () => { const idx = t === 0 ? sets[0] : t === 1 ? randomItem([[0, 1, 4], [0, 2, 3], [1, 3, 4]]) : sets[2]; return { seq: idx.map(i => A[i][0]), pics: idx.map(i => A[i][1]), cards: shuffleArray(idx.map((x, k) => k)) }; }); }
 function swBuild(){ if(isPre()) return swBuildPre(); const t = currentCombo().t, L = [3, 4, 5][t];
 return shuffleArray(SEQW.filter(q => q.length >= L)).slice(0, 4).map(q => { const start = Math.floor(Math.random() * (q.length - L + 1)), seq = q.slice(start, start + L); return { seq, cards: shuffleArray(seq.map((w, i) => i)) }; }); }
-const RHYME_TIPS = "Kelimenin başını değiştir, sonunu koru; uydurma kelime de olur.";
+/* RHYME_TIPS: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 /* (2026-11-02: Uyak Söyle çalışması kullanıcı isteğiyle silindi) */
-function rhsRender(items){ const L = items[0], ok = L.items.filter((x, i) => ckMarks["0:" + i]).length;
-return `<div class="aud-list"><div class="aud-note">Kelimeyi söyleyin (ya da 🔊); çocuk <b>sonu benzeyen</b> bir kelime söylesin. ${RHYME_TIPS} Benzeyen kelime bulamadığı her kelime için <b>Hata sayısı +</b>.</div>` +
-L.items.map((x, i) => `<div class="aud-row"><div class="aud-num">${i + 1}</div><div class="aud-body" style="display:flex;align-items:center;gap:8px;justify-content:space-between"><div><div class="aud-words" style="font-size:22px">${x[0]}</div><div class="aud-key">Örnek: ${x[1]}</div></div><div style="display:flex;gap:6px;align-items:center">${sayBtn(x[0])}</div></div></div>`).join("") + `</div>`; }
-function rhsScore(){ const L = currentGrid[0]; return L.items.length - L.items.filter((x, i) => ckMarks["0:" + i]).length; }
+/* rhsRender: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
+/* rhsScore: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 
 function dotTrials(){ const t = currentCombo().t, rng = isPre() ? [[1, 3], [1, 4], [2, 5]][t] : [[1, 5], [2, 7], [3, 9]][t], ms = (isPre() ? [2800, 2200, 1700] : [2200, 1700, 1300])[t];
 /* Orta: aynı resimden n tane · Zor: hedef resim + farklı çeldirici resimler (yalnızca hedef sayılır) */ const named = t >= 1 ? placeNamedPool().filter(x => x.n && x.src && x.n.length <= 12) : []; const nextPic = named.length ? mkCycle(named) : null;
@@ -707,12 +705,12 @@ function cupsTrials(){ const t = currentCombo().t, n = isPre() ? 3 : [3, 4, 5][t
 return Array.from({length: isPre() ? 3 : 4}, () => { const ball = Math.floor(Math.random() * n), seq = []; for(let k = 0; k < swaps; k++){ let a = Math.floor(Math.random() * n), b; do{ b = Math.floor(Math.random() * n); } while(b === a); seq.push([a, b]); }
 return { n, ball, seq, ms }; }); }
 const CUP_SVG = (c) => `<svg viewBox="0 0 100 110" style="width:100%;height:100%"><path d="M34 6 H66 Q72 6 72.5 12 L86 98 H14 L27.5 12 Q28 6 34 6 Z" fill="${c}"/><rect x="4" y="95" width="92" height="13" rx="3" fill="${c}"/><rect x="4" y="95" width="92" height="13" rx="3" fill="#000" opacity=".12"/><path d="M38 22 l-5 62" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".35"/></svg>`;   /* ters bardak: geniş ağız altta, top tamamen içinde kalır */
-function mmathTrials(){ const t = currentCombo().t, steps = (isPre() ? [1, 2, 2] : [2, 3, 4])[t];
+function mmathTrials(){ const __orig = function(){ const t = currentCombo().t, steps = (isPre() ? [1, 2, 2] : [2, 3, 4])[t];
 return Array.from({length: isPre() ? 3 : 5}, () => { let v = isPre() ? 1 + Math.floor(Math.random() * 3) : 1 + Math.floor(Math.random() * 6); const start = v, ops = [];
 for(let k = 0; k < steps; k++){ const maxAdd = (isPre() ? 5 : 9) - v; let d; if(v > 0 && (maxAdd <= 0 || Math.random() < 0.45)){ d = -(1 + Math.floor(Math.random() * Math.min(v, isPre() ? 2 : 4))); } else { d = 1 + Math.floor(Math.random() * Math.min(maxAdd, isPre() ? 2 : 4)); } v += d; ops.push(d); }
 const want = (isPre() ? [3, 3, 4] : [3, 4, 5])[Math.min(currentCombo().t, 2)]; const near = Array.from(new Set([v + 1, v - 1, v + 2, v - 2, v + 3, v - 3, v + 4, v + 5].filter(x => x >= 0 && x !== v))); const opts = [v].concat(shuffleArray(near.slice(0, Math.max(want - 1, 4))).slice(0, want - 1));   /* seçenek sayısı düzeye göre; doğru cevaba yakın sayılar */
-return { start, ops, res: v, opts: shuffleArray(opts), pic: randomItem(picPool()) }; }); }
-const mmathTrials0 = mmathTrials; mmathTrials = function(){ let T = mmathTrials0(); for(let g = 0; g < 25 && T.some((q, i) => i && q.res === T[i - 1].res); g++){ const i = T.findIndex((q, i) => i && q.res === T[i - 1].res); const R = mmathTrials0(); T[i] = R.find(q => q.res !== T[i - 1].res && (!T[i + 1] || q.res !== T[i + 1].res)) || T[i]; } return T; };   /* ardışık iki soru aynı sonucu vermez */
+return { start, ops, res: v, opts: shuffleArray(opts), pic: randomItem(picPool()) }; }); }; let T = __orig(); for(let g = 0; g < 25 && T.some((q, i) => i && q.res === T[i - 1].res); g++){ const i = T.findIndex((q, i) => i && q.res === T[i - 1].res); const R = __orig(); T[i] = R.find(q => q.res !== T[i - 1].res && (!T[i + 1] || q.res !== T[i + 1].res)) || T[i]; } return T; /* ardışık iki soru aynı sonucu vermez */ }
+
 function whoTrial(){ const t = currentCombo().t, nP = !isPre() && t === 2 ? 3 : 2, nI = isPre() ? [4, 5, 6][t] : [4, 6, 8][t];
 const fids = shuffleArray(FACE_ID_IMAGES.map((x, i) => i)).slice(0, nP), used = new Set(), ppl = fids.map(i => { const nm = shuffleArray(FACEID_NAMES[FACE_GENDER[i]]).find(n => !used.has(n)); used.add(nm); return { i, nm }; });
 const items = shuffleArray(picPool()).slice(0, nI).map((x, k) => ({ x, p: k % nP }));
@@ -729,7 +727,7 @@ return [{ items: tierFirst.concat(rest).slice(0, N) }]; }
 function lcRender(items, note){ const L = items[0], ok = L.items.filter((x, i) => ckMarks["0:" + i]).length;
 return `<div class="aud-list"><div class="aud-note">${note}</div><div class="aud-key" style="margin:4px 0 8px">Yetişkin: uygun olmayan her cevap için <b>Hata sayısı +</b></div>` +
 L.items.map((x, i) => `<div class="aud-row"><div class="aud-num">${i + 1}</div><div class="aud-body" style="display:flex;align-items:center;gap:8px;justify-content:space-between"><div><div style="font-size:18px;font-weight:800;line-height:1.35">${x.q}</div><div class="aud-key">Beklenen: <b>${x.a}</b></div></div><div style="display:flex;gap:6px;align-items:center;flex:none">${sayBtn(x.q.replace(/<[^>]+>/g, ""))}</div></div></div>`).join("") + `</div>`; }
-function lcScore(){ const L = currentGrid[0]; return L.items.length - L.items.filter((x, i) => ckMarks["0:" + i]).length; }
+/* lcScore: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 const ANALOGY = {
 pre:[ { t:0, q:"Kaşık yemek içindir; bardak ne içindir?", a:"su içmek" }, { t:0, q:"Top oynamak içindir; kitap ne içindir?", a:"okumak / bakmak" },
 { t:0, q:"Keçinin yavrusu oğlak; tavuğun yavrusu nedir?", a:"civciv" }, { t:0, q:"Koyunun yavrusu kuzu; atın yavrusu nedir?", a:"tay" },
@@ -1501,7 +1499,7 @@ const RHYME_DONE = { pre:[ { t:0, q:"“Minik kedi süt içer, bıyığından s�
 
 const PK_COLS = [["kırmızı",ACC.kirmizi],["mavi",ACC.mavi],["sarı",ACC.sari],["yeşil",ACC.yesil]];
 const pkAlive = (st, my) => mtState === st && timerRunning && (my == null || st.round === my);
-function pkHud(st, extra){ return `<div class="pk-hud"><span>⭐ ${st.score || 0}</span>${extra || ""}</div>`; }
+/* pkHud: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 function blnCfg(){ const t = currentCombo().t, pre = isPre(); return { N: pre ? [8, 10, 12][t] : [12, 15, 18][t], rise: (pre ? [6.5, 5.5, 4.8] : [5.2, 4.4, 3.6])[t], gap: (pre ? [1100, 1000, 900] : [900, 800, 700])[t], sw: !pre && t >= 1 }; }
 function molCfg(){ const t = currentCombo().t, pre = isPre(); return { N: pre ? [10, 12, 14][t] : [14, 18, 22][t], up: (pre ? [1600, 1350, 1150] : [1150, 950, 780])[t], hat: pre && t === 0 ? 0 : 0.22 }; }
 function ctcCfg(){ const t = currentCombo().t, pre = isPre(); return { N: pre ? [10, 12, 14][t] : [14, 18, 22][t], fall: (pre ? [3.4, 3.0, 2.6] : [2.8, 2.3, 1.9])[t], stone: pre ? 0.2 : 0.3, gap: (pre ? [1200, 1050, 950] : [1000, 850, 720])[t] }; }
@@ -1559,10 +1557,10 @@ Object.assign(EMO_MAP, {
   "🛒": () => EMO_SVG('<path d="M3 4h2.5l2.2 10.5h10l2-7.5H6.4"/><circle cx="9" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/>'),
   "🏁": () => EMO_SVG('<path d="M5 21V4"/><path d="M5 4h12l-2.5 4L17 12H5" fill="currentColor" fill-opacity=".15"/><path d="M9 4v8M13 4v8M5 8h12"/>')
 });
-const EMO_RE = new RegExp("(" + Object.keys(EMO_MAP).map(k => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")(\uFE0F)?", "u");
+/* EMO_RE: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 function svgStarFix(root){ try{ root.querySelectorAll("svg text").forEach(t => { const v = (t.textContent || "").replace(/\uFE0F/g, "").trim(); if(v !== "⭐") return; const fs = parseFloat(t.getAttribute("font-size")) || 16, x = parseFloat(t.getAttribute("x")) || 0, y = parseFloat(t.getAttribute("y")) || 0, r = fs * 0.5, cy = y - fs * 0.36; const pts = []; for(let k = 0; k < 10; k++){ const a = -Math.PI / 2 + k * Math.PI / 5, rr = k % 2 ? r * 0.45 : r; pts.push((x + Math.cos(a) * rr).toFixed(1) + "," + (cy + Math.sin(a) * rr).toFixed(1)); } const pg = document.createElementNS("http://www.w3.org/2000/svg", "polygon"); pg.setAttribute("points", pts.join(" ")); pg.setAttribute("fill", "#F5B301"); pg.setAttribute("stroke", "#C98A00"); pg.setAttribute("stroke-width", Math.max(1, fs * 0.05)); pg.setAttribute("stroke-linejoin", "round"); pg.setAttribute("pointer-events", "none"); if(t.id) pg.id = t.id; t.parentNode.replaceChild(pg, t); }); }catch(e){} }   /* SVG içindeki yıldız emojisi → uygulamanın yıldızı (labirent, hayvanat bahçesi, bul ve kaç) */
 /* KURAL (emoji, 2026-11-04): oyun ve etkileşimli tahtalar çizilir çizilmez emoji düzeltmesi tahtada hemen çalışır — Yirmi Soru'nun "Soru +1" düğmesinde ❓ bir an renkli emoji olarak görünüyordu */
-(function(){ try{ const _r = renderMtBoard; renderMtBoard = function(){ const out = _r.apply(this, arguments); try{ const b = document.getElementById("board"); if(b){ emojiFix(b); emojiStrip(b); } }catch(e){} return out; }; }catch(e){} })();
+
 function emoRe(){ const n = Object.keys(EMO_MAP).length; if(!emoRe.r || emoRe.n !== n){ emoRe.n = n; emoRe.r = new RegExp("(" + Object.keys(EMO_MAP).map(k => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")(\uFE0F)?", "u"); } return emoRe.r; }   /* sonradan eklenen emoji karşılıkları da tanınır */
 /* KURAL: ekranda emoji görünmez — eşlemesi olmayan renkli emoji (kutlama, ampul vb.) yazıdan silinir; düğmelerdeki metin simgeleri (✕ ★ ☆ ⌫ ✓ ✗) silinmez */
 function emojiStrip(root){ try{ const re = /(?:\p{Emoji_Presentation}|[\u2744\u2601]\uFE0F?|\p{Extended_Pictographic}\uFE0F)(?:\u200D(?:\p{Emoji_Presentation}|\p{Extended_Pictographic}\uFE0F?))*/gu;   /* KURAL: yalnız renkli emoji olarak çizilen karakterler silinir; metin simgeleri (✕ kapat, ★ ☆ yıldız, ⌫ sil, ✓ ✗, ❄ ☁) korunur */ const w = document.createTreeWalker(root || document.body, NodeFilter.SHOW_TEXT); const list = []; let n; while((n = w.nextNode())){ if(n.parentElement && /^(INPUT|TEXTAREA|SCRIPT|STYLE)$/.test(n.parentElement.tagName)) continue; if(re.test(n.nodeValue)){ re.lastIndex = 0; list.push(n); } re.lastIndex = 0; } list.forEach(t => { t.nodeValue = t.nodeValue.replace(re, "").replace(/ {2,}/g, " "); }); }catch(e){} }
@@ -1698,7 +1696,7 @@ const PLACE_DOMS = [
 const PLACE_TASK = { hiz:"anlam kararı, gölge eşleme", goz:"bardak takibi", dikkat:"ok yönü", calisan:"sırayı hatırlama", sozelb:"dinle-hatırla", resim:"resimleri hatırlama", sozelo:"farklı olan, benzetme", dil:"söyleneni göster, kavramlar", gorsel:"döndürme, tamamlama", mantik:"matris, örüntü" };   /* sonuç tablosunda her alanın hangi çalışmayla ölçüldüğü yazar */
 const PLACE_TIER = ["Başlangıç","Orta","Zor"], PLACE_STEPS = 6;
 const stepLvl = (s) => s >= 3 ? "post" : "pre", stepTier = (s) => s % 3;
-const stepName = (s) => (s >= 3 ? "Okul Sonrası" : "Okul Öncesi") + " · " + PLACE_TIER[s % 3];
+/* stepName: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 function placeAll(){ try{ return JSON.parse(localStorage.getItem(PLACE_KEY) || "{}"); }catch(e){ return {}; } }
 function placeGet(name){ const n = (name || "").trim(); if(!n || n === "Misafir") return null; const r = placeAll()[n]; return (r && r.dom) ? r : null; }
 function placeSave(name, rec){ const d = placeAll(); d[name.trim()] = rec; try{ localStorage.setItem(PLACE_KEY, JSON.stringify(d)); }catch(e){} }
@@ -1993,7 +1991,7 @@ function oppKidText(set){ const t = Math.min(currentCombo().t, 2);
   if(set === "hand"){ const base = "Elimle sana yumruk ya da parmak göstereceğim. Sen tersini göster: ben yumruk gösterirsem sen parmak göster, ben parmak gösterirsem sen yumruk göster."; return t === 0 ? base : base + ` Arka arkaya ${t === 1 ? "iki" : "üç"} işaret göstereceğim; sen hepsinin tersini aynı sırayla göster.`; }
   return t === 2 ? "Sana bir yere dokunmanı söyleyeceğim; sen söylediğimin tersini yap: ‘başına dokun’ dersem dizine dokun, ‘dizine dokun’ dersem başına dokun. ‘Omzuna dokun’ dersem ayağına dokun, ‘ayağına dokun’ dersem omzuna dokun."
        : "Sana ‘başına dokun’ ya da ‘ayağına dokun’ diyeceğim. Sen söylediğimin tersini yap: ‘başına dokun’ dersem ayağına dokun, ‘ayağına dokun’ dersem başına dokun." + (t === 1 ? " Omuz ve diz de var: ‘omzuna dokun’ dersem dizine dokun, ‘dizine dokun’ dersem omzuna dokun." : ""); }
-function oppRuleText(set){ const t = Math.min(currentCombo().t, 2); if(set === "hand") return t === 0 ? "" : ` ${t + 1} el işaretini sırayla göster; çocuk her birinin tersini aynı sırayla göstersin.`; return [" (baş ↔ ayak)", " (baş ↔ ayak, omuz ↔ diz)", " (baş ↔ diz, omuz ↔ ayak)"][t]; }
+/* oppRuleText: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 function oppTrials(set){ const S = OPP_SETS[set], t = Math.min(currentCombo().t, 2), map = S.tiers[t], keys = Object.keys(map), L = S.len[t], N = Math.max(4, Math.round(selCount() / L));
   const stream = balancedSeq(N * L, keys, 2); const out = [];
   for(let i = 0; i < N; i++){ const seq = stream.slice(i * L, i * L + L).map(k => ({ k, img: S.parts[k].img })); const say = seq.map(x => S.parts[x.k].say).join(" – ") + (set === "htks" ? "!" : ""); const ans = seq.map(x => S.names[map[x.k]]).join(" – "); out.push({ seq, say, ans }); }
@@ -2011,21 +2009,14 @@ const dirButtons = (D) => D.map(d => ({ id: d, html: `<span style="font-size:32p
 function chSideAttr(id){ const st = chState; let bc = "#E6ECF2", sh = ""; if(st && st.phase === "feedback"){ const corr = st.spec.correct(st.trials[st.idx], st.ctx); if(id === st.picked){ bc = st.flash === "ok" ? "var(--good)" : "var(--bad)"; sh = st.flash === "ok" ? "box-shadow:0 0 0 4px rgba(31,164,99,.35);" : "box-shadow:0 0 0 4px rgba(229,72,77,.35);"; } else if(id === corr && st.flash === "bad"){ bc = "var(--good)"; sh = "box-shadow:0 0 0 4px rgba(31,164,99,.35);"; } }
   return `data-ch="${id}" style="flex:1;align-self:stretch;margin:2%;display:flex;align-items:center;justify-content:center;border:4px solid ${bc};border-radius:16px;box-sizing:border-box;cursor:pointer;position:relative;${sh}"`; }
 function chSideNote(txt){ const st = chState; if(!st || st.phase !== "feedback" || st.flash !== "bad" || !txt) return ""; return `<b style="position:absolute;left:50%;bottom:3%;transform:translateX(-50%);background:var(--good);color:#fff;border-radius:999px;padding:3px 12px;font-size:13px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,.2)">${txt}</b>`; }
-const sideButtons = () => [{ id:"L", html:'<span style="font-size:30px;font-weight:900">◀</span><b style="margin-left:6px">SOL</b>' }, { id:"R", html:'<b style="margin-right:6px">SAĞ</b><span style="font-size:30px;font-weight:900">▶</span>' }];
+/* sideButtons: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 /* ===== Yürütücü İşlev · Paket 2 (Ketleme B) · veri ve yardımcılar ===== */
-(function topHomeStyle(){ try{ if(document.getElementById("topHomeStyle")) return; /* stil: zihin-stil.css */ }catch(e){} })();
 /* KURAL (ana sayfalar): Uzman ve Aile sayfasının en üstünde sayfa adı ("Uzman Etkinlik Sayfası" / "Aile Etkinlik Sayfası", uygulamanın başlık yazı tipiyle); dört kısayol kartı iki satırda yan yana 2×2 düğme olarak durur */
 /* KURAL (düzen): ilerleme noktaları (deneme göstergesi) ve yanındaki Isınma etiketi her zaman kartın içinde kalır — nokta sayısı artınca noktalar ve aralıklar küçülür, satır taşmaz */
-(function dotsFitStyle(){ try{ if(document.getElementById("dotsFitStyle")) return; /* stil: zihin-stil.css */ }catch(e){} })();
 /* KURAL (içerik uyumu): komutu kim veriyorsa (Ayı / Ejderha gibi) komut yazısı onun söz balonunda durur; hareket kartında yalnız hareketin resmi olur; çalışma yalnız dokunma üzerinedir ("dokun = yap" / "dokunmak yapmak demek" ifadeleri kullanılmaz) */
 /* KURAL (tek görünüm): çalışma sayfaları dışındaki bütün yetişkin sayfaları ana sayfanın görünüşünü kullanır — açık turkuaz geçişli zemin, koyu turkuaz kalın başlık,
    beyaz kartlar (2 px açık kenarlık + 5 px alt kenar, 22 px köşe), kare beyaz kapat/geri düğmesi, turkuaz etkin sekme; çocuk oyun ekranları (adalar, mola, ödül) kendi görünüşünde kalır */
-(function pageThemeStyle(){ try{ if(document.getElementById("pageThemeStyle")) return; /* stil: zihin-stil.css */ }catch(e){} })();
-(function simpleFlowStyle(){ try{ if(document.getElementById("simpleFlowStyle")) return; /* stil: zihin-stil.css */ }catch(e){} })();
-(function glossStyle(){ try{ if(document.getElementById("glossStyle")) return; /* stil: zihin-stil.css */ }catch(e){} })();
-(function kbFitStyle(){ try{ if(document.getElementById("kbFitStyle")) return; /* stil: zihin-stil.css */ }catch(e){} })();
 /* KURAL (tablet): yatay tablette çalışma sayfası iki sütun — solda başlık/yönerge/süre, sağda geniş etkinlik tahtası; dikey tablette içerik ekran genişliğini kullanır. Kenarlarda boş alan kalmaz. */
-(function tabletStyle(){ try{ if(document.getElementById("tabletStyle")) return; /* stil: zihin-stil.css */ }catch(e){} })();
 /* KURAL (tablet): dokunmalı çalışmaların (ızgara ve göz takibi dışındaki) içerikleri telefon genişliğine göre tasarlandı; tablette tahta genişliğine göre büyütülür (en çok 1,6 kat), ekrana sığmayacaksa küçültülmez ama taşmaz. Ölçek sayfa başına sabittir, aşama içinde zıplamaz. */
 (function tabletFit(){ try{
   let k = 1, key = "", busy = false;
@@ -2047,22 +2038,14 @@ const sideButtons = () => [{ id:"L", html:'<span style="font-size:30px;font-weig
 }catch(e){} })();
 /* KURAL (görsellik, aşama 1): çalışma sayfasında kartlara derinlik (üst parlak kenar, yumuşak gölge, çok hafif geçiş) ve alan renk kimliği (tahtanın üst şeridi, yönergenin sol kenarı, bölüm etiketleri alanın renginde).
    Uyaranın bulunduğu tahta zemini düz beyaz kalır; parlama/hareket uyarana eklenmez. "Sade görünüm" (html.calm) açıkken bu süsler kapanır. */
-(function visualStage1(){ try{ if(document.getElementById("visualStage1")) return; /* stil: zihin-stil.css */ }catch(e){} })();
 /* KURAL (tablet, çalışma sayfası dışı): tablette yetişkin sayfaları, Değerlendirme turu ve açılır pencereler ekranla orantılı ölçeklenir (dikeyde genişliğe, yatayda yüksekliğe göre; en çok 1,45 kat); içerik kenarlarda dar bir sütunda kalmaz, yazılar küçük kalmaz. Çalışma sayfaları ve çocuk oyun ekranları bu kuralın dışındadır. */
 (function tabUi(){ try{
   const upd = () => { const w = innerWidth, h = innerHeight, tab = Math.min(w, h) >= 600 && Math.max(w, h) >= 960;   /* yatay tablette tarayıcı çubuğu yüksekliği düşürür (ör. 1280×690); tablet yine tablet sayılır */ const k = !tab ? 1 : (h >= w ? Math.min(1.45, Math.max(1, w / 560)) : Math.min(1.3, Math.max(1, Math.min(h / 540, w / 960)))); document.documentElement.classList.toggle("tabui", tab); document.documentElement.classList.toggle("tabui-ls", tab && w > h); document.documentElement.style.setProperty("--tabZ", k.toFixed(3)); };
   addEventListener("resize", upd); addEventListener("orientationchange", () => setTimeout(upd, 200)); upd();
   /* stil: zihin-stil.css */
 }catch(e){} })();
-(function pkSceneStyle(){ try{ if(document.getElementById("pkSceneStyle")) return; /* stil: zihin-stil.css */ }catch(e){} })();
-(function giStyle(){ try{ if(document.getElementById("giStyle")) return; /* stil: zihin-stil.css */ }catch(e){} })();
-(function emoStyle(){ try{ if(document.getElementById("emoStyle")) return; /* stil: zihin-stil.css */ }catch(e){} })();
-(function islArtStyle(){ try{ if(document.getElementById("islArtStyle")) return; /* stil: zihin-stil.css */ }catch(e){} })();
 /* KURAL (görsellik, aşama 2): çalışma sayfası ve oyun düğmeleri kabarık görünür (üstte parlak yansıma, altta koyu kenar) ve basınca içeri çöker; uyaran içeriğinin kendisine parlama eklenmez. "Sade görünüm"de kapalı; telefonun "hareketi azalt" ayarında çökme animasyonu yapılmaz. */
-(function visualStage2(){ try{ if(document.getElementById("visualStage2")) return; /* stil: zihin-stil.css */ }catch(e){} })();
 /* KURAL (görsellik, aşama 3): doğru cevapta seçilen öğe kısa bir "zıplama + ışıltı halkası", yanlışta kısa bir "sallanma" yapar (en çok 0,35 sn); standart yeşil/kırmızı ve ✓/✗ korunur; yalnız seçilen öğede, uyaranın kendisinde değil. Sade görünüm ve "hareketi azalt"ta kapalı. */
-(function visualStage3(){ try{ if(document.getElementById("visualStage3")) return; /* stil: zihin-stil.css */ }catch(e){} })();
-(function visualStage4(){ try{ if(document.getElementById("visualStage4")) return; /* stil: zihin-stil.css */ }catch(e){} })();
 /* KURAL (diziliş, hızlı tepki): doğru tepki (sol/sağ, renk, şekil…) üst üste en çok 3 kez (iki seçenekli) ya da 2 kez (çok seçenekli) aynı gelir; denemelerin sırası buna göre değiştirilir (ilk deneme yerinde kalır) */
 function chBreakRuns(){ try{ const st = chState, c = CHOICE[currentExercise().id]; if(!st || !Array.isArray(st.trials) || !c || !c.correct) return; const T = st.trials, key = (t) => { try{ const v = c.correct(t, st.cfg); return v == null ? null : String(v); }catch(e){ return null; } }; const vals = new Set(T.map(key).filter(v => v != null)); if(vals.size < 2) return; const lim = vals.size === 2 ? 3 : 2; const cur = [st.ti, st.i, st.idx, st.n].find(v => typeof v === "number"); const from = Math.max(1, (cur || 0) + 1);
   /* sol–sağ simetrik denemeler (ör. Sayı Stroop): taraf çevrilerek sol/sağ sayısı eşitlenir ve uzun diziler kırılır */
@@ -2072,18 +2055,9 @@ function chBreakRuns(){ try{ const st = chState, c = CHOICE[currentExercise().id
   for(let pass = 0; pass < 8; pass++){ let changed = false; for(let i = from; i < T.length; i++){ if(K[i] == null || runAt(i) <= lim) continue; for(let j = i + 1; j < T.length; j++){ if(K[j] == null || K[j] === K[i]) continue; const ti = T[i]; T[i] = T[j]; T[j] = ti; const ki = K[i]; K[i] = K[j]; K[j] = ki; changed = true; break; } } if(!changed) break; } }catch(e){} }
 /* git–gitme çalışmalarında oturum "dokunma" denemesiyle başlamaz (Bağlamlı Tepki hariç: orada ilk resim tanım gereği hedef olamaz) */
 function chFirstGo(){ try{ const st = chState, id = currentExercise().id, c = CHOICE[id]; if(!st || !Array.isArray(st.trials) || !c || !c.correct || id === "context-go") return; const isNo = (t) => { try{ return c.correct(t, st.cfg) == null; }catch(e){ return false; } }; if(!isNo(st.trials[0])) return; const j = st.trials.findIndex((t, i) => i > 0 && !isNo(t)); if(j > 0){ const tmp = st.trials[0]; st.trials[0] = st.trials[j]; st.trials[j] = tmp; } }catch(e){} }
-(function wrapChStart(){ try{ const _s = chStart; chStart = function(){ try{ if(chState && chState.phase === "idle") chFirstGo(); }catch(e){} const out = _s.apply(this, arguments); chBreakRuns(); return out; }; }catch(e){} })();
-(function wrapMtRender(){ try{ const _r = renderMtBoard; renderMtBoard = function(){ try{ const st = mtState; if(st && (st.kind === "quiz" || st.kind === "wseen" || st.kind === "bag") && !st._balanced && Array.isArray(st.trials)){ const exId = (currentExercise() || {}).id; if(st.kind === "quiz") qzDedupe(st, exId); qzBalancePos(st.trials, exId); if(st.kind === "quiz" && !["syl-touch","sem-decide","absurd-touch","rhyme-touch","sent-verify","arrow-touch","balance"].includes(exId)) qzBalanceNum(st.trials); if(st.kind === "quiz"){ qzBreakRuns(st.trials, st.warmN || 0); qzFixRuns(st, exId); } st._balanced = true; } }catch(e){} const out = _r.apply(this, arguments); syncJudgePause(); return out; }; }catch(e){} })();
-(function timerPauseStyle(){ try{ /* stil: zihin-stil.css */ }catch(e){} })();
-(function placeVisStyle(){ try{ /* stil: zihin-stil.css */ }catch(e){} })();   /* KURAL (Değerlendirme turu görünümü): resimli uyaran beyaz kartta (açık renkli zeminde beyaz kare görünmez), içerik ekranın dikey ortasında */
-(function rpAccStyle(){ try{ if(document.getElementById("rpAccStyle")) return; /* stil: zihin-stil.css */ }catch(e){} })();
-(function growthStyle(){ try{ if(document.getElementById("growthStyle")) return; /* stil: zihin-stil.css */ }catch(e){} })();
-(function placeStimStyle(){ try{ if(document.getElementById("placeStimStyle")) return; /* stil: zihin-stil.css */ }catch(e){} })();
-(function homeGridStyle(){ try{ if(document.getElementById("homeGridStyle")) return; /* stil: zihin-stil.css */ }catch(e){} })();
-(function placeTableStyle(){ try{ if(document.getElementById("placeTableStyle")) return; /* stil: zihin-stil.css */ }catch(e){} })();
-(function fbMarkStyle(){ try{ if(document.getElementById("fbMarkStyle")) return; /* stil: zihin-stil.css */ }catch(e){} })();
-(function catGroupStyle(){ try{ if(document.getElementById("catGroupStyle")) return; /* stil: zihin-stil.css */ }catch(e){} })();
-(function efStyle(){ try{ if(document.getElementById("efStyle")) return; /* stil: zihin-stil.css */ }catch(e){} })();
+
+
+/* KURAL (Değerlendirme turu görünümü): resimli uyaran beyaz kartta (açık renkli zeminde beyaz kare görünmez), içerik ekranın dikey ortasında */
 /* Heykel (NEPSY Statue): süre ve çeldirici ses zamanları */
 function statueCfg(){ const t = Math.min(currentCombo().t, 2), pre = isPre(), secs = (pre ? [30, 45, 60] : [45, 60, 75])[t], nD = (pre ? [2, 3, 4] : [3, 4, 6])[t]; const ds = []; for(let i = 0; i < nD; i++) ds.push(4000 + Math.random() * (secs * 1000 - 8000)); return { secs, ds: ds.sort((a, b) => a - b) }; }
 const STATUE_SOUNDS = ["pop", "drop", "soft", "go"];
@@ -2113,7 +2087,6 @@ function axSeq(n, c){ const t = Math.min(currentCombo().t, 2), pAY = [0.2, 0.25,
     const nGo = seq.filter(x => x.go).length, nBX = seq.filter(x => x.kind === "X" && !x.go).length; if(nGo >= n * 0.28 && nGo <= n * 0.45 && nBX >= 1) return seq; best = best || seq; }
   return best; }
 /* ===== Yürütücü İşlev · Paket 3 (Esneklik) · veri ve yardımcılar ===== */
-(function efStyle3(){ try{ if(document.getElementById("efStyle3")) return; /* stil: zihin-stil.css */ }catch(e){} })();
 const FIST_COLORS = [[ACC.kirmizi,"kırmızı"], ["#0072B2","mavi"], ["#009E73","yeşil"], ["#E69F00","sarı"]], FIST_SHAPES = [["circle","daire"], ["square","kare"], ["triangle","üçgen"], ["star","yıldız"]], FIST_SIZES = [[1,"büyük"], [0.55,"küçük"]];
 /* İki Yönden Eşle (FIST): B ortak kart; A–B renkte, B–C şekilde ortak; 3 boyutta A–C boyutta ortak */
 function fistTrials(){ const t = Math.min(currentCombo().t, 2), pre = isPre(), N = (pre ? [4, 5, 6] : [6, 8, 10])[t], dims3 = t > 0, need = t === 2 ? 3 : 2;
@@ -2125,7 +2098,7 @@ function fistTrials(){ const t = Math.min(currentCombo().t, 2), pre = isPre(), N
 function fistPairKey(a, b){ return a < b ? a + "-" + b : b + "-" + a; }
 /* Kuralı Söylemeden Değiştir (WCST mantığı): 4 anahtar kart, gizli kural, ardışık doğrudan sonra kural sessizce değişir */
 const WC_KEYS = [{ c:ACC.kirmizi, s:"circle", n:1 }, { c:ACC.yesil, s:"triangle", n:2 }, { c:ACC.sari, s:"square", n:3 }, { c:ACC.mavi, s:"star", n:4 }];
-const WC_RULE_NAMES = { c:"renk", s:"şekil", n:"sayı" };
+/* WC_RULE_NAMES: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 function wcCfg(){ const t = Math.min(currentCombo().t, 2), pre = isPre(); return { rules: (pre ? [["c","s"], ["c","s"], ["c","s","n"]] : [["c","s"], ["c","s","n"], ["c","s","n"]])[t], K: pre ? [4, 4, 3][t] : [5, 5, 4][t], N: selCount() }; }
 function wcCard(rules){ /* her boyutta farklı anahtarla eşleşen kart: kurala göre doğru anahtar değişir */ let g = 0; while(g++ < 200){ const ci = Math.floor(Math.random() * 4), si = Math.floor(Math.random() * 4), ni = Math.floor(Math.random() * 4); const m = { c: ci, s: si, n: ni }; const used = rules.map(r => m[r]); if(new Set(used).size === rules.length) return { c: WC_KEYS[ci].c, s: WC_KEYS[si].s, n: WC_KEYS[ni].n, m }; } return { c: WC_KEYS[0].c, s: WC_KEYS[1].s, n: WC_KEYS[2].n, m:{ c:0, s:1, n:2 } }; }
 function wcCardSVG(card, px){ const n = card.n, s = Math.round(px * (n === 1 ? 0.6 : n === 2 ? 0.42 : 0.34)); return `<div style="width:${px}px;height:${px}px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;align-content:center;gap:2px">${Array.from({length:n}, () => `<svg viewBox="0 0 100 100" style="width:${s}px;height:${s}px">${sortShapeSVG(card.s, card.c)}</svg>`).join("")}</div>`; }
@@ -2138,7 +2111,7 @@ function navonPts(big){ const P = []; if(big === "circle"){ for(let i = 0; i < 1
   else { const T = [[50, 10], [10, 86], [90, 86]]; for(let e = 0; e < 3; e++){ const [x1, y1] = T[e], [x2, y2] = T[(e + 1) % 3]; for(let k = 0; k < 4; k++) P.push([x1 + (x2 - x1) * k / 4, y1 + (y2 - y1) * k / 4]); } }
   return P; }
 function navonSVG(big, small, color){ return `<svg viewBox="0 0 100 100" style="width:100%;height:100%;display:block">${navonPts(big).map(([x, y]) => `<svg x="${x - 5.5}" y="${y - 5.5}" width="11" height="11" viewBox="0 0 100 100">${sortShapeSVG(small, color)}</svg>`).join("")}</svg>`; }
-const NV_NAMES = { circle:"daire", square:"kare", triangle:"üçgen" };
+/* NV_NAMES: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 /* Artı–Eksi: sayı sütunu */
 function pmGrid(n){ const t = Math.min(currentCombo().t, 2), lo = [4, 10, 20][t], hi = [20, 50, 96][t]; const out = []; let prev = -1; for(let i = 0; i < n; i++){ let v; do{ v = lo + Math.floor(Math.random() * (hi - lo + 1)); } while(v === prev); prev = v; out.push({ v }); } return out; }
 /* Yaratık Sayma (TEA-Ch): ok işaretleri yönü çevirir */
@@ -2149,10 +2122,8 @@ function ccTrials(){ const t = Math.min(currentCombo().t, 2), N = [6, 8, 10][t],
       let len = 2 + Math.floor(Math.random() * (t === 2 ? 4 : 3)); if(dir < 0) len = Math.min(len, val); for(let k = 0; k < len; k++){ val += dir; items.push({ img }); } }
     const opts = new Set([val]); let g = 0; while(opts.size < 4 && g++ < 50){ const d = val + (Math.floor(Math.random() * 7) - 3); if(d >= 0) opts.add(d); } while(opts.size < 4) opts.add(val + opts.size + 3); return { items, ans: val, opts: shuffleArray([...opts]) }; }); }
 /* Hareket mi, Yön mü?: ok grubu bir yöne bakarken başka yöne kayar; renk kuralı belirler */
-function mdTrials(n){ const t = Math.min(currentCombo().t, 2), D = ["l", "r"].concat(t === 2 ? ["u", "d"] : []); const want = balancedSeq(n, D, 2); let rule = Math.random() < 0.5 ? "point" : "move"; const sw = t === 0 ? Math.floor(n / 2) : -1;
-  return want.map((w, i) => { if(t === 0 && i === sw) rule = rule === "point" ? "move" : "point"; else if(t === 1 && i && Math.random() < 0.35) rule = rule === "point" ? "move" : "point"; else if(t === 2 && i) rule = Math.random() < 0.5 ? "point" : "move";
-    const other = pickDifferent(D, w); const point = rule === "point" ? w : other, move = rule === "move" ? w : other; return { point, move, rule, ans: w }; }); }
-const MD_VEC = { l:[-1, 0], r:[1, 0], u:[0, -1], d:[0, 1] };
+/* mdTrials: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
+/* MD_VEC: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 /* ===== Yürütücü İşlev · Paket 4 (Planlama) · veri ve yardımcılar ===== */
 /* Hayvanat Bahçesi Planı (Zoo Map): 3×3 düğüm, giriş sol alt, çıkış sağ alt; rota giriş→çıkış, aynı yol iki kez kullanılmaz */
 const ZOO_POS = [[16, 18], [50, 18], [84, 18], [16, 50], [50, 50], [84, 50], [16, 82], [50, 82], [84, 82]];
@@ -2237,7 +2208,7 @@ function lfTrials(){ const t = Math.min(currentCombo().t, 2), pre = isPre(), N =
     const vars = keys.map(k => { const v = Object.assign({}, base); const others = LF_ATTRS[k].filter(x => x !== base[k] && !(t === 0 && k === "chim" && x === "smoke")); v[k] = randomItem(others); return v; });
     const opts = shuffleArray([base].concat(vars)); return { base, opts, ans: opts.indexOf(base) }; }); }
 /* (2026-10-29: bu çalışma uygulamadan kaldırıldı; yardımcı işlev kullanılmıyor) */
-function scTrials(){ const t = Math.min(currentCombo().t, 2), pre = isPre(), N = (pre ? [8, 10, 12] : [12, 16, 20])[t], D = ["l", "r", "u", "d"].slice(0, pre ? 2 : [2, 4, 4][t]); return { win: (pre ? [1500, 1300, 1100] : [1100, 950, 850])[t], D, items: balancedSeq(N, D, 2).map(d => ({ d, ans:null, ok:null, mark:false })) }; }
+/* scTrials: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 /* Hangi Kutu Daha İyi? (Çocuk Kumar Görevi, Kerr & Zelazo): riskli kutu çok verir ama çok kaybettirir */
 /* (2026-11-02: Hangi Kutu ve Hareket mi Yön mü çalışmaları kullanıcı isteğiyle silindi) */   /* daha iyi kutunun yeri her sayfada değişir */
 /* Her Grubun Sonuncusu (Keep Track): kategoriler ve havuzlar */
