@@ -5,10 +5,10 @@
    - Betikler (zihin-*.js) ve resim dosyaları: önce önbellek; yoksa ağdan alınıp saklanır; aynı dosyanın eski sürümleri silinir.
    - Diğer aynı kaynaklı istekler: önbellekten ver, arkada yenile.
    Sürüm değişince (SW_VERSION) eski önbellekler temizlenir. */
-const SW_VERSION = "2026.11.09-b";
+const SW_VERSION = "2026.11.09-c";
 const CACHE = "za-" + SW_VERSION;
 const CACHE_IMG = "za-img";   /* KURAL: resim paketleri sürüm değişince silinmez; yalnızca içeriği değişen paket (adresindeki özet değişir) yeniden indirilir */
-const CORE = ["./zihin-atolyesi.html", "./zihin-app.js", "./manifest.json"];
+const CORE = ["./zihin-atolyesi.html", "./zihin-app.js", "./zihin-stil.css", "./manifest.json"];
 const HTML_TIMEOUT_MS = 4000;
 
 self.addEventListener("install", (ev) => {
@@ -30,7 +30,7 @@ self.addEventListener("activate", (ev) => {
 
 const sameOrigin = (url) => url.origin === self.location.origin;
 const isHtml = (req, url) => req.mode === "navigate" || url.pathname.endsWith(".html") || url.pathname.endsWith("/");
-const isScript = (url) => /\/zihin-[\w-]+\.js$/.test(url.pathname);
+const isScript = (url) => /\/zihin-[\w-]+\.(js|css)$/.test(url.pathname); /* 2026-11-09: zihin-stil.css de sürümlü ve önbellek-öncelikli */
 
 /* Aynı yolun (sorgu dışı) eski kopyalarını sil: zihin-gorsel-1.js?v=eski gibi */
 async function pruneOld(cache, url){
