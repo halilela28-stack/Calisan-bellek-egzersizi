@@ -386,7 +386,7 @@ return { start: seq[0], second: seq[1], third: seq[2], choices };
 });
 }
 function osImgSrc(k){ try{ return OS_IMAGES[k] || (typeof LIVING_IMAGES !== "undefined" && LIVING_IMAGES[k]) || (typeof OBJECT_IMAGES !== "undefined" && OBJECT_IMAGES[k]) || ""; }catch(e){ return ""; } }
-function renderOsBoard(){
+function renderOsBoard(){ try{
 const board = document.getElementById("board");
 board.style.display = "block";
 board.style.minHeight = "";
@@ -406,7 +406,7 @@ board.innerHTML = `<div class="os-list">` + currentGrid.map((r, ri) =>
 `<div class="os-cell os-start"><img src="${osImgSrc(r.start)}" alt=""></div>` +
 r.choices.map(c => { const k = (osProg[ri] || []).indexOf(c); return `<div class="os-cell os-tap${k >= 0 ? " ok" : ""}${k >= 0 && window.__osFresh === ri + ":" + c ? " fresh" : ""}" data-osr="${ri}" data-osc="${c}"><img src="${osImgSrc(c)}" alt="">${k >= 0 ? `<b class="os-n">${k + 1}</b>` : ""}</div>`; }).join("") +
 `</div>`).join("") + `</div>`;
-}
+}finally{ try{ zaTapRestore(); }catch(e){} } }
 
 window.addEventListener("resize", () => {
 clearTimeout(window._osResizeT);
@@ -1006,7 +1006,7 @@ if(id === "search-shape") return srhShapeSVG(k, true);
 if(id === "search-symbol") return srhSym(k);
 return `<span class="srh-letter" style="font-size:${Math.round(px*0.62)}px;">${k}</span>`;
 }
-function renderSearchBoard(){
+function renderSearchBoard(){ try{
 const board = document.getElementById("board");
 board.style.display = "block";
 board.style.minHeight = "";
@@ -1053,7 +1053,7 @@ renderSearchBoard();
 }
 });
 } else if(searchState) searchState.lsScale = 1;
-}
+}finally{ try{ zaTapRestore(); }catch(e){} } }
 function handleSearchTap(ev){
 const ex = currentExercise();
 if(!ex.isSearch || !searchState) return;
@@ -1225,7 +1225,7 @@ return `<div class="pln-peg${interactive && sel === i ? " sel" : ""}" ${interact
 `<div class="rod" style="width:${Math.max(4, Math.round(item*0.14))}px;height:${h}px;"></div><div class="base"></div>${items}</div>`;
 }).join("") + `</div>`;
 }
-function renderPlanBoard(){
+function renderPlanBoard(){ zaFitReset(); try{
 const board = document.getElementById("board");
 board.style.display = "block";
 board.style.minHeight = "";
@@ -1258,7 +1258,7 @@ const resetBtn = ps.done ? "" : `<button class="pln-btn" data-plnreset="1">↺ B
 board.innerHTML = isLs
 ? `<div class="pln-wrap" style="flex-direction:row;align-items:center;justify-content:center;gap:18px;"><div style="display:flex;flex-direction:column;align-items:center;gap:8px;">${goal}${info}${resetBtn}</div><div>${workHtml}</div></div>`
 : `<div class="pln-wrap"><div class="pln-top">${goal}${info}</div><div style="margin-top:14px;">${workHtml}</div>${resetBtn}</div>`;
-}
+}finally{ try{ zaTapRestore(); }catch(e){} } }
 function plnSolved(){
 const pr = currentGrid[planState.p];
 return plnKey(planState.cur) === plnKey(pr.goal);
@@ -1435,7 +1435,7 @@ const cw = W / cols, ch = H / rows;
 const cells = trailState.perm.filter(v => v < cols * rows).slice(0, n);
 return { cols, rows, cw, ch, cells };
 }
-function renderTrailBoard(){
+function renderTrailBoard(){ zaFitReset(); try{
 const board = document.getElementById("board");
 board.style.display = "block";
 board.style.minHeight = "";
@@ -1572,7 +1572,7 @@ area.style.height = H + "px";
 area.innerHTML = `<svg class="trl-lines" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${lines}</svg>${nodes}`;
 board.style.minHeight = "";
 trailState.pos = pos;
-}
+}finally{ try{ zaTapRestore(); }catch(e){} } }
 function trailMarkStep(i){
 const board = document.getElementById("board");
 const node = board.querySelector(`.trl-node[data-o="${i}"]`);
@@ -1647,12 +1647,28 @@ function zaTapKey(el){ for(const a of ZA_TAP_ATTRS) if(el.hasAttribute(a)) retur
 function zaTapMark(el, ms){ try{ /* KURAL (dokunma vurgusu konum, 2026-11-08): konumu transform ile verilen öğeler (Sayılara Sırayla Dokun düğümleri gibi) dokununca kaymaz; yalnız halka ve parlaklıkla belirir */ const tf = getComputedStyle(el).transform; const cls = (tf && tf !== "none") ? "za-tap-ring" : "za-tap"; el.classList.add(cls); setTimeout(() => { try{ el.classList.remove(cls); }catch(e){} }, ms); }catch(e){} }
 function zaTapRestore(){ try{ const t = window.__zaTap; if(!t) return; const left = 240 - (Date.now() - t.at); if(left <= 20) return; const bd = document.getElementById("board"); if(!bd) return; const el = [...bd.querySelectorAll(ZA_TAP_SEL)].find(e => zaTapKey(e) === t.key); if(el) zaTapMark(el, left); }catch(e){} }
 (function(){ try{ /* stil: zihin-stil.css */ }catch(e){}
- ["renderWmBoard","renderChoiceBoard","renderRtBoard","renderMemoryBoard","renderSortBoard","renderSearchBoard","renderOsBoard"].forEach(n => { try{ const f = (0, eval)(n); if(typeof f !== "function") return; const w = function(){ const r = f.apply(this, arguments); try{ zaTapRestore(); }catch(e){} return r; }; window.__zaTmpW = w; (0, eval)(n + " = window.__zaTmpW"); window.__zaTmpW = null; }catch(e){} }); try{ document.addEventListener("pointerdown", (ev) => { try{ const bd = document.getElementById("board"); if(!bd || !bd.contains(ev.target)) return; const el = ev.target.closest(ZA_TAP_SEL); if(!el || !bd.contains(el) || el.disabled) return; window.__zaTap = { key: zaTapKey(el), at: Date.now() }; zaTapMark(el, 240); try{ if(navigator.vibrate) navigator.vibrate(12); }catch(e){} }catch(e){} }, { capture: true, passive: true }); }catch(e){} })();
-function zaRunAvail(board, padV){ try{ const ma = document.getElementById("mainApp"); const tb = document.getElementById("timerBtn"); const rows = [document.getElementById("instructionBox"), tb && tb.closest(".timer-row"), document.getElementById("errorRow"), document.getElementById("sdmtKey")].filter((e, i, arr) => e && arr.indexOf(e) === i); /* çalışırken görünen satırlar: yönerge, süre, hata sayısı ve (varsa) sembol anahtarı; başlık, çipler, oturum çubuğu, Sonucu Kaydet, alt düğmeler çalışırken gizli olduğu için hesaba girmez */ let used = 0; rows.forEach(el => { const cs = getComputedStyle(el); let h = el.getBoundingClientRect().height; if(cs.display === "none" || h < 1){ if(el.id === "sdmtKey") return; h = el.id === "instructionBox" ? 96 : 68; } used += h + (parseFloat(cs.marginTop) || 0) + (parseFloat(cs.marginBottom) || 0); }); const csM = ma ? getComputedStyle(ma) : null; const top = csM ? (parseFloat(csM.paddingTop) || 0) : 12; const csB = getComputedStyle(board); used += (parseFloat(csB.marginTop) || 0); const avail = Math.floor(window.innerHeight - top - used - 14 - padV); if(!isFinite(avail) || avail < 180) return Math.floor(window.innerHeight * 0.5); return avail; }catch(e){ return Math.floor(window.innerHeight * 0.5); } }
+  try{ document.addEventListener("pointerdown", (ev) => { try{ const bd = document.getElementById("board"); if(!bd || !bd.contains(ev.target)) return; const el = ev.target.closest(ZA_TAP_SEL); if(!el || !bd.contains(el) || el.disabled) return; window.__zaTap = { key: zaTapKey(el), at: Date.now() }; zaTapMark(el, 240); try{ if(navigator.vibrate) navigator.vibrate(12); }catch(e){} }catch(e){} }, { capture: true, passive: true }); }catch(e){} })();
+/* KURAL (tahta düzeni modülü, 2026-11-09 — mühendislik borcu 3. adım): resimli/şekilli tahtanın bütün yerleşim hesabı tek yerdedir, ZA_BOARD: kalan yükseklik (avail), sütun/satır/hücre seçimi (pick, picGrid), özel satır biçimli tahtalar (RG) ve satır ayırıcı çizgiler (dividers). applyBoardLayout yalnız bu modüle çağrı yapar; yerleşimle ilgili bir değişiklik yalnız burada yapılır */
+const ZA_BOARD = {
+  /* satır biçimli gruplar: iki sütun, satır yüksekliği içeriğin oranına göre (daireler basık görünmez) */
+  RG: { "sequence-pattern": 4.2, "visual-analogy": 3.4, "odd-one-out": 2.3 },
+  isSpecial(id){ return !!this.RG[id]; },
+  /* çalışırken tahtaya kalan yükseklik — sabit model */
+  avail(board, padV){ try{ const ma = document.getElementById("mainApp"); const tb = document.getElementById("timerBtn"); const rows = [document.getElementById("instructionBox"), tb && tb.closest(".timer-row"), document.getElementById("errorRow"), document.getElementById("sdmtKey")].filter((e, i, arr) => e && arr.indexOf(e) === i); /* çalışırken görünen satırlar: yönerge, süre, hata sayısı ve (varsa) sembol anahtarı; başlık, çipler, oturum çubuğu, Sonucu Kaydet, alt düğmeler çalışırken gizli olduğu için hesaba girmez */ let used = 0; rows.forEach(el => { const cs = getComputedStyle(el); let h = el.getBoundingClientRect().height; if(cs.display === "none" || h < 1){ if(el.id === "sdmtKey") return; h = el.id === "instructionBox" ? 96 : 68; } used += h + (parseFloat(cs.marginTop) || 0) + (parseFloat(cs.marginBottom) || 0); }); const csM = ma ? getComputedStyle(ma) : null; const top = csM ? (parseFloat(csM.paddingTop) || 0) : 12; const csB = getComputedStyle(board); used += (parseFloat(csB.marginTop) || 0); const avail = Math.floor(window.innerHeight - top - used - 14 - padV); if(!isFinite(avail) || avail < 180) return Math.floor(window.innerHeight * 0.5); return avail; }catch(e){ return Math.floor(window.innerHeight * 0.5); } },
+  /* n öğe için sütun/satır/hücre adayları ve seçim */
+  pick(n, W, avail, gx, gy, MAXC){ const aspect = 1; /* resim ve şekil hücreleri karedir: sütun satırdan geniş olursa iPhone Safari'de şekil hücreden taşıp üstü kesiliyordu (Şekil–Renk kalpleri) */ const cands = []; for(let c = 2; c <= Math.min(8, n); c++){ const r = Math.ceil(n / c); if(c * r - n >= c) continue; const empty = c * r - n; const cw = (W - (c - 1) * gx) / c; const chW = cw / aspect; const chH = avail > 0 ? (avail - (r - 1) * gy) / r : chW; const cell = Math.min(chW, chH, MAXC); cands.push({ c, r, cell, empty }); } /* KURAL (son satır, 2026-11-07): son satırı tam dolu dizilimler önce gelir (9 resim 3×3, 2+2+2+2+1 değil); tam dolu dizilim resimleri en iyinin %70'inden fazla küçültüyorsa (asal sayılar) boşluklu dizilime izin verilir */ const bestAll = cands.reduce((m, x) => Math.max(m, x.cell), 0); const exact = cands.filter(x => x.empty === 0).sort((x, y) => y.cell - x.cell); const pick = exact.length && exact[0].cell >= bestAll * 0.7 ? exact[0] : cands.slice().sort((x, y) => (y.cell - y.empty * 6) - (x.cell - x.empty * 6))[0]; return pick || null; },
+  /* resimli tahta için tam yerleşim: {cols, rows, colTrack, rowTrack, fitOver} */
+  picGrid(board, n){ try{ const csB = getComputedStyle(board); const padV = parseFloat(csB.paddingTop) + parseFloat(csB.paddingBottom), padH = parseFloat(csB.paddingLeft) + parseFloat(csB.paddingRight); const gx = parseFloat(csB.columnGap) || 10; const gy = n >= 13 && window.innerWidth < 700 ? 12 : (parseFloat(csB.rowGap) || 10); /* KURAL (tahta boyu kalıcı, 2026-11-08): resimli/şekilli tahtanın hücre boyu, o anki ekran konumuna değil sabit bir modele göre hesaplanır — ekran yüksekliğinden yalnız çalışırken görünen satırlar (yönerge, süre, hata) ve kenar boşlukları düşülür. Başlık, çipler, oturum çubuğu, "Sonucu Kaydet" satırı, kaydırma konumu hesaba girmez. Böylece Başlat'tan önce, çalışırken, Bitir'den sonra ve Karıştır/Sonraki'de tahta hep aynı boydadır (önceden tahtanın ekrandaki yerine göre hesaplanıyor, her düğmede farklı boy çıkıyordu) */
+const avail = this.avail(board, padV); const W = board.clientWidth - padH; const MAXC = Math.min(150, Math.round(window.innerWidth * 0.42)); const p = this.pick(n, W, avail, gx, gy, MAXC); if(!p) return null; const cell = Math.max(36, Math.floor(p.cell)); return { cols: p.c, rows: p.r, rowTrack: cell + "px", colTrack: cell + "px", fitOver: p.r * cell + (p.r - 1) * gy > avail + 1 }; }catch(e){ return null; } },
+  /* satır ayırıcı çizgiler */
+  dividers(board, rows, cols, noRaf){ board.querySelectorAll(".row-divider").forEach(el => el.remove()); if(rows <= 1 || cols <= 0) return; const cs = getComputedStyle(board); const padLeft = parseFloat(cs.paddingLeft) || 0; const padRight = parseFloat(cs.paddingRight) || 0; const rowGapPx = parseFloat(cs.rowGap) || 0; const boardRect = board.getBoundingClientRect(); const bt = boardRect.top + (board.clientTop || 0); /* KURAL (satır çizgisi, 2026-11-08): ayırıcı çizgi iki satırın tam ortasındadır — üstteki satırın alt kenarı ile alttaki satırın üst kenarının ortasına çizilir, tahtanın üst kenar çizgisi hesaba katılır; yerleşim bir kare sonra değişmişse çizgiler yeniden hizalanır (önceden çizgi alt satırın üstüne yapışıyordu) */ for(let r = 0; r < rows - 1; r++){ const cell = board.children[r * cols], next = board.children[(r + 1) * cols]; if(!cell) continue; const ar = cell.getBoundingClientRect(); const cr = next ? next.getBoundingClientRect() : null; const mid = (cr && cr.top >= ar.bottom - 1) ? (ar.bottom + cr.top) / 2 : ar.bottom + rowGapPx / 2; const line = document.createElement("div"); line.className = "row-divider"; line.style.top = (mid - bt) + "px"; line.style.left = padLeft + "px"; line.style.right = padRight + "px"; board.appendChild(line); } if(!noRaf && !board.__zaDivRaf){ board.__zaDivRaf = requestAnimationFrame(() => { board.__zaDivRaf = 0; try{ if(board.querySelector(".row-divider") && board.children[cols]) ZA_BOARD.dividers(board, rows, cols, true); }catch(e){} }); } }
+};
+function zaRunAvail(board, padV){ return ZA_BOARD.avail(board, padV); }
+function renderRowDividers(board, rows, cols, noRaf){ return ZA_BOARD.dividers(board, rows, cols, noRaf); }
 /* KURAL (tahta ölçeği, 2026-11-06): çalışırken tahtaya sığmayan içerik küçültülür, ama küçültme yalnız o soru/evre için geçerlidir — yeni denemeye, yeni evreye (ör. cümle → resimleri hatırlama), yeni probleme geçince ölçek yeniden 1'den başlar. Önceden küçültme tek yönlüydü: uzun bir evrede küçülen tahta sonraki denemelerde de küçük kalıyordu (Resimli Dinleme Aralığı ikinci tekrarda küçülüyordu) */
 function zaFitKey(){ try{ const ex = currentExercise(); let s = ex ? ex.id : ""; if(typeof mtState !== "undefined" && mtState){ const m = mtState; s += "|" + [m.kind, m.ti, m.si, m.phase, m.round, m.p].map(v => v == null ? "" : v).join(","); } if(typeof planState !== "undefined" && planState) s += "|p" + planState.p; if(typeof trailState !== "undefined" && trailState) s += "|t" + (Array.isArray(currentGrid) ? currentGrid.length : 0) + ":" + (trailState.page || 0); return s; }catch(e){ return ""; } }
 function zaFitReset(){ try{ if(window.__zaNoFitReset) return; const k = zaFitKey(); if(k === window._zaFitKey) return; window._zaFitKey = k; if((window._fitK || 1) !== 1){ window._fitK = 1; } const bd = document.getElementById("board"); if(bd){ delete bd.dataset.rf; delete bd.dataset.rfs; } }catch(e){} }
-(function(){ ["renderMtBoard", "renderPlanBoard", "renderTrailBoard"].forEach(n => { try{ const f = (0, eval)(n); if(typeof f !== "function") return; const w = function(){ zaFitReset(); const r = f.apply(this, arguments); if(n === "renderMtBoard") zaPicGrow(f, this, arguments); try{ zaTapRestore(); }catch(e){} return r; }; if(n === "renderMtBoard") renderMtBoard = w; else if(n === "renderPlanBoard") renderPlanBoard = w; else renderTrailBoard = w; }catch(e){} }); })();
+
 (function devCardCSS(){ try{ /* stil: zihin-stil.css */ }catch(e){} })();
 (function exhXCSS(){ try{ /* stil: zihin-stil.css */ }catch(e){} })();
 (function osFreshCSS(){ try{ /* stil: zihin-stil.css */ }catch(e){} })();
@@ -1664,8 +1680,8 @@ function zaFitReset(){ try{ if(window.__zaNoFitReset) return; const k = zaFitKey
 (function todayCompact(){ try{ /* stil: zihin-stil.css */ }catch(e){} })();
 /* KURAL (Ödevlerim sıkı düzen, 2026-11-06): Ödevlerim sayfası boşlukları azaltılmış sıkı düzendedir — mümkünse tek ekrana sığar (üst boşluk, başlık, bölüm başlıkları, kartlar ve geçmiş tablosu satırları sıkılaştırılmıştır); yazılar 11 px altına inmez */
 (function hwCompact(){ try{ /* stil: zihin-stil.css */ }catch(e){}
- try{ const f = showHwScreen; showHwScreen = function(){ const r = f.apply(this, arguments); try{ const ls = document.getElementById("linkScreen"); if(ls) ls.classList.add("za-hw"); }catch(e){} return r; }; }catch(e){}
- try{ const g = hideLinkScreens; hideLinkScreens = function(){ try{ const ls = document.getElementById("linkScreen"); if(ls) ls.classList.remove("za-hw"); }catch(e){} return g.apply(this, arguments); }; }catch(e){} })();
+
+ })();
 /* KURAL (durum çubuğu kök neden, 2026-11-07): gizli altyazı balonu ekranın en üstünde koyu renkli olarak (yalnız saydam) duruyordu; iPhone durum çubuğunun rengini en üstteki sabit öğeden aldığı için uygulamaya dönünce üst kısım koyu/gri kalıyordu. Gizli altyazı balonu artık hiç yer kaplamaz (display:none); üst kenarda koyu renkli gizli sabit öğe bulunmaz */
 (function capHideCSS(){ try{ /* stil: zihin-stil.css */ }catch(e){} })();
 /* KURAL (durum çubuğu, 2026-11-06): uygulama arka plandan dönünce (başka uygulamaya girip çıkınca) üstteki durum çubuğu rengi uygulamanın rengine yeniden ayarlanır (iPhone'da gri kalıyordu) */
@@ -1678,34 +1694,34 @@ function zaHomePick(cur, cb){ try{ const esc = (x) => String(x).replace(/&/g, "&
 function zaPersonChanged(n){ try{ if(!n || n === "__new__") return; try{ whoSelSet(n); whoTouch(n); }catch(e){} if(typeof timerRunning !== "undefined" && timerRunning) return; const ma = document.getElementById("mainApp"); if(!ma || getComputedStyle(ma).display === "none") return; const ex = currentExercise(); if(!ex) return; const exId = ex.id, ci = currentCategoryIndex; selectCategory(ci); const e = currentCategoryExercises().findIndex(x => x.id === exId); if(e < 0) return; const t = Math.max(lastTierFor(exId), exerciseById(exId).minTier || 0); const idx = findSeqIndex(Math.min(t, tierMax(exerciseById(exId))), e); if(idx != null && idx >= 0) goToIndex(idx); }catch(e){} }
 /* KURAL (yönerge sesi, 2026-11-06): (1) oyunda yönerge kesilmez — yönerge okunurken Başla'ya basılırsa oyun yönerge bitince başlar, "Başla!" sesi atlanır, oyunun kendi sesleri yönergeden sonra gelir; (2) Bilişsel Etkinlik sayfalarında da (Aile/Uzman, Bugün, Ödevlerim) yönerge sayfa açılınca okunur, Başlat'a basınca okuma durur; (3) yönerge kutusunda "Yönerge:" yazısının önünde hoparlör düğmesi vardır — sesi kapatır/açar, açınca yönergeyi yeniden okur */
 function zaInstrDone(){ try{ window.__zaInstrActive = false; clearTimeout(window.__zaInstrT); if(window.__zaStartAfterInstr){ window.__zaStartAfterInstr = false; const b = document.getElementById("timerBtn"); if(b) b.classList.remove("za-wait"); if(!timerRunning && typeof gameMode !== "undefined" && gameMode){ window.__zaSkipGo = true; try{ startTimer(); }finally{ window.__zaSkipGo = false; } } } }catch(e){} }
-(function(){ try{ const f = startTimer; startTimer = function(){ try{ const gm = typeof gameMode !== "undefined" && gameMode; if(window.__zaInstrActive && !timerRunning){ if(gm){ window.__zaStartAfterInstr = true; const b = document.getElementById("timerBtn"); if(b) b.classList.add("za-wait"); return; } else { zaStopSpeech(); } } }catch(e){} return f.apply(this, arguments); }; }catch(e){} })();
+
 /* KURAL (düzey bildirimi, 2026-11-07): "Harika gidiyorsun! Zorluk artırıldı…" / "zorluk azaltıldı…" bildirimi kendiliğinden kaybolmaz; Başlat'a basılana, başka çalışmaya/adıma geçilene ya da ekran kaydırılana kadar görünür kalır (önceden 4 sn'de kayboluyor, okunamıyordu) */
-(function(){ try{ const f = showLevelFlash; showLevelFlash = function(text, type){ const r = f.apply(this, arguments); try{ if(type === "levelup" || type === "down"){ const fl = document.getElementById("levelFlash"); if(fl && fl.style.display === "block"){ clearTimeout(fl._hideTimer); fl._zaSticky = Date.now(); } const tt = document.getElementById("zaToast"); if(tt && tt.style.display === "block" && /Zorluk|zorluk/.test(tt.textContent)){ clearTimeout(tt._h); tt._zaSticky = Date.now(); } } }catch(e){} return r; }; }catch(e){}
+(function(){ 
  const hide = (minAge) => { try{ ["levelFlash", "zaToast"].forEach(id => { const e = document.getElementById(id); if(e && e._zaSticky && Date.now() - e._zaSticky > (minAge || 0)){ e.style.display = "none"; e._zaSticky = 0; } }); }catch(e){} };
  window.zaHideLevelFlash = hide;
  try{ document.addEventListener("click", (ev) => { if(ev.target.closest && ev.target.closest("#timerBtn")) hide(0); }, true); }catch(e){}
  try{ ["scroll", "touchmove", "wheel"].forEach(evn => document.addEventListener(evn, () => hide(900), { capture: true, passive: true })); }catch(e){}
- try{ const g = goToIndex; goToIndex = function(){ const r = g.apply(this, arguments); hide(400); return r; }; }catch(e){}
- try{ const h = hideFamScreens; hideFamScreens = function(){ hide(0); return h.apply(this, arguments); }; }catch(e){} })();
+
+ })();
 /* KURAL (pencere ve Tebrikler kartı, 2026-11-07): Tebrikler (Zihni) kartı ekrandayken onay penceresi açılırsa kart ekranın en üstüne çıkar, pencere kartın altına yerleşir; ikisi üst üste binmez, ikisi de görünür */
 function zaDlgPlace(){ try{ const d = document.getElementById("zaDlg"); if(!d || d.style.display !== "flex") return; d.style.alignItems = ""; d.style.paddingTop = ""; d.style.paddingBottom = ""; const fc = document.getElementById("finishCard"); if(!fc) return; const cs = getComputedStyle(fc); if(cs.display === "none" || cs.visibility === "hidden" || !fc.classList.contains("on") || fc.getBoundingClientRect().height < 10) return; fc.style.top = "calc(8px + env(safe-area-inset-top, 0px))"; fc.style.transition = "none"; const r = fc.getBoundingClientRect(); const card = d.querySelector(".zd-card"); if(!card) return; const ch = card.getBoundingClientRect().height, top = Math.round(r.bottom + 12); if(top + ch <= window.innerHeight - 8){ d.style.alignItems = "flex-start"; d.style.paddingTop = top + "px"; } else { d.style.alignItems = "flex-end"; d.style.paddingBottom = "10px"; } }catch(e){} }
-(function(){ try{ const f = zaDialog; zaDialog = function(){ const p = f.apply(this, arguments); try{ zaDlgPlace(); setTimeout(zaDlgPlace, 60); setTimeout(zaDlgPlace, 400); }catch(e){} return p; }; }catch(e){} try{ const g = finishCard; finishCard = function(){ try{ const e = document.getElementById("finishCard"); if(e){ e.style.top = ""; e.style.transition = ""; } }catch(e){} const r = g.apply(this, arguments); try{ setTimeout(zaDlgPlace, 30); setTimeout(zaDlgPlace, 300); }catch(e){} return r; }; }catch(e){} })();
+
 /* KURAL (yönerge ve pencereler, 2026-11-07): bilgi/onay penceresi (ör. "… bir süre Okul Öncesi çalışmalarıyla ilerleyecek") ya da kişi penceresi açıkken yönerge okunmaz; okunmaktaysa susar. Pencere kapanınca (Tamam'a basınca) yönerge baştan okunur */
 function zaModalOpen(){ try{ return ["zaDlg", "whoSheet", "gameWhoSheet", "placeScreen", "placeOffer"].some(id => { const e = document.getElementById(id); if(!e) return false; const c = getComputedStyle(e); return c.display !== "none" && c.visibility !== "hidden" && e.getBoundingClientRect().height > 0 && (id !== "zaDlg" || e.innerHTML.trim() !== ""); }); }catch(e){ return false; } }
 function zaInstrWaitModal(){ try{ window.__zaInstrPending = true; if(window.__zaInstrPoll) return; window.__zaInstrPoll = setInterval(() => { if(zaModalOpen()) return; clearInterval(window.__zaInstrPoll); window.__zaInstrPoll = null; if(window.__zaInstrPending){ window.__zaInstrPending = false; setTimeout(() => zaReadInstr(true), 250); } }, 300); }catch(e){} }
-(function(){ try{ const f = zaDialog; zaDialog = function(msg, opts){ try{ if(!(typeof gameMode !== "undefined" && gameMode) && (window.__zaInstrActive || window.__zaInstrRT)){ clearTimeout(window.__zaInstrRT); window.__zaInstrRT = null; if(window.__zaInstrActive){ window.__zaInstrCut = true; zaStopSpeech(); } if(window.__zaInstrActive || window.__zaInstrCut || window.__zaInstrSpoken !== window.__zaInstrKey) zaInstrWaitModal(); } }catch(e){} return f.apply(this, arguments); }; }catch(e){} })();
+
 function zaReadInstr(force){ try{ if(typeof gameMode !== "undefined" && gameMode) return; if(timerRunning) return; if(zaModalOpen()){ zaInstrWaitModal(); return; } const ma = document.getElementById("mainApp"); if(!ma || getComputedStyle(ma).display === "none") return; const ex = currentExercise(); if(!ex) return; /* KURAL (yönerge sürekliliği, 2026-11-09): aynı sayfada kalındığı sürece düzey, kişi ya da okul dönemi değişince yönerge yeniden başlamaz ve kesilmez; yalnız başka çalışmaya ya da başka aşamaya geçilince okunur (aşamanın yönergesi farklıdır) */ const k = [ex.id, currentStageIndex].join("|"); if(!force && k === window.__zaInstrKey) return; if(force && window.__zaInstrSpoken === k && !window.__zaInstrCut) return; /* KURAL (yönerge bir kez, 2026-11-09): aynı çalışma+aşama için yönerge en çok bir kez okunur; yalnız pencere yüzünden kesildiyse pencere kapanınca baştan okunur. Hoparlör düğmesi her zaman yeniden okutabilir */ window.__zaInstrKey = k; clearTimeout(window.__zaInstrRT); window.__zaInstrRT = setTimeout(() => { try{ window.__zaInstrRT = null; if(timerRunning || getComputedStyle(ma).display === "none") return; if(zaModalOpen()){ zaInstrWaitModal(); return; } const tx = childInstructionText(); if(tx){ window.__zaInstrSpoken = k; window.__zaInstrCut = false; speakText(tx, { instr: true }); } }catch(e){} }, 600); }catch(e){} }
 const ZA_SPK_ON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5v5h4l5 4v-13l-5 4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>', ZA_SPK_OFF = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5v5h4l5 4v-13l-5 4z"/><path d="M16.5 9.5l5 5M21.5 9.5l-5 5"/></svg>';
 function zaInstrSpk(){ try{ const ib = document.getElementById("instructionBox"); if(!ib) return; let b = document.getElementById("instrSpk"); if(!b || b.parentNode !== ib){ if(b) b.remove(); b = document.createElement("button"); b.type = "button"; b.id = "instrSpk"; b.className = "instr-spk"; b.onclick = (ev) => { ev.stopPropagation(); const m = !speechMuted(); try{ localStorage.setItem(SPEECH_MUTE_KEY, m ? "1" : "0"); }catch(e){} if(m){ zaStopSpeech(); } else { const tx = childInstructionText(); if(tx) speakText(tx, { instr: true }); } zaInstrSpk(); try{ renderSpeakBtn(); }catch(e){} }; ib.insertBefore(b, ib.firstChild); } /* "Yönerge:" etiketi kutunun ::before yazısıydı; hoparlör etiketin önünde dursun diye etiket gerçek yazıya çevrilir (aynı renk ve kalınlık) */ { let lb = ib.querySelector(":scope > .ib-lbl"); if(!lb){ ib.classList.remove("za-has-spk"); const pb = getComputedStyle(ib, "::before"); const txt = String(pb.content || "").replace(/^["\u201c]|["\u201d]$/g, ""); if(txt && txt !== "none" && txt !== "normal"){ lb = document.createElement("span"); lb.className = "ib-lbl"; lb.textContent = txt; lb.style.cssText = `font-weight:${pb.fontWeight};color:${pb.color};font-size:${pb.fontSize};white-space:pre`; b.after(lb); } } ib.classList.toggle("za-has-spk", !!ib.querySelector(":scope > .ib-lbl")); } const m = speechMuted(); b.innerHTML = m ? ZA_SPK_OFF : ZA_SPK_ON; b.setAttribute("aria-label", m ? "Sesi aç" : "Sesi kapat"); b.setAttribute("aria-pressed", m ? "true" : "false"); b.classList.toggle("off", m); }catch(e){} }
 (function(){ try{ /* stil: zihin-stil.css */ }catch(e){}
  try{ const go = () => { const ib = document.getElementById("instructionBox"); if(!ib) return setTimeout(go, 500); new MutationObserver(() => { if(!document.getElementById("instrSpk") || document.getElementById("instrSpk").parentNode !== ib) zaInstrSpk(); }).observe(ib, { childList: true }); zaInstrSpk(); }; if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go(); }catch(e){}
- try{ const f = renderAll; renderAll = function(){ const r = f.apply(this, arguments); ZA_LIFE.afterRender(); return r; }; }catch(e){} })();
+  })();
 /* KURAL (konuşma, 2026-11-05): etkinlikten/oyundan çıkınca (Harita, ana sayfa, oyun bitişi) konuşma hemen susar, altyazı balonu kapanır, bekleyen ve "kaçırılıp ilk dokunuşta okunacak" konuşmalar iptal edilir — çıkış dokunuşu önceki etkinliğin yönergesini haritada okutmaz */
 function zaStopSpeech(){ try{ window.__zaSpGen = (window.__zaSpGen || 0) + 1; window.__zaInstrActive = false; window.__zaInstrG = (window.__zaInstrG || 0) + 1; window.__zaStartAfterInstr = false; }catch(e){} try{ _ttsMissed = null; }catch(e){} try{ if(window.speechSynthesis) speechSynthesis.cancel(); }catch(e){} try{ hideCaption(); }catch(e){} try{ (window._rlTs || []).forEach(clearTimeout); window._rlTs = []; }catch(e){} }
-(function(){ try{ const f1 = showIslandMap; showIslandMap = function(){ ZA_LIFE.leave(); return f1.apply(this, arguments); }; }catch(e){} try{ const f2 = goHome; goHome = function(){ ZA_LIFE.leave(); return f2.apply(this, arguments); }; }catch(e){} try{ const f3 = exitGameMode; exitGameMode = function(){ ZA_LIFE.leave(); return f3.apply(this, arguments); }; }catch(e){} try{ const f4 = hideGameScreens; hideGameScreens = function(){ ZA_LIFE.leave(); return f4.apply(this, arguments); }; }catch(e){} ["openCategoryScreen", "showToday", "showWho"].forEach(n => { try{ const f = (0, eval)(n); if(typeof f !== "function") return; const w = function(){ ZA_LIFE.leave(); return f.apply(this, arguments); }; if(n === "openCategoryScreen") openCategoryScreen = w; else if(n === "showToday") showToday = w; else showWho = w; }catch(e){} }); })();
+
 /* KURAL (otomatik hata, 2026-11-05): yanlışı uygulamanın kendisinin saydığı dokunmalı oyunlarda (oyun modu dahil) − ve + düğmeleri görünmez; hata sayısı yalnızca okunur olarak görünür ve her yanlışta kendiliğinden artar. Elle sayılan (söylemeli) çalışmalarda − ve + kalır */
 function zaAutoErrClass(){ try{ const ex = currentExercise(); const auto = !!ex && isInteractiveExercise(ex) && !usesManualErrors(ex) && !(typeof mtState !== "undefined" && mtState && mtState.manual); document.documentElement.classList.toggle("za-autoerr", auto); }catch(e){} }
-(function(){ try{ const _ra = renderAll; renderAll = function(){ const r = _ra.apply(this, arguments); zaAutoErrClass(); return r; }; }catch(e){} try{ const go = () => { const b = document.getElementById("board"); if(!b) return setTimeout(go, 500); new MutationObserver(() => zaAutoErrClass()).observe(b, { childList: true }); zaAutoErrClass(); }; if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go(); }catch(e){} })();
+(function(){  try{ const go = () => { const b = document.getElementById("board"); if(!b) return setTimeout(go, 500); new MutationObserver(() => zaAutoErrClass()).observe(b, { childList: true }); zaAutoErrClass(); }; if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go(); }catch(e){} })();
 /* Başlat'ta başlık/çipler/çubuk gizlendiği, Bitir'de geri geldiği için tahta o anda bir kez yeniden yerleştirilir (resim boyu değişmez, yalnız yer); çalışma sürerken tahta dondurulur */
 function zaSessionRelayout(){ try{ const h = document.documentElement; if(typeof boardIsPic === "function" && !boardIsPic()) return; const go = () => { try{ window._zaLaidGrid = null; applyBoardLayout(); if(typeof runFocusFit === "function") runFocusFit(); }catch(e){} }; requestAnimationFrame(go); setTimeout(go, 150); }catch(e){} }
 /* KURAL (odak, 2026-11-05 — kullanıcı kuralı 4): Başlat'a basınca yönerge, süre satırı (Bitir) ve hata sayısı görünür kalır; başlık satırı, Kişi/Düzey/Aşama çipleri, Bugün/ödev çubuğu ve alttaki Önceki · Karıştır · Sonraki düğmeleri gizlenir; Bitir'e basınca hepsi geri gelir. Süre ve hata satırları oranlı küçüktür (hata düğmeleri 46 px) */
@@ -1940,7 +1956,7 @@ card = Math.min(card, Math.floor(h * 0.6 / 1.15));
 }
 return { ref, refH: Math.round(ref * 1.15), card, cardH: Math.round(card * 1.15), refCols };
 }
-function renderSortBoard(){
+function renderSortBoard(){ try{
 const board = document.getElementById("board");
 board.style.display = "block";
 board.style.minHeight = "";
@@ -1970,7 +1986,7 @@ board.innerHTML = isLs
 `<div class="srt-refs" style="${st.refs.length % refCols ? `display:flex;flex-wrap:wrap;justify-content:center;max-width:${refCols * ref + (refCols - 1) * 10}px;margin:0 auto` : `grid-template-columns:repeat(${refCols}, ${ref}px)`};">${refsHtml}</div></div>`
 : `<div class="srt-wrap"><div class="srt-refs" style="${st.refs.length % refCols ? `display:flex;flex-wrap:wrap;justify-content:center;max-width:${refCols * ref + (refCols - 1) * 10}px;margin:0 auto` : `grid-template-columns:repeat(${refCols}, ${ref}px)`};">${refsHtml}</div>${info}${middle}</div>`;
 st.justChanged = false;
-}
+}finally{ try{ zaTapRestore(); }catch(e){} } }
 function handleSortTap(ev){
 const ex = currentExercise();
 if(!ex.isSort || !sortState) return;
@@ -5858,7 +5874,7 @@ function navStep(dir){ if(hwRun){ hwRunStep(dir); return; } const exs = currentC
     if(e >= n){ e = 0; t = (t + 1) % TIERS.length; } else if(e < 0){ e = n - 1; t = (t - 1 + TIERS.length) % TIERS.length; }
     const ex = exs[e]; if((ex.minTier || 0) > t) continue; if(!exs.some(x => (x.minTier || 0) <= t && t <= tierMax(x))) continue;
     navTier = t; goToIndex(findSeqIndex(Math.min(t, tierMax(ex)), e)); return; } }
-function goToIndex(newIndex){
+function goToIndex(newIndex){ try{
 window.__navSerial = (window.__navSerial || 0) + 1;   /* sayfaya her giriş */
 const prevExId = currentExercise().id;
 currentIndex = ((newIndex % SEQUENCE.length) + SEQUENCE.length) % SEQUENCE.length;
@@ -5869,7 +5885,7 @@ renderTierRow();
 renderExerciseRow();
 renderStageRow();
 newPage();
-}
+}finally{ try{ zaHideLevelFlash(400); }catch(e){} } }
 
 function renderTierRow(){
 const row = document.getElementById("tierRow");
@@ -5989,7 +6005,7 @@ const ZA_LIFE = {
   /* sayfa çizildi: yönerge hoparlörü kurulur, yönerge (gerekiyorsa) okunur */
   afterRender(){ try{ zaInstrSpk(); zaReadInstr(); }catch(e){} }
 };
-function startTimer(){ window.__zaStartAt = Date.now(); if(!(typeof gameMode !== "undefined" && gameMode) && !(currentPlayerName || "").trim() && document.getElementById("mainApp").style.display !== "none" && !window.__qaNoPlayerGuard){ try{ const row = document.getElementById("playerRow"); row.scrollIntoView({ behavior:"smooth", block:"center" }); row.classList.remove("attn"); void row.offsetWidth; row.classList.add("attn"); }catch(e){} showToast("Başlamadan önce kimin çalıştığını seçin", "err"); return; }
+function startTimer(){ try{ const gm = typeof gameMode !== "undefined" && gameMode; if(window.__zaInstrActive && !timerRunning){ if(gm){ window.__zaStartAfterInstr = true; const b = document.getElementById("timerBtn"); if(b) b.classList.add("za-wait"); return; } else { zaStopSpeech(); } } }catch(e){}  window.__zaStartAt = Date.now(); if(!(typeof gameMode !== "undefined" && gameMode) && !(currentPlayerName || "").trim() && document.getElementById("mainApp").style.display !== "none" && !window.__qaNoPlayerGuard){ try{ const row = document.getElementById("playerRow"); row.scrollIntoView({ behavior:"smooth", block:"center" }); row.classList.remove("attn"); void row.offsetWidth; row.classList.add("attn"); }catch(e){} showToast("Başlamadan önce kimin çalıştığını seçin", "err"); return; }
 window._incomplete = false; setLsOpen(false);
 if(elapsedMs < 50) ZA_LIFE.freshAttempt(currentExercise());
 try{ if(elapsedMs < 50) nbSeqStart(); }catch(e){}   /* KURAL: yeni başlayan çalışmada hata sayısı 0'dan başlar (başlamadan önce artırılmış sayı taşınmaz); arka plandan dönüşte sayı korunur */
@@ -6328,7 +6344,7 @@ setTimeout(()=>{ piece.remove(); }, 1100);
 
 function showToast(text, type){ let t = document.getElementById("zaToast"); if(!t){ t = document.createElement("div"); t.id = "zaToast"; document.body.appendChild(t); }
 t.textContent = text; t.className = type === "down" ? "warn" : "ok"; t.style.display = "block"; clearTimeout(t._h); t._h = setTimeout(() => { t.style.display = "none"; }, 3200); }
-function showLevelFlash(text, type){
+function showLevelFlash(text, type){ try{
 const flash = document.getElementById("levelFlash");
 if(!flash || flash.offsetParent === null || ["settingsScreen","whoScreen","expertScreen","linkScreen"].some(id => { const e = document.getElementById(id); return e && getComputedStyle(e).display !== "none"; })) return showToast(text, type);
 flash.textContent = text;
@@ -6337,7 +6353,7 @@ flash.style.display = "block";
 clearTimeout(flash._hideTimer);
 /* KURAL (konfeti zamanı, 2026-11-09): düzey bildiriminde konfeti yok */
 flash._hideTimer = setTimeout(()=>{ flash.style.display = "none"; }, 4000);
-}
+}finally{ try{ if(type === "levelup" || type === "down"){ const fl = document.getElementById("levelFlash"); if(fl && fl.style.display === "block"){ clearTimeout(fl._hideTimer); fl._zaSticky = Date.now(); } const tt = document.getElementById("zaToast"); if(tt && tt.style.display === "block" && /Zorluk|zorluk/.test(tt.textContent)){ clearTimeout(tt._h); tt._zaSticky = Date.now(); } } }catch(e){} } }
 
 function renderStageRow(){
 try{ const __ex = currentExercise(); if(__ex && __ex.stages && currentStageIndex >= __ex.stages.length) currentStageIndex = 0; }catch(e){}   /* kaldırılmış aşama (strateji) kayıtlı kalmışsa ilk aşamaya dön */
@@ -6484,7 +6500,7 @@ const pool = ok.length ? ok : cands;
 return pool.sort((a, b) => a.empty - b.empty || b.cell - a.cell || Math.abs(Math.ceil(count / a.cols) - a.cols) - Math.abs(Math.ceil(count / b.cols) - b.cols) || b.cols - a.cols)[0];
 }
 
-function renderWmBoard(){
+function renderWmBoard(){ try{
 const board = document.getElementById("board");
 board.style.display = "block"; board.style.minHeight = ""; board.style.padding = landscapeMQ.matches ? "6px 8px" : "12px";
 board.style.gridTemplateColumns = ""; board.style.gridTemplateRows = ""; board.classList.remove("wide-grid");
@@ -6524,7 +6540,7 @@ const a = st.boxes[i]; const open = st.phase === "show" || (st.opened && st.open
 const mark = st.mark && st.mark[i] ? " " + st.mark[i] : "";
 return `<div class="wm-box${open ? " open" : ""}${mark}" data-box="${i}" style="width:${d.cell}px;height:${d.cell}px;">${a ? imgTag(animalImg(a)) : ""}<div class="lid">?</div></div>`; }).join("") + `</div>`;
 board.innerHTML = `<div class="wm-wrap">${askHtml}${dots}${grid}</div>`;
-}
+}finally{ try{ zaTapRestore(); }catch(e){} } }
 function wmStart(){
 const st = wmState; if(!st || st.phase !== "idle") return;
 if(st.kind === "same"){ wmSameShow(); return; }
@@ -6712,7 +6728,7 @@ if(ok) gameSfx("correct"); else { st.wrong++; setErrorCount(currentErrorCount + 
 st.phase = "feedback"; renderChoiceBoard();
 chLater(() => { st.idx++; chNext(); }, ok ? 260 : (st.spec.tapStim ? 1400 : 520));   /* resme dokunmalı çalışmalarda yanlışta düzeltme notu okunabilsin */
 }
-function renderChoiceBoard(){
+function renderChoiceBoard(){ try{
 const board = document.getElementById("board");
 board.style.display = "block"; board.style.minHeight = ""; board.style.padding = landscapeMQ.matches ? "6px 8px" : "12px";
 board.style.gridTemplateColumns = ""; board.style.gridTemplateRows = ""; board.classList.remove("wide-grid");
@@ -6734,7 +6750,7 @@ const stimBox = `<div class="wm-card ${sp.tapStim ? "" : (st.flash || "")}" styl
 board.innerHTML = isLs
 ? `<div class="wm-wrap" style="flex-direction:row;justify-content:center;gap:20px;">${stimBox}<div style="display:flex;flex-direction:column;gap:10px;align-items:center;width:46%">${key}<div class="wm-info">${prog}</div>${btnHtml}</div></div>`
 : `<div class="wm-wrap">${key}<div class="wm-info">${prog}</div>${stimBox}${btnHtml}</div>`;
-}
+}finally{ try{ zaTapRestore(); }catch(e){} } }
 function handleChoiceTap(ev){
 if(!currentExercise().isChoice || !chState) return;
 const b = ev.target.closest("[data-ch]"); if(!b) return;
@@ -7063,7 +7079,7 @@ if(c === st.seq[st.pos]){ st.pos++; st.marks = {}; st.marks[i] = "ok"; gameSfx("
 else { st.marks = {}; st.marks[i] = "bad"; rtErr(); st.reveal = true; renderRtBoard(); rtLater(() => { st.reveal = false; rtEndRound(); }, 900); st.phase = "between"; }
 }
 }
-function renderRtBoard(){
+function renderRtBoard(){ try{
 const board = document.getElementById("board");
 board.style.display = "block"; board.style.minHeight = ""; board.style.padding = landscapeMQ.matches ? "6px 8px" : "12px";
 board.style.gridTemplateColumns = ""; board.style.gridTemplateRows = ""; board.classList.remove("wide-grid");
@@ -7094,7 +7110,7 @@ const pal = st.phase === "answer" || st.phase === "between" ? `<div class="rt-pa
 body = `<div class="rt-slots">${slots}</div>${pal}`;
 }
 board.innerHTML = `<div class="wm-wrap"><div class="wm-info">${info}</div>${dots}${body}</div>`;
-}
+}finally{ try{ zaTapRestore(); }catch(e){} } }
 function handleRtTap(ev){
 if(!currentExercise().isRt || !rtState) return;
 const b = ev.target.closest("[data-rt]"); if(!b) return;
@@ -10964,7 +10980,149 @@ else { st.marks[i] = "bad"; mtErr(); st.reveal = true; st.phase = "fb"; renderMt
 }
 function seqNext(){ const st = mtState; st.ti++; if(st.ti >= st.trials.length){ mtFinish(); return; } seqShow(); }
 
-function renderMtBoard(){
+function renderMtBoard(){ zaFitReset(); try{
+const board = document.getElementById("board");
+board.style.display = "block"; board.style.minHeight = ""; board.style.padding = landscapeMQ.matches ? "6px 8px" : "12px";
+board.style.gridTemplateColumns = ""; board.style.gridTemplateRows = ""; board.classList.remove("wide-grid");
+if(!mtState) return;
+const st = mtState, isLs = landscapeMQ.matches;
+const W = (board.clientWidth || 360) - 24, H = isLs ? Math.max((board.clientHeight || 280), Math.floor(window.innerHeight - board.getBoundingClientRect().top - 8)) - 60 : Math.min(460 * tabletScale(), window.innerHeight - 330); /* KURAL (yatay ekran, 2026-11-07): yatay ekranda tahta yüksekliği, tahtanın o anki içeriğine göre değil ekranda kalan yere göre hesaplanır — önceden küçük içerik küçük tahta, küçük tahta küçük içerik doğuruyordu (resimler 12–40 px kalıyordu) */
+let info = "", body = "";
+if(st.kind === "corsi" || st.kind === "corsi-verbal"){
+corsiLayout();
+const area = Math.min(W, isLs ? (st.kind === "corsi-verbal" && st.phase === "judge" ? H - 112 : H) : 420 * tabletScale()) * (window._fitK || 1), bs = Math.round(area * 0.15);
+info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "show" ? "<b>İzle…</b>" : st.phase === "input" ? `<b>${st.back ? "Tersten" : "Aynı sırayla"}</b> dokun · ${st.pos}/${st.seq.length}` : st.phase === "judge" ? `Çocuk sırayı ${st.back ? "<b>tersten</b>" : ""} söylesin / göstersin:` : st.phase === "done" ? (st.manual ? `Bitti · ${st.len}'lü diziler · hatalar Hata sayısında` : `Bitti · en uzun dizi <b>${st.best || "—"}</b>`) : `Dizi uzunluğu: <b>${st.len}</b>`;
+body = `<div style="position:relative;width:${area}px;height:${area}px;margin:0 auto;background:#EEF2F6;border-radius:18px;">` + st.blocks.map((p, i) => {
+const lit = st.lit === i, mk = st.marks && st.marks[i];
+const bg = lit ? "#FFC21A" : mk === "ok" ? "#1FA463" : mk === "bad" ? "#E5484D" : "#2E6FD8";
+const num = st.kind === "corsi-verbal" ? `<span style="color:#fff;font-weight:900;font-size:${Math.round(bs * 0.42)}px">${i + 1}</span>` : "";
+return `<div data-mt="${i}" style="position:absolute;left:${(p.x * area).toFixed(0)}px;top:${(p.y * area).toFixed(0)}px;width:${bs}px;height:${bs}px;border-radius:10px;background:${bg};box-shadow:0 4px 0 rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .1s">${num}</div>`; }).join("") + `</div>`;
+if(st.kind === "corsi-verbal" && st.phase === "judge"){
+const order = st.back ? st.seq.slice().reverse() : st.seq;
+body += `<div class="aud-key" style="text-align:center;margin-top:8px">Doğru cevap: <b>${order.map(i => i + 1).join(" – ")}</b> · dizi <b>${st.trials + 1}/${st.maxTrials}</b></div><div class="aud-key" style="text-align:center">Yetişkin: dizi yanlışsa <b>Hata sayısı +</b></div><div class="wm-btns" style="margin:6px auto 0"><button type="button" class="wm-btn same" data-judge="9">Sonraki ▶</button></div>`;
+}
+} else if(st.kind === "span-touch"){
+const set = st.sets[st.si] || st.sets[0], it = set.items[Math.min(st.ii, set.items.length - 1)];
+const dots = `<div class="wm-dots">${st.sets.map((x, i) => `<i class="${i < st.si ? "on" : ""}"></i>`).join("")}</div>`;
+if(st.phase === "idle"){ info = "▶ Başlat'a bas"; body = dots; }
+else if(st.phase === "done"){ info = "Bitti!"; body = dots; }
+else if(st.phase === "recall" || (st.phase === "fb" && st.options && st.ii >= set.items.length)){
+info = `<b>Gördüğün resimlere sırayla dokun</b> · ${st.pos}/${set.items.length}`;
+const d = wmGridDims(st.options.length, W, H, 96);
+const order = set.items.map(x => x.b);
+body = dots + `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + st.options.map((b, i) => {
+const mk = st.marks[i] || (st.reveal && order.includes(b) ? "ok" : "");
+const num = st.reveal && order.includes(b) ? `<span class="num">${order.indexOf(b) + 1}</span>` : "";
+return `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${d.cell}px;height:${d.cell}px;">${imgTag(b.img())}${num}</div>`; }).join("") + `</div>`;
+} else {
+info = `Cümle ${st.ii + 1} / ${set.items.length} · <b>doğru mu?</b>`;
+const sz = Math.min(isLs ? H - 10 : 200, W * (isLs ? 0.4 : 0.6));
+const cardHtml = `<div class="wm-card ${st.flash || ""}" style="width:${sz}px;height:${sz}px;flex:none">${imgTag(it.b.img())}</div>`;
+const ctrl = `<div style="font-size:13px;color:var(--ink-soft);text-align:center;min-height:18px">${document.documentElement.classList.contains("show-span-text") ? (it.truth ? it.b.bt : it.b.bf) : ""}</div>` +
+`<div class="wm-btns"><button type="button" class="wm-btn same" data-judge="1" ${st.phase === "judge" ? "" : "disabled"}>✓ Doğru</button><button type="button" class="wm-btn diff" style="background:#E5484D;box-shadow:0 5px 0 #A9262B" data-judge="0" ${st.phase === "judge" ? "" : "disabled"}>✗ Yanlış</button></div>` +
+`<div style="display:flex;gap:8px;justify-content:center"><button type="button" class="gb-btn" data-speak="1">🔊 Tekrar dinle</button><button type="button" class="gb-btn" data-showtext="1">Aa Metni göster</button></div>`;
+if(isLs){ body = dots + `<div style="display:flex;gap:18px;align-items:center;justify-content:center;width:100%">${cardHtml}<div style="display:flex;flex-direction:column;gap:10px;flex:1;max-width:420px">${ctrl}</div></div>`; }
+else body = dots + cardHtml +
+`<div style="font-size:13px;color:var(--ink-soft);text-align:center;min-height:18px">${document.documentElement.classList.contains("show-span-text") ? (it.truth ? it.b.bt : it.b.bf) : ""}</div>` +
+`<div class="wm-btns"><button type="button" class="wm-btn same" data-judge="1" ${st.phase === "judge" ? "" : "disabled"}>✓ Doğru</button><button type="button" class="wm-btn diff" style="background:#E5484D;box-shadow:0 5px 0 #A9262B" data-judge="0" ${st.phase === "judge" ? "" : "disabled"}>✗ Yanlış</button></div>` +
+`<div style="display:flex;gap:8px;justify-content:center"><button type="button" class="gb-btn" data-speak="1">🔊 Tekrar dinle</button><button type="button" class="gb-btn" data-showtext="1">Aa Metni göster</button></div>`;
+}
+} else if(st.kind === "pal-touch"){
+const dots = `<div class="wm-dots">${Array.from({length:st.cycles}, (_, i) => `<i class="${i < st.scores.length ? (st.scores[i] === st.pairs.length ? "on" : "off") : ""}"></i>`).join("")}</div>`;
+if(st.phase === "idle"){ info = "▶ Başlat'a bas"; body = dots; }
+else if(st.phase === "done"){ info = `Bitti · ${st.scores.map((x, k) => `${k + 1}. tur ${x}/${st.pairs.length}`).join(" → ")}`; body = dots; }
+else if(st.phase === "study"){
+const p = st.pairs[st.si];
+info = `<b>${st.cycle + 1}. tur</b> · çiftleri aklında tut`;
+const sz = Math.min(isLs ? H - 75 : 150, (W - 60) / 2);
+body = dots + (p ? `<div style="display:flex;align-items:center;gap:10px;justify-content:center"><div class="wm-card" style="width:${sz}px;height:${sz}px">${imgTag(p.a.src)}</div><span style="font-size:30px;font-weight:900;color:var(--teal-dark)">＋</span><div class="wm-card" style="width:${sz}px;height:${sz}px">${imgTag(p.b.src)}</div></div><div style="font-weight:900;font-size:18px">${p.a.n} – ${p.b.n}</div>${currentStageIndex === 1 ? `<div style="font-weight:800;color:#B07D00;margin-top:2px">💡 İkisini birlikte hayal et</div>` : ""}` : "");
+} else {
+const p = st.pairs[st.order[st.qi]];
+info = `<b>Eşi hangisiydi?</b> · ${st.qi + 1}/${st.order.length}`;
+const cue = Math.min(isLs ? H * 0.45 : 130, W * 0.4);
+const d = wmGridDims(4, isLs ? W * 0.55 : W, isLs ? H - 20 : H - cue - 40, 100);
+const grid = `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + st.opts.map((o, i) => {
+const mk = st.phase === "fb" ? (o === st.ans ? "ok" : (i === st.pick ? "bad" : "")) : "";
+return `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${d.cell}px;height:${d.cell}px;">${imgTag(o.src)}</div>`; }).join("") + `</div>`;
+const cueHtml = `<div class="wm-card" style="width:${cue}px;height:${cue}px;border-color:var(--teal)">${imgTag(p.a.src)}</div>`;
+body = dots + (isLs ? `<div style="display:flex;gap:16px;align-items:center;justify-content:center">${cueHtml}${grid}</div>` : cueHtml + grid);
+}
+} else if(st.kind === "quiz"){
+const r = qzRender(st, W, H, isLs); info = r.info; body = r.body;
+} else if(NEW_MT_KINDS.includes(st.kind)){
+const r = NEW_MT.render(st, W, H, isLs); info = r.info; body = r.body;
+} else if(st.kind === "picsay" && st.phase === "judge"){
+const items = st.trials[st.ti];
+info = "Çocuk resimlerin adlarını <b>sırayla</b> söylesin:";
+body = `<div class="wm-dots">${st.trials.map((x, i) => `<i class="${i < st.ti ? "on" : ""}"></i>`).join("")}</div><div class="aud-key" style="text-align:center;font-size:17px">Doğru cevap: <b>${items.map(x => x.n).join(" – ")}</b></div><div class="aud-key" style="text-align:center;margin-top:6px">Yetişkin: sıra yanlışsa <b>Hata sayısı +</b></div><div class="wm-btns" style="margin:6px auto 0"><button type="button" class="wm-btn same" data-judge="9">Sonraki ▶</button></div>`;
+} else if(st.kind === "running"){
+const items = st.trials[Math.min(st.ti, st.trials.length - 1)];
+const dots = `<div class="wm-dots">${st.trials.map((x, i) => `<i class="${i < st.ti ? "on" : ""}"></i>`).join("")}</div>`;
+if(st.phase === "idle"){ info = "▶ Başlat'a bas"; body = dots; }
+else if(st.phase === "done"){ info = "Bitti!"; body = dots; }
+else if(st.phase === "show"){ info = "<b>İzle…</b> (ne zaman biteceği belli değil)"; const sz = Math.min(isLs ? H - 30 : 180, W * 0.55); body = dots + `<div class="wm-card" style="width:${sz}px;height:${sz}px;">${st.showIdx >= 0 ? imgTag(items[st.showIdx].src) : ""}</div>`; }
+else {
+info = `<b>Son ${st.L}</b> resme sırayla dokun · ${st.pos}/${st.L}`;
+const d = wmGridDims(st.options.length, W, isLs ? H - 30 : H, 96);
+body = dots + `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + st.options.map((o, i) => {
+const inT = st.target.indexOf(o), mk = st.marks[i] || (st.reveal && inT >= 0 ? "ok" : "");
+return `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${d.cell}px;height:${d.cell}px;">${imgTag(o.src)}${st.reveal && inT >= 0 ? `<span class="num">${inT + 1}</span>` : ""}</div>`; }).join("") + `</div>`;
+}
+} else if(st.kind === "zihni"){
+const r = st.rounds[Math.min(st.ri, st.rounds.length - 1)], n = r.n;
+const dots = `<div class="wm-dots">${st.rounds.map((x, i) => `<i class="${st.res[i] === true ? "on" : st.res[i] === false ? "off" : ""}"></i>`).join("")}</div>`;
+const area = Math.min(W, isLs ? H - 20 : 320 * tabletScale()) * (window._fitK || 1), cell = Math.floor((area - (n - 1) * 6) / n);
+const showZ = st.phase === "start" ? r.sy * n + r.sx : st.phase === "reveal" ? r.ey * n + r.ex : -1;
+const cmd = st.phase === "cmds" && st.cmdIdx >= 0 ? r.cmds[st.cmdIdx] : null;
+info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "start" ? "<b>Zihni burada.</b> Aklında tut…" : st.phase === "cmds" ? `Komut ${Math.max(1, st.cmdIdx + 1)} / ${r.cmds.length}` : st.phase === "input" ? "<b>Zihni şimdi nerede?</b> Dokun." : st.phase === "done" ? "Bitti!" : "";
+const grid = `<div class="wm-grid" style="grid-template-columns:repeat(${n}, ${cell}px);gap:6px;">` + Array.from({length:n * n}, (_, i) => {
+const mk = st.phase === "reveal" && st.pick === i ? (i === r.ey * n + r.ex ? "ok" : "bad") : "";
+return `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${cell}px;height:${cell}px;border-radius:14px;">${showZ === i ? `<div style="width:80%;height:80%">${mascotSVG(st.phase === "reveal" ? "cheer" : "happy")}</div>` : ""}</div>`; }).join("") + `</div>`;
+const cmdBox = `<div style="min-height:64px;display:flex;align-items:center;justify-content:center;gap:12px">${cmd ? `<span style="font-size:52px;font-weight:900;color:var(--teal-dark);line-height:1">${ZH_DIRS[cmd].a}</span>${isPre() ? "" : `<span style="font-size:26px;font-weight:900;color:var(--ink)">${ZH_DIRS[cmd].w} 1</span>`}` : ""}</div>`;
+body = dots + (isLs ? `<div style="display:flex;gap:18px;align-items:center;justify-content:center">${grid}${cmdBox}</div>` : cmdBox + grid);
+} else if(st.kind === "market"){
+const r = st.rounds[Math.min(st.ri, st.rounds.length - 1)];
+const dots = `<div class="wm-dots">${st.rounds.map((x, i) => `<i class="${st.res[i] === true ? "on" : st.res[i] === false ? "off" : ""}"></i>`).join("")}</div>`;
+if(st.phase === "idle"){ info = "▶ Başlat'a bas"; body = dots; }
+else if(st.phase === "done"){ info = "Bitti!"; body = dots; }
+else if(st.phase === "list"){
+info = "<b>Alışveriş listesi</b> · aklında tut";
+const d = wmGridDims(r.list.length, W, isLs ? H - 75 : H * 0.7, isLs ? 80 : 96);
+body = dots + `<div style="background:#FFFDF2;border:2px dashed #E0C97A;border-radius:18px;padding:10px"><div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + r.list.map(x => `<div style="display:flex;flex-direction:column;align-items:center;width:${d.cell}px"><div class="wm-pic" style="width:${d.cell}px;height:${d.cell}px;cursor:default">${imgTag(x.src)}</div><b style="font-size:14px;margin-top:2px">${x.n}</b></div>`).join("") + `</div></div>`;
+} else if(st.phase === "distract"){
+info = "<b>Balonların hepsini patlat!</b>";
+const d = wmGridDims(6, W, isLs ? H - 20 : 260, 90);
+body = dots + `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + st.balloons.map(bl => `<div data-mt="${bl.i}" style="width:${d.cell}px;height:${d.cell}px;display:flex;align-items:center;justify-content:center;cursor:pointer">${bl.popped ? `<span style="font-size:${Math.round(d.cell * 0.4)}px">💥</span>` : `<svg viewBox="0 0 60 80" style="width:70%;height:90%"><ellipse cx="30" cy="30" rx="24" ry="28" fill="${bl.c}"/><ellipse cx="22" cy="20" rx="6" ry="9" fill="#fff" opacity=".45"/><path d="M30 58 l-4 6 h8z" fill="${bl.c}"/><path d="M30 64 q-6 8 0 14" stroke="#888" fill="none" stroke-width="1.5"/></svg>`}</div>`).join("") + `</div>`;
+} else {
+const got = r.list.filter(x => st.marks[r.shelf.indexOf(x)] === "ok").length;
+info = `<b>Listedekileri raftan seç</b> · ${got}/${r.list.length}`;
+const d = wmGridDims(r.shelf.length, W, isLs ? H - 20 : H, 92);
+body = dots + `<div style="background:linear-gradient(#F3E3C3 0 0) bottom/100% 6px no-repeat;padding-bottom:8px"><div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + r.shelf.map((x, i) => `<div class="wm-pic${st.marks[i] ? " " + st.marks[i] : ""}" data-mt="${i}" style="width:${d.cell}px;height:${d.cell}px;">${imgTag(x.src)}</div>`).join("") + `</div></div>`;
+}
+} else {
+const items = st.trials[Math.min(st.ti, st.trials.length - 1)], isL = st.kind === "lns-touch";
+const face = (x) => isL ? `<span style="font-size:34px;font-weight:900;color:var(--ink)">${x}</span>` : imgTag(x.src);
+const dots = `<div class="wm-dots">${st.trials.map((x, i) => `<i class="${i < st.ti ? "on" : ""}"></i>`).join("")}</div>`;
+if(st.phase === "idle"){ info = "▶ Başlat'a bas"; body = dots; }
+else if(st.phase === "done"){ info = "Bitti!"; body = dots; }
+else if(st.phase === "show"){
+info = isL ? "<b>Dinle ve izle…</b>" : st.audio ? "<b>Dinle…</b>" : "<b>İyi bak…</b>";
+const sz = Math.min(isLs ? H - 30 : 180, W * 0.55);
+body = dots + (st.audio ? SPEAKER_HTML(true) : `<div class="wm-card" style="width:${sz}px;height:${sz}px;">${st.showIdx >= 0 ? face(items[st.showIdx]) : ""}</div>`);
+} else {
+const tgt = seqTarget();
+info = isL ? (st.sorted ? "Önce sayılar <b>küçükten büyüğe</b>, sonra harfler <b>alfabe sırasıyla</b>" : "Önce <b>sayılara</b>, sonra <b>harflere</b> dokun (duyduğun sırayla)") : st.kind === "picseq" ? "Resimlere <b>duyduğun sırayla</b> dokun" : "Önce <b>hayvanlara</b>, sonra <b>meyvelere</b> dokun (gördüğün sırayla)";
+const d = wmGridDims(items.length, W, isLs ? H - 45 : H, isL ? 84 : 100);
+body = dots + `<div class="wm-info">${st.pos}/${items.length}</div><div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + st.keys.map(i => {
+const mk = st.marks[i] || (st.reveal ? "ok" : "");
+const num = st.reveal ? `<span class="num">${tgt.indexOf(items[i]) + 1}</span>` : "";
+return `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${d.cell}px;height:${d.cell}px;">${face(items[i])}${num}</div>`; }).join("") + `</div>`;
+}
+}
+board.innerHTML = `<div class="wm-wrap"><div class="wm-info">${info}</div>${body}</div>`;
+}finally{ try{ zaPicGrow(renderMtBoardCore, this, arguments); }catch(e){} try{ zaTapRestore(); }catch(e){} } }
+/* zaPicGrow için kancasız yeniden çizim (sarmalayıcıların kaldırılması, 2026-11-09) */
+function renderMtBoardCore(){
 const board = document.getElementById("board");
 board.style.display = "block"; board.style.minHeight = ""; board.style.padding = landscapeMQ.matches ? "6px 8px" : "12px";
 board.style.gridTemplateColumns = ""; board.style.gridTemplateRows = ""; board.classList.remove("wide-grid");
@@ -11105,6 +11263,7 @@ return `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${d
 }
 board.innerHTML = `<div class="wm-wrap"><div class="wm-info">${info}</div>${body}</div>`;
 }
+
 function handleMtTap(ev){
 if(!currentExercise().isMt || !mtState) return;
 const sp = ev.target.closest("[data-speak]"); if(sp){ const st = mtState; const it = st.sets && st.sets[st.si] && st.sets[st.si].items[st.ii]; if(it) speakText(it.truth ? it.b.bt : it.b.bf); return; }
@@ -12060,11 +12219,10 @@ if(landscapeMQ.matches){
 const best = pickLandscapeDims(currentGrid.length, board);
 if(best){ rows = best.rows; cols = best.cols; track = "minmax(0, 1fr)"; }
 } else { const best = pickPortraitDims(currentGrid.length, board, rows, cols); if(best){ rows = best.rows; cols = best.cols; colTrack = best.cw + "px"; rowTrack = best.cell + "px"; }
-  const RG = { "sequence-pattern": 4.2, "visual-analogy": 3.4, "odd-one-out": 2.3 }[currentExercise().id];   /* satır biçimli gruplar: iki sütun, satır yüksekliği içeriğin oranına göre (daireler basık görünmez) */
+  const RG = ZA_BOARD.RG[currentExercise().id];   /* satır biçimli gruplar: iki sütun, satır yüksekliği içeriğin oranına göre (daireler basık görünmez) */
   if(RG){ const cs = getComputedStyle(board); const w = board.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); const gx = parseFloat(cs.columnGap) || 10; const cw = Math.floor((w - (cols - 1) * gx) / cols); colTrack = cw + "px"; rowTrack = Math.max(40, Math.round(cw / RG)) + "px"; } }
 /* KURAL (tahta düzeni, 2026-11-05 — kullanıcının yeniden düzenlediği kurallar): 1) resimler büyük olur; 2) çalışırken tahtanın bütün satırları görünür; 3) başlamadan önce üstteki bütün satırlar (başlık, çipler, yönerge, süre, hata) yerindedir; 4) Başlat'ta yönerge, süre (Bitir) ve hata sayısı görünür kalır, başlık, çipler, Bugün/ödev çubuğu ve alttaki düğmeler gizlenir, Bitir'de geri gelir; 5) çalışma sürerken tahta oynamaz. Bunun için resimli/şekilli tahtada sütun sayısı, çalışırken tahtaya kalan alana göre resimler EN BÜYÜK olacak biçimde seçilir (ör. 15 resim telefonda 5×3; son satır eksik kalmaz, okuma sırası soldan sağa); başlamadan önce de aynı boy kullanılır, böylece Başlat'ta resimler yeniden boyutlanmaz. Eski "hücre en az ekranın %20'si" ve "tahta Başlat'ta yerinden oynamaz" kurallarının yerine */
-    let fitOver = false; if(rowTrack && !landscapeMQ.matches && boardIsPic() && !({ "sequence-pattern":1, "visual-analogy":1, "odd-one-out":1 })[currentExercise().id]){ try{ const csB = getComputedStyle(board); const padV = parseFloat(csB.paddingTop) + parseFloat(csB.paddingBottom), padH = parseFloat(csB.paddingLeft) + parseFloat(csB.paddingRight); const gx = parseFloat(csB.columnGap) || 10; const gy = currentGrid.length >= 13 && window.innerWidth < 700 ? 12 : (parseFloat(csB.rowGap) || 10); /* KURAL (tahta boyu kalıcı, 2026-11-08): resimli/şekilli tahtanın hücre boyu, o anki ekran konumuna değil sabit bir modele göre hesaplanır — ekran yüksekliğinden yalnız çalışırken görünen satırlar (yönerge, süre, hata) ve kenar boşlukları düşülür. Başlık, çipler, oturum çubuğu, "Sonucu Kaydet" satırı, kaydırma konumu hesaba girmez. Böylece Başlat'tan önce, çalışırken, Bitir'den sonra ve Karıştır/Sonraki'de tahta hep aynı boydadır (önceden tahtanın ekrandaki yerine göre hesaplanıyor, her düğmede farklı boy çıkıyordu) */
-const avail = zaRunAvail(board, padV); const W = board.clientWidth - padH; const rt0 = parseFloat(rowTrack), ct0 = parseFloat(colTrack || rowTrack); const aspect = 1; /* resim ve şekil hücreleri karedir: sütun satırdan geniş olursa iPhone Safari'de şekil hücreden taşıp üstü kesiliyordu (Şekil–Renk kalpleri) */ const n = currentGrid.length; const MAXC = Math.min(150, Math.round(window.innerWidth * 0.42)); const cands = []; for(let c = 2; c <= Math.min(8, n); c++){ const r = Math.ceil(n / c); if(c * r - n >= c) continue; const empty = c * r - n; const cw = (W - (c - 1) * gx) / c; const chW = cw / aspect; const chH = avail > 0 ? (avail - (r - 1) * gy) / r : chW; const cell = Math.min(chW, chH, MAXC); cands.push({ c, r, cell, empty }); } /* KURAL (son satır, 2026-11-07): son satırı tam dolu dizilimler önce gelir (9 resim 3×3, 2+2+2+2+1 değil); tam dolu dizilim resimleri en iyinin %70'inden fazla küçültüyorsa (asal sayılar) boşluklu dizilime izin verilir */ const bestAll = cands.reduce((m, x) => Math.max(m, x.cell), 0); const exact = cands.filter(x => x.empty === 0).sort((x, y) => y.cell - x.cell); let pick = exact.length && exact[0].cell >= bestAll * 0.7 ? exact[0] : cands.slice().sort((x, y) => (y.cell - y.empty * 6) - (x.cell - x.empty * 6))[0]; if(pick){ const cell = Math.max(36, Math.floor(pick.cell)); cols = pick.c; rows = pick.r; rowTrack = cell + "px"; colTrack = Math.floor(cell * aspect) + "px"; fitOver = rows * cell + (rows - 1) * gy > avail + 1; } }catch(e){} }
+    let fitOver = false; if(rowTrack && !landscapeMQ.matches && boardIsPic() && !ZA_BOARD.isSpecial(currentExercise().id)){ const g = ZA_BOARD.picGrid(board, currentGrid.length); if(g){ cols = g.cols; rows = g.rows; rowTrack = g.rowTrack; colTrack = g.colTrack; fitOver = g.fitOver; } }
     board.style.rowGap = (!landscapeMQ.matches && currentGrid.length >= 13 && window.innerWidth < 700 && rowTrack && boardIsPic()) ? "12px" : "";
 board.style.gridTemplateColumns = `repeat(${cols}, ${colTrack || track})`;
 board.style.gridTemplateRows = `repeat(${rows}, ${rowTrack || track})`; board.style.justifyContent = colTrack ? "center" : ""; board.style.alignContent = rowTrack ? (fitOver ? "start" : "center") : "";
@@ -12087,7 +12245,7 @@ applyingBoardLayout = false;
 function centerLastRow(board, cols){ try{ const items = [...board.children].filter(e => e.classList && e.classList.contains("cell")); items.forEach(e => { e.style.gridColumn = ""; e.style.gridColumnStart = ""; e.style.justifySelf = ""; e.style.width = ""; e.style.maxWidth = ""; }); const n = items.length, rem = n % cols; if(!cols || cols < 2 || !rem) return;
   const last = items.slice(n - rem); if(rem === 1){ last[0].style.gridColumn = "1 / -1"; last[0].style.justifySelf = "center"; const w = items[0].getBoundingClientRect().width; last[0].style.width = w ? w + "px" : ""; last[0].style.maxWidth = w ? w + "px" : ""; return; }
   if((cols - rem) % 2 === 0) last[0].style.gridColumnStart = String((cols - rem) / 2 + 1); }catch(e){} }
-function renderRowDividers(board, rows, cols, noRaf){ board.querySelectorAll(".row-divider").forEach(el => el.remove()); if(rows <= 1 || cols <= 0) return; const cs = getComputedStyle(board); const padLeft = parseFloat(cs.paddingLeft) || 0; const padRight = parseFloat(cs.paddingRight) || 0; const rowGapPx = parseFloat(cs.rowGap) || 0; const boardRect = board.getBoundingClientRect(); const bt = boardRect.top + (board.clientTop || 0); /* KURAL (satır çizgisi, 2026-11-08): ayırıcı çizgi iki satırın tam ortasındadır — üstteki satırın alt kenarı ile alttaki satırın üst kenarının ortasına çizilir, tahtanın üst kenar çizgisi hesaba katılır; yerleşim bir kare sonra değişmişse çizgiler yeniden hizalanır (önceden çizgi alt satırın üstüne yapışıyordu) */ for(let r = 0; r < rows - 1; r++){ const cell = board.children[r * cols], next = board.children[(r + 1) * cols]; if(!cell) continue; const ar = cell.getBoundingClientRect(); const cr = next ? next.getBoundingClientRect() : null; const mid = (cr && cr.top >= ar.bottom - 1) ? (ar.bottom + cr.top) / 2 : ar.bottom + rowGapPx / 2; const line = document.createElement("div"); line.className = "row-divider"; line.style.top = (mid - bt) + "px"; line.style.left = padLeft + "px"; line.style.right = padRight + "px"; board.appendChild(line); } if(!noRaf && !board.__zaDivRaf){ board.__zaDivRaf = requestAnimationFrame(() => { board.__zaDivRaf = 0; try{ if(board.querySelector(".row-divider") && board.children[cols]) renderRowDividers(board, rows, cols, true); }catch(e){} }); } } function setLsOpen(open){
+function setLsOpen(open){
 document.documentElement.classList.toggle("ls-open", !!open);
 const btn = document.getElementById("lsToggleBtn");
 if(btn) btn.setAttribute("aria-expanded", open ? "true" : "false");
@@ -12186,7 +12344,7 @@ function renderExHead(){ try{
 document.addEventListener("change", (e) => { if(e.target && e.target.id === "playerSelect") setTimeout(renderExHead, 30); }, true);
 window.addEventListener("resize", exhClose);
 
-function renderAll(){
+function renderAll(){ try{
 try{ const __c = currentCategory(); if(__c && __c.color) document.documentElement.style.setProperty("--cat", __c.color); }catch(e){}   /* alan renk kimliği */
 document.getElementById("pageIndicator").textContent = `${(() => { try{ const c = CATEGORIES[currentCategoryIndex]; const n = (appMode === "aile" && typeof famProfile === "function") ? famProfile() : currentPlayerName; const info = c ? catLevelInfo(c.id, n) : null; return info && info.by !== "genel" ? (readingLevel === "pre" ? "Okul Öncesi · " : "Okul Sonrası · ") : ""; }catch(e){ return ""; } })()}${currentTier().label} · Sayfa ${currentIndex+1}/${SEQUENCE.length}`;
 const lsPageEx = document.getElementById("lsPageEx");
@@ -12196,7 +12354,7 @@ if(lsPageInfo) lsPageInfo.textContent = `${currentTier().label} · ${currentInde
 renderInstruction();
 renderBoard();
 renderDots();
- try{ renderExHead(); }catch(e){} }
+ try{ renderExHead(); }catch(e){} }finally{ ZA_LIFE.afterRender(); try{ zaAutoErrClass(); }catch(e){} } }
 
 function refreshHistoryIfVisible(){
 const screen = document.getElementById("historyScreen");
@@ -12518,9 +12676,9 @@ renderHistory();
 /* KURAL (görsellik, aşama 4): çalışma tamamlanınca kısa bir kutlama kartı (Zihni + değişen bir övgü) belirir; dokunmayı engellemez, 1,6 sn sonra kendiliğinden kaybolur; yarıda bırakılınca, oyun modunda, "Kutlama" kapalıyken ve Sade görünümde çıkmaz */
 const FINISH_MSGS = ["Harika iş!", "Süpersin!", "Bitti, aferin!", "Çok güzel çalıştın!", "Bravo!", "Tebrikler!"];
 let __finishT = null;
-function finishCard(){ if(!confettiEnabled || document.documentElement.classList.contains("calm") || gameMode) return; let el = document.getElementById("finishCard"); if(!el){ el = document.createElement("div"); el.id = "finishCard"; el.setAttribute("aria-live", "polite"); document.body.appendChild(el); }
+function finishCard(){ try{ const e0 = document.getElementById("finishCard"); if(e0){ e0.style.top = ""; e0.style.transition = ""; } }catch(e){} try{ if(!confettiEnabled || document.documentElement.classList.contains("calm") || gameMode) return; let el = document.getElementById("finishCard"); if(!el){ el = document.createElement("div"); el.id = "finishCard"; el.setAttribute("aria-live", "polite"); document.body.appendChild(el); }
   const msg = FINISH_MSGS[Math.floor(Math.random() * FINISH_MSGS.length)]; const star = `<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9L12 2.6Z" fill="#F5B301" stroke="#C98A00" stroke-width="1.2" stroke-linejoin="round"/></svg>`;
-  el.innerHTML = `<div class="fc-card"><div class="fc-z">${zihniSVG("cheer")}</div><div class="fc-t">${msg}</div><div class="fc-s">${star}${star}${star}</div></div>`; el.classList.remove("on"); void el.offsetWidth; el.classList.add("on"); clearTimeout(__finishT); __finishT = setTimeout(() => el.classList.remove("on"), 1600); }
+  el.innerHTML = `<div class="fc-card"><div class="fc-z">${zihniSVG("cheer")}</div><div class="fc-t">${msg}</div><div class="fc-s">${star}${star}${star}</div></div>`; el.classList.remove("on"); void el.offsetWidth; el.classList.add("on"); clearTimeout(__finishT); __finishT = setTimeout(() => el.classList.remove("on"), 1600); }finally{ try{ setTimeout(zaDlgPlace, 30); setTimeout(zaDlgPlace, 300); }catch(e){} } }
 function celebrateSave(){
 if(!confettiEnabled) return; /* KURAL (konfeti yeri, 2026-11-09): konfeti yalnız çalışma/oyun ekranı görünürken yağar; gecikmiş bir kutlama başka sayfaya (Aile alanlar sayfası gibi) geçildikten sonra tetiklenirse atlanır */ try{ const vis = (id) => { const e = document.getElementById(id); return !!e && getComputedStyle(e).display !== "none"; }; const onWork = vis("mainApp") && !vis("categoryScreen") && !vis("islandScreen") && !vis("linkScreen") && !vis("todayScreen"); if(!onWork && !(typeof gameMode !== "undefined" && gameMode)) return; }catch(e){}
 let layer = document.getElementById("confettiLayer");
@@ -13537,9 +13695,9 @@ document.getElementById("fhHwBtn").onclick = guard(() => { hwFrom = "aile"; show
 box.querySelectorAll("[data-rec]").forEach(b => b.onclick = () => openRecommended(b.dataset.rec));
 try{ watchFamilyLink(); }catch(e){}
 }
-function hideFamScreens(){ ["todayScreen","weekScreen"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; }); }
+function hideFamScreens(){ try{ zaHideLevelFlash(0); }catch(e){}  ["todayScreen","weekScreen"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; }); }
 let famTargetEditing = false;
-function showToday(){
+function showToday(){ ZA_LIFE.leave(); 
 exitSessionMode();
 document.getElementById("categoryScreen").style.display = "none";
 document.getElementById("mainApp").style.display = "none";
@@ -13621,7 +13779,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.09-d";
+const APP_VERSION = "2026.11.09-f";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 /* RUNTIME_CSS → zihin-stil.css */
 (function injectRuntimeCSS(){ try{ if(document.getElementById("za-rt-css")) return; /* stil: zihin-stil.css */ }catch(e){} })();
@@ -13675,7 +13833,7 @@ renderPlayerOptions();
 function setFamilyLinkLocal(v){ const all = famStoreGet(LINK_LOCAL_KEY); const k = famProfile() + "|" + famLvl(); if(v) all[k] = v; else delete all[k]; famStoreSet(LINK_LOCAL_KEY, all); }
 const DAY_SHORT = ["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"];
 const todayDayIdx = () => (new Date().getDay() + 6) % 7;
-function hideLinkScreens(){ ["expertScreen","linkScreen"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; }); }
+function hideLinkScreens(){ try{ const ls = document.getElementById("linkScreen"); if(ls) ls.classList.remove("za-hw"); }catch(e){}  ["expertScreen","linkScreen"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; }); }
 function leaveToCategories(){ hideLinkScreens(); hideFamScreens(); renderCategoryList(); document.getElementById("categoryScreen").style.display = "block"; }
 function needCloudHtml(){ return `<div class="fam-card"><div style="font-weight:900;font-size:15px">İnternet bağlantısı gerekli</div><div class="fam-sub" style="font-weight:600;margin-top:4px">Uzman ve aile bağlantısı bulut üzerinden çalışır. Bağlantı kurulunca bu ekran kendiliğinden kullanılabilir olur.</div></div>`; }
 
@@ -14281,10 +14439,10 @@ try{ localStorage.setItem(UNLOCK_SEEN_KEY, JSON.stringify(d)); }catch(e){}
 if(fresh.length){ const isl = GAME_ISLANDS.find(i => i.id === fresh[0]); setTimeout(() => { try{ gameSfx("solved"); }catch(e){} showLevelFlashGame(`🎉 Yeni ada keşfedildi: ${isl.name}!`); try{ speakText(`Yeni ada keşfedildi: ${isl.name}!`); }catch(e){} }, 600); } }
 function gameChildLabel(ex){ const l = ex.label; const i = l.indexOf(": "); return i >= 0 ? l.slice(i + 2) : l; }
 
-function hideGameScreens(){
+function hideGameScreens(){ ZA_LIFE.leave(); 
 ["islandScreen","islandStopsScreen","gameReward"].forEach(id => { const el = document.getElementById(id); if(el) el.style.display = "none"; });
 }
-function exitGameMode(){
+function exitGameMode(){ ZA_LIFE.leave(); 
 gameMode = false;
 document.documentElement.classList.remove("game-mode");
 try{ if(window.speechSynthesis) speechSynthesis.cancel(); }catch(e){}
@@ -14301,7 +14459,7 @@ sel.innerHTML = `<option value="" disabled>Kişi seç…</option>` + names.map(n
 sel.value = cur || "";
 sel.classList.toggle("unset", !cur);
 }
-function showIslandMap(){ try{ const __n = gameProfile(); const __L = __n && __n !== "Misafir" ? getPlayerLevel(__n) : null; if(__L) readingLevel = __L; }catch(e){}   /* harita profilin seviyesiyle çizilir */
+function showIslandMap(){ ZA_LIFE.leave();  try{ const __n = gameProfile(); const __L = __n && __n !== "Misafir" ? getPlayerLevel(__n) : null; if(__L) readingLevel = __L; }catch(e){}   /* harita profilin seviyesiyle çizilir */
 try{ lastSave("cocuk", gameProfile()); }catch(e){}
 setTimeout(() => { try{ gxUnlockCheck(); }catch(e){} }, 300);
 if(!window.__islSoft){ exitGameMode(); hideAllKidScreens(); hideGameScreens(); }
@@ -15297,7 +15455,7 @@ const seconds = ((Date.now() - kidMemoryState.startTime)/1000).toFixed(0);
 document.getElementById("kidMemoryProgress").textContent = `${kidMemoryState.moves} hamle · ${seconds} sn`;
 }
 
-function renderMemoryBoard(){
+function renderMemoryBoard(){ try{
 const board = document.getElementById("kidMemoryBoard");
 board.innerHTML = "";
 kidMemoryState.deck.forEach((card, idx)=>{
@@ -15307,7 +15465,7 @@ btn.innerHTML = shapeSVG(card.shape, card.color);
 btn.addEventListener("click", ()=> handleMemoryTap(idx, btn));
 board.appendChild(btn);
 });
-}
+}finally{ try{ zaTapRestore(); }catch(e){} } }
 
 function handleMemoryTap(idx, btn){
 if(kidMemoryState.locked) return;
@@ -16175,7 +16333,7 @@ catIconEl.style.color = currentCategory().color;
 }
 applyModeVisibility(); renderTierRow(); renderExerciseRow(); renderStageRow(); newPage(); try{ if(appMode === "uzman"){ const st = placedStep(currentCategory().id, currentPlayerName); if(st != null){ const tt = stepTier(st), si = findSeqIndex(tt, 0); if(si > 0){ navTier = tt; goToIndex(si); } } } }catch(e){} /* uzman girişi: değerlendirme yerleşimindeki düzeyden başla */ scheduleTour("main", "mainApp"); }
 
-function openCategoryScreen(){
+function openCategoryScreen(){ ZA_LIFE.leave(); 
 resetTimer();
 try{ exitSessionMode(); exitRecMode(); }catch(e){}
 categoryBackTarget = "mainApp";
@@ -16297,13 +16455,13 @@ appMode = L.mode; pendingLevelPlayerName = L.player; pendingLevelPlayerIsNew = f
   try{ chooseReadingLevel(L.level); }catch(e){ console.error(e); proceedAfterOnboarding(); } }
 { const _crl = chooseReadingLevel; chooseReadingLevel = function(l){ const r = _crl.apply(this, arguments); try{ if(appMode === "aile" || appMode === "uzman") lastSave(appMode, currentPlayerName); }catch(e){} return r; }; }
 // ===== Uygulama içi onay ve uyarı pencereleri =====
-function zaDialog(msg, opts){ return new Promise(res => { let d = document.getElementById("zaDlg"); if(!d){ d = document.createElement("div"); d.id = "zaDlg"; document.body.appendChild(d); }
+function zaDialog(msg, opts){ try{ if(!(typeof gameMode !== "undefined" && gameMode) && (window.__zaInstrActive || window.__zaInstrRT)){ clearTimeout(window.__zaInstrRT); window.__zaInstrRT = null; if(window.__zaInstrActive){ window.__zaInstrCut = true; zaStopSpeech(); } if(window.__zaInstrActive || window.__zaInstrCut || window.__zaInstrSpoken !== window.__zaInstrKey) zaInstrWaitModal(); } }catch(e){} try{ return new Promise(res => { let d = document.getElementById("zaDlg"); if(!d){ d = document.createElement("div"); d.id = "zaDlg"; document.body.appendChild(d); }
 const danger = opts && opts.danger, alertOnly = opts && opts.alert;
 d.innerHTML = `<div class="zd-card" role="dialog" aria-modal="true"><div class="zd-ic ${danger ? "dg" : ""}">${hmIc(danger ? "warn" : alertOnly ? "info" : "ask")}</div><div class="zd-msg"></div><div class="zd-row">${alertOnly ? "" : `<button type="button" class="zd-no">Vazgeç</button>`}<button type="button" class="zd-yes${danger ? " danger" : ""}">${alertOnly ? "Tamam" : /kaldır/i.test(msg) ? "Evet, kaldır" : /sil/i.test(msg) ? "Evet, sil" : danger ? "Evet" : "Tamam"}</button></div></div>`;
 d.querySelector(".zd-msg").textContent = msg; d.style.display = "flex";
 const done = (v) => { d.style.display = "none"; res(v); };
 d.querySelector(".zd-yes").onclick = () => done(true); const no = d.querySelector(".zd-no"); if(no) no.onclick = () => done(false);
-d.onclick = (e) => { if(e.target === d) done(false); }; }); }
+d.onclick = (e) => { if(e.target === d) done(false); }; }); }finally{ try{ zaDlgPlace(); setTimeout(zaDlgPlace, 60); setTimeout(zaDlgPlace, 400); }catch(e){} } }
 function zaConfirm(msg){ return zaDialog(msg, { danger: /sil|kaldır|geri alınamaz|birleştir/i.test(msg) }); }
 function zaAlert(msg){ return zaDialog(msg, { alert: true }); }
 // ===== Ana menü simgesi: daire içinde çizgi ev =====
@@ -16332,7 +16490,7 @@ const set = (id, v) => { const e = document.getElementById(id); if(e) e.checked 
 if(!("vibrate" in navigator)){ const h = document.getElementById("hapticToggle"); if(h){ h.checked = false; h.disabled = true; const g = h.closest(".settings-group"); const lab = g && g.querySelector(".settings-label"); if(lab && !lab.querySelector(".hap-note")) lab.insertAdjacentHTML("beforeend", `<span class="hap-note" style="display:block;font-size:12px;font-weight:600;color:var(--ink-soft)">Bu cihaz titreşimi desteklemiyor (iPhone'daki tarayıcılar izin vermez).</span>`); } }
 }catch(e){ console.error(e); } })();
 // ===== Ana menü =====
-function goHome(lock){ const go = () => { try{ resetTimer(); }catch(e){} try{ hideGameScreens(); exitGameMode(); }catch(e){} try{ hideFamScreens(); hideLinkScreens(); }catch(e){} ["mainApp","categoryScreen","growthScreen","aboutScreen"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; }); showWho(); };
+function goHome(lock){ ZA_LIFE.leave();  const go = () => { try{ resetTimer(); }catch(e){} try{ hideGameScreens(); exitGameMode(); }catch(e){} try{ hideFamScreens(); hideLinkScreens(); }catch(e){} ["mainApp","categoryScreen","growthScreen","aboutScreen"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; }); showWho(); };
 if(lock) showParentLock(go); else go(); }
 function addHomeBtn(afterId, lock, inline){ const ref = document.getElementById(afterId); if(!ref || ref.parentElement.querySelector(".home-btn")) return; const b = document.createElement("button"); b.type = "button"; b.className = "home-btn" + (inline ? " inl" : ""); b.setAttribute("aria-label", "Ana menü"); b.title = "Ana menü"; b.innerHTML = HOME_SVG; b.onclick = (e) => { e.stopPropagation(); goHome(lock); }; ref.insertAdjacentElement("afterend", b); }
 [["islandStopsBackBtn", true], ["expertBackBtn", false], ["todayBackBtn", false], ["weekBackBtn", false], ["linkBackBtn", false]].forEach(([id, lk]) => addHomeBtn(id, lk));
@@ -16461,7 +16619,7 @@ function whoSelSet(v){ try{ localStorage.setItem("wm_who_sel", v); }catch(e){} }
 function whoAvatar(n){ const keep = currentPlayerName, keepL = readingLevel; try{ currentPlayerName = n || ""; const lv = n ? getPlayerLevel(n) : null; if(lv) readingLevel = lv; return zihniSVG("happy"); }catch(e){ return ""; } finally { currentPlayerName = keep; readingLevel = keepL; } }
 function whoSelect(n){ whoSelSet(n); whoTouch(n); showWho(); }
 let whoListOpen = false;
-function showWho(openList){ viaWho = true; try{ const ov = document.getElementById("tourOverlay"); if(ov && getComputedStyle(ov).display !== "none") endTour(); }catch(e){}
+function showWho(openList){ ZA_LIFE.leave();  viaWho = true; try{ const ov = document.getElementById("tourOverlay"); if(ov && getComputedStyle(ov).display !== "none") endTour(); }catch(e){}
 ["modeScreen","readingLevelScreen","childLevelScreen","categoryScreen","mainApp","returnSplashScreen","familyHome"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; });
 try{ hideGameScreens(); exitGameMode(); hideFamScreens(); hideLinkScreens(); }catch(e){}
 if(typeof openList === "boolean") whoListOpen = openList;
@@ -16776,7 +16934,7 @@ function hwStatus(e, player){ const ex = exerciseById(e.id); const nm = (player 
   const recs = perfRecords().filter(r => (r.player || "").trim().toLocaleLowerCase("tr") === nm && (labels.includes(r.exerciseLabel) || r.exId === e.id) && r.t >= e.at && (!e.end || r.t <= e.end)).sort((a, b) => b.t - a.t);
   if(!recs.length) return { k:"none", n:0 }; const er = recs[0].errors || 0; return { k: er <= 1 ? "ok" : er === 2 ? "mid" : "hard", n: recs.length, last: recs[0].t, err: er }; }
 const HW_ST = { none:["Henüz yapılmadı","#EEF2F6","#5B6B7A"], ok:["Başarılı ✓","#E3F6EA","#1B7A3D"], mid:["Gelişiyor","#FFF6D6","#8A6400"], hard:["Tekrar edelim","#FDEBDD","#A9632A"] };
-function showHwScreen(){ hideFamScreens(); hideLinkScreens(); hwScreenOpen = true; if(hwRun) hwRunEnd(); ["categoryScreen","familyHome","mainApp","readingLevelScreen","returnSplashScreen"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; });
+function showHwScreen(){ try{ hideFamScreens(); hideLinkScreens(); hwScreenOpen = true; if(hwRun) hwRunEnd(); ["categoryScreen","familyHome","mainApp","readingLevelScreen","returnSplashScreen"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; });
   const l = familyLinkLocal(), player = famProfile(), lvl = famLvl(), now = Date.now(), list = hwEntries(l && l.program).sort((a, b) => b.at - a.at); const w = document.getElementById("linkWrap");
   const activeExpert = list.filter(e => !e.end).length; let plan = null; try{ plan = devPlanRefresh(player, lvl, { now, expertCount: activeExpert, off: !!(l && l.program && l.program.devOff), excludeIds: list.filter(e => !e.end).map(e => e.id) }); if(l) devPlanSync(plan, l); }catch(e){ console.error(e); }
   const devItems = plan ? plan.items.slice().sort((a, b) => (a.snooze > now ? 1 : 0) - (b.snooze > now ? 1 : 0) || (a.kind === "strong") - (b.kind === "strong")) : [];
@@ -16816,7 +16974,7 @@ return `<div class="fam-card dev-card${open ? " open" : ""}" data-devcard="${it.
   w.querySelectorAll("[data-hwopen]").forEach(b => b.onclick = () => hwRunOpen(b.dataset.hwopen, null));
   w.querySelectorAll("[data-devopen]").forEach(b => b.onclick = () => hwRunOpen(b.dataset.devopen, +b.dataset.devti)); /* KURAL (kart dokunma hassasiyeti, 2026-11-08): önerilen çalışma kartı parmak kalkar kalkmaz (pointerup) açılıp kapanır, tarayıcının tıklama gecikmesini beklemez; 8 px'ten fazla kaydırma dokunma sayılmaz (kaydırırken kart açılmaz); kapalı kartın tamamı dokunma alanıdır; basınca kart hafifçe renk değiştirir */ w.querySelectorAll("[data-devtoggle]").forEach(b => { const card = b.closest(".dev-card"); const tgt = card || b; let st = null; const down = (ev) => { if(ev.pointerType === "mouse" && ev.button !== 0) return; if(card && card.classList.contains("open") && !ev.target.closest(".dev-head")) return; st = { x: ev.clientX, y: ev.clientY, t: Date.now() }; }; const move = (ev) => { if(st && Math.hypot(ev.clientX - st.x, ev.clientY - st.y) > 8) st = null; }; const up = (ev) => { if(!st) return; st = null; b.__zaPd = Date.now(); b.__zaToggle(); }; tgt.addEventListener("pointerdown", down, { passive: true }); tgt.addEventListener("pointermove", move, { passive: true }); tgt.addEventListener("pointerup", up, { passive: true }); tgt.addEventListener("pointercancel", () => { st = null; }, { passive: true }); b.addEventListener("click", () => { if(b.__zaPd && Date.now() - b.__zaPd < 700) return; b.__zaToggle(); }); b.__zaToggle = () => { const id = b.dataset.devtoggle; if(!(window.__zaDevOpen instanceof Set)) window.__zaDevOpen = new Set(); const was = window.__zaDevOpen.has(id); window.__zaDevOpen.clear(); if(!was) window.__zaDevOpen.add(id); w.querySelectorAll(".dev-card").forEach(c => { const on = c.dataset.devcard === id && !was; c.classList.toggle("open", on); const h = c.querySelector(".dev-head"); if(h) h.setAttribute("aria-expanded", on ? "true" : "false"); }); }; });
   w.querySelectorAll("[data-devsnooze]").forEach(b => b.onclick = () => { const pl = devPlanGet(player, lvl); if(!pl) return; const it = pl.items.find(x => x.id === b.dataset.devsnooze); if(!it) return; if(it.snooze > Date.now()) delete it.snooze; else { it.snooze = Date.now() + 864e5; it.at = Math.max(it.at, Date.now() - (DEV_STALE_DAYS - 2) * 864e5); } devPlanSave(player, lvl, pl); showHwScreen(); });
-  document.getElementById("linkScreen").style.display = "flex"; document.getElementById("linkScreen").scrollTop = 0; }
+  document.getElementById("linkScreen").style.display = "flex"; document.getElementById("linkScreen").scrollTop = 0; }finally{ try{ const ls = document.getElementById("linkScreen"); if(ls) ls.classList.add("za-hw"); }catch(e){} } }
 function hwOpen(id, l, tiOverride){ hideLinkScreens(); hideFamScreens(); appMode = "aile"; try{ applyModeVisibility(); }catch(e){} try{ renderPlayerOptions(); const sel = document.getElementById("playerSelect"); if(playersList.includes(currentPlayerName)){ sel.value = currentPlayerName; updatePlayerAvatar(currentPlayerName); } }catch(e){} const ci = CATEGORIES.findIndex(c => !c.hidden && c.exerciseIds.includes(id)); if(ci < 0) return; selectCategory(ci);
   let k = currentCategoryExercises().findIndex(x => x.id === id);
   if(k < 0){ const ex0 = exerciseById(id), alt = ex0 && ex0.readingLevel.find(lv => lv !== readingLevel); if(alt){ readingLevel = alt; try{ applyLevelDefaultThresholds(alt); }catch(e){} SEQUENCE = buildSequenceForCategory(); currentIndex = 0; k = currentCategoryExercises().findIndex(x => x.id === id); } }   /* uzman ödevi kendi kademesinde açılır */
