@@ -1699,10 +1699,10 @@ const ZA_SPK_ON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" s
 function zaInstrSpk(){ try{ const ib = document.getElementById("instructionBox"); if(!ib) return; let b = document.getElementById("instrSpk"); if(!b || b.parentNode !== ib){ if(b) b.remove(); b = document.createElement("button"); b.type = "button"; b.id = "instrSpk"; b.className = "instr-spk"; b.onclick = (ev) => { ev.stopPropagation(); const m = !speechMuted(); try{ localStorage.setItem(SPEECH_MUTE_KEY, m ? "1" : "0"); }catch(e){} if(m){ zaStopSpeech(); } else { const tx = childInstructionText(); if(tx) speakText(tx, { instr: true }); } zaInstrSpk(); try{ renderSpeakBtn(); }catch(e){} }; ib.insertBefore(b, ib.firstChild); } /* "Yönerge:" etiketi kutunun ::before yazısıydı; hoparlör etiketin önünde dursun diye etiket gerçek yazıya çevrilir (aynı renk ve kalınlık) */ { let lb = ib.querySelector(":scope > .ib-lbl"); if(!lb){ ib.classList.remove("za-has-spk"); const pb = getComputedStyle(ib, "::before"); const txt = String(pb.content || "").replace(/^["\u201c]|["\u201d]$/g, ""); if(txt && txt !== "none" && txt !== "normal"){ lb = document.createElement("span"); lb.className = "ib-lbl"; lb.textContent = txt; lb.style.cssText = `font-weight:${pb.fontWeight};color:${pb.color};font-size:${pb.fontSize};white-space:pre`; b.after(lb); } } ib.classList.toggle("za-has-spk", !!ib.querySelector(":scope > .ib-lbl")); } const m = speechMuted(); b.innerHTML = m ? ZA_SPK_OFF : ZA_SPK_ON; b.setAttribute("aria-label", m ? "Sesi aç" : "Sesi kapat"); b.setAttribute("aria-pressed", m ? "true" : "false"); b.classList.toggle("off", m); }catch(e){} }
 (function(){ try{ /* stil: zihin-stil.css */ }catch(e){}
  try{ const go = () => { const ib = document.getElementById("instructionBox"); if(!ib) return setTimeout(go, 500); new MutationObserver(() => { if(!document.getElementById("instrSpk") || document.getElementById("instrSpk").parentNode !== ib) zaInstrSpk(); }).observe(ib, { childList: true }); zaInstrSpk(); }; if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go(); }catch(e){}
- try{ const f = renderAll; renderAll = function(){ const r = f.apply(this, arguments); try{ zaInstrSpk(); zaReadInstr(); }catch(e){} return r; }; }catch(e){} })();
+ try{ const f = renderAll; renderAll = function(){ const r = f.apply(this, arguments); ZA_LIFE.afterRender(); return r; }; }catch(e){} })();
 /* KURAL (konuşma, 2026-11-05): etkinlikten/oyundan çıkınca (Harita, ana sayfa, oyun bitişi) konuşma hemen susar, altyazı balonu kapanır, bekleyen ve "kaçırılıp ilk dokunuşta okunacak" konuşmalar iptal edilir — çıkış dokunuşu önceki etkinliğin yönergesini haritada okutmaz */
 function zaStopSpeech(){ try{ window.__zaSpGen = (window.__zaSpGen || 0) + 1; window.__zaInstrActive = false; window.__zaInstrG = (window.__zaInstrG || 0) + 1; window.__zaStartAfterInstr = false; }catch(e){} try{ _ttsMissed = null; }catch(e){} try{ if(window.speechSynthesis) speechSynthesis.cancel(); }catch(e){} try{ hideCaption(); }catch(e){} try{ (window._rlTs || []).forEach(clearTimeout); window._rlTs = []; }catch(e){} }
-(function(){ try{ const f1 = showIslandMap; showIslandMap = function(){ zaStopSpeech(); return f1.apply(this, arguments); }; }catch(e){} try{ const f2 = goHome; goHome = function(){ zaStopSpeech(); return f2.apply(this, arguments); }; }catch(e){} try{ const f3 = exitGameMode; exitGameMode = function(){ zaStopSpeech(); return f3.apply(this, arguments); }; }catch(e){} try{ const f4 = hideGameScreens; hideGameScreens = function(){ zaStopSpeech(); return f4.apply(this, arguments); }; }catch(e){} ["openCategoryScreen", "showToday", "showWho"].forEach(n => { try{ const f = (0, eval)(n); if(typeof f !== "function") return; const w = function(){ zaStopSpeech(); return f.apply(this, arguments); }; if(n === "openCategoryScreen") openCategoryScreen = w; else if(n === "showToday") showToday = w; else showWho = w; }catch(e){} }); })();
+(function(){ try{ const f1 = showIslandMap; showIslandMap = function(){ ZA_LIFE.leave(); return f1.apply(this, arguments); }; }catch(e){} try{ const f2 = goHome; goHome = function(){ ZA_LIFE.leave(); return f2.apply(this, arguments); }; }catch(e){} try{ const f3 = exitGameMode; exitGameMode = function(){ ZA_LIFE.leave(); return f3.apply(this, arguments); }; }catch(e){} try{ const f4 = hideGameScreens; hideGameScreens = function(){ ZA_LIFE.leave(); return f4.apply(this, arguments); }; }catch(e){} ["openCategoryScreen", "showToday", "showWho"].forEach(n => { try{ const f = (0, eval)(n); if(typeof f !== "function") return; const w = function(){ ZA_LIFE.leave(); return f.apply(this, arguments); }; if(n === "openCategoryScreen") openCategoryScreen = w; else if(n === "showToday") showToday = w; else showWho = w; }catch(e){} }); })();
 /* KURAL (otomatik hata, 2026-11-05): yanlışı uygulamanın kendisinin saydığı dokunmalı oyunlarda (oyun modu dahil) − ve + düğmeleri görünmez; hata sayısı yalnızca okunur olarak görünür ve her yanlışta kendiliğinden artar. Elle sayılan (söylemeli) çalışmalarda − ve + kalır */
 function zaAutoErrClass(){ try{ const ex = currentExercise(); const auto = !!ex && isInteractiveExercise(ex) && !usesManualErrors(ex) && !(typeof mtState !== "undefined" && mtState && mtState.manual); document.documentElement.classList.toggle("za-autoerr", auto); }catch(e){} }
 (function(){ try{ const _ra = renderAll; renderAll = function(){ const r = _ra.apply(this, arguments); zaAutoErrClass(); return r; }; }catch(e){} try{ const go = () => { const b = document.getElementById("board"); if(!b) return setTimeout(go, 500); new MutationObserver(() => zaAutoErrClass()).observe(b, { childList: true }); zaAutoErrClass(); }; if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go(); }catch(e){} })();
@@ -5967,9 +5967,31 @@ const open = document.getElementById("recallCheck").open; renderRecallChecklist(
 });
 
 setInterval(() => { try{ ensureInteractiveStop(); }catch(e){} }, 400);
+/* KURAL (yaşam döngüsü, 2026-11-09): sayfa olayları tek yerden geçer — ZA_LIFE.freshAttempt (yeni deneme), ZA_LIFE.rebuild/clear/resetBoard (sıfırlama ve yarım kalan deneme), ZA_LIFE.leave (sayfadan/oyundan çıkış), ZA_LIFE.afterRender (sayfa çizildi). Çalışma türüne özel sıfırlama kuralları yalnız bu tabloda yazılır; startTimer, stopTimer, resetTimer ve gezinti fonksiyonları buraya çağrı yapar. Yeni bir çalışma türü eklenirken sıfırlaması buraya eklenir (mühendislik borcu 2. adım) */
+const ZA_LIFE = {
+  /* etkileşimli, kendi deneme üreten tahtalar: yeni deneme kurulur (sıfırlama ve yarım kalan deneme) */
+  rebuild(ex){ try{ if(ex.isMt){ mtClear(); currentGrid = mtBuild(); renderMtBoard(); return true; } if(ex.isRt){ rtClear(); currentGrid = rtBuild(); renderRtBoard(); return true; } if(ex.isChoice){ chClear(); currentGrid = chBuild(); renderChoiceBoard(); return true; } if(ex.isWm){ wmClearTimers(); currentGrid = wmBuild(); renderWmBoard(); return true; } }catch(e){ console.error(e); } return false; },
+  /* aynı sayfada ilerleme işaretlerini temizleyen tahtalar */
+  clear(ex){ try{
+    if(ex.isSearch && searchState){ searchState = { answered:0, wrong:0, ans: currentGrid.map(() => null) }; renderSearchBoard(); }
+    if(ex.isPlan && planState && currentGrid.length){ Object.assign(planState, { p:0, cur: currentGrid[0].start.map(x => Array.isArray(x) ? x.slice() : x), moves:0, extra:0, sel:null, done:false, firstMoveMs:[], probStart:null, solved:0, locked:false }); renderPlanBoard(); }
+    if(ex.isTrail && trailState){ Object.assign(trailState, { next:0, wrong:0 }); renderTrailBoard(); }
+    if(ex.isSort && sortState){ Object.assign(sortState, { idx:0, wrong:0, persev:0, locked:false, justChanged:false }); renderSortBoard(); }
+    if(ex.isTouch){ document.querySelectorAll("#board .tap-mark").forEach(m => m.remove()); resetTouchState(); }
+    /* KURAL (temiz başlangıç, 2026-11-08): Oluş Sırası'nda sıfırlama ve yeni deneme işaretleri (yeşil ✓, sıra numaraları) temizler; önceden aynı sayfada işaretler kalıyor, bütün satırlar dokunulmuş görünüyordu */
+    if(ex.isSeqRows){ osProg = currentGrid.map(() => []); osProgGrid = currentGrid; renderOsBoard(); }
+  }catch(e){ console.error(e); } },
+  resetBoard(ex){ this.rebuild(ex); this.clear(ex); },
+  /* yeni deneme (süre 0'dan): hata sayısı 0'dan başlar; Oluş Sırası'nda eski işaret kaldıysa temizlenir */
+  freshAttempt(ex){ currentErrorCount = 0; const ce0 = document.getElementById("errorCount"); if(ce0) ce0.textContent = "0"; try{ if(ex.isSeqRows && osProg.some(r => r && r.length)){ osProg = currentGrid.map(() => []); osProgGrid = currentGrid; renderOsBoard(); } }catch(e){} },
+  /* etkinlikten/oyundan çıkış: konuşma susar, altyazı kapanır */
+  leave(){ try{ zaStopSpeech(); }catch(e){} },
+  /* sayfa çizildi: yönerge hoparlörü kurulur, yönerge (gerekiyorsa) okunur */
+  afterRender(){ try{ zaInstrSpk(); zaReadInstr(); }catch(e){} }
+};
 function startTimer(){ window.__zaStartAt = Date.now(); if(!(typeof gameMode !== "undefined" && gameMode) && !(currentPlayerName || "").trim() && document.getElementById("mainApp").style.display !== "none" && !window.__qaNoPlayerGuard){ try{ const row = document.getElementById("playerRow"); row.scrollIntoView({ behavior:"smooth", block:"center" }); row.classList.remove("attn"); void row.offsetWidth; row.classList.add("attn"); }catch(e){} showToast("Başlamadan önce kimin çalıştığını seçin", "err"); return; }
 window._incomplete = false; setLsOpen(false);
-if(elapsedMs < 50){ currentErrorCount = 0; const ce0 = document.getElementById("errorCount"); if(ce0) ce0.textContent = "0"; } try{ if(elapsedMs < 50 && currentExercise().isSeqRows && osProg.some(r => r && r.length)){ osProg = currentGrid.map(() => []); osProgGrid = currentGrid; renderOsBoard(); } }catch(e){}
+if(elapsedMs < 50) ZA_LIFE.freshAttempt(currentExercise());
 try{ if(elapsedMs < 50) nbSeqStart(); }catch(e){}   /* KURAL: yeni başlayan çalışmada hata sayısı 0'dan başlar (başlamadan önce artırılmış sayı taşınmaz); arka plandan dönüşte sayı korunur */
 timerStartedAt = Date.now() - elapsedMs;
 timerInterval = setInterval(tickTimer, 100);
@@ -6022,7 +6044,7 @@ btn.classList.remove("running");
 { const manual = window._manualStop; window._manualStop = false; const hint = document.getElementById("saveHint"); window._incomplete = !!(manual && !gameMode && !pageComplete());
 if(window._incomplete){ document.getElementById("saveResultBtn").style.display = "none"; hint.style.display = "block"; hint.textContent = "Çalışma tamamlanmadan durduruldu; bu sonuç kaydedilemez. ↻ ile yeniden başlatabilirsin."; hint.classList.add("warn");
   try{ const ex = currentExercise(); let rebuilt = false;   /* yarım kalan deneme tahtada asılı kalmasın: etkileşimli tahta başa döner */
-    if(ex.isChoice){ chClear(); currentGrid = chBuild(); renderChoiceBoard(); rebuilt = true; } else if(ex.isMt){ mtClear(); currentGrid = mtBuild(); renderMtBoard(); rebuilt = true; } else if(ex.isRt){ rtClear(); currentGrid = rtBuild(); renderRtBoard(); rebuilt = true; } else if(ex.isWm){ wmClearTimers(); currentGrid = wmBuild(); renderWmBoard(); rebuilt = true; }
+    rebuilt = ZA_LIFE.rebuild(ex);
     if(rebuilt){ elapsedMs = 0; document.getElementById("timerDisplay").textContent = "00:00.0"; currentErrorCount = 0; const ce = document.getElementById("errorCount"); if(ce) ce.textContent = "0"; hint.textContent = "Çalışma tamamlanmadan durduruldu; bu sonuç kaydedilmedi. ▶ Başlat ile baştan başlayabilirsin."; } }catch(e){} }
 else if(elapsedMs > 300){ document.getElementById("saveResultBtn").style.display = "block"; hint.style.display = "block"; hint.textContent = "Çalışmayı bitirdin — hata sayısını kontrol et ve kaydet."; hint.classList.remove("warn");
 /* KURAL: hatayı uygulamanın kendisinin saydığı dokunmalı çalışmalar (seçmeli, arama, iz sürme, sıralama, plan, dokunma, tepki, bellek oyunları) tamamlanınca sonuç kendiliğinden kaydedilir; yetişkinin hata saydığı söylemeli çalışmalarda Kaydet düğmesi kalır */
@@ -6058,32 +6080,7 @@ currentErrorCount = 0;
 const countEl = document.getElementById("errorCount");
 if(countEl) countEl.textContent = "0";
 try{ if(gameMode) renderGameWho(); }catch(e){}
-if(currentExercise().isMt){ mtClear(); currentGrid = mtBuild(); renderMtBoard(); }
-if(currentExercise().isRt){ rtClear(); currentGrid = rtBuild(); renderRtBoard(); }
-if(currentExercise().isChoice){ chClear(); currentGrid = chBuild(); renderChoiceBoard(); }
-if(currentExercise().isWm){ wmClearTimers(); currentGrid = wmBuild(); renderWmBoard(); }
-if(currentExercise().isSearch && searchState){
-searchState = { answered:0, wrong:0, ans: currentGrid.map(() => null) };
-renderSearchBoard();
-}
-if(currentExercise().isPlan && planState && currentGrid.length){
-Object.assign(planState, { p:0, cur: currentGrid[0].start.map(x => Array.isArray(x) ? x.slice() : x), moves:0, extra:0, sel:null, done:false, firstMoveMs:[], probStart:null, solved:0, locked:false });
-renderPlanBoard();
-}
-if(currentExercise().isTrail && trailState){
-Object.assign(trailState, { next:0, wrong:0 });
-renderTrailBoard();
-}
-if(currentExercise().isSort && sortState){
-Object.assign(sortState, { idx:0, wrong:0, persev:0, locked:false, justChanged:false });
-renderSortBoard();
-}
-if(currentExercise().isTouch){
-document.querySelectorAll("#board .tap-mark").forEach(m => m.remove());
-resetTouchState();
-}
-/* KURAL (temiz başlangıç, 2026-11-08): Oluş Sırası'nda sıfırlama ve yeni deneme işaretleri (yeşil ✓, sıra numaraları) temizler; önceden aynı sayfada işaretler kalıyor, bütün satırlar dokunulmuş görünüyordu */
-if(currentExercise().isSeqRows){ osProg = currentGrid.map(() => []); osProgGrid = currentGrid; renderOsBoard(); }
+ZA_LIFE.resetBoard(currentExercise()); /* tür bazlı sıfırlama kuralları ZA_LIFE tablosunda */
 document.getElementById("saveResultBtn").style.display = "none";
 document.getElementById("saveHint").style.display = "none";
 }
@@ -13624,7 +13621,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.09-c";
+const APP_VERSION = "2026.11.09-d";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 /* RUNTIME_CSS → zihin-stil.css */
 (function injectRuntimeCSS(){ try{ if(document.getElementById("za-rt-css")) return; /* stil: zihin-stil.css */ }catch(e){} })();
