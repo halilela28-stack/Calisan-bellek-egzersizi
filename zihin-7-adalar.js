@@ -231,6 +231,7 @@ const t = ctx.currentTime + 0.005;
 const N = { C5:523.25, D5:587.33, E5:659.25, G5:783.99, A5:880, C6:1046.5, E6:1318.5, G6:1568, C7:2093 };
 try{
 switch(kind){
+case "tap":     sfxTone(ctx, 1150, t, 0.035, "sine", 0.07, 820); break; /* düğme dokunuşu: kısa, yumuşak tık */
 case "pop":     sfxTone(ctx, 520, t, 0.08, "sine", 0.18, 880); break;
 case "drop":    sfxTone(ctx, 700, t, 0.07, "sine", 0.16, 420); break;
 case "correct": sfxTone(ctx, N.E5, t, 0.10, "triangle", 0.20); sfxTone(ctx, N.A5, t + 0.07, 0.16, "triangle", 0.20); break;
@@ -244,6 +245,11 @@ case "go":      sfxTone(ctx, N.C5, t, 0.1, "triangle", 0.18); sfxTone(ctx, N.G5,
 }
 }catch(e){}
 }
+/* KURAL (düğme sesi, 2026-11-09): Ayarlar'da ses efektleri açıkken düğmelere basınca kısa, yumuşak bir tık sesi çıkar (parmak kalkınca). Tahtanın içindeki dokunuşlar kendi doğru/yanlış sesini kullandığı için bu sesi çalmaz; devre dışı düğmeler ses çıkarmaz. iPhone'da telefon sessiz moddayken uygulama sesleri çalmaz (ses oturumu "ambient") */
+try{ if(navigator.audioSession) navigator.audioSession.type = "ambient"; }catch(e){}
+const ZA_TAP_SFX_SEL = 'button, [role="button"], .category-card, .dev-head, .fam-go, .exh-it, .mode-card, .cd-b, a.btn, label.switch';
+let __zaTapSfxAt = 0;
+document.addEventListener("pointerup", (ev) => { try{ if(ev.pointerType === "mouse" && ev.button !== 0) return; if(!soundEnabled) return; const el = ev.target && ev.target.closest ? ev.target.closest(ZA_TAP_SFX_SEL) : null; if(!el || el.disabled || el.getAttribute("aria-disabled") === "true") return; const bd = document.getElementById("board"); if(bd && bd.contains(el)) return; if(el.closest("#tourOverlay") && !el.closest("button")) return; const now = Date.now(); if(now - __zaTapSfxAt < 60) return; __zaTapSfxAt = now; sfx("tap"); }catch(e){} }, { capture: true, passive: true });
 function gameSfx(kind){ if(typeof gameMode !== "undefined" && gameMode){ sfx(kind); if(kind === "wrong") zihniAgain(); } }
 /* KURAL: oyun modunda yanlış cevaptan sonra köşede 1,1 sn "Olsun, bir daha!" diyen Zihni çıkar (en çok 3 sn'de bir; dokunmayı engellemez; Sade görünümde ve hareketi azalt ayarında yalnız belirip kaybolur) */
 let _zAgainT = 0; function zihniAgain(){ try{ const now = Date.now(); if(now - _zAgainT < 3000) return; _zAgainT = now; let el = document.getElementById("zAgain"); if(!el){ el = document.createElement("div"); el.id = "zAgain"; el.setAttribute("aria-hidden", "true"); document.body.appendChild(el); } el.innerHTML = `<span class="za-z">${zihniSVG("again")}</span><span class="za-t">Olsun, bir daha!</span>`; el.classList.remove("on"); void el.offsetWidth; el.classList.add("on"); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove("on"), 1100); }catch(e){} }

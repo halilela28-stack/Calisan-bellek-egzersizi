@@ -428,11 +428,14 @@ try{ catV2Render(); }catch(e){ console.error(e); }
 
 
 const TOURS = {
-home: { key: "wm_tour_home_seen_v1", steps: [
-
-{sel:"#hmEtk .ha-b1", title:"Uzman ya da Aile girişi", text:"Bilişsel Etkinlik yetişkinle yapılır. Uzman girişi danışanlar, programlar ve ödevler içindir; Aile girişi günlük oturum ve uzmanın önerdiği çalışmalar içindir."},
-{sel:"#hmModeNote", title:"Mod değiştirme", text:"Uzman ve aile modu arasında buradan geçebilirsiniz; geçmeden önce onay sorulur."}, {sel:"#hmGame", title:"Bilişsel Oyun", text:"Çocuğun tek başına oynadığı Zihin Adaları. Oyundan çıkış ebeveyn kontrolüyle korunur."},
-{sel:"#hmSet", title:"Ayarlar", text:"Ses, görünüm ve yazı boyutu, hesap ve bulut eşitleme ile Uzman PIN'i burada."}
+home: { key: "wm_tour_home_seen_v3", steps: [
+{sel:"#hmPerson", title:"Kişi", text:"Çalışan çocuk burada görünür. Değiştir ile başka bir çocuğa geçin, + Kişi ekle ile yeni çocuk ekleyin. Sonuçlar her çocuk için ayrı tutulur."},
+{sel:"#hmEtkBtn", title:"Bilişsel Etkinlik", text:"Yetişkinle birlikte yapılan çalışmalar: 10 beceri alanı ve her alanda çok sayıda etkinlik."},
+{sel:"#hmToday", title:"Bugünün etkinlikleri", text:"Günlük kısa oturum: dört etkinlik. Uygulama çocuğun düzeyine göre kendisi hazırlar."},
+{sel:"#hmHw", title:"Ödevlerim", text:"Uzmanın verdiği ödevler ve çalışmalara göre önerilen sonraki adımlar."},
+{sel:"#hmGame", title:"Bilişsel Oyun", text:"Çocuğun tek başına oynadığı Zihin Adaları. Oyundan çıkış ebeveyn kontrolüyle korunur."},
+{sel:"#hmModeNote", title:"Aile ve Uzman modu", text:"Hangi modda olduğunuzu gösterir. Uzman modunda danışanlar, programlar ve ödev verme açılır; geçmeden önce onay sorulur."},
+{sel:"#hmSet", title:"Ayarlar", text:"Ses, görünüm ve yazı boyutu, hesap ve bulut eşitleme, Uzman PIN'i ve tanıtımları yeniden gösterme burada."}
 ] },
 modes: {
 key: "wm_tour_modes_seen_v2",
@@ -450,18 +453,13 @@ steps: [
 {sel:"#readingLevelScreen .player-row", title:"Kim çalışıyor?", text:"İstersen çalışacak kişiyi şimdi seç ya da yeni kişi ekle. Seçtiğin düzey o kişiye kaydedilir, sonraki sefer aynı düzey önerilir. Seçmezsen çalışma ekranında da seçebilirsin."}
 ]
 },
-category: {
-key: "wm_tour_category_seen_v2",
-steps: [
-{sel:"#aboutBtn", title:"Bilgi", text:"Uygulamayı ve her alanın neyi çalıştırdığını anlatan Hakkında sayfasını açar."},
-{sel:"#fhTodayBtn", title:"Bugünün etkinlikleri", text:"Yaklaşık 12 dakikalık hazır oturum: ısınma, iki ana çalışma ve kapanış. Hangi çalışmayı seçeceğini düşünmene gerek kalmaz."},
-{sel:".fh-rec", title:"Uzmanın önerdiği çalışmalar", text:"Uzman program atadıysa önerdiği çalışmalar burada; 'Aç' ile tek dokunuşta başlar."},
-{sel:"#fhWeekBtn", title:"Bu hafta", text:"Çalışılan günler ve rakam yerine anlamla yazılmış kısa gelişim özeti."},
-{sel:"#fhLinkBtn", title:"Uzmana bağlan", text:"Uzmanının verdiği kodu girersen program onun atadığına göre kurulur ve sonuçlar ona da gider."},
-{sel:"#exHomeBtn", title:"Danışanlarım", text:"Danışan ekle, aileye bağlantı kodu ver, haftalık program ata ve sonuçları uzaktan izle."},
-{sel:"#categoryList .category-card", title:"Alanlar", text:"Çalışmak istediğin alana dokun. Her alan farklı bir bilişsel beceriyi çalıştırır; istediğin an alan ekranından değiştirebilirsin."}
-]
-},
+category: { key: "wm_tour_category_seen_v3", steps: [
+{sel:"#categoryList .category-card", title:"Alanlar", text:"Her kart bir beceri alanı. Dokununca o alanın etkinlikleri açılır; kartın üstündeki sayı, bu alanda yapılan etkinlikleri gösterir."},
+{sel:"#fhTodayBtn", title:"Bugünün etkinlikleri", text:"Günün dört etkinliğine buradan başlayın; kaçının yapıldığı yanında yazar."},
+{sel:"#catTopInfo", title:"Alanlar hakkında", text:"Her alanın neyi çalıştırdığını ve hangi durumlarda önerildiğini buradan okuyabilirsiniz."},
+{sel:"#catDock", title:"Alt çubuk", text:"Ödevlerim, Gelişim (alanlara göre ilerleme), Bu hafta (haftalık özet) ve Uzmana bağlan."},
+{sel:"#catTopHome", title:"Ana sayfa", text:"Ana sayfaya dönmek için."}
+] },
 islands: {
 key: "wm_tour_islands_seen_v2",
 steps: [
@@ -474,14 +472,11 @@ steps: [
 {sel:"#islandBackBtn", title:"Ebeveyn kontrolü", text:"Oyundan çıkmak için bir işlem sorusu sorulur; çocuk yanlışlıkla çıkamaz."}
 ]
 },
-today: {
-key: "wm_tour_today_seen_v1",
-steps: [
-{sel:"#todayWrap .fam-target", title:"Haftanın hedefi", text:"Oturumun ana çalışmaları bu alandan seçilir. Uzmana bağlıysanız hedefi uzman belirler; değilse 'Değiştir' ile siz seçersiniz."},
-{sel:"#todayWrap .fam-steps", title:"Dört adım", text:"Isınma (göz takip), iki ana çalışma ve çocuğun tek başına yapabileceği bir kapanış. Oturum gün boyunca aynı kalır, ertesi gün yenilenir."},
-{sel:"#famStartCta", title:"Başlat", text:"Sıradaki adımı açar. Her adımın sonunda sonucu kaydedin; adım tamamlanır ve 'Sıradaki' düğmesi çıkar."}
-]
-},
+today: { key: "wm_tour_today_seen_v3", steps: [
+{sel:"#todayWrap .fam-target", title:"Haftanın hedefi", text:"Bu hafta öncelik verilen alan. Değiştir ile başka bir alan seçebilirsiniz."},
+{sel:"#todayWrap .fam-steps", title:"Dört adım", text:"Isınma, iki ana çalışma ve kapanış. Her adım çocuğun düzeyine göre seçilir; zorluk her çalışmada sonuca göre ayarlanır."},
+{sel:"#famStartCta", title:"Oturumu başlat", text:"Adımlar sırayla açılır. Her adımın sonunda sonucu kaydedin; oturum bitince özet görünür."}
+] },
 expert: {
 key: "wm_tour_expert_seen_v1",
 steps: [
@@ -490,29 +485,27 @@ steps: [
 ]
 },
 main: {
-key: "wm_tour_seen_v2",
+key: "wm_tour_seen_v3",
 steps: [
-{sel:"#lsToggleBtn",       title:"Menü",            text:"Ekran kısa olduğu için bazı düğmeler bu menünün içinde. Dokununca açılır; şimdi içindekileri sırayla anlatıyorum."},
-{sel:"#cloudBadge",        title:"Kayıt durumu",    text:"Bulut: sonuçlar çevrimiçi kaydediliyor. Yerel: bağlantı yok, sonuçlar bu cihazda bekliyor ve bağlantı gelince otomatik yüklenir.", menu:true},
-{sel:"#settingsBtn",       title:"Ayarlar",         text:"Ses, görünüm ve yazı boyutu, otomatik zorluk eşikleri, hesap ve bulut eşitleme, Uzman PIN\'i, kayıtlı kişiler ve sürüm bilgisi burada.", menu:true},
-{sel:"#modeSwitchBtn",     title:"Görünüm",         text:"Bilişsel Etkinlik'te hangi girişte olduğunu gösterir (Uzman ya da Aile). Dokununca o girişin sayfasına dönersin. Ana menü için bulutun yanındaki ev düğmesine dokun.", menu:true},
-{sel:"#categorySwitchBtn", title:"Alan",        text:"Şu an çalıştığın alanı gösterir. Dokununca başka bir alan seçebilirsin.", menu:true},
-{sel:"#pageIndicator",     title:"Sayfa",           text:"Hangi düzeyde olduğunu ve bu alanda kaçıncı sayfada olduğunu gösterir.", menu:true},
-{sel:"#tierRow",           title:"Düzey",           text:"Başlangıç, Orta ya da Zor düzeyi buradan seç. Düzey yükseldikçe çalışma zorlaşır: daha çok öge, daha çok çeşit, daha hızlı hareket gibi.", menu:true},
-{sel:"#exerciseRow",       title:"Çalışmalar",      text:"Bu alandaki çalışmalar burada; yana kaydırarak diğerlerini görebilirsin. Bazı alanlarda başlıklar (Ketleme, Esneklik, Planlama) çalışmaları gruplar.", menu:true},
-{sel:"#stageRow",          title:"Aşamalar",        text:"Aynı çalışmanın aşamaları; genelde giderek zorlaşır (ör. önce ad, sonra ad + renk).", menu:true},
-{sel:"#playerRow",         title:"Kim çalışıyor?",  text:"Ana ekranda seçtiğin kişi burada görünür; gerekirse buradan değiştirebilir ya da yeni kişi ekleyebilirsin. Sonuçlar bu kişinin adına kaydedilir.", menu:true},
-{sel:"#instructionBox",    title:"Yönerge",         text:"Çocuğa ne söyleyeceğin ve varsa örnek cevap burada yazıyor.", menu:true},
-{sel:"#sessionBar",        title:"Oturum / Uzman önerisi", text:"Günlük oturumda ya da uzman önerisinde kaçıncı adımda olduğun ve çalışan çocuğun adı burada; adım bitince 'Sıradaki' düğmesi çıkar."},
-{sel:"#timerBtn",          title:"Başlat",          text:"Süreyi başlatır ve çalışma alanını ekrana getirir. Sözlü çalışmalarda bitince tekrar dokunup sonucu kaydet. Dokunmalı çalışmalarda çocuk ekrana dokunur; bitince kronometre kendiliğinden durur."},
-{sel:"#timerResetBtn",     title:"Sıfırla",         text:"Süreyi ve hata sayısını sıfırlar; çalışmayı baştan başlatabilirsin."},
-{sel:"#errorRow",          title:"Hata sayısı",     text:"Çocuğun hatalarını + ile say, yanlış saydıysan − ile düzelt. Göz takibinde bu sayaç gözden kaçırma / baş çevirme sayısını tutar."},
-{sel:"#board",             title:"Çalışma alanı",   text:"Çocuğun bakacağı ya da adlandıracağı görseller burada.", skipCompact:true},
-{sel:"#prevBtn",           title:"Önceki",          text:"Bir önceki çalışma sayfasına döner."},
-{sel:"#reshuffleBtn",      title:"Karıştır",        text:"Sayfayı yeniler. Hedefi olan çalışmalarda hedef de değişir (ör. dokunulacak renk ya da dur yüzü); böylece alışkanlık oluşmaz."},
-{sel:"#nextBtn",           title:"Sonraki",         text:"Sıradaki çalışma sayfasına geçer. Sayfalar düzeylere ve çalışmalara göre ilerler."},
-]
-}
+{sel:"#lsToggleBtn", title:"Üst bölüm", text:"Ekran kısa olduğu için etkinlik, kişi, düzey ve aşama seçicileri bu düğmenin içinde. Dokununca açılır."},
+{sel:"#exhExBtn", title:"Etkinlik", text:"Şu anki etkinliğin adı. Dokununca bu alandaki bütün etkinlikler listelenir; aradığınızı yazarak bulabilirsiniz.", menu:true},
+{sel:"#exhWho", title:"Kişi", text:"Sonuçların kaydedileceği çocuk.", menu:true},
+{sel:"#exhTier", title:"Düzey", text:"Başlangıç, Orta, Zor. Uygulama başarıya göre düzeyi kendisi önerir; buradan elle de değiştirebilirsiniz.", menu:true},
+{sel:"#exhStage", title:"Aşama", text:"Bazı etkinliklerin birden çok aşaması vardır; her aşamanın yönergesi farklıdır.", menu:true},
+{sel:"#instructionBox", title:"Yönerge", text:"Çocuğa söyleyeceğiniz cümle. Hoparlör düğmesi yönergeyi sesli okur ya da sesi kapatır."},
+{sel:"#timerBtn", title:"Başlat ve Bitir", text:"Başlat'a basınca süre başlar ve ekran sadeleşir. Bitir'e basınca süre durur; ardından sonucu kaydedin."},
+{sel:"#errorRow", title:"Hata sayısı", text:"Söylemeli etkinliklerde yanlışları + ile siz eklersiniz. Dokunmalı etkinliklerde uygulama kendisi sayar."},
+{sel:"#board", title:"Tahta", text:"Çocuğun baktığı ya da dokunduğu alan."},
+{sel:"#reshuffleBtn", title:"Karıştır", text:"Aynı etkinliği yeni bir dizilimle verir."},
+{sel:"#nextBtn", title:"Önceki ve Sonraki", text:"Etkinlikler arasında geçiş."},
+{sel:"#exhCloud", title:"Kayıt durumu", text:"Sonuçların bulutla eşitlenip eşitlenmediğini gösterir. Bağlantı yoksa sonuçlar cihazda bekler, bağlantı gelince yüklenir.", menu:true}
+] },
+hw: { key: "wm_tour_hw_seen_v1", steps: [
+{sel:"#linkWrap [id^=hwLinkBtn]", title:"Uzman ödevleri", text:"Bir uzmana bağlandığınızda uzmanın verdiği ödevler burada görünür."},
+{sel:"#devPlaceBtn, #devPlaceBtn2", title:"Değerlendirme turu", text:"Her alanda çocuğun başlangıç düzeyini bulan kısa tur. Önerilen çalışmalar bu sonuca göre hazırlanır."},
+{sel:"#linkWrap .dev-card", title:"Önerilen çalışmalar", text:"Çalışmalara göre hazırlanan sonraki adımlar. Karta dokununca açılır; Etkinliğe başla ile ödev başlar, Yarına ertele ile bir gün sonraya kalır."},
+{sel:"#linkWrap details.fam-card", title:"Bu ödevler nasıl seçilir?", text:"Önerilerin hangi kurala göre seçildiğini buradan okuyabilirsiniz."}
+] }
 };
 let tourState = null;
 
@@ -525,6 +518,7 @@ const r = el.getBoundingClientRect();
 if(r.width < 4 || r.height < 4) return false;
 const cs = getComputedStyle(el);
 if(cs.display === "none" || cs.visibility === "hidden") return false;
+/* KURAL (tanıtım yeniden, 2026-11-09): sayfa tanıtımları güncel ekranlara göre yazılıdır (ana sayfa, alanlar, etkinlik sayfası, Bugün, Ödevlerim); anahtarlar yenilendi — eski arayüze göre yazıldıkları için adımları görünmüyor ve "görüldü" sayılıp hiç gösterilmiyorlardı. Her sayfa ilk girişte bir kez tanıtılır; Ayarlar'dan yeniden gösterilebilir */
 /* KURAL (tanıtım): başka bir ekranın/pencerenin altında kalan öğe gösterilmez (boş yer vurgulanmasın); içi boş öğe de atlanır */
 try{ if(r.bottom > 0 && r.top < innerHeight){ const x = Math.max(1, Math.min(innerWidth - 1, r.left + r.width / 2)), y = Math.max(1, Math.min(innerHeight - 1, r.top + Math.min(r.height / 2, 24))); const stack = document.elementsFromPoint(x, y).filter(e => !e.closest("#tourOverlay, #tourSpot, #tourBubble, #tourArrow")); const top = stack[0]; if(top && !el.contains(top) && !top.contains(el)){ let n = top; while(n && n !== document.body){ if(getComputedStyle(n).position === "fixed" && !n.contains(el)) return false; n = n.parentElement; } }   /* hedefin üstünde, onu içermeyen sabit bir katman (ekran, pencere, kapat düğmesi) varsa hedef örtülüdür */ } }catch(e){}
 if(!(el.innerText || "").trim() && !el.querySelector("img,svg,canvas,input,select,button,.cell")) return false;
@@ -571,7 +565,7 @@ if(!steps.length){ tourMarkSeen(kind); return; }
 const scroller = document.scrollingElement || document.documentElement;
 const mainEl = document.getElementById("mainApp");
 tourState = { kind, steps, i:0, final:false, mandatory: !force, placement:"", saved:{ doc: scroller.scrollTop, app: mainEl.scrollTop } };
-document.getElementById("tourSkipBtn").style.display = force ? "block" : "none";
+document.getElementById("tourSkipBtn").style.display = "block"; /* KURAL (tanıtım geç, 2026-11-09): ilk girişte kendiliğinden açılan tanıtımda da "Turu kapat" görünür; kapatılan tanıtım görüldü sayılır, bir daha kendiliğinden açılmaz (Ayarlar'dan yeniden gösterilebilir) */
 document.getElementById("tourOverlay").style.display = "block";
 showTourStep();
 }
@@ -714,7 +708,7 @@ watchTourScreen("categoryScreen", "category");
 
 document.getElementById("settingsTourLink").addEventListener("click", (e)=>{
 e.preventDefault();
-closeSettings(); try{ endTour(); }catch(_){} ["category","islands","today","expert","level"].forEach(k => { try{ localStorage.removeItem(TOURS[k].key); }catch(_){} });
+closeSettings(); try{ endTour(); }catch(_){} ["home","category","islands","today","expert","level","hw"].forEach(k => { try{ localStorage.removeItem(TOURS[k].key); }catch(_){} });
 if(getComputedStyle(document.getElementById("mainApp")).display === "none" || getComputedStyle(document.getElementById("whoScreen")).display !== "none"){ document.getElementById("whoScreen").style.display = "none"; hideFamScreens(); if(appMode === "cocuk" || !appMode) appMode = "uzman"; if(!readingLevel) readingLevel = "post"; const ci = CATEGORIES.findIndex(c => !c.hidden && c.exerciseIds.length); selectCategory(ci); try{ goToIndex(findSeqIndex(0, 0)); newPage(); }catch(_){} document.getElementById("categoryScreen").style.display = "none"; document.getElementById("mainApp").style.display = "block"; }
 setTimeout(()=>startTour("main", true), 450); });
 document.getElementById("settingsModeTourLink").addEventListener("click", (e)=>{
@@ -1395,7 +1389,7 @@ return `<div class="fam-card dev-card${open ? " open" : ""}" data-devcard="${it.
   w.querySelectorAll("[data-hwopen]").forEach(b => b.onclick = () => hwRunOpen(b.dataset.hwopen, null));
   w.querySelectorAll("[data-devopen]").forEach(b => b.onclick = () => hwRunOpen(b.dataset.devopen, +b.dataset.devti)); /* KURAL (kart dokunma hassasiyeti, 2026-11-08): önerilen çalışma kartı parmak kalkar kalkmaz (pointerup) açılıp kapanır, tarayıcının tıklama gecikmesini beklemez; 8 px'ten fazla kaydırma dokunma sayılmaz (kaydırırken kart açılmaz); kapalı kartın tamamı dokunma alanıdır; basınca kart hafifçe renk değiştirir */ w.querySelectorAll("[data-devtoggle]").forEach(b => { const card = b.closest(".dev-card"); const tgt = card || b; let st = null; const down = (ev) => { if(ev.pointerType === "mouse" && ev.button !== 0) return; if(card && card.classList.contains("open") && !ev.target.closest(".dev-head")) return; st = { x: ev.clientX, y: ev.clientY, t: Date.now() }; }; const move = (ev) => { if(st && Math.hypot(ev.clientX - st.x, ev.clientY - st.y) > 8) st = null; }; const up = (ev) => { if(!st) return; st = null; b.__zaPd = Date.now(); b.__zaToggle(); }; tgt.addEventListener("pointerdown", down, { passive: true }); tgt.addEventListener("pointermove", move, { passive: true }); tgt.addEventListener("pointerup", up, { passive: true }); tgt.addEventListener("pointercancel", () => { st = null; }, { passive: true }); b.addEventListener("click", () => { if(b.__zaPd && Date.now() - b.__zaPd < 700) return; b.__zaToggle(); }); b.__zaToggle = () => { const id = b.dataset.devtoggle; if(!(window.__zaDevOpen instanceof Set)) window.__zaDevOpen = new Set(); const was = window.__zaDevOpen.has(id); window.__zaDevOpen.clear(); if(!was) window.__zaDevOpen.add(id); w.querySelectorAll(".dev-card").forEach(c => { const on = c.dataset.devcard === id && !was; c.classList.toggle("open", on); const h = c.querySelector(".dev-head"); if(h) h.setAttribute("aria-expanded", on ? "true" : "false"); }); }; });
   w.querySelectorAll("[data-devsnooze]").forEach(b => b.onclick = () => { const pl = devPlanGet(player, lvl); if(!pl) return; const it = pl.items.find(x => x.id === b.dataset.devsnooze); if(!it) return; if(it.snooze > Date.now()) delete it.snooze; else { it.snooze = Date.now() + 864e5; it.at = Math.max(it.at, Date.now() - (DEV_STALE_DAYS - 2) * 864e5); } devPlanSave(player, lvl, pl); showHwScreen(); });
-  document.getElementById("linkScreen").style.display = "flex"; document.getElementById("linkScreen").scrollTop = 0; }finally{ try{ const ls = document.getElementById("linkScreen"); if(ls) ls.classList.add("za-hw"); }catch(e){} } }
+  document.getElementById("linkScreen").style.display = "flex"; document.getElementById("linkScreen").scrollTop = 0; }finally{ try{ const ls = document.getElementById("linkScreen"); if(ls) ls.classList.add("za-hw"); }catch(e){} try{ scheduleTour("hw", "linkScreen"); }catch(e){} } }
 function hwOpen(id, l, tiOverride){ hideLinkScreens(); hideFamScreens(); appMode = "aile"; try{ applyModeVisibility(); }catch(e){} try{ renderPlayerOptions(); const sel = document.getElementById("playerSelect"); if(playersList.includes(currentPlayerName)){ sel.value = currentPlayerName; updatePlayerAvatar(currentPlayerName); } }catch(e){} const ci = CATEGORIES.findIndex(c => !c.hidden && c.exerciseIds.includes(id)); if(ci < 0) return; selectCategory(ci);
   let k = currentCategoryExercises().findIndex(x => x.id === id);
   if(k < 0){ const ex0 = exerciseById(id), alt = ex0 && ex0.readingLevel.find(lv => lv !== readingLevel); if(alt){ readingLevel = alt; try{ applyLevelDefaultThresholds(alt); }catch(e){} SEQUENCE = buildSequenceForCategory(); currentIndex = 0; k = currentCategoryExercises().findIndex(x => x.id === id); } }   /* uzman ödevi kendi kademesinde açılır */
