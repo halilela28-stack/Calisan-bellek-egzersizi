@@ -1096,7 +1096,7 @@ if(b.dataset.ans !== undefined) wmSameAnswer(Number(b.dataset.ans));
 else if(b.dataset.pic !== undefined) wmSeqTap(Number(b.dataset.pic));
 else wmWhereTap(Number(b.dataset.box));
 }
-document.getElementById("board").addEventListener("click", (ev) => { if(Date.now() - (window._fastTapTs || 0) < 700) return; handleWmTap(ev); });
+document.getElementById("board").addEventListener("click", (ev) => { if(zaFastSeen(ev)) return; handleWmTap(ev); });
 window.addEventListener("resize", () => { clearTimeout(window._wmResizeT); window._wmResizeT = setTimeout(() => { try{ if(currentExercise().isWm) renderWmBoard(); }catch(e){} }, 150); });
 
 
@@ -1214,7 +1214,7 @@ const b = ev.target.closest("[data-ch]"); if(!b) return;
 if(!timerRunning){ showLevelFlash("Önce ▶ Başlat'a basın.", "down"); return; }
 chAnswer(b.dataset.ch);
 }
-document.getElementById("board").addEventListener("click", (ev) => { if(Date.now() - (window._fastTapTs || 0) < 700) return; handleChoiceTap(ev); });
+document.getElementById("board").addEventListener("click", (ev) => { if(zaFastSeen(ev)) return; handleChoiceTap(ev); });
 window.addEventListener("resize", () => { clearTimeout(window._chResizeT); window._chResizeT = setTimeout(() => { try{ if(currentExercise().isChoice) renderChoiceBoard(); }catch(e){} }, 150); });
 const imgFill = (src, flip) => `<img src="${src}" alt="" style="width:82%;height:82%;object-fit:contain;display:block;${flip ? "transform:scaleX(-1);" : ""}">`;
 
@@ -1574,7 +1574,7 @@ const b = ev.target.closest("[data-rt]"); if(!b) return;
 if(!timerRunning){ showLevelFlash("Önce ▶ Başlat'a basın.", "down"); return; }
 rtTap(Number(b.dataset.rt));
 }
-document.getElementById("board").addEventListener("click", (ev) => { if(Date.now() - (window._fastTapTs || 0) < 700) return; handleRtTap(ev); });
+document.getElementById("board").addEventListener("click", (ev) => { if(zaFastSeen(ev)) return; handleRtTap(ev); });
 window.addEventListener("resize", () => { clearTimeout(window._rtResizeT); window._rtResizeT = setTimeout(() => { try{ if(currentExercise().isRt) renderRtBoard(); }catch(e){} }, 150); });
 
 

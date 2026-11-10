@@ -633,7 +633,7 @@ else if(st.kind === "running") runTap(i); else if(st.kind === "zihni") zhTap(i);
 else if(st.kind === "market"){ if(st.phase === "distract") mkPop(i); else mkTap(i); }
 else if(st.kind !== "corsi-verbal") seqTap(i);
 }
-document.getElementById("board").addEventListener("click", (ev) => { if(Date.now() - (window._fastTapTs || 0) < 700) return; handleMtTap(ev); });
+document.getElementById("board").addEventListener("click", (ev) => { if(zaFastSeen(ev)) return; handleMtTap(ev); });
 window.addEventListener("resize", () => { clearTimeout(window._mtResizeT); window._mtResizeT = setTimeout(() => { try{ if(currentExercise().isMt) renderMtBoard(); }catch(e){} }, 150); });
 
 const Q = (t) => `<b>"${t}"</b>`;

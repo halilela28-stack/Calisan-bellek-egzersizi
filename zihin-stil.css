@@ -440,3 +440,22 @@ html.text-lg #hmEtk .hm-col > button, html.text-xl #hmEtk .hm-col > button{ font
 
 /* ===== 59 · kimliksiz ===== */
 .place-q-z{position:relative;padding-left:38px;padding-right:38px}.place-q-z .pq-z{position:absolute;left:0;top:50%;transform:translateY(-50%);width:34px;height:34px;display:block}#zAgain{position:fixed;left:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:9500;display:flex;align-items:center;gap:6px;padding:4px 14px 4px 4px;background:#fff;border-radius:999px;box-shadow:0 6px 18px rgba(16,42,67,.18);pointer-events:none;opacity:0;transform:translateY(16px);transition:opacity .2s,transform .2s}#zAgain.on{opacity:1;transform:none}#zAgain .za-z{width:54px;height:54px;display:block}#zAgain .za-t{font-weight:900;color:#0B5F5A;font-size:15px}html.calm #zAgain,@media (prefers-reduced-motion: reduce){#zAgain{transition:none}}
+
+/* ===== yatay üst çubuk düzeni (2026-11-09) ===== */
+/* KURAL (yatay üst çubuk, 2026-11-09): telefon yatayında üst çubuktaki öğeler üst üste binmez ve kesilmez — süre, hata ve düğme grupları kendi içerik genişliğinde durur (sıkışıp birbirinin altına girmez); dar kalan sayfa başlığı (çalışma adı · düzey) gizlenir (başlık ⌄ ile açılan üst bölümde zaten var); Karıştır yalnız simge, Önceki/Sonraki ok ve kısa yazı; hata etiketi iki satıra iner */
+@media (orientation: landscape) and (max-height: 520px){
+  html body .ls-bar .ls-page, html body #lsPage{ display:none !important; }
+  html body .ls-bar .timer-row, html body .ls-bar .error-row, html body .ls-bar .ls-toggle{ flex:0 0 auto !important; min-width:max-content !important; }
+  html body .ls-bar .error-label{ white-space:normal !important; max-width:64px !important; overflow-wrap:anywhere !important; hyphens:auto !important; font-size:11px !important; line-height:1.15 !important; overflow:visible !important; }
+  html body .ls-bar .controls{ flex:0 1 auto !important; min-width:0 !important; margin-left:auto !important; gap:6px !important; flex-wrap:nowrap !important; }
+  html body .ls-bar .controls button{ flex:0 0 auto !important; white-space:nowrap !important; font-size:13px !important; padding:8px 10px !important; min-height:40px !important; }
+  html body .ls-bar #reshuffleBtn{ padding:8px 10px !important; }
+  html body .ls-bar #reshuffleBtn .rs-txt{ display:none !important; } /* yatayda Karıştır yalnız simge (düğmenin aria-label'ı "Karıştır") */
+  html body .ls-bar #reshuffleBtn .ui-icon-slot{ width:20px !important; height:20px !important; }
+  html body .ls-bar .timer-btn{ padding:8px 10px !important; font-size:13px !important; min-height:40px !important; }
+  html body .ls-bar .timer-btn.reset{ padding:8px 9px !important; }
+}
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 760px){
+  html body .ls-bar .controls button{ padding:8px 8px !important; font-size:12px !important; }
+  html body .ls-bar .timer-display{ font-size:16px !important; }
+}

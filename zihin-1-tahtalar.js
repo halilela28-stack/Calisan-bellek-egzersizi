@@ -354,13 +354,14 @@ const D = isPre() ? PRE_OS_DISTRACT_BY_TIER : OS_DISTRACT_BY_TIER;
 return { rows: R[t] ?? R[R.length-1], distract: D[t] ?? D[D.length-1] };
 }
 let osProg = [], osProgGrid = null;
-document.addEventListener("click", (ev) => { const cell = ev.target.closest && ev.target.closest("[data-osr]"); if(!cell) return; try{ if(!currentExercise().isSeqRows) return; }catch(e){ return; }
+function handleOsTap(ev){ const cell = ev.target.closest && ev.target.closest("[data-osr]"); if(!cell) return; try{ if(!currentExercise().isSeqRows) return; }catch(e){ return; }
 if(!timerRunning){ showLevelFlash("Önce Başlat'a basın", "down"); return; }
 const ri = Number(cell.dataset.osr), c = cell.dataset.osc, r = currentGrid[ri]; if(!r) return; const got = osProg[ri] || (osProg[ri] = []); if(got.length >= 2 || got.includes(c)) return;
 const want = got.length === 0 ? r.second : r.third;
 if(c === want){ got.push(c); window.__osFresh = ri + ":" + c; try{ gameSfx("pop"); }catch(e){} renderOsBoard();
   if(osProg.every(x => x.length >= 2)) setTimeout(() => { if(timerRunning){ const b = document.getElementById("timerBtn"); if(b) b.click(); } }, 450); }
-else { setErrorCount(currentErrorCount + 1); try{ gameSfx("wrong"); vibrate(40); }catch(e){} cell.classList.add("bad"); setTimeout(() => cell.classList.remove("bad"), 450); } });
+else { setErrorCount(currentErrorCount + 1); try{ gameSfx("wrong"); vibrate(40); }catch(e){} cell.classList.add("bad"); setTimeout(() => cell.classList.remove("bad"), 450); } }
+document.addEventListener("click", (ev) => { if(zaFastSeen(ev)) return; handleOsTap(ev); });
 function makeOsRows(){
 const {rows, distract} = osConf();
 const seqs = []; const used = new Set(); for(const q of shuffleArray(OS_SEQUENCES)){ const key = q[0] + ">" + q[1]; if(used.has(key)) continue; used.add(key); seqs.push(q); if(seqs.length >= rows) break; }
@@ -845,7 +846,7 @@ touchState.missAdded = true;
 const miss = touchGoTotal() - touchGoTapped();
 if(miss > 0){ setErrorCount(currentErrorCount + miss); showLevelFlash(`${miss} hedefe dokunulmadı; hata sayısına eklendi.`, "down"); }
 }
-document.getElementById("board").addEventListener("click", handleTouchTap);
+document.getElementById("board").addEventListener("click", (ev) => { if(zaFastSeen(ev)) return; handleTouchTap(ev); });
 
 
 const SRH_OBJ_FAMILIES = {
@@ -1015,7 +1016,7 @@ stopTimer();
 showLevelFlash(searchState.wrong ? `Bitti! ${searchState.wrong} hata.` : "Bitti! Hiç hata yok 🎉", searchState.wrong ? "down" : "levelup");
 }
 }
-document.getElementById("board").addEventListener("click", handleSearchTap);
+document.getElementById("board").addEventListener("click", (ev) => { if(zaFastSeen(ev)) return; handleSearchTap(ev); });
 window.addEventListener("resize", () => {
 clearTimeout(window._srhResizeT);
 window._srhResizeT = setTimeout(() => { try{ if(currentExercise().isSearch){ if(searchState) searchState.lsScale = 1; renderSearchBoard(); } }catch(e){} }, 150);
@@ -1276,28 +1277,32 @@ gameSfx("drop");
 plnAfterMove();
 }
 document.getElementById("board").addEventListener("click", (ev) => {
-if(Date.now() - (window._fastTapTs || 0) < 700) return;
+if(zaFastSeen(ev)) return;
 handlePlanTap(ev);
 });
+/* KURAL (hızlı ardışık dokunma, 2026-11-09): etkileşimli tahtalarda her parmak ayrı izlenir (pointerId); çocuk ikinci karta ilk parmağını kaldırmadan dokunsa da iki dokunuş da hemen sayılır. Dokunmalı (✓/✗), Oluş Sırası, iz sürme ve arama tahtaları da bu hızlı yoldan geçer; tarayıcının tıklama olayı aynı noktada 700 ms içinde gelirse yok sayılır (zaFastSeen). Önceden tek değişken vardı: ikinci parmak birinciyi siliyor, önceki doğru dokunuş kayboluyordu */
+const ZA_FAST = [];
+function zaFastSeen(ev){ try{ if(!ev || ev.isTrusted === false) return false; const now = Date.now(); for(let k = ZA_FAST.length - 1; k >= 0; k--){ const p = ZA_FAST[k]; if(now - p.t > 700){ ZA_FAST.splice(k, 1); continue; } if(Math.hypot((ev.clientX || 0) - p.x, (ev.clientY || 0) - p.y) < 26) return true; } }catch(e){} return false; }
 (function initFastTap(){
 const board = document.getElementById("board");
-let start = null;
-const pick = (ex, t) => (ex.isPlan && t.closest(".pln-peg[data-peg], .pln-cube[data-cube]")) ? "plan"
+const starts = new Map();
+const pick = (ex, t) => (ex.isTouch && t.closest("#board > .cell[data-i]")) ? "touch" : (ex.isSeqRows && t.closest("[data-osr]")) ? "os" : (ex.isTrail && t.closest(".trl-node")) ? "trail" : (ex.isSearch && t.closest(".srh-item[data-r], .srh-no[data-r]")) ? "search" : (ex.isPlan && t.closest(".pln-peg[data-peg], .pln-cube[data-cube]")) ? "plan"
 : (ex.isSort && t.closest(".srt-ref")) ? "sort" : (ex.isWm && t.closest("[data-ans],[data-pic],[data-box]")) ? "wm" : (ex.isChoice && t.closest("[data-ch]")) ? "ch" : (ex.isRt && t.closest("[data-rt]")) ? "rt" : (ex.isMt && t.closest("[data-mt],[data-judge],[data-mtbtn]")) ? "mt" : null;   /* tahta içi düğmeler de (Başla/Dur, Gördüm, sol/sağ…) parmak kalkınca işlenir */
 board.addEventListener("pointerdown", (ev) => {
-if(ev.button > 0){ start = null; return; }
+if(ev.button > 0){ starts.delete(ev.pointerId); return; }
 const kind = pick(currentExercise(), ev.target);
-start = kind ? { kind, x: ev.clientX, y: ev.clientY, t: Date.now(), target: ev.target } : null;
+if(kind) starts.set(ev.pointerId, { kind, x: ev.clientX, y: ev.clientY, t: Date.now(), target: ev.target }); else starts.delete(ev.pointerId);
 }, { passive:true });
 board.addEventListener("pointermove", (ev) => {
-if(start && Math.hypot(ev.clientX - start.x, ev.clientY - start.y) > 10) start = null;
+const st = starts.get(ev.pointerId); if(st && Math.hypot(ev.clientX - st.x, ev.clientY - st.y) > 16) starts.delete(ev.pointerId);
 }, { passive:true });
-board.addEventListener("pointercancel", () => { start = null; }, { passive:true });
+board.addEventListener("pointercancel", (ev) => { starts.delete(ev.pointerId); }, { passive:true });
 board.addEventListener("pointerup", (ev) => {
-const st = start; start = null;
-if(!st || Date.now() - st.t > 800 || Math.hypot(ev.clientX - st.x, ev.clientY - st.y) > 10) return;
-window._fastTapTs = Date.now();
-const fake = { target: st.target };
+const st = starts.get(ev.pointerId); starts.delete(ev.pointerId);
+if(!st || Date.now() - st.t > 900 || Math.hypot(ev.clientX - st.x, ev.clientY - st.y) > 16) return;
+window._fastTapTs = Date.now(); ZA_FAST.push({ x: st.x, y: st.y, t: Date.now() }); ZA_FAST.push({ x: ev.clientX, y: ev.clientY, t: Date.now() });
+let tg = st.target; if(!tg || !tg.isConnected){ const hit = document.elementFromPoint(st.x, st.y); if(hit && board.contains(hit)) tg = hit; } /* tahta ilk dokunuşla yeniden çizildiyse ikinci dokunuş aynı noktadaki yeni öğeye gider */ const fake = { target: tg, clientX: st.x, clientY: st.y };
+if(st.kind === "touch") return handleTouchTap(fake); if(st.kind === "os") return handleOsTap(fake); if(st.kind === "trail") return handleTrailTap(fake); if(st.kind === "search") return handleSearchTap(fake);
 if(st.kind === "plan") handlePlanTap(fake); else if(st.kind === "sort") handleSortTap(fake); else if(st.kind === "ch") handleChoiceTap(fake); else if(st.kind === "rt") handleRtTap(fake); else if(st.kind === "mt") handleMtTap(fake); else handleWmTap(fake);
 }, { passive:true });
 })();
@@ -1555,7 +1560,7 @@ try{ vibrate(60); }catch(e){}
 setTimeout(() => el.classList.remove("bad"), 500);
 }
 }
-document.getElementById("board").addEventListener("click", handleTrailTap);
+document.getElementById("board").addEventListener("click", (ev) => { if(zaFastSeen(ev)) return; handleTrailTap(ev); });
 
 /* KURAL: sayfa yetişkinden "Hata sayısı" ile puanlama istiyorsa (Heykel, Gözle Say, Ne Yapmalı?, Saçmalığı Bul vb.) Hata sayısı satırı çalışma sırasında da görünür kalır */
 /* KURAL (içerik uyumu): sayaç satırının adı ile tahtadaki yönlendirme aynı olur — sayaç özel adlıysa (ör. "Hareket / konuşma sayısı", "Yanlış sayılan") tahtadaki "Hata sayısı +" yazısı o adla gösterilir */
@@ -1972,7 +1977,7 @@ renderSortBoard();
 }, 260);
 }
 document.getElementById("board").addEventListener("click", (ev) => {
-if(Date.now() - (window._fastTapTs || 0) < 700) return;
+if(zaFastSeen(ev)) return;
 handleSortTap(ev);
 });
 window.addEventListener("resize", () => {
