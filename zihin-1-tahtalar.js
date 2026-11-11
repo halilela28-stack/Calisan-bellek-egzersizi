@@ -1934,7 +1934,7 @@ board.innerHTML = isLs
 ? `<div class="srt-wrap" style="flex-direction:row;justify-content:center;gap:18px;">` +
 `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;">${info}${middle}</div>` +
 `<div class="srt-refs" style="${st.refs.length % refCols ? `display:flex;flex-wrap:wrap;justify-content:center;max-width:${refCols * ref + (refCols - 1) * 10}px;margin:0 auto` : `grid-template-columns:repeat(${refCols}, ${ref}px)`};">${refsHtml}</div></div>`
-: `<div class="srt-wrap"><div class="srt-refs" style="${st.refs.length % refCols ? `display:flex;flex-wrap:wrap;justify-content:center;max-width:${refCols * ref + (refCols - 1) * 10}px;margin:0 auto` : `grid-template-columns:repeat(${refCols}, ${ref}px)`};">${refsHtml}</div>${info}${middle}</div>`;
+: `<div class="srt-wrap">${info}${middle}<div class="srt-refs" style="margin-top:6px;${st.refs.length % refCols ? `display:flex;flex-wrap:wrap;justify-content:center;max-width:${refCols * ref + (refCols - 1) * 10}px;margin:6px auto 0` : `grid-template-columns:repeat(${refCols}, ${ref}px)`};">${refsHtml}</div></div>`; /* KURAL (kart eşleme düzeni, 2026-11-09): dikeyde eşlenecek tek kart üstte, seçilecek örnek kartlar altta (parmak altta seçer, kart görünür kalır) */
 st.justChanged = false;
 }finally{ try{ zaTapRestore(); }catch(e){} } }
 function handleSortTap(ev){
@@ -1985,7 +1985,7 @@ clearTimeout(window._srtResizeT);
 window._srtResizeT = setTimeout(() => { try{ if(currentExercise().isSort) renderSortBoard(); }catch(e){} }, 150);
 });
 function sortInstruction(){
-return `Önce <b>▶ Başlat</b>'a basın, sonra çocuk ekrana dokunsun. Çocuğa üstteki örnek kartları gösterin ve <b>"Ortadaki kartı ${sortRuleText(0)} göre, ona uyan üstteki karta dokunarak eşleştir"</b> deyin. ` +
+return `Önce <b>▶ Başlat</b>'a basın, sonra çocuk ekrana dokunsun. Çocuğa örnek kartları gösterin ve <b>"Tek kartı ${sortRuleText(0)} göre, ona uyan örnek karta dokunarak eşleştir"</b> deyin. ` +
 `Kural sırası: <b>${sortRuleOrderText()}</b>. Kural değişince ekranda uyarı çıkar; o an çocuğa yeni kuralı söyleyin. Hataları uygulama sayar; bir önceki kurala göre yapılan yanlışlar <i>perseverasyon</i> olarak ayrıca gösterilir. <i>Kural sırası her sayfada ve Karıştır'da değişir.</i>`;
 }
 

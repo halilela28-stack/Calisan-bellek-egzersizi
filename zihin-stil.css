@@ -469,3 +469,16 @@ html.text-lg #hmEtk .hm-col > button, html.text-xl #hmEtk .hm-col > button{ font
 .cat-group-chip.on{ box-shadow:0 3px 0 #9CCFC9 !important; }
 .cat-all-btn{ display:block; width:100%; margin-top:10px; padding:11px 14px; border:0; border-radius:14px; background:linear-gradient(180deg,#19B3A8,#0E8F85); color:#fff; font:inherit; font-weight:900; font-size:15px; text-align:center; box-shadow:0 4px 0 #0A6E68; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; transition:transform .08s, box-shadow .08s; }
 .cat-all-btn:active{ transform:translateY(3px); box-shadow:0 1px 0 #0A6E68; }
+
+/* ===== yatay çubuk sığdırma ve başlık balonu (2026-11-09) ===== */
+@media (orientation: landscape) and (max-height: 520px){
+  html body .ls-bar.t1 .error-label{ display:none !important; }
+  html body .ls-bar.t2 #prevBtn .nav-tx, html body .ls-bar.t2 #nextBtn .nav-tx{ display:none !important; }
+  html body .ls-bar.t2 #prevBtn, html body .ls-bar.t2 #nextBtn{ padding:8px 12px !important; }
+}
+/* KURAL (etkinlik başlığı balonu, 2026-11-09): etkinlik sayfasının üstünde alan adı ve etkinlik seçici, Kişi/Düzey/Aşama kutularıyla aynı biçimde bir balonun içindedir (beyaz zemin, açık turkuaz kenar, alt gölge); balona dokununca etkinlik listesi açılır */
+#exHead .exh-ttl{ border:2px solid #CDEBE6; background:#fff; border-radius:14px; padding:4px 10px 5px; box-shadow:0 3px 0 #D6E4EC; cursor:pointer; transition:transform .08s, box-shadow .08s; -webkit-tap-highlight-color:transparent; }
+#exHead .exh-ttl:active{ transform:translateY(2px); box-shadow:0 1px 0 #D6E4EC; }
+#exHead .exh-ttl .exh-exbtn{ width:100%; }
+/* KURAL (dokunma vurgusu parlaklık, 2026-11-09): dokunma vurgusu resimleri griye boyamaz — turkuaz halka kalır, parlaklık filtresi uygulanmaz (beyaz zeminli resimler gri kare gibi görünüyordu) */
+#board .za-tap, #board .za-tap-ring{ filter:none !important; }

@@ -1759,7 +1759,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.09-n";
+const APP_VERSION = "2026.11.09-o";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 /* RUNTIME_CSS → zihin-stil.css */
 /* Dosya sürümü denetimi: zihin-atolyesi.html ile uygulama kodu (zihin-1…8) farklı sürümdeyse uyar */
@@ -2363,3 +2363,6 @@ const GAME_ISLANDS = [
 { id:"mola",   name:"Mola Adası",    color:"#CFE8B8", special:true, mola:true },
 { id:"park",   name:"Oyun Parkı",    color:"#62C1FA", fromCategory:"oyun-parki", park:true }
 ];
+
+/* etkinlik başlığı balonu: balonun herhangi bir yerine dokunmak etkinlik listesini açar (yalnız ad düğmesi değil) */
+document.addEventListener("click", (ev) => { try{ const t = ev.target; if(!t || !t.closest) return; const box = t.closest("#exHead .exh-ttl"); if(!box || t.closest("#exhExBtn")) return; const b = document.getElementById("exhExBtn"); if(b) b.click(); }catch(e){} });

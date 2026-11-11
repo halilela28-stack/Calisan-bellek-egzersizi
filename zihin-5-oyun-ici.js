@@ -1145,7 +1145,7 @@ const lab = /^Aşama \d/.test(base.label) || ex.stages.length > 1 ? `Aşama ${ex
 ex.stages = ex.stages.concat([Object.assign({}, base, { label: lab, strategyOf: Math.min(of, ex.stages.length - 1), stratName: name, strategy: tip })]);
 });
 
-function sortShort(){ const rest = sortState.rules.slice(1).map((r, i) => sortRuleText(i + 1)).join(", "); return `${Q(`Ortada bir kart var, etrafında da örnek kartlar. Ortadaki kartı ${sortRuleText(0)} göre uyan örnek karta dokunarak eşleştir. Bir süre sonra kural değişecek; uyarı çıkınca yeni kurala göre eşleştir.`)}`; }
+function sortShort(){ const rest = sortState.rules.slice(1).map((r, i) => sortRuleText(i + 1)).join(", "); return `${Q(`Ekranda tek bir kart ve örnek kartlar var. Tek kartı ${sortRuleText(0)} göre uyan örnek karta dokunarak eşleştir. Bir süre sonra kural değişecek; uyarı çıkınca yeni kurala göre eşleştir.`)}`; }
 
 function renderInstruction(){
 const box = document.getElementById("instructionBox");
