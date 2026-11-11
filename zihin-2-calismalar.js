@@ -2339,16 +2339,7 @@ isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Ortaya Bak, Kenarı Fark Et", instruction: () => ``, example: () => `` } ]
 },
-{
-id: "fixation",
-readingLevel: ["pre","post"],
-label: "Sabit Bakış",
-isMt: true, attrs: [], speedFactor: 30,
-noAdaptive: true, adultOnly: true, errorLabel: "Gözünü ayırdığı deneme",
-isDone: () => !!mtState && mtState.phase === "done",
-randomItem: () => ({}),
-stages: [ { label: "Noktaya Bak", instruction: () => ``, example: () => `` } ]
-},
+/* (2026-11-09: Sabit Bakış (fixation) kullanıcı isteğiyle silindi) */
 {
 id: "dual-task",
 readingLevel: ["pre","post"],

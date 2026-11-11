@@ -30,8 +30,8 @@ sub:"Yumuşak İzleme · Sıçrama · Hedef ve Bakış",
 purpose:"Gözlerin hareketli bir hedefi baş hareketi olmadan izlemesini, bir noktadan diğerine hızlı sıçramasını ve göz–el koordinasyonunu çalıştırır.",
 color:"#C97F32",
 group:"Hız & Dikkat",
-exerciseIds:["eye-horizontal","eye-vertical","periph","eye-diagonal","eye-diagonal2","eye-wave","eye-touch","eye-steep-wave","eye-depth","eye-square","fixation","eye-triangle","eye-star","eye-junction","finger-trace","eye-crossbox","eye-saccade-two","eye-saccade-random","eye-count","eye-saccade-reading"],
-exerciseGroups:[["Yumuşak İzleme", ["eye-horizontal", "eye-vertical", "eye-diagonal", "eye-diagonal2", "eye-wave", "eye-steep-wave", "eye-depth", "eye-square", "eye-triangle", "eye-star", "eye-junction", "eye-crossbox"]], ["Sıçrama", ["eye-saccade-two", "eye-saccade-random", "eye-saccade-reading"]], ["Hedef ve Bakış", ["periph", "eye-touch", "fixation", "finger-trace", "eye-count"]]]
+exerciseIds:["eye-horizontal","eye-vertical","periph","eye-diagonal","eye-diagonal2","eye-wave","eye-touch","eye-steep-wave","eye-depth","eye-square","eye-triangle","eye-star","eye-junction","finger-trace","eye-crossbox","eye-saccade-two","eye-saccade-random","eye-count","eye-saccade-reading"],
+exerciseGroups:[["Yumuşak İzleme", ["eye-horizontal", "eye-vertical", "eye-diagonal", "eye-diagonal2", "eye-wave", "eye-steep-wave", "eye-depth", "eye-square", "eye-triangle", "eye-star", "eye-junction", "eye-crossbox"]], ["Sıçrama", ["eye-saccade-two", "eye-saccade-random", "eye-saccade-reading"]], ["Hedef ve Bakış", ["periph", "eye-touch", "finger-trace", "eye-count"]]]
 },
 {
 id:"yurutucu-islev",

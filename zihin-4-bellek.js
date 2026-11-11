@@ -629,7 +629,8 @@ return shuffleArray(SEQW.filter(q => q.length >= L)).slice(0, 4).map(q => { cons
 
 function dotTrials(){ const t = currentCombo().t, rng = isPre() ? [[1, 3], [1, 4], [2, 5]][t] : [[1, 5], [2, 7], [3, 9]][t], ms = (isPre() ? [2800, 2200, 1700] : [2200, 1700, 1300])[t];
 /* Orta: aynı resimden n tane · Zor: hedef resim + farklı çeldirici resimler (yalnızca hedef sayılır) */ const named = t >= 1 ? placeNamedPool().filter(x => x.n && x.src && x.n.length <= 12) : []; const nextPic = named.length ? mkCycle(named) : null;
-return Array.from({length: isPre() ? [5, 6, 7][t] : [8, 10, 12][t]}, () => { const n = rng[0] + Math.floor(Math.random() * (rng[1] - rng[0] + 1)), pts = []; const pic = nextPic ? nextPic() : null; let dis = null, nd = 0; /* çeldirici resim yok: Zor da tek tür resimle; zorluk sayı aralığı ve gösterim süresinden gelir */
+let __prevN = window.__dotLastN; /* KURAL (Nokta Say çeşitliliği, 2026-11-09): art arda iki soru aynı sayıyı vermez (sayfa geçişinde de); önceden aynı cevap 4–5 kez art arda gelebiliyordu */
+return Array.from({length: isPre() ? [5, 6, 7][t] : [8, 10, 12][t]}, () => { let n = rng[0] + Math.floor(Math.random() * (rng[1] - rng[0] + 1)); for(let g = 0; n === __prevN && g < 12; g++) n = rng[0] + Math.floor(Math.random() * (rng[1] - rng[0] + 1)); __prevN = window.__dotLastN = n; const pts = []; const pic = nextPic ? nextPic() : null; let dis = null, nd = 0; /* çeldirici resim yok: Zor da tek tür resimle; zorluk sayı aralığı ve gösterim süresinden gelir */
 const gap = pic ? 40 : 34, lo = pic ? 20 : 14, span = pic ? 160 : 172; let g = 0; while(pts.length < n + nd && g++ < 900){ const x = lo + Math.random() * span, y = lo + Math.random() * span; if(pts.every(p => Math.hypot(p[0] - x, p[1] - y) > gap)) pts.push([x, y]); }
 const tp = pts.slice(0, n), dp = pts.slice(n, n + nd); return { n: tp.length, pts: tp, dpts: dp, pic: pic ? pic.src : null, name: pic ? pic.n : null, dis: dis ? dis.src : null, ms, max: rng[1] + 1, min: Math.max(1, rng[0] - 1) }; }); }
 const SEM_QS = [ { k:"canli", q:"Canlı mı?" }, { k:"yenir", q:"Yenir mi?" },
@@ -1328,7 +1329,7 @@ return shuffleArray(out); }
 function perTrials(){ const t = currentCombo().t, pre = isPre(), N = (pre ? [10, 12, 14] : [16, 20, 24])[Math.min(t, 2)],   /* gösterim sayısı düzeye göre */ ms = (pre ? [1600, 1300, 1100] : [1500, 1200, 1000])[t];
 return Array.from({length:N}, () => { const side = randomItem(["l","r","t","b"]), u = 8 + Math.random() * 84, pos = side === "l" ? [4 + Math.random() * 10, u] : side === "r" ? [86 + Math.random() * 10, u] : side === "t" ? [u, 5 + Math.random() * 10] : [u, 85 + Math.random() * 10];
 return { pos, ms, lure: !pre && t === 2 && Math.random() < 0.3 }; }); }
-function fixTrials(){ const t = currentCombo().t, s = (isPre() ? [5, 8, 10] : [10, 15, 20])[t]; return Array.from({length:3}, () => ({ secs: s, rate: (isPre() ? [1200, 1000, 850] : [1000, 800, 600])[t] })); }
+/* fixTrials: Sabit Bakış silinince kullanılmıyordu (2026-11-09) */
 function dualTrials(){ const t = currentCombo().t, pre = isPre(), secs = pre ? [16, 20, 24][t] : [20, 26, 32][t];
 return Array.from({length:2}, () => { const beeps = 3 + Math.floor(Math.random() * (pre ? 3 : 5)), bt = [], st = []; let tt = 1500;
 while(tt < secs * 1000 - 1500){ st.push(tt); tt += (pre ? 2200 : 1700) + Math.random() * 600; }
@@ -1482,10 +1483,13 @@ function ftPos(p, u){ if(p === "wave") return [0.1 + 0.8 * u, 0.5 + 0.3 * Math.s
 if(p === "loop") return [0.5 + 0.35 * Math.cos(u * Math.PI * 2 - Math.PI / 2), 0.5 + 0.35 * Math.sin(u * Math.PI * 2 - Math.PI / 2)];
 if(p === "eight") return [0.5 + 0.35 * Math.sin(u * Math.PI * 2), 0.5 + 0.3 * Math.sin(u * Math.PI * 4)];
 const k = u * 4, i = Math.min(3, Math.floor(k)), f = k - i, ys = [0.2, 0.8, 0.2, 0.8, 0.2]; return [0.1 + 0.8 * u, ys[i] + (ys[i + 1] - ys[i]) * f]; }
-function ecTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? [5, 7, 9][t] : [10, 14, 18][t], onlyStar = !pre && t === 2;
-return Array.from({length:3}, () => { const pts = []; let g = 0; while(pts.length < N && g++ < 900){ const x = 6 + Math.random() * 82, y = 6 + Math.random() * 80; if(pts.every(p => Math.hypot(p[0] - x, p[1] - y) > 11)) pts.push([x, y]); }
+/* KURAL (Gözle Say çeşitliliği, 2026-11-09): şekil sayısı düzeyin aralığından rastgele seçilir (Okul Öncesi 3–6 / 5–8 / 7–10, Okul Sonrası 8–12 / 12–16 / 16–20); bir sayfadaki üç sorunun cevapları birbirinden farklıdır ve bir önceki sayfanın son cevabıyla başlamaz. Önceden şekil sayısı düzeye göre sabitti, cevap hep aynı çıkıyordu (Okul Öncesi Zor'da hep 9) */
+function ecTrials(){ const t = currentCombo().t, pre = isPre(), R = pre ? [[3,6],[5,8],[7,10]][t] : [[8,12],[12,16],[16,20]][t], onlyStar = !pre && t === 2; const used = []; let last = window.__ecLastAns;
+const one = () => { let best = null; for(let tries = 0; tries < 12; tries++){ const T = ecTrialOnce(R, onlyStar); if(!used.includes(T.ans) && T.ans !== last){ best = T; break; } if(!best) best = T; } used.push(best.ans); last = best.ans; return best; };
+const out = [one(), one(), one()]; window.__ecLastAns = out[out.length - 1].ans; return out; }
+function ecTrialOnce(R, onlyStar){ const N = R[0] + Math.floor(Math.random() * (R[1] - R[0] + 1)); { const pts = []; let g = 0; while(pts.length < N && g++ < 900){ const x = 6 + Math.random() * 82, y = 6 + Math.random() * 80; if(pts.every(p => Math.hypot(p[0] - x, p[1] - y) > 11)) pts.push([x, y]); }
 const items = pts.map(p => ({ x:p[0], y:p[1], sh: onlyStar ? randomItem(["star","star","circle","heart"]) : "star", c: onlyStar ? randomItem(COLORS) : "#F5A524" }));
-return { items, ans: onlyStar ? items.filter(i => i.sh === "star").length : items.length, onlyStar }; }); }
+return { items, ans: onlyStar ? items.filter(i => i.sh === "star").length : items.length, onlyStar }; } }
 const LA_PA_TEXT = [ ["Çocuğun önünde bir elma vardı.","Çocuk elmayı ısırdı.","Elmadan geriye koçanı kaldı."], ["Çocuk musluğu açtı.","Ellerini sabunladı.","Ellerini suyla duruladı.","Ellerini havluyla kuruladı."], ["Çocuk saksıya tohum ekti.","Tohumu suladı.","Topraktan küçük bir filiz çıktı.","Saksıda bir çiçek açtı."] ];
 function laTrials(){ const t = currentCombo().t, pre = isPre(), stories = PA_IMAGES.pre.map((im, i) => ({ im, tx: LA_PA_TEXT[i] })).concat(STORY_SEQ_IMAGES.map((im, i) => ({ im, tx: STORY_SEQ_TEXT[i] })));
 return shuffleArray(stories).slice(0, pre ? 4 : 5).map(S => { const n = S.im.length, types = ["first","last"].concat(t >= 1 ? ["after"] : []).concat(t === 2 ? ["before"] : []); const ty = randomItem(types);
@@ -2296,7 +2300,7 @@ mtState = { kind:"flu", fid:id, P: fluPrompt(id), secs: fluSecs(id), ok:0, rep:0
 "new-word": () => { const d = newWordBuild(); mtState = Object.assign({ kind:"nword", wrong:0, phase:"idle", li:-1, qi:0 }, d); return d.test; },
 "pair-match": () => { mtState = { kind:"pairm", trials: pmTrials(), ti:0, wrong:0, phase:"idle", pk:[], bad:{} }; return mtState.trials; },
 "periph": () => { mtState = { kind:"per", trials: perTrials(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
-"fixation": () => { mtState = { kind:"fix", trials: fixTrials(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
+
 "dual-task": () => { mtState = { kind:"dual", trials: dualTrials(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
 "stop-signal": () => { mtState = { kind:"stop", trials: stopTrials(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
 "tap-reverse": () => { mtState = { kind:"tapr", trials: balancedSeq(selCount(), [1, 2], 2).map(k => ({ k })), ti:0, wrong:0, okN:0, phase:"idle", taps:0, fb:null }; return mtState.trials; },

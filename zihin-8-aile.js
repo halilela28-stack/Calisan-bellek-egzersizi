@@ -358,6 +358,7 @@ groups.forEach(([name, ids]) => { const inLevel = ids.filter(avail); if(!inLevel
     ul.appendChild(b); });
   chip.addEventListener("click", (ev) => { ev.stopPropagation(); const open = ul.style.display !== "none"; host.querySelectorAll(".cat-group-list").forEach(x => { x.style.display = "none"; }); host.querySelectorAll(".cat-group-chip").forEach(x => x.classList.remove("on")); if(!open){ ul.style.display = "flex"; chip.classList.add("on"); } });
   wrap.appendChild(chip); wrap.appendChild(ul); host.appendChild(wrap); });
+  { const all = document.createElement("button"); all.type = "button"; all.className = "cat-all-btn"; all.textContent = "Bu alanın bütün çalışmaları ›"; all.addEventListener("click", (ev) => { ev.stopPropagation(); selectCategory(realIndex); }); host.appendChild(all); }
 }
 
 /* KURAL (Aile ve Uzman sayfası, 2026-11-03 şablonu A): üstte tek çubuk (geri · "Bilişsel Etkinlik · Aile/Uzman" ve sayfa adı · mod etiketi · alanlar hakkında · ana sayfa) ve altında Bugünün etkinlikleri (Uzman'da Etkinlik Raporları) kartı; ortada alanlar uygulamadaki sırayla tek sütunda, grup başlıklarıyla, sol kenarı alan renginde ince satırlar ("N etkinlik"); satırlar ekranın kalanını boşluk bırakmadan eşit doldurur; altta yanlara açık, birbirine bitişik renkli dört düğme (Aile: Ödevlerim · Gelişim · Bu hafta · Uzmana bağlan; Uzman: Danışanlar · Gelişim · Bu hafta · Değerlendirme). Alt düğmeler eski düğmelerin işini aynen yapar. */
@@ -411,13 +412,13 @@ card.innerHTML = `
 <span class="category-card-title">${cat.label}</span>
 <span class="category-card-sub">${cat.sub}</span>
 <span class="cat-groups" data-cat="${cat.id}"></span>
-<span class="cat-hint">Bölüm adına dokununca o bölümün çalışmaları açılır · çalışmalara gitmek için karta tekrar dokun</span>
+<span class="cat-hint">Bölüm adına dokununca çalışmaları açılır, yeniden dokununca kapanır · kartı kapatmak için başlığa dokunun</span>
 ${badge}
 </span>
 <span class="cat-count" aria-hidden="true">${isComingSoon ? "Yakında" : (card.dataset.count || "") + " etkinlik"}</span><span class="cat-chev" aria-hidden="true">›</span>
 `;
 card.addEventListener("click", (ev)=>{ if(ev.target.closest(".cat-groups")) return;   /* bölüm/çalışma dokunuşları kendi işleyicisinde */
-if(card.classList.contains("open")) return selectCategory(realIndex);
+if(card.classList.contains("open")){ card.classList.remove("open"); card.setAttribute("aria-expanded", "false"); return; } /* KURAL (alan kartı aç-kapa, 2026-11-09): açık alan kartının başlığına dokununca kart kapanır (açıldığı gibi); alanın çalışmalarına bölüm içindeki çalışma düğmeleriyle ya da en alttaki "Bu alanın bütün çalışmaları" düğmesiyle gidilir. Önceden açık karta ikinci dokunuş alana geçiyor, kart kapatılamıyordu */
 list.querySelectorAll(".category-card.open").forEach(c => c.classList.remove("open")); card.classList.add("open"); card.setAttribute("aria-expanded", "true");
 try{ renderCatGroups(card.querySelector(".cat-groups"), cat, realIndex); }catch(e){}
 setTimeout(() => { try{ card.scrollIntoView({ block: "nearest", behavior: "smooth" }); }catch(e){} }, 50); });

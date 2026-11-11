@@ -459,3 +459,13 @@ html.text-lg #hmEtk .hm-col > button, html.text-xl #hmEtk .hm-col > button{ font
   html body .ls-bar .controls button{ padding:8px 8px !important; font-size:12px !important; }
   html body .ls-bar .timer-display{ font-size:16px !important; }
 }
+
+/* ===== alan sayfası düğmeleri (2026-11-09) ===== */
+/* KURAL (alan sayfası düğmeleri, 2026-11-09): açılan alan kartındaki bölüm başlıkları, çalışma düğmeleri ve "Bu alanın bütün çalışmaları" düğmesi kabarık görünür (alt gölge) ve basınca içe göçer; dokunuş görülür ve hissedilir */
+.cat-ex-btn{ box-shadow:0 3px 0 #D3DEE8 !important; transition:transform .08s, box-shadow .08s, background .08s; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+.cat-ex-btn:active{ transform:translateY(3px); box-shadow:0 0 0 #D3DEE8 !important; background:#DDF3F0 !important; border-color:#0A847E !important; }
+.cat-group-chip{ box-shadow:0 3px 0 #D3DEE8 !important; transition:transform .08s, box-shadow .08s; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+.cat-group-chip:active{ transform:translateY(3px); box-shadow:0 0 0 #D3DEE8 !important; }
+.cat-group-chip.on{ box-shadow:0 3px 0 #9CCFC9 !important; }
+.cat-all-btn{ display:block; width:100%; margin-top:10px; padding:11px 14px; border:0; border-radius:14px; background:linear-gradient(180deg,#19B3A8,#0E8F85); color:#fff; font:inherit; font-weight:900; font-size:15px; text-align:center; box-shadow:0 4px 0 #0A6E68; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; transition:transform .08s, box-shadow .08s; }
+.cat-all-btn:active{ transform:translateY(3px); box-shadow:0 1px 0 #0A6E68; }

@@ -713,7 +713,7 @@ const INSTR_SHORT = {
 "pair-match":       [() => Q("Her satıra dikkatle bak. Satırda birbirinin tıpatıp aynısı olan iki kart var; o ikisine dokun.")],
 "sent-verify":      [() => Q(currentCombo().t === 2 ? "Ekrana iki cümle gelecek. İkisini de oku; ikinci cümle ilkine uyuyorsa Doğru'ya, ters düşüyorsa Yanlış'a dokun." : "Ekrana cümleler tek tek gelecek. Cümleyi oku; doğruysa Doğru'ya, yanlışsa Yanlış'a hızlıca dokun.")],
 "periph":           [() => Q("Ortada kırmızı bir nokta var; gözünü ondan hiç ayırma. Kenarlardan bir yıldız belirince, gözünü ortadan ayırmadan parmağınla yıldıza dokun." + (!isPre() && currentCombo().t === 2 ? " Mavi daire çıkarsa ona dokunma." : ""))],
-"fixation":         [() => `Çocuğa söyleyin: ${Q("Ortadaki kırmızı noktaya bak. Etrafta başka şeyler çıkacak; ne çıkarsa çıksın gözünü kırmızı noktadan ayırma.")}`],
+
 "dual-task":        [() => Q("İki işi birden yapacaksın: ekranda çıkan yıldızlara dokun, aynı anda duyduğun bip seslerini içinden say. Sonunda kaç bip duyduğunu söyle.")],
 "stop-signal":      [() => Q("Ekrana oklar gelecek. Ok hangi yöne bakıyorsa alttan o yönün düğmesine hızlıca bas. Ama ok kırmızıya dönerse hiçbir düğmeye basma, bekle.")],
 "look-first":       [() => Q("Üstte bir ev var. Alttaki evlerden sadece biri üsttekinin birebir aynısı, diğerlerinde küçük bir fark var. Dokunmadan önce hepsine dikkatle bak ve karşılaştır; sonra aynı olana dokun.")],
