@@ -254,6 +254,7 @@ function gameSfx(kind){ if(typeof gameMode !== "undefined" && gameMode){ sfx(kin
 /* KURAL: oyun modunda yanlış cevaptan sonra köşede 1,1 sn "Olsun, bir daha!" diyen Zihni çıkar (en çok 3 sn'de bir; dokunmayı engellemez; Sade görünümde ve hareketi azalt ayarında yalnız belirip kaybolur) */
 let _zAgainT = 0; function zihniAgain(){ try{ const now = Date.now(); if(now - _zAgainT < 3000) return; _zAgainT = now; let el = document.getElementById("zAgain"); if(!el){ el = document.createElement("div"); el.id = "zAgain"; el.setAttribute("aria-hidden", "true"); document.body.appendChild(el); } el.innerHTML = `<span class="za-z">${zihniSVG("again")}</span><span class="za-t">Olsun, bir daha!</span>`; el.classList.remove("on"); void el.offsetWidth; el.classList.add("on"); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove("on"), 1100); }catch(e){} }
 const SPEECH_MUTE_KEY = "wm_speech_mute_v1";
+try{ if(!localStorage.getItem("wm_speech_mute_migr_v1")){ localStorage.removeItem(SPEECH_MUTE_KEY); localStorage.setItem("wm_speech_mute_migr_v1", "1"); } }catch(e){} /* hoparlör artık "dinle/durdur": eski "sesi kapat" durumu içerik seslerini sessizce kapatmasın diye bir kez temizlenir */
 function speechMuted(){ try{ return localStorage.getItem(SPEECH_MUTE_KEY) === "1"; }catch(e){ return false; } }
 const SPK_ON  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h4l5 4v-13l-5 4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
 const SPK_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h4l5 4v-13l-5 4z"/><path d="M16.5 9.5l5 5M21.5 9.5l-5 5"/></svg>';
@@ -409,7 +410,7 @@ const hb = document.getElementById("gameHint"); hb.style.display = needHint ? ""
 window.scrollTo(0, 0);
 gameStop.pred = null;
 const inRoute = (() => { try{ const rr2 = gxRoute(); const k = rr2.steps.findIndex(x => x.id === exId); return k >= 0 && !rr2.done[k]; }catch(e){ return false; } })();
-setTimeout(() => { if(gameMode) speakText(`${gameLine("start")} ${childInstructionText()}${needHint ? " İpucu: " + hint : ""}`, { instr: true }); }, 450);
+/* yönerge kendiliğinden okunmaz; yönerge kutusundaki hoparlörle dinlenir (KURAL yönerge elle, 2026-11-09) */
 }
 
 function gameAfterStop(){
@@ -626,7 +627,7 @@ exitGameMode();
 document.getElementById("mainApp").style.display = "none";
 if(gameIsland && window.gxReturnTo !== "map") showIslandStops(gameIsland); else showIslandMap();
 });
-document.getElementById("gameSpeakBtn").addEventListener("click", toggleSpeechMute);
+/* KURAL (tek hoparlör, 2026-11-09): Zihin Adaları sayfalarında başlıktaki oyun hoparlörü kaldırıldı; yönerge kutusundaki hoparlör yeterli */
 renderSpeakBtn();
 document.getElementById("grRouteBtn").addEventListener("click", (e) => {
 const b = e.currentTarget; document.getElementById("gameReward").style.display = "none"; resetTimer(); sfx("go"); window.gxReturnTo = "map";

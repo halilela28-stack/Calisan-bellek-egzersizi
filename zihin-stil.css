@@ -482,3 +482,16 @@ html.text-lg #hmEtk .hm-col > button, html.text-xl #hmEtk .hm-col > button{ font
 #exHead .exh-ttl .exh-exbtn{ width:100%; }
 /* KURAL (dokunma vurgusu parlaklık, 2026-11-09): dokunma vurgusu resimleri griye boyamaz — turkuaz halka kalır, parlaklık filtresi uygulanmaz (beyaz zeminli resimler gri kare gibi görünüyordu) */
 #board .za-tap, #board .za-tap-ring{ filter:none !important; }
+
+/* ===== kapatma oku, hoparlör, yatay sığdırma kademeleri (2026-11-09) ===== */
+/* KURAL (alan kartı kapatma oku, 2026-11-09): açık alan kartının sağ üst köşesinde yukarı bakan bir ok durur; kartın nereden kapanacağını gösterir, dokununca kart kapanır */
+#categoryScreen .category-card.open{ position:relative !important; }
+#categoryScreen.cat-v2 .category-card.open .cat-chev, #categoryScreen .category-card.open .cat-chev{ display:flex !important; position:absolute !important; top:10px; right:10px; width:40px !important; height:40px !important; border-radius:50% !important; background:#E6F6F3 !important; border:2px solid #9CCFC9 !important; color:#0A847E !important; font-size:24px !important; font-weight:900; align-items:center; justify-content:center; transform:rotate(-90deg) !important; box-shadow:0 3px 0 #C4DED9 !important; z-index:2; margin:0 !important; }
+#categoryScreen .category-card.open .cat-chev:active{ transform:rotate(-90deg) translateX(-2px) !important; }
+/* KURAL (yönerge hoparlörü, 2026-11-09): hoparlör "dinle / durdur" düğmesidir; okurken kare durdur simgesi ve atan turkuaz halka görünür */
+.instr-spk.playing{ background:#0A847E !important; color:#fff !important; border-color:#0A847E !important; animation:zaSpkPulse 1.2s ease-out infinite; }
+@keyframes zaSpkPulse{ 0%{ box-shadow:0 0 0 0 rgba(10,132,126,.45); } 100%{ box-shadow:0 0 0 12px rgba(10,132,126,0); } }
+@media (orientation: landscape) and (max-height: 520px){
+  html body .ls-bar.t1 .error-label{ display:block !important; font-size:11px !important; max-width:44px !important; line-height:1.05 !important; letter-spacing:-.2px; }
+  html body .ls-bar.t3 .error-label{ display:none !important; }
+}

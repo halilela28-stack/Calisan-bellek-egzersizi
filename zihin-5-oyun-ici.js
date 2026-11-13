@@ -471,7 +471,7 @@ return `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${d
 }
 }
 board.innerHTML = `<div class="wm-wrap"><div class="wm-info">${info}</div>${body}</div>`;
-}finally{ try{ zaPicGrow(renderMtBoardCore, this, arguments); }catch(e){} try{ zaTapRestore(); }catch(e){}  try{ const b = document.getElementById("board"); if(b){ emojiFix(b); emojiStrip(b); } }catch(e){} syncJudgePause(); } }
+}finally{ try{ zaPicGrow(renderMtBoardCore, this, arguments); }catch(e){} try{ zaTapRestore(); }catch(e){}  try{ const b = document.getElementById("board"); if(b){ emojiFix(b); emojiStrip(b); } }catch(e){} syncJudgePause(); try{ zaFitBoardContent(); requestAnimationFrame(zaFitBoardContent); }catch(e){} } }
 /* zaPicGrow için kancasız yeniden çizim (sarmalayıcıların kaldırılması, 2026-11-09) */
 function renderMtBoardCore(){
 const board = document.getElementById("board");
@@ -716,7 +716,7 @@ const INSTR_SHORT = {
 
 "dual-task":        [() => Q("İki işi birden yapacaksın: ekranda çıkan yıldızlara dokun, aynı anda duyduğun bip seslerini içinden say. Sonunda kaç bip duyduğunu söyle.")],
 "stop-signal":      [() => Q("Ekrana oklar gelecek. Ok hangi yöne bakıyorsa alttan o yönün düğmesine hızlıca bas. Ama ok kırmızıya dönerse hiçbir düğmeye basma, bekle.")],
-"look-first":       [() => Q("Üstte bir ev var. Alttaki evlerden sadece biri üsttekinin birebir aynısı, diğerlerinde küçük bir fark var. Dokunmadan önce hepsine dikkatle bak ve karşılaştır; sonra aynı olana dokun.")],
+"look-first":       [() => Q("Tek başına duran bir ev var. Yanındaki evlerden sadece biri onun birebir aynısı, diğerlerinde küçük bir fark var. Dokunmadan önce hepsine dikkatle bak ve karşılaştır; sonra aynı olana dokun.")],
 "keep-track":       [() => `${Q("Resimler tek tek gelecek; hayvanlar, oyuncaklar, meyveler gibi gruplardan. Her gruptan en son gelen resmi aklında tut. Resimler bitince her grubun en son gelenini söyle.")}`],
 "zoo-map":          [() => Q("Bu bir hayvanat bahçesi haritası. Girişten başla, yıldızlı hayvanların hepsine uğra ve çıkışta bitir. Gitmek istediğin yere dokun. Aynı yoldan iki kez geçemezsin; dikkatli plan yap.")],
 "key-search":       [() => Q("Bu tarlada bir anahtar kayboldu ama nerede olduğunu bilmiyoruz. Parmağınla tarlanın içinde bir yol çiz; öyle çiz ki tarlanın her yerine bakmış ol. Bitince ‘Bitti’ye dokun.")],
