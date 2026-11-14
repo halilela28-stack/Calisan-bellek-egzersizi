@@ -1385,10 +1385,10 @@ window: () => (isPre() ? [2000, 1700, 1700] : [1600, 1300, 1300])[Math.min(curre
 };
 /* ===== Yürütücü İşlev · Paket 2 · dokunmalı çalışmalar ===== */
 CHOICE["less-more"] = {
-setup: () => ({ treats: shuffleArray(LM_TREATS()), won: 0 }),
-trials_make: (n, c) => { const t = Math.min(currentCombo().t, 2), P = (isPre() ? LM_PAIRS.pre : LM_PAIRS.post)[t], sides = balancedSeq(n, ["L","R"], 2); return sides.map((s, i) => { const [lo, hi] = randomItem(P); return { lo, hi, loSide: s, tr: c.treats[i % c.treats.length] }; }); },
+setup: () => ({ treats: LM_TREATS(), won: 0 }),
+trials_make: (n, c) => { const t = Math.min(currentCombo().t, 2), P = (isPre() ? LM_PAIRS.pre : LM_PAIRS.post)[t], sides = balancedSeq(n, ["L","R"], 2), seq = lmTreatSeq(n, c.treats); return sides.map((s, i) => { const [lo, hi] = randomItem(P); return { lo, hi, loSide: s, tr: seq[i] }; }); },
 stim: (t, sz, c) => { let mk = null; if(chState && chState.phase === "feedback"){ if(!t.counted){ t.counted = true; t.good = chState.picked === t.loSide; t.got = t.good ? t.hi : t.lo; c.won += t.got; } mk = { n: t.got, good: t.good }; }   /* ödül: az olanı gösterince çok olanı alır */
-  const L = t.loSide === "L", hiSide = L ? "R" : "L", lo = lmPlate(t.lo, t.tr[1], sz, mk && !mk.good ? mk : null, t.loSide), hi = lmPlate(t.hi, t.tr[1], sz, mk && mk.good ? mk : null, hiSide);
+  const L = t.loSide === "L", hiSide = L ? "R" : "L", lo = lmPlate(t.lo, t.tr[1], sz, mk && !mk.good ? mk : null, t.loSide, t.hi), hi = lmPlate(t.hi, t.tr[1], sz, mk && mk.good ? mk : null, hiSide, t.hi);
   const note = chSideNote("Az olanı göster, çoğu sana gelir");
   return `<div style="display:flex;width:100%;height:100%;align-items:center;gap:2%;position:relative">${L ? lo : hi}<div style="width:3px;height:70%;background:#C9D3DE;border-radius:2px"></div>${L ? hi : lo}${note}</div>`; },
 buttons: () => [], tapStim: true,

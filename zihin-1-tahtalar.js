@@ -1921,6 +1921,7 @@ board.style.gridTemplateRows = "";
 board.classList.remove("wide-grid");
 if(!sortState) return;
 const spec = sortSpec();
+if(!spec) return;   /* sıralama dışı bir etkinliğe geçildikten sonra gelen gecikmeli çizim isteği yok sayılır */
 const { ref, refH, card, cardH, refCols } = sortSizes(board);
 const st = sortState;
 const cur = currentGrid[st.idx];
