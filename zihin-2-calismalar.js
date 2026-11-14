@@ -312,13 +312,8 @@ instruction: () => isPre()
 ? `Öğrenciye resimleri tanıtın. Ardından <b>"Her çerçevede beş resim var. Ben başla dediğimde, çerçeveleri sırayla (soldan sağa, yukarıdan aşağıya) takip et ve her çerçevede sadece ORTADAKİ resmin adını olabildiğince hızlı söyle; kenardakilere aldırma"</b> deyin.`
 : `Öğrenciye <b>"Her çerçevede beş rakam var. Ben başla dediğimde, çerçeveleri sırayla (soldan sağa, yukarıdan aşağıya) takip et ve her çerçevede sadece ORTADAKİ rakamı olabildiğince hızlı söyle; kenardakilere aldırma"</b> deyin.`,
 example: (g) => isPre() ? FLK_NAMES[g.target] : g.target
-},
-{
-label: "Aşama 2 · Karışık",
-instruction: () => `Aynı kuralı verin ve ekleyin: <b>"Bazen beşi de aynı olabilir, bazen ortadaki farklı olabilir. Her seferinde yine sadece ORTADAKİNİ söyle"</b>. Uyumlu ve uyumsuz grupların karışması ketleme yükünü artırır.`,
-example: (g) => isPre() ? FLK_NAMES[g.target] : g.target
 }
-]
+] /* KURAL (Ortadakini Söyle tek aşama, 2026-11-14): "Aşama 2 · Karışık" kullanıcı isteğiyle kaldırıldı; etkinlik tek aşamalıdır (ortadaki farklı) */
 },
 {
 id: "touch-animal",
@@ -2608,16 +2603,7 @@ isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Tarlayı Tara", instruction: () => ``, example: () => `` } ]
 },
-{
-id: "water-jars",
-readingLevel: ["post"],
-label: "Su Kapları",
-isMt: true, attrs: [], speedFactor: 30, adaptErrorsOnly: true,
-errorLabel: "Fazla hamle",
-isDone: () => !!mtState && mtState.phase === "done",
-randomItem: () => ({}),
-stages: [ { label: "Hedef Miktarı Ölç", instruction: () => ``, example: () => `` } ]
-},
+/* (2026-11-14: Su Kapları (water-jars) kullanıcı isteğiyle silindi) */
 {
 id: "design-fluency",
 readingLevel: ["pre","post"],

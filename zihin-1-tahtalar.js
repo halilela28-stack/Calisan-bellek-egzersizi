@@ -660,7 +660,7 @@ const t = currentCombo().t;
 const table = isPre() ? PRE_FLK_GROUPS_BY_TIER : FLK_GROUPS_BY_TIER;
 const n = table[t] || table[table.length-1];
 const all = isPre() ? FLK_CATS.flat() : FLK_DIGITS;
-const congN = stIx() === 1 ? Math.max(1, Math.round(n / 3)) : 0;
+const congN = 0; /* tek aşama: bütün çerçevelerde ortadaki farklı */
 let flags;
 do{ flags = shuffleArray(Array.from({length:n}, (_, i) => i < congN)); } while(congN && flags[0] && n > 1);
 const groups = [];

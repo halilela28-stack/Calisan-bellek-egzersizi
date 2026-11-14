@@ -2006,8 +2006,10 @@ const SZ_SMALL = () => [["fare", efImg("fare")], ["karınca", efImg("karinca")],
 /* Ok–Kelime ve Ters Yöne Dokun: yön kümeleri ve konumlar */
 const SP_WORD = { l:"SOL", r:"SAĞ", u:"YUKARI", d:"AŞAĞI" }, DIR_ARROW = { l:"◀", r:"▶", u:"▲", d:"▼" }, DIR_OPP = { l:"r", r:"l", u:"d", d:"u" };
 const DIR_POS = { l:"left:14%;top:50%", r:"left:86%;top:50%", u:"left:50%;top:16%", d:"left:50%;top:84%" };
+/* KURAL (yön kelimesi ekran içinde, 2026-11-14): Uzamsal Stroop'ta kelime sağda/solda iken kenara yaslanır (ortasından değil kenarından konumlanır); "YUKARI", "AŞAĞI" gibi uzun kelimeler tahtanın dışına taşmaz. Önceden kelime ortasından %86'ya konuyordu, sağda çıkınca yarısı kesiliyordu */
+const SP_WORD_POS = { l:"left:5%;top:50%;transform:translateY(-50%)", r:"right:5%;top:50%;transform:translateY(-50%)", u:"left:50%;top:16%;transform:translate(-50%,-50%)", d:"left:50%;top:84%;transform:translate(-50%,-50%)" };
 const spDirs = () => ["l","r","u","d"].slice(0, [2, 3, 4][Math.min(currentCombo().t, 2)]);
-const atDirs = () => ["l","r","u","d"].slice(0, [2, 2, 4][Math.min(currentCombo().t, 2)]);
+const atDirs = () => ["l","r","u","d"].slice(0, [2, 3, 4][Math.min(currentCombo().t, 2)]); /* KURAL (Ters Yöne Dokun düzeyleri, 2026-11-14): Başlangıç 2 tuş (◀ ▶), Orta 3 tuş (◀ ▶ ▲), Zor 4 tuş; top yalnız karşısındaki tuş bulunan yerde çıkar (Orta: solda, sağda ya da aşağıda) */
 const dirButtons = (D) => D.map(d => ({ id: d, html: `<span style="font-size:32px;font-weight:900">${DIR_ARROW[d]}</span>` }));
 /* Resme dokunarak seçim (iki taraflı çalışmalar): seçilen taraf belirgin yeşil/kırmızı; yanlışta doğru taraf yeşil çerçeve + kısa not */
 function chSideAttr(id){ const st = chState; let bc = "#E6ECF2", sh = ""; if(st && st.phase === "feedback"){ const corr = st.spec.correct(st.trials[st.idx], st.ctx); if(id === st.picked){ bc = st.flash === "ok" ? "var(--good)" : "var(--bad)"; sh = st.flash === "ok" ? "box-shadow:0 0 0 4px rgba(31,164,99,.35);" : "box-shadow:0 0 0 4px rgba(229,72,77,.35);"; } else if(id === corr && st.flash === "bad"){ bc = "var(--good)"; sh = "box-shadow:0 0 0 4px rgba(31,164,99,.35);"; } }
@@ -2149,8 +2151,8 @@ function ksAddPoint(p){ const st = mtState; if(!st || st.kind !== "keys" || st.p
   board.addEventListener("pointermove", ev => { if(!drawing) return; const svg = ev.target.closest("[data-ksdraw]") || document.querySelector("[data-ksdraw]"); if(!svg) return; ev.preventDefault(); ksAddPoint(ksSvgPoint(ev, svg)); }, { passive:false });
   ["pointerup", "pointercancel"].forEach(n => board.addEventListener(n, () => { drawing = false; })); }catch(e){} })();
 /* Su Kapları (Luchins): bulmacalar [kapasiteler, hedef, en az hamle] */
-const JAR_PUZZLES = [ [[[2, 5], 3, 2], [[3, 7], 4, 2], [[4, 6], 2, 2], [[3, 5], 2, 2]], [[[3, 5], 1, 4], [[3, 5], 4, 6], [[4, 7], 6, 6]], [[[8, 5, 3], 4, 7], [[10, 7, 3], 5, 6], [[9, 4], 6, 8]] ];
-function jarTrials(){ const t = Math.min(currentCombo().t, 2); return shuffleArray(JAR_PUZZLES[t]).slice(0, t === 0 ? 3 : 3).map(([caps, goal, best]) => ({ caps, goal, best, lv: caps.map(() => 0), moves: 0, sel: -1, solved: false })); }
+/* JAR_PUZZLES: Su Kapları silinince kullanılmıyordu (2026-11-14) */
+/* jarTrials: Su Kapları silinince kullanılmıyordu (2026-11-14) */
 function jarSVG(cap, lv, px, selected, goalHit){ const h = Math.round(px * 1.3), w = px, fillH = Math.round((h - 16) * lv / cap); return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" style="display:block"><rect x="4" y="8" width="${w - 8}" height="${h - 12}" rx="10" fill="#F2F5F8" stroke="${goalHit ? "#1FA463" : selected ? "#FFC21A" : "#9AA8B5"}" stroke-width="${selected || goalHit ? 5 : 3}"/><rect x="8" y="${h - 8 - fillH}" width="${w - 16}" height="${fillH}" rx="6" fill="#4FA8F0"/><text x="${w / 2}" y="${h / 2 + 2}" text-anchor="middle" font-size="${Math.round(px * 0.34)}" font-weight="900" fill="#1F2A33">${lv}</text><text x="${w / 2}" y="${h - 1}" text-anchor="middle" font-size="${Math.round(px * 0.2)}" font-weight="800" fill="#5B6B78">${cap} L</text></svg>`; }
 /* Desen Akıcılığı (Beş Nokta / D-KEFS): nokta dizisi, çizgi kümesi benzersiz olmalı */
 const DFL_LAYOUTS5 = [ [[50, 12], [12, 50], [88, 50], [26, 88], [74, 88]], [[16, 16], [84, 16], [50, 50], [16, 84], [84, 84]], [[50, 10], [14, 40], [86, 40], [30, 88], [70, 88]], [[50, 14], [16, 50], [50, 50], [84, 50], [50, 86]], [[14, 22], [50, 14], [86, 22], [30, 82], [70, 82]] ];
@@ -2311,7 +2313,6 @@ mtState = { kind:"flu", fid:id, P: fluPrompt(id), secs: fluSecs(id), ok:0, rep:0
 "reversal": () => { const c = revCfg(); mtState = { kind:"rev", cfg:c, trials: Array.from({length: c.N}, () => ({ swap: Math.random() < 0.5 })), ti:0, wrong:0, okN:0, win: Math.floor(Math.random() * 2), streak:0, revs:0, phase:"idle", fb:null, pick:null }; return mtState.trials; },
 "zoo-map": () => { mtState = { kind:"zoo", trials: zooTrials(), ti:0, wrong:0, okN:0, phase:"idle" }; return mtState.trials; },
 "key-search": () => { mtState = { kind:"keys", trials: ksTrials(), ti:0, wrong:0, okN:0, phase:"idle", res:[] }; return mtState.trials; },
-"water-jars": () => { mtState = { kind:"jars", trials: jarTrials(), ti:0, wrong:0, okN:0, phase:"idle" }; return mtState.trials; },
 "design-fluency": () => { const c = dflCfg(); mtState = { kind:"dfl", cfg:c, trials:[{}], ti:0, wrong:0, phase:"idle", left:c.secs, designs:[], cur:[], sel:-1, uniq:0, rep:0, short:0 }; return mtState.trials; },
 "twenty-q": () => { mtState = { kind:"twq", trials: twqTrials(), ti:0, wrong:0, phase:"idle", res:[] }; return mtState.trials; },
 "box-search": () => { mtState = { kind:"bsearch", trials: bsTrials(), ti:0, wrong:0, okN:0, phase:"idle", last:-1, show:null }; return mtState.trials; },
