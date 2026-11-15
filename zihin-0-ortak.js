@@ -105,3 +105,38 @@ const PRE_GLYPH_STYLES = ["rotate","wide","tall","outline"];
 let peTriggers = [{shape:"triangle", color:"#0072B2"}];
 
 const RHYME_TIPS = "Kelimenin başını değiştir, sonunu koru; uydurma kelime de olur.";
+
+/* KURAL (Tepki hızı tablosu, 2026-11-15): süre/hız isteyen bütün çalışmaların zamanları bu tek tablodan gelir. Her satır milisaniye (ya da saniye) cinsinden SÜREdir: küçük sayı = daha hızlı.
+   1) Okul öncesi her düzeyde okul sonrasından daha yavaştır (pre[d] > post[d]).
+   2) Her dönemde düzey arttıkça hız artar (pre ve post kesin azalan).
+   3) Tempo çocukların eğlenebileceği, yetişebileceği bir hızdadır; yeni bir hızlı çalışma eklenirse süresi buraya yazılır, kodun içine sayı yazılmaz. */
+const ZA_PACE = {
+  "face-go":              { pre:[1800, 1600, 1400], post:[1300, 1100, 950] },   /* Yüzler Tek Tek: yanıt süresi */
+  "anti-touch":           { pre:[2000, 1800, 1650], post:[1600, 1400, 1250] },  /* Ters Yöne Dokun */
+  "context-go":           { pre:[2100, 1800, 1600], post:[1600, 1400, 1200] },  /* Bağlamlı Tepki */
+  "distract":             { pre:[2200, 1900, 1700], post:[1700, 1400, 1200] },  /* Çeldiriciyi Yoksay */
+  "navon":                { pre:[3000, 2600, 2400], post:[2400, 2000, 1800] },  /* Büyük Şekil mi, Küçük Şekil mi? */
+  "rev-sort":             { pre:[2600, 2200, 2000], post:[2000, 1700, 1500] },  /* Tersine Sınıfla */
+  "tap-reverse":          { pre:[3000, 2600, 2400], post:[2400, 2000, 1700] },  /* Ters Vuruş */
+  "periph":               { pre:[1600, 1300, 1100], post:[1500, 1200, 1000] },  /* Kenardan Gelen: görünme süresi */
+  "dual-task.hedef":      { pre:[1700, 1500, 1300], post:[1400, 1200, 1000] },  /* İki İş Birden: yıldızın ekranda kalma süresi */
+  "dual-task.aralik":     { pre:[2400, 2200, 2000], post:[1900, 1700, 1500] },  /* İki İş Birden: iki yıldız arası */
+  "stop-signal":          { pre:[2000, 1800, 1600], post:[1800, 1600, 1400] },  /* Dur İşareti: yanıt süresi */
+  "vigilance":            { pre:[1400, 1250, 1100], post:[1100, 950, 850] },    /* Nadir Hedef: şekil başına süre */
+  "pos-nback":            { pre:[2000, 1800, 1650], post:[1700, 1500, 1350] },  /* Konum N-Geri: kare başına süre */
+  "dot-count":            { pre:[2800, 2200, 1700], post:[2200, 1700, 1300] },  /* Kaç Tane?: görünme süresi */
+  "cups":                 { pre:[1200, 1000, 850],  post:[1000, 800, 650] },    /* Bardak Oyunu: yer değiştirme süresi */
+  "pk-mole":              { pre:[1600, 1350, 1150], post:[1150, 950, 780] },    /* Köstebek Yakala: yukarıda kalma süresi */
+  "pk-catch.dusus":       { pre:[3.4, 3.0, 2.6],    post:[2.8, 2.3, 1.9] },     /* Meyve Sepeti: düşme süresi (sn) */
+  "pk-catch.aralik":      { pre:[1200, 1050, 950],  post:[1000, 850, 720] },
+  "pk-balloon.yukselis":  { pre:[6.5, 5.5, 4.8],    post:[5.2, 4.4, 3.6] },     /* Balon Patlat: yükselme süresi (sn) */
+  "pk-balloon.aralik":    { pre:[1100, 1000, 900],  post:[900, 800, 700] },
+  "pk-escape":            { pre:[1300, 1100, 950],  post:[1000, 850, 700] },    /* Bul ve Kaç: bulut adımı */
+  "pk-redlight":          { pre:[1000, 850, 700],   post:[800, 650, 500] },     /* Kırmızı Işık – Yeşil Işık: bırakma payı */
+  "pk-drum.vurus":        { pre:[900, 820, 750],    post:[700, 620, 560] },     /* Ritim Davulu: vuruş aralığı */
+  "pk-drum.pay":          { pre:[320, 280, 240],    post:[260, 220, 180] },     /* Ritim Davulu: zamanında sayılma payı */
+  "pk-simon":             { pre:[800, 700, 650, 600], post:[650, 550, 450, 400] }, /* Renk Simon: yanma süresi */
+  "creature-count":       { pre:[1600, 1400, 1250], post:[1300, 1100, 950] },   /* Yaratık Sayma: her yaratığın / okun ekranda kalma süresi */
+  "pk-light":             { pre:[900, 800, 700, 650], post:[750, 650, 550, 480] }  /* Deniz Feneri Işıkları: yanma süresi */
+};
+function zaPace(key){ const p = ZA_PACE[key]; if(!p) return 0; const A = (typeof isPre === "function" && isPre()) ? p.pre : p.post; let t = 0; try{ t = currentCombo().t | 0; }catch(e){} return A[Math.max(0, Math.min(A.length - 1, t))]; }

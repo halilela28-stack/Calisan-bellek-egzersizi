@@ -1173,10 +1173,16 @@ const st = chState;
 if(st.idx >= st.trials.length){ st.phase = "done"; renderChoiceBoard(); stopTimer(); showLevelFlash(st.wrong ? `Bitti! ${st.wrong} hata.` : "Bitti! Hiç hata yok 🎉", st.wrong ? "down" : "levelup"); return; }
 st.phase = "gap"; st.flash = ""; st.picked = null; renderChoiceBoard();
 chLater(() => {
+const myIdx = st.idx;
+const ask = () => {
 st.phase = "ask"; st.shownAt = performance.now(); renderChoiceBoard();
 const w = st.spec.window ? st.spec.window() : 0;
-const myIdx = st.idx;
 if(w) chLater(() => { if(st.phase === "ask" && st.idx === myIdx) chAnswer(null); }, w);
+};
+/* showMs: uyaran önce bir süre oynatılır (düğmeler kapalı), sonra soru gelir — ör. Yaratık Sayma'da yaratıklar tek tek gelir */
+const sm = st.spec.showMs ? st.spec.showMs(st.trials[myIdx], st) : 0;
+if(sm){ st.phase = "show"; st.showAt = performance.now(); renderChoiceBoard(); try{ if(st.spec.onShow) st.spec.onShow(st.trials[myIdx], st); }catch(e){} chLater(() => { if(st.phase === "show" && st.idx === myIdx) ask(); }, sm); }
+else ask();
 }, st.spec.gap || 220);
 }
 function chAnswer(btnId){
@@ -1188,7 +1194,7 @@ if(btnId !== null) st.rts.push(performance.now() - st.shownAt);
 st.picked = btnId; st.flash = ok ? "ok" : "bad";
 if(ok) gameSfx("correct"); else { st.wrong++; setErrorCount(currentErrorCount + 1); try{ vibrate(60); }catch(e){} gameSfx("wrong"); }
 st.phase = "feedback"; renderChoiceBoard();
-chLater(() => { st.idx++; chNext(); }, ok ? 260 : (st.spec.tapStim ? 1400 : 520));   /* resme dokunmalı çalışmalarda yanlışta düzeltme notu okunabilsin */
+chLater(() => { st.idx++; chNext(); }, st.spec.fbMs ? st.spec.fbMs(ok, tr) : (ok ? 260 : (st.spec.tapStim ? 1400 : 520)));   /* resme dokunmalı çalışmalarda yanlışta düzeltme notu okunabilsin */
 }
 function renderChoiceBoard(){ try{
 const board = document.getElementById("board");
@@ -1199,7 +1205,7 @@ const st = chState, sp = st.spec, isLs = landscapeMQ.matches;
 const W = (board.clientWidth || 360) - 24, H = isLs ? (board.clientHeight || 280) - 16 : Math.min(560 * tabletScale(), window.innerHeight - 280);
 const stimSize = Math.floor(Math.min(isLs ? H - 20 : 220 * tabletScale(), W * (isLs ? 0.42 : 0.75)));   /* tablette uyaran büyür */
 const tr = st.trials[st.idx];
-const stim = st.phase === "idle" ? `<span class="hold">▶ Başlat'a bas</span>` : st.phase === "done" ? `<span class="hold">Bitti!</span>` : st.phase === "gap" ? "" : sp.stim(tr, stimSize, st.ctx);   /* Tahmin Et – Yap – Karşılaştır katmanı: işaretli çalışmalarda */
+const stim = st.phase === "idle" ? `<span class="hold">▶ Başlat'a bas</span>` : st.phase === "done" ? `<span class="hold">Bitti!</span>` : st.phase === "gap" ? "" : sp.stim(tr, stimSize, st.ctx, st);   /* Tahmin Et – Yap – Karşılaştır katmanı: işaretli çalışmalarda */
 const buttons = sp.buttons(st.ctx, tr);   /* deneme bazlı düğmeler (Hızlı Seç: yer ve kural değişimi); tapStim: seçim resmin kendisine dokunarak */
 const corr = st.phase === "feedback" ? sp.correct(tr, st.ctx) : undefined;
 const btnHtml = sp.tapStim ? (st.phase === "ask" ? `<div class="aud-key" style="text-align:center">Resme dokun</div>` : "") : `<div class="ch-btns" style="grid-template-columns:repeat(${Math.min(buttons.length, (typeof sp.cols === "function" ? sp.cols(buttons.length) : sp.cols) || buttons.length)}, minmax(0, 1fr));">` + buttons.map(b => {
@@ -1332,7 +1338,7 @@ flags.forEach(f => a.push({ face: f ? c.stop : randomItem(go), stop: f })); retu
 stim: (t) => imgFill(FACE_IMAGES[t.face]),
 buttons: () => [{ id:"go", html:'<span style="font-size:30px">👆</span><b style="margin-left:8px;font-size:20px">DOKUN</b>' }],
 correct: (t) => t.stop ? null : "go",
-window: () => isPre() ? 1600 : [1300, 1100, 950][currentCombo().t], gap: 300, cols: 1
+window: () => zaPace("face-go"), gap: 300, cols: 1
 };
 CHOICE["switch-touch"] = {
 trials_make: (n) => { const a = []; let rule = Math.random() < 0.5 ? "same" : "flip"; const want = balancedSeq(n, ["front","back"], 2);   /* doğru tepki dengeli, en çok 2 kez art arda */
@@ -1381,7 +1387,7 @@ trials_make: (n, c) => balancedSeq(n, c.D.map(d => DIR_OPP[d]), 2).map(p => ({ p
 stim: (t, sz) => { const r = Math.round(sz * 0.2); return `<div style="position:relative;width:100%;height:100%"><div style="position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px;border-radius:50%;background:#C9D3DE"></div><div style="position:absolute;${DIR_POS[t.pos]};transform:translate(-50%,-50%);width:${r}px;height:${r}px;border-radius:50%;background:#2E6FD8;box-shadow:0 0 0 6px rgba(46,111,216,.25)"></div></div>`; },
 buttons: (c) => dirButtons(c.D),
 correct: (t) => DIR_OPP[t.pos],
-window: () => (isPre() ? [2000, 1700, 1700] : [1600, 1300, 1300])[Math.min(currentCombo().t, 2)], gap: 320, cols: 4, wideStim: true
+window: () => zaPace("anti-touch"), gap: 320, cols: 4, wideStim: true
 };
 /* ===== Yürütücü İşlev · Paket 2 · dokunmalı çalışmalar ===== */
 CHOICE["less-more"] = {
@@ -1401,7 +1407,7 @@ trials_make: (n, c) => axSeq(n, c),
 stim: (t, sz, c) => `<div style="position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center">${imgFill(animalImg(t.k))}${c.support && t.prev ? `<div style="position:absolute;left:4%;top:4%;width:26%;height:26%;border-radius:12px;background:#F2F5F8;border:2px solid #C9D3DE;display:flex;align-items:center;justify-content:center"><img src="${animalImg(t.prev)}" alt="" style="width:80%;height:80%;object-fit:contain;opacity:.75"></div>` : ""}</div>`,
 buttons: () => [{ id:"go", html:'<span style="font-size:30px">👆</span><b style="margin-left:8px;font-size:20px">DOKUN</b>' }],
 correct: (t) => t.go ? "go" : null,
-window: () => (isPre() ? [2100, 1800, 1600] : [1600, 1400, 1200])[Math.min(currentCombo().t, 2)], gap: 300, cols: 1,
+window: () => zaPace("context-go"), gap: 300, cols: 1,
 key: (c) => `<div class="ch-key" style="font-weight:800;font-size:13px;color:var(--ink);gap:8px;padding:6px 12px;align-items:center"><img src="${animalImg(c.cue)}" alt="" style="width:34px;height:34px;object-fit:contain"><span>sonra</span><img src="${animalImg(c.tgt)}" alt="" style="width:34px;height:34px;object-fit:contain"><span>gelirse → DOKUN</span></div>`
 };
 CHOICE["distract"] = {
@@ -1413,7 +1419,7 @@ stim: (t, sz) => { if(t.snd && chState && chState.phase === "ask" && !t.played){
   return `<div style="position:relative;width:100%;height:100%;overflow:hidden;border-radius:16px">${ds}${arrow}</div>`; },
 buttons: (c) => dirButtons(c.D),
 correct: (t) => t.dir,
-window: () => (isPre() ? [2200, 1900, 1700] : [1700, 1400, 1200])[Math.min(currentCombo().t, 2)], gap: 300, cols: 4, wideStim: true
+window: () => zaPace("distract"), gap: 300, cols: 4, wideStim: true
 };
 CHOICE["grass-snow"] = {
 setup: () => ({ order: shuffleArray(["green","white"]) }),
@@ -1426,21 +1432,39 @@ correct: (t) => t.k === "grass" ? "white" : "green", cols: 2
 };
 /* ===== Yürütücü İşlev · Paket 3 · dokunmalı çalışmalar ===== */
 CHOICE["navon"] = {
-setup: () => ({ col: randomItem([ACC.mavi, ACC.yesil, ACC.mor, ACC.kirmizi]) }),
-trials_make: (n) => { const t = Math.min(currentCombo().t, 2); let cues; if(t === 0){ const first = Math.random() < 0.5 ? "big" : "small"; cues = Array.from({length:n}, (_, i) => i < n / 2 ? first : (first === "big" ? "small" : "big")); } else if(t === 1){ cues = []; let c = "big"; for(let i = 0; i < n; i++){ if(i && Math.random() < 0.3) c = c === "big" ? "small" : "big"; cues.push(c); } } else cues = balancedSeq(n, ["big", "small"], 2);
-  const bigs = balancedSeq(n, NV_SHAPES, 2); return cues.map((cue, i) => { const big = bigs[i], small = pickDifferent(NV_SHAPES, big); return { cue, big, small, sw: i > 0 && cues[i - 1] !== cue }; }); },
+setup: () => ({ col: randomItem([ACC.mavi, ACC.yesil, ACC.mor, ACC.kirmizi]), shapes: nvShapes() }),
+trials_make: (n, c) => { const t = Math.min(currentCombo().t, 2), SH = (c && c.shapes) || nvShapes(); let cues; if(t === 0){ const first = Math.random() < 0.5 ? "big" : "small"; cues = Array.from({length:n}, (_, i) => i < n / 2 ? first : (first === "big" ? "small" : "big")); } else if(t === 1){ cues = []; let c = "big"; for(let i = 0; i < n; i++){ if(i && Math.random() < 0.3) c = c === "big" ? "small" : "big"; cues.push(c); } } else cues = balancedSeq(n, ["big", "small"], 2);
+  const bigs = balancedSeq(n, SH, 2); return cues.map((cue, i) => { const big = bigs[i], small = pickDifferent(SH, big); return { cue, big, small, sw: i > 0 && cues[i - 1] !== cue }; }); },
 stim: (t, sz, c) => { const lab = t.cue === "big" ? "BÜYÜK" : "KÜÇÜK"; const ic = t.cue === "big" ? `<svg viewBox="0 0 100 100" style="width:22px;height:22px"><rect x="8" y="8" width="84" height="84" rx="10" fill="none" stroke="#1F2A33" stroke-width="10"/></svg>` : `<svg viewBox="0 0 100 100" style="width:22px;height:22px"><rect x="32" y="32" width="36" height="36" rx="6" fill="none" stroke="#1F2A33" stroke-width="10"/></svg>`;
   return `<div style="position:relative;width:100%;height:100%"><div style="position:absolute;left:50%;top:3%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;background:${t.sw ? "#FFF4E5" : "#F2F5F8"};border:2px solid ${t.sw ? "#F59E0B" : "#C9D3DE"};border-radius:999px;padding:2px 12px;font-weight:900;font-size:${Math.round(sz * 0.08)}px;color:#1F2A33;white-space:nowrap">${ic}${lab}${t.sw ? " · değişti!" : ""}</div><div style="position:absolute;left:50%;top:56%;transform:translate(-50%,-50%);width:${Math.round(sz * 0.72)}px;height:${Math.round(sz * 0.72)}px">${navonSVG(t.big, t.small, c.col)}</div></div>`; },
-buttons: (c) => NV_SHAPES.map(s => ({ id: s, html: `<svg viewBox="0 0 100 100" style="width:40px;height:40px">${sortShapeSVG(s, "#1F2A33")}</svg>` })),
+buttons: (c) => ((c && c.shapes) || nvShapes()).map(s => ({ id: s, html: `<svg viewBox="0 0 100 100" style="width:40px;height:40px">${sortShapeSVG(s, "#1F2A33")}</svg>` })),
 correct: (t) => t.cue === "big" ? t.big : t.small,
-window: () => (isPre() ? [3000, 2600, 2400] : [2400, 2000, 1800])[Math.min(currentCombo().t, 2)], gap: 300, cols: 3,
+window: () => zaPace("navon"), gap: 300, cols: 4,
 key: () => `<div class="ch-key" style="font-weight:800;font-size:13px;color:var(--ink);gap:12px;padding:6px 12px"><span>BÜYÜK → büyük şekil</span><span>KÜÇÜK → küçük şekiller</span></div>`
 };
+/* KURAL (Yaratık Sayma akışı, 2026-11-15): yaratıklar ve oklar ekranda yığın hâlinde değil, TEK TEK ve ritimle gelir (hız tablosundan, düzeyle hızlanır): önce "0'dan başla" işareti, sonra her yaratık zıplayarak ortaya çıkar (pıt sesi), ok gelince büyük "İLERİ SAY ▲" (yeşil, yükselen ses) ya da "GERİ SAY ▼" (kırmızı, alçalan ses) tabelası çıkar. Gösterim bitene kadar düğmeler kapalıdır, sonra "Kaça geldin?" sorulur. Her turun ilk denemesi ÖRNEK'tir: sayılar yaratıkların altında görünür. Yanlış cevapta çözüm yolu (her yaratığın altında o anki sayı) 3 sn gösterilir. Ekran döndürmede gösterim baştan başlamaz, kaldığı yerden sürer */
+const ccStep = (t) => Math.round(zaPace("creature-count") * (t && t.demo ? 1.3 : 1));
+function ccPath(t){ let v = 0, d = 1; return t.items.map(it => { if(it.arrow){ d = it.arrow; return { arrow: d, v }; } v += d; return { img: it.img, v }; }); }
+const ccSign = (dir, sz) => `<div class="cc-sign ${dir > 0 ? "up" : "down"}" style="font-size:${Math.round(sz * 0.11)}px"><span style="font-size:${Math.round(sz * 0.3)}px;line-height:1">${dir > 0 ? "▲" : "▼"}</span><b>${dir > 0 ? "İLERİ SAY" : "GERİ SAY"}</b></div>`;
 CHOICE["creature-count"] = {
-trials_make: () => ccTrials(),
-stim: (t, sz) => { const w = Math.round(sz * 0.17); return `<div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px;width:100%;height:100%;padding:4px;box-sizing:border-box;overflow:hidden">${t.items.map(it => it.arrow ? `<div style="width:${w}px;height:${w}px;border-radius:8px;background:${it.arrow > 0 ? "#E3F6EC" : "#FDECEC"};display:flex;align-items:center;justify-content:center;font-size:${Math.round(w * 0.7)}px;font-weight:900;color:${it.arrow > 0 ? ACC.yesil : ACC.kirmizi}">${it.arrow > 0 ? "▲" : "▼"}</div>` : `<img src="${it.img}" alt="" style="width:${w}px;height:${w}px;object-fit:contain">`).join("")}</div>`; },
+trials_make: () => { const a = ccTrials(); if(a.length) a[0].demo = true; return a; },
+showMs: (t) => (t.items.length + 1) * ccStep(t) + 150,
+onShow: (t, st) => { const step = ccStep(t), my = st.idx; t.items.forEach((it, k) => chLater(() => { if(st.phase !== "show" || st.idx !== my) return; try{ if(it.arrow) playSound(it.arrow > 0 ? "up" : "down"); else sfx("pop"); }catch(e){} }, (k + 1) * step)); },
+stim: (t, sz, c, st) => {
+  const ph = st ? st.phase : "ask", img = (t.items.find(x => x.img) || {}).img;
+  if(ph === "show"){
+    const step = ccStep(t), el = Math.max(0, performance.now() - (st.showAt || performance.now())), path = ccPath(t), big = Math.round(sz * 0.6);
+    const slot = (html, k) => `<div class="cc-slot" style="animation-duration:${step}ms;animation-delay:${Math.round(k * step - el)}ms">${html}</div>`;
+    const start = slot(`<div class="cc-start" style="font-size:${Math.round(sz * 0.1)}px"><span class="cc-zero" style="font-size:${Math.round(sz * 0.32)}px">0</span><b>${t.demo ? "Örnek tur · " : ""}0'dan başla</b><span style="color:${ACC.yesil}">▲ ileri say</span></div>`, 0);
+    const rest = path.map((p, k) => slot(p.arrow ? ccSign(p.arrow, sz) : `<div class="cc-cr"><img src="${p.img}" alt="" style="width:${big}px;height:${big}px;object-fit:contain">${t.demo ? `<span class="cc-num" style="font-size:${Math.round(sz * 0.16)}px">${p.v}</span>` : ""}</div>`, k + 1)).join("");
+    return `<div class="cc-stage">${start}${rest}</div>`; }
+  if(ph === "feedback" && st.flash === "bad"){
+    const w = Math.max(30, Math.round(sz * 0.15)), path = ccPath(t);
+    return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;gap:4px"><div class="cc-path"><div class="cc-pt" style="width:${w}px"><span class="cc-zero" style="font-size:${Math.round(w * 0.55)}px">0</span></div>${path.map(p => p.arrow ? `<div class="cc-pt ${p.arrow > 0 ? "up" : "down"}" style="width:${Math.round(w * 0.7)}px;font-size:${Math.round(w * 0.6)}px">${p.arrow > 0 ? "▲" : "▼"}</div>` : `<div class="cc-pt" style="width:${w}px"><img src="${p.img}" alt="" style="width:${w}px;height:${w}px;object-fit:contain"><b style="font-size:${Math.round(w * 0.42)}px">${p.v}</b></div>`).join("")}</div><div class="cc-ans">Doğrusu: <b>${t.ans}</b></div></div>`; }
+  return `<div class="cc-ask">${img ? `<img src="${img}" alt="" style="width:${Math.round(sz * 0.34)}px;height:${Math.round(sz * 0.34)}px;object-fit:contain">` : ""}<b style="font-size:${Math.round(sz * 0.13)}px">Kaça geldin?</b></div>`; },
 buttons: (c, t) => (t ? t.opts : [0, 1, 2, 3]).map(v => ({ id: String(v), html: `<b style="font-size:26px">${v}</b>` })),
 correct: (t) => String(t.ans), cols: 4, wideStim: true, gap: 350, trials: { post:[6, 8, 10], pre:[4, 5, 6] },
+fbMs: (ok, t) => ok ? 700 : 3000,
 key: () => `<div class="ch-key" style="font-weight:800;font-size:13px;color:var(--ink);gap:12px;padding:6px 12px"><span style="color:${ACC.yesil}">▲ ileri say</span><span style="color:${ACC.kirmizi}">▼ geri say</span></div>`
 };
 CHOICE["rev-sort"] = {
@@ -1449,7 +1473,7 @@ trials_make: (n, c) => balancedSeq(n, ["big", "small"], 2).map((z, i) => ({ z, s
 stim: (t, sz) => { const px = Math.round(sz * (t.z === "big" ? 0.78 : 0.34)); return `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 100 100" style="width:${px}px;height:${px}px">${sortShapeSVG(t.s, t.col)}</svg></div>`; },
 buttons: (c) => c.order.map(z => ({ id: z, html: `<div style="display:flex;flex-direction:column;align-items:center;gap:2px"><img src="${HOUSE_IMAGES.bucket}" alt="" style="width:${z === "big" ? 52 : 30}px !important;max-height:${z === "big" ? 52 : 30}px"><b style="font-size:13px">${z === "big" ? "BÜYÜK KOVA" : "KÜÇÜK KOVA"}</b></div>` })),
 correct: (t) => stIx() === 1 ? (t.z === "big" ? "small" : "big") : t.z,
-window: () => (isPre() ? [2600, 2200, 2000] : [2000, 1700, 1500])[Math.min(currentCombo().t, 2)], gap: 300, cols: 2
+window: () => zaPace("rev-sort"), gap: 300, cols: 2
 };
 /* ===== Yürütücü İşlev · Paket 5 · dokunmalı ===== */
 CHOICE["look-first"] = {

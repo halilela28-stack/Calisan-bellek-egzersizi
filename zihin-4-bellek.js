@@ -627,7 +627,7 @@ return shuffleArray(SEQW.filter(q => q.length >= L)).slice(0, 4).map(q => { cons
 /* rhsRender: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 /* rhsScore: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 
-function dotTrials(){ const t = currentCombo().t, rng = isPre() ? [[1, 3], [1, 4], [2, 5]][t] : [[1, 5], [2, 7], [3, 9]][t], ms = (isPre() ? [2800, 2200, 1700] : [2200, 1700, 1300])[t];
+function dotTrials(){ const t = currentCombo().t, rng = isPre() ? [[1, 3], [1, 4], [2, 5]][t] : [[1, 5], [2, 7], [3, 9]][t], ms = zaPace("dot-count");
 /* Orta: aynı resimden n tane · Zor: hedef resim + farklı çeldirici resimler (yalnızca hedef sayılır) */ const named = t >= 1 ? placeNamedPool().filter(x => x.n && x.src && x.n.length <= 12) : []; const nextPic = named.length ? mkCycle(named) : null;
 let __prevN = window.__dotLastN; /* KURAL (Nokta Say çeşitliliği, 2026-11-09): art arda iki soru aynı sayıyı vermez (sayfa geçişinde de); önceden aynı cevap 4–5 kez art arda gelebiliyordu */
 return Array.from({length: isPre() ? [5, 6, 7][t] : [8, 10, 12][t]}, () => { let n = rng[0] + Math.floor(Math.random() * (rng[1] - rng[0] + 1)); for(let g = 0; n === __prevN && g < 12; g++) n = rng[0] + Math.floor(Math.random() * (rng[1] - rng[0] + 1)); __prevN = window.__dotLastN = n; const pts = []; const pic = nextPic ? nextPic() : null; let dis = null, nd = 0; /* çeldirici resim yok: Zor da tek tür resimle; zorluk sayı aralığı ve gösterim süresinden gelir */
@@ -683,6 +683,7 @@ const FERR_COL = [{ c:ACC.kirmizi, n:"kırmızı" }, { c:ACC.mavi, n:"mavi" }, {
 const FERR_SH = [{ s:"circle", n:"daire" }, { s:"triangle", n:"üçgen" }, { s:"square", n:"kare" }, { s:"star", n:"yıldız" }, { s:"heart", n:"kalp" }];
 const FERR_DIR = [{ d:"u", n:"yukarı" }, { d:"d", n:"aşağı" }, { d:"l", n:"sola" }, { d:"r", n:"sağa" }];
 /* Hatayı Bul: sayfada her soru farklı türden; kurallar kısa (hız çalışması) */
+const ferrRate = () => isPre() ? 0.68 : 0.76;   /* Hatayı Bul kural seslendirme hızı */
 function ferrTrials(){ const tt = Math.min(currentCombo().t, 2), pre = isPre(); const types = pre ? ["color", "shape", "arrow"] : ["num1", "num2", "numDown", "color", "shape", "pattern", "arrow"]; const K = pre ? 3 : 4, E = pre ? [1, 1, 2][tt] : [1, 2, 3][tt];
   return shuffleArray(types).slice(0, K).map(ty => Object.assign(ferrMake(ty, tt, pre, E), { ty })); }
 function ferrMake(ty, tt, pre, E){ const gridN = pre ? [4, 6, 6][tt] : [6, 8, 9][tt], seqN = [6, 8, 10][tt];
@@ -702,7 +703,7 @@ function ferrMake(ty, tt, pre, E){ const gridN = pre ? [4, 6, 6][tt] : [6, 8, 9]
     return { rule:`Hepsi ${tgt.n} olmalı.`, items: Array.from({length:N}, (_, i) => bad.has(i) ? { html: shapeSVG(randomItem(others).s, col), bad:true } : { html: shapeSVG(tgt.s, col) }) }; }
   const tgt = randomItem(FERR_COL), others = FERR_COL.filter(x => x !== tgt), sh = randomItem(FERR_SH).s, N = gridN, bad = pickBad(N, false);
   return { rule:`Hepsi ${tgt.n} olmalı.`, items: Array.from({length:N}, (_, i) => bad.has(i) ? { html: shapeSVG(sh, randomItem(others).c), bad:true } : { html: shapeSVG(sh, tgt.c) }) }; }
-function cupsTrials(){ const t = currentCombo().t, n = isPre() ? 3 : [3, 4, 5][t], swaps = (isPre() ? [2, 3, 4] : [3, 5, 7])[t], ms = (isPre() ? [1200, 1000, 850] : [1000, 800, 650])[t];
+function cupsTrials(){ const t = currentCombo().t, n = isPre() ? 3 : [3, 4, 5][t], swaps = (isPre() ? [2, 3, 4] : [3, 5, 7])[t], ms = zaPace("cups");
 return Array.from({length: isPre() ? 3 : 4}, () => { const ball = Math.floor(Math.random() * n), seq = []; for(let k = 0; k < swaps; k++){ let a = Math.floor(Math.random() * n), b; do{ b = Math.floor(Math.random() * n); } while(b === a); seq.push([a, b]); }
 return { n, ball, seq, ms }; }); }
 const CUP_SVG = (c) => `<svg viewBox="0 0 100 110" style="width:100%;height:100%"><path d="M34 6 H66 Q72 6 72.5 12 L86 98 H14 L27.5 12 Q28 6 34 6 Z" fill="${c}"/><rect x="4" y="95" width="92" height="13" rx="3" fill="${c}"/><rect x="4" y="95" width="92" height="13" rx="3" fill="#000" opacity=".12"/><path d="M38 22 l-5 62" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".35"/></svg>`;   /* ters bardak: geniş ağız altta, top tamamen içinde kalır */
@@ -718,7 +719,11 @@ const items = shuffleArray(picPool()).slice(0, nI).map((x, k) => ({ x, p: k % nP
 return { ppl, study: shuffleArray(items), test: shuffleArray(items.slice()) }; }
 function rhyTrials(){ const t = currentCombo().t, L = (isPre() ? [3, 4, 5] : [4, 5, 6])[t];
 return Array.from({length: isPre() ? 3 : 4}, () => { let iv; do{ iv = Array.from({length: L - 1}, () => Math.random() < 0.4 ? 2 : 1); } while(!(iv.includes(1) && iv.includes(2))); return { L, iv }; }); }
-function rhyBeep(){ try{ const ctx = getAudioCtx(); if(!ctx) return; if(ctx.state === "suspended") ctx.resume(); sfxTone(ctx, 660, ctx.currentTime + 0.005, 0.12, "triangle", 0.25); }catch(e){} }
+/* KURAL (uyaran sesi, 2026-11-15): çocuğun duyup sayması ya da izlemesi gereken sesler (İki İş Birden bipleri, Ritim Tekrarı ve Ritim Davulu vuruşları, Ton Dizisi, Renk Simon) ses efektlerinden ayrı, güçlü bir yoldan çalınır — genel efekt sıkıştırıcısından ve 0,75 kısmadan geçmez, yalnız taşmayı önleyen bir sınırlayıcıdan geçer; telefon hoparlörünün iyi duyurduğu üst ses (2. harmonik) eklenir. Tepe seviyesi en az 0,6; ses efektleri kapalı olsa da çalar (çalışmanın kendisidir) */
+let _stimBus = null;
+function stimBus(ctx){ if(_stimBus && _stimBus.context === ctx) return _stimBus; try{ const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -3; lim.knee.value = 2; lim.ratio.value = 12; lim.attack.value = 0.002; lim.release.value = 0.1; const g = ctx.createGain(); g.gain.value = 1; g.connect(lim); lim.connect(ctx.destination); _stimBus = g; return g; }catch(e){ return ctx.destination; } }
+function stimTone(ctx, f, t0, dur, vol){ [[f, "triangle", vol], [f * 2, "sine", vol * 0.45]].forEach(([fr, ty, v]) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = ty; o.frequency.setValueAtTime(fr, t0); g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(v, t0 + 0.008); g.gain.setValueAtTime(v, t0 + dur * 0.55); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur); o.connect(g); g.connect(stimBus(ctx)); o.start(t0); o.stop(t0 + dur + 0.02); }); }
+function rhyBeep(){ try{ const ctx = getAudioCtx(); if(!ctx) return; if(ctx.state === "suspended") ctx.resume(); stimTone(ctx, 880, ctx.currentTime + 0.005, 0.16, 0.62); }catch(e){} }
 function memBuild(){ const t = currentCombo().t, P = (isPre() ? [2, 3, 4] : [4, 6, 8])[t], pics = shuffleArray(picPool()).slice(0, P);
 return { cards: shuffleArray(pics.concat(pics).map((x, i) => ({ x }))), P }; }
 
@@ -1326,31 +1331,31 @@ const SV_BANKS = [SV_BANK, SV_BANK_MID, SV_BANK_HARD];
 function svTrials(){ const t = currentCombo().t, N = [16, 20, 24][t], bank = SV_BANKS[Math.min(t, 2)]; const y = shuffleArray(bank.filter(x => x[1])), n = shuffleArray(bank.filter(x => !x[1])), out = [];
 for(let i = 0; i < N; i++){ const s = i % 2 ? y[Math.floor(i / 2) % y.length] : n[Math.floor(i / 2) % n.length]; out.push({ stim:`<div style="font-size:${t === 2 ? 18 : 21}px;font-weight:800;text-align:center;line-height:1.35">${s[0]}</div>`, raw:true, opts:[`<b style="font-size:20px">✓ Doğru</b>`, `<b style="font-size:20px">✗ Yanlış</b>`], ans: s[1] ? 0 : 1, fixed:true, text:true, prompt: t === 2 ? "<b>İki cümleyi oku:</b> ikincisi ilkine uyuyor mu?" : "<b>Oku</b> ve hızlıca karar ver" }); }
 return shuffleArray(out); }
-function perTrials(){ const t = currentCombo().t, pre = isPre(), N = (pre ? [10, 12, 14] : [16, 20, 24])[Math.min(t, 2)],   /* gösterim sayısı düzeye göre */ ms = (pre ? [1600, 1300, 1100] : [1500, 1200, 1000])[t];
+function perTrials(){ const t = currentCombo().t, pre = isPre(), N = (pre ? [10, 12, 14] : [16, 20, 24])[Math.min(t, 2)],   /* gösterim sayısı düzeye göre */ ms = zaPace("periph");
 return Array.from({length:N}, () => { const side = randomItem(["l","r","t","b"]), u = 8 + Math.random() * 84, pos = side === "l" ? [4 + Math.random() * 10, u] : side === "r" ? [86 + Math.random() * 10, u] : side === "t" ? [u, 5 + Math.random() * 10] : [u, 85 + Math.random() * 10];
 return { pos, ms, lure: !pre && t === 2 && Math.random() < 0.3 }; }); }
 /* fixTrials: Sabit Bakış silinince kullanılmıyordu (2026-11-09) */
 function dualTrials(){ const t = currentCombo().t, pre = isPre(), secs = pre ? [16, 20, 24][t] : [20, 26, 32][t];
 return Array.from({length:2}, () => { const beeps = 3 + Math.floor(Math.random() * (pre ? 3 : 5)), bt = [], st = []; let tt = 1500;
-while(tt < secs * 1000 - 1500){ st.push(tt); tt += (pre ? 2200 : 1700) + Math.random() * 600; }
+while(tt < secs * 1000 - 1500){ st.push(tt); tt += zaPace("dual-task.aralik") + Math.random() * 600; }
 for(let i = 0; i < beeps; i++) bt.push(1200 + Math.random() * (secs * 1000 - 2400));
-return { secs, beeps, bt: bt.sort((a, b) => a - b), st, show: pre ? 1500 : 1200 }; }); }
+return { secs, beeps, bt: bt.sort((a, b) => a - b), st, show: zaPace("dual-task.hedef") }; }); }
 const stopDirs = () => ["l", "r", "u", "d"].slice(0, (isPre() ? [2, 3, 3] : [2, 3, 4])[Math.min(currentCombo().t, 2)]);   /* yön düğmesi sayısı düzeye göre */
 function stopArrowSVG(dir, col, px){ const rot = { r:0, l:180, u:-90, d:90 }[dir] || 0; return `<svg viewBox="0 0 100 100" width="${px}" height="${px}" style="display:block"><g transform="rotate(${rot} 50 50)"><path d="M14 40 H56 V22 L88 50 L56 78 V60 H14 Z" fill="${col}" stroke="${col}" stroke-width="6" stroke-linejoin="round"/></g></svg>`; }
-function stopTrials(){ const t = currentCombo().t, pre = isPre(), N = selCount(), ssd = 0, win = (pre ? [2000, 1800, 1600] : [1800, 1600, 1400])[Math.min(t, 2)], D = stopDirs();   /* zorluk: yanıt süresi kısalır */   /* ok sayısı düzeye göre */ const out = []; for(let i = 0; i < N; i++){ let dir, g = 0; do{ dir = randomItem(D); g++; } while(g < 20 && i >= 2 && out[i - 1].dir === dir && out[i - 2].dir === dir); out.push({ dir, stop: i > 1 && Math.random() < 0.25, ssd, win }); } return out; }
-function vigBuild(){ const t = currentCombo().t, pre = isPre(), N = pre ? [24, 30, 36][t] : [36, 48, 60][t], ms = pre ? 1300 : [1100, 950, 850][t];
+function stopTrials(){ const t = currentCombo().t, pre = isPre(), N = selCount(), ssd = 0, win = zaPace("stop-signal"), D = stopDirs();   /* zorluk: yanıt süresi kısalır */   /* ok sayısı düzeye göre */ const out = []; for(let i = 0; i < N; i++){ let dir, g = 0; do{ dir = randomItem(D); g++; } while(g < 20 && i >= 2 && out[i - 1].dir === dir && out[i - 2].dir === dir); out.push({ dir, stop: i > 1 && Math.random() < 0.25, ssd, win }); } return out; }
+function vigBuild(){ const t = currentCombo().t, pre = isPre(), N = pre ? [24, 30, 36][t] : [36, 48, 60][t], ms = zaPace("vigilance");
 const seq = Array.from({length:N}, (_, i) => { const tg = i > 2 && Math.random() < 0.15; if(tg) return { sh:"star", col:"#E5484D", tg:true };
 if(!pre && Math.random() < 0.35) return Math.random() < 0.5 ? { sh:"circle", col:ACC.kirmizi } : { sh:"star", col:ACC.mavi };
 return { sh: randomItem(["circle","square","triangle","heart"]), col: randomItem([ACC.mavi,ACC.yesil,ACC.turuncu,ACC.mor]) }; });
 if(!seq.some(x => x.tg)) seq[5] = { sh:"star", col:"#E5484D", tg:true }; return { seq, ms }; }
 function pnbBuild(){ const t = currentCombo().t, pre = isPre(), n = pre ? [1, 1, 1, 2][t] : [1, 2, 2, 3][t], L = pre ? [10, 12, 14, 14][t] : [14, 16, 20, 22][t], seq = [];
 for(let i = 0; i < L; i++){ if(i >= n && Math.random() < 0.3) seq.push(seq[i - n]); else { let v; do{ v = Math.floor(Math.random() * 9); } while(i >= n && v === seq[i - n]); seq.push(v); } }
-return { n, seq, ms: pre ? 1900 : 1600 }; }
+return { n, seq, ms: zaPace("pos-nback") }; }
 function cspTrials(){ const t = currentCombo().t, L = (isPre() ? [2, 3, 3, 4] : [2, 3, 4, 5])[t];
 return Array.from({length:3}, () => ({ counts: Array.from({length:L}, () => 2 + Math.floor(Math.random() * (isPre() ? (t >= 2 ? 4 : 3) : 5))) })); }   // öncesi Zor: aynı uzunluk, daha büyük sayılar
 
 const TONE_KEYS = [ { c:ACC.kirmizi, f:392 }, { c:ACC.mavi, f:494 }, { c:ACC.yesil, f:587 }, { c:ACC.turuncu, f:698 } ];
-function toneBeep(f){ try{ const ctx = getAudioCtx(); if(!ctx) return; if(ctx.state === "suspended") ctx.resume(); sfxTone(ctx, f, ctx.currentTime + 0.005, 0.32, "sine", 0.28); }catch(e){} }
+function toneBeep(f){ try{ const ctx = getAudioCtx(); if(!ctx) return; if(ctx.state === "suspended") ctx.resume(); stimTone(ctx, f, ctx.currentTime + 0.005, 0.32, 0.55); }catch(e){} }   /* uyaran sesi kuralı: rhyBeep üstünde */
 function toneTrials(){ const t = currentCombo().t, L = (isPre() ? [2, 3, 4] : [3, 4, 5])[t]; return Array.from({length:4}, () => Array.from({length:L}, () => Math.floor(Math.random() * 4))); }
 const WS_MIRROR_OK = new Set(["t-car","t-train","t-kite","t-puzzle","t-ball","h-cup","h-scissors","h-lamp","h-comb","h-broom","h-clock","f-banana","f-grapes","f-cucumber","f-apple"]);   /* ayna görüntüsü belirgin farklı olan resimler (gözle seçildi); simetrik nesnelerde ayna = aslı */
 function wsTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 5 : 6, pool = picPool();
@@ -1504,14 +1509,14 @@ const RHYME_DONE = { pre:[ { t:0, q:"“Minik kedi süt içer, bıyığından s�
 const PK_COLS = [["kırmızı",ACC.kirmizi],["mavi",ACC.mavi],["sarı",ACC.sari],["yeşil",ACC.yesil]];
 const pkAlive = (st, my) => mtState === st && timerRunning && (my == null || st.round === my);
 /* pkHud: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
-function blnCfg(){ const t = currentCombo().t, pre = isPre(); return { N: pre ? [8, 10, 12][t] : [12, 15, 18][t], rise: (pre ? [6.5, 5.5, 4.8] : [5.2, 4.4, 3.6])[t], gap: (pre ? [1100, 1000, 900] : [900, 800, 700])[t], sw: !pre && t >= 1 }; }
-function molCfg(){ const t = currentCombo().t, pre = isPre(); return { N: pre ? [10, 12, 14][t] : [14, 18, 22][t], up: (pre ? [1600, 1350, 1150] : [1150, 950, 780])[t], hat: pre && t === 0 ? 0 : 0.22 }; }
-function ctcCfg(){ const t = currentCombo().t, pre = isPre(); return { N: pre ? [10, 12, 14][t] : [14, 18, 22][t], fall: (pre ? [3.4, 3.0, 2.6] : [2.8, 2.3, 1.9])[t], stone: pre ? 0.2 : 0.3, gap: (pre ? [1200, 1050, 950] : [1000, 850, 720])[t] }; }
+function blnCfg(){ const t = currentCombo().t, pre = isPre(); return { N: pre ? [8, 10, 12][t] : [12, 15, 18][t], rise: zaPace("pk-balloon.yukselis"), gap: zaPace("pk-balloon.aralik"), sw: !pre && t >= 1 }; }
+function molCfg(){ const t = currentCombo().t, pre = isPre(); return { N: pre ? [10, 12, 14][t] : [14, 18, 22][t], up: zaPace("pk-mole"), hat: pre && t === 0 ? 0 : 0.22 }; }
+function ctcCfg(){ const t = currentCombo().t, pre = isPre(); return { N: pre ? [10, 12, 14][t] : [14, 18, 22][t], fall: zaPace("pk-catch.dusus"), stone: pre ? 0.2 : 0.3, gap: zaPace("pk-catch.aralik") }; }
 function bagTrials(){ const t = currentCombo().t, pre = isPre(), K = pre ? [2, 3, 3][t] : [3, 4, 5][t];
 return Array.from({length:4}, () => { const pool = shuffleArray(picPool()), inBag = pool.slice(0, K), out = pool.slice(K, K + 3), askIn = t === 0;
 const opts = askIn ? shuffleArray([inBag[0]].concat(out.slice(0, 2))) : shuffleArray(inBag.slice(0, Math.min(K, 3)).concat([out[0]]));
 return { inBag, opts, ans: askIn ? opts.indexOf(inBag[0]) : opts.indexOf(out[0]), askIn }; }); }
-function smnCfg(){ const t = currentCombo().t, pre = isPre(); return { target: pre ? [3, 4, 5, 6][t] : [5, 7, 9, 11][t], ms: (pre ? [800, 700, 650, 600] : [650, 550, 450, 400])[t] }; }
+function smnCfg(){ const t = currentCombo().t, pre = isPre(); return { target: pre ? [3, 4, 5, 6][t] : [5, 7, 9, 11][t], ms: zaPace("pk-simon") }; }
 /* KURAL (görsellik): renkli oyun sahnelerinde fotoğraflar beyaz kutuyla değil, zemini saydamlaştırılmış hâliyle (CUTOUT_IMAGES) gösterilir; kodla çizilen sahne nesneleri (sepet, taş, fener…) gölgeli, katmanlı çizimdir */
 /* KURAL (görsellik): oyun sahnesi nesneleri kullanıcının ürettiği resimlerle (GAME_IMAGES) gösterilir; resim paketi yoksa eski çizime düşülür */
 function gimg(n){ try{ return (typeof GAME_IMAGES !== "undefined" && GAME_IMAGES[n]) || null; }catch(e){ return null; } }
@@ -1584,7 +1589,7 @@ const PK_BASKET_SVG = `<svg viewBox="0 0 120 70" width="100%" height="100%" pres
 /* KURAL (görsel düzen): konum hatırlama sahnelerinde yerler rastgele saçılmaz; önceden tasarlanmış dengeli şablonlardan seçilir (tam simetrik/sıralı değil — konumlar sözel kodlanmasın), her açılışta ayna/hafif kaydırma ile değişir */
 const LH_LAYOUTS = { 4: [[[22,30],[70,24],[34,72],[78,66]],[[20,52],[52,22],[82,48],[50,78]]], 5: [[[18,28],[56,20],[84,44],[30,70],[68,76]],[[24,22],[74,30],[50,50],[18,74],[80,76]]], 6: [[[16,26],[50,18],[84,30],[28,62],[66,56],[50,84]],[[20,20],[62,26],[86,56],[14,58],[46,54],[70,84]]], 7: [[[14,24],[44,16],[78,22],[28,52],[62,48],[86,66],[44,82]],[[18,18],[56,22],[86,32],[14,56],[48,52],[76,72],[30,84]]], 8: [[[14,22],[42,14],[72,20],[88,46],[26,48],[58,46],[18,80],[64,80]],[[16,16],[50,20],[84,18],[30,46],[68,44],[12,72],[46,80],[84,74]]], 9: [[[12,20],[40,14],[70,18],[90,40],[24,46],[54,44],[80,66],[14,78],[48,82]],[[14,14],[46,18],[80,14],[28,40],[64,42],[90,56],[12,66],[44,74],[76,86]]] };
 function lhCfg(){ const t = currentCombo().t, pre = isPre(); const K = pre ? [4, 4, 4, 5][t] : [6, 7, 8, 9][t]; const L = LH_LAYOUTS[K] || LH_LAYOUTS[6], tpl = L[Math.floor(Math.random() * L.length)], mx = Math.random() < 0.5, my = Math.random() < 0.3; const pts = tpl.map(([x, y]) => { x = mx ? 100 - x : x; y = my ? 104 - y : y; return [Math.max(10, Math.min(90, x + (Math.random() * 4 - 2))), Math.max(16, Math.min(86, y + (Math.random() * 4 - 2)))]; });
-return { pts, target: pre ? [3, 4, 5, 6][t] : [4, 6, 8, 10][t], ms: (pre ? [900, 800, 700, 650] : [750, 650, 550, 480])[t] }; }
+return { pts, target: pre ? [3, 4, 5, 6][t] : [4, 6, 8, 10][t], ms: zaPace("pk-light") }; }
 /* KURAL (SVG): sayfada tekrar eden çizimlerde degrade/desen kimlikleri her kopyada benzersizdir; aksi hâlde gizli kopyadaki kimliğe bağlanıp dolgu boş görünür */
 const LH_SVG = (on, k = 0) => { const u = gimg(on ? "lhOn" : "lhOff"); return u ? `<img src="${u}" alt="" style="width:100%;height:100%;object-fit:contain;object-position:bottom;pointer-events:none${on ? ";filter:drop-shadow(0 0 10px rgba(255,214,70,.95)) drop-shadow(0 0 22px rgba(255,214,70,.7))" : ""}">` : LH_SVG_DRAW(on, k); };   /* deniz feneri görselleri gelince gerçek fener */
 const LH_SVG_DRAW = (on, k = 0) => `<svg viewBox="0 0 60 90" width="100%" height="100%" aria-hidden="true"><defs><linearGradient id="lhT${k}_${on ? 1 : 0}" x1="0" x2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".65" stop-color="#F1F4F8"/><stop offset="1" stop-color="#C9D2DC"/></linearGradient><linearGradient id="lhR${k}_${on ? 1 : 0}" x1="0" x2="1"><stop offset="0" stop-color="#E5484D"/><stop offset=".7" stop-color="#C9353A"/><stop offset="1" stop-color="#A72A2E"/></linearGradient><radialGradient id="lhG${k}"><stop offset="0" stop-color="#FFF6B8" stop-opacity=".95"/><stop offset=".45" stop-color="#FFE27A" stop-opacity=".55"/><stop offset="1" stop-color="#FFE27A" stop-opacity="0"/></radialGradient></defs>${on ? `<circle cx="30" cy="22" r="22" fill="url(#lhG${k})"/><path d="M36 20 L60 12 L60 30 Z M24 20 L0 12 L0 30 Z" fill="#FFE98F" opacity=".7"/>` : ""}<ellipse cx="30" cy="86" rx="20" ry="4" fill="#1D4E7A" opacity=".35"/><path d="M14 86 Q30 78 46 86 Z" fill="#6F7B88"/><path d="M21 82 L24 36 H36 L39 82 Z" fill="url(#lhT${k}_${on ? 1 : 0})" stroke="#2B3A4A" stroke-width="1.6" stroke-linejoin="round"/><path d="M23 70.5 L37 70.5 L37.6 78 L22.4 78 Z M23.8 55 L36.2 55 L36.7 62 L23.3 62 Z M24.5 41 L35.5 41 L35.9 47 L24.1 47 Z" fill="url(#lhR${k}_${on ? 1 : 0})"/><rect x="20" y="32" width="20" height="4" rx="1.5" fill="#2B3A4A"/><rect x="23" y="20" width="14" height="12" rx="2" fill="${on ? "#FFE27A" : "#BFD3E6"}" stroke="#2B3A4A" stroke-width="1.6"/><path d="M30 20 V32" stroke="#2B3A4A" stroke-width="1"/><path d="M21 20.5 Q30 9 39 20.5 Z" fill="url(#lhR${k}_${on ? 1 : 0})" stroke="#2B3A4A" stroke-width="1.6" stroke-linejoin="round"/><circle cx="30" cy="10" r="1.8" fill="#2B3A4A"/></svg>`;
@@ -1623,17 +1628,17 @@ return Array.from({length:N}, () => { const [a, ...rest] = shuffleArray(pool).sl
 const sil = (x, r, f) => { const c = geCut(x); return `<div class="ge-sil${c ? " cut" : ""}" style="width:100%;height:100%;transform:rotate(${r}deg)${f ? " scaleX(-1)" : ""}">${qzPic(c || x.src)}</div>`; };   /* saydam hâli yoksa beyaz zemini saydamlaştıran süzgeçle gölge yapılır */
 const opts = [sil(a, rot, flip)].concat(rest.map(x => sil(x, t === 2 ? randomItem([0, 90, 180]) : 0, false)));
 return qzMake(`<div style="width:120px;height:120px;margin:0 auto">${qzPic(a.src)}</div>`, opts, 0, { prompt: t === 2 ? "Hangi gölge onun? (Gölge dönmüş olabilir)" : "Hangi <b>gölge</b> onun?", raw:true, fixed:true, cell:100 }); }); }
-function bkCfg(){ const t = currentCombo().t, pre = isPre(), n = pre ? [4, 5, 5][t] : [5, 6, 7][t], clouds = pre ? [1, 1, 2][t] : [1, 2, 3][t], ms = (pre ? [1300, 1100, 950] : [1000, 850, 700])[t];
+function bkCfg(){ const t = currentCombo().t, pre = isPre(), n = pre ? [4, 5, 5][t] : [5, 6, 7][t], clouds = pre ? [1, 1, 2][t] : [1, 2, 3][t], ms = zaPace("pk-escape");
 return { n, walls: escBraid(mazeGen(n), n), clouds, ms }; }
 /* KURAL (Kaçış): labirentte birkaç ek geçit (döngü) açılır — bulut tek yolu kapatıp oyunu bitirilemez yapmasın. Gerçek hızda 200'er oyunluk benzetimde bütün düzeylerde 10 dakikada bitmeyen oyun 0 */
 function escBraid(W, n){ try{ let k = n, g = 0; while(k > 0 && g++ < 500){ const i = Math.floor(Math.random() * n * n), d = []; if(i % n < n - 1 && W[i].e) d.push("e"); if(i + n < n * n && W[i].s) d.push("s"); if(!d.length) continue; const x = d[Math.floor(Math.random() * d.length)]; if(x === "e"){ W[i].e = 0; W[i + 1].w = 0; } else { W[i].s = 0; W[i + n].n = 0; } k--; } }catch(e){} return W; }
 
-function rlCfg(){ const t = currentCombo().t, pre = isPre(); return { grace: (pre ? [1000, 850, 700] : [800, 650, 500])[t], green: pre ? [1600, 3200] : [900, 2600], red: [1200, 2000], speed: (pre ? [16, 14, 12] : [13, 11, 10])[t] }; }
+function rlCfg(){ const t = currentCombo().t, pre = isPre(); return { grace: zaPace("pk-redlight"), green: pre ? [1600, 3200] : [900, 2600], red: [1200, 2000], speed: (pre ? [16, 14, 12] : [13, 11, 10])[t] }; }
 function wtTrials(){ const t = currentCombo().t, pre = isPre(), kinds = pre ? [1, 2, 2][t] : [2, 3, 3][t], hide = !pre && t >= 1 || pre && t === 2;
 const fr = shuffleArray(qzCats().meyve.items.slice()).slice(0, 4);
 return Array.from({length:4}, () => { const pick = shuffleArray(fr.slice()).slice(0, kinds), order = pick.map(x => ({ x, n: 1 + Math.floor(Math.random() * (pre ? 2 : 3)) }));
 return { order, shelf: fr, hide, ms: (pre ? 4500 : [4500, 3800, 3200][t]) }; }); }
-function drCfg(){ const t = currentCombo().t, pre = isPre(); return { beat: (pre ? [900, 820, 750] : [700, 620, 560])[t], win: (pre ? [320, 280, 240] : [260, 220, 180])[t], demo: 4, taps: 12 }; }
+function drCfg(){ const t = currentCombo().t, pre = isPre(); return { beat: zaPace("pk-drum.vurus"), win: zaPace("pk-drum.pay"), demo: 4, taps: 12 }; }
 const COOP_IDS = ["pk-mole","pk-simon","pk-slide","pk-redlight","pk-drum"];
 function coopScore(st){ if(st.kind === "slide") return { v: st.moves, unit:"hamle", low:true }; if(st.kind === "rl") return { v: st.caught, unit:"yakalanma", low:true }; return { v: st.score || 0, unit:"puan", low:false }; }
 function coopAfter(st, errors){ const c = gameStop.coop, sc = coopScore(st); c.res.push(Object.assign({ errors }, sc));
@@ -2114,9 +2119,12 @@ function wcCardSVG(card, px){ const n = card.n, s = Math.round(px * (n === 1 ? 0
 /* Hangisi Kazandırıyor? (ters öğrenme): yıldız veren resim, ölçüt sağlanınca değişir */
 function revCfg(){ const t = Math.min(currentCombo().t, 2), pre = isPre(), pool = shuffleArray(picPool()).slice(0, 2); return { pics: pool, K: pre ? [4, 4, 3][t] : [4, 3, 3][t], maxRev: pre ? [1, 2, 3][t] : [2, 3, 4][t], N: selCount() }; }
 /* Navon: küçük şekillerden oluşan büyük şekil */
-const NV_SHAPES = ["circle", "square", "triangle"];
+const NV_SHAPES = ["circle", "square", "triangle", "cross"];
+/* KURAL (Büyük Şekil seçenek sayısı, 2026-11-15): seçenek sayısı düzeye göre 2 – 3 – 4 (1. düzey daire–kare, 2. düzey + üçgen, 3. düzey + artı); büyük ve küçük şekil her zaman seçeneklerin içindendir */
+const nvShapes = () => NV_SHAPES.slice(0, [2, 3, 4][Math.max(0, Math.min(2, currentCombo().t | 0))]);
 function navonPts(big){ const P = []; if(big === "circle"){ for(let i = 0; i < 12; i++){ const a = i / 12 * Math.PI * 2; P.push([50 + 38 * Math.cos(a), 50 + 38 * Math.sin(a)]); } }
   else if(big === "square"){ for(let i = 0; i < 4; i++) for(let k = 0; k < 4; k++){ const x = 14 + k * 24, y = 14 + i * 24; if(i === 0 || i === 3 || k === 0 || k === 3) P.push([x, y]); } }
+  else if(big === "cross"){ for(const v of [14, 32, 50, 68, 86]) P.push([50, v]); for(const v of [14, 32, 68, 86]) P.push([v, 50]); }
   else { const T = [[50, 10], [10, 86], [90, 86]]; for(let e = 0; e < 3; e++){ const [x1, y1] = T[e], [x2, y2] = T[(e + 1) % 3]; for(let k = 0; k < 4; k++) P.push([x1 + (x2 - x1) * k / 4, y1 + (y2 - y1) * k / 4]); } }
   return P; }
 function navonSVG(big, small, color){ return `<svg viewBox="0 0 100 100" style="width:100%;height:100%;display:block">${navonPts(big).map(([x, y]) => `<svg x="${x - 5.5}" y="${y - 5.5}" width="11" height="11" viewBox="0 0 100 100">${sortShapeSVG(small, color)}</svg>`).join("")}</svg>`; }
@@ -2394,7 +2402,7 @@ const bw = box.clientWidth - st.size, bh = box.clientHeight - st.size, k = (now 
 ball.style.left = (bw * (0.5 + 0.5 * Math.sin(k * 1.3 + ph))) + "px"; ball.style.top = (bh * (0.5 + 0.5 * Math.sin(k * 0.9 + ph * 1.7))) + "px"; requestAnimationFrame(step); };
 requestAnimationFrame(step); },
 time(){ const st = mtState; st.phase = "ready"; renderMtBoard(); document.documentElement.classList.add("hide-clock"); },
-ferr(){ const st = mtState; st.sel = {}; st.phase = "input"; renderMtBoard(); const tr = st.trials[st.ti]; if(tr && tr.rule) mtLater(() => sayTask(tr.rule, 1.0), 250); },   /* kısa ve hızlı */   /* kural seslendirilir */
+ferr(){ const st = mtState; st.sel = {}; st.phase = "input"; renderMtBoard(); const tr = st.trials[st.ti]; if(tr && tr.rule) mtLater(() => sayTask(tr.rule, ferrRate()), 250); },   /* KURAL (Hatayı Bul konuşma hızı, 2026-11-15): kural yavaş ve anlaşılır söylenir — okul öncesi 0.68, okul sonrası 0.76 — yönergelerin 0.85 hızından da yavaş (önceden 1.0, çok hızlıydı); "Kuralı tekrar söyle" de aynı hızdadır */   /* kural seslendirilir */
 cups(){ const st = mtState, tr = st.trials[st.ti]; st.slot = Array.from({length: tr.n}, (_, i) => i); st.phase = "show"; st.lift = true; renderMtBoard();
 mtLater(() => { st.lift = false; cupsApply(); }, 1300);
 tr.seq.forEach(([a, b], k) => mtLater(() => { const ca = st.slot.indexOf(a), cb = st.slot.indexOf(b); st.slot[ca] = b; st.slot[cb] = a; cupsApply(); }, 1800 + k * tr.ms));
@@ -2549,7 +2557,7 @@ mtLater(() => { st.phase = "ask"; st.tgt = null; renderMtBoard(); sayTask("Kaç 
 stop(){ const st = mtState, tr = st.trials[st.ti]; st.phase = "fix"; st.red = false; renderMtBoard(); const my = st.ti;
 mtLater(() => { if(st.ti !== my) return; st.phase = "go"; st.red = !!tr.stop; st.t0 = performance.now(); renderMtBoard();   /* kırmızı ok doğrudan kırmızı gelir (maviden dönmez) */
 mtLater(() => { if(st.ti === my && st.phase === "go"){ if(!tr.stop) mtErr(); else gameSfx("correct"); st.phase = "fb"; renderMtBoard(); mtLater(NEW_MT.next, 350); } }, tr.win || 1600); }, 500); },   /* mavi ve kırmızı aynı süre ekranda */
-tapr(){ const st = mtState, my = st.ti; st.phase = "show"; st.taps = 0; st.fb = null; renderMtBoard(); const win = (isPre() ? [3000, 2600, 2400] : [2400, 2000, 1700])[Math.min(currentCombo().t, 2)];
+tapr(){ const st = mtState, my = st.ti; st.phase = "show"; st.taps = 0; st.fb = null; renderMtBoard(); const win = zaPace("tap-reverse");
   mtLater(() => { if(st.ti === my && st.phase === "show") taprEval(); }, win); },
 statue(){ const st = mtState; st.phase = "run"; st.left = st.cfg.secs; renderMtBoard();
   const tick = () => { if(st.phase !== "run") return; st.left--; const el = document.getElementById("statueLeft"); if(el) el.textContent = st.left; if(st.left <= 0){ st.phase = "done"; renderMtBoard(); stopTimer(); showLevelFlash("Süre doldu! Hata sayısını kontrol edin.", "levelup"); return; } mtLater(tick, 1000); }; mtLater(tick, 1000);
@@ -2803,7 +2811,7 @@ st.phase = "fb"; st.reveal = true; renderMtBoard(); mtLater(() => { st.reveal = 
 "time-stop"(){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "timing") return; if(performance.now() - st.t0 < 800) return;   /* Başla ile aynı yerde: yanlışlıkla çift dokunuş Dur sayılmaz */ const sec = (performance.now() - st.t0) / 1000 / (window.__wmSpeed || 1), ok = Math.abs(sec - tr.secs) <= tr.secs * tr.tol;
 st.last = { sec, ok }; st.res.push(+sec.toFixed(1)); if(ok) gameSfx("correct"); else mtErr(); st.phase = "fb"; renderMtBoard();
 mtLater(() => { st.ti++; if(st.ti >= st.trials.length){ document.documentElement.classList.remove("hide-clock"); mtFinish(` Tahminler: ${st.res.join(" · ")} sn`); return; } st.phase = "ready"; renderMtBoard(); }, 2500); },
-"ferr-say"(){ const st = mtState, tr = st && st.trials[st.ti]; if(tr && tr.rule) sayTask(tr.rule, 1.0); }, "ferr-done"(){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "input") return; let e = 0; tr.items.forEach((it, i) => { if(!!it.bad !== !!st.sel[i]) e++; }); for(let k = 0; k < e; k++) mtErr(); if(!e) gameSfx("correct");
+"ferr-say"(){ const st = mtState, tr = st && st.trials[st.ti]; if(tr && tr.rule) sayTask(tr.rule, ferrRate()); }, "ferr-done"(){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "input") return; let e = 0; tr.items.forEach((it, i) => { if(!!it.bad !== !!st.sel[i]) e++; }); for(let k = 0; k < e; k++) mtErr(); if(!e) gameSfx("correct");
 st.phase = "fb"; renderMtBoard(); mtLater(() => { st.sel = {}; NEW_MT.next(); }, e ? 1800 : 700); },
 "rhy-done"(){ const st = mtState; if(st.phase !== "input") return; rhyEval(); },
 "per-x"(){},
@@ -3360,9 +3368,11 @@ info = st.phase === "fb" ? (st.fb.loss ? `<b style="color:var(--bad)">${st.fb.ga
 const box = (i) => { const isRisk = i === 0, col = isRisk ? ACC.mor : ACC.mavi, fb = st.phase === "fb" && st.fb && st.fb.i === i; const faces = fb ? `<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:2px;margin-top:2px">${Array.from({length: st.fb.gain}, () => `<img src="${FACE_IMAGES.happy}" alt="" style="width:${Math.round(c * 0.2)}px;height:${Math.round(c * 0.2)}px;object-fit:contain">`).join("")}${Array.from({length: st.fb.loss}, () => `<img src="${FACE_IMAGES.sad}" alt="" style="width:${Math.round(c * 0.2)}px;height:${Math.round(c * 0.2)}px;object-fit:contain">`).join("")}</div>` : `<div style="font-size:${Math.round(c * 0.42)}px;line-height:1.1">📦</div>`; return `<div class="wm-pic${fb ? (st.fb.loss ? " bad" : " ok") : ""}" data-mt="${i}" style="width:${c}px;height:${c}px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-color:${col};cursor:pointer">${faces}<b style="color:${col};font-size:13px">${isRisk ? "Mor kutu" : "Mavi kutu"}</b></div>`; };
 body = dots + `<div style="display:flex;gap:16px;justify-content:center;margin-top:6px">${order.map(box).join("")}</div><div class="aud-key" style="text-align:center;margin-top:8px">Yıldızların: <b style="font-size:16px">${st.stars}</b> ⭐</div>`;
 } else if(st.kind === "ktrack"){
-const tr = st.trials[Math.min(ti, st.trials.length - 1)], c = Math.min(isLs ? 150 : 180, W * 0.5);
+/* KURAL (Her Gruptan Son resim kartı, 2026-11-15): resim ve adı kartın içinde kalır (resim kutusu = kart − ad satırı); kart ekranda kalan yere göre büyür (dikeyde genişliğin %80'i, en çok 300 px; yatayda kalan yükseklik) */
+const tr = st.trials[Math.min(ti, st.trials.length - 1)], c = Math.max(120, Math.floor(isLs ? Math.min(H - 40, W * 0.5, 260) : Math.min(W * 0.8, H - 50, 300 * tabletScale())));
 if(st.phase === "study"){ const x = st.si >= 0 ? tr.seq[st.si] : null; info = `<b>İzle, dinle…</b> ${Math.max(0, st.si + 1)}/${tr.seq.length} · gruplar: <b>${tr.cats.map(k => k.n).join(", ")}</b>`;
-  body = dots + `<div style="display:flex;justify-content:center"><div class="wm-card" style="width:${c}px;height:${c}px;flex-direction:column;gap:4px">${x ? `${imgTag(x.src)}<b style="font-size:16px">${x.n}</b>` : ""}</div></div>`; }
+  const lab = Math.max(18, Math.round(c * 0.09)), pic = c - lab - 34;
+  body = dots + `<div style="display:flex;justify-content:center"><div class="wm-card kt-card" style="width:${c}px;height:${c}px;flex-direction:column;gap:6px;padding:8px;box-sizing:border-box;overflow:hidden">${x ? `<img src="${x.src}" alt="" style="width:${pic}px;height:${pic}px;object-fit:contain;display:block;flex:0 0 auto"><b style="font-size:${lab}px;line-height:1.1">${x.n}</b>` : ""}</div></div>`; }
 else { info = `<b>Her grubun en son geleni söyle.</b>`;
   body = dots + `<div style="display:flex;flex-direction:column;gap:6px;align-items:center">${tr.cats.map((k, q) => `<div style="display:flex;align-items:center;gap:8px;justify-content:center"><b style="min-width:90px">${cap(k.n)}:</b><span class="aud-key">beklenen <b>${tr.last[k.k]}</b></span></div>`).join("")}</div><div class="aud-key" style="text-align:center;margin-top:6px">Yetişkin: hatırlanmayan her sonuncu için <b>Hata sayısı +</b>, sonra ${ti + 1 < st.trials.length ? "Sonraki tur" : "Bitir"}</div>` + (st.phase === "ask" ? `<div class="wm-btns" style="margin:8px auto 0"><button type="button" class="wm-btn same" data-mtbtn="kt-next">${ti + 1 < st.trials.length ? "Sonraki tur ▶" : "✓ Bitir"}</button></div>` : ""); }
 } else if(st.kind === "movesay"){

@@ -1486,6 +1486,28 @@ cursor:pointer; position:relative; box-sizing:border-box; -webkit-tap-highlight-
 @keyframes srtPulse{ 50%{ transform:scale(1.06); } }
 .srt-card{ border:3px dashed #9AA0A6; border-radius:16px; background:var(--panel); display:flex; align-items:center; justify-content:center; box-sizing:border-box; overflow:hidden; }
 .srt-prog{ font-size:13px; font-weight:700; color:var(--muted, #5B6B78); }
+/* KURAL (Yaratık Sayma akışı, 2026-11-15): tek sahne — yaratık ve tabelalar sırayla ortada belirir (bkz. zihin-3-akis.js) */
+.cc-stage{ position:relative; width:100%; height:100%; overflow:hidden; }
+.cc-slot{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; opacity:0; animation-name:ccSlot; animation-timing-function:linear; animation-fill-mode:both; }
+@keyframes ccSlot{ 0%{ opacity:0; transform:translateY(14%) scale(.55); } 9%{ opacity:1; transform:translateY(-4%) scale(1.08); } 16%{ transform:none; } 84%{ opacity:1; transform:none; } 100%{ opacity:0; transform:scale(.9); } }
+.cc-cr{ display:flex; flex-direction:column; align-items:center; gap:2px; }
+.cc-num{ font-weight:900; color:#2E6F6E; line-height:1; background:#EAF4F3; border-radius:999px; padding:2px 16px; }
+.cc-start{ display:flex; flex-direction:column; align-items:center; gap:4px; font-weight:800; color:var(--ink); text-align:center; }
+.cc-zero{ font-weight:900; color:#2E6F6E; line-height:1; }
+.cc-sign{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:10px 22px; border-radius:18px; color:#fff; font-weight:900; letter-spacing:.5px; box-shadow:0 6px 0 rgba(0,0,0,.15); }
+.cc-sign.up{ background:#1E9E5A; } .cc-sign.down{ background:#D93636; }
+.cc-path{ display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:center; gap:4px 6px; padding:6px; max-height:78%; overflow:hidden; }
+.cc-pt{ display:flex; flex-direction:column; align-items:center; font-weight:900; line-height:1.05; color:var(--ink); }
+.cc-pt.up{ color:#1E9E5A; align-self:center; } .cc-pt.down{ color:#D93636; align-self:center; }
+.cc-ans{ font-weight:800; font-size:16px; text-align:center; }
+.cc-ask{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; height:100%; color:var(--ink); }
+@media (prefers-reduced-motion: reduce){ @keyframes ccSlot{ 0%{ opacity:0; } 6%{ opacity:1; } 90%{ opacity:1; } 100%{ opacity:0; } } }
+/* KURAL (Kart Sıralama yeni kart, 2026-11-15): yeni kart yukarıdan masaya düşer gibi gelir, sayaç bir an büyür — yeni denemenin geldiği anlaşılır */
+.srt-card.srt-in{ animation:srtIn .34s cubic-bezier(.2,.8,.3,1.2) both; }
+@keyframes srtIn{ 0%{ opacity:0; transform:translateY(-22px) rotate(-4deg) scale(.86); } 100%{ opacity:1; transform:none; } }
+.srt-prog.srt-tick{ animation:srtTick .5s ease both; }
+@keyframes srtTick{ 0%{ transform:scale(1); color:var(--muted, #5B6B78); } 35%{ transform:scale(1.25); color:#2E6F6E; } 100%{ transform:scale(1); } }
+@media (prefers-reduced-motion: reduce){ .srt-card.srt-in{ animation:srtFade .25s ease both; } @keyframes srtFade{ 0%{ opacity:0; } 100%{ opacity:1; } } .srt-prog.srt-tick{ animation:none; } }
 .srt-face{ width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
 .srt-word{ font-weight:900; letter-spacing:0.5px; }
 
@@ -2779,7 +2801,7 @@ button, input, select, textarea, option{ font-family:inherit; }
 .ex-today .ex-go-txt{ opacity:.85; margin-top:2px; }
 .ex-today:active{ transform:translateY(2px); }
 </style>
-<link rel="stylesheet" href="zihin-stil.css?v=2026.11.14-b">
+<link rel="stylesheet" href="zihin-stil.css?v=2026.11.15-b">
 </head>
 <body>
 <div class="brand-splash" id="brandSplash" aria-hidden="true">
@@ -2993,7 +3015,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.11.14-b</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.11.15-b</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -3429,23 +3451,23 @@ dispatchFbReady();
 window.__zaErr = []; window.addEventListener('error', function(e){ try{ window.__zaErr.push(((e && e.message) || 'hata') + (e && e.lineno ? ' (satır ' + e.lineno + ')' : '')); }catch(_){} });
 window.__zaRescue = function(){ var go = function(){ var u = location.href.split('#')[0].replace(/[?&]r=\d+/, ''); location.replace(u + (u.indexOf('?') > -1 ? '&' : '?') + 'r=' + Date.now()); }; try{ var ps = []; if(window.caches && caches.keys) ps.push(caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); })); if(navigator.serviceWorker && navigator.serviceWorker.getRegistrations) ps.push(navigator.serviceWorker.getRegistrations().then(function(rs){ return Promise.all(rs.map(function(r){ return r.unregister(); })); })); Promise.all(ps).then(go, go); setTimeout(go, 2500); }catch(e){ go(); } };
 setTimeout(function(){ if(window.__zaReady && window.__zaBooted) return; var err = (window.__zaErr || []).slice(0, 2).join(' · '); var d=document.createElement('div'); d.id='zaBootHelp'; d.style.cssText='position:fixed;inset:0;z-index:99999;background:#F6FBFA;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;text-align:center;color:#1D2B36'; d.innerHTML='<div style="max-width:420px"><div style="font-size:22px;font-weight:800;margin-bottom:10px">Uygulama açılamadı</div><div style="font-size:15px;line-height:1.5">Genellikle güncelleme sırasında dosyaların bir kısmı yeni, bir kısmı eski kaldığında olur. Önce dört dosyanın da (zihin-atolyesi.html, zihin-app.js, sw.js ve değişen zihin-gorsel dosyası) yüklendiğinden emin olun, sonra aşağıdaki düğmeye basın. <b>Kayıtlarınız silinmez.</b></div>' + (err ? '<div style="font-size:12px;color:#5B6B78;margin-top:10px;word-break:break-word">Ayrıntı: ' + err.replace(/</g, '&lt;') + '</div>' : '') + '<button onclick="window.__zaRescue()" style="margin-top:16px;padding:12px 22px;border:0;border-radius:14px;background:#0A847E;color:#fff;font-size:16px;font-weight:800">Önbelleği yenile ve aç</button></div>'; document.body.appendChild(d); }, 9000);</script>
-<script>window.ZA_HTML_VERSION = "2026.11.14-b";</script>
+<script>window.ZA_HTML_VERSION = "2026.11.15-b";</script>
 <!-- KURAL (dosya bölme, 2026-11-09 — mühendislik borcu 6. adım): uygulama kodu sekiz dosyadır ve bu sırayla yüklenir; sıra, eski tek dosyanın ardışık parçalarıdır, değiştirilemez. sw.js aynı listeyi önbelleğe alır -->
-<script src="zihin-0-ortak.js?v=2026.11.14-b"></script>
-<script src="zihin-1-tahtalar.js?v=2026.11.14-b"></script>
-<script src="zihin-2-calismalar.js?v=2026.11.14-b"></script>
-<script src="zihin-3-akis.js?v=2026.11.14-b"></script>
-<script src="zihin-4-bellek.js?v=2026.11.14-b"></script>
-<script src="zihin-5-oyun-ici.js?v=2026.11.14-b"></script>
-<script src="zihin-6-ekran.js?v=2026.11.14-b"></script>
-<script src="zihin-7-adalar.js?v=2026.11.14-b"></script>
-<script src="zihin-8-aile.js?v=2026.11.14-b"></script>
+<script src="zihin-0-ortak.js?v=2026.11.15-b"></script>
+<script src="zihin-1-tahtalar.js?v=2026.11.15-b"></script>
+<script src="zihin-2-calismalar.js?v=2026.11.15-b"></script>
+<script src="zihin-3-akis.js?v=2026.11.15-b"></script>
+<script src="zihin-4-bellek.js?v=2026.11.15-b"></script>
+<script src="zihin-5-oyun-ici.js?v=2026.11.15-b"></script>
+<script src="zihin-6-ekran.js?v=2026.11.15-b"></script>
+<script src="zihin-7-adalar.js?v=2026.11.15-b"></script>
+<script src="zihin-8-aile.js?v=2026.11.15-b"></script>
 <div id="imgBar" style="position:fixed;left:0;top:0;height:3px;width:100%;background:rgba(0,0,0,.06);z-index:9999;pointer-events:none"><div id="imgProg" style="height:100%;width:0;background:#1FA463;transition:width .3s"></div></div>
 <div id="imgWarn" style="display:none;position:fixed;left:12px;right:12px;bottom:92px;z-index:9997;background:#FFF4E5;color:#9A3412;border:2px solid #F59E0B;border-radius:14px;padding:10px 14px;font-weight:700;font-size:14px;text-align:center"></div>
 <div id="imgOverlay" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,.92);z-index:9998;align-items:center;justify-content:center;flex-direction:column;gap:14px;font-weight:800;color:#1F2A37;padding:24px;text-align:center"><div id="imgTitle" style="font-size:20px">Resimler yükleniyor…</div><div style="width:min(320px,80%);height:10px;background:#E6ECF2;border-radius:999px;overflow:hidden"><div id="imgProg2" style="height:100%;width:0;background:#1FA463;transition:width .3s"></div></div><div id="imgPct" style="font-size:15px;color:#5B6B7A">%0</div><div style="font-size:13px;color:#5B6B7A;font-weight:600">Yalnızca ilk açılışta sürer; sonraki açılışlarda resimler cihazdan gelir.</div></div>
 <script>
 (function(){ /* Resim dosyaları arkada, paralel yüklenir; uygulama beklemeden açılır. Yüklenen dosya eski/eksikse (ör. eski service worker önbelleği) önbelleği atlayarak yeniden indirilir. */
-  const v = "2026.11.14-b"; const files = [["zihin-gorsel-1.js", 8.2, "STORY_PRE_IMAGES", "61fcffa782"], ["zihin-gorsel-2.js", 4.8, "PART_IMAGES", "4d3ee55218"], ["zihin-gorsel-3.js", 5.8, "NEW_IMAGES_5", "2f506b3546"], ["zihin-gorsel-4.js", 0.7, "EF_IMAGES", "982a55b1f2"], ["zihin-gorsel-5.js", 10.1, "BAL_PANS", "50a8d4bc3b"]];   /* sonda: dosyaya en son eklenen resim (dosya eskiyse yoktur) */ const total = files.reduce((a, f) => a + f[1], 0); let got = 0, done = 0;
+  const v = "2026.11.15-b"; const files = [["zihin-gorsel-1.js", 8.2, "STORY_PRE_IMAGES", "61fcffa782"], ["zihin-gorsel-2.js", 4.8, "PART_IMAGES", "4d3ee55218"], ["zihin-gorsel-3.js", 5.8, "NEW_IMAGES_5", "2f506b3546"], ["zihin-gorsel-4.js", 0.7, "EF_IMAGES", "982a55b1f2"], ["zihin-gorsel-5.js", 10.1, "BAL_PANS", "50a8d4bc3b"]];   /* sonda: dosyaya en son eklenen resim (dosya eskiyse yoktur) */ const total = files.reduce((a, f) => a + f[1], 0); let got = 0, done = 0;
   const show = () => { const pct = Math.round(got / total * 100); ["imgProg", "imgProg2"].forEach(id => { const el = document.getElementById(id); if(el) el.style.width = pct + "%"; }); const p = document.getElementById("imgPct"); if(p) p.textContent = "%" + pct; };
   const has = (name) => { try{ return eval("typeof " + name) !== "undefined" && eval(name) != null; }catch(e){ return false; } };
   const finish = async () => { const bar = document.getElementById("imgBar"); if(bar) setTimeout(() => bar.style.display = "none", 600); window.__imgMissing = files.filter(f => !has(f[2])).map(f => f[0] + " (" + f[2].replace(/^.*\./, "") + " resmi yok)");

@@ -254,7 +254,7 @@ btn.classList.remove("counting");
 btn.classList.add("go");
 btn.textContent = "Söyle!";
 if(row) row.classList.add("done");
-try{ beep(700, 900, 180, 0.15); }catch(e){}
+try{ if(soundEnabled){ const ctx = getAudioCtx(); if(ctx){ if(ctx.state === "suspended") ctx.resume(); stimTone(ctx, 784, ctx.currentTime + 0.005, 0.2, 0.5); } } }catch(e){}   /* "Söyle!" işareti: uyaran sesi yolundan, duyulur (uyaran sesi kuralı) */
 try{ vibrate(60); }catch(e){}
 }, 1000);
 audTimers.push(t);
@@ -1770,12 +1770,12 @@ return `<div class="srt-face"><img src="${img}" alt="" style="width:${Math.round
 }
 function faceWord(card, px){
 const len = card.word.length;
-const fs = Math.round(Math.min(px * 0.2, (px * 0.86) / (Math.max(3, len) * 0.68)));
+const fs = Math.round(Math.min(px * 0.2, (px * 0.86) / (Math.max(3, len) * 0.84)));   /* KURAL (Kart Sıralama kelime sığması, 2026-11-15): en uzun kelime de (KARNABAHAR, KAMYON) kartın içinde kalır — kalın büyük harf ortalama 0,84 em; önceki 0,68 varsayımı kelimeleri %12'ye kadar kırpıyordu */
 return `<div class="srt-face"><span class="srt-word" style="color:${card.color};font-size:${fs}px;">${trUpper(card.word)}</span></div>`;
 }
 const SORT_WORDS = {
 hayvan:  {1:["at","fil","koç","kuş"], 2:["kedi","köpek","aslan","tavşan"], 3:["zürafa","kelebek","papağan","karınca"], 4:["kaplumbağa","devekuşu","orangutan"]},
-yiyecek: {1:["süt","bal","nar"], 2:["ekmek","peynir","havuç","karpuz","elma"], 3:["domates","patates","portakal"], 4:["mandalina","çikolata","karnabahar"]},
+yiyecek: {1:["bal","nar","muz","et"],   /* KURAL (Kart Sıralama kategorileri, 2026-11-15): her kelime tek ve tartışmasız bir gruba girer — içecekler (süt, su, çay…) "yiyecek" grubuna konmaz */ 2:["ekmek","peynir","havuç","karpuz","elma"], 3:["domates","patates","portakal"], 4:["mandalina","çikolata","karnabahar"]},
 "eşya":  {1:["top","ip","zil"], 2:["masa","kalem","kaşık","dolap"], 3:["sandalye","tencere","anahtar","şemsiye"], 4:["televizyon","bilgisayar","buzdolabı"]},
 "taşıt": {1:["tır","jip","yat"], 2:["gemi","kamyon","uçak","tekne"], 3:["araba","otobüs","bisiklet"], 4:["motosiklet","denizaltı","helikopter"]}
 };
@@ -1833,6 +1833,9 @@ card.word = randomItem(pool.filter(w => !refs.some(r => r.word === w)));
 }
 return card;
 }
+/* KURAL (Kart Sıralama ardışık kart, 2026-11-15): art arda iki deneme aynı görünmez — aynı kart (aynı kelime, renk, şekil…) arka arkaya gelmez, kelimeli sıralamada aynı kelime arka arkaya gelmez; yalnızca iki olası kartı olan iki boyutlu sıralamada aynı kart en çok 2 kez üst üste gelir (yoksa tahmin edilebilir bir sıra olurdu). Önceki denetim karşılaştırmaya "phase" alanını kattığı için hiç çalışmıyordu */
+const sortCardKey = (c) => JSON.stringify(Object.keys(c).filter(k => k !== "phase" && k !== "order").sort().map(k => [k, c[k]]));
+function sortSameAsPrev(cards, c, twoOnly){ const a = cards[cards.length - 1], b = cards[cards.length - 2]; if(twoOnly) return !!(a && b && sortCardKey(a) === sortCardKey(c) && sortCardKey(b) === sortCardKey(c)); return !!a && (sortCardKey(a) === sortCardKey(c) || (c.word !== undefined && a.word === c.word)); }
 function makeSortDeck(){
 const spec = sortSpec();
 const t = currentCombo().t;
@@ -1854,7 +1857,7 @@ let c, gg = 0;
 do{
 c = crossTests ? Object.assign({}, randomItem(crossTests)) : makeConflictCard(spec, refs);
 gg++;
-} while(gg < 30 && cards.length && JSON.stringify(cards[cards.length-1]) === JSON.stringify(c));
+} while(gg < 60 && cards.length && sortSameAsPrev(cards, c, !!crossTests));
 c.phase = ph;
 cards.push(c);
 }
@@ -1931,11 +1934,13 @@ const order = (cur && cur.order) || (currentGrid[currentGrid.length-1] && curren
 const refsHtml = order.map(i => { const r = st.refs[i];
 return `<div class="srt-ref" data-ref="${i}" style="width:${ref}px;height:${refH}px;">${spec.face(r, Math.min(ref, spec.wide ? ref : refH))}</div>`; }).join("");
 const isLs = landscapeMQ.matches;
+/* KURAL (Kart Sıralama yeni kart, 2026-11-15): her yeni kart masaya kayarak gelir ve sayaç kısa bir an vurgulanır; ekran döndürmede yeniden çizim animasyonu tekrarlamaz */
+const fresh = !done && st._shownIdx !== st.idx; st._shownIdx = st.idx;
 const middle = done
 ? `<div class="srt-card" style="width:${card}px;height:${cardH}px;border-style:solid;"><div style="font-weight:800;text-align:center;padding:8px;">Bitti 🎉<br><span style="font-size:13px;font-weight:600;">${st.wrong} hata · ${st.persev} perseverasyon</span></div></div>`
-: `<div class="srt-card" style="width:${card}px;height:${cardH}px;">${spec.face(cur, card)}</div>`;
+: `<div class="srt-card${fresh && st.idx > 0 ? " srt-in" : ""}" style="width:${card}px;height:${cardH}px;">${spec.face(cur, card)}</div>`;
 const info = `<div class="srt-rule${st.justChanged ? " changed" : ""}" id="srtRule">Kural: ${sortRuleText(ph)} göre</div>` +
-`<div class="srt-prog">Kart ${Math.min(st.idx + 1, currentGrid.length)} / ${currentGrid.length}</div>`;
+`<div class="srt-prog${fresh && st.idx > 0 ? " srt-tick" : ""}">Kart ${Math.min(st.idx + 1, currentGrid.length)} / ${currentGrid.length}</div>`;
 board.innerHTML = isLs
 ? `<div class="srt-wrap" style="flex-direction:row;justify-content:center;gap:18px;">` +
 `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;">${info}${middle}</div>` +
