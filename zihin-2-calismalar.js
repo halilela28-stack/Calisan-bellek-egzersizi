@@ -3080,7 +3080,7 @@ readingLevel: ["pre","post"],
 label: "Rakam Dizisi (Digit Span)",
 isRecall: true,
 attrs: ["number"],
-dims: () => isPre() ? [{rows:2, cols:2}, {rows:2, cols:3}, {rows:2, cols:4}] : [{rows:2, cols:4}, {rows:2, cols:5}, {rows:2, cols:6}],
+dims: () => [{rows:3, cols:3}, {rows:4, cols:4}, {rows:5, cols:5}],   /* KURAL (Rakam Dizisi düzeyleri, 2026-11-16): her satır bir örnek — Başlangıç 3 örnek × 3 rakam, Orta 4 × 4, Zor 5 × 5 (okul öncesi ve sonrası) */
 randomItem: () => ({ number: isPre() ? randomInt(1,6) : randomInt(0,9), color: randomItem(COLORS) }),
 renderItem: (item) => numberHTML(item.number, item.color),
 stages: [

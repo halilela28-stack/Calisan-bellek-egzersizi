@@ -495,3 +495,5 @@ html.text-lg #hmEtk .hm-col > button, html.text-xl #hmEtk .hm-col > button{ font
   html body .ls-bar.t1 .error-label{ display:block !important; font-size:11px !important; max-width:44px !important; line-height:1.05 !important; letter-spacing:-.2px; }
   html body .ls-bar.t3 .error-label{ display:none !important; }
 }
+/* Rakam Dizisi kapanınca kuralı: kapanınca tahta gizlenir, Kontrol listesi kalır */
+#board.rc-board-off{display:none !important}

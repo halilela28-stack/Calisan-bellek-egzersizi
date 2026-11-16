@@ -74,6 +74,7 @@ motionStartTs = 0;
 function renderBoard(){
 const ex = currentExercise();
 const board = document.getElementById("board");
+board.classList.remove("rc-board-off");   /* Rakam Dizisi kapanınca kuralı: yeni çizimde tahta geri gelir */
 clearAudTimers();
 { const k = document.getElementById("recallKey"); if(k && !recallListen()) k.remove(); }
 removeRecallChecklist(); try{ hideCaption(); }catch(e){}
@@ -199,7 +200,7 @@ window._zaLaidGrid = currentGrid;
 let {rows, cols} = currentTier();
 let track = "1fr", colTrack = null, rowTrack = null, rgGap = 0;
 if(landscapeMQ.matches){
-const best = pickLandscapeDims(currentGrid.length, board);
+const best = currentExercise().id === "digit-span" ? null : pickLandscapeDims(currentGrid.length, board);   /* Rakam Dizisi düzeyleri kuralı: yatayda da her satır bir örnek (3×3, 4×4, 5×5) — satırlar karışmaz */
 if(best){ rows = best.rows; cols = best.cols; track = "minmax(0, 1fr)"; }
 } else { const best = pickPortraitDims(currentGrid.length, board, rows, cols); if(best){ rows = best.rows; cols = best.cols; colTrack = best.cw + "px"; rowTrack = best.cell + "px"; }
   const RG = ZA_BOARD.RG[currentExercise().id];   /* satır biçimli gruplar: iki sütun, satır yüksekliği içeriğin oranına göre (daireler basık görünmez) */
@@ -1457,7 +1458,8 @@ document.getElementById("saveResultBtn").addEventListener("click", ()=>{
 confirmSaveResult();
 });
 
-document.getElementById("reshuffleBtn").addEventListener("click", ()=>{ const __keep = keepScrollSnapshot(); if(qsRuleKey) qsRulePrev = qsRuleKey; qsRuleKey = null; /* Karıştır: Hızlı Seç kuralı da yenilensin */
+document.getElementById("reshuffleBtn").addEventListener("click", ()=>{ if(typeof zaVariantNext === "function" && zaVariantNext()) return;   /* N-Geri tek sayfa kuralı: Karıştır sıradaki N-Geri'yi getirir */
+const __keep = keepScrollSnapshot(); if(qsRuleKey) qsRulePrev = qsRuleKey; qsRuleKey = null; /* Karıştır: Hızlı Seç kuralı da yenilensin */
 const ex = currentExercise();
 if(ex.onShuffle) try{ ex.onShuffle(); }catch(e){}
 if(!ex.isMotion){
@@ -1748,7 +1750,7 @@ appMode = "aile";
 sessionActive = { date: todayKey(), idx };
 document.documentElement.classList.add("session-mode");
 selectCategory(ci);
-const e = currentCategoryExercises().findIndex(x => x.id === id);
+zaVariantFocus(id); const e = currentCategoryExercises().findIndex(x => x.id === id);
 const rc = recCfgFor(id);
 let sidx = findSeqIndex(Math.max(rc ? Math.min(rc.t, tierMax(exerciseById(id))) : lastTierFor(id), exerciseById(id).minTier || 0), e);
 if(sidx === undefined || sidx < 0) sidx = findSeqIndex(0, e);
@@ -1779,7 +1781,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.16-d";
+const APP_VERSION = "2026.11.16-e";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 /* RUNTIME_CSS → zihin-stil.css */
 /* Dosya sürümü denetimi: zihin-atolyesi.html ile uygulama kodu (zihin-1…8) farklı sürümdeyse uyar */
@@ -2243,7 +2245,7 @@ appMode = "aile";
 recActive = id;
 document.documentElement.classList.add("rec-mode");
 selectCategory(ci);
-const e = currentCategoryExercises().findIndex(x => x.id === id);
+zaVariantFocus(id); const e = currentCategoryExercises().findIndex(x => x.id === id);
 const rc = recCfgFor(id);
 let sidx = findSeqIndex(Math.max(rc ? Math.min(rc.t, tierMax(exerciseById(id))) : lastTierFor(id), exerciseById(id).minTier || 0), e);
 if(sidx === undefined || sidx < 0) sidx = findSeqIndex(0, e);

@@ -125,10 +125,22 @@ exerciseGroups:[["Örüntü ve Analoji", ["matrix-fill", "sequence-pattern", "vi
 
 function exerciseById(id){ return EXERCISES.find(e => e.id === id); }
 function currentCategory(){ return CATEGORIES[currentCategoryIndex]; }
+/* KURAL (N-Geri tek sayfa, 2026-11-16): Çalışan Bellek'teki dört N-Geri (Konum, Hayvan, Taşıt, Sayı) listede TEK sayfadır — o an hangisi etkinse o görünür; Karıştır'a basınca aynı düzeyde sıradaki N-Geri gelir (Konum → Hayvan → Taşıt → Sayı → Konum). Her birinin sonuçları ve düzeyi ayrı tutulur; Bugün planı, ödev ya da menü bir N-Geri'yi açarsa önce o etkin yapılır */
+const EX_VARIANT_GROUPS = [["pos-nback", "nback-shape", "nback-color", "nback-number"]];
+const ZA_VAR_KEY = "za-variant-v1";
+function zaVariantGroup(id){ return EX_VARIANT_GROUPS.find(g => g.includes(id)) || null; }
+function zaVariantActive(g){ try{ const m = window.__zaVar || (window.__zaVar = JSON.parse(localStorage.getItem(ZA_VAR_KEY) || "{}")); if(g.includes(m[g[0]])) return m[g[0]]; }catch(e){} return g[0]; }
+function zaVariantSetActive(g, id){ try{ window.__zaVar = window.__zaVar || {}; window.__zaVar[g[0]] = id; localStorage.setItem(ZA_VAR_KEY, JSON.stringify(window.__zaVar)); }catch(e){} }
 function currentCategoryExercises(){
-const all = currentCategory().exerciseIds.map(exerciseById);
-return all.filter(ex => ex.readingLevel.includes(readingLevel === "pre" ? "pre" : "post"));
+const lv = readingLevel === "pre" ? "pre" : "post", ids = currentCategory().exerciseIds, out = [], used = new Set();
+ids.forEach(id => { const g = zaVariantGroup(id); if(!g){ const ex = exerciseById(id); if(ex && ex.readingLevel.includes(lv)) out.push(ex); return; }
+  if(used.has(g)) return; used.add(g); const avail = g.filter(v => ids.includes(v) && exerciseById(v) && exerciseById(v).readingLevel.includes(lv)); if(!avail.length) return; let a = zaVariantActive(g); if(!avail.includes(a)) a = avail[0]; out.push(exerciseById(a)); });
+return out;
 }
+function zaVariantFocus(id){ try{ const g = zaVariantGroup(id); if(!g || !currentCategory().exerciseIds.includes(id) || zaVariantActive(g) === id) return; zaVariantSetActive(g, id); SEQUENCE = buildSequenceForCategory(); }catch(e){} }
+function zaVariantNext(){ try{ const ex = currentExercise(), g = ex && zaVariantGroup(ex.id); if(!g) return false; const lv = readingLevel === "pre" ? "pre" : "post", ids = currentCategory().exerciseIds, avail = g.filter(v => ids.includes(v) && exerciseById(v) && exerciseById(v).readingLevel.includes(lv)); if(avail.length < 2) return false;
+  const nx = avail[(avail.indexOf(ex.id) + 1) % avail.length], t = (SEQUENCE[currentIndex] || {}).t || 0; zaVariantSetActive(g, nx); SEQUENCE = buildSequenceForCategory(); const exs = currentCategoryExercises(), e = exs.findIndex(x => x.id === nx); let k = -1; for(let tt = t; tt >= 0 && k < 0; tt--) k = SEQUENCE.findIndex(x => x.e === e && x.t === tt); if(k < 0) k = SEQUENCE.findIndex(x => x.e === e);
+  currentStageIndex = 0; goToIndex(Math.max(0, k)); try{ showLevelFlash(`Karıştır: ${exerciseById(nx).label}`, "up"); }catch(e){} return true; }catch(e){ console.error(e); return false; } }
 
 function buildSequenceForCategory(){
 const seq = [];
@@ -419,6 +431,8 @@ if(key) key.remove();
 function hideRecallItems(){
 const board = document.getElementById("board");
 if(!board) return;
+/* KURAL (Rakam Dizisi kapanınca, 2026-11-16): rakamlar kapanınca ortada "kapalı göz" kutuları gösterilmez — tahta gizlenir, yalnız dokununca açılan Kontrol listesi kalır (yeni sayfada ya da yeniden Başlat'ta tahta geri gelir) */
+if(currentExercise().id === "digit-span"){ board.innerHTML = ""; board.classList.add("rc-board-off"); showLevelFlash("Şimdi hatırlamaya çalışın!", "up"); try{ renderRecallChecklist(); }catch(e){ console.error(e); } return; }
 board.querySelectorAll(".cell").forEach(cell=>{
 cell.innerHTML = `<div class="recall-hidden">🙈</div>`;
 });
@@ -441,7 +455,7 @@ return `<button type="button" class="rc-cell${tgt ? "" : " off"}${on ? " on" : "
 const grid = isPos ? currentGrid.map(cell).join("") : targets.map(x => cell(x.it, x.i)).join("");
 box.innerHTML = `<summary>Kontrol listesi <span class="rc-cnt">${n}/${targets.length}</span><span class="rc-hint">yetişkin için · çocuk cevap verdikten sonra açın</span></summary>
 <div class="rc-note">${ordered ? "Sırası doğru olarak söylediklerine dokunun (numara doğru sırayı gösterir)." : isPos ? "Çocuğun doğru gösterdiği dolu dairelere dokunun." : "Çocuğun hatırladıklarına dokunun."} Sayaç kendiliğinden güncellenir.</div>
-<div class="rc-grid" style="grid-template-columns:repeat(${isPos ? cols : Math.min(cols, 6)}, minmax(0, 1fr))">${grid}</div>`;
+<div class="rc-grid" style="--rc-cols:${isPos ? cols : Math.min(cols, 6)};grid-template-columns:repeat(${isPos ? cols : Math.min(cols, 6)}, minmax(0, 1fr))">${grid}</div>`;
 }
 document.addEventListener("click", (ev) => {
 const b = ev.target.closest("#recallCheck [data-rc]"); if(!b) return;
@@ -666,7 +680,7 @@ catStreakSave(d2);
 catLevelTransition(cat.id, n, target, appMode === "uzman" ? "uzman" : "aile", { now: true });
 const exId = ex.id, ci = currentCategoryIndex; applyPlacedLevel(cat.id, n);
 selectCategory(ci);
-try{ const exs = currentCategoryExercises(); const e = exs.findIndex(x => x.id === exId); if(e >= 0){ const tt = target === "pre" ? tierMax(exs[e]) : 0; const idx = findSeqIndex(tt, e); if(idx >= 0) goToIndex(idx); } }catch(e){}
+try{ zaVariantFocus(exId); const exs = currentCategoryExercises(); const e = exs.findIndex(x => x.id === exId); if(e >= 0){ const tt = target === "pre" ? tierMax(exs[e]) : 0; const idx = findSeqIndex(tt, e); if(idx >= 0) goToIndex(idx); } }catch(e){}
 }
 
 let audioCtx = null;

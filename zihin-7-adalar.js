@@ -391,7 +391,7 @@ appMode = "aile";
 gameMode = true;
 document.documentElement.classList.add("game-mode");
 selectCategory(ci);
-const e = currentCategoryExercises().findIndex(x => x.id === exId);
+zaVariantFocus(exId); const e = currentCategoryExercises().findIndex(x => x.id === exId);
 const t = gameStop.islandId === "usta" ? 2 : gameNextTier(exId);
 let idx = findSeqIndex(t, e);
 if(idx === undefined || idx < 0) idx = findSeqIndex(0, e);
