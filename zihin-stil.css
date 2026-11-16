@@ -516,3 +516,10 @@ html #board .srh-row:not(.srh-fresh),html #board .srh-row:not(.srh-fresh) .srh-i
 
 /* renkli daire ferahlığı (2026-11-16): Seçimli Tepki daireleri hücrenin %62'si — genel %86 kuralını yalnız bu tahtada geçersiz kılar */
 #board > .cell > svg.crt-dot{width:62% !important;height:62% !important}
+
+/* Yaratık Sayma örnek turu (2026-11-16): örnek turda doğru düğme yeşil çerçeveyle işaretli */
+#board .ch-btn.ch-hint{border-color:var(--good,#1E9E5A) !important;box-shadow:0 0 0 3px rgba(30,158,90,.35);animation:chHint 1.1s ease-in-out infinite}
+@keyframes chHint{50%{box-shadow:0 0 0 7px rgba(30,158,90,.18)}}
+@media (prefers-reduced-motion: reduce){#board .ch-btn.ch-hint{animation:none}}
+
+#dualArea .du-t svg{width:100%;height:100%;display:block}

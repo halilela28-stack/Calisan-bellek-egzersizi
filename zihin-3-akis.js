@@ -698,7 +698,10 @@ let audioUnlocked = false;
 
 let _sfxBus = null;
 function sfxBus(ctx){ if(_sfxBus && _sfxBus.context === ctx) return _sfxBus; try{ const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -18; comp.knee.value = 12; comp.ratio.value = 6; comp.attack.value = 0.003; comp.release.value = 0.2; const master = ctx.createGain(); master.gain.value = 0.75; master.connect(comp); comp.connect(ctx.destination); _sfxBus = master; return master; }catch(e){ return ctx.destination; } }
+/* KURAL (ses bağlamı, 2026-11-16): ses bağlamı "suspended" ya da "interrupted" (iPhone'da okuma sesi, arama, kilit ekranı sonrası) kaldığında her dokunuşta yeniden açılır; kapanmışsa yeniden kurulur — düğme, doğru/yanlış ve bip sesleri kaybolmaz */
+function zaAudioWake(ctx){ try{ if(ctx && ctx.state !== "running" && ctx.state !== "closed") ctx.resume().catch(() => {}); }catch(e){} }
 function getAudioCtx(){
+if(audioCtx && audioCtx.state === "closed"){ audioCtx = null; _sfxBus = null; try{ _stimBus = null; }catch(e){} }
 if(!audioCtx){
 try{
 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -710,12 +713,10 @@ return audioCtx;
 }
 
 function unlockAudio(){
-if(audioUnlocked) return;
 const ctx = getAudioCtx();
 if(!ctx) return;
-if(ctx.state === "suspended"){
-ctx.resume().catch(()=>{});
-}
+if(audioUnlocked && ctx.state === "running") return;
+zaAudioWake(ctx);
 try{
 const osc = ctx.createOscillator();
 const gain = ctx.createGain();
@@ -728,16 +729,15 @@ osc.stop(ctx.currentTime + 0.05);
 audioUnlocked = true;
 }
 
-document.addEventListener("touchend", unlockAudio, {once:true});
-document.addEventListener("click", unlockAudio, {once:true});
+document.addEventListener("touchend", unlockAudio, {capture:true, passive:true});
+document.addEventListener("click", unlockAudio, {capture:true, passive:true});
+document.addEventListener("visibilitychange", () => { try{ if(!document.hidden) audioUnlocked = false; }catch(e){} });
 
 function beep(freqStart, freqEnd, durationMs, volume){
 if(!soundEnabled) return;
 const ctx = getAudioCtx();
 if(!ctx) return;
-if(ctx.state === "suspended"){
-ctx.resume().catch(()=>{});
-}
+zaAudioWake(ctx);
 try{
 const osc = ctx.createOscillator();
 const gain = ctx.createGain();
@@ -1230,9 +1230,9 @@ const st = chState; if(!st || st.phase !== "ask") return;
 const tr = st.trials[st.idx];
 const correct = st.spec.correct(tr, st.ctx);
 const ok = btnId === correct;
-if(btnId !== null) st.rts.push(performance.now() - st.shownAt);
+if(btnId !== null && !tr.demo) st.rts.push(performance.now() - st.shownAt);
 st.picked = btnId; st.flash = ok ? "ok" : "bad";
-if(ok) gameSfx("correct"); else { st.wrong++; setErrorCount(currentErrorCount + 1); try{ vibrate(60); }catch(e){} gameSfx("wrong"); }
+if(ok) gameSfx("correct"); else if(tr.demo){ gameSfx("soft"); } else {   /* örnek tur hata yazmaz */ st.wrong++; setErrorCount(currentErrorCount + 1); try{ vibrate(60); }catch(e){} gameSfx("wrong"); }
 st.phase = "feedback"; renderChoiceBoard();
 chLater(() => { st.idx++; chNext(); }, st.spec.fbMs ? st.spec.fbMs(ok, tr) : (ok ? 260 : (st.spec.tapStim ? 1400 : 520)));   /* resme dokunmalı çalışmalarda yanlışta düzeltme notu okunabilsin */
 }
@@ -1251,9 +1251,10 @@ const corr = st.phase === "feedback" ? sp.correct(tr, st.ctx) : undefined;
 const btnHtml = sp.tapStim ? (st.phase === "ask" ? `<div class="aud-key" style="text-align:center">Resme dokun</div>` : "") : `<div class="ch-btns" style="grid-template-columns:repeat(${Math.min(buttons.length, (typeof sp.cols === "function" ? sp.cols(buttons.length) : sp.cols) || buttons.length)}, minmax(0, 1fr));">` + buttons.map(b => {
 let cls = "";
 if(st.phase === "feedback"){ if(b.id === st.picked) cls = st.flash === "ok" ? " ok" : " bad"; else if(b.id === corr && st.flash === "bad") cls = " show"; }
+else if(st.phase === "ask" && tr && tr.demo && b.id === sp.correct(tr, st.ctx)) cls = " ch-hint";   /* örnek turda doğru düğme işaretli */
 return `<button type="button" class="ch-btn${cls}" data-ch="${b.id}" ${st.phase === "ask" ? "" : "disabled"} style="${b.style || ""}">${b.html}</button>`; }).join("") + `</div>`;
 const key = sp.key ? sp.key(st.ctx) : "";
-const prog = st.phase === "idle" ? (sp.hint ? sp.hint(st.ctx) : "") : st.phase === "done" ? (sp.selfPaced ? chPacedSummary(st) : "") : `Deneme <b>${Math.min(st.idx + 1, st.trials.length)}</b> / ${st.trials.length}`;
+const prog = st.phase === "idle" ? (sp.hint ? sp.hint(st.ctx) : "") : st.phase === "done" ? (sp.selfPaced ? chPacedSummary(st) : "") : (tr && tr.demo ? `<b>Örnek tur</b> · sayılmaz` : (() => { const dn = st.trials.filter(x => x.demo).length, dk = st.trials.slice(0, st.idx).filter(x => x.demo).length; return `Deneme <b>${Math.min(st.idx + 1 - dk, st.trials.length - dn)}</b> / ${st.trials.length - dn}`; })());
 const banner = (st.phase !== "idle" && st.phase !== "done" && sp.banner) ? sp.banner(tr, st) : "";
 const stimBox = `<div class="wm-card ${sp.tapStim ? "" : (st.flash || "")}" style="width:${sp.wideStim ? Math.min(W, stimSize * 1.8) : stimSize}px;height:${stimSize}px;${sp.tapStim ? "padding:0;" : ""}">${stim}</div>`;
 board.innerHTML = isLs
@@ -1490,7 +1491,7 @@ const ccStep = (t) => Math.round(zaPace("creature-count") * (t && t.demo ? 1.3 :
 function ccPath(t){ let v = 0, d = 1; return t.items.map(it => { if(it.arrow){ d = it.arrow; return { arrow: d, v }; } v += d; return { img: it.img, v }; }); }
 const ccSign = (dir, sz) => `<div class="cc-sign ${dir > 0 ? "up" : "down"}" style="font-size:${Math.round(sz * 0.11)}px"><span style="font-size:${Math.round(sz * 0.3)}px;line-height:1">${dir > 0 ? "▲" : "▼"}</span><b>${dir > 0 ? "İLERİ SAY" : "GERİ SAY"}</b></div>`;
 CHOICE["creature-count"] = {
-trials_make: () => { const a = ccTrials(); if(a.length) a[0].demo = true; return a; },
+trials_make: () => { const a = ccTrials(); if(a.length) a[0] = Object.assign({}, a[0], { demo: true }); return a; },   /* KURAL (Yaratık Sayma örnek turu, 2026-11-16): sayıların göründüğü ilk tur "Örnek tur"dur — toplam tur sayısı artmaz (kolaylaştırma kuralı), örnek deneme sayısına girmez, hata yazmaz; sorulduğunda doğru sayı işaretli gösterilir. Ardından gelen denemelerde sayı görünmez */
 showMs: (t) => (t.items.length + 1) * ccStep(t) + 150,
 onShow: (t, st) => { const step = ccStep(t), my = st.idx; t.items.forEach((it, k) => chLater(() => { if(st.phase !== "show" || st.idx !== my) return; try{ if(it.arrow) playSound(it.arrow > 0 ? "up" : "down"); else sfx("pop"); }catch(e){} }, (k + 1) * step)); },
 stim: (t, sz, c, st) => {
@@ -1504,6 +1505,7 @@ stim: (t, sz, c, st) => {
   if(ph === "feedback" && st.flash === "bad"){
     const w = Math.max(30, Math.round(sz * 0.15)), path = ccPath(t);
     return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;gap:4px"><div class="cc-path"><div class="cc-pt" style="width:${w}px"><span class="cc-zero" style="font-size:${Math.round(w * 0.55)}px">0</span></div>${path.map(p => p.arrow ? `<div class="cc-pt ${p.arrow > 0 ? "up" : "down"}" style="width:${Math.round(w * 0.7)}px;font-size:${Math.round(w * 0.6)}px">${p.arrow > 0 ? "▲" : "▼"}</div>` : `<div class="cc-pt" style="width:${w}px"><img src="${p.img}" alt="" style="width:${w}px;height:${w}px;object-fit:contain"><b style="font-size:${Math.round(w * 0.42)}px">${p.v}</b></div>`).join("")}</div><div class="cc-ans">Doğrusu: <b>${t.ans}</b></div></div>`; }
+  if(t.demo) return `<div class="cc-ask">${img ? `<img src="${img}" alt="" style="width:${Math.round(sz * 0.3)}px;height:${Math.round(sz * 0.3)}px;object-fit:contain">` : ""}<b style="font-size:${Math.round(sz * 0.11)}px">Kaça geldin? <span style="color:${ACC.yesil}">${t.ans}</span></b><span style="font-size:${Math.round(sz * 0.075)}px;font-weight:800;color:var(--ink-soft)">Örnek: ${t.ans} sayısına dokun</span></div>`;
   return `<div class="cc-ask">${img ? `<img src="${img}" alt="" style="width:${Math.round(sz * 0.34)}px;height:${Math.round(sz * 0.34)}px;object-fit:contain">` : ""}<b style="font-size:${Math.round(sz * 0.13)}px">Kaça geldin?</b></div>`; },
 buttons: (c, t) => (t ? t.opts : [0, 1, 2, 3]).map(v => ({ id: String(v), html: `<b style="font-size:26px">${v}</b>` })),
 correct: (t) => String(t.ans), cols: 4, wideStim: true, gap: 350, trials: { post:[6, 8, 10], pre:[4, 5, 6] },

@@ -226,7 +226,7 @@ o.start(t0); o.stop(t0 + dur + 0.02);
 function sfx(kind){
 if(typeof soundEnabled !== "undefined" && !soundEnabled) return;
 const ctx = getAudioCtx(); if(!ctx) return;
-if(ctx.state === "suspended") ctx.resume().catch(()=>{});
+zaAudioWake(ctx);
 const t = ctx.currentTime + 0.005;
 const N = { C5:523.25, D5:587.33, E5:659.25, G5:783.99, A5:880, C6:1046.5, E6:1318.5, G6:1568, C7:2093 };
 try{
@@ -291,6 +291,8 @@ const TTS_BASE_FIX = [];
 function ttsSyllableSoften(x, sep){ const V = "aeıioöuüâîûAEIİOÖUÜÂÎÛ"; return x.replace(/[A-Za-zÇĞİÖŞÜçğıöşüÂÎÛâîû]{4,}/g, w => { const isV = (ch) => V.indexOf(ch) >= 0; const vi = []; for(let i = 0; i < w.length; i++) if(isV(w[i])) vi.push(i); if(vi.length < 2) return w; const cut = []; for(let k = 0; k + 1 < vi.length; k++){ const gap = vi[k + 1] - vi[k] - 1; if(gap >= 2) cut.push(vi[k + 1] - 1); } if(!cut.length) return w; let out = ""; for(let i = 0; i < w.length; i++){ if(cut.includes(i)) out += sep; out += w[i]; } return out; }); }
 function ttsPrep(t){ let x = String(t || ""); try{ const fx = (voicePref().fixes || []).concat(TTS_BASE_FIX); fx.forEach(f => { if(!f || !f.a) return; const esc = f.a.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); const re = new RegExp("(^|[^\\p{L}])(" + esc + ")(?=$|[^\\p{L}])", "giu"); x = x.replace(re, (m, pre) => pre + (f.b || "")); }); }catch(e){}
   x = x.replace(/[“”"«»„]/g, "").replace(/…/g, ". ").replace(/\s·\s/g, ", ").replace(/\s+/g, " ").trim();
+  /* KURAL (büyük harfli kelime okunuşu, 2026-11-16): yönergedeki BÜYÜK HARFLİ kelimeler (GERİ SAY, UÇAR, BÜYÜK…) okunmadan önce Türkçe küçük harfe çevrilir — ses motoru onları uzatıp vurgulayarak ("sayyy") okumaz; ekrandaki yazı değişmez. Ünlem ve art arda noktalama tek noktaya iner */
+  try{ x = x.replace(/(^|[^\p{L}])(\p{Lu}{2,})(?=$|[^\p{L}])/gu, (m, pre, w) => pre + w.toLocaleLowerCase("tr-TR")).replace(/[!]+/g, ".").replace(/([.?,;:])\1+/g, "$1").replace(/\.\s*\./g, "."); }catch(e){}
   if(voicePref().syl) x = ttsSyllableSoften(x, voicePref().sylSep === "space" ? " " : "-");
   if(!voicePref().pause) return [x];
   const parts = x.replace(/([.!?])\s+/g, "$1\n").split("\n").map(y => y.trim()).filter(Boolean); return parts.length ? parts : [x]; }   /* geriye bakan regex kullanılmaz (eski iPhone'larda betiği çökertir) */
