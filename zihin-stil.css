@@ -497,3 +497,7 @@ html.text-lg #hmEtk .hm-col > button, html.text-xl #hmEtk .hm-col > button{ font
 }
 /* Rakam Dizisi kapanınca kuralı: kapanınca tahta gizlenir, Kontrol listesi kalır */
 #board.rc-board-off{display:none !important}
+
+/* ikinci aşama kilidi (2026-11-16): bu düzeyde kapalı aşama düğmesi soluk ve kilitli görünür */
+#mainApp .stage-btn.stage-locked{opacity:.5}
+#mainApp .stage-btn.stage-locked::after{content:" \1F512";font-size:.8em}

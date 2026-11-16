@@ -200,7 +200,8 @@ window._zaLaidGrid = currentGrid;
 let {rows, cols} = currentTier();
 let track = "1fr", colTrack = null, rowTrack = null, rgGap = 0;
 if(landscapeMQ.matches){
-const best = currentExercise().id === "digit-span" ? null : pickLandscapeDims(currentGrid.length, board);   /* Rakam Dizisi düzeyleri kuralı: yatayda da her satır bir örnek (3×3, 4×4, 5×5) — satırlar karışmaz */
+const best = currentExercise().id === "digit-span" ? null : pickLandscapeDims(currentGrid.length, board);   /* Rakam Dizisi tek dizi kuralı: yatayda da dizi tek satırda kalır, bölünmez */
+if(best && ORAL_Q_IDS.has(currentExercise().id) && currentGrid.length % best.cols){ let d = best.cols; while(d > 1 && currentGrid.length % d) d--; best.cols = d; best.rows = Math.ceil(currentGrid.length / d); }   /* sözlü soru sayısı kuralı: 3 – 4 – 5 maddelik listelerde yatayda son satır eksik kalmaz (5 madde → tek sütun) */
 if(best){ rows = best.rows; cols = best.cols; track = "minmax(0, 1fr)"; }
 } else { const best = pickPortraitDims(currentGrid.length, board, rows, cols); if(best){ rows = best.rows; cols = best.cols; colTrack = best.cw + "px"; rowTrack = best.cell + "px"; }
   const RG = ZA_BOARD.RG[currentExercise().id];   /* satır biçimli gruplar: iki sütun, satır yüksekliği içeriğin oranına göre (daireler basık görünmez) */
@@ -339,7 +340,7 @@ function renderExHead(){ try{
   $q("exhHome").onclick = (e) => { e.stopPropagation(); const b = document.querySelector("#lsMore .top-btns .home-btn"); if(b) b.click(); else { try{ goHome(); }catch(err){} } };
   $q("exhExBtn").onclick = (e) => { e.stopPropagation(); if(e.currentTarget.classList.contains("open")) return exhClose(); const items = []; document.querySelectorAll("#exerciseRow .exercise-group-label, #exerciseRow .exercise-btn").forEach(n => { if(n.classList.contains("exercise-group-label")) items.push({ head: n.textContent.replace(/[▸▾›]/g, "").trim() }); else items.push({ label: n.textContent.trim(), active: n.classList.contains("active"), note: n.classList.contains("done") ? "✓ yapıldı" : "", pick: () => n.click() }); }); exhMenu(e.currentTarget, items, { wide: true, search: items.filter(x => !x.head).length > 8 }); };
   $q("exhTier").onclick = (e) => { e.stopPropagation(); if(e.currentTarget.classList.contains("open")) return exhClose(); exhMenu(e.currentTarget, tierBtns.map(b => ({ label: b.textContent.trim(), active: b.classList.contains("active"), pick: () => b.click() }))); };
-  if($q("exhStage")) $q("exhStage").onclick = (e) => { e.stopPropagation(); if(e.currentTarget.classList.contains("open")) return exhClose(); exhMenu(e.currentTarget, stBtns.map((b, i) => ({ label: `Aşama ${i + 1}`, active: b.classList.contains("active"), pick: () => b.click() }))); };
+  if($q("exhStage")) $q("exhStage").onclick = (e) => { e.stopPropagation(); if(e.currentTarget.classList.contains("open")) return exhClose(); exhMenu(e.currentTarget, stBtns.map((b, i) => ({ label: `Aşama ${i + 1}` + (b.classList.contains("stage-locked") ? " 🔒" : ""), active: b.classList.contains("active"), pick: () => b.click() }))); };   /* ikinci aşama kilidi: kapalı aşama menüde kilitli görünür, seçilince açılacağı düzey söylenir */
   $q("exhWho").onclick = (e) => { e.stopPropagation(); if(e.currentTarget.classList.contains("open")) return exhClose(); const s2 = $q("playerSelect"); if(!s2) return; const items = [...s2.options].filter(o => o.value && o.value !== "__new__").map(o => ({ label: o.textContent, active: o.value === s2.value, pick: () => { s2.value = o.value; s2.dispatchEvent(new Event("change", { bubbles: true })); setTimeout(renderExHead, 30); } })); items.push({ label: "Yeni kişi ekle", add: true, pick: () => { s2.value = "__new__"; s2.dispatchEvent(new Event("change", { bubbles: true })); setTimeout(renderExHead, 400); } }); exhMenu(e.currentTarget, items); };
 }catch(err){ console.error("exHead", err); }  try{ exhFitName(); }catch(e){} }
 document.addEventListener("change", (e) => { if(e.target && e.target.id === "playerSelect") setTimeout(renderExHead, 30); }, true);
@@ -1781,7 +1782,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.16-e";
+const APP_VERSION = "2026.11.16-i";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 /* RUNTIME_CSS → zihin-stil.css */
 /* Dosya sürümü denetimi: zihin-atolyesi.html ile uygulama kodu (zihin-1…8) farklı sürümdeyse uyar */

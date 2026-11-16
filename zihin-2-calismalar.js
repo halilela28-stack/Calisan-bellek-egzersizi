@@ -1,5 +1,11 @@
 /* Zihin Atölyesi — zihin-2-calismalar.js (2/8): çalışma tanımları (EXERCISES). Dosyalar zihin-atolyesi.html'de bu sırayla yüklenir; sıra değiştirilemez (önceki tek dosyanın ardışık parçalarıdır). */
 /* KURAL (yazılı tahta düzey boyu, 2026-11-15): kelime/öbek tahtalarında öğe sayısı 16 – 20 – 24 (4 sütuna tam bölünür; 3. düzey 25 değil 24 — son satırda tek kelime kalmaz, tahta tek sütuna düşmez). Renk-Kelime, Kelime Listesi, Kelime Gruplama, Hece Sayma, Cümle/Öbek Tekrarı */
+/* KURAL (Rakam Dizisi tek dizi, 2026-11-16): sayfada tek dizi vardır — ileri sıra 3 – 4 – 5 rakam; ters sıra (Aşama 2) okul öncesi 2 – 2 – 3, okul sonrası 2 – 3 – 4 rakam. Rakamların hepsi birden ezberletilmez (3×3, 4×4, 5×5 tahta kaldırıldı); yeni örnek Karıştır ile gelir. */
+const DIGIT_DIMS = () => (stIx() === 1 ? (isPre() ? [2, 2, 3] : [2, 3, 4]) : [3, 4, 5]).map(n => ({ rows:1, cols:n }));
+/* KURAL (sözlü soru sayısı, 2026-11-16): Benzerlik Bulma, Kelime Tanımlama ve Genel Kavrama'da madde sayısı düzeyle azalmaz ve hiçbir düzeyde eskisini aşmaz — okul öncesi 3 – 4 – 5; okul sonrası Benzerlik 6 – 8 – 10, Kelime 4 – 5 – 5, Genel Kavrama 3 – 4 – 5. Sayfa tekrarsız listedir; bankalara madde eklenmez. */
+const ORAL_Q_IDS = new Set(["similarities", "vocabulary", "practical-reasoning"]);
+const ORAL_Q_DIMS = { pre:[{rows:3, cols:1}, {rows:2, cols:2}, {rows:5, cols:1}], sim:[{rows:3, cols:2}, {rows:4, cols:2}, {rows:5, cols:2}], voc:[{rows:2, cols:2}, {rows:5, cols:1}, {rows:5, cols:1}], comp:[{rows:3, cols:1}, {rows:2, cols:2}, {rows:5, cols:1}] };
+const WORD_LIST_DIMS = [{rows:3, cols:4}, {rows:4, cols:4}, {rows:5, cols:4}];
 const TXT_GRID_DIMS = [{rows:4, cols:4}, {rows:5, cols:4}, {rows:6, cols:4}], TXT_GRID_DIMS3 = [{rows:4, cols:3}, {rows:6, cols:3}, {rows:8, cols:3}];   /* Hece Sayma: kelimeler uzun, 3 sütun → 12 – 18 – 24 */
 const EXERCISES = [
 {
@@ -1087,6 +1093,8 @@ readingLevel: ["pre","post"],
 label: "Benzerlik Bulma",
 attrs: ["a"],
 randomItem: () => randomItem((isPre() ? [SIM_PRE0, SIM_PRE1, SIM_PRE2] : [SIMILARITY_PAIRS, SIM_FUNC, SIM_ABSTRACT])[currentCombo().t] || SIMILARITY_PAIRS),
+dims: () => isPre() ? ORAL_Q_DIMS.pre : ORAL_Q_DIMS.sim,
+uniqueFrom: () => ((isPre() ? [SIM_PRE0, SIM_PRE1, SIM_PRE2] : [SIMILARITY_PAIRS, SIM_FUNC, SIM_ABSTRACT])[currentCombo().t] || SIMILARITY_PAIRS).slice(), itemFrom: (x) => x,
 renderItem: (item) => `<div class="name-cell phrase-cell">${item.a} - ${item.b}</div>`,
 stages: [
 {
@@ -1107,6 +1115,8 @@ readingLevel: ["pre","post"],
 label: "Kelime Tanımlama",
 attrs: ["word"],
 randomItem: () => randomItem((isPre() ? [VOCAB_PRE0, VOCAB_PRE1, VOCAB_PRE2] : [VOCAB_CONCRETE, VOCAB_WORDS.concat(VOCAB_ACTION), VOCAB_ABSTRACT])[currentCombo().t] || VOCAB_WORDS),
+dims: () => isPre() ? ORAL_Q_DIMS.pre : ORAL_Q_DIMS.voc,
+uniqueFrom: () => ((isPre() ? [VOCAB_PRE0, VOCAB_PRE1, VOCAB_PRE2] : [VOCAB_CONCRETE, VOCAB_WORDS.concat(VOCAB_ACTION), VOCAB_ABSTRACT])[currentCombo().t] || VOCAB_WORDS).slice(), itemFrom: (x) => x,
 renderItem: (item) => `<div class="name-cell">${item.word}</div>`,
 stages: [
 {
@@ -1127,6 +1137,8 @@ readingLevel: ["pre","post"],
 label: "Genel Kavrama",
 attrs: ["q"],
 randomItem: () => randomItem((isPre() ? [COMP_PRE0, COMP_PRE1, COMP_PRE2] : [COMPREHENSION_QS, COMP_WHY, COMP_IF])[currentCombo().t] || COMPREHENSION_QS),
+dims: () => isPre() ? ORAL_Q_DIMS.pre : ORAL_Q_DIMS.comp,
+uniqueFrom: () => ((isPre() ? [COMP_PRE0, COMP_PRE1, COMP_PRE2] : [COMPREHENSION_QS, COMP_WHY, COMP_IF])[currentCombo().t] || COMPREHENSION_QS).slice(), itemFrom: (x) => x,
 renderItem: (item) => `<div class="name-cell phrase-cell">${item.q}</div>`,
 stages: [
 {
@@ -1300,7 +1312,7 @@ example: (item) => `${item.sides} kenar`
 
 {
 id: "word-list-recall",
-dims: () => TXT_GRID_DIMS,   /* yazılı tahta düzey boyu kuralı: 16 – 20 – 24 */
+dims: () => WORD_LIST_DIMS,   /* KURAL (Kelime Listesi Hatırlama düzeyleri, 2026-11-16): 12 – 16 – 20 kelime (16 – 20 – 24 yerine; 4 sütun, son satır tam) */
 readingLevel: ["post"],
 label: "Kelime Listesi Hatırlama",
 isRecall: true,
@@ -1504,7 +1516,7 @@ readingLevel: ["pre","post"],
 label: "Sondakileri Hatırla (sözlü)",
 isAuditory: true, attrs: [],
 audTrials: () => Array.from({length: isPre() ? 3 : 5}, () => ({ words: makeRunStream().map(x => x.n), ranks: [] })),
-audRender: (trials) => `<div class="aud-list"><div class="aud-note">Kelimeleri saniyede bir okuyun; kaç kelime olacağını söylemeyin. Bitince çocuk <b>son ${runLast()}</b> kelimeyi sırayla söylesin. Yanlış dizileri hata sayısına ekleyin.</div>` +
+audRender: (trials) => `<div class="aud-list"><div class="aud-note">Kelimeleri saniyede bir okuyun; kaç kelime olacağını söylemeyin. Bitince çocuk ${runLast() === 1 ? "<b>son</b> kelimeyi" : `<b>son ${runLast()}</b> kelimeyi sırayla`} söylesin. Yanlış dizileri hata sayısına ekleyin.</div>` +
 trials.map((tr, i) => `<div class="aud-row"><div class="aud-num">${i + 1}</div><div class="aud-body"><div class="aud-words">${tr.words.join(" – ")}</div><div class="aud-key">Doğru cevap: <b>${tr.words.slice(-runLast()).join(" – ")}</b></div></div></div>`).join("") + `</div>`,
 randomItem: () => ({}),
 stages: [ { label: "Son Kelimeler", instruction: () => ``, example: () => `` } ]
@@ -2432,7 +2444,7 @@ readingLevel: ["pre","post"],
 label: "El Oyunu: Yumruk–Parmak",
 isAuditory: true, attrs: [], errorLabel: "Yanlış gösterilen dizi",
 audTrials: () => [{ items: oppTrials("hand") }],
-audRender: (items) => efAudList(items[0].items.map(x => ({ img: x.seq.map(p => `<img src="${efImg(p.img)}" alt="" style="width:${Math.round(84 / x.seq.length)}%;height:88%;object-fit:contain">`).join(""), q: x.say, a: `çocuk: <b>${x.ans}</b>` })), "Her satırdaki işareti elinizle sırayla gösterin; çocuk her birinin tersini aynı sırayla göstersin. Yanlış diziyi Hata sayısına ekleyin."),
+audRender: (items) => efAudList(items[0].items.map(x => ({ img: x.seq.map(p => `<img src="${efImg(p.img)}" alt="" style="width:${Math.round(84 / x.seq.length)}%;height:88%;object-fit:contain">`).join(""), w: Math.max(58, x.seq.length * 34), q: x.say, a: `çocuk: <b>${x.ans}</b>` })), "Her satırdaki işareti elinizle sırayla gösterin; çocuk her birinin tersini aynı sırayla göstersin. Yanlış diziyi Hata sayısına ekleyin."),
 randomItem: () => ({}),
 stages: [ { label: "Tersini Göster", instruction: () => ``, example: () => `` } ]
 },
@@ -3080,7 +3092,7 @@ readingLevel: ["pre","post"],
 label: "Rakam Dizisi (Digit Span)",
 isRecall: true,
 attrs: ["number"],
-dims: () => [{rows:3, cols:3}, {rows:4, cols:4}, {rows:5, cols:5}],   /* KURAL (Rakam Dizisi düzeyleri, 2026-11-16): her satır bir örnek — Başlangıç 3 örnek × 3 rakam, Orta 4 × 4, Zor 5 × 5 (okul öncesi ve sonrası) */
+dims: () => DIGIT_DIMS(),
 randomItem: () => ({ number: isPre() ? randomInt(1,6) : randomInt(0,9), color: randomItem(COLORS) }),
 renderItem: (item) => numberHTML(item.number, item.color),
 stages: [

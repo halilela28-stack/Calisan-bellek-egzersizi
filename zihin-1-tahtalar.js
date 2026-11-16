@@ -16,6 +16,8 @@ const NUMBERS_BY_TIER = [
 ];
 const COLOR_NAMES = {[ACC.kirmizi]:"kırmızı",[ACC.pembe]:"pembe",[ACC.mavi]:"mavi",[ACC.yesil]:"yeşil",[ACC.turuncu]:"turuncu"};   /* adlar görünen renkle aynı: pembe, gerçek kırmızı */
 
+/* KURAL (kolaylaştırma, 2026-11-16): düzey yapılandırması yalnız kolaylaştırır — hiçbir düzey önceki halinden zor olmaz (madde, dizi, hamle, işaret sayısı artmaz); düzey farkı üst düzey zorlaştırılarak değil alt düzey kolaylaştırılarak açılır; çalışma içerikleri (kelime, soru, dizi bankaları) değişmez. */
+/* KURAL (düzey ilkeleri, 2026-11-16): 1) Başlangıç ilk denemede başarı verir: tek kural, en düşük yük. 2) Madde sayısı düzeyle azalmaz. 3) Köprü: okul sonrası Başlangıç, okul öncesi Zor'a eş ya da ondan kolaydır. 4) Yükü artıran ikinci aşama okul öncesinde Orta ile açılır; ters sıra ileri sıradan kısadır. 5) Okul öncesi üst sınırlar: ileri dizi 4–5, ters dizi 3, "son kaç" 2, n-geri 1. */
 const TIERS = [
 {label:"Başlangıç", rows:4, cols:4, eyeDurationMs:25000, eyeSpeedMs:4500, studyDurationMs:8000},
 {label:"Orta Düzey", rows:5, cols:4, eyeDurationMs:25000, eyeSpeedMs:2500, studyDurationMs:12000},
@@ -188,7 +190,10 @@ const AUD_SIZE_WORDS = [["karınca",1],["fare",2],["kedi",3],["koyun",4],["at",5
 const AUD_LEN_BY_TIER = [3, 4, 5];   // okul sonrası: okul öncesinden bir adım uzun
 const PRE_AUD_LEN_BY_TIER = [2, 3, 4];
 const AUD_DELAY_MS = 4000;
-function audLen(){ const tb = isPre() ? PRE_AUD_LEN_BY_TIER : AUD_LEN_BY_TIER; return tb[currentCombo().t] || tb[tb.length-1]; }
+/* KURAL (ters sıra uzunluğu, 2026-11-16): ters sıra isteyen aşamalarda dizi ileri sıradan kısadır — okul öncesi 2 – 2 – 3, okul sonrası 2 – 3 – 4 (Kelime Sıralama: Tersten, Küçükten Büyüğe; Corsi: Geri; Sırayı Hatırla: Tersten) */
+const BACK_LEN = { pre:[2, 2, 3], post:[2, 3, 4] };
+function backLen(){ return (isPre() ? BACK_LEN.pre : BACK_LEN.post)[Math.min(currentCombo().t, 2)]; }
+function audLen(){ try{ if(currentExercise().id === "word-order" && stIx() >= 1) return backLen(); }catch(e){} const tb = isPre() ? PRE_AUD_LEN_BY_TIER : AUD_LEN_BY_TIER; return tb[currentCombo().t] || tb[tb.length-1]; }
 function audTrialCount(){ return isPre() ? 3 : 5; }
 function makeAudTrials(kind){ const n = audLen(), trials = [], usedWords = new Set(); let prevKey = "";
 for(let i=0;i<audTrialCount();i++){

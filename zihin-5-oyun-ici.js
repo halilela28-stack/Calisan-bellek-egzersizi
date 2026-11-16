@@ -110,7 +110,7 @@ const id = currentExercise().id, t = currentCombo().t, pre = isPre();
 mtClear();
 if(id === "corsi" || id === "corsi-verbal"){
 const N = pre ? [5, 6, 6][Math.min(t, 2)] : 9;   // öncesi: 5 blok → 6 blok → 6 blok + 3'lük dizi
-mtState = { kind: id, N, blocks: null, len: (pre ? [2, 3, 4] : [3, 4, 5])[t], maxLen: pre ? N : 9, tries: 0, okAtLen: 0, best: 0, wrong:0, phase:"idle", back: stIx() === 1, seq:[], pos:0, trials:0, maxTrials: (pre ? [4, 5, 6] : [6, 8, 10])[Math.min(t, 2)], manual: id === "corsi-verbal" };   /* uzmanla: sabit uzunluk, "Sonraki" + Hata sayısı */
+mtState = { kind: id, N, blocks: null, len: (stIx() === 1 ? (pre ? [2, 2, 3] : [2, 3, 4]) : (pre ? [2, 3, 4] : [3, 4, 5]))[Math.min(t, 2)], maxLen: pre ? N : 9, tries: 0, okAtLen: 0, best: 0, wrong:0, phase:"idle", back: stIx() === 1, seq:[], pos:0, trials:0, maxTrials: (pre ? [4, 5, 6] : [6, 8, 10])[Math.min(t, 2)], manual: id === "corsi-verbal" };   /* uzmanla: sabit uzunluk, "Sonraki" + Hata sayısı */
 return Array.from({length: 12}, () => ({}));
 }
 if(id === "span-touch"){
@@ -203,7 +203,7 @@ mtLater(() => {
 const last = items.slice(-st.L), earlier = items.slice(0, -st.L);
 const extra = shuffleArray(earlier).slice(0, isPre() ? 2 : 3).concat(shuffleArray(picPool().filter(p => !items.some(x => x.k === p.k))).slice(0, 1));
 st.options = shuffleArray(last.concat(extra)); st.target = last; st.showIdx = -1; st.phase = "input"; renderMtBoard();
-if(gameMode) speakText(`Son ${st.L} resme sırayla dokun.`);
+if(gameMode) speakText(st.L === 1 ? "Son resme dokun." : `Son ${st.L} resme sırayla dokun.`);
 }, 400 + items.length * step + 200);
 }
 function runTap(i){
@@ -413,7 +413,7 @@ if(st.phase === "idle"){ info = "▶ Başlat'a bas"; body = dots; }
 else if(st.phase === "done"){ info = "Bitti!"; body = dots; }
 else if(st.phase === "show"){ info = "<b>İzle…</b> (ne zaman biteceği belli değil)"; const sz = Math.min(isLs ? H - 30 : 180, W * 0.55); body = dots + `<div class="wm-card" style="width:${sz}px;height:${sz}px;">${st.showIdx >= 0 ? imgTag(items[st.showIdx].src) : ""}</div>`; }
 else {
-info = `<b>Son ${st.L}</b> resme sırayla dokun · ${st.pos}/${st.L}`;
+info = st.L === 1 ? `<b>Son</b> resme dokun · ${st.pos}/1` : `<b>Son ${st.L}</b> resme sırayla dokun · ${st.pos}/${st.L}`;
 const d = wmGridDims(st.options.length, W, isLs ? H - 30 : H, 96);
 body = dots + `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + st.options.map((o, i) => {
 const inT = st.target.indexOf(o), mk = st.marks[i] || (st.reveal && inT >= 0 ? "ok" : "");
@@ -555,7 +555,7 @@ if(st.phase === "idle"){ info = "▶ Başlat'a bas"; body = dots; }
 else if(st.phase === "done"){ info = "Bitti!"; body = dots; }
 else if(st.phase === "show"){ info = "<b>İzle…</b> (ne zaman biteceği belli değil)"; const sz = Math.min(isLs ? H - 30 : 180, W * 0.55); body = dots + `<div class="wm-card" style="width:${sz}px;height:${sz}px;">${st.showIdx >= 0 ? imgTag(items[st.showIdx].src) : ""}</div>`; }
 else {
-info = `<b>Son ${st.L}</b> resme sırayla dokun · ${st.pos}/${st.L}`;
+info = st.L === 1 ? `<b>Son</b> resme dokun · ${st.pos}/1` : `<b>Son ${st.L}</b> resme sırayla dokun · ${st.pos}/${st.L}`;
 const d = wmGridDims(st.options.length, W, isLs ? H - 30 : H, 96);
 body = dots + `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + st.options.map((o, i) => {
 const inT = st.target.indexOf(o), mk = st.marks[i] || (st.reveal && inT >= 0 ? "ok" : "");
@@ -718,12 +718,12 @@ const INSTR_SHORT = {
 "stop-signal":      [() => Q("Ekrana oklar gelecek. Ok hangi yöne bakıyorsa alttan o yönün düğmesine hızlıca bas. Ama ok kırmızıya dönerse hiçbir düğmeye basma, bekle.")],
 "look-first":       [() => Q("Tek başına duran bir ev var. Yanındaki evlerden sadece biri onun birebir aynısı, diğerlerinde küçük bir fark var. Dokunmadan önce hepsine dikkatle bak ve karşılaştır; sonra aynı olana dokun.")],
 "keep-track":       [() => `${Q("Resimler tek tek gelecek; her biri üstte yazan gruplardan birinden. Her gruptan en son gelen resmi aklında tut. Resimler bitince her grubun en son gelenini söyle.")}`],
-"zoo-map":          [() => Q("Bu bir hayvanat bahçesi haritası. Girişten başla, yıldızlı hayvanların hepsine uğra ve çıkışta bitir. Gitmek istediğin yere dokun. Aynı yoldan iki kez geçemezsin; dikkatli plan yap.")],
+"zoo-map":          [() => Q(`Bu bir hayvanat bahçesi haritası. Girişten başla, ${zooReq() === 1 ? "yıldızlı hayvana uğra" : "yıldızlı hayvanların hepsine uğra"} ve çıkışta bitir. Gitmek istediğin yere dokun. Aynı yoldan iki kez geçemezsin; dikkatli plan yap.`)],
 "key-search":       [() => Q("Bu tarlada bir anahtar kayboldu ama nerede olduğunu bilmiyoruz. Parmağınla tarlanın içinde bir yol çiz; öyle çiz ki tarlanın her yerine bakmış ol. Bitince ‘Bitti’ye dokun.")],
 "design-fluency":   [() => Q("Noktaları çizgilerle birleştirerek desenler yapacaksın. Bir noktaya, sonra başka bir noktaya dokununca aralarına çizgi çizilir. Bir çizgiye dokunursan silinir. Her deseni bitirince ‘Desen bitti’ye bas. Olabildiğince çok ve hep birbirinden farklı desen çiz.")],
 "twenty-q":         [() => `Hedefi çocuğa göstermeyin; her soruda Soru +1'e basın. ${Q("Tahtadaki resimlerden birini aklımda tuttum. Bana sorular sorarak hangisi olduğunu bul. Sadece ‘evet’ ya da ‘hayır’ diye cevap verebileceğim sorular sor; az soruyla bulmaya çalış.")}`],
 "box-search":       [() => Q("Kutuların içinde yıldızlar saklı; her kutuda tam bir yıldız var. Kutulara dokunarak yıldızları bul. Bir kutuda yıldız bulduktan sonra o kutuya bir daha dokunma, çünkü yıldız artık orada olmaz.")],
-"three-tasks":      [() => Q("Üç çeşit iş var ve her işin iki parçası var. Süre bitmeden altı parçanın hepsine dokunup biraz yap. Ama bir kural var: aynı işin iki parçasını arka arkaya yapma, araya başka bir iş koy.")],
+"three-tasks":      [() => Q((sixN() === 2 ? "İki çeşit iş var ve her işin iki parçası var. Süre bitmeden dört parçanın hepsine dokunup biraz yap." : "Üç çeşit iş var ve her işin iki parçası var. Süre bitmeden altı parçanın hepsine dokunup biraz yap.") + " Ama bir kural var: aynı işin iki parçasını arka arkaya yapma, araya başka bir iş koy.")],
 "cog-est":          [() => `Soruyu okuyun: ${Q("Sana bazı sorular soracağım. Tam cevabı bilmen gerekmiyor; aşağı yukarı ne kadar olabileceğini tahmin et ve söyle.")}`],
 "fist":             [() => `${Q("Üç kart göreceksin. Önce birbirine benzeyen iki karta dokun. Sonra başka bir yönden benzeyen iki karta dokun; mesela önce rengi aynı olanları, sonra şekli aynı olanları seç.")}`],
 "rule-shift":       [() => Q("Üstte dört anahtar kart var. Alttaki kartı anahtarlardan birinin üstüne dokunarak koy. Kuralı sana söylemeyeceğim; doğru mu yanlış mı işaretine bakarak kuralı sen bul. Kural ara sıra değişir; yanlış çıkmaya başlayınca yeni kuralı bul.")],
@@ -842,8 +842,8 @@ const INSTR_SHORT = {
 "short-story":      [() => `Okuyun: ${Q("Ekrandaki resme bak; ben sana onunla ilgili kısa bir hikâye okuyacağım. Dikkatle dinle. Bitince sana sorular soracağım, cevapla.")}`],
 "pic-seq-say":      [() => `Resimler tek tek görünecek. Kapanınca: ${Q("Resimler tek tek gelecek; her birine iyi bak ve aklında tut. Resimler kapanınca gördüğün resimleri sırayla söyle.")}`],
 "pic-seq-touch":    [() => Q("Ekranda resimler var. Bazılarının adı sırayla okunacak; dinle ve sırayı aklında tut. Bitince resimlere duyduğun sırayla dokun.")],
-"running":          [() => Q(`Resimler tek tek gelecek ama kaç tane geleceğini bilmiyorsun. Resimler bitince en son gelen ${runLast()} resmi hatırla ve onlara geliş sırasıyla dokun.`)],
-"running-verbal":   [() => `Göstermeden okuyun: ${Q(`Sana kelimeler okuyacağım ama kaç tane olduğunu söylemeyeceğim. Dinle. Bittiğinde en son söylediğim ${runLast()} kelimeyi sırasıyla söyle.`)}`],
+"running":          [() => Q(`Resimler tek tek gelecek ama kaç tane geleceğini bilmiyorsun. Resimler bitince ${runLast() === 1 ? "en son gelen resmi hatırla ve ona dokun" : `en son gelen ${runLast()} resmi hatırla ve onlara geliş sırasıyla dokun`}.`)],
+"running-verbal":   [() => `Göstermeden okuyun: ${Q(`Sana kelimeler okuyacağım ama kaç tane olduğunu söylemeyeceğim. Dinle. Bittiğinde ${runLast() === 1 ? "en son söylediğim kelimeyi söyle" : `en son söylediğim ${runLast()} kelimeyi sırasıyla söyle`}.`)}`],
 "zihni":            [() => Q(isPre() ? "Zihni bir kutuda duruyor; yerine iyi bak. Sonra oklar gelecek; oklar Zihni'nin nereye gittiğini gösterir. Zihni'nin gittiği kutuya dokun." : "Zihni bir kutuda duruyor; yerine iyi bak. Sonra komutlar gelecek: ‘bir sağa’, ‘iki yukarı’ gibi. Zihni'yi kafanda yürüt ve en son geldiği kutuya dokun.")],
 "zihni-verbal":     [() => `Komutları okuyun: ${Q("Zihni bir kutuda duruyor. Ben komutları söyleyeceğim: ‘bir sağa’, ‘iki aşağı’ gibi. Zihni'yi kafanda yürüt; sonunda hangi kutuda olduğunu söyle.")}`],
 "market":           [() => Q("Önce bir alışveriş listesi göreceksin; listedekileri aklında tut. Sonra balonlar gelecek, onları patlat. En sonda raftan listedeki şeyleri seç.")],

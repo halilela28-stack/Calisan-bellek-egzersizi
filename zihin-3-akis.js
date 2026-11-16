@@ -249,6 +249,13 @@ function nbSeqStop(){ const b = document.getElementById("board"); if(!b) return;
 function boardIsPic(){ try{ const ex = currentExercise(); const h = String(ex.renderItem((currentGrid || [])[0] || ex.randomItem())); return /<img|<svg/.test(h) && !/name-cell|word-cell|stroop/.test(h); }catch(e){ return false; } }
 function stIx(){ try{ const st = currentExercise().stages[currentStageIndex]; return st && st.strategyOf != null ? st.strategyOf : currentStageIndex; }catch(e){ return currentStageIndex; } }
 function baseStageCount(ex){ return ex.stages.filter(st => st.strategyOf == null).length; }
+/* KURAL (ikinci aşama kilidi, 2026-11-16): yükü artıran ikinci aşamalar (2-geri, ters sıra, çift tetikleyici, iki zaman noktası) okul öncesinde Başlangıç düzeyinde kapalıdır, Orta ile açılır. N-geri tahtalarında ve Aynı mı?'da 2-geri okul öncesinde hiç açılmaz (yalnız 1-geri), okul sonrasında Orta ile açılır. Tablo: aşama → açıldığı en düşük düzey (9 = bu dönemde yok). */
+const STAGE_MIN_TIER = {
+pre:  { "nback-shape":[0, 9], "nback-color":[0, 9], "nback-number":[0, 9], "wm-same":[0, 9], "corsi":[0, 1], "corsi-verbal":[0, 1], "digit-span":[0, 1], "word-order":[0, 1, 1], "wm-seq":[0, 1], "prospective-event":[0, 1], "prospective-time":[0, 1], "prospective-delayed":[0, 1] },
+post: { "nback-shape":[0, 1], "nback-color":[0, 1], "nback-number":[0, 1], "wm-same":[0, 1] }
+};
+function stageMinTier(ex, s){ try{ const st = ex.stages[s], base = st && st.strategyOf != null ? st.strategyOf : s, tb = (isPre() ? STAGE_MIN_TIER.pre : STAGE_MIN_TIER.post)[ex.id]; return tb && tb[base] != null ? tb[base] : 0; }catch(e){ return 0; } }
+function stageOpen(ex, s, t){ try{ return (t == null ? currentCombo().t : t) >= stageMinTier(ex, s); }catch(e){ return true; } }
 let currentGrid = [];
 let currentPlayerName = "";
 let playersList = [];
@@ -808,13 +815,13 @@ if(successStreak >= 2){
 successStreak = 0; saveStreak();
 if(combo.t < tierMax(ex)){
 moveTo(combo.t + 1, currentStageIndex, "up");
-} else if(useStages && currentStageIndex < baseStageCount(ex) - 1){
-moveTo(0, currentStageIndex + 1, "up");
+} else if(useStages && currentStageIndex < baseStageCount(ex) - 1 && stageMinTier(ex, currentStageIndex + 1) < 9){
+moveTo(Math.min(stageMinTier(ex, currentStageIndex + 1), tierMax(ex)), currentStageIndex + 1, "up");   /* ikinci aşama kilidi: sonraki aşama açıldığı en düşük düzeyden başlar */
 }
 }
 } else if(isBad){
 successStreak = 0; saveStreak();
-if(combo.t > 0){
+if(combo.t > stageMinTier(ex, currentStageIndex)){
 moveTo(combo.t - 1, currentStageIndex, "down");
 } else if(useStages && currentStageIndex > 0 && currentStageIndex < baseStageCount(ex)){
 moveTo(tierMax(ex), currentStageIndex - 1, "down");
@@ -839,19 +846,24 @@ flash._hideTimer = setTimeout(()=>{ flash.style.display = "none"; }, 4000);
 
 function renderStageRow(){
 try{ const __ex = currentExercise(); if(__ex && __ex.stages && currentStageIndex >= __ex.stages.length) currentStageIndex = 0; }catch(e){}   /* kaldırılmış aşama (strateji) kayıtlı kalmışsa ilk aşamaya dön */
+try{ if(!stageOpen(currentExercise(), currentStageIndex)) currentStageIndex = 0; }catch(e){}   /* ikinci aşama kilidi: bu düzeyde kapalı aşama seçili kalmaz */
 const row = document.getElementById("stageRow");
 row.innerHTML = "";
-if(currentExercise().stages.length <= 1){
+if(currentExercise().stages.length <= 1 || currentExercise().stages.filter((st, i) => stageMinTier(currentExercise(), i) < 9).length <= 1){
 row.style.display = "none";
 return;
 }
 row.style.display = "";
 currentExercise().stages.forEach((stage, i)=>{
+const __min = stageMinTier(currentExercise(), i); if(__min >= 9) return;   /* bu dönemde olmayan aşamanın düğmesi çizilmez */
+const __locked = currentCombo().t < __min;
 const btn = document.createElement("button");
 btn.className = "stage-btn" + (i===currentStageIndex ? " active" : "") + (stage.strategyOf != null || /Strateji/.test(stage.label) ? " strat" : "");
 btn.textContent = `Aşama ${i + 1}`; btn.title = stage.label;   /* KURAL: aşama düğmelerinde yalnız "Aşama 1", "Aşama 2"… yazar; aşama adı düğmede gösterilmez */
 if(recCfgNow && recCfgNow.s === i && recCfgNow.id === currentExercise().id){ btn.textContent = `Aşama ${i + 1} · ⭐ Uzman`; btn.classList.add("rec-stage"); }
+if(__locked){ btn.classList.add("stage-locked"); btn.setAttribute("aria-disabled", "true"); btn.title = `${TIERS[__min].label} ile açılır`; }
 btn.addEventListener("click", ()=>{
+if(__locked){ try{ showToast(`Aşama ${i + 1}, ${TIERS[__min].label} ile açılır`, "down"); }catch(e){} return; }
 currentStageIndex = i;
 renderStageRow();
 newPage();
@@ -953,7 +965,7 @@ wmState = { kind:"same", n, seq, idx:0, wrong:0, answered:0, total:T, phase:"idl
 return seq.map((k, i) => ({ k, judged: i >= n, target: i >= n && seq[i] === seq[i - n] }));
 }
 if(id === "wm-seq"){
-const K = (pre ? sp.prePics : sp.pics)[t], L0 = (pre ? sp.preStartLen : sp.startLen)[t], R = pre ? sp.preRounds : sp.rounds;
+const K = (pre ? sp.prePics : sp.pics)[t], L0 = stIx() === 1 ? backLen() : (pre ? sp.preStartLen : sp.startLen)[t], R = pre ? sp.preRounds : sp.rounds;
 const pics = shuffleArray(TOY_KEYS).slice(0, K);
 wmState = { kind:"seq", pics, maxLen:Math.min(K, L0 + 3), len:Math.min(L0, K), round:0, rounds:R, wrong:0, phase:"idle", seq:[], pos:0, back: stIx() === 1, res:[] };
 return Array.from({length:R}, (_, i) => ({ round:i }));
