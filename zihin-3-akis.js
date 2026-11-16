@@ -472,7 +472,7 @@ const ZA_LIFE = {
   }catch(e){ console.error(e); } },
   resetBoard(ex){ this.rebuild(ex); this.clear(ex); },
   /* yeni deneme (süre 0'dan): hata sayısı 0'dan başlar; Oluş Sırası'nda eski işaret kaldıysa temizlenir */
-  freshAttempt(ex){ currentErrorCount = 0; const ce0 = document.getElementById("errorCount"); if(ce0) ce0.textContent = "0"; try{ if(ex.isSeqRows && osProg.some(r => r && r.length)){ osProg = currentGrid.map(() => []); osProgGrid = currentGrid; renderOsBoard(); } }catch(e){} },
+  freshAttempt(ex){ currentErrorCount = 0; const ce0 = document.getElementById("errorCount"); if(ce0){ ce0.textContent = "0"; ce0.classList.remove("err-held"); } window.__zaHeldErr = null; try{ if(ex.isSeqRows && osProg.some(r => r && r.length)){ osProg = currentGrid.map(() => []); osProgGrid = currentGrid; renderOsBoard(); } }catch(e){} },
   /* etkinlikten/oyundan çıkış: konuşma susar, altyazı kapanır */
   leave(){ try{ zaStopSpeech(); }catch(e){} },
   /* sayfa çizildi: yönerge hoparlörü kurulur, yönerge (gerekiyorsa) okunur */
@@ -567,7 +567,7 @@ btn.textContent = "▶ Başlat";
 btn.classList.remove("running");
 currentErrorCount = 0;
 const countEl = document.getElementById("errorCount");
-if(countEl) countEl.textContent = "0";
+if(countEl){ countEl.textContent = "0"; countEl.classList.remove("err-held"); } window.__zaHeldErr = null;
 try{ if(gameMode) renderGameWho(); }catch(e){}
 ZA_LIFE.resetBoard(currentExercise()); /* tür bazlı sıfırlama kuralları ZA_LIFE tablosunda */
 document.getElementById("saveResultBtn").style.display = "none";
@@ -576,14 +576,18 @@ document.getElementById("saveHint").style.display = "none";
 
 function confirmSaveResult(){ if(elapsedMs <= 300 || window._incomplete) return; { const __k = currentExercise().id + "|" + Math.round(timerStartedAt || 0) + "|" + Math.round(elapsedMs); if(window._lastSavedKey === __k) return; window._lastSavedKey = __k; }   /* KURAL: aynı çalışma iki kez kaydedilmez (kendiliğinden kayıt ile Kaydet düğmesi çakışsa da) */ if(!gameMode && !(currentPlayerName || "").trim()){ zaAlert("Kaydetmek için önce kimin çalıştığını seçin."); try{ const row = document.getElementById("playerRow"); row.scrollIntoView({ behavior:"smooth", block:"center" }); row.classList.remove("attn"); void row.offsetWidth; row.classList.add("attn"); }catch(e){} return; }
 recordSession(elapsedMs, currentErrorCount); playSound("save"); if(!gameMode){ try{ finishCard(); }catch(e){} }   /* konfeti recordSession içinde bir kez */   /* KURAL: Zihni (bitiş kartı) ve konfeti kaydettikten sonra çıkar */
-if(hwRun){ resetTimer(); setTimeout(() => { try{ showHwDone(); }catch(e){ console.error(e); } }, 120); return; }   /* ödev oturumu: otomatik düzey değişmez, sonuç paneli */
+const __heldErr = currentErrorCount;   /* hata sayısı görünür kalır kuralı */
+if(hwRun){ resetTimer(); zaHoldErr(__heldErr); setTimeout(() => { try{ showHwDone(); }catch(e){ console.error(e); } }, 120); return; }   /* ödev oturumu: otomatik düzey değişmez, sonuç paneli */
 const __j = (!currentExercise().isMotion && !currentExercise().isRecall && !currentExercise().noAdaptive) ? sessionJudge(elapsedMs, currentErrorCount) : null;
 if(__j && (appMode === "aile" || (appMode === "uzman" && expertAdaptiveEnabled))){
 applyAdaptiveDifficulty(elapsedMs, currentErrorCount);
 }
 resetTimer();
 if(__j && !gameMode) try{ catLevelSuggest(__j); }catch(e){}
+zaHoldErr(__heldErr);
 }
+/* KURAL (hata sayısı görünür kalır, 2026-11-16): dokunmatik çalışmalarda hata sayısı otomatik işlenmeye devam eder; çalışma bitip sonuç kendiliğinden kaydedildikten sonra (düzey kendiliğinden değişse de) hata sayacında son oyunun hata sayısı görünmeye devam eder — yeniden Başlat'a basılınca (0'dan başlar) ya da başka sayfaya geçilince (Önceki/Sonraki, Karıştır, alan, menü) silinir. Yeni denemenin sayımı her zaman 0'dan başlar (gösterilen sayı yalnız bilgi) */
+function zaHoldErr(n){ try{ if(timerRunning) return; const ce = document.getElementById("errorCount"); if(!ce) return; ce.textContent = String(n || 0); ce.classList.add("err-held"); window.__zaHeldErr = { n: n || 0, key: (currentExercise() || {}).id + "|" + currentIndex }; }catch(e){} }
 /* ===== Kategori düzeyi geçiş önerisi =====
    KURAL: okul sonrası Başlangıç'ta aynı kategoride art arda 2 kötü kayıt → "okul öncesine geçilsin mi?"; okul öncesi Zor'da art arda 2 başarılı kayıt → "okul sonrasına geçilsin mi?".
    Karar yetişkinde; "Hayır" denirse o kategoride 14 gün tekrar sorulmaz. Yalnız Bilişsel Etkinlik'te (çocuk tek başına oynarken sorulmaz). */
