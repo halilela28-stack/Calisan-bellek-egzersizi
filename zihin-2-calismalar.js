@@ -181,7 +181,7 @@ randomItem: () => {
 if(!crtPool || crtPool.length !== crtWantedCount()) pickCrtPool();
 return { color: randomItem(crtPool).color };
 },
-renderItem: (item) => `<svg viewBox="0 0 10 10" style="width:78%;height:78%;display:block;overflow:visible;"><circle cx="5" cy="5" r="4.9" fill="${item.color}"/></svg>`,   /* KURAL (daire kenarı, 2026-11-15): daire SVG çerçevesine tam değmez (r 4,9, taşma görünür) — kesirli piksel boyunda kenardan 1 px kırpılıp düz görünüyordu (Renk-Hareket) */
+renderItem: (item) => `<svg class="crt-dot" viewBox="0 0 10 10" style="width:62%;height:62%;display:block;overflow:visible;"><circle cx="5" cy="5" r="4.9" fill="${item.color}"/></svg>`,   /* KURAL (renkli daire ferahlığı, 2026-11-16): Seçimli Tepki'de daire hücrenin %62'si kadar (önceden %86) — daireler arasında ferah boşluk kalır */   /* KURAL (daire kenarı, 2026-11-15): daire SVG çerçevesine tam değmez (r 4,9, taşma görünür) — kesirli piksel boyunda kenardan 1 px kırpılıp düz görünüyordu (Renk-Hareket) */
 stages: [
 {
 label: "Aşama 1 · Hareket",

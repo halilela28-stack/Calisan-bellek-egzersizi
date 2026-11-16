@@ -547,7 +547,7 @@ recallHideTimeout = setTimeout(() => { showLevelFlash("Şimdi hatırlamaya çal�
 function stopTimer(){ try{ nbSeqStop(); }catch(e){} window._lastStopAt = Date.now(); document.documentElement.classList.remove("board-run"); runFocusOff();   // süre bitimi zamanlayıcısı, son durağın ödül ekranını atlamasın
 clearInterval(timerInterval);
 if(timerPausedAt){ timerPausedAt = 0; } try{ document.getElementById("timerDisplay").classList.remove("paused"); }catch(e){}
-timerRunning = false; try{ document.documentElement.classList.remove("za-running"); zaSessionRelayout(); }catch(e){};
+timerRunning = false; try{ document.documentElement.classList.remove("za-running"); zaSessionRelayout(); }catch(e){}; try{ if(landscapeMQ.matches) setTimeout(() => { try{ if(!timerRunning) window.dispatchEvent(new Event("resize")); }catch(e){} }, 180); }catch(e){}   /* yatay tahta boyu kuralı: bitince tahta odak dışı ölçüyle yeniden çizilir */
 addTouchMissesOnStop();
 stopEyeMotion();
 clearTimeout(recallHideTimeout);
@@ -573,7 +573,7 @@ function resetTimer(){
 window._autoSavePending = false; try{ nbSeqStop(); }catch(e){} timerPausedAt = 0; try{ document.getElementById("timerDisplay").classList.remove("paused"); }catch(e){}
 document.documentElement.classList.remove("board-run"); runFocusOff();
 clearInterval(timerInterval);
-timerRunning = false; try{ document.documentElement.classList.remove("za-running"); zaSessionRelayout(); }catch(e){};
+timerRunning = false; try{ document.documentElement.classList.remove("za-running"); zaSessionRelayout(); }catch(e){}; try{ if(landscapeMQ.matches) setTimeout(() => { try{ if(!timerRunning) window.dispatchEvent(new Event("resize")); }catch(e){} }, 180); }catch(e){}   /* yatay tahta boyu kuralı: bitince tahta odak dışı ölçüyle yeniden çizilir */
 stopEyeMotion();
 clearTimeout(recallHideTimeout);
 if(currentExercise().isMotion){
@@ -979,7 +979,7 @@ return Array.from({length:R}, (_, i) => ({ round:i }));
 }
 function wmSizes(board){
 const isLs = landscapeMQ.matches, W = (board.clientWidth || 360) - 24;
-const H = isLs ? (board.clientHeight || 280) - 20 : Math.min(560 * tabletScale(), window.innerHeight - 280);
+const H = isLs ? zaLsAvailH(board, 280) - 20 : Math.min(560 * tabletScale(), window.innerHeight - 280);
 return { W, H, isLs };
 }
 /* Tablet katsayısı: ekranın kısa kenarı 700 noktayı geçiyorsa (iPad) resimler ve alanlar %50 büyür; telefonda 1 */
@@ -1242,7 +1242,7 @@ board.style.display = "block"; board.style.minHeight = ""; board.style.padding =
 board.style.gridTemplateColumns = ""; board.style.gridTemplateRows = ""; board.classList.remove("wide-grid");
 if(!chState) return;
 const st = chState, sp = st.spec, isLs = landscapeMQ.matches;
-const W = (board.clientWidth || 360) - 24, H = isLs ? (board.clientHeight || 280) - 16 : Math.min(560 * tabletScale(), window.innerHeight - 280);
+const W = (board.clientWidth || 360) - 24, H = isLs ? zaLsAvailH(board, 280) - 16 : Math.min(560 * tabletScale(), window.innerHeight - 280);
 const stimSize = Math.floor(Math.min(isLs ? H - 20 : 220 * tabletScale(), W * (isLs ? 0.42 : 0.75)));   /* tablette uyaran büyür */
 const tr = st.trials[st.idx];
 const stim = st.phase === "idle" ? `<span class="hold">▶ Başlat'a bas</span>` : st.phase === "done" ? `<span class="hold">Bitti!</span>` : st.phase === "gap" ? "" : sp.stim(tr, stimSize, st.ctx, st);   /* Tahmin Et – Yap – Karşılaştır katmanı: işaretli çalışmalarda */
@@ -1254,10 +1254,11 @@ if(st.phase === "feedback"){ if(b.id === st.picked) cls = st.flash === "ok" ? " 
 return `<button type="button" class="ch-btn${cls}" data-ch="${b.id}" ${st.phase === "ask" ? "" : "disabled"} style="${b.style || ""}">${b.html}</button>`; }).join("") + `</div>`;
 const key = sp.key ? sp.key(st.ctx) : "";
 const prog = st.phase === "idle" ? (sp.hint ? sp.hint(st.ctx) : "") : st.phase === "done" ? (sp.selfPaced ? chPacedSummary(st) : "") : `Deneme <b>${Math.min(st.idx + 1, st.trials.length)}</b> / ${st.trials.length}`;
+const banner = (st.phase !== "idle" && st.phase !== "done" && sp.banner) ? sp.banner(tr, st) : "";
 const stimBox = `<div class="wm-card ${sp.tapStim ? "" : (st.flash || "")}" style="width:${sp.wideStim ? Math.min(W, stimSize * 1.8) : stimSize}px;height:${stimSize}px;${sp.tapStim ? "padding:0;" : ""}">${stim}</div>`;
 board.innerHTML = isLs
-? `<div class="wm-wrap" style="flex-direction:row;justify-content:center;gap:20px;">${stimBox}<div style="display:flex;flex-direction:column;gap:10px;align-items:center;width:46%">${key}<div class="wm-info">${prog}</div>${btnHtml}</div></div>`
-: `<div class="wm-wrap">${key}<div class="wm-info">${prog}</div>${stimBox}${btnHtml}</div>`;
+? `<div class="wm-wrap" style="flex-direction:row;justify-content:center;gap:20px;">${stimBox}<div style="display:flex;flex-direction:column;gap:10px;align-items:center;width:46%">${key}${banner || `<div class="wm-info">${prog}</div>`}${btnHtml}</div></div>`
+: `<div class="wm-wrap">${key}${banner || `<div class="wm-info">${prog}</div>`}${stimBox}${btnHtml}</div>`;
 }finally{ try{ zaTapRestore(); }catch(e){} } }
 function handleChoiceTap(ev){
 if(!currentExercise().isChoice || !chState) return;
@@ -1364,7 +1365,9 @@ trials_make: (n, c) => { const cfg = c.cfg || qsTierCfg(), half = c.rule2 ? Math
     let src = trick ? randomItem(tricks) : next(rk, sd), g = 0; while(a.length && a[a.length - 1].src === src && g++ < 5) src = next(rk, sd);
     a.push({ src, g: side.id, rk, flip: cfg.swap === 2 ? flips[k] : false, sw: !!(c.rule2 && k === half), trick: !!trick }); }
   return a; },
-stim: (t) => { if(!t || !t.sw) return imgFill(t.src); const R = qsRules()[t.rk]; return `<div style="position:relative;width:100%;height:100%">${imgFill(t.src)}<div style="position:absolute;left:4%;right:4%;top:4%;background:#FFF4E5;border:3px solid #F59E0B;border-radius:14px;padding:6px 8px;text-align:center;font-weight:900;color:#9A3412;font-size:17px;line-height:1.2">${icI("refresh", 17, "#9A3412")} Kural değişti!<br>${R.a.l} – ${R.b.l}</div></div>`; },
+stim: (t) => imgFill(t.src),
+/* KURAL (Kural değişti uyarısı, 2026-11-16): uyarı resmin üstüne binmez — "Deneme" satırının yerinde, resmin üstünde ayrı bir şerit olarak çıkar (yatayda sağ sütunda, düğmelerin üstünde) */
+banner: (t) => { if(!t || !t.sw) return ""; const R = qsRules()[t.rk]; return `<div class="ch-banner">${icI("refresh", 17, "#9A3412")} Kural değişti! <b>${R.a.l} – ${R.b.l}</b></div>`; },
 buttons: (c, t) => { const R = qsRules()[(t && t.rk) || c.rule]; const sides = [R.a, R.b]; const f = c.cfg && c.cfg.swap === 2 ? !!(t && t.flip) : !!c.flip; if(f) sides.reverse(); return sides.map(sd => ({ id: sd.id, html: `<span style="font-size:30px">${sd.e}</span><b style="margin-left:6px">${sd.l}</b>` })); },
 correct: (t) => t.g, cols: 2 };
 let fgStop = "angry";
@@ -1611,7 +1614,7 @@ board.style.display = "block"; board.style.minHeight = ""; board.style.padding =
 board.style.gridTemplateColumns = ""; board.style.gridTemplateRows = ""; board.classList.remove("wide-grid");
 if(!rtState) return;
 const st = rtState, isLs = landscapeMQ.matches;
-const W = (board.clientWidth || 360) - 24, H = isLs ? (board.clientHeight || 280) - 70 : Math.min(520 * tabletScale(), window.innerHeight - 320);
+const W = (board.clientWidth || 360) - 24, H = isLs ? zaLsAvailH(board, 280) - 70 : Math.min(520 * tabletScale(), window.innerHeight - 320);
 const dots = `<div class="wm-dots">${Array.from({length:st.R}, (_, i) => `<i class="${st.res[i] === true ? "on" : st.res[i] === false ? "off" : ""}"></i>`).join("")}</div>`;
 const info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "study" ? "<b>İyi bak, aklında tut…</b>" : st.phase === "answer" ? (st.id === "rt-colors" ? `<b>Aynı sırayla</b> seç · ${st.pos}/${st.seq.length}` : "<b>Gördüklerini bul</b>") : st.phase === "done" ? "Bitti!" : "";
 let body = "";

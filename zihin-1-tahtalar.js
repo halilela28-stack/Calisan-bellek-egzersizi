@@ -382,6 +382,8 @@ return { start: seq[0], second: seq[1], third: seq[2], choices };
 });
 }
 function osImgSrc(k){ try{ return OS_IMAGES[k] || (typeof LIVING_IMAGES !== "undefined" && LIVING_IMAGES[k]) || (typeof OBJECT_IMAGES !== "undefined" && OBJECT_IMAGES[k]) || ""; }catch(e){ return ""; } }
+/* KURAL (yatay tahta boyu, 2026-11-16): yatay ekranda tahta içeriği tahtanın o anki yüksekliğine göre değil, ekranda görünen alana göre boyutlanır (çalışırken odak alanı, değilken ekranın altına kadar olan yer); çalışma bitince tahta bir kez daha bu ölçüyle çizilir — önceden bitince resimler büyüyüp alt satır ekrandan taşıyordu */
+function zaLsAvailH(board, fb){ try{ const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" && bar.getBoundingClientRect().top > board.getBoundingClientRect().top ? bar.getBoundingClientRect().height : 0; const focus = document.documentElement.classList.contains("run-focus") && window._rfMax; const vis = focus ? window._rfMax : Math.floor(window.innerHeight - board.getBoundingClientRect().top - barH - 8); const ch = board.clientHeight || fb || 280; return Math.max(120, Math.min(ch, vis)); }catch(e){ return board.clientHeight || fb || 280; } }
 function renderOsBoard(){ try{
 const board = document.getElementById("board");
 board.style.display = "block";
@@ -393,7 +395,7 @@ board.classList.remove("wide-grid");
 const n = currentGrid.length ? currentGrid[0].choices.length + 1 : 1;
 let maxW = Math.min(150, Math.floor(1100 / n));
 if(landscapeMQ.matches && currentGrid.length){
-const avail = (board.clientHeight || window.innerHeight * 0.6) - 16;
+const avail = zaLsAvailH(board, window.innerHeight * 0.6) - 16;
 maxW = Math.max(30, Math.min(maxW, Math.floor(avail / currentGrid.length) - 12));
 }
 if(osProgGrid !== currentGrid){ osProgGrid = currentGrid; osProg = currentGrid.map(() => []); }
@@ -696,7 +698,7 @@ const rowsOfGroups = Math.ceil(n / colsOfGroups);
 const bw = (board.clientWidth || 360) - (isLs ? 20 : 24);
 let cell = Math.min(isLs ? 60 : 70 * tabletScale(), Math.floor((bw / colsOfGroups - (isLs ? 20 : 18)) / 5));
 if(isLs){
-const avail = (board.clientHeight || window.innerHeight * 0.6) - 16;
+const avail = zaLsAvailH(board, window.innerHeight * 0.6) - 16;
 cell = Math.max(26, Math.min(cell, Math.floor(avail / rowsOfGroups) - 22));
 }
 const fs = Math.round(cell * 0.72);
@@ -969,7 +971,7 @@ const maxCell = SRH_SPECS[id].rows[0] <= 5 ? 66 : 50;
 const fit = (c) => {
 const perCol = Math.ceil(n / c);
 let cw = Math.floor((W / c - 14 * (c - 1) - 18 - (size + 2) * 5) / slots);
-if(isLs){ const H = (board.clientHeight || 280) - 10; const ch = Math.floor((H - (perCol - 1) * 4) / perCol) - 8; cw = Math.min(cw, ch); }
+if(isLs){ const H = zaLsAvailH(board, 280) - 10; const ch = Math.floor((H - (perCol - 1) * 4) / perCol) - 8; cw = Math.min(cw, ch); }
 return Math.min(cw, maxCell);
 };
 let cols = 1, cell = fit(1);
@@ -977,7 +979,7 @@ if(isLs){ for(const c of [2, 3]){ const v = fit(c); if(v > cell){ cell = v; cols
 cell = Math.max(isLs ? 18 : 24, Math.floor(cell * (searchState.lsScale || 1)));
 const html = currentGrid.map((r, ri) => {
 const a = searchState.ans[ri];
-const rowCls = a ? (a.ok ? " ok" : " bad") : "";
+const rowCls = (a ? (a.ok ? " ok" : " bad") : "") + (a && searchState.fresh === ri ? " srh-fresh" : "");
 const items = r.items.map((k, ii) => {
 let cls = "";
 if(a){ if(a.pick === ii) cls = a.ok ? " pick-ok" : " pick-bad"; else if(!a.ok && r.present && k === r.target) cls = " show"; }
@@ -1010,7 +1012,7 @@ if(searchState.ans[ri]) return;
 let ok, pick;
 if(el.dataset.no){ pick = "no"; ok = !r.present; }
 else { pick = Number(el.dataset.i); ok = r.present && r.items[pick] === r.target; }
-searchState.ans[ri] = { ok, pick };
+searchState.ans[ri] = { ok, pick }; searchState.fresh = ri;   /* yalnız yeni cevaplanan satır canlanır */
 searchState.answered++;
 if(!ok){ searchState.wrong++; setErrorCount(currentErrorCount + 1); try{ vibrate(60); }catch(e){} }
 gameSfx(ok ? "correct" : "wrong");
@@ -1146,7 +1148,7 @@ function plnSizes(board){
 const spec = PLN_SPECS[currentExercise().id];
 const isLs = landscapeMQ.matches;
 const W = ((board.clientWidth || 360) - 24) * (window._fitK || 1);
-const H = (isLs ? (board.clientHeight || 280) - 20 : Math.min(560 * tabletScale(), window.innerHeight - 260)) * (window._fitK || 1);
+const H = (isLs ? zaLsAvailH(board, 280) - 20 : Math.min(560 * tabletScale(), window.innerHeight - 260)) * (window._fitK || 1);
 const t = currentCombo().t, n = spec.items[t];
 if(spec.type === "swap"){
 const cube = Math.min(isLs ? 90 : 84, Math.floor((W * (isLs ? 0.55 : 1) - (n - 1) * 10) / n));
@@ -1406,7 +1408,7 @@ const stripEl = board.querySelector(".trl-strip");
 const stripH = stripEl ? stripEl.offsetHeight + 8 : 0;
 const ctrl = document.querySelector(".controls");
 const visH = window.innerHeight - (ctrl ? ctrl.offsetHeight : 90) - 24;
-const H = isLs ? Math.max(140, (board.clientHeight || 300) - 14 - stripH)
+const H = isLs ? Math.max(140, zaLsAvailH(board, 300) - 14 - stripH)
 : Math.round(Math.max(260, Math.min(W * 1.25, 520, visH - stripH - 24)));
 const hasLong = currentGrid.some(it => it.long);
 const TAG = 14;
@@ -1913,7 +1915,7 @@ const nRef = sortState.refs.length;
 const bw = (board.clientWidth || 360) - 28;
 const isLs = landscapeMQ.matches;
 const wide = !!sortSpec().wide;
-const h = (board.clientHeight || 280) - 70;
+const h = (isLs ? zaLsAvailH(board, 280) : (board.clientHeight || 280)) - 70;
 if(wide){
 const refCols = 2;
 let ref = Math.min(170, Math.floor((isLs ? bw * 0.5 : bw) - 10) / 2);

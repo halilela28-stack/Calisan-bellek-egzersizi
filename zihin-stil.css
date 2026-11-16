@@ -506,3 +506,13 @@ html.text-lg #hmEtk .hm-col > button, html.text-xl #hmEtk .hm-col > button{ font
 .wm-card.csp-in{animation:cspIn .35s ease-out}
 @keyframes cspIn{from{opacity:0;transform:translateX(40px) scale(.94)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion: reduce){.wm-card.csp-in{animation:none}}
+
+/* Kural değişti uyarısı (2026-11-16): resmin dışında, Deneme satırının yerinde */
+.ch-banner{background:#FFF4E5;border:3px solid #F59E0B;border-radius:14px;padding:6px 12px;text-align:center;font-weight:900;color:#9A3412;font-size:17px;line-height:1.25;max-width:100%;box-sizing:border-box;animation:fbPop .4s ease-out}
+
+/* KURAL (arama satırı işareti, 2026-11-16): Simge Arama satırlarında ✓ / ✗ yalnız dokunulan resmin üstündedir — satırın köşesine işaret konmaz (köşedeki ✓ son resmin üstüne düşüp yanlış resim de doğru sayılmış gibi görünüyordu); satır yalnız yeşil/kırmızı çerçeveyle belli olur. Doğru seçimde yalnız yeni cevaplanan satır canlanır, önceki satırlar yerinde durur */
+#board .srh-row.ok::before,#board .srh-row.bad::before,#placeScreen .srh-row.ok::before,#placeScreen .srh-row.bad::before{content:none !important;display:none !important}
+html #board .srh-row:not(.srh-fresh),html #board .srh-row:not(.srh-fresh) .srh-item,html #board .srh-row:not(.srh-fresh) .srh-no{animation:none !important}
+
+/* renkli daire ferahlığı (2026-11-16): Seçimli Tepki daireleri hücrenin %62'si — genel %86 kuralını yalnız bu tahtada geçersiz kılar */
+#board > .cell > svg.crt-dot{width:62% !important;height:62% !important}

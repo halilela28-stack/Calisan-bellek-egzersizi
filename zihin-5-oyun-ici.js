@@ -337,7 +337,7 @@ board.style.display = "block"; board.style.minHeight = ""; board.style.padding =
 board.style.gridTemplateColumns = ""; board.style.gridTemplateRows = ""; board.classList.remove("wide-grid");
 if(!mtState) return;
 const st = mtState, isLs = landscapeMQ.matches;
-const W = (board.clientWidth || 360) - 24, H = isLs ? Math.max((board.clientHeight || 280), Math.floor(window.innerHeight - board.getBoundingClientRect().top - 8)) - 60 : Math.min(460 * tabletScale(), window.innerHeight - 330); /* KURAL (yatay ekran, 2026-11-07): yatay ekranda tahta yüksekliği, tahtanın o anki içeriğine göre değil ekranda kalan yere göre hesaplanır — önceden küçük içerik küçük tahta, küçük tahta küçük içerik doğuruyordu (resimler 12–40 px kalıyordu) */
+const W = (board.clientWidth || 360) - 24, H = isLs ? Math.max(160, (document.documentElement.classList.contains("run-focus") && window._rfMax) ? window._rfMax : Math.floor(window.innerHeight - board.getBoundingClientRect().top - 8)) - 60 : Math.min(460 * tabletScale(), window.innerHeight - 330); /* KURAL (yatay ekran, 2026-11-07): yatay ekranda tahta yüksekliği, tahtanın o anki içeriğine göre değil ekranda kalan yere göre hesaplanır — önceden küçük içerik küçük tahta, küçük tahta küçük içerik doğuruyordu (resimler 12–40 px kalıyordu) */
 let info = "", body = "";
 if(st.kind === "corsi" || st.kind === "corsi-verbal"){
 corsiLayout();
@@ -479,7 +479,7 @@ board.style.display = "block"; board.style.minHeight = ""; board.style.padding =
 board.style.gridTemplateColumns = ""; board.style.gridTemplateRows = ""; board.classList.remove("wide-grid");
 if(!mtState) return;
 const st = mtState, isLs = landscapeMQ.matches;
-const W = (board.clientWidth || 360) - 24, H = isLs ? Math.max((board.clientHeight || 280), Math.floor(window.innerHeight - board.getBoundingClientRect().top - 8)) - 60 : Math.min(460 * tabletScale(), window.innerHeight - 330); /* KURAL (yatay ekran, 2026-11-07): yatay ekranda tahta yüksekliği, tahtanın o anki içeriğine göre değil ekranda kalan yere göre hesaplanır — önceden küçük içerik küçük tahta, küçük tahta küçük içerik doğuruyordu (resimler 12–40 px kalıyordu) */
+const W = (board.clientWidth || 360) - 24, H = isLs ? Math.max(160, (document.documentElement.classList.contains("run-focus") && window._rfMax) ? window._rfMax : Math.floor(window.innerHeight - board.getBoundingClientRect().top - 8)) - 60 : Math.min(460 * tabletScale(), window.innerHeight - 330); /* KURAL (yatay ekran, 2026-11-07): yatay ekranda tahta yüksekliği, tahtanın o anki içeriğine göre değil ekranda kalan yere göre hesaplanır — önceden küçük içerik küçük tahta, küçük tahta küçük içerik doğuruyordu (resimler 12–40 px kalıyordu) */
 let info = "", body = "";
 if(st.kind === "corsi" || st.kind === "corsi-verbal"){
 corsiLayout();
