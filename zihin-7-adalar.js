@@ -346,7 +346,7 @@ if(!t) return;
 if(!("speechSynthesis" in window) || speechMuted()) return;
 if(!_ttsUnlocked) _ttsMissed = { t, opts, at: Date.now(), g: window.__zaSpGen || 0 };
 const isInstr = !!(opts && opts.instr); let instrG = 0; if(isInstr){ instrG = window.__zaInstrG = (window.__zaInstrG || 0) + 1; window.__zaInstrActive = true; clearTimeout(window.__zaInstrT); window.__zaInstrT = setTimeout(() => { if(window.__zaInstrG === instrG) zaInstrDone(); }, Math.min(30000, 1500 + String(t).length * 75)); } else if(window.__zaInstrActive){ window.__zaInstrActive = false; } /* yönerge okunurken başka bir konuşma başlarsa yönerge bitmiş sayılır */
-const chunks = ttsPrep(t); _trVoice = _trVoice || pickTurkishVoice();
+try{ zaSpeakMark(); }catch(e){} const chunks = ttsPrep(t); _trVoice = _trVoice || pickTurkishVoice();
 chunks.forEach((c, i) => { const u = new SpeechSynthesisUtterance(c);
   if(i === 0){ u.onstart = () => { if(_ttsMissed && _ttsMissed.t === t) _ttsMissed = null; }; { const g0 = window.__zaSpGen || 0; u.onerror = (ev) => { if((window.__zaSpGen || 0) !== g0) return; if(ev && /cancel|interrupt/i.test(String(ev.error || ""))) return; if(!(opts && opts.instr) && !speechMuted()) showCaption(t); }; } }   // gerçekten çaldıysa tekrar okunmasın
   u.lang = "tr-TR"; u.rate = ((opts && opts.rate) || 0.85) * voiceRateMul(); u.pitch = voicePitch((opts && opts.pitch) || 1.0);

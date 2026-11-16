@@ -325,11 +325,12 @@ crtPool = pool;
 function crtMoveOf(color){ return crtMoves.find(m => m.color === color); }
 function crtLegendHTML(){
 const pool = (crtPool && crtPool.length === crtWantedCount()) ? crtPool : crtMoves.slice(0, crtWantedCount());
-return `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">` +
+/* KURAL (Renk-Hareket eşleşme listesi, 2026-11-15): çalışırken (Başlat'tan sonra) eşleşmeler iki sütunlu kısa listeye dönüşür — renk adı gizlenir, renk noktası ve hareket kalır; yönerge görünür kalırken tahtanın bütün satırları ekrana sığar (3. düzeyde 5 eşleşme alt alta durunca 5 sıralık tahtanın son iki sırası ekranın altında kalıyordu) */
+return `<div class="crt-legend" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">` +
 crtMoves.filter(m => pool.some(p => p.color === m.color)).map(m =>
 `<span style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:var(--bg);font-weight:700;">` +
 `<span style="width:18px;height:18px;border-radius:50%;background:${m.color};display:inline-block;"></span>` +
-`${m.name} → ${m.move}</span>`).join("") + `</div>`;
+`<span class="crt-nm">${m.name} → </span>${m.move}</span>`).join("") + `</div>`;
 }
 
 
@@ -1608,6 +1609,10 @@ const avail = this.avail(board, padV); const W = board.clientWidth - padH; const
 };
 /* zaRunAvail: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 function renderRowDividers(board, rows, cols, noRaf){ return ZA_BOARD.dividers(board, rows, cols, noRaf); }
+/* KURAL (satır çizgisi hizası, 2026-11-15): tahtanın boyu ya da satırların yeri sonradan değişirse (Başlat'ta tahtaya üst sınır konması, satırların ortalanıp kayması, ekran dönmesi) çizgiler yeniden hizalanır — önceden Örüntü Tamamla'da çizgiler eski yerinde kalıp şekillerin ortasından geçiyordu */
+(function(){ try{ const go = () => { const bd = document.getElementById("board"); if(!bd || typeof ResizeObserver === "undefined") return setTimeout(go, 500); let q = 0; const fix = () => { q = 0; try{ const lines = [...bd.querySelectorAll(":scope > .row-divider")]; if(!lines.length || !bd.querySelector(":scope > .cell")) return; /* yalnız hücreli ızgara tahtası; etkileşimli tahtalara dokunulmaz */ const cs = getComputedStyle(bd); const r = (cs.gridTemplateRows || "").split(" ").filter(x => /px$/.test(x)).length, c = (cs.gridTemplateColumns || "").split(" ").filter(x => /px$/.test(x)).length; if(!(r > 1 && c > 0)) return;
+      const cells = [...bd.querySelectorAll(":scope > .cell")], bt = bd.getBoundingClientRect().top + (bd.clientTop || 0); let off = lines.length !== r - 1; for(let k = 0; !off && k < r - 1; k++){ const a = cells[k * c], n = cells[(k + 1) * c]; if(!a || !n) break; const mid = (a.getBoundingClientRect().bottom + n.getBoundingClientRect().top) / 2 - bt; if(Math.abs(parseFloat(lines[k].style.top) - mid) > 1.5) off = true; }
+      if(off) ZA_BOARD.dividers(bd, r, c, true); }catch(e){} };   /* yalnız çizgi yerinden kaymışsa yeniden çizilir */ new ResizeObserver(() => { if(!q) q = requestAnimationFrame(fix); }).observe(bd); }; if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go(); }catch(e){} })();
 /* KURAL (tahta ölçeği, 2026-11-06): çalışırken tahtaya sığmayan içerik küçültülür, ama küçültme yalnız o soru/evre için geçerlidir — yeni denemeye, yeni evreye (ör. cümle → resimleri hatırlama), yeni probleme geçince ölçek yeniden 1'den başlar. Önceden küçültme tek yönlüydü: uzun bir evrede küçülen tahta sonraki denemelerde de küçük kalıyordu (Resimli Dinleme Aralığı ikinci tekrarda küçülüyordu) */
 function zaFitKey(){ try{ const ex = currentExercise(); let s = ex ? ex.id : ""; if(typeof mtState !== "undefined" && mtState){ const m = mtState; s += "|" + [m.kind, m.ti, m.si, m.phase, m.round, m.p].map(v => v == null ? "" : v).join(","); } if(typeof planState !== "undefined" && planState) s += "|p" + planState.p; if(typeof trailState !== "undefined" && trailState) s += "|t" + (Array.isArray(currentGrid) ? currentGrid.length : 0) + ":" + (trailState.page || 0); return s; }catch(e){ return ""; } }
 function zaFitReset(){ try{ if(window.__zaNoFitReset) return; const k = zaFitKey(); if(k === window._zaFitKey) return; window._zaFitKey = k; if((window._fitK || 1) !== 1){ window._fitK = 1; } const bd = document.getElementById("board"); if(bd){ delete bd.dataset.rf; delete bd.dataset.rfs; } }catch(e){} }
@@ -1648,6 +1653,11 @@ function zaModalOpen(){ return ZA_SPEECH.modalOpen(); }
 function zaInstrWaitModal(){ return ZA_SPEECH.waitModal(); }
 function zaReadInstr(force){ return ZA_SPEECH.readInstr(force); }
 function zaStopSpeech(){ return ZA_SPEECH.stop(); }
+/* KURAL (sayfa değişince konuşma susar, 2026-11-15): konuşma başlarken o anki sayfanın kimliği (görünen ekran + alan + çalışma + düzey + aşama + dönem) kaydedilir; sayfa çizildiğinde ya da ekran değiştiğinde (Önceki/Sonraki, Karıştır, aşama/düzey/kişi/alan değişimi, menüden başka çalışma, Ayarlar, Bugün, ana sayfa, oyun) kimlik değişmişse konuşma hemen susar — önceki sayfanın yönergesi yeni sayfada okunmaya devam etmez */
+function zaPageKey(){ try{ const scr = [...document.querySelectorAll('[id$="Screen"], #mainApp')].filter(e => e.style.display !== "none" && getComputedStyle(e).display !== "none").map(e => e.id).join(","); let ex = ""; try{ if(/mainApp/.test(scr)) ex = [currentCategoryIndex, currentIndex, currentExercise().id, currentStageIndex, readingLevel].join("|"); }catch(e){} return scr + "#" + ex + "#" + ((typeof gameMode !== "undefined" && gameMode) ? "oyun" : ""); }catch(e){ return ""; } }
+function zaSpeakMark(){ try{ window.__zaSpeakKey = zaPageKey(); }catch(e){} }
+function zaSpeakGuard(){ try{ const k = window.__zaSpeakKey; if(!k) return; const busy = (window.speechSynthesis && (speechSynthesis.speaking || speechSynthesis.pending)) || ZA_SPEECH.S.active; if(!busy){ window.__zaSpeakKey = ""; return; } if(zaPageKey() !== k){ window.__zaSpeakKey = ""; zaStopSpeech(); } }catch(e){} }
+(function(){ try{ const go = () => { try{ let q = false; new MutationObserver(() => { if(q || !window.__zaSpeakKey) return; q = true; requestAnimationFrame(() => { q = false; zaSpeakGuard(); }); }).observe(document.body, { attributes: true, subtree: true, attributeFilter: ["style"] }); }catch(e){} }; if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go(); }catch(e){} })();
 
 
 /* KURAL (düzey bildirimi, 2026-11-07): "Harika gidiyorsun! Zorluk artırıldı…" / "zorluk azaltıldı…" bildirimi kendiliğinden kaybolmaz; Başlat'a basılana, başka çalışmaya/adıma geçilene ya da ekran kaydırılana kadar görünür kalır (önceden 4 sn'de kayboluyor, okunamıyordu) */
@@ -1679,7 +1689,8 @@ const ZA_SPK_STOP = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" 
 function zaAutoErrClass(){ try{ const ex = currentExercise(); const auto = !!ex && isInteractiveExercise(ex) && !usesManualErrors(ex) && !(typeof mtState !== "undefined" && mtState && mtState.manual); document.documentElement.classList.toggle("za-autoerr", auto); }catch(e){} }
 (function(){  try{ const go = () => { const b = document.getElementById("board"); if(!b) return setTimeout(go, 500); new MutationObserver(() => zaAutoErrClass()).observe(b, { childList: true }); zaAutoErrClass(); }; if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go(); }catch(e){} })();
 /* Başlat'ta başlık/çipler/çubuk gizlendiği, Bitir'de geri geldiği için tahta o anda bir kez yeniden yerleştirilir (resim boyu değişmez, yalnız yer); çalışma sürerken tahta dondurulur */
-function zaSessionRelayout(){ try{ const h = document.documentElement; if(typeof boardIsPic === "function" && !boardIsPic()) return; const go = () => { try{ window._zaLaidGrid = null; applyBoardLayout(); if(typeof runFocusFit === "function") runFocusFit(); }catch(e){} }; requestAnimationFrame(go); setTimeout(go, 150); }catch(e){} }
+/* yazılı tahta tek ekran kuralı: yazılı (kelime/öbek) tahtalar da Başlat'ta çalışırkenki gerçek yüksekliğe göre bir kez yeniden yerleştirilir */
+function zaSessionRelayout(){ try{ const h = document.documentElement; const bdT = document.getElementById("board"); if(typeof boardIsPic === "function" && !boardIsPic() && !(bdT && bdT.querySelector(":scope > .cell .name-cell"))) return; const go = () => { try{ window._zaLaidGrid = null; applyBoardLayout(); if(typeof runFocusFit === "function") runFocusFit(); }catch(e){} }; requestAnimationFrame(go); setTimeout(go, 150); }catch(e){} }
 /* KURAL (odak, 2026-11-05 — kullanıcı kuralı 4): Başlat'a basınca yönerge, süre satırı (Bitir) ve hata sayısı görünür kalır; başlık satırı, Kişi/Düzey/Aşama çipleri, Bugün/ödev çubuğu ve alttaki Önceki · Karıştır · Sonraki düğmeleri gizlenir; Bitir'e basınca hepsi geri gelir. Süre ve hata satırları oranlı küçüktür (hata düğmeleri 46 px) */
 function runFocusOn(){ if(window.__TANI_NOFOCUS) return; const h = document.documentElement; try{ const ma = document.getElementById("mainApp"); if(ma) ma.scrollTop = 0; document.body.scrollTop = 0; window.scrollTo(0, 0); const sc = document.scrollingElement; if(sc) sc.scrollTop = 0; }catch(e){} window._fitK = 1; h.classList.add("run-focus"); try{ document.body.scrollTop = 0; window.scrollTo(0, 0); }catch(e){} runFocusSize(); runFocusWatch(); runFocusRepaint(); }
 // iPhone: düzen değişikliğinden sonra tahtayı zorla yeniden çizdir (çizilmeden kalan alanlar için)

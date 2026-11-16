@@ -1,4 +1,6 @@
 /* Zihin Atölyesi — zihin-2-calismalar.js (2/8): çalışma tanımları (EXERCISES). Dosyalar zihin-atolyesi.html'de bu sırayla yüklenir; sıra değiştirilemez (önceki tek dosyanın ardışık parçalarıdır). */
+/* KURAL (yazılı tahta düzey boyu, 2026-11-15): kelime/öbek tahtalarında öğe sayısı 16 – 20 – 24 (4 sütuna tam bölünür; 3. düzey 25 değil 24 — son satırda tek kelime kalmaz, tahta tek sütuna düşmez). Renk-Kelime, Kelime Listesi, Kelime Gruplama, Hece Sayma, Cümle/Öbek Tekrarı */
+const TXT_GRID_DIMS = [{rows:4, cols:4}, {rows:5, cols:4}, {rows:6, cols:4}], TXT_GRID_DIMS3 = [{rows:4, cols:3}, {rows:6, cols:3}, {rows:8, cols:3}];   /* Hece Sayma: kelimeler uzun, 3 sütun → 12 – 18 – 24 */
 const EXERCISES = [
 {
 id: "shape-color",
@@ -173,7 +175,7 @@ randomItem: () => {
 if(!crtPool || crtPool.length !== crtWantedCount()) pickCrtPool();
 return { color: randomItem(crtPool).color };
 },
-renderItem: (item) => `<svg viewBox="0 0 10 10" style="width:78%;height:78%;display:block;"><circle cx="5" cy="5" r="5" fill="${item.color}"/></svg>`,
+renderItem: (item) => `<svg viewBox="0 0 10 10" style="width:78%;height:78%;display:block;overflow:visible;"><circle cx="5" cy="5" r="4.9" fill="${item.color}"/></svg>`,   /* KURAL (daire kenarı, 2026-11-15): daire SVG çerçevesine tam değmez (r 4,9, taşma görünür) — kesirli piksel boyunda kenardan 1 px kırpılıp düz görünüyordu (Renk-Hareket) */
 stages: [
 {
 label: "Aşama 1 · Hareket",
@@ -835,6 +837,7 @@ example: () => ``
 
 {
 id: "stroop",
+dims: () => TXT_GRID_DIMS,   /* yazılı tahta düzey boyu kuralı: 16 – 20 – 24 */
 readingLevel: ["post"],
 label: "Renk-Kelime Uyumsuzluğu",
 attrs: ["word","inkColor"],
@@ -1017,6 +1020,7 @@ example: (item) => `${OPPOSITE_LABELS[item.state]} — ${OPPOSITE_OF[item.state]
 
 {
 id: "word-group",
+dims: () => TXT_GRID_DIMS,   /* yazılı tahta düzey boyu kuralı: 16 – 20 – 24 */
 readingLevel: ["post"],
 label: "Kelime Gruplama",
 attrs: ["word"],
@@ -1042,6 +1046,7 @@ example: (item) => `${item.cat}`
 },
 {
 id: "syllable-count",
+dims: () => TXT_GRID_DIMS3,   /* yazılı tahta düzey boyu kuralı: uzun kelimeler 3 sütunda → 12 – 18 – 24 */
 readingLevel: ["post"],
 label: "Hece Sayma",
 attrs: ["word"],
@@ -1295,6 +1300,7 @@ example: (item) => `${item.sides} kenar`
 
 {
 id: "word-list-recall",
+dims: () => TXT_GRID_DIMS,   /* yazılı tahta düzey boyu kuralı: 16 – 20 – 24 */
 readingLevel: ["post"],
 label: "Kelime Listesi Hatırlama",
 isRecall: true,
@@ -2539,12 +2545,12 @@ stages: [ { label: "Kuralı Keşfet, Değişince Fark Et", instruction: () => ``
 {
 id: "reversal",
 readingLevel: ["pre","post"],
-label: "Hangisi Kazandırıyor?",
+label: "Yıldız Nerede?",
 isMt: true, attrs: [], speedFactor: 2,
 errorLabel: "Yıldızsız seçim",
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
-stages: [ { label: "Yıldızlıyı Bul, Değişince Uyum Sağla", instruction: () => ``, example: () => `` } ]
+stages: [ { label: "Yıldızı Bul, Yer Değişince Fark Et", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "navon",
@@ -3092,6 +3098,7 @@ example: () => ``
 },
 {
 id: "sentence-repeat",
+dims: () => TXT_GRID_DIMS,   /* yazılı tahta düzey boyu kuralı: 16 – 20 – 24 */
 readingLevel: ["post"],
 label: "Cümle/Öbek Tekrarı",
 isRecall: true,

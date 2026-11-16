@@ -184,7 +184,7 @@ try{
 { const ma = document.getElementById("mainApp"); if(!ma || getComputedStyle(ma).display === "none") return; } /* etkinlik ekranı kapalıyken (haritaya/ana sayfaya dönülmüşse) gecikmeli yönerge okunmaz */
 if(captionOn() || !ttsUsable()) showCaption(t);
 if(!("speechSynthesis" in window)) return;
-const u = new SpeechSynthesisUtterance(ttsPrep(t).join(" ")); u.lang = "tr-TR"; u.rate = (rate || 0.85) * voiceRateMul(); u.pitch = voicePitch(1.0);
+try{ zaSpeakMark(); }catch(e){} const u = new SpeechSynthesisUtterance(ttsPrep(t).join(" ")); u.lang = "tr-TR"; u.rate = (rate || 0.85) * voiceRateMul(); u.pitch = voicePitch(1.0);
 _trVoice = _trVoice || pickTurkishVoice(); if(_trVoice) u.voice = _trVoice; u.onerror = () => showCaption(t); _ttsSpeak(u);
 }catch(e){}
 }
@@ -2116,8 +2116,9 @@ const WC_KEYS = [{ c:ACC.kirmizi, s:"circle", n:1 }, { c:ACC.yesil, s:"triangle"
 function wcCfg(){ const t = Math.min(currentCombo().t, 2), pre = isPre(); return { rules: (pre ? [["c","s"], ["c","s"], ["c","s","n"]] : [["c","s"], ["c","s","n"], ["c","s","n"]])[t], K: pre ? [4, 4, 3][t] : [5, 5, 4][t], N: selCount() }; }
 function wcCard(rules){ /* her boyutta farklı anahtarla eşleşen kart: kurala göre doğru anahtar değişir */ let g = 0; while(g++ < 200){ const ci = Math.floor(Math.random() * 4), si = Math.floor(Math.random() * 4), ni = Math.floor(Math.random() * 4); const m = { c: ci, s: si, n: ni }; const used = rules.map(r => m[r]); if(new Set(used).size === rules.length) return { c: WC_KEYS[ci].c, s: WC_KEYS[si].s, n: WC_KEYS[ni].n, m }; } return { c: WC_KEYS[0].c, s: WC_KEYS[1].s, n: WC_KEYS[2].n, m:{ c:0, s:1, n:2 } }; }
 function wcCardSVG(card, px){ const n = card.n, s = Math.round(px * (n === 1 ? 0.6 : n === 2 ? 0.42 : 0.34)); return `<div style="width:${px}px;height:${px}px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;align-content:center;gap:2px">${Array.from({length:n}, () => `<svg viewBox="0 0 100 100" style="width:${s}px;height:${s}px">${sortShapeSVG(card.s, card.c)}</svg>`).join("")}</div>`; }
-/* Hangisi Kazandırıyor? (ters öğrenme): yıldız veren resim, ölçüt sağlanınca değişir */
-function revCfg(){ const t = Math.min(currentCombo().t, 2), pre = isPre(), pool = shuffleArray(picPool()).slice(0, 2); return { pics: pool, K: pre ? [4, 4, 3][t] : [4, 3, 3][t], maxRev: pre ? [1, 2, 3][t] : [2, 3, 4][t], N: selCount() }; }
+/* Yıldız Nerede? (ters öğrenme; eski adı Hangisi Kazandırıyor?): yıldızın saklandığı resim, ölçüt sağlanınca değişir */
+/* KURAL (Yıldız Nerede akışı, 2026-11-15): yıldız resimlerden birinin arkasında saklıdır; çocuk bir resme dokunur — bulursa yıldız çıkar, bulamazsa seçtiği resim kırmızı çerçeve ve ✕ alır, yıldızın gerçekte saklandığı resimde yıldız GÖRÜNÜR (her denemeden öğrenir; yıldızın yer değiştirdiği ilk yanlışta belli olur). Yıldız K kez üst üste bulununca başka bir resmin arkasına geçer (düzeye göre en çok 1–4 kez). Resim sayısı: okul öncesi 2–2–3, okul sonrası 2–3–3; yerleri her denemede karışır. Önceden yanlışta yalnız "Yıldız yok" yazıyordu, yıldızın nerede olduğu görünmüyordu; çocuk şansa mı kaybettiğini, yıldızın yer mi değiştirdiğini anlayamıyordu */
+function revCfg(){ const t = Math.min(currentCombo().t, 2), pre = isPre(), n = pre ? [2, 2, 3][t] : [2, 3, 3][t], pool = shuffleArray(picPool()).slice(0, n); return { pics: pool, n, K: pre ? [4, 4, 3][t] : [4, 3, 3][t], maxRev: pre ? [1, 2, 3][t] : [2, 3, 4][t], N: selCount() }; }
 /* Navon: küçük şekillerden oluşan büyük şekil */
 const NV_SHAPES = ["circle", "square", "triangle", "cross"];
 /* KURAL (Büyük Şekil seçenek sayısı, 2026-11-15): seçenek sayısı düzeye göre 2 – 3 – 4 (1. düzey daire–kare, 2. düzey + üçgen, 3. düzey + artı); büyük ve küçük şekil her zaman seçeneklerin içindendir */
@@ -2333,7 +2334,7 @@ mtState = { kind:"flu", fid:id, P: fluPrompt(id), secs: fluSecs(id), ok:0, rep:0
 "hold-wait": () => { mtState = { kind:"hold", trials: holdTrials(), ti:0, wrong:0, okN:0, phase:"idle", holding:false }; return mtState.trials; },
 "fist": () => { mtState = { kind:"fist", trials: fistTrials(), ti:0, wrong:0, okN:0, phase:"idle" }; return mtState.trials; },
 "rule-shift": () => { const c = wcCfg(); mtState = { kind:"wcst", cfg:c, trials: Array.from({length: c.N}, () => wcCard(c.rules)), ti:0, wrong:0, okN:0, rule: c.rules[0], ri:0, streak:0, shifts:0, pers:0, lastRule:null, phase:"idle", fb:null, pick:null }; return mtState.trials; },
-"reversal": () => { const c = revCfg(); mtState = { kind:"rev", cfg:c, trials: Array.from({length: c.N}, () => ({ swap: Math.random() < 0.5 })), ti:0, wrong:0, okN:0, win: Math.floor(Math.random() * 2), streak:0, revs:0, phase:"idle", fb:null, pick:null }; return mtState.trials; },
+"reversal": () => { const c = revCfg(), idx = () => Array.from({length: c.n}, (_, k) => k); mtState = { kind:"rev", cfg:c, trials: Array.from({length: c.N}, () => ({ order: shuffleArray(idx()) })), ti:0, wrong:0, okN:0, win: Math.floor(Math.random() * c.n), prevWin:null, shown:null, streak:0, revs:0, pers:0, phase:"idle", fb:null, pick:null }; return mtState.trials; },
 "zoo-map": () => { mtState = { kind:"zoo", trials: zooTrials(), ti:0, wrong:0, okN:0, phase:"idle" }; return mtState.trials; },
 "key-search": () => { mtState = { kind:"keys", trials: ksTrials(), ti:0, wrong:0, okN:0, phase:"idle", res:[] }; return mtState.trials; },
 "design-fluency": () => { const c = dflCfg(); mtState = { kind:"dfl", cfg:c, trials:[{}], ti:0, wrong:0, phase:"idle", left:c.secs, designs:[], cur:[], sel:-1, uniq:0, rep:0, short:0 }; return mtState.trials; },
@@ -2618,11 +2619,11 @@ wcst(i){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "input") ret
   st.fb = ok ? "ok" : "bad"; st.phase = "fb"; renderMtBoard();
   if(st.streak >= st.cfg.K){ st.lastRule = st.rule; st.ri = (st.ri + 1) % st.cfg.rules.length; st.rule = st.cfg.rules[st.ri]; st.streak = 0; st.shifts++; }   /* kural sessizce değişir */
   mtLater(NEW_MT.next, ok ? 500 : 900); },
-rev(i){ const st = mtState; if(st.phase !== "input") return; const ok = i === st.win; st.pick = i;
-  if(ok){ st.okN++; st.streak++; gameSfx("correct"); } else { mtErr(); st.streak = 0; }
+rev(i){ const st = mtState; if(st.phase !== "input") return; const ok = i === st.win; st.pick = i; st.shown = st.win;
+  if(ok){ st.okN++; st.streak++; gameSfx("correct"); } else { mtErr(); st.streak = 0; if(st.prevWin !== null && i === st.prevWin) st.pers++; }   /* pers: yıldız yer değiştirdikten sonra eski yerinde ısrar */
   st.fb = ok ? "ok" : "bad"; st.phase = "fb"; renderMtBoard();
-  if(st.streak >= st.cfg.K && st.revs < st.cfg.maxRev){ st.win = 1 - st.win; st.streak = 0; st.revs++; }   /* yıldız veren resim sessizce değişir */
-  mtLater(NEW_MT.next, ok ? 700 : 900); },
+  if(st.streak >= st.cfg.K && st.revs < st.cfg.maxRev){ st.prevWin = st.win; st.win = randomItem(Array.from({length: st.cfg.n}, (_, k) => k).filter(k => k !== st.win)); st.streak = 0; st.revs++; }   /* yıldız başka resmin arkasına geçer (ilk yanlışta görünür) */
+  mtLater(NEW_MT.next, ok ? 900 : 1600); },
 zoo(i){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "input") return; const e = zooAdj(tr.E, tr.cur, i); if(i === tr.cur) return;
   if(!e){ st.fb = "nopath"; mtErr(); renderMtBoard(); mtLater(() => { st.fb = null; renderMtBoard(); }, 700); return; }
   if(tr.used.includes(e)){ st.fb = "used"; tr.bad++; mtErr(); renderMtBoard(); mtLater(() => { st.fb = null; renderMtBoard(); }, 900); return; }
@@ -2888,7 +2889,7 @@ if(st.kind === "statue") return { info:`Süre doldu · ${st.cfg.secs} sn · hare
 if(st.kind === "hold") return { info:`Bitti · sonuna kadar tuttu <b>${st.okN}/${st.trials.length}</b> · erken bıraktı <b>${st.wrong}</b>`, body:"" };
 if(st.kind === "fist") return { info:`Bitti · bulunan eşleme <b>${st.okN}</b> · yanlış <b>${st.wrong}</b>`, body:"" };
 if(st.kind === "wcst") return { info:`Bitti · doğru <b>${st.okN}/${st.trials.length}</b> · kural değişimi <b>${st.shifts}</b> · eski kurala takılma <b>${st.pers}</b>`, body:"" };
-if(st.kind === "rev") return { info:`Bitti · yıldız <b>${st.okN}/${st.trials.length}</b> · değişim <b>${st.revs}</b>`, body:"" };
+if(st.kind === "rev") return { info:`Bitti · yıldız <b>${st.okN}/${st.trials.length}</b> · yıldız <b>${st.revs}</b> kez yer değiştirdi${st.pers ? ` · eski yerinde ısrar <b>${st.pers}</b>` : ""}`, body:"" };
 if(st.kind === "zoo") return { info:`Bitti · tam rota <b>${st.okN}/${st.trials.length}</b> · kural ihlali + eksik <b>${st.wrong}</b>`, body:"" };
 if(st.kind === "keys") return { info:`Bitti · tarama: <b>${st.res.map(p => "%" + p).join(" · ")}</b>`, body:"" };
 if(st.kind === "jars") return { info:`Bitti · çözülen <b>${st.okN}/${st.trials.length}</b> · fazla hamle <b>${st.wrong}</b>`, body:"" };
@@ -3305,9 +3306,10 @@ const keys = `<div style="display:flex;gap:8px;justify-content:center">${WC_KEYS
 const card = `<div class="wm-card" style="width:${sp}px;height:${sp}px;margin:${isLs ? 0 : 10}px auto 0">${wcCardSVG(tr, sp * 0.9)}</div>`;
 body = dots + (isLs ? `<div style="display:flex;gap:16px;align-items:center;justify-content:center">${keys}${card}</div>` : keys + card);
 } else if(st.kind === "rev"){
-const tr = st.trials[Math.min(ti, st.trials.length - 1)], c = Math.min(isLs ? 150 : 150, W * 0.38), pics = st.cfg.pics, order = tr.swap ? [1, 0] : [0, 1];
-info = st.phase === "fb" ? (st.fb === "ok" ? `<b style="color:var(--good)">⭐ Yıldız!</b>` : `<b style="color:var(--bad)">Yıldız yok</b>`) : `Deneme <b>${ti + 1}/${st.trials.length}</b> · yıldız veren resme dokun`;
-body = dots + `<div style="display:flex;gap:16px;justify-content:center;margin-top:6px">${order.map(i => `<div class="wm-pic${st.phase === "fb" && st.pick === i ? " " + st.fb : ""}" data-mt="${i}" style="width:${c}px;height:${c}px;position:relative">${imgTag(pics[i].src)}${st.phase === "fb" && st.pick === i && st.fb === "ok" ? `<span style="position:absolute;right:4px;top:2px;font-size:${Math.round(c * 0.3)}px">⭐</span>` : ""}</div>`).join("")}</div><div class="aud-key" style="text-align:center;margin-top:8px">Toplanan yıldız: <b>${st.okN}</b></div>`;
+const tr = st.trials[Math.min(ti, st.trials.length - 1)], n = st.cfg.n || 2, gp = 14, c = Math.floor(Math.min(isLs ? 150 : 170 * tabletScale(), (W - (n - 1) * gp) / n * 0.96)), pics = st.cfg.pics, order = tr.order || (tr.swap ? [1, 0] : [0, 1]), fb = st.phase === "fb";   /* Yıldız Nerede akışı kuralı: zihin-4-bellek.js revCfg */
+info = fb ? (st.fb === "ok" ? `<b style="color:var(--good)">⭐ Buldun!</b>` : `<b style="color:var(--bad)">Burada yok!</b> Yıldız şurada saklıydı`) : `Deneme <b>${ti + 1}/${st.trials.length}</b> · yıldız hangi resmin arkasında?`;
+const card = (i) => { const star = fb && i === st.shown; return `<div class="wm-pic rev-card${fb && st.pick === i ? " " + st.fb : ""}${star ? " rev-here" : ""}" data-mt="${i}" style="width:${c}px;height:${c}px;position:relative">${imgTag(pics[i].src)}${star ? `<span class="rev-star" style="font-size:${Math.round(c * 0.4)}px">⭐</span>` : ""}</div>`; };
+body = dots + `<div style="display:flex;gap:${gp}px;justify-content:center;margin-top:6px">${order.map(card).join("")}</div><div class="aud-key" style="text-align:center;margin-top:8px">Toplanan yıldız: <b>${st.okN}</b> ⭐</div>`;
 } else if(st.kind === "zoo"){
 const tr = st.trials[Math.min(ti, st.trials.length - 1)], area = Math.min(W, isLs ? 236 : 380 * tabletScale()), R = area * 0.085;
 info = st.phase === "fb" ? (st.fb === "ok" ? `<b style="color:var(--good)">Rota tamam!</b> Bütün duraklara uğradın` : `<b style="color:var(--bad)">Çıkışa vardın ama durak eksik</b>`) : st.fb === "used" ? `<b style="color:var(--bad)">Bu yoldan zaten geçtin</b>` : st.fb === "nopath" ? `<b style="color:var(--bad)">Buraya yol yok</b>` : st.fb === "order" ? `<b style="color:var(--bad)">Sıra farklı</b>` : `Harita <b>${ti + 1}/${st.trials.length}</b> · ⭐ duraklar: <b>${tr.visited.length}/${tr.req.length}</b>${tr.ordered ? " · sırayla" : ""}`;

@@ -476,7 +476,7 @@ const ZA_LIFE = {
   /* etkinlikten/oyundan çıkış: konuşma susar, altyazı kapanır */
   leave(){ try{ zaStopSpeech(); }catch(e){} },
   /* sayfa çizildi: yönerge hoparlörü kurulur, yönerge (gerekiyorsa) okunur */
-  afterRender(){ try{ zaInstrSpk(); }catch(e){} try{ zaFitLsBar(); }catch(e){} } /* yönerge kendiliğinden okunmaz (KURAL yönerge elle, 2026-11-09) */
+  afterRender(){ try{ zaSpeakGuard(); }catch(e){} try{ zaInstrSpk(); }catch(e){} try{ zaFitLsBar(); }catch(e){} } /* yönerge kendiliğinden okunmaz (KURAL yönerge elle, 2026-11-09) */
 };
 function startTimer(){ try{ const gm = typeof gameMode !== "undefined" && gameMode; if(window.__zaInstrActive && !timerRunning){ zaStopSpeech(); } /* Başlat yönerge okumasını durdurur (oyunda da) */ }catch(e){}  window.__zaStartAt = Date.now(); if(!(typeof gameMode !== "undefined" && gameMode) && !(currentPlayerName || "").trim() && document.getElementById("mainApp").style.display !== "none" && !window.__qaNoPlayerGuard){ try{ const row = document.getElementById("playerRow"); row.scrollIntoView({ behavior:"smooth", block:"center" }); row.classList.remove("attn"); void row.offsetWidth; row.classList.add("attn"); }catch(e){} showToast("Başlamadan önce kimin çalıştığını seçin", "err"); return; }
 window._incomplete = false; setLsOpen(false);
@@ -753,6 +753,8 @@ const itemCount = ex.isSeqRows ? Math.max(1, currentGrid.length * 2)
 const secPerItem = (ms/1000) / itemCount;
 const k = ex.speedFactor || (ex.isSeqRows ? 3 : (ex.isScatter ? 2 : 1));
 /* KURAL: süresi görevce sabit olan çalışmalarda (tutma, oynatma, geri sayım, arama uzunluğu) düzey yalnızca hataya göre değişir (adaptErrorsOnly) */
+/* süresiz seçim kuralı (2026-11-16): bu çalışmalarda düzey doğruluk oranı ve hedef süreye göre değişir — %90+ doğru ve ortalama hedef sürenin altındaysa yükselir, %70'in altında doğruysa düşer, arada (yavaş ama doğru dahil) aynı kalır; tek hata düzeyi düşürmez */
+{ const sp = ex.isChoice && typeof CHOICE !== "undefined" && CHOICE[ex.id]; if(sp && sp.selfPaced){ const n = (chState && chState.trials && chState.trials.length) || Math.max(1, currentGrid.length), acc = Math.max(0, n - errors) / n, avg = (ms / 1000) / n, tg = sp.target ? sp.target() / 1000 : 0; return { isGood: acc >= 0.9 && (!tg || avg <= tg), isBad: acc < 0.7 }; } }
 const errOnly = ex.isAuditory || ex.adaptErrorsOnly;
 const isGood = errOnly ? errors === 0 : (errors === 0 && secPerItem <= SUCCESS_SEC_PER_ITEM * k);
 const isBad = errOnly ? errors >= 2 : (errors > 0 || secPerItem >= FAIL_SEC_PER_ITEM * k);
@@ -1170,7 +1172,8 @@ return trials;
 function chStart(){ try{ if(chState && chState.phase === "idle") chFirstGo(); }catch(e){} try{ if(!chState || chState.phase !== "idle") return; chNext(); }finally{ chBreakRuns(); } }
 function chNext(){
 const st = chState;
-if(st.idx >= st.trials.length){ st.phase = "done"; renderChoiceBoard(); stopTimer(); showLevelFlash(st.wrong ? `Bitti! ${st.wrong} hata.` : "Bitti! Hiç hata yok 🎉", st.wrong ? "down" : "levelup"); return; }
+if(st.idx >= st.trials.length){ st.phase = "done"; st.t1 = performance.now(); renderChoiceBoard(); stopTimer(); showLevelFlash(st.spec.selfPaced ? `Bitti! ${st.trials.length - st.wrong} doğru, ${st.wrong} yanlış · toplam ${(((st.t1 - (st.t0 || st.t1)) / 1000)).toFixed(1).replace(".", ",")} sn · ortalama ${(((st.t1 - (st.t0 || st.t1)) / 1000) / Math.max(1, st.trials.length)).toFixed(1).replace(".", ",")} sn` : (st.wrong ? `Bitti! ${st.wrong} hata.` : "Bitti! Hiç hata yok 🎉"), st.wrong && !(st.spec.selfPaced && st.wrong <= st.trials.length * 0.1) ? "down" : "levelup"); return; }
+if(st.idx === 0 && !st.t0) st.t0 = performance.now();
 st.phase = "gap"; st.flash = ""; st.picked = null; renderChoiceBoard();
 chLater(() => {
 const myIdx = st.idx;
@@ -1185,6 +1188,10 @@ if(sm){ st.phase = "show"; st.showAt = performance.now(); renderChoiceBoard(); t
 else ask();
 }, st.spec.gap || 220);
 }
+/* KURAL (süresiz seçim, 2026-11-16): Büyük Şekil mi Küçük Şekil mi?, Ters Yöne Dokun, Çeldiriciyi Yoksay ve Tersine Sınıfla'da süre dolunca cevap otomatik yanlış sayılmaz — her deneme çocuk cevap verene kadar bekler. Değerlendirme toplam süre ve doğru/yanlış sayısına göredir; tepki hızı tablosundaki süre burada zaman sınırı değil HEDEF SÜREDİR (sonuç yorumunda kullanılır: ortalama hedefin altındaysa "akıcı", üstündeyse "doğru, biraz daha hızlanabilir"). Gelişimi farklı çocuklarda 3–4 sn sonra otomatik yanlış, performansı doğru ölçmüyor ve başarısızlık hissi yaratıyordu */
+function chPacedSummary(st){ try{ const n = st.trials.length, w = st.wrong, ok = n - w, tot = Math.max(0, ((st.t1 || performance.now()) - (st.t0 || st.t1 || performance.now())) / 1000), avg = n ? tot / n : 0, tg = (st.spec.target ? st.spec.target() : 0) / 1000, f = (x) => x.toFixed(1).replace(".", ",");
+  const note = w > Math.max(2, Math.round(n * 0.2)) ? "Acele etme; önce bak, sonra dokun." : (tg && avg <= tg) ? "Akıcı ve doğru! 🎉" : "Doğru! Biraz daha hızlanabilirsin.";
+  return `<span class="ch-sum"><b>${n}</b> denemede <b style="color:var(--good)">${ok} doğru</b> · <b style="color:var(--bad)">${w} yanlış</b> · toplam <b>${f(tot)} sn</b> · ortalama <b>${f(avg)} sn</b><br><b>${note}</b></span>`; }catch(e){ return ""; } }
 function chAnswer(btnId){
 const st = chState; if(!st || st.phase !== "ask") return;
 const tr = st.trials[st.idx];
@@ -1213,7 +1220,7 @@ let cls = "";
 if(st.phase === "feedback"){ if(b.id === st.picked) cls = st.flash === "ok" ? " ok" : " bad"; else if(b.id === corr && st.flash === "bad") cls = " show"; }
 return `<button type="button" class="ch-btn${cls}" data-ch="${b.id}" ${st.phase === "ask" ? "" : "disabled"} style="${b.style || ""}">${b.html}</button>`; }).join("") + `</div>`;
 const key = sp.key ? sp.key(st.ctx) : "";
-const prog = st.phase === "idle" ? (sp.hint ? sp.hint(st.ctx) : "") : st.phase === "done" ? "" : `Deneme <b>${Math.min(st.idx + 1, st.trials.length)}</b> / ${st.trials.length}`;
+const prog = st.phase === "idle" ? (sp.hint ? sp.hint(st.ctx) : "") : st.phase === "done" ? (sp.selfPaced ? chPacedSummary(st) : "") : `Deneme <b>${Math.min(st.idx + 1, st.trials.length)}</b> / ${st.trials.length}`;
 const stimBox = `<div class="wm-card ${sp.tapStim ? "" : (st.flash || "")}" style="width:${sp.wideStim ? Math.min(W, stimSize * 1.8) : stimSize}px;height:${stimSize}px;${sp.tapStim ? "padding:0;" : ""}">${stim}</div>`;
 board.innerHTML = isLs
 ? `<div class="wm-wrap" style="flex-direction:row;justify-content:center;gap:20px;">${stimBox}<div style="display:flex;flex-direction:column;gap:10px;align-items:center;width:46%">${key}<div class="wm-info">${prog}</div>${btnHtml}</div></div>`
@@ -1387,7 +1394,7 @@ trials_make: (n, c) => balancedSeq(n, c.D.map(d => DIR_OPP[d]), 2).map(p => ({ p
 stim: (t, sz) => { const r = Math.round(sz * 0.2); return `<div style="position:relative;width:100%;height:100%"><div style="position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px;border-radius:50%;background:#C9D3DE"></div><div style="position:absolute;${DIR_POS[t.pos]};transform:translate(-50%,-50%);width:${r}px;height:${r}px;border-radius:50%;background:#2E6FD8;box-shadow:0 0 0 6px rgba(46,111,216,.25)"></div></div>`; },
 buttons: (c) => dirButtons(c.D),
 correct: (t) => DIR_OPP[t.pos],
-window: () => zaPace("anti-touch"), gap: 320, cols: 4, wideStim: true
+target: () => zaPace("anti-touch"), selfPaced: true, gap: 320, cols: 4, wideStim: true
 };
 /* ===== Yürütücü İşlev · Paket 2 · dokunmalı çalışmalar ===== */
 CHOICE["less-more"] = {
@@ -1419,7 +1426,7 @@ stim: (t, sz) => { if(t.snd && chState && chState.phase === "ask" && !t.played){
   return `<div style="position:relative;width:100%;height:100%;overflow:hidden;border-radius:16px">${ds}${arrow}</div>`; },
 buttons: (c) => dirButtons(c.D),
 correct: (t) => t.dir,
-window: () => zaPace("distract"), gap: 300, cols: 4, wideStim: true
+target: () => zaPace("distract"), selfPaced: true, gap: 300, cols: 4, wideStim: true
 };
 CHOICE["grass-snow"] = {
 setup: () => ({ order: shuffleArray(["green","white"]) }),
@@ -1439,7 +1446,7 @@ stim: (t, sz, c) => { const lab = t.cue === "big" ? "BÜYÜK" : "KÜÇÜK"; cons
   return `<div style="position:relative;width:100%;height:100%"><div style="position:absolute;left:50%;top:3%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;background:${t.sw ? "#FFF4E5" : "#F2F5F8"};border:2px solid ${t.sw ? "#F59E0B" : "#C9D3DE"};border-radius:999px;padding:2px 12px;font-weight:900;font-size:${Math.round(sz * 0.08)}px;color:#1F2A33;white-space:nowrap">${ic}${lab}${t.sw ? " · değişti!" : ""}</div><div style="position:absolute;left:50%;top:56%;transform:translate(-50%,-50%);width:${Math.round(sz * 0.72)}px;height:${Math.round(sz * 0.72)}px">${navonSVG(t.big, t.small, c.col)}</div></div>`; },
 buttons: (c) => ((c && c.shapes) || nvShapes()).map(s => ({ id: s, html: `<svg viewBox="0 0 100 100" style="width:40px;height:40px">${sortShapeSVG(s, "#1F2A33")}</svg>` })),
 correct: (t) => t.cue === "big" ? t.big : t.small,
-window: () => zaPace("navon"), gap: 300, cols: 4,
+target: () => zaPace("navon"), selfPaced: true, gap: 300, cols: 4,
 key: () => `<div class="ch-key" style="font-weight:800;font-size:13px;color:var(--ink);gap:12px;padding:6px 12px"><span>BÜYÜK → büyük şekil</span><span>KÜÇÜK → küçük şekiller</span></div>`
 };
 /* KURAL (Yaratık Sayma akışı, 2026-11-15): yaratıklar ve oklar ekranda yığın hâlinde değil, TEK TEK ve ritimle gelir (hız tablosundan, düzeyle hızlanır): önce "0'dan başla" işareti, sonra her yaratık zıplayarak ortaya çıkar (pıt sesi), ok gelince büyük "İLERİ SAY ▲" (yeşil, yükselen ses) ya da "GERİ SAY ▼" (kırmızı, alçalan ses) tabelası çıkar. Gösterim bitene kadar düğmeler kapalıdır, sonra "Kaça geldin?" sorulur. Her turun ilk denemesi ÖRNEK'tir: sayılar yaratıkların altında görünür. Yanlış cevapta çözüm yolu (her yaratığın altında o anki sayı) 3 sn gösterilir. Ekran döndürmede gösterim baştan başlamaz, kaldığı yerden sürer */
@@ -1473,7 +1480,7 @@ trials_make: (n, c) => balancedSeq(n, ["big", "small"], 2).map((z, i) => ({ z, s
 stim: (t, sz) => { const px = Math.round(sz * (t.z === "big" ? 0.78 : 0.34)); return `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 100 100" style="width:${px}px;height:${px}px">${sortShapeSVG(t.s, t.col)}</svg></div>`; },
 buttons: (c) => c.order.map(z => ({ id: z, html: `<div style="display:flex;flex-direction:column;align-items:center;gap:2px"><img src="${HOUSE_IMAGES.bucket}" alt="" style="width:${z === "big" ? 52 : 30}px !important;max-height:${z === "big" ? 52 : 30}px"><b style="font-size:13px">${z === "big" ? "BÜYÜK KOVA" : "KÜÇÜK KOVA"}</b></div>` })),
 correct: (t) => stIx() === 1 ? (t.z === "big" ? "small" : "big") : t.z,
-window: () => zaPace("rev-sort"), gap: 300, cols: 2
+target: () => zaPace("rev-sort"), selfPaced: true, gap: 300, cols: 2
 };
 /* ===== Yürütücü İşlev · Paket 5 · dokunmalı ===== */
 CHOICE["look-first"] = {
