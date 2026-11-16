@@ -129,6 +129,9 @@ function currentCategory(){ return CATEGORIES[currentCategoryIndex]; }
 const EX_VARIANT_GROUPS = [["pos-nback", "nback-shape", "nback-color", "nback-number"]];
 const ZA_VAR_KEY = "za-variant-v1";
 function zaVariantGroup(id){ return EX_VARIANT_GROUPS.find(g => g.includes(id)) || null; }
+/* KURAL (N-Geri Oyunları adı, 2026-11-16): tek sayfanın menüdeki, başlıktaki ve alan listesindeki adı "N-Geri Oyunları"dır (etkin olanın adı — ör. Konum — yazılmaz); sonuç kayıtları her N-Geri'nin kendi adıyla tutulur */
+const EX_VARIANT_LABELS = { "pos-nback": "N-Geri Oyunları" };
+function zaNavLabel(ex){ try{ const g = ex && zaVariantGroup(ex.id); return g ? (EX_VARIANT_LABELS[g[0]] || ex.label) : (ex ? ex.label : ""); }catch(e){ return ex ? ex.label : ""; } }
 function zaVariantActive(g){ try{ const m = window.__zaVar || (window.__zaVar = JSON.parse(localStorage.getItem(ZA_VAR_KEY) || "{}")); if(g.includes(m[g[0]])) return m[g[0]]; }catch(e){} return g[0]; }
 function zaVariantSetActive(g, id){ try{ window.__zaVar = window.__zaVar || {}; window.__zaVar[g[0]] = id; localStorage.setItem(ZA_VAR_KEY, JSON.stringify(window.__zaVar)); }catch(e){} }
 function currentCategoryExercises(){
@@ -402,7 +405,7 @@ row.appendChild(lbl);
 }
 const btn = document.createElement("button");
 btn.className = "exercise-btn" + (e===currentCombo().e ? " active" : "");
-btn.textContent = ex.label;
+btn.textContent = zaNavLabel(ex);
 btn.addEventListener("click", ()=>{ const tt = Math.min(currentCombo().t, tierMax(ex)); goToIndex(findSeqIndex(tt, e)); }); if(t > tierMax(ex)) btn.classList.add("dim"); row.appendChild(btn); }); row.scrollLeft = prevScroll; centerActiveChip(row); }
 function formatTime(ms){
 const totalMs = Math.max(0, ms);

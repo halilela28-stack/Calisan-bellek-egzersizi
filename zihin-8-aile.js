@@ -353,7 +353,7 @@ groups.forEach(([name, ids]) => { const seenG = new Set(); const inLevel = ids.f
   const wrap = document.createElement("span"); wrap.className = "cat-group";
   const chip = document.createElement("button"); chip.type = "button"; chip.className = "cat-group-chip"; chip.innerHTML = `${escHTML(name)} <small>${inLevel.length}</small>`;
   const ul = document.createElement("span"); ul.className = "cat-group-list"; ul.style.display = "none";
-  inLevel.forEach(id => { const ex = exerciseById(id); const b = document.createElement("button"); b.type = "button"; b.className = "cat-ex-btn"; b.textContent = ex.label;
+  inLevel.forEach(id => { const ex = exerciseById(id); const b = document.createElement("button"); b.type = "button"; b.className = "cat-ex-btn"; b.textContent = zaNavLabel(ex);
     b.addEventListener("click", (ev) => { ev.stopPropagation(); selectCategory(realIndex); try{ zaVariantFocus(id); const exs = currentCategoryExercises(); const e = exs.findIndex(x => x.id === id); if(e >= 0){ const tt = Math.max(ex.minTier || 0, Math.min(currentCombo().t, tierMax(ex))); const idx = findSeqIndex(tt, e); if(idx >= 0) goToIndex(idx); } }catch(err){} });
     ul.appendChild(b); });
   chip.addEventListener("click", (ev) => { ev.stopPropagation(); const open = ul.style.display !== "none"; host.querySelectorAll(".cat-group-list").forEach(x => { x.style.display = "none"; }); host.querySelectorAll(".cat-group-chip").forEach(x => x.classList.remove("on")); if(!open){ ul.style.display = "flex"; chip.classList.add("on"); } });

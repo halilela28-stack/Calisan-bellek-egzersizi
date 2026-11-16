@@ -501,3 +501,8 @@ html.text-lg #hmEtk .hm-col > button, html.text-xl #hmEtk .hm-col > button{ font
 /* ikinci aşama kilidi (2026-11-16): bu düzeyde kapalı aşama düğmesi soluk ve kilitli görünür */
 #mainApp .stage-btn.stage-locked{opacity:.5}
 #mainApp .stage-btn.stage-locked::after{content:" \1F512";font-size:.8em}
+
+/* Say ve Hatırla kart değişimi (2026-11-16): her yeni kart sağdan kayarak gelir */
+.wm-card.csp-in{animation:cspIn .35s ease-out}
+@keyframes cspIn{from{opacity:0;transform:translateX(40px) scale(.94)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.wm-card.csp-in{animation:none}}

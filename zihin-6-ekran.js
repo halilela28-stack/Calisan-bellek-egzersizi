@@ -180,13 +180,16 @@ function pickPortraitDims(n, board, rows0, cols0){ try{ if(rows0 < 2 || cols0 < 
   const h = availAll - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 16; if(!(w > 0 && h > 120)) return null;
   const gx = parseFloat(cs.columnGap) || 10, gy = (n >= 13 && window.innerWidth < 700 && boardIsPic()) ? 12 : (parseFloat(cs.rowGap) || 26);   /* kalabalık tahtada satır aralığı daralır, resimler büyük kalır */ const hasText = !!board.querySelector(".name-cell, .stroop-cell, .phrase-cell"); const hasPair = !!board.querySelector(".pair-cell"), hasOdd = !!board.querySelector(".odd-group"); const aspect = hasPair ? 2.1 : hasOdd ? 2.4 : (hasText ? 1.7 : 1);
   /* KURAL: tahtada son satır eksik kalmaz — öğe sayısını tam bölen bir sütun sayısı varsa yalnız onlar denenir (15 öğe → 3×5 ya da 5×3, 4 sütun + 1 boş hücre değil) */
-  const exact = []; for(let c = 2; c < n; c++) if(n % c === 0) exact.push(c); const tryCols = exact.length ? exact : Array.from({length: Math.max(0, n - 1)}, (_, i) => i + 2);
+  const exact = []; for(let c = 2; c < n; c++) if(n % c === 0) exact.push(c); let tryCols = exact.length ? exact : Array.from({length: Math.max(0, n - 1)}, (_, i) => i + 2);
+  /* KURAL (rakam tahtası sütunu, 2026-11-16): okul öncesinde rakam tahtaları (Sayı - Renk, Sayı Bulma, Zıt Dünya) dikeyde her düzeyde 3 sütundur — 9, 12, 15 rakam 3, 4, 5 satıra dizilir; Zor düzeyde 5 sütuna geçip rakamlar sıkışmaz */
+  const numWide = isPre() && n % 3 === 0 && !!board.querySelector(".number-cell"); if(numWide) tryCols = [3];
   let best = null; for(const c of tryCols){ const r = Math.ceil(n / c); if(r < 1 || c * r - n > c - 1) continue; const cw = (w - (c - 1) * gx) / c, ch = (h - (r - 1) * gy) / r; if(cw <= 0 || ch <= 0) continue; const cell = Math.min(cw / aspect, ch); const rem = n % c; const score = cell - (c * r - n) * 0.5 - (rem && rem <= Math.floor(c / 2) ? cell * 0.18 : 0);   /* son satırda yarıdan az kart kalan dizilim cezalı */ if(!best || score > best.score) best = { cols:c, rows:r, cell:Math.floor(cell), cw:Math.floor(Math.min(cw, cell * aspect)), score }; }
   /* KURAL: telefonda düzey yükselip öğe sayısı artınca resimler sıkışıp küçülmez — hücre en az ekran genişliğinin ~%20'si (64–82 px, okul öncesinde 92'ye kadar); gerekirse tahta biraz kaydırılır — 2026-11-05: tek ekran kuralı önceliklidir; tahta ekrana sığmazsa hücreler 36 px'e kadar küçülür */
   { const MINC = Math.round(Math.min(isPre() ? 92 : 82, Math.max(64, window.innerWidth * (isPre() ? 0.24 : 0.2))));
     if(boardIsPic() && best && best.cell < MINC && window.innerWidth < 700){ let alt = null;
       for(const c of tryCols){ const r = Math.ceil(n / c); if(r < 1 || c * r - n > c - 1) continue; const cw = (w - (c - 1) * gx) / c, ch = (h - (r - 1) * gy) / r; const cwA = cw / aspect; if(cwA < MINC * 0.93) continue; const cell = Math.min(cwA, Math.max(Math.min(cwA, ch), MINC)); const rem = n % c; const sc = c * 100 - r - (rem && rem <= Math.floor(c / 2) ? 50 : 0); if(!alt || sc > alt.score) alt = { cols:c, rows:r, cell:Math.floor(cell), cw:Math.floor(Math.min(cw, cell * aspect)), score:sc }; }
       if(alt) best = alt; } }
+  if(best && numWide) best.cw = Math.floor((w - 2 * gx) / 3);   /* rakam tahtası sütunu kuralı: üç sütun tahtanın genişliğine yayılır, rakamlar ortada toplanmaz */
   return best; }catch(e){ return null; } }
 function applyBoardLayout(){
 if(applyingBoardLayout) return;
@@ -328,7 +331,7 @@ function renderExHead(){ try{
   const cloud = document.getElementById("cloudBadge"), cloudOn = cloud && cloud.classList.contains("on");
   const av = who ? (() => { try{ return avatarHTML(who, 26); }catch(e){ return `<span class="exh-av">${escHTML(who[0] || "?")}</span>`; } })() : `<span class="exh-av none">${exhSvg("user", 15)}</span>`;
   el.innerHTML = `<div class="exh-top"><button type="button" class="exh-ib" id="exhBack" aria-label="Geri: ${escHTML(cat.name || "Alan")}">${exhSvg("back")}</button>
-    <div class="exh-ttl"><div class="exh-cat"><span>${escHTML(cat.name || "")}</span>${mode ? `<span class="exh-mode">${escHTML(mode)}</span>` : ""}</div><button type="button" class="exh-exbtn" id="exhExBtn" aria-haspopup="listbox" aria-expanded="false"><span class="exh-exnm">${escHTML(ex.label || "")}</span>${exhSvg("down", 16)}</button></div>
+    <div class="exh-ttl"><div class="exh-cat"><span>${escHTML(cat.name || "")}</span>${mode ? `<span class="exh-mode">${escHTML(mode)}</span>` : ""}</div><button type="button" class="exh-exbtn" id="exhExBtn" aria-haspopup="listbox" aria-expanded="false"><span class="exh-exnm">${escHTML(zaNavLabel(ex) || "")}</span>${exhSvg("down", 16)}</button></div>
     <div class="exh-ics"><button type="button" class="exh-ib cloud${cloudOn ? " on" : ""}" id="exhCloud" aria-label="${cloudOn ? "Eşitlendi" : "Eşitleme"}">${exhSvg("cloud", 19)}</button><button type="button" class="exh-ib" id="exhSet" aria-label="Ayarlar">${(document.getElementById("settingsIconSlot") || {}).innerHTML || exhSvg("gauge", 19)}</button><button type="button" class="exh-ib home" id="exhHome" aria-label="Ana menü">${exhSvg("home", 19)}</button></div></div>
     <div class="exh-chips${stBtns.length > 1 ? "" : " two"}"><button type="button" class="exh-chip" id="exhWho" aria-haspopup="listbox" aria-expanded="false">${av}<span class="exh-cv"><small>KİŞİ</small><b>${escHTML(who || "Seç")}</b></span>${exhSvg("down", 14)}</button>
     <button type="button" class="exh-chip" id="exhTier" aria-haspopup="listbox" aria-expanded="false"${tierBtns.length < 2 ? " disabled" : ""}><span class="exh-ci">${exhSvg("gauge", 19)}</span><span class="exh-cv"><small>DÜZEY</small><b>${escHTML(tierTx || "-")}</b></span>${tierBtns.length > 1 ? exhSvg("down", 14) : ""}</button>
@@ -351,7 +354,7 @@ try{ const __c = currentCategory(); if(__c && __c.color) document.documentElemen
 document.getElementById("pageIndicator").textContent = `${(() => { try{ const c = CATEGORIES[currentCategoryIndex]; const n = (appMode === "aile" && typeof famProfile === "function") ? famProfile() : currentPlayerName; const info = c ? catLevelInfo(c.id, n) : null; return info && info.by !== "genel" ? (readingLevel === "pre" ? "Okul Öncesi · " : "Okul Sonrası · ") : ""; }catch(e){ return ""; } })()}${currentTier().label} · Sayfa ${currentIndex+1}/${SEQUENCE.length}`;
 const lsPageEx = document.getElementById("lsPageEx");
 const lsPageInfo = document.getElementById("lsPageInfo");
-if(lsPageEx) lsPageEx.textContent = currentExercise().label;
+if(lsPageEx) lsPageEx.textContent = zaNavLabel(currentExercise());
 if(lsPageInfo) lsPageInfo.textContent = `${currentTier().label} · ${currentIndex+1}/${SEQUENCE.length}`;
 renderInstruction();
 renderBoard();
@@ -1782,7 +1785,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.16-i";
+const APP_VERSION = "2026.11.16-j";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 /* RUNTIME_CSS → zihin-stil.css */
 /* Dosya sürümü denetimi: zihin-atolyesi.html ile uygulama kodu (zihin-1…8) farklı sürümdeyse uyar */

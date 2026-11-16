@@ -1353,8 +1353,10 @@ if(!seq.some(x => x.tg)) seq[5] = { sh:"star", col:"#E5484D", tg:true }; return 
 function pnbBuild(){ const t = currentCombo().t, pre = isPre(), n = pre ? [1, 1, 1, 2][t] : [1, 2, 2, 3][t], L = pre ? [10, 12, 14, 14][t] : [14, 16, 20, 22][t], seq = [];
 for(let i = 0; i < L; i++){ if(i >= n && Math.random() < 0.3) seq.push(seq[i - n]); else { let v; do{ v = Math.floor(Math.random() * 9); } while(i >= n && v === seq[i - n]); seq.push(v); } }
 return { n, seq, ms: zaPace("pos-nback") }; }
-function cspTrials(){ const t = currentCombo().t, L = (isPre() ? [2, 3, 3, 4] : [2, 3, 4, 5])[t];
-return Array.from({length:3}, () => ({ counts: Array.from({length:L}, () => 2 + Math.floor(Math.random() * (isPre() ? (t >= 2 ? 4 : 3) : 5))) })); }   // öncesi Zor: aynı uzunluk, daha büyük sayılar
+/* KURAL (Say ve Hatırla kart değişimi, 2026-11-16): art arda iki kartta aynı sayı olmaz (bir önceki turun son kartı dahil); her kart farklı renkte noktalarla ve kayarak gelir — kart değiştiği her zaman görülür. Sayı aralığı ve kart sayısı değişmedi. */
+function cspTrials(){ const t = currentCombo().t, L = (isPre() ? [2, 3, 3, 4] : [2, 3, 4, 5])[t], R = isPre() ? (t >= 2 ? 4 : 3) : 5; let prev = -1;
+return Array.from({length:3}, () => ({ counts: Array.from({length:L}, () => { let n, g = 0; do{ n = 2 + Math.floor(Math.random() * R); }while(n === prev && g++ < 50); prev = n; return n; }) })); }
+const CSP_DOT_COLORS = ["#2E6FD8", "#D97F12", "#7A3FB5", "#BE3788"];   // öncesi Zor: aynı uzunluk, daha büyük sayılar
 
 const TONE_KEYS = [ { c:ACC.kirmizi, f:392 }, { c:ACC.mavi, f:494 }, { c:ACC.yesil, f:587 }, { c:ACC.turuncu, f:698 } ];
 function toneBeep(f){ try{ const ctx = getAudioCtx(); if(!ctx) return; if(ctx.state === "suspended") ctx.resume(); stimTone(ctx, f, ctx.currentTime + 0.005, 0.32, 0.55); }catch(e){} }   /* uyaran sesi kuralı: rhyBeep üstünde */
@@ -3175,7 +3177,8 @@ body = isLs ? `<div style="display:flex;gap:18px;align-items:center;justify-cont
 const tr = st.trials[ti];
 if(st.phase === "count"){ const n = tr.counts[st.ci], sz = Math.min(isLs ? H - 110 : 190, 190), pts = [[30,30],[70,30],[50,50],[30,70],[70,70],[50,20],[50,80]].slice(0, n);
 info = `<b>Noktaları say</b> ve aklında tut · kart ${st.ci + 1}/${tr.counts.length}`;
-body = dots + `<div style="display:flex;${isLs ? "" : "flex-direction:column;"}gap:12px;align-items:center;justify-content:center"><div class="wm-card" style="width:${sz}px;height:${sz}px"><svg viewBox="0 0 100 100" width="100%" height="100%">${shuffleArray(pts).map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="9" fill="#2E6FD8"/>`).join("")}</svg></div><button type="button" class="wm-btn same" data-mtbtn="csp-ok">Saydım</button></div>`; }
+const cKey = st.ti + ":" + st.ci; if(st._cspKey !== cKey){ st._cspKey = cKey; st._cspAt = Date.now(); } const anim = Date.now() - st._cspAt < 450, col = CSP_DOT_COLORS[(st.ti + st.ci) % CSP_DOT_COLORS.length];   /* tahta bu arada yeniden çizilirse kayma yarıda kesilmez */
+body = dots + `<div style="display:flex;${isLs ? "" : "flex-direction:column;"}gap:12px;align-items:center;justify-content:center"><div class="wm-card${anim ? " csp-in" : ""}" data-csp-card="${st.ci}" style="width:${sz}px;height:${sz}px;border-color:${col}"><svg viewBox="0 0 100 100" width="100%" height="100%">${shuffleArray(pts).map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="9" fill="${col}"/>`).join("")}</svg></div><button type="button" class="wm-btn same" data-mtbtn="csp-ok">Saydım</button></div>`; }
 else { info = st.reveal ? `Doğrusu: <b>${tr.counts.join(" – ")}</b>` : `Kartlardaki sayıları <b>sırayla</b> seç · ${st.pos}/${tr.counts.length}`;
 body = dots + `<div class="qz-txt-grid" style="grid-template-columns:repeat(4, minmax(0,1fr))">${[1,2,3,4,5,6,7,8].map(n => `<div class="wm-pic qz-txt" data-mt="${n}" style="font-size:24px;font-weight:900">${n}</div>`).join("")}</div>`; }
 } else if(st.kind === "tone"){
