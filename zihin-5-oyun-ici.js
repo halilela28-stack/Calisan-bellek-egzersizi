@@ -331,6 +331,10 @@ else { st.marks[i] = "bad"; mtErr(); st.reveal = true; st.phase = "fb"; renderMt
 }
 function seqNext(){ const st = mtState; st.ti++; if(st.ti >= st.trials.length){ mtFinish(); return; } seqShow(); }
 
+/* KURAL (Corsi Blokları (uzmanla) puanlama ekranı, 2026-11-17): çocuğun sırayı söylediği/gösterdiği ekranda bloklar, doğru cevap, "Hata sayısı +" notu ve Sonraki düğmesi Hata sayısı satırıyla birlikte tek ekrana sığar. Dikeyde blok alanı kalan yere göre boyutlanır, not ve düğme altta yan yanadır; yatayda blok alanı solda (izleme evresindeki boyda), not ve düğme sağdadır. Düğme yazının üstüne binmez */
+function corsiJudgeArea(area, W, isLs, board){ try{ if(isLs) return Math.max(110, Math.min(area, W * 0.42)); const h = document.documentElement, rf = h.classList.contains("run-focus") && window._rfMax, room = (rf ? window._rfMax : window.innerHeight - board.getBoundingClientRect().top - 10) - (W < 330 ? 172 : 152); return Math.max(120, Math.min(area, room)); }catch(e){ return area; } }
+function corsiJudgeBody(areaHtml, answer, count, isLs){ const txt = `<div class="aud-key" style="text-align:${isLs ? "center" : "left"}">Doğru cevap: <b>${answer}</b> · dizi <b>${count}</b></div><div class="aud-key" style="text-align:${isLs ? "center" : "left"};margin-top:3px">Yetişkin: dizi yanlışsa <b>Hata sayısı +</b></div>`, btn = `<div class="wm-btns" style="position:static;display:block;width:auto;max-width:none;padding:0;margin:0;background:none;flex:0 0 auto"><button type="button" class="wm-btn same" data-judge="9" style="height:52px;padding:0 16px;font-size:17px;white-space:nowrap">Sonraki ▶</button></div>`;
+return isLs ? `<div style="display:flex;align-items:center;justify-content:center;gap:22px;width:100%">${areaHtml.replace("margin:0 auto;", "margin:0;")}<div style="display:flex;flex-direction:column;align-items:center;gap:10px;max-width:300px">${txt}${btn}</div></div>` : areaHtml + `<div style="display:flex;align-items:center;gap:10px;width:100%;max-width:420px;margin:0 auto"><div style="flex:1 1 auto;min-width:0">${txt}</div>${btn}</div>`; }
 function renderMtBoard(){ try{ const st = mtState; if(st && (st.kind === "quiz" || st.kind === "wseen" || st.kind === "bag") && !st._balanced && Array.isArray(st.trials)){ const exId = (currentExercise() || {}).id; if(st.kind === "quiz") qzDedupe(st, exId); qzBalancePos(st.trials, exId); if(st.kind === "quiz" && !["syl-touch","sem-decide","absurd-touch","rhyme-touch","sent-verify","arrow-touch","balance"].includes(exId)) qzBalanceNum(st.trials); if(st.kind === "quiz"){ qzBreakRuns(st.trials, st.warmN || 0); qzFixRuns(st, exId); } st._balanced = true; } }catch(e){} /* soru düzeni dengeleme (eski sarmalayıcı, 7. adımda içeri alındı) */  zaFitReset(); try{
 const board = document.getElementById("board");
 board.style.display = "block"; board.style.minHeight = ""; board.style.padding = landscapeMQ.matches ? "6px 8px" : "12px";
@@ -341,16 +345,18 @@ const W = (board.clientWidth || 360) - 24, H = isLs ? Math.max(160, (document.do
 let info = "", body = "";
 if(st.kind === "corsi" || st.kind === "corsi-verbal"){
 corsiLayout();
-const area = Math.min(W, isLs ? (st.kind === "corsi-verbal" && st.phase === "judge" ? H - 112 : H) : 420 * tabletScale()) * (window._fitK || 1), bs = Math.round(area * 0.15);
+const cvJ = st.kind === "corsi-verbal" && st.phase === "judge"; let area = Math.min(W, isLs ? H : 420 * tabletScale()) * (window._fitK || 1);
+if(cvJ) area = corsiJudgeArea(area, W, isLs, board);   /* KURAL (Corsi Blokları (uzmanla) puanlama ekranı, 2026-11-17) */
+const bs = Math.round(area * 0.15);
 info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "show" ? "<b>İzle…</b>" : st.phase === "input" ? `<b>${st.back ? "Tersten" : "Aynı sırayla"}</b> dokun · ${st.pos}/${st.seq.length}` : st.phase === "judge" ? `Çocuk sırayı ${st.back ? "<b>tersten</b>" : ""} söylesin / göstersin:` : st.phase === "done" ? (st.manual ? `Bitti · ${st.len}'lü diziler · hatalar Hata sayısında` : `Bitti · en uzun dizi <b>${st.best || "—"}</b>`) : `Dizi uzunluğu: <b>${st.len}</b>`;
-body = `<div style="position:relative;width:${area}px;height:${area}px;margin:0 auto;background:#EEF2F6;border-radius:18px;">` + st.blocks.map((p, i) => {
+body = `<div style="position:relative;flex:0 0 auto;width:${area}px;height:${area}px;margin:0 auto;background:#EEF2F6;border-radius:18px;">` + st.blocks.map((p, i) => {
 const lit = st.lit === i, mk = st.marks && st.marks[i];
 const bg = lit ? "#FFC21A" : mk === "ok" ? "#1FA463" : mk === "bad" ? "#E5484D" : "#2E6FD8";
 const num = st.kind === "corsi-verbal" ? `<span style="color:#fff;font-weight:900;font-size:${Math.round(bs * 0.42)}px">${i + 1}</span>` : "";
 return `<div data-mt="${i}" style="position:absolute;left:${(p.x * area).toFixed(0)}px;top:${(p.y * area).toFixed(0)}px;width:${bs}px;height:${bs}px;border-radius:10px;background:${bg};box-shadow:0 4px 0 rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .1s">${num}</div>`; }).join("") + `</div>`;
-if(st.kind === "corsi-verbal" && st.phase === "judge"){
+if(cvJ){
 const order = st.back ? st.seq.slice().reverse() : st.seq;
-body += `<div class="aud-key" style="text-align:center;margin-top:8px">Doğru cevap: <b>${order.map(i => i + 1).join(" – ")}</b> · dizi <b>${st.trials + 1}/${st.maxTrials}</b></div><div class="aud-key" style="text-align:center">Yetişkin: dizi yanlışsa <b>Hata sayısı +</b></div><div class="wm-btns" style="margin:6px auto 0"><button type="button" class="wm-btn same" data-judge="9">Sonraki ▶</button></div>`;
+body = corsiJudgeBody(body, order.map(i => i + 1).join(" – "), `${st.trials + 1}/${st.maxTrials}`, isLs);
 }
 } else if(st.kind === "span-touch"){
 const set = st.sets[st.si] || st.sets[0], it = set.items[Math.min(st.ii, set.items.length - 1)];
@@ -483,16 +489,18 @@ const W = (board.clientWidth || 360) - 24, H = isLs ? Math.max(160, (document.do
 let info = "", body = "";
 if(st.kind === "corsi" || st.kind === "corsi-verbal"){
 corsiLayout();
-const area = Math.min(W, isLs ? (st.kind === "corsi-verbal" && st.phase === "judge" ? H - 112 : H) : 420 * tabletScale()) * (window._fitK || 1), bs = Math.round(area * 0.15);
+const cvJ = st.kind === "corsi-verbal" && st.phase === "judge"; let area = Math.min(W, isLs ? H : 420 * tabletScale()) * (window._fitK || 1);
+if(cvJ) area = corsiJudgeArea(area, W, isLs, board);   /* KURAL (Corsi Blokları (uzmanla) puanlama ekranı, 2026-11-17) */
+const bs = Math.round(area * 0.15);
 info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "show" ? "<b>İzle…</b>" : st.phase === "input" ? `<b>${st.back ? "Tersten" : "Aynı sırayla"}</b> dokun · ${st.pos}/${st.seq.length}` : st.phase === "judge" ? `Çocuk sırayı ${st.back ? "<b>tersten</b>" : ""} söylesin / göstersin:` : st.phase === "done" ? (st.manual ? `Bitti · ${st.len}'lü diziler · hatalar Hata sayısında` : `Bitti · en uzun dizi <b>${st.best || "—"}</b>`) : `Dizi uzunluğu: <b>${st.len}</b>`;
-body = `<div style="position:relative;width:${area}px;height:${area}px;margin:0 auto;background:#EEF2F6;border-radius:18px;">` + st.blocks.map((p, i) => {
+body = `<div style="position:relative;flex:0 0 auto;width:${area}px;height:${area}px;margin:0 auto;background:#EEF2F6;border-radius:18px;">` + st.blocks.map((p, i) => {
 const lit = st.lit === i, mk = st.marks && st.marks[i];
 const bg = lit ? "#FFC21A" : mk === "ok" ? "#1FA463" : mk === "bad" ? "#E5484D" : "#2E6FD8";
 const num = st.kind === "corsi-verbal" ? `<span style="color:#fff;font-weight:900;font-size:${Math.round(bs * 0.42)}px">${i + 1}</span>` : "";
 return `<div data-mt="${i}" style="position:absolute;left:${(p.x * area).toFixed(0)}px;top:${(p.y * area).toFixed(0)}px;width:${bs}px;height:${bs}px;border-radius:10px;background:${bg};box-shadow:0 4px 0 rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .1s">${num}</div>`; }).join("") + `</div>`;
-if(st.kind === "corsi-verbal" && st.phase === "judge"){
+if(cvJ){
 const order = st.back ? st.seq.slice().reverse() : st.seq;
-body += `<div class="aud-key" style="text-align:center;margin-top:8px">Doğru cevap: <b>${order.map(i => i + 1).join(" – ")}</b> · dizi <b>${st.trials + 1}/${st.maxTrials}</b></div><div class="aud-key" style="text-align:center">Yetişkin: dizi yanlışsa <b>Hata sayısı +</b></div><div class="wm-btns" style="margin:6px auto 0"><button type="button" class="wm-btn same" data-judge="9">Sonraki ▶</button></div>`;
+body = corsiJudgeBody(body, order.map(i => i + 1).join(" – "), `${st.trials + 1}/${st.maxTrials}`, isLs);
 }
 } else if(st.kind === "span-touch"){
 const set = st.sets[st.si] || st.sets[0], it = set.items[Math.min(st.ii, set.items.length - 1)];
