@@ -142,7 +142,12 @@ return mtState.trials;
 }
 if(id === "zihni"){
 const R = isPre() ? 3 : 4;
-mtState = { kind:id, rounds: Array.from({length:R}, () => makeZihniRound()), ri:0, wrong:0, phase:"idle", res:[] };
+mtState = { kind:id, rounds: makeZihniRounds(R), ri:0, wrong:0, phase:"idle", res:[] };   /* Zihni turları farklı kuralı */
+return mtState.rounds;
+}
+if(id === "zihni-verbal"){   /* KURAL (Zihni Nerede? sözlü dokunmalı, 2026-11-17) */
+const R = isPre() ? 3 : 5;
+mtState = { kind:id, rounds: makeZihniRounds(R), ri:0, wrong:0, phase:"idle", res:[], taps:[], k:-1 };
 return mtState.rounds;
 }
 if(id === "market"){
@@ -162,6 +167,7 @@ else if(st.kind === "running") runShow();
 else if(st.kind === "pal-touch") palStudy();
 else if(NEW_MT.start[st.kind]) NEW_MT.start[st.kind]();
 else if(st.kind === "zihni") zhShow();
+else if(st.kind === "zihni-verbal") zvShow();
 else if(st.kind === "market") mkShow();
 else seqShow();
 }
@@ -225,6 +231,34 @@ const st = mtState; if(st.phase !== "input") return;
 const r = st.rounds[st.ri], ok = i === r.ey * r.n + r.ex;
 st.pick = i; st.res[st.ri] = ok; st.phase = "reveal"; if(ok) gameSfx("correct"); else mtErr(); renderMtBoard();
 mtLater(() => { st.ri++; if(st.ri >= st.rounds.length){ mtFinish(); return; } zhShow(); }, ok ? 900 : 1500);
+}
+/* KURAL (Zihni Nerede? sözlü dokunmalı, 2026-11-17): sözlü sürümde Zihni önce başlangıç kutusunda görünür, sonra gizlenir; komutlar ("sağa bir", "yukarı bir") sırayla okunur ve yazılı görünür — çocuk her komutta Zihni'nin gittiği kutuya dokunur, bir sonraki komut dokunuştan sonra gelir. Komut sayısı kadar dokunulunca, doğru da olsa yanlış da olsa Zihni gerçek yerinde ortaya çıkar; dokunulan kutular sıra numarasıyla kalır, açılışta doğru adımlar yeşil, yanlış adımlar kırmızı olur. Turun bütün adımları doğruysa tur doğrudur; yanlış tur Hata sayısına kendiliğinden eklenir ve sonuç kendiliğinden kaydedilir. Ses kapalıysa yetişkin yazılı komutu okur; "Tekrar dinle" komutu yeniden okur. Tur sayısı okul öncesi 3, okul sonrası 5 (eskisi gibi); düzey yalnız hataya göre değişir */
+function zvShow(){ const st = mtState; st.phase = "start"; st.k = -1; st.taps = []; renderMtBoard(); mtLater(() => zvCmd(0), isPre() ? 1800 : 1500); }
+function zvSay(){ const st = mtState; if(!st || st.kind !== "zihni-verbal" || st.k < 0 || st.phase !== "step") return; const r = st.rounds[st.ri]; speakText(`${ZH_DIRS[r.cmds[st.k]].w} bir`); }
+function zvCmd(k){ const st = mtState; st.k = k; st.phase = "step"; renderMtBoard(); zvSay(); }
+function zvTap(i){ const st = mtState; if(st.phase !== "step") return; const r = st.rounds[st.ri];
+st.taps.push(i);
+if(st.taps.length >= r.cmds.length){ const path = zvPath(r), ok = st.taps.every((t, j) => t === path[j]); st.res[st.ri] = ok; st.phase = "reveal"; st.k = -1; if(ok) gameSfx("correct"); else mtErr(); renderMtBoard();
+  mtLater(() => { st.ri++; if(st.ri >= st.rounds.length){ mtFinish(); return; } zvShow(); }, ok ? 1500 : 2400); return; }
+st.phase = "wait"; renderMtBoard(); mtLater(() => zvCmd(st.taps.length), 500); }
+function zvRender(st, W, H, isLs){
+const r = st.rounds[Math.min(st.ri, st.rounds.length - 1)], n = r.n, path = zvPath(r), fin = r.ey * n + r.ex, start = r.sy * n + r.sx, rev = st.phase === "reveal" || st.phase === "done";
+const dots = `<div class="wm-dots">${st.rounds.map((x, i) => `<i class="${st.res[i] === true ? "on" : st.res[i] === false ? "off" : ""}"></i>`).join("")}</div>`;
+/* yatayda bilgi satırı, turlar ve komut sağ sütunda: ızgara tahtanın bütün yüksekliğini kullanır (kutular dokunmaya yetecek büyüklükte) */
+const sideW = isLs ? Math.min(230, Math.max(150, Math.floor(W * 0.3))) : 0;
+const area = (isLs ? Math.min(W - sideW - 18, H + 60 - 30) : Math.min(W, 320 * tabletScale())) * (window._fitK || 1), cell = Math.floor((area - (n - 1) * 6) / n);
+const showZ = st.phase === "start" ? start : rev ? fin : -1, taps = st.taps || [], ok = st.res[Math.min(st.ri, st.rounds.length - 1)] === true;
+const info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "start" ? "<b>Zihni burada.</b> Yerine iyi bak…" : (st.phase === "step" || st.phase === "wait") ? `<b>Dinle ve dokun</b> · ${taps.length}/${r.cmds.length}` : st.phase === "reveal" ? (ok ? "<b>Doğru!</b> Zihni burada." : "<b>Zihni burada.</b> Doğru yol yeşil.") : st.phase === "done" ? "Bitti!" : "";
+const grid = `<div class="wm-grid" style="grid-template-columns:repeat(${n}, ${cell}px);gap:6px;">` + Array.from({length:n * n}, (_, i) => {
+  const js = taps.map((t, j) => t === i ? j : -1).filter(j => j >= 0), mk = rev && js.length ? (js.every(j => path[j] === i) ? "ok" : "bad") : "";
+  const want = rev && !ok && path.indexOf(i) >= 0 && !js.some(j => path[j] === i);   /* yanlış turda doğru yolun dokunulmayan kutuları yeşil çerçeveyle gösterilir */
+  const nb = js.length ? `<span class="num" style="left:-8px;right:auto;min-width:24px;width:auto;padding:0 5px;background:${mk === "bad" ? "var(--bad)" : mk === "ok" ? "var(--good)" : "#2E6FD8"}">${js.map(j => j + 1).join("·")}</span>` : "";   /* sıra numarası sol üstte: sağ üstteki ✓ / ✗ işaretiyle çakışmaz */
+  const st0 = i === start && showZ !== i ? "outline:3px dashed var(--teal);outline-offset:-7px;" : "", w0 = want ? "box-shadow:inset 0 0 0 4px var(--good);" : "";
+  return `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${cell}px;height:${cell}px;border-radius:14px;${st0}${w0}">${showZ === i ? `<div style="width:78%;height:78%">${mascotSVG(st.phase === "reveal" && ok ? "cheer" : "happy")}</div>` : ""}${nb}</div>`; }).join("") + `</div>`;
+const cmd = st.phase === "step" && st.k >= 0 ? r.cmds[st.k] : null;
+const cmdIn = cmd ? `<span style="font-size:${isLs ? 26 : 30}px;font-weight:900;color:var(--teal-dark);line-height:1.1;white-space:nowrap">${ZH_DIRS[cmd].w} 1</span><button type="button" class="gb-btn" data-zvsay="1" style="padding:6px 12px;min-height:44px;white-space:nowrap">🔊 Tekrar</button>` : "";
+if(isLs) return { info: "", body: `<div class="zv-ls" style="display:flex;gap:18px;align-items:center;justify-content:center;width:100%">${grid}<div class="zv-side" style="width:${sideW}px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center"><div class="wm-info" style="min-height:0">${info}</div>${dots}<div class="zv-cmd" style="min-height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">${cmdIn}</div></div></div>` };
+return { info, body: dots + `<div class="zv-cmd" style="min-height:56px;display:flex;align-items:center;justify-content:center;gap:12px">${cmdIn}</div>` + grid };
 }
 function mkShow(){
 const st = mtState, r = st.rounds[st.ri];
@@ -443,10 +477,13 @@ body = dots + `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols
 const inT = st.target.indexOf(o), mk = st.marks[i] || (st.reveal && inT >= 0 ? "ok" : "");
 return `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${d.cell}px;height:${d.cell}px;">${imgTag(o.src)}${st.reveal && inT >= 0 ? `<span class="num">${inT + 1}</span>` : ""}</div>`; }).join("") + `</div>`;
 }
+} else if(st.kind === "zihni-verbal"){
+({ info, body } = zvRender(st, W, H, isLs));   /* Zihni Nerede? sözlü dokunmalı kuralı (iki çizim kopyası da aynı yardımcıyı kullanır) */
 } else if(st.kind === "zihni"){
 const r = st.rounds[Math.min(st.ri, st.rounds.length - 1)], n = r.n;
 const dots = `<div class="wm-dots">${st.rounds.map((x, i) => `<i class="${st.res[i] === true ? "on" : st.res[i] === false ? "off" : ""}"></i>`).join("")}</div>`;
-const area = Math.min(W, isLs ? H - 20 : 320 * tabletScale()) * (window._fitK || 1), cell = Math.floor((area - (n - 1) * 6) / n);
+const sideW = isLs ? Math.min(230, Math.max(150, Math.floor(W * 0.3))) : 0;   /* KURAL (Zihni yatay düzen, 2026-11-17): yatayda bilgi satırı, turlar ve ok/komut sağ sütunda — ızgara tahtanın bütün yüksekliğini kullanır (iPhone 13 yatay 4×4'te kutu 32 px yerine 45 px) */
+const area = (isLs ? Math.min(W - sideW - 18, H + 60 - 30) : Math.min(W, 320 * tabletScale())) * (window._fitK || 1), cell = Math.floor((area - (n - 1) * 6) / n);
 const showZ = st.phase === "start" ? r.sy * n + r.sx : st.phase === "reveal" ? r.ey * n + r.ex : -1;
 const cmd = st.phase === "cmds" && st.cmdIdx >= 0 ? r.cmds[st.cmdIdx] : null;
 info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "start" ? "<b>Zihni burada.</b> Aklında tut…" : st.phase === "cmds" ? `Komut ${Math.max(1, st.cmdIdx + 1)} / ${r.cmds.length}` : st.phase === "input" ? "<b>Zihni şimdi nerede?</b> Dokun." : st.phase === "done" ? "Bitti!" : "";
@@ -454,7 +491,7 @@ const grid = `<div class="wm-grid" style="grid-template-columns:repeat(${n}, ${c
 const mk = st.phase === "reveal" && st.pick === i ? (i === r.ey * n + r.ex ? "ok" : "bad") : "";
 return `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${cell}px;height:${cell}px;border-radius:14px;">${showZ === i ? `<div style="width:80%;height:80%">${mascotSVG(st.phase === "reveal" ? "cheer" : "happy")}</div>` : ""}</div>`; }).join("") + `</div>`;
 const cmdBox = `<div style="min-height:64px;display:flex;align-items:center;justify-content:center;gap:12px">${cmd ? `<span style="font-size:52px;font-weight:900;color:var(--teal-dark);line-height:1">${ZH_DIRS[cmd].a}</span>${isPre() ? "" : `<span style="font-size:26px;font-weight:900;color:var(--ink)">${ZH_DIRS[cmd].w} 1</span>`}` : ""}</div>`;
-body = dots + (isLs ? `<div style="display:flex;gap:18px;align-items:center;justify-content:center">${grid}${cmdBox}</div>` : cmdBox + grid);
+if(isLs){ body = `<div class="zv-ls" style="display:flex;gap:18px;align-items:center;justify-content:center;width:100%">${grid}<div class="zv-side" style="width:${sideW}px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center"><div class="wm-info" style="min-height:0">${info}</div>${dots}${cmdBox.replace("gap:12px\"", "gap:8px;flex-wrap:wrap\"")}</div></div>`; info = ""; } else body = dots + cmdBox + grid;   /* Zihni yatay düzen kuralı */
 } else if(st.kind === "market"){
 const r = st.rounds[Math.min(st.ri, st.rounds.length - 1)];
 const dots = `<div class="wm-dots">${st.rounds.map((x, i) => `<i class="${st.res[i] === true ? "on" : st.res[i] === false ? "off" : ""}"></i>`).join("")}</div>`;
@@ -587,10 +624,13 @@ body = dots + `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols
 const inT = st.target.indexOf(o), mk = st.marks[i] || (st.reveal && inT >= 0 ? "ok" : "");
 return `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${d.cell}px;height:${d.cell}px;">${imgTag(o.src)}${st.reveal && inT >= 0 ? `<span class="num">${inT + 1}</span>` : ""}</div>`; }).join("") + `</div>`;
 }
+} else if(st.kind === "zihni-verbal"){
+({ info, body } = zvRender(st, W, H, isLs));   /* Zihni Nerede? sözlü dokunmalı kuralı (iki çizim kopyası da aynı yardımcıyı kullanır) */
 } else if(st.kind === "zihni"){
 const r = st.rounds[Math.min(st.ri, st.rounds.length - 1)], n = r.n;
 const dots = `<div class="wm-dots">${st.rounds.map((x, i) => `<i class="${st.res[i] === true ? "on" : st.res[i] === false ? "off" : ""}"></i>`).join("")}</div>`;
-const area = Math.min(W, isLs ? H - 20 : 320 * tabletScale()) * (window._fitK || 1), cell = Math.floor((area - (n - 1) * 6) / n);
+const sideW = isLs ? Math.min(230, Math.max(150, Math.floor(W * 0.3))) : 0;   /* KURAL (Zihni yatay düzen, 2026-11-17): yatayda bilgi satırı, turlar ve ok/komut sağ sütunda — ızgara tahtanın bütün yüksekliğini kullanır (iPhone 13 yatay 4×4'te kutu 32 px yerine 45 px) */
+const area = (isLs ? Math.min(W - sideW - 18, H + 60 - 30) : Math.min(W, 320 * tabletScale())) * (window._fitK || 1), cell = Math.floor((area - (n - 1) * 6) / n);
 const showZ = st.phase === "start" ? r.sy * n + r.sx : st.phase === "reveal" ? r.ey * n + r.ex : -1;
 const cmd = st.phase === "cmds" && st.cmdIdx >= 0 ? r.cmds[st.cmdIdx] : null;
 info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "start" ? "<b>Zihni burada.</b> Aklında tut…" : st.phase === "cmds" ? `Komut ${Math.max(1, st.cmdIdx + 1)} / ${r.cmds.length}` : st.phase === "input" ? "<b>Zihni şimdi nerede?</b> Dokun." : st.phase === "done" ? "Bitti!" : "";
@@ -598,7 +638,7 @@ const grid = `<div class="wm-grid" style="grid-template-columns:repeat(${n}, ${c
 const mk = st.phase === "reveal" && st.pick === i ? (i === r.ey * n + r.ex ? "ok" : "bad") : "";
 return `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${cell}px;height:${cell}px;border-radius:14px;">${showZ === i ? `<div style="width:80%;height:80%">${mascotSVG(st.phase === "reveal" ? "cheer" : "happy")}</div>` : ""}</div>`; }).join("") + `</div>`;
 const cmdBox = `<div style="min-height:64px;display:flex;align-items:center;justify-content:center;gap:12px">${cmd ? `<span style="font-size:52px;font-weight:900;color:var(--teal-dark);line-height:1">${ZH_DIRS[cmd].a}</span>${isPre() ? "" : `<span style="font-size:26px;font-weight:900;color:var(--ink)">${ZH_DIRS[cmd].w} 1</span>`}` : ""}</div>`;
-body = dots + (isLs ? `<div style="display:flex;gap:18px;align-items:center;justify-content:center">${grid}${cmdBox}</div>` : cmdBox + grid);
+if(isLs){ body = `<div class="zv-ls" style="display:flex;gap:18px;align-items:center;justify-content:center;width:100%">${grid}<div class="zv-side" style="width:${sideW}px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center"><div class="wm-info" style="min-height:0">${info}</div>${dots}${cmdBox.replace("gap:12px\"", "gap:8px;flex-wrap:wrap\"")}</div></div>`; info = ""; } else body = dots + cmdBox + grid;   /* Zihni yatay düzen kuralı */
 } else if(st.kind === "market"){
 const r = st.rounds[Math.min(st.ri, st.rounds.length - 1)];
 const dots = `<div class="wm-dots">${st.rounds.map((x, i) => `<i class="${st.res[i] === true ? "on" : st.res[i] === false ? "off" : ""}"></i>`).join("")}</div>`;
@@ -644,6 +684,7 @@ board.innerHTML = `<div class="wm-wrap"><div class="wm-info">${info}</div>${body
 function handleMtTap(ev){
 if(!currentExercise().isMt || !mtState) return;
 const sp = ev.target.closest("[data-speak]"); if(sp){ const st = mtState; const it = st.sets && st.sets[st.si] && st.sets[st.si].items[st.ii]; if(it) speakText(it.truth ? it.b.bt : it.b.bf); return; }
+const zs = ev.target.closest("[data-zvsay]"); if(zs){ zvSay(); return; }   /* Zihni sözlü: komutu yeniden oku */
 const tx = ev.target.closest("[data-showtext]"); if(tx){ document.documentElement.classList.toggle("show-span-text"); renderMtBoard(); return; }
 const b = ev.target.closest("[data-mt],[data-judge],[data-mtbtn]"); if(!b) return;
 if(!timerRunning){ showLevelFlash("Önce ▶ Başlat'a basın.", "down"); return; }
@@ -655,7 +696,7 @@ if(b.dataset.judge !== undefined){ if(st.kind === "picsay" && st.phase === "judg
 if(st.kind === "corsi-verbal" && st.phase === "judge") corsiVerbalNext(); else if(st.kind === "span-touch") spanJudge(Number(b.dataset.judge)); return; }
 const i = Number(b.dataset.mt);
 if(st.kind === "corsi") corsiTap(i); else if(st.kind === "span-touch") spanTap(i);
-else if(st.kind === "running") runTap(i); else if(st.kind === "zihni") zhTap(i); else if(st.kind === "pal-touch") palTap(i);
+else if(st.kind === "running") runTap(i); else if(st.kind === "zihni") zhTap(i); else if(st.kind === "zihni-verbal") zvTap(i); else if(st.kind === "pal-touch") palTap(i);
 else if(st.kind === "market"){ if(st.phase === "distract") mkPop(i); else mkTap(i); }
 else if(st.kind !== "corsi-verbal") seqTap(i);
 }
@@ -870,8 +911,8 @@ const INSTR_SHORT = {
 "pic-seq-touch":    [() => Q("Ekranda resimler var. Bazılarının adı sırayla okunacak; dinle ve sırayı aklında tut. Bitince resimlere duyduğun sırayla dokun.")],
 "running":          [() => Q(`Resimler tek tek gelecek ama kaç tane geleceğini bilmiyorsun. Resimler bitince ${runLast() === 1 ? "en son gelen resmi hatırla ve ona dokun" : `en son gelen ${runLast()} resmi hatırla ve onlara geliş sırasıyla dokun`}.`)],
 "running-verbal":   [() => `Göstermeden okuyun: ${Q(`Sana kelimeler okuyacağım ama kaç tane olduğunu söylemeyeceğim. Dinle. Bittiğinde ${runLast() === 1 ? "en son söylediğim kelimeyi söyle" : `en son söylediğim ${runLast()} kelimeyi sırasıyla söyle`}.`)}`],
-"zihni":            [() => Q(isPre() ? "Zihni bir kutuda duruyor; yerine iyi bak. Sonra oklar gelecek; oklar Zihni'nin nereye gittiğini gösterir. Zihni'nin gittiği kutuya dokun." : "Zihni bir kutuda duruyor; yerine iyi bak. Sonra komutlar gelecek: ‘bir sağa’, ‘iki yukarı’ gibi. Zihni'yi kafanda yürüt ve en son geldiği kutuya dokun.")],
-"zihni-verbal":     [() => `Komutları okuyun: ${Q("Zihni bir kutuda duruyor. Ben komutları söyleyeceğim: ‘bir sağa’, ‘iki aşağı’ gibi. Zihni'yi kafanda yürüt; sonunda hangi kutuda olduğunu söyle.")}`],
+"zihni":            [() => Q(isPre() ? "Zihni bir kutuda duruyor; yerine iyi bak. Sonra oklar gelecek; oklar Zihni'nin nereye gittiğini gösterir. Zihni'nin gittiği kutuya dokun." : "Zihni bir kutuda duruyor; yerine iyi bak. Sonra komutlar gelecek: ‘bir sağa’, ‘bir yukarı’ gibi. Zihni'yi kafanda yürüt ve en son geldiği kutuya dokun.")],
+"zihni-verbal":     [() => Q("Zihni'nin yerine iyi bak; sonra saklanacak. Komutları tek tek dinle (‘sağa bir’ gibi), her komutta Zihni'nin gittiği kutuya dokun. Sonunda Zihni ortaya çıkar.")],
 "market":           [() => Q("Önce bir alışveriş listesi göreceksin; listedekileri aklında tut. Sonra balonlar gelecek, onları patlat. En sonda raftan listedeki şeyleri seç.")],
 "market-verbal":    [() => `Listeyi okuyun: ${Q("Sana bir alışveriş listesi okuyacağım; aklında tut. Arada başka bir iş yapacağız. Sonra listedekileri bana söyle.")}`],
 "corsi":            [() => Q("Ekranda mavi bloklar var. Bloklar sırayla yanıp sönecek; iyi bak. Bitince bloklara aynı sırayla dokun."), () => Q("Ekranda mavi bloklar var. Bloklar sırayla yanıp sönecek; iyi bak. Bitince bloklara TERSTEN dokun: en son yanana ilk, ilk yanana en son.")],
@@ -928,12 +969,12 @@ const INSTR_SHORT = {
 "nback-shape":      [() => Q("Hayvanlar tek tek gelip kapanacak. İlk hayvanı sadece aklında tut. Sonra her hayvan kapanınca, ondan bir önce gelen hayvana dokun."), () => Q("Hayvanlar tek tek gelip kapanacak. İlk iki hayvanı sadece aklında tut. Sonra her hayvan kapanınca, ondan iki önce gelen hayvana dokun.")],
 "nback-color":      [() => Q("Taşıtlar tek tek gelip kapanacak. İlk taşıtı sadece aklında tut. Sonra her taşıt kapanınca, ondan bir önce gelen taşıta dokun."), () => Q("Taşıtlar tek tek gelip kapanacak. İlk iki taşıtı sadece aklında tut. Sonra her taşıt kapanınca, ondan iki önce gelen taşıta dokun.")],
 "nback-number":      [() => Q("Sayılar tek tek gelip kapanacak. İlk sayıyı sadece aklında tut. Sonra her sayı kapanınca, ondan bir önce gelen sayıya dokun."), () => Q("Sayılar tek tek gelip kapanacak. İlk iki sayıyı sadece aklında tut. Sonra her sayı kapanınca, ondan iki önce gelen sayıya dokun.")],
-"digit-span":       [() => `Rakamları birlikte okuyun. Kapanınca: ${Q("Ekranda rakamlar var; onları birlikte okuyacağız ve sen aklında tutacaksın. Rakamlar kapanınca onları aynı sırayla söyle.")}`, () => `Rakamları birlikte okuyun. Kapanınca: ${Q("Ekranda rakamlar var; onları birlikte okuyup aklında tutacaksın. Rakamlar kapanınca onları tersten söyle: en sondakinden başla, ilkte bitir.")}`],
+"digit-span":       [() => `${dsCount()} dizi art arda gelir; her dizi 5 saniye görünür. Rakamları birlikte okuyun. Kapanınca: ${Q("Ekranda rakamlar var; onları birlikte okuyacağız ve sen aklında tutacaksın. Rakamlar kapanınca onları aynı sırayla söyle.")}`, () => `${dsCount()} dizi art arda gelir; her dizi 5 saniye görünür. Rakamları birlikte okuyun. Kapanınca: ${Q("Ekranda rakamlar var; onları birlikte okuyup aklında tutacaksın. Rakamlar kapanınca onları tersten söyle: en sondakinden başla, ilkte bitir.")}`],
 "word-order":       [() => `Göstermeden okuyun: ${Q(`Sana ${audLen()} kelime okuyacağım. Bitince aynı sırayla tekrar et.`)}`, () => `Göstermeden okuyun: ${Q(`Sana ${audLen()} kelime okuyacağım. Bitince tersten söyle: en son söylediğimden başla.`)}`, () => `Göstermeden okuyun: ${Q(`Sana ${audLen()} hayvan adı okuyacağım. Bitince onları küçükten büyüğe sırala ve söyle.`)}`],
 "prospective-event":[() => `Başlamadan önce: ${Q(`Resimler gelecek; her resmin adını söyle. Ama ${peObjName(peObjTriggers[0])} görünce adını söylemeden önce masaya vur.`)}`,
 () => `Başlamadan önce: ${Q(`Resimler gelecek; her resmin adını söyle. ${peObjName(peObjTriggers[0])} görünce masaya vur, ${peObjName(peObjTriggers[1] || peObjTriggers[0])} görünce alkışla.`)}`],
-"prospective-time": [() => `Başlamadan önce: ${Q(`Deniz canlıları gelecek; her birinin adını söyle. Bir de kronometreye göz at: ${ptTimes[0]}. saniyeye gelince dur ve o anda ekranda olan canlıyı söyle.`)}`,
-() => `Başlamadan önce: ${Q(`Deniz canlıları gelecek; her birinin adını söyle. Bir de kronometreye göz at: ${ptTimes[0]}. ve ${ptTimes[1] || ptTimes[0] + 15}. saniyelerde dur ve o anda ekranda olan canlıyı söyle.`)}`],
+"prospective-time": [() => `Başlamadan önce: ${Q(`Deniz canlılarının adını sırayla söyle. Bir de kronometreye göz at: ${ptTimes[0]}. saniyede ekranda büyük bir resim çıkacak. Onun adını söyle, resme dokun ve kaldığın yerden devam et.`)}`,
+() => `Başlamadan önce: ${Q(`Deniz canlılarının adını sırayla söyle. Bir de kronometreye göz at: ${ptTimes[0]}. ve ${ptTimes[1] || ptTimes[0] + 15}. saniyelerde ekranda büyük bir resim çıkacak. Her çıktığında adını söyle, resme dokun ve kaldığın yerden devam et.`)}`],
 "prospective-delayed":[() => `Başlamadan önce: ${Q(`Oyuncaklar gelecek; her birinin adını söyle. Oyun bitince ${pdTask}; bunu unutma.`)}`,
 () => `Başlamadan önce: ${Q(`Oyuncaklar gelecek; her birinin adını söyle. Oyun bitince ${pdTask}; bunu unutma.`)}`],
 "word-list-recall": [() => `Kelimeleri birlikte okuyun. Kapanınca: ${Q("Ekranda kelimeler var; onları birlikte okuyacağız ve sen aklında tutacaksın. Kelimeler kapanınca hatırladığın kelimeleri söyle; sıra önemli değil.")}`, () => `Kapanınca: ${Q("Ekranda kelimeler var; onları birlikte okuyup aklında tutacaksın. Kelimeler kapanınca onları aynı sırayla söyle.")}`, () => `Kelimeler gizli; Başlat'a basın, uygulama okusun. Bitince: ${Q("Kelimeleri görmeyeceksin, sadece duyacaksın. Dikkatle dinle; bitince duyduğun kelimeleri söyle.")}`],

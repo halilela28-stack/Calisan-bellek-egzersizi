@@ -66,6 +66,12 @@ const d = randomItem(opts); x += ZH_DIRS[d].dx; y += ZH_DIRS[d].dy; cmds.push(d)
 }
 return { n, sx, sy, cmds, ex: x, ey: y };
 }
+/* KURAL (Zihni turları farklı, 2026-11-17): Zihni Nerede? ve Zihni Nerede? (sözlü) sayfalarında turlar birbirinin aynısı olmaz — aynı başlangıç ve aynı komutlar ikinci kez gelmez; seçenek yetmezse (okul öncesi Başlangıç) art arda aynı tur gelmez. Önceden sözlü listede beş turun dördü "tam orta · sola 1, yukarı 1" çıkabiliyordu */
+function makeZihniRounds(R){ const out = [], seen = new Set(), key = (r) => r.sx + "," + r.sy + ":" + r.cmds.join("");
+  for(let i = 0; i < R; i++){ let r = makeZihniRound(), g = 0; while(g++ < 80 && seen.has(key(r))) r = makeZihniRound(); g = 0; while(g++ < 40 && out.length && key(out[out.length - 1]) === key(r)) r = makeZihniRound(); seen.add(key(r)); out.push(r); }
+  return out; }
+/* Zihni'nin her komuttan sonraki kutusu (sözlü sürümde dokunulan yol bununla karşılaştırılır) */
+function zvPath(r){ let x = r.sx, y = r.sy; return r.cmds.map(d => { x += ZH_DIRS[d].dx; y += ZH_DIRS[d].dy; return y * r.n + x; }); }
 function zhCellName(r){ const n = r.n; const col = ["sol", "orta", "sağ"], row = ["üst", "orta", "alt"];
 if(n === 3) return (r.ey === 1 && r.ex === 1) ? "tam orta" : `${row[r.ey]} ${col[r.ex]}`.replace("orta orta", "tam orta");
 return `${r.ey + 1}. satır, ${r.ex + 1}. sütun`; }

@@ -497,6 +497,12 @@ html.text-lg #hmEtk .hm-col > button, html.text-xl #hmEtk .hm-col > button{ font
 }
 /* Rakam Dizisi kapanınca kuralı: kapanınca tahta gizlenir, Kontrol listesi kalır */
 #board.rc-board-off{display:none !important}
+/* KURAL (Rakam Dizisi art arda dizi, 2026-11-17): dizi sayacı ve "Sonraki dizi" düğmesi tahtanın hemen altında; düğme en az 48 px, dikey ve yatayda tek satır */
+.ds-bar{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:10px 0 4px;padding:8px 12px;background:var(--panel);border:2px solid var(--line);border-radius:18px}
+.ds-bar .ds-n{font-weight:900;color:var(--teal-dark);font-size:18px}
+.ds-bar .ds-look{font-weight:800;color:var(--ink-soft)}
+.ds-bar .ds-btn{min-height:48px;padding:10px 22px;border-radius:14px;border:0;background:var(--teal);color:#fff;font-weight:900;font-size:18px;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.18);font-family:inherit}
+@media (orientation: landscape) and (max-height: 520px){ .ds-bar{margin:6px 0 2px;padding:4px 10px} .ds-bar .ds-btn{min-height:44px;padding:8px 18px;font-size:16px} }
 
 /* ikinci aşama kilidi (2026-11-16): bu düzeyde kapalı aşama düğmesi soluk ve kilitli görünür */
 #mainApp .stage-btn.stage-locked{opacity:.5}
@@ -527,3 +533,13 @@ html #board .srh-row:not(.srh-fresh),html #board .srh-row:not(.srh-fresh) .srh-i
 #board .ch-btn img.nb-opt{width:min(84px,88%) !important;max-height:84px !important;height:auto !important}
 #board .nb-q{font-weight:900;color:var(--muted,#8A98A8);line-height:1}
 #board .nb-line{min-height:1.4em}
+
+/* KURAL (İleriye Dönük Bellek (Zaman) büyük resim, 2026-11-17): belirtilen saniyede tahtanın ortasında 2×2 kart büyüklüğünde resim; dokununca kapanır */
+#board .pt-big{position:absolute;z-index:6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px;margin:0;background:#FFFFFF;border:4px solid var(--amber,#F59F00);border-radius:20px;box-shadow:0 10px 28px rgba(0,0,0,.28),0 4px 0 var(--amber-dark,#C77800);cursor:pointer;font-family:inherit;animation:ptPop .28s ease-out}
+#board .pt-big .pt-img{flex:1 1 auto;min-height:0;width:100%;display:flex;align-items:center;justify-content:center}
+#board .pt-big .pt-img img{max-width:100%;max-height:100%;object-fit:contain}
+#board .pt-big .pt-say{flex:0 0 auto;font-weight:900;font-size:13px;color:var(--ink);line-height:1.2;text-align:center;white-space:nowrap}#board .pt-big.pt-narrow .pt-say{display:none}#board .pt-big .pt-img img{width:96% !important;height:96% !important}
+@keyframes ptPop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* Zihni Nerede? sözlü dokunmalı kuralı (2026-11-17): yatayda bilgi satırı sağ sütuna taşınır; tahtanın üstündeki boş bilgi satırı yer kaplamaz */
+#board .wm-wrap:has(.zv-ls) > .wm-info:empty{display:none}

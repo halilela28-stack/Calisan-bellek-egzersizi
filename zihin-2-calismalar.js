@@ -1,6 +1,6 @@
 /* Zihin Atölyesi — zihin-2-calismalar.js (2/8): çalışma tanımları (EXERCISES). Dosyalar zihin-atolyesi.html'de bu sırayla yüklenir; sıra değiştirilemez (önceki tek dosyanın ardışık parçalarıdır). */
 /* KURAL (yazılı tahta düzey boyu, 2026-11-15): kelime/öbek tahtalarında öğe sayısı 16 – 20 – 24 (4 sütuna tam bölünür; 3. düzey 25 değil 24 — son satırda tek kelime kalmaz, tahta tek sütuna düşmez). Renk-Kelime, Kelime Listesi, Kelime Gruplama, Hece Sayma, Cümle/Öbek Tekrarı */
-/* KURAL (Rakam Dizisi tek dizi, 2026-11-16): sayfada tek dizi vardır — ileri sıra 3 – 4 – 5 rakam; ters sıra (Aşama 2) okul öncesi 2 – 2 – 3, okul sonrası 2 – 3 – 4 rakam. Rakamların hepsi birden ezberletilmez (3×3, 4×4, 5×5 tahta kaldırıldı); yeni örnek Karıştır ile gelir. */
+/* KURAL (Rakam Dizisi tek dizi, 2026-11-16): sayfada tek dizi vardır — ileri sıra 3 – 4 – 5 rakam; ters sıra (Aşama 2) okul öncesi 2 – 2 – 3, okul sonrası 2 – 3 – 4 rakam. Rakamların hepsi birden ezberletilmez (3×3, 4×4, 5×5 tahta kaldırıldı); ekranda her zaman tek dizi görünür; diziler art arda gelir (bkz. Rakam Dizisi art arda dizi kuralı, 2026-11-17). */
 const DIGIT_DIMS = () => (stIx() === 1 ? (isPre() ? [2, 2, 3] : [2, 3, 4]) : [3, 4, 5]).map(n => ({ rows:1, cols:n }));
 /* KURAL (sözlü soru sayısı, 2026-11-16): Benzerlik Bulma, Kelime Tanımlama ve Genel Kavrama'da madde sayısı düzeyle azalmaz ve hiçbir düzeyde eskisini aşmaz — okul öncesi 3 – 4 – 5; okul sonrası Benzerlik 6 – 8 – 10, Kelime 4 – 5 – 5, Genel Kavrama 3 – 4 – 5. Sayfa tekrarsız listedir; bankalara madde eklenmez. */
 const ORAL_Q_IDS = new Set(["similarities", "vocabulary", "practical-reasoning"]);
@@ -1517,13 +1517,10 @@ stages: [ { label: "Zihinde Takip", instruction: () => ``, example: () => `` } ]
 id: "zihni-verbal",
 readingLevel: ["pre","post"],
 label: "Zihni Nerede? (sözlü)",
-isAuditory: true, attrs: [],
-audTrials: () => Array.from({length: isPre() ? 3 : 5}, () => makeZihniRound()),
-audRender: (rs) => { const n = rs[0].n; return `<div class="aud-list"><div class="aud-note">Çocuk ${n}×${n} ızgaraya baksın. Başlangıç kutusunu gösterin, sonra komutları okuyun (çocuk Zihni'yi görmez). Sonunda Zihni'nin olduğu kutuyu göstersin ya da söylesin. Yanlışları hata sayısına ekleyin.</div>` +
-`<div class="wm-grid" style="grid-template-columns:repeat(${n}, 56px);gap:6px;margin:8px auto">${Array.from({length:n * n}, () => `<div class="wm-pic" style="width:56px;height:56px;border-radius:12px;cursor:default"></div>`).join("")}</div>` +
-rs.map((r, i) => `<div class="aud-row"><div class="aud-num">${i + 1}</div><div class="aud-body"><div class="aud-words" style="font-size:18px">Başlangıç: ${zhCellName({ n:r.n, ex:r.sx, ey:r.sy })} · ${r.cmds.map(d => `${ZH_DIRS[d].w} 1`).join(", ")}</div><div class="aud-key">Doğru cevap: <b>${zhCellName(r)}</b></div></div></div>`).join("") + `</div>`; },
+isMt: true, attrs: [], adaptErrorsOnly: true,   /* Zihni Nerede? sözlü dokunmalı kuralı: komutlar sırayla okunur, çocuk yola dokunur; süre komut temposuna bağlı olduğundan düzey yalnız hataya göre */
+isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
-stages: [ { label: "Komutları Dinle", instruction: () => ``, example: () => `` } ]
+stages: [ { label: "Komutları Dinle, Dokun", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "market",
@@ -3081,7 +3078,7 @@ renderItem: (item) => numberHTML(item.number, item.color),
 stages: [
 {
 label: "Aşama 1 · Rakamları İncele",
-instruction: () => `Bu rakamları birlikte okuyun. Süre dolunca kapanacaklar — çocuktan <b>gördüğü sırayla</b> tekrar etmesini isteyin, doğru sayısını girin.`,
+instruction: () => `Rakamları birlikte okuyun. Her dizi 5 saniye görünür, sonra kapanır (Başlangıç 4, Orta 6, Zor 8 dizi art arda) — çocuktan <b>gördüğü sırayla</b> tekrar etmesini isteyin, Kontrol listesinde doğruları işaretleyip Sonraki dizi'ye basın.`,
 example: () => ``
 },
 {

@@ -423,6 +423,7 @@ function tickTimer(){
 if(timerPausedAt) return;
 elapsedMs = Date.now() - timerStartedAt;
 document.getElementById("timerDisplay").textContent = formatTime(elapsedMs);
+try{ ptTick(); }catch(e){}   /* İleriye Dönük Bellek (Zaman) büyük resim kuralı */
 }
 
 /* KURAL (süre): yalnızca yetişkinin değerlendirdiği ara ekranlarda (ör. Gözünü Ayırma'da "Gözünü noktadan ayırdı mı?") kronometre durur; çocuk yeniden çalışmaya başlayınca kaldığı yerden devam eder */
@@ -432,6 +433,23 @@ function syncJudgePause(){ try{ const st = mtState; setTimerPaused(!!(timerRunni
 /* KURAL (arka plan): uygulama arka plana geçince (ekran kilidi, başka uygulama, gelen arama) çalışan kronometre durur ve konuşma kesilir; geri dönülünce süre kaldığı yerden devam eder — arka planda geçen süre sonuca eklenmez */
 document.addEventListener("visibilitychange", () => { try{ if(document.hidden){ try{ speechSynthesis.cancel(); }catch(e){} } syncJudgePause(); }catch(e){} });
 let recallHideTimeout = null;
+/* KURAL (Rakam Dizisi art arda dizi, 2026-11-17): Rakam Dizisi tek gösterimde bitmez — Başlangıç'ta 4, Orta'da 6, Zor'da 8 dizi art arda gelir (okul öncesi ve okul sonrası; dizinin rakam sayısı düzeyin eskisi gibi). Her dizi 5 sn görünür, sonra kapanır; çocuk söyler, yetişkin Kontrol listesinde doğruları işaretler ve "Sonraki dizi"ye basar — dizinin bütün rakamları işaretlenince sonraki dizi kendiliğinden gelir. Doğru hatırlanan sayısı bütün dizilerin toplamıdır; başarı eşiği de bütün dizilerdeki rakam toplamına göredir (%80 başarılı, yarıdan az düşük). Son dizi kapanmadan durdurulan çalışma kaydedilmez. Ardışık iki dizi aynı olmaz. Önceden tek dizi gösterilip çalışma bitiyor, her dizi için yeniden Kaydet/Karıştır gerekiyordu */
+const DS_SEQS = [4, 6, 8];
+let DS_SHOW_MS = 5000, dsRun = null;
+function dsIs(){ try{ return currentExercise().id === "digit-span"; }catch(e){ return false; } }
+function dsCount(){ return DS_SEQS[Math.max(0, Math.min(2, currentCombo().t))]; }
+function dsStart(){ const ex = currentExercise(), { rows, cols } = currentTier(), N = dsCount(), seqs = [currentGrid], key = (g) => g.map(x => x.number).join("");
+  while(seqs.length < N){ let g = generateGrid(ex, rows, cols), k = 0; while(k++ < 30 && key(g) === key(seqs[seqs.length - 1])) g = generateGrid(ex, rows, cols); seqs.push(g); }
+  dsRun = { seqs, k:0, base:0, hidden:false }; }
+function dsBar(){ const board = document.getElementById("board"); let el = document.getElementById("dsBar");
+  if(!board || !dsIs() || !dsRun || !timerRunning){ if(el) el.remove(); return; }
+  if(!el){ el = document.createElement("div"); el.id = "dsBar"; el.className = "ds-bar"; board.insertAdjacentElement("afterend", el); }
+  const N = dsRun.seqs.length, last = dsRun.k >= N - 1;
+  el.innerHTML = `<span class="ds-n">Dizi <b>${dsRun.k + 1}</b> / ${N}</span>` + (!dsRun.hidden ? `<span class="ds-look">Rakamlara bakın…</span>` : last ? `<button type="button" class="ds-btn" data-dsend="1">Bitir ✓</button>` : `<button type="button" class="ds-btn" data-dsnext="1">Sonraki dizi ▶</button>`); }
+function dsNext(){ if(!timerRunning || !dsIs() || !dsRun || !dsRun.hidden || dsRun.k >= dsRun.seqs.length - 1) return; clearTimeout(_rcDoneT);
+  dsRun.k++; dsRun.hidden = false; currentGrid = dsRun.seqs[dsRun.k]; renderBoard(); dsBar();
+  clearTimeout(recallHideTimeout); recallHideTimeout = setTimeout(hideRecallItems, DS_SHOW_MS * (window.__wmSpeed || 1)); }
+document.addEventListener("click", (ev) => { try{ if(ev.target.closest("#dsBar [data-dsnext]")) dsNext(); else if(ev.target.closest("#dsBar [data-dsend]") && timerRunning){ window._manualStop = true; stopTimer(); } }catch(e){ console.error(e); } });
 
 function recallListen(){ try{ const st = currentExercise().stages[currentStageIndex]; return !!(currentExercise().isRecall && st && st.listen); }catch(e){ return false; } }
 function recallWords(){ return [].concat(...currentGrid).map(x => x && (x.word || x.phrase)).filter(Boolean); }
@@ -445,7 +463,7 @@ function hideRecallItems(){
 const board = document.getElementById("board");
 if(!board) return;
 /* KURAL (Rakam Dizisi kapanınca, 2026-11-16): rakamlar kapanınca ortada "kapalı göz" kutuları gösterilmez — tahta gizlenir, yalnız dokununca açılan Kontrol listesi kalır (yeni sayfada ya da yeniden Başlat'ta tahta geri gelir) */
-if(currentExercise().id === "digit-span"){ board.innerHTML = ""; board.classList.add("rc-board-off"); showLevelFlash("Şimdi hatırlamaya çalışın!", "up"); try{ renderRecallChecklist(); }catch(e){ console.error(e); } return; }
+if(currentExercise().id === "digit-span"){ board.innerHTML = ""; board.classList.add("rc-board-off"); if(dsRun){ dsRun.hidden = true; dsRun.base = currentErrorCount; } showLevelFlash("Şimdi hatırlamaya çalışın!", "up"); try{ renderRecallChecklist(); }catch(e){ console.error(e); } try{ dsBar(); }catch(e){} return; }
 board.querySelectorAll(".cell").forEach(cell=>{
 cell.innerHTML = `<div class="recall-hidden">🙈</div>`;
 });
@@ -458,7 +476,7 @@ function removeRecallChecklist(){ const el = document.getElementById("recallChec
 function renderRecallChecklist(){
 const ex = currentExercise(); if(!ex.isRecall) return;
 const board = document.getElementById("board"); let box = document.getElementById("recallCheck");
-if(!box){ box = document.createElement("details"); box.id = "recallCheck"; box.className = "rc-box"; board.insertAdjacentElement("afterend", box); }
+if(!box){ box = document.createElement("details"); box.id = "recallCheck"; box.className = "rc-box"; (document.getElementById("dsBar") || board).insertAdjacentElement("afterend", box); }
 const ordered = /sırayla|Sırayla|soldan sağa/.test(ex.stages[stIx()].label + " " + ((INSTR_SHORT[ex.id] || [])[stIx()] ? INSTR_SHORT[ex.id][stIx()]() : ""));
 const cols = currentTier().cols, isPos = ex.id === "position-recall";
 const targets = recallTargets(), orderOf = {}; targets.forEach((x, k) => { orderOf[x.i] = ex.id === "digit-span" ? (x.i % cols) + 1 : k + 1; });
@@ -473,7 +491,7 @@ box.innerHTML = `<summary>Kontrol listesi <span class="rc-cnt">${n}/${targets.le
 document.addEventListener("click", (ev) => {
 const b = ev.target.closest("#recallCheck [data-rc]"); if(!b) return;
 const i = b.dataset.rc; recallChecked[i] = !recallChecked[i];
-setErrorCount(Object.keys(recallChecked).filter(k => recallChecked[k]).length);
+setErrorCount((dsIs() && dsRun ? dsRun.base : 0) + Object.keys(recallChecked).filter(k => recallChecked[k]).length);   /* art arda dizi kuralı: sayaç önceki dizilerin üstüne eklenir */
 const open = document.getElementById("recallCheck").open; renderRecallChecklist(); document.getElementById("recallCheck").open = open;
 recallAutoFinish();
 });
@@ -481,6 +499,7 @@ recallAutoFinish();
 let _rcDoneT = 0;
 function recallCheckedN(){ return Object.keys(recallChecked).filter(k => recallChecked[k]).length; }
 function recallAutoFinish(){ clearTimeout(_rcDoneT); try{ const n = recallTargets().length; if(!timerRunning || !n || recallCheckedN() < n || gameMode) return;
+if(dsIs() && dsRun && dsRun.k < dsRun.seqs.length - 1){ _rcDoneT = setTimeout(() => { try{ if(timerRunning && dsRun && recallCheckedN() >= recallTargets().length) dsNext(); }catch(e){ console.error(e); } }, 1200); return; }   /* art arda dizi kuralı: dizi tamamlanınca sonraki dizi gelir; yalnız son dizide çalışma biter */
 _rcDoneT = setTimeout(() => { try{ if(!timerRunning || !currentExercise().isRecall || recallCheckedN() < recallTargets().length) return; stopTimer();
 if(!hwRun && (currentPlayerName || "").trim()){ const hint = document.getElementById("saveHint"); document.getElementById("saveResultBtn").style.display = "none"; if(hint){ hint.style.display = "block"; hint.classList.remove("warn"); hint.textContent = "Hepsi doğru — sonuç kendiliğinden kaydediliyor…"; } setTimeout(() => { try{ confirmSaveResult(); }catch(e){ console.error(e); } }, 450); } }catch(e){ console.error(e); } }, 1200); }catch(e){} }
 
@@ -519,6 +538,7 @@ try{ if(elapsedMs < 50) nbSeqStart(); }catch(e){}   /* KURAL: yeni başlayan ça
 timerStartedAt = Date.now() - elapsedMs;
 timerInterval = setInterval(tickTimer, 100);
 timerRunning = true; try{ document.documentElement.classList.add("za-running"); zaSessionRelayout(); }catch(e){};
+try{ if(ptActive() && (!ptRun || elapsedMs < 50)) ptBegin(); }catch(e){}   /* İleriye Dönük Bellek (Zaman) büyük resim kuralı: yeni denemede zaman noktaları baştan */
 const btn = document.getElementById("timerBtn");
 btn.textContent = "⏹ Bitir";
 btn.classList.add("running");
@@ -550,7 +570,8 @@ if(recallListen()){
 const words = recallWords(); clearTimeout(window._rlT); (window._rlTs || []).forEach(clearTimeout); window._rlTs = [];
 words.forEach((w, k) => window._rlTs.push(setTimeout(() => { if(timerRunning) sayTask(w); }, 300 + k * 1400 * (window.__wmSpeed || 1))));
 recallHideTimeout = setTimeout(() => { showLevelFlash("Şimdi hatırlamaya çalışın!", "up"); try{ renderRecallChecklist(); }catch(e){} }, (300 + words.length * 1400) * (window.__wmSpeed || 1));
-} else recallHideTimeout = setTimeout(hideRecallItems, currentTier().studyDurationMs);
+} else if(dsIs()){ if(!dsRun || elapsedMs < 50) dsStart(); dsBar(); if(!dsRun.hidden) recallHideTimeout = setTimeout(hideRecallItems, DS_SHOW_MS * (window.__wmSpeed || 1)); }   /* art arda dizi kuralı: her dizi 5 sn görünür */
+else recallHideTimeout = setTimeout(hideRecallItems, currentTier().studyDurationMs);
 }
 }
 
@@ -560,7 +581,7 @@ if(timerPausedAt){ timerPausedAt = 0; } try{ document.getElementById("timerDispl
 timerRunning = false; try{ document.documentElement.classList.remove("za-running"); zaSessionRelayout(); }catch(e){}; try{ if(landscapeMQ.matches) setTimeout(() => { try{ if(!timerRunning) window.dispatchEvent(new Event("resize")); }catch(e){} }, 180); }catch(e){}   /* yatay tahta boyu kuralı: bitince tahta odak dışı ölçüyle yeniden çizilir */
 addTouchMissesOnStop();
 stopEyeMotion();
-clearTimeout(recallHideTimeout);
+clearTimeout(recallHideTimeout); try{ dsBar(); }catch(e){} try{ ptHide(); }catch(e){}
 const btn = document.getElementById("timerBtn");
 btn.textContent = "▶ Başlat";
 btn.classList.remove("running");
@@ -585,14 +606,14 @@ document.documentElement.classList.remove("board-run"); runFocusOff();
 clearInterval(timerInterval);
 timerRunning = false; try{ document.documentElement.classList.remove("za-running"); zaSessionRelayout(); }catch(e){}; try{ if(landscapeMQ.matches) setTimeout(() => { try{ if(!timerRunning) window.dispatchEvent(new Event("resize")); }catch(e){} }, 180); }catch(e){}   /* yatay tahta boyu kuralı: bitince tahta odak dışı ölçüyle yeniden çizilir */
 stopEyeMotion();
-clearTimeout(recallHideTimeout);
+clearTimeout(recallHideTimeout); try{ ptHide(); ptRun = null; }catch(e){}
 if(currentExercise().isMotion){
 positionMotionShape(0);
 const fill = document.getElementById("motionProgressFill");
 if(fill) fill.style.width = "0%";
 }
 if(currentExercise().isRecall){
-renderBoard();
+dsRun = null; renderBoard(); try{ dsBar(); }catch(e){}   /* art arda dizi kuralı: sıfırlamada ilk diziden başlanır */
 }
 elapsedMs = 0;
 document.getElementById("timerDisplay").textContent = "00:00.0";
@@ -803,7 +824,7 @@ if(navigator.vibrate) navigator.vibrate(pattern);
    Kaçınılmaz hatalar (sessiz kural değişimi, yıldızın yer değiştirmesi, ilk tahmin) başarıyı engellemez: */
 function adaptInevitable(ex){ try{ if(!ex || !mtState) return 0; if(ex.id === "rule-shift" && mtState.kind === "wcst") return (mtState.shifts || 0) + 1; if(ex.id === "reversal" && mtState.kind === "rev") return (mtState.revs || 0) + 1; }catch(e){} return 0; }
 /* KURAL (hatırlama çalışmalarında düzey geçişi, 2026-11-17): Rakam Dizisi, Kelime Listesi Hatırlama, Cümle/Öbek Tekrarı, Şekil, Renk ve Konum Hatırlama da öteki çalışmalar gibi kendiliğinden ilerler. Ölçü hata değil "doğru hatırlanan sayısı"dır: öğelerin en az %80'i hatırlanırsa başarılı, yarısından azı hatırlanırsa düşük sayılır. İki başarılı kayıt → bir üst düzey; son düzeyde iki başarı → sonraki aşama (açıldığı düzeyden); düşük kayıt → bir alt düzey. Önceden bu çalışmalar hiç ilerlemiyor, aynı düzeyde kalıyordu */
-function recallJudge(correct){ const n = Math.max(1, recallTargets().length), ok = Math.max(0, Math.min(n, correct || 0)); return { isGood: ok >= Math.ceil(n * 0.8), isBad: ok < n / 2 }; }
+function recallJudge(correct){ const n = Math.max(1, recallTargets().length) * (dsIs() ? dsCount() : 1), ok = Math.max(0, Math.min(n, correct || 0)); return { isGood: ok >= Math.ceil(n * 0.8), isBad: ok < n / 2 }; }
 function sessionJudge(ms, errors){
 const ex = currentExercise(); if(ex.isRecall) return recallJudge(errors);   /* hatırlama çalışmalarında sayaç doğru sayısıdır */
 errors = Math.max(0, errors - adaptInevitable(ex));
@@ -967,6 +988,33 @@ const TOY_KEYS = ["car","doll","ball","teddy","puzzle","train","kite","drum"];
 let seaPool = null, toyPool = null;
 function pickSeaPool(){ seaPool = nbPool(shuffleArray(SEA_KEYS)); }
 function pickToyPool(){ toyPool = nbPool(shuffleArray(TOY_KEYS)); }
+/* KURAL (İleriye Dönük Bellek (Zaman) büyük resim, 2026-11-17): yönergede söylenen saniyede (Aşama 1'de bir, Aşama 2'de iki zaman noktası) tahtanın ortasında dört kart büyüklüğünde (2×2) bir deniz canlısı resmi çıkar, kısa bir ses duyulur. Çocuk adını söyler, resme dokunur; resim kapanır ve çocuk kaldığı yerden adlandırmaya devam eder. Resim önce tahtada olmayan canlılardan seçilir; iki zaman noktasında iki farklı canlı gelir. Süre durunca ya da sıfırlanınca resim kalkar; tahta yeniden çizilirse açık resim yeniden yerleşir. Dikey ve yatayda resim tam iki satır × iki sütun kaplar. Önceden belirtilen saniyede ekranda hiçbir şey değişmiyordu */
+let ptRun = null;
+function ptActive(){ try{ return currentExercise().id === "prospective-time"; }catch(e){ return false; } }
+function ptPoints(){ return ptTimes.slice(0, stIx() === 1 ? 2 : 1); }
+function ptPickKeys(n){ const onBoard = new Set((currentGrid || []).map(x => x && x.k)); const out = shuffleArray(SEA_KEYS.filter(k => !onBoard.has(k))).concat(shuffleArray(SEA_KEYS.filter(k => onBoard.has(k)))); return out.slice(0, n); }
+function ptBegin(){ ptHide(); ptRun = ptActive() ? { shown:0, open:false, keys: ptPickKeys(2) } : null; }
+function ptHide(){ const el = document.getElementById("ptBig"); if(el) el.remove(); if(ptRun) ptRun.open = false; }
+function ptShow(i){ const board = document.getElementById("board"); if(!board || !ptRun) return; { const o = document.getElementById("ptBig"); if(o) o.remove(); }
+  const key = ptRun.keys[i] || ptRun.keys[0], el = document.createElement("button"); el.type = "button"; el.id = "ptBig"; el.className = "pt-big"; el.dataset.k = key;
+  el.innerHTML = `<span class="pt-img">${imgTag(SEA_IMAGES[key])}</span><span class="pt-say">Söyle, dokun</span>`;
+  if(getComputedStyle(board).position === "static") board.style.position = "relative";
+  board.appendChild(el); ptRun.open = true; ptRun.cur = i; ptPlace(); }
+function ptPlace(){ try{ const el = document.getElementById("ptBig"), board = document.getElementById("board"); if(!el || !board) return;
+  const cells = [...board.querySelectorAll(":scope > .cell")].map(c => ({ c, r: c.getBoundingClientRect() })).filter(x => x.r.width > 0); if(!cells.length) return;
+  const xs = [...new Set(cells.map(x => Math.round(x.r.left)))].sort((a, b) => a - b), ys = [...new Set(cells.map(x => Math.round(x.r.top)))].sort((a, b) => a - b);
+  const c0 = Math.max(0, Math.floor((xs.length - 2) / 2)), r0 = Math.max(0, Math.floor((ys.length - 2) / 2));
+  const at = (cx, ry) => cells.find(x => Math.round(x.r.left) === xs[Math.min(cx, xs.length - 1)] && Math.round(x.r.top) === ys[Math.min(ry, ys.length - 1)]);
+  const a = at(c0, r0) || cells[0], b = at(c0 + 1, r0 + 1) || a, br = board.getBoundingClientRect();
+  const L = a.r.left - br.left - board.clientLeft + board.scrollLeft, T = a.r.top - br.top - board.clientTop + board.scrollTop;
+  const W = Math.max(a.r.width * 2, b.r.right - a.r.left), H = Math.max(a.r.height * 2, b.r.bottom - a.r.top);
+  Object.assign(el.style, { left: Math.round(L) + "px", top: Math.round(T) + "px", width: Math.round(W) + "px", height: Math.round(H) + "px" }); el.classList.toggle("pt-narrow", W < 120); }catch(e){} }   /* dar resimde (iPhone SE) yazı gizlenir, resim büyük kalır */
+function ptTick(){ try{ if(!ptRun || !timerRunning || !ptActive()) return;
+  if(ptRun.open){ if(!document.getElementById("ptBig")) ptShow(ptRun.cur); else ptPlace(); return; }   /* tahta yeniden çizildiyse açık resim geri gelir; yerleşim değişirse resim 2×2 kartın üstünde kalır */
+  const pts = ptPoints(); if(ptRun.shown >= pts.length || elapsedMs < pts[ptRun.shown] * 1000) return;
+  ptShow(ptRun.shown); ptRun.shown++; try{ beep(660, 990, 180, 0.14); }catch(e){} try{ vibrate(40); }catch(e){} }catch(e){} }
+document.addEventListener("click", (ev) => { try{ if(ev.target.closest("#ptBig")){ ev.stopPropagation(); ptHide(); } }catch(e){} }, true);
+window.addEventListener("resize", () => { setTimeout(() => { try{ ptPlace(); }catch(e){} }, 220); });
 
 
 let wmState = null, wmTimers = [];
