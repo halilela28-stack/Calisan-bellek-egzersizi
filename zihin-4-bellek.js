@@ -487,9 +487,11 @@ const STORY_SEQ_TEXT = [ ["Çocuk koşarken düştü.","Annesi ona yardım etti.
 ["Çocuk saksıya tohum ekti.","Tohumu suladı.","Saksıda bir çiçek açtı."],
 ["Çocuk dişlerini fırçaladı.","Yatağına girdi.","Uyudu."] ];
 /* KURAL (Hikâyeyi Sırala düzeyleri, 2026-11-16): okul öncesinde yerinde duran kart sayısı 2 – 1 – 0 (1 – 0 – 0 yerine: Orta ile Zor aynıydı; Zor aynı kaldı, Başlangıç ve Orta kolaylaştı); okul sonrasında kart yerinde durmaz */
+/* KURAL (Hikâyeyi Sırala farklı resim, 2026-11-17): okul sonrasında Başlangıç'ta yalnız hikâyenin üç resmi sıralanır (eskisi gibi); Orta'da seçenekler arasında hikâyede olmayan bir resim, Zor'da iki resim vardır (başka hikâyelerden; iki farklı resim iki ayrı hikâyeden gelir). Olmayan resme dokunmak hatadır. Seçenek beşe çıkınca kartlar üç sütuna dizilir. Okul öncesi değişmedi */
+const STORY_EXTRA = [0, 1, 2];
 function storyOrderTrials(){ const t = currentCombo().t, ids = shuffleArray([0, 1, 2, 3]).slice(0, isPre() ? 2 : 3);
 return ids.map(si => { const cards = [0, 1, 2].map(k => ({ si, k }));
-if(!isPre() && t === 2){ const o = randomItem([0, 1, 2, 3].filter(x => x !== si)); cards.push({ si: o, k: Math.floor(Math.random() * 3), extra:true }); }
+if(!isPre()){ shuffleArray([0, 1, 2, 3].filter(x => x !== si)).slice(0, STORY_EXTRA[Math.min(t, 2)]).forEach(o => cards.push({ si: o, k: Math.floor(Math.random() * 3), extra:true })); }
 return { si, cards: shuffleArray(cards), given: isPre() ? [2, 1, 0][Math.min(t, 2)] : 0 }; }); }
 const WHATDO = [
 { img:0, q:"Yağmur yağıyor, çocuk ıslanıyor. Ne yapmalı?", a:"Şemsiye açmalı ya da kapalı bir yere girmeli.", why:"Islanıp üşümemek, hasta olmamak için." },
@@ -3419,11 +3421,11 @@ if(st.phase === "study"){ const k = st.si, w = Math.min(W - 20, isLs ? (H - 70) 
 info = `<b>İzle ve dinle…</b> ${Math.max(0, k + 1)}/3`;
 body = dots + `<div class="wm-card" style="width:${w}px;height:${Math.round(w / 2)}px;padding:4px">${k >= 0 ? simg({ si: tr.si, k }) : ""}</div>${k >= 0 ? `<div style="font-weight:800;font-size:17px;margin-top:6px;text-align:center">${STORY_SEQ_TEXT[tr.si][k]}</div>` : ""}`;
 } else {
-info = "<b>Doğru sıraya</b> koy: önce olana dokun";
+info = tr.cards.some(c => c.extra) ? "<b>Sırala</b> · hikâyede olmayana dokunma" : "<b>Doğru sıraya</b> koy: önce olana dokun";
 const sw = Math.min(isLs ? (W * 0.5 - 30) / 3 : (W - 30) / 3, 150), sh = Math.round(sw / 2);
 const slots = `<div style="display:flex;gap:6px;justify-content:center;margin-bottom:10px">${[0, 1, 2].map(k => { const ci = st.placed[k]; return `<div class="wm-card" style="width:${sw}px;height:${sh}px;padding:2px;position:relative;${ci == null ? "border-style:dashed" : ""}">${ci != null ? simg(tr.cards[ci]) : ""}<span class="num">${k + 1}</span></div>`; }).join("")}</div>`;
 const left = tr.cards.map((c, i) => ({ c, i })).filter(x => !st.placed.includes(x.i));
-const cw = Math.min(isLs ? (W * 0.5 - 30) / 2 : (W - 30) / 2, 170), ch = Math.round(cw / 2);
+const ncol = left.length > 4 ? 3 : 2, cw = Math.min(isLs ? (W * 0.5 - 30) / ncol : (W - 10 * ncol) / ncol, 170), ch = Math.round(cw / 2);   /* farklı resim kuralı: beş seçenekte üç sütun */
 const cards = `<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">${left.map(x => `<div class="wm-pic${st.bad[x.i] ? " bad" : ""}" data-mt="${x.i}" style="width:${cw}px;height:${ch}px;padding:3px">${simg(x.c)}</div>`).join("")}</div>`;
 body = dots + (isLs ? `<div style="display:flex;gap:14px;align-items:center;justify-content:center"><div>${slots}</div><div>${cards}</div></div>` : slots + cards);
 }

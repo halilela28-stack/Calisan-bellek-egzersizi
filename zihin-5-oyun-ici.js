@@ -145,6 +145,11 @@ const R = isPre() ? 3 : 4;
 mtState = { kind:id, rounds: makeZihniRounds(R), ri:0, wrong:0, phase:"idle", res:[] };   /* Zihni turları farklı kuralı */
 return mtState.rounds;
 }
+if(id === "word-pairs"){   /* Kelime Çiftleri dokunmalı kuralı */
+const K = WP_K[Math.min(t, 2)], st0 = stIx();
+mtState = { kind:"wp-touch", stage: st0, pairs: makeWordPairs(st0, K).map(p => ({ a: p[0], b: p[1] })), cycle:0, cycles:2, wrong:0, phase:"idle", scores:[], res:[] };
+return mtState.pairs;
+}
 if(id === "zihni-verbal"){   /* KURAL (Zihni Nerede? sözlü dokunmalı, 2026-11-17) */
 const R = isPre() ? 3 : 5;
 mtState = { kind:id, rounds: makeZihniRounds(R), ri:0, wrong:0, phase:"idle", res:[], taps:[], k:-1 };
@@ -168,6 +173,7 @@ else if(st.kind === "pal-touch") palStudy();
 else if(NEW_MT.start[st.kind]) NEW_MT.start[st.kind]();
 else if(st.kind === "zihni") zhShow();
 else if(st.kind === "zihni-verbal") zvShow();
+else if(st.kind === "wp-touch") wpStudy();
 else if(st.kind === "market") mkShow();
 else seqShow();
 }
@@ -260,6 +266,39 @@ const cmdIn = cmd ? `<span style="font-size:${isLs ? 26 : 30}px;font-weight:900;
 if(isLs) return { info: "", body: `<div class="zv-ls" style="display:flex;gap:18px;align-items:center;justify-content:center;width:100%">${grid}<div class="zv-side" style="width:${sideW}px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center"><div class="wm-info" style="min-height:0">${info}</div>${dots}<div class="zv-cmd" style="min-height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">${cmdIn}</div></div></div>` };
 return { info, body: dots + `<div class="zv-cmd" style="min-height:56px;display:flex;align-items:center;justify-content:center;gap:12px">${cmdIn}</div>` + grid };
 }
+/* KURAL (Kelime Çiftleri dokunmalı, 2026-11-17): Kelime Çiftleri dokunmalı oldu ve kolaylaştı. Öğrenme: çiftler tek tek, iki kelime yan yana büyük kartta gösterilir ve okunur ("bulut, elma"); çiftler artık tek paragrafta alt alta kırılmaz. Sınama: çiftin ilk kelimesi gösterilir ve okunur, çocuk üç seçenekten eşine dokunur; doğru yeşil, yanlış kırmızı olur ve doğru eş yeşil gösterilir. Hepsi doğruysa çalışma biter; yanlış varsa çiftler bir kez daha izlenir ve yeniden sınanır (en çok iki tur). Çift sayısı Başlangıç 2, Orta 3, Zor 4 (3 – 4 – 5 yerine). Seçenekler önce öteki çiftlerin eşlerinden, yetmezse aynı türden (kelime / şehir) gelir; ilk kelime seçeneklerde olmaz. Yanlışlar Hata sayısına kendiliğinden yazılır, sonuç kendiliğinden kaydedilir; düzey yalnız hataya göre değişir. Aşamalar ve kelime havuzları aynı: İlişkisiz Kelimeler, Sayı – Kelime, İsim – Yer */
+const WP_K = [2, 3, 4];
+function wpBank(st){ return st.stage === 2 ? WP_PLACES : WP_WORDS; }
+function wpStudy(){ const st = mtState; st.phase = "study"; st.si = -1; renderMtBoard();
+const step = 2600; st.pairs.forEach((p, k) => mtLater(() => { st.si = k; renderMtBoard(); sayTask(`${p.a}, ${p.b}`); }, 300 + k * step));
+mtLater(() => wpTest(), 300 + st.pairs.length * step + 200); }
+function wpTest(){ const st = mtState; st.order = shuffleArray(st.pairs.map((p, i) => i)); if(st.order.length > 1 && st.order[0] === st.pairs.length - 1) st.order.push(st.order.shift()); st.qi = 0; st.cycleOk = 0; st.res = []; wpAsk(); }   /* son izlenen çift ilk sorulmaz */
+function wpAsk(){ const st = mtState, p = st.pairs[st.order[st.qi]];
+const others = shuffleArray(st.pairs.filter(x => x !== p).map(x => x.b));
+const fill = shuffleArray(wpBank(st)).filter(w => w !== p.b && !st.pairs.some(q => q.a === w || q.b === w));
+st.opts = shuffleArray([p.b].concat(others.concat(fill).slice(0, 2))); st.ans = p.b; st.cue = p.a; st.pick = null; st.phase = "ask"; renderMtBoard(); mtLater(() => sayTask(p.a), 150); }
+function wpTap(i){ const st = mtState; if(st.phase !== "ask") return;
+const ok = st.opts[i] === st.ans; st.pick = i; st.phase = "fb"; st.res[st.qi] = ok; if(ok){ st.cycleOk++; gameSfx("correct"); } else mtErr(); renderMtBoard();
+mtLater(() => { st.qi++; if(st.qi < st.order.length){ wpAsk(); return; }
+  st.scores.push(st.cycleOk); st.cycle++; const perfect = st.cycleOk === st.pairs.length;
+  if(perfect || st.cycle >= st.cycles){ mtFinish(st.cycle > 1 ? ` ${st.scores.map((x, k) => `${k + 1}. tur ${x}/${st.pairs.length}`).join(" → ")}` : ""); return; }
+  showLevelFlash(`${st.cycleOk}/${st.pairs.length} doğru. Çiftleri bir kez daha izle.`, "down"); wpStudy(); }, ok ? 700 : 1500); }
+function wpRender(st, W, H, isLs){
+const n = st.pairs.length, dots = `<div class="wm-dots">${Array.from({length:n}, (_, i) => `<i class="${st.res[i] === true ? "on" : st.res[i] === false ? "off" : ""}"></i>`).join("")}</div>`;
+const word = (t, w, h, size, extra, attrs) => `<div class="wm-pic${extra ? " " + extra : ""}" ${attrs || ""} style="width:${w}px;height:${h}px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${size}px;color:var(--ink);text-align:center;line-height:1.1;padding:4px;overflow:hidden;cursor:${attrs ? "pointer" : "default"}">${t}</div>`;
+const sz = (t, w, max) => Math.max(14, Math.min(max, Math.floor((w - 16) / Math.max(3, String(t).length) * 1.55)));   /* uzun kelime (Antalya, ayakkabı) dar kutuda kesilmez */
+if(st.phase === "idle") return { info: "▶ Başlat'a bas", body: dots };
+if(st.phase === "done") return { info: "Bitti!", body: dots };
+if(st.phase === "study"){ const p = st.pairs[Math.max(0, st.si)], w = Math.floor(Math.min(W - 40, isLs ? W * 0.6 : 360) / 2) - 18, h = Math.min(isLs ? Math.max(70, H - 40) : 120, 120);
+  return { info: `<b>İzle ve dinle</b> · ${Math.max(1, st.si + 1)}/${n}` + (st.cycle ? ` · ${st.cycle + 1}. tur` : ""), body: dots + (st.si >= 0 ? `<div style="display:flex;align-items:center;justify-content:center;gap:10px">${word(p.a, w, h, sz(p.a, w, 34))}<span style="font-size:28px;font-weight:900;color:var(--teal-dark)">—</span>${word(p.b, w, h, sz(p.b, w, 34))}</div>` : "") }; }
+const lead = st.stage === 1 ? "sayısının kelimesi" : st.stage === 2 ? "nerede yaşıyor" : "kelimesinin eşi";
+const tight = !isLs && H < 330, cw = isLs ? Math.min(170, Math.floor((W * 0.58 - 24) / 3)) : Math.min(300, W - 30), ch = isLs ? Math.min(76, Math.max(54, H - 120)) : tight ? 44 : 56;   /* kısa ekranda (iPhone SE) seçenekler alt alta ama alçak: hepsi ekranda kalır, uzun kelime kesilmez */
+const ofs = Math.min(...st.opts.map(o => sz(o, cw, isLs ? 24 : 26)));   /* seçeneklerin yazı boyu eşit */
+const opts = st.opts.map((o, i) => { const mk = st.phase === "fb" ? (o === st.ans ? "ok" : st.pick === i ? "bad" : "") : ""; return word(o, cw, ch, ofs, mk, `data-mt="${i}"`); }).join("");
+const cueW = isLs ? Math.min(220, Math.floor(W * 0.34)) : Math.min(260, W - 60), cue = `<div class="wm-card" style="width:${cueW}px;min-height:${isLs ? 70 : tight ? 48 : 64}px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${sz(st.cue, cueW, 36)}px;color:var(--teal-dark);border-width:3px">${st.cue}</div>`;
+const info = st.stage === 2 ? `<b>${st.cue}</b> nerede yaşıyor? Dokun.` : `<b>${st.cue}</b> ${lead} hangisi? Dokun.`;
+const optBox = isLs ? `<div style="display:flex;gap:8px;justify-content:center">${opts}</div>` : `<div style="display:flex;flex-direction:column;gap:${tight ? 6 : 8}px;align-items:center">${opts}</div>`;
+return { info, body: dots + (isLs ? `<div style="display:flex;gap:16px;align-items:center;justify-content:center">${cue}${optBox}</div>` : cue + optBox) }; }
 function mkShow(){
 const st = mtState, r = st.rounds[st.ri];
 st.phase = "list"; st.found = {}; st.marks = {}; renderMtBoard();
@@ -477,6 +516,8 @@ body = dots + `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols
 const inT = st.target.indexOf(o), mk = st.marks[i] || (st.reveal && inT >= 0 ? "ok" : "");
 return `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${d.cell}px;height:${d.cell}px;">${imgTag(o.src)}${st.reveal && inT >= 0 ? `<span class="num">${inT + 1}</span>` : ""}</div>`; }).join("") + `</div>`;
 }
+} else if(st.kind === "wp-touch"){
+({ info, body } = wpRender(st, W, H, isLs));   /* Kelime Çiftleri dokunmalı kuralı */
 } else if(st.kind === "zihni-verbal"){
 ({ info, body } = zvRender(st, W, H, isLs));   /* Zihni Nerede? sözlü dokunmalı kuralı (iki çizim kopyası da aynı yardımcıyı kullanır) */
 } else if(st.kind === "zihni"){
@@ -624,6 +665,8 @@ body = dots + `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols
 const inT = st.target.indexOf(o), mk = st.marks[i] || (st.reveal && inT >= 0 ? "ok" : "");
 return `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${d.cell}px;height:${d.cell}px;">${imgTag(o.src)}${st.reveal && inT >= 0 ? `<span class="num">${inT + 1}</span>` : ""}</div>`; }).join("") + `</div>`;
 }
+} else if(st.kind === "wp-touch"){
+({ info, body } = wpRender(st, W, H, isLs));   /* Kelime Çiftleri dokunmalı kuralı */
 } else if(st.kind === "zihni-verbal"){
 ({ info, body } = zvRender(st, W, H, isLs));   /* Zihni Nerede? sözlü dokunmalı kuralı (iki çizim kopyası da aynı yardımcıyı kullanır) */
 } else if(st.kind === "zihni"){
@@ -696,7 +739,7 @@ if(b.dataset.judge !== undefined){ if(st.kind === "picsay" && st.phase === "judg
 if(st.kind === "corsi-verbal" && st.phase === "judge") corsiVerbalNext(); else if(st.kind === "span-touch") spanJudge(Number(b.dataset.judge)); return; }
 const i = Number(b.dataset.mt);
 if(st.kind === "corsi") corsiTap(i); else if(st.kind === "span-touch") spanTap(i);
-else if(st.kind === "running") runTap(i); else if(st.kind === "zihni") zhTap(i); else if(st.kind === "zihni-verbal") zvTap(i); else if(st.kind === "pal-touch") palTap(i);
+else if(st.kind === "running") runTap(i); else if(st.kind === "zihni") zhTap(i); else if(st.kind === "zihni-verbal") zvTap(i); else if(st.kind === "wp-touch") wpTap(i); else if(st.kind === "pal-touch") palTap(i);
 else if(st.kind === "market"){ if(st.phase === "distract") mkPop(i); else mkTap(i); }
 else if(st.kind !== "corsi-verbal") seqTap(i);
 }
@@ -879,7 +922,7 @@ const INSTR_SHORT = {
 "group-say":        [() => `Kelimeleri okuyun: ${Q("Sana kelimeler okuyacağım. Bazıları birbiriyle ilgili, aynı gruptan. Hangilerinin birlikte olduğunu söyle ve her grubun adını söyle.")}`],
 "free-sort":        [() => Q("Ekranda karışık resimler var; bazıları aynı gruptan. Önce bir renk seç, sonra aynı gruptan olan resimlere dokun; hepsi o renge boyanır. Başka bir grup için başka bir renk seç. Bitince Bitti'ye bas."), () => `Gruplar bitince sorun: ${Q("Bu gruptakilerin ortak adı ne? Bu gruba bir ad ver.")}`],
 "move-seq":         [() => `Çocuk ayakta olsun, yakında bir masa bulunsun. ${Q("Sana birkaç hareket söyleyeceğim; dinle ve aklında tut, hemen yapma. Ben ‘şimdi yap’ deyince hareketleri aynı sırayla yap.")}`],
-"story-order":      [() => Q("Sana resimli bir hikâye gösterilecek; izle ve dinle. Sonra resimler karışacak. Resimleri hikâyedeki doğru sıraya koy.")],
+"story-order":      [() => Q("Sana resimli bir hikâye gösterilecek; izle ve dinle. Sonra resimler karışacak. Resimleri hikâyedeki doğru sıraya koy." + (isPre() ? "" : currentCombo().t >= 2 ? " Arada hikâyede olmayan iki resim var; onlara dokunma." : currentCombo().t === 1 ? " Arada hikâyede olmayan bir resim var; ona dokunma." : ""))],   /* Hikâyeyi Sırala farklı resim kuralı */
 "what-do":          [() => `Resmi gösterin, soruyu okuyun (uygulama da okur): ${Q("Resme bak; burada bir sorun var. Bu durumda ne yapmalı? Anlat.")}`, () => `Cevaptan sonra sorun: ${Q("Neden öyle yapmalı? Nedenini de anlat.")}`],
 "odd-cat":          [() => Q("Ekranda resimler var. Biri hariç hepsi aynı gruptan. Gruba uymayan resmi bul ve ona dokun.")],
 "opp-touch":        [() => isPre() ? Q("Bir kelime okunacak; dinle. Söylenenin zıttını gösteren resme dokun.") : Q("Ekranda bir kelime var. Altındaki kelimelerden onun zıt anlamlısına dokun.")],
@@ -903,7 +946,7 @@ const INSTR_SHORT = {
 "nonword":          [() => `Okuyun: ${Q("Sana uydurma kelimeler söyleyeceğim; bunların bir anlamı yok. Her kelimeyi dikkatle dinle ve duyduğun gibi tekrar et.")}`],
 "sent-listen":      [() => `Göstermeden okuyun: ${Q("Sana bir cümle söyleyeceğim. Dikkatle dinle; bitince cümleyi aynen, hiç değiştirmeden tekrar et.")}`],
 "pal-touch":        [() => Q("Ekranda ikişer ikişer resimler gelecek; her ikili birbirinin eşi. Onları izle ve dinle, kimin kiminle eş olduğunu aklında tut. Sonra tek bir resim gelecek; onun eşi olan resme dokun.")],
-"word-pairs":       [() => `Okuyun: ${Q("Sana ikişer ikişer kelimeler okuyacağım; her ikili birbirinin arkadaşı. İyi dinle. Sonra ikilinin ilkini söyleyeceğim; arkadaşını sen söyle.")}`, () => `Okuyun: ${Q("Her sayının bir kelimesi var; sayı ve kelimeyi birlikte okuyacağım, aklında tut. Sonra sadece sayıyı söyleyeceğim; kelimesini sen söyle.")}`, () => `Okuyun: ${Q("Her çocuk bir şehirde yaşıyor; ismini ve şehrini okuyacağım, aklında tut. Sonra sadece ismi söyleyeceğim; şehrini sen söyle.")}`],
+"word-pairs":       [() => Q("Ekranda ikişer ikişer kelimeler gelecek; her ikili birbirinin eşi. İzle ve dinle. Sonra ikilinin ilk kelimesi gelecek; eşine dokun."), () => Q("Her sayının bir kelimesi var; sayı ve kelimesi birlikte gelecek, aklında tut. Sonra yalnız sayı gelecek; kelimesine dokun."), () => Q("Her çocuk bir şehirde yaşıyor; adı ve şehri birlikte gelecek, aklında tut. Sonra yalnız adı gelecek; şehrine dokun.")],   /* Kelime Çiftleri dokunmalı kuralı */
 "mixed-span":       [() => `Göstermeden okuyun: ${Q("Sana bazı şeyler söyleyeceğim; sayılar, kelimeler karışık olabilir. Dikkatle dinle; bitince söylediklerimi aynı sırayla tekrar et.")}`],
 "story-recall":     [() => `Okuyun: ${Q("Sana bir hikâye okuyacağım; dikkatle dinle. Bitince hikâyede hatırladığın her şeyi bana anlat.")}`, () => `Aşama 1'deki hikâyeyi okumadan sorun: ${Q("Az önce okuduğum hikâyeyi hatırlıyor musun? Onu bana baştan sona yeniden anlat.")}`],
 "short-story":      [() => `Okuyun: ${Q("Ekrandaki resme bak; ben sana onunla ilgili kısa bir hikâye okuyacağım. Dikkatle dinle. Bitince sana sorular soracağım, cevapla.")}`],
@@ -977,7 +1020,7 @@ const INSTR_SHORT = {
 () => `Başlamadan önce: ${Q(`Deniz canlılarının adını sırayla söyle. Bir de kronometreye göz at: ${ptTimes[0]}. ve ${ptTimes[1] || ptTimes[0] + 15}. saniyelerde ekranda büyük bir resim çıkacak. Her çıktığında adını söyle, resme dokun ve kaldığın yerden devam et.`)}`],
 "prospective-delayed":[() => `Başlamadan önce: ${Q(`Oyuncaklar gelecek; her birinin adını söyle. Oyun bitince ${pdTask}; bunu unutma.`)}`,
 () => `Başlamadan önce: ${Q(`Oyuncaklar gelecek; her birinin adını söyle. Oyun bitince ${pdTask}; bunu unutma.`)}`],
-"word-list-recall": [() => `Kelimeleri birlikte okuyun. Kapanınca: ${Q("Ekranda kelimeler var; onları birlikte okuyacağız ve sen aklında tutacaksın. Kelimeler kapanınca hatırladığın kelimeleri söyle; sıra önemli değil.")}`, () => `Kapanınca: ${Q("Ekranda kelimeler var; onları birlikte okuyup aklında tutacaksın. Kelimeler kapanınca onları aynı sırayla söyle.")}`, () => `Kelimeler gizli; Başlat'a basın, uygulama okusun. Bitince: ${Q("Kelimeleri görmeyeceksin, sadece duyacaksın. Dikkatle dinle; bitince duyduğun kelimeleri söyle.")}`],
+"word-list-recall": [() => isPre() ? `Kelimeleri çocuğa tek tek, yavaşça okuyun. Kapanınca: ${Q("Sana birkaç kelime okuyacağım; aklında tut. Bitince hatırladığın kelimeleri söyle; sıra önemli değil.")}` : `Kelimeleri birlikte okuyun. Kapanınca: ${Q("Ekranda kelimeler var; onları birlikte okuyacağız ve sen aklında tutacaksın. Kelimeler kapanınca hatırladığın kelimeleri söyle; sıra önemli değil.")}`, () => isPre() ? `Kelimeleri çocuğa tek tek okuyun. Kapanınca: ${Q("Sana birkaç kelime okuyacağım; aklında tut. Bitince onları aynı sırayla söyle.")}` : `Kapanınca: ${Q("Ekranda kelimeler var; onları birlikte okuyup aklında tutacaksın. Kelimeler kapanınca onları aynı sırayla söyle.")}`, () => `Kelimeler gizli; Başlat'a basın, uygulama okusun. Bitince: ${Q("Kelimeleri görmeyeceksin, sadece duyacaksın. Dikkatle dinle; bitince duyduğun kelimeleri söyle.")}`],
 "sentence-repeat":  [() => `Öbekleri birlikte okuyun. Kapanınca: ${Q("Ekranda kısa söz öbekleri var; onları birlikte okuyacağız ve sen aklında tutacaksın. Kapanınca hatırladıklarını söyle.")}`, () => `Kapanınca: ${Q("Ekranda kısa söz öbekleri var; onları birlikte okuyup aklında tutacaksın. Kapanınca onları aynı sırayla söyle.")}`, () => `Öbekler gizli; Başlat'a basın, uygulama okusun. Bitince: ${Q("Söz öbeklerini görmeyeceksin, sadece duyacaksın. Dikkatle dinle; bitince duyduklarını söyle.")}`],
 "word-repeat":      [() => `Göstermeden okuyun: ${Q(`Sana ${audLen()} kelime söyleyeceğim; dikkatle dinle. Bitince kelimeleri aynı sırayla tekrar et.`)}`,
 () => `Göstermeden okuyun, ⏱'a basın: ${Q(`Sana ${audLen()} kelime söyleyeceğim; dinle ve aklında tut ama hemen söyleme. Biraz bekleyeceğiz; ben ‘söyle’ deyince kelimeleri aynı sırayla söyle.`)}`],

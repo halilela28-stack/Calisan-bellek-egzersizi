@@ -717,15 +717,10 @@ window._flkResizeT = setTimeout(() => { try{ if(currentExercise().isFlanker) ren
 /* peName: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 /* peMatch: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 
-let ptTimes = [15];
-function pickPtTimes(){
-if(stIx() === 1){
-const a = pickDifferent([10, 15, 20], ptTimes[0]);
-ptTimes = [a, a + 15];
-} else {
-ptTimes = [pickDifferent([10, 15, 20, 25], ptTimes[0])];
-}
-}
+/* KURAL (İleriye Dönük Bellek (Zaman) saniyeleri, 2026-11-17): bütün düzeylerde sabit — Aşama 1'de resim 5. saniyede, Aşama 2'de 5. ve 10. saniyelerde çıkar (önceden 10 – 25 sn arasından rastgele seçiliyordu; erken bitiren çocuk resmi görmeden bitirebiliyordu) */
+const PT_TIMES = [[5], [5, 10]];
+let ptTimes = PT_TIMES[0].slice();
+function pickPtTimes(){ ptTimes = PT_TIMES[stIx() === 1 ? 1 : 0].slice(); }
 const PD_TASKS_1 = ["bana 3 tane hayvan ismi söyleyeceksin", "bana 3 tane meyve ismi söyleyeceksin", "bana 3 tane renk ismi söyleyeceksin",
 "ellerini 3 kez çırpacaksın", "bana bir taşıt ismi söyleyeceksin"];
 const PD_TASKS_2 = ["bana bugünün hangi gün olduğunu söyleyeceksin", "bana en sevdiğin yemeği söyleyeceksin", "ayağa kalkıp bir kez zıplayacaksın",

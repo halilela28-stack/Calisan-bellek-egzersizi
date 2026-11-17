@@ -5,7 +5,9 @@ const DIGIT_DIMS = () => (stIx() === 1 ? (isPre() ? [2, 2, 3] : [2, 3, 4]) : [3,
 /* KURAL (sözlü soru sayısı, 2026-11-16): Benzerlik Bulma, Kelime Tanımlama ve Genel Kavrama'da madde sayısı düzeyle azalmaz ve hiçbir düzeyde eskisini aşmaz — okul öncesi 3 – 4 – 5; okul sonrası Benzerlik 6 – 8 – 10, Kelime 4 – 5 – 5, Genel Kavrama 3 – 4 – 5. Sayfa tekrarsız listedir; bankalara madde eklenmez. */
 const ORAL_Q_IDS = new Set(["similarities", "vocabulary", "practical-reasoning"]);
 const ORAL_Q_DIMS = { pre:[{rows:3, cols:1}, {rows:2, cols:2}, {rows:5, cols:1}], sim:[{rows:3, cols:2}, {rows:4, cols:2}, {rows:5, cols:2}], voc:[{rows:2, cols:2}, {rows:5, cols:1}, {rows:5, cols:1}], comp:[{rows:3, cols:1}, {rows:2, cols:2}, {rows:5, cols:1}] };
-const WORD_LIST_DIMS = [{rows:3, cols:4}, {rows:4, cols:4}, {rows:5, cols:4}];
+/* KURAL (Kelime Listesi Hatırlama düzeyleri, 2026-11-17): okul sonrası 5 – 7 – 9 kelime, okul öncesi 2 – 3 – 4 kelime (12 – 16 – 20 yerine; kullanıcı kararı); çalışma okul öncesinde de var. Kelimeler liste gibi tek sütunda alt alta durur (yatayda yazı sığdırma kuralına göre yan yana), son satır eksik kalmaz. Okul öncesinde yetişkin kelimeleri çocuğa okur */
+const WORD_LIST_N = { post:[5, 7, 9], pre:[2, 3, 4] };
+const WORD_LIST_DIMS = () => (isPre() ? WORD_LIST_N.pre : WORD_LIST_N.post).map(n => ({ rows:n, cols:1 }));
 const TXT_GRID_DIMS = [{rows:4, cols:4}, {rows:5, cols:4}, {rows:6, cols:4}], TXT_GRID_DIMS3 = [{rows:4, cols:3}, {rows:6, cols:3}, {rows:8, cols:3}];   /* Hece Sayma: kelimeler uzun, 3 sütun → 12 – 18 – 24 */
 const EXERCISES = [
 {
@@ -1293,8 +1295,8 @@ example: (item) => `${item.sides} kenar`
 
 {
 id: "word-list-recall",
-dims: () => WORD_LIST_DIMS,   /* KURAL (Kelime Listesi Hatırlama düzeyleri, 2026-11-16): 12 – 16 – 20 kelime (16 – 20 – 24 yerine; 4 sütun, son satır tam) */
-readingLevel: ["post"],
+dims: () => WORD_LIST_DIMS(),   /* Kelime Listesi Hatırlama düzeyleri kuralı (2026-11-17): okul sonrası 5 – 7 – 9, okul öncesi 2 – 3 – 4 kelime */
+readingLevel: ["pre","post"],
 label: "Kelime Listesi Hatırlama",
 isRecall: true,
 attrs: ["word"],
@@ -1555,12 +1557,8 @@ stages: [ { label: "Öğren ve Hatırla", instruction: () => ``, example: () => 
 id: "word-pairs",
 readingLevel: ["post"],
 label: "Kelime Çiftleri",
-isAuditory: true, attrs: [], errorLabel: "Hatırlanmayan eş sayısı",
-audTrials: () => [{ pairs: makeWordPairs(currentStageIndex, [3, 4, 5][currentCombo().t]) }],
-audRender: (tr) => { const pr = tr[0].pairs, test = shuffleArray(pr.slice());
-return `<div class="aud-list">${currentStageIndex === 3 ? `<div class="aud-note" style="border-color:#E0A100;background:#FFF8E5">💡 <b>Strateji · Cümle kur:</b> Her çifti okuduktan sonra iki kelimeyi birleştiren kısa bir cümle ya da hayal kurdurun. Örnek: <b>"${pr[0][0]} ile ${pr[0][1]}"</b> için komik bir cümle. Sonucu Aşama 1 ile karşılaştırın.</div>` : ""}<div class="aud-note"><b>1. Öğrenme:</b> çiftleri saniyede bir kelime hızında, aralarında kısa duraklarla okuyun. <b>2. Sınama:</b> aşağıdaki sırayla yalnızca ilk kelimeyi söyleyin; çocuk eşini söylesin. Hatırlanmayan eşleri hata sayısına ekleyin. İsterseniz tüm çiftleri öğrenene kadar 3 tur tekrar edin.</div>` +
-`<div class="aud-row"><div class="aud-num">1</div><div class="aud-body"><div class="aud-words">${pr.map(p => `${p[0]} – ${p[1]}`).join(" &nbsp;·&nbsp; ")}</div></div></div>` +
-`<div class="aud-row"><div class="aud-num">2</div><div class="aud-body">${test.map(p => `<div style="font-size:18px;margin:3px 0"><b>${p[0]}?</b> <span class="aud-key" style="display:inline">→ ${p[1]}</span></div>`).join("")}</div></div></div>`; },
+isMt: true, attrs: [], adaptErrorsOnly: true,   /* KURAL (Kelime Çiftleri dokunmalı) — bkz. zihin-5-oyun-ici.js */
+isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Aşama 1 · İlişkisiz Kelimeler", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Sayı – Kelime", instruction: () => ``, example: () => `` }, { label: "Aşama 3 · İsim – Yer", instruction: () => ``, example: () => `` } ]
 },

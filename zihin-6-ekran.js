@@ -255,7 +255,7 @@ function fitTextCells(board){ const textEls = Array.from(board.querySelectorAll(
     if(wrap){ const t = (el.textContent || "").trim(); let lines = 1, th = 0; try{ const rg = document.createRange(); rg.selectNodeContents(el); th = rg.getBoundingClientRect().height; lines = Math.max(1, Math.round(th / (testSize * 1.25))); }catch(e){} if(lines > (/\s/.test(t) ? 2 : 1)) return false; if(board.dataset.txtRows && cell && th > cell.clientHeight + 1) return false; }   /* yazının gerçek yüksekliği satıra sığmalı (sıkı satırda iki satırlık öbek kesilmesin) */   /* satırlar yazının gerçek satır kutularından sayılır (hücre yüksekliğinden değil — Renk-Kelime hücresi tam boy olduğu için yanlışlıkla 2 satır sayılıp tek sütuna düşüyordu) */   /* kelime bölünmez (tek satır), öbek en çok iki satır; genişlikte 2 px pay bırakılır (tahta sonradan 1–2 px daralınca kelime taşmasın — iPhone SE "anahtar") */
     return true; }); }
   /* KURAL (yazılı tahta yatay, 2026-11-16): yatay ekranda kelime/öbek tahtası, hücre sayısını tam bölen 2–8 sütun seçenekleri arasından yazının en büyük kalabildiği ve BÜTÜN satırların ekrana sığdığı düzeni seçer (eşitlikte daha az satır); satırlar ekrandaki yüksekliğe göre ölçülür (26–56 px). Önceden yatayda 2–3 sütuna düşüp satırlar ekrandan taşıyor ya da satırlar üst üste binip çizgiler kelimelerin üstünden geçiyordu (Renk-Kelime). Dikey ve yatay düzen birlikte gözetilir */
-  if(landscapeMQ.matches && textEls.length > 6){ const n = board.querySelectorAll(":scope > .cell").length || textEls.length, L = Math.max(...textEls.map(el => (el.textContent || "").trim().length)); if(L <= 22){ board.classList.add("txt-wrap"); let best = null;
+  if(landscapeMQ.matches && (textEls.length > 6 || (currentExercise() || {}).id === "word-list-recall")){   /* Kelime Listesi Hatırlama düzeyleri kuralı: kısa listede de (2 – 9 kelime) yatayda yalnız tam bölen sütunlar — 5 kelime 4 + 1 kırılmaz, tek satır olur */ const n = board.querySelectorAll(":scope > .cell").length || textEls.length, L = Math.max(...textEls.map(el => (el.textContent || "").trim().length)); if(L <= 22){ board.classList.add("txt-wrap"); let best = null;
       for(let c = Math.min(8, n); c >= 2; c--){ if(n % c) continue; board.style.setProperty("--txt-cols", c); centerLastRow(board, c); if(!txtRowsFit(board, c, n)) continue; let sz = 17; while(sz > floor && !fitsAll(sz)) sz--; if(!fitsAll(sz)) continue; if(!best || sz > best.sz) best = { c, sz }; }
       if(best){ board.style.setProperty("--txt-cols", best.c); centerLastRow(board, best.c); txtRowsFit(board, best.c, n); textEls.forEach(el => { el.style.fontSize = best.sz + "px"; }); board.dataset.txtLs = String(best.c); return; }
       board.classList.remove("txt-wrap"); board.style.removeProperty("--txt-cols"); delete board.dataset.txtRows; board.style.removeProperty("--txt-minh"); } }
@@ -1785,7 +1785,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.17-h";
+const APP_VERSION = "2026.11.17-i";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 /* RUNTIME_CSS → zihin-stil.css */
 /* Dosya sürümü denetimi: zihin-atolyesi.html ile uygulama kodu (zihin-1…8) farklı sürümdeyse uyar */
