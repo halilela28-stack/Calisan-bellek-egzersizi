@@ -240,8 +240,8 @@ let SEQUENCE = buildSequenceForCategory();
 let currentIndex = 0;
 let currentStageIndex = 0;
 
-/* KURAL (N-Geri): "tek tek gelecek" diyen N-Geri çalışmalarında öğeler gerçekten tek tek gösterilir — Başlat'tan sonra yalnız sıradaki öğe görünür, öncekiler kapanır; yetişkin, çocuk söyleyince tahtaya dokunur ve sıradaki gelir (önceki öğe ekranda kalırsa bellek çalışmaz) */
-const NB_SEQ = new Set(["nback-shape", "nback-color", "nback-number"]);
+/* KURAL (N-Geri): "tek tek gelecek" diyen N-Geri çalışmalarında öğeler gerçekten tek tek gösterilir — yalnız sıradaki öğe görünür, öncekiler kapanır (önceki öğe ekranda kalırsa bellek çalışmaz). 2026-11-17'den beri Hayvan, Taşıt ve Sayı N-Geri'de öğe kendiliğinden gelip kapanır (N-Geri sunuş ve tepki kuralı) */
+const NB_SEQ = new Set([]);   /* 2026-11-17: Hayvan, Taşıt ve Sayı N-Geri artık dokunmalı (N-Geri sunuş ve tepki kuralı); tabloda sırayla açma kullanılmıyor */
 const NB_SEQ_NOTE = `<span style="display:block;font-size:13px;color:var(--muted,#5B6B7B);margin-bottom:4px">Başlat’tan sonra öğeler tek tek açılır; çocuk söyleyince tahtaya dokunun, sıradaki gelir.</span>`;
 let nbSeqIdx = 0;
 function nbSeqCells(){ const b = document.getElementById("board"); return b ? [...b.querySelectorAll(":scope > .cell")] : []; }
@@ -472,7 +472,14 @@ const b = ev.target.closest("#recallCheck [data-rc]"); if(!b) return;
 const i = b.dataset.rc; recallChecked[i] = !recallChecked[i];
 setErrorCount(Object.keys(recallChecked).filter(k => recallChecked[k]).length);
 const open = document.getElementById("recallCheck").open; renderRecallChecklist(); document.getElementById("recallCheck").open = open;
+recallAutoFinish();
 });
+/* KURAL (kontrol listesi tamamlanınca, 2026-11-17): hatırlama çalışmalarında Kontrol listesindeki öğelerin hepsi işaretlenince çalışma takılı kalmaz — 1,2 sn sonra (yanlış dokunuş geri alınabilsin diye) süre kendiliğinden durur, sonuç kaydedilir ve düzey geçişi işler. Hepsi işaretli değilse yetişkin Bitir'e basar (eskisi gibi). Ödev oturumunda ve oyunda kendiliğinden kayıt yapılmaz */
+let _rcDoneT = 0;
+function recallCheckedN(){ return Object.keys(recallChecked).filter(k => recallChecked[k]).length; }
+function recallAutoFinish(){ clearTimeout(_rcDoneT); try{ const n = recallTargets().length; if(!timerRunning || !n || recallCheckedN() < n || gameMode) return;
+_rcDoneT = setTimeout(() => { try{ if(!timerRunning || !currentExercise().isRecall || recallCheckedN() < recallTargets().length) return; stopTimer();
+if(!hwRun && (currentPlayerName || "").trim()){ const hint = document.getElementById("saveHint"); document.getElementById("saveResultBtn").style.display = "none"; if(hint){ hint.style.display = "block"; hint.classList.remove("warn"); hint.textContent = "Hepsi doğru — sonuç kendiliğinden kaydediliyor…"; } setTimeout(() => { try{ confirmSaveResult(); }catch(e){ console.error(e); } }, 450); } }catch(e){ console.error(e); } }, 1200); }catch(e){} }
 
 setInterval(() => { try{ ensureInteractiveStop(); }catch(e){} }, 400);
 /* KURAL (yaşam döngüsü, 2026-11-09): sayfa olayları tek yerden geçer — ZA_LIFE.freshAttempt (yeni deneme), ZA_LIFE.rebuild/clear/resetBoard (sıfırlama ve yarım kalan deneme), ZA_LIFE.leave (sayfadan/oyundan çıkış), ZA_LIFE.afterRender (sayfa çizildi). Çalışma türüne özel sıfırlama kuralları yalnız bu tabloda yazılır; startTimer, stopTimer, resetTimer ve gezinti fonksiyonları buraya çağrı yapar. Yeni bir çalışma türü eklenirken sıfırlaması buraya eklenir (mühendislik borcu 2. adım) */
@@ -602,12 +609,12 @@ function confirmSaveResult(){ if(elapsedMs <= 300 || window._incomplete) return;
 recordSession(elapsedMs, currentErrorCount); playSound("save"); if(!gameMode){ try{ finishCard(); }catch(e){} }   /* konfeti recordSession içinde bir kez */   /* KURAL: Zihni (bitiş kartı) ve konfeti kaydettikten sonra çıkar */
 const __heldErr = currentErrorCount;   /* hata sayısı görünür kalır kuralı */
 if(hwRun){ resetTimer(); zaHoldErr(__heldErr); setTimeout(() => { try{ showHwDone(); }catch(e){ console.error(e); } }, 120); return; }   /* ödev oturumu: otomatik düzey değişmez, sonuç paneli */
-const __j = (!currentExercise().isMotion && !currentExercise().isRecall && !currentExercise().noAdaptive) ? sessionJudge(elapsedMs, currentErrorCount) : null;
+const __j = (!currentExercise().isMotion && !currentExercise().noAdaptive) ? sessionJudge(elapsedMs, currentErrorCount) : null;
 if(__j && (appMode === "aile" || (appMode === "uzman" && expertAdaptiveEnabled))){
 applyAdaptiveDifficulty(elapsedMs, currentErrorCount);
 }
 resetTimer();
-if(__j && !gameMode) try{ catLevelSuggest(__j); }catch(e){}
+if(__j && !gameMode && !currentExercise().isRecall) try{ catLevelSuggest(__j); }catch(e){}   /* hatırlama çalışmaları okul dönemi önerisini tetiklemez (uzun listelerde yarının altı olağandır) */
 zaHoldErr(__heldErr);
 }
 /* KURAL (hata sayısı görünür kalır, 2026-11-16): dokunmatik çalışmalarda hata sayısı otomatik işlenmeye devam eder; çalışma bitip sonuç kendiliğinden kaydedildikten sonra (düzey kendiliğinden değişse de) hata sayacında son oyunun hata sayısı görünmeye devam eder — yeniden Başlat'a basılınca (0'dan başlar) ya da başka sayfaya geçilince (Önceki/Sonraki, Karıştır, alan, menü) silinir. Yeni denemenin sayımı her zaman 0'dan başlar (gösterilen sayı yalnız bilgi) */
@@ -792,8 +799,11 @@ if(navigator.vibrate) navigator.vibrate(pattern);
    4) noAdaptive yalnızca ölçüsü hata sayısı olmayan çalışmalarda (ör. Yirmi Soru, Desen Akıcılığı) kullanılır.
    Kaçınılmaz hatalar (sessiz kural değişimi, yıldızın yer değiştirmesi, ilk tahmin) başarıyı engellemez: */
 function adaptInevitable(ex){ try{ if(!ex || !mtState) return 0; if(ex.id === "rule-shift" && mtState.kind === "wcst") return (mtState.shifts || 0) + 1; if(ex.id === "reversal" && mtState.kind === "rev") return (mtState.revs || 0) + 1; }catch(e){} return 0; }
+/* KURAL (hatırlama çalışmalarında düzey geçişi, 2026-11-17): Rakam Dizisi, Kelime Listesi Hatırlama, Cümle/Öbek Tekrarı, Şekil, Renk ve Konum Hatırlama da öteki çalışmalar gibi kendiliğinden ilerler. Ölçü hata değil "doğru hatırlanan sayısı"dır: öğelerin en az %80'i hatırlanırsa başarılı, yarısından azı hatırlanırsa düşük sayılır. İki başarılı kayıt → bir üst düzey; son düzeyde iki başarı → sonraki aşama (açıldığı düzeyden); düşük kayıt → bir alt düzey. Önceden bu çalışmalar hiç ilerlemiyor, aynı düzeyde kalıyordu */
+function recallJudge(correct){ const n = Math.max(1, recallTargets().length), ok = Math.max(0, Math.min(n, correct || 0)); return { isGood: ok >= Math.ceil(n * 0.8), isBad: ok < n / 2 }; }
 function sessionJudge(ms, errors){
-const ex = currentExercise(); errors = Math.max(0, errors - adaptInevitable(ex));
+const ex = currentExercise(); if(ex.isRecall) return recallJudge(errors);   /* hatırlama çalışmalarında sayaç doğru sayısıdır */
+errors = Math.max(0, errors - adaptInevitable(ex));
 const itemCount = ex.isSeqRows ? Math.max(1, currentGrid.length * 2)
 : (ex.isFlanker || ex.isSort || ex.isTrail || ex.isPlan || ex.isSearch || ex.isWm || ex.isChoice || ex.isRt || ex.isMt) ? Math.max(1, currentGrid.length)
 : currentTier().rows * currentTier().cols;
@@ -812,7 +822,7 @@ const ex = currentExercise();
 const { isGood, isBad } = sessionJudge(ms, errors);
 const combo = currentCombo();
 const player = currentPlayerName.trim() || "Oyuncu";
-const useStages = (ex.isScatter || ex.isAuditory || ex.isSeqRows || ex.isFlanker || ex.isTrail || ex.isWm || ex.isMt) && ex.stages.length > 1;
+const useStages = (ex.isScatter || ex.isAuditory || ex.isSeqRows || ex.isFlanker || ex.isTrail || ex.isWm || ex.isMt || ex.isRecall) && ex.stages.length > 1;
 const stageName = (i) => ex.stages[i].label.split("·")[0].trim();
 const labelFor = (t, st) => useStages ? `${TIERS[t].label} · ${stageName(st)}` : TIERS[t].label;
 
@@ -1236,7 +1246,7 @@ if(w) chLater(() => { if(st.phase === "ask" && st.idx === myIdx) chAnswer(null);
 };
 /* showMs: uyaran önce bir süre oynatılır (düğmeler kapalı), sonra soru gelir — ör. Yaratık Sayma'da yaratıklar tek tek gelir */
 const sm = st.spec.showMs ? st.spec.showMs(st.trials[myIdx], st) : 0;
-if(sm){ st.phase = "show"; st.showAt = performance.now(); renderChoiceBoard(); try{ if(st.spec.onShow) st.spec.onShow(st.trials[myIdx], st); }catch(e){} chLater(() => { if(st.phase === "show" && st.idx === myIdx) ask(); }, sm); }
+if(sm){ st.phase = "show"; st.showAt = performance.now(); renderChoiceBoard(); try{ if(st.spec.onShow) st.spec.onShow(st.trials[myIdx], st); }catch(e){} chLater(() => { if(st.phase === "show" && st.idx === myIdx){ if(st.spec.noAsk && st.spec.noAsk(st.trials[myIdx], st)){ st.idx++; chNext(); } else ask(); } }, sm); }   /* noAsk: yalnız akılda tutulan öğe (N-Geri'nin ilk öğeleri) gösterilir, soru sorulmaz */
 else ask();
 }, st.spec.gap || 220);
 }
@@ -1262,7 +1272,8 @@ board.style.gridTemplateColumns = ""; board.style.gridTemplateRows = ""; board.c
 if(!chState) return;
 const st = chState, sp = st.spec, isLs = landscapeMQ.matches;
 const W = (board.clientWidth || 360) - 24, H = isLs ? zaLsAvailH(board, 280) - 16 : Math.min(560 * tabletScale(), window.innerHeight - 280);
-const stimSize = Math.floor(Math.min(isLs ? H - 20 : 220 * tabletScale(), W * (isLs ? 0.42 : 0.75)));   /* tablette uyaran büyür */
+let stimSize = Math.floor(Math.min(isLs ? H - 20 : 220 * tabletScale(), W * (isLs ? 0.42 : 0.75)));   /* tablette uyaran büyür */
+if(!isLs && sp.fitRoom){ try{ const oda = (document.documentElement.classList.contains("run-focus") && window._rfMax ? window._rfMax : window.innerHeight - board.getBoundingClientRect().top - 10) - sp.fitRoom(W); if(oda < stimSize) stimSize = Math.max(110, Math.floor(oda)); }catch(e){} }   /* fitRoom: küçük telefonda uyaran kartı, altındaki seçeneklerle birlikte tek ekrana sığacak kadar küçülür (N-Geri) */
 const tr = st.trials[st.idx];
 const stim = st.phase === "idle" ? `<span class="hold">▶ Başlat'a bas</span>` : st.phase === "done" ? `<span class="hold">Bitti!</span>` : st.phase === "gap" ? "" : sp.stim(tr, stimSize, st.ctx, st);   /* Tahmin Et – Yap – Karşılaştır katmanı: işaretli çalışmalarda */
 const buttons = sp.buttons(st.ctx, tr);   /* deneme bazlı düğmeler (Hızlı Seç: yer ve kural değişimi); tapStim: seçim resmin kendisine dokunarak */
@@ -1509,6 +1520,36 @@ key: () => `<div class="ch-key" style="font-weight:800;font-size:13px;color:var(
 const ccStep = (t) => Math.round(zaPace("creature-count") * (t && t.demo ? 1.3 : 1));
 function ccPath(t){ let v = 0, d = 1; return t.items.map(it => { if(it.arrow){ d = it.arrow; return { arrow: d, v }; } v += d; return { img: it.img, v }; }); }
 const ccSign = (dir, sz) => `<div class="cc-sign ${dir > 0 ? "up" : "down"}" style="font-size:${Math.round(sz * 0.11)}px"><span style="font-size:${Math.round(sz * 0.3)}px;line-height:1">${dir > 0 ? "▲" : "▼"}</span><b>${dir > 0 ? "İLERİ SAY" : "GERİ SAY"}</b></div>`;
+/* KURAL (N-Geri sunuş ve tepki, 2026-11-17): Hayvan, Taşıt ve Sayı N-Geri aynı düzende çalışır.
+   Sunuş: öğe ekranın ortasında tek başına, büyük görünür; kendiliğinden gelir ve kapanır (hız tablosundan: okul öncesi 2,2 / 1,9 / 1,6 sn, okul sonrası 1,7 / 1,4 / 1,1 sn). Tahtaya dokunmak gerekmez.
+   Tepki: öğe kapanınca altta üç seçenek çıkar; çocuk "bir önceki" (2-Geri'de "iki önceki") öğeye dokunur, uygulama sayar; cevap süresizdir. İlk öğe (2-Geri'de ilk iki öğe) yalnız akılda tutulur, soru sorulmaz. İlk soru örnektir: doğru seçenek işaretlidir, hata yazmaz.
+   Seçenekler: doğru öğe, az önce görülen öğe ve başka bir öğe (2-Geri'de: iki önceki, bir önceki, az önceki). Art arda aynı öğe gelmez; 2-Geri'de son iki öğeden biri yinelenmez.
+   Küçük telefonda (dikey) öğe kartı ve seçenekler küçülür; soru ekranı tek ekrana sığar, tahta kaymaz. Yatayda öğe solda, soru ve seçenekler sağdadır.
+   Gösterilen öğe sayısı: okul öncesi 6 / 8 / 10, okul sonrası 10 / 12 / 14 (önce tabloda 9 / 12 / 15 ve 16 / 20 / 25 öğe vardı) — kolaylaştırma kuralı. Düzey yalnız hataya göre değişir */
+const NB_T = { pre:[6, 8, 10], post:[10, 12, 14] };
+function nbBack(){ return stIx() === 1 ? 2 : 1; }
+function nbBtnH(){ return (!landscapeMQ.matches && window.innerHeight < 620) ? 76 : 96; }   /* küçük telefonda (dikey) seçenekler biraz kısalır: kart ve seçenekler tek ekrana sığar */
+function nbTrials(n, pool, back){ const seq = []; while(seq.length < n){ const son = seq.slice(-back), c = pool.filter(k => !son.includes(k)); seq.push(randomItem(c.length ? c : pool)); }
+let ornek = false; return seq.map((k, i) => { if(i < back) return { k, pass: true }; const ans = seq[i - back]; let opts = back === 2 ? [ans, seq[i - 1], k] : [ans, k]; const diger = shuffleArray(pool.filter(x => !opts.includes(x))); while(opts.length < 3 && diger.length) opts.push(diger.pop()); const t = { k, ans, opts: shuffleArray(opts) }; if(!ornek){ ornek = true; t.demo = true; } return t; }); }
+function nbSpec(kind){ const face = (k, sz, btn) => kind === "num" ? `<b style="font-size:${btn ? 38 : Math.round(sz * 0.5)}px;line-height:1;color:var(--ink)">${k}</b>` : `<img ${btn ? 'class="nb-opt" ' : ""}src="${kind === "veh" ? VEHICLE_IMAGES[k + "_f"] : animalImg(k)}" alt="" style="width:88%;height:88%;object-fit:contain;display:block">`;
+return {
+setup: () => ({ back: nbBack(), pool: kind === "num" ? Array.from({length: isPre() ? 5 : 9}, (_, i) => i + 1) : nbPool(shuffleArray(kind === "veh" ? NB_VEHICLES.slice() : NB_ANIMALS.filter(k => animalImg(k)))) }),
+trials_make: (n, c) => nbTrials(n, c.pool, c.back),
+trials: NB_T, gap: 320, cols: 3,
+showMs: () => zaPace("nback.goster"),
+onShow: () => { try{ sfx("pop"); }catch(e){} },
+noAsk: (t) => !!t.pass,
+stim: (t, sz, c, st) => (st && st.phase === "show") ? face(t.k, sz, false) : `<span class="nb-q" style="font-size:${Math.round(sz * 0.42)}px">?</span>`,
+buttons: (c, t) => { const st = chState, acik = !!(st && t && !t.pass && (st.phase === "ask" || st.phase === "feedback")); return ((t && t.opts) || c.pool.slice(0, 3)).map(k => ({ id: String(k), html: face(k, 0, true), style: "min-height:" + nbBtnH() + "px;" + (acik ? "" : "visibility:hidden;") })); },
+fitRoom: (W) => 24 + 12 + (W < 330 ? 34 : 22) + 24 + nbBtnH() + 8,
+correct: (t) => String(t.ans),
+fbMs: (ok) => ok ? 520 : 1400,
+hint: (c) => c.back === 2 ? "İlk iki öğeyi aklında tut; sonra <b>iki önceki</b> öğeye dokun" : "İlk öğeyi aklında tut; sonra <b>bir önceki</b> öğeye dokun",
+banner: (t, st) => { const c = st.ctx, soru = st.trials.filter(x => !x.pass && !x.demo), kac = soru.indexOf(t) + 1; let tx;
+  if(st.phase === "gap") tx = "&nbsp;"; else if(st.phase === "show") tx = t.pass ? "<b>Aklında tut</b>" : "İyi bak…"; else tx = `<b>${c.back === 2 ? "İki önceki" : "Bir önceki"}</b> hangisiydi?` + (t.demo ? " · <b>örnek</b>, sayılmaz" : ` · ${kac} / ${soru.length}`);
+  return `<div class="wm-info nb-line">${tx}</div>`; }
+}; }
+CHOICE["nback-shape"] = nbSpec("ani"); CHOICE["nback-color"] = nbSpec("veh"); CHOICE["nback-number"] = nbSpec("num");
 CHOICE["creature-count"] = {
 trials_make: () => { const a = ccTrials(); if(a.length) a[0] = Object.assign({}, a[0], { demo: true }); return a; },   /* KURAL (Yaratık Sayma örnek turu, 2026-11-16): sayıların göründüğü ilk tur "Örnek tur"dur — toplam tur sayısı artmaz (kolaylaştırma kuralı), örnek deneme sayısına girmez, hata yazmaz; sorulduğunda doğru sayı işaretli gösterilir. Ardından gelen denemelerde sayı görünmez */
 showMs: (t) => (t.items.length + 1) * ccStep(t) + 150,

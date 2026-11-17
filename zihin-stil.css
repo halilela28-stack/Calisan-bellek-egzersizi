@@ -523,3 +523,7 @@ html #board .srh-row:not(.srh-fresh),html #board .srh-row:not(.srh-fresh) .srh-i
 @media (prefers-reduced-motion: reduce){#board .ch-btn.ch-hint{animation:none}}
 
 #dualArea .du-t svg{width:100%;height:100%;display:block}
+/* KURAL (N-Geri sunuş ve tepki): seçenek resimleri büyük; kapalı kart soru işareti */
+#board .ch-btn img.nb-opt{width:min(84px,88%) !important;max-height:84px !important;height:auto !important}
+#board .nb-q{font-weight:900;color:var(--muted,#8A98A8);line-height:1}
+#board .nb-line{min-height:1.4em}

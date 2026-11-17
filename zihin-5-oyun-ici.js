@@ -109,8 +109,8 @@ function mtBuild(){
 const id = currentExercise().id, t = currentCombo().t, pre = isPre();
 mtClear();
 if(id === "corsi" || id === "corsi-verbal"){
-const N = pre ? [5, 6, 6][Math.min(t, 2)] : 9;   // öncesi: 5 blok → 6 blok → 6 blok + 3'lük dizi
-mtState = { kind: id, N, blocks: null, len: (stIx() === 1 ? (pre ? [2, 2, 3] : [2, 3, 4]) : (pre ? [2, 3, 4] : [3, 4, 5]))[Math.min(t, 2)], maxLen: pre ? N : 9, tries: 0, okAtLen: 0, best: 0, wrong:0, phase:"idle", back: stIx() === 1, seq:[], pos:0, trials:0, maxTrials: (pre ? [4, 5, 6] : [6, 8, 10])[Math.min(t, 2)], manual: id === "corsi-verbal" };   /* uzmanla: sabit uzunluk, "Sonraki" + Hata sayısı */
+const cv = corsiLevel(pre, Math.min(t, 2), stIx() === 1), N = cv.N;
+mtState = { kind: id, N, blocks: null, len: cv.len, len0: cv.len, maxLen: cv.len + 1, tries: 0, okAtLen: 0, best: 0, wrong:0, phase:"idle", back: stIx() === 1, seq:[], pos:0, trials:0, maxTrials: cv.trials, manual: id === "corsi-verbal" };   /* uzmanla: sabit uzunluk, "Sonraki" + Hata sayısı */
 return Array.from({length: 12}, () => ({}));
 }
 if(id === "span-touch"){
@@ -245,6 +245,14 @@ if(r.list.includes(it)){ st.marks[i] = "ok"; gameSfx("correct"); } else { st.mar
 renderMtBoard();
 if(r.list.every(x => st.marks[r.shelf.indexOf(x)] === "ok")){ st.res[st.ri] = !st.roundBad; st.roundBad = 0; st.phase = "fb"; mtLater(() => { st.ri++; if(st.ri >= st.rounds.length){ mtFinish(); return; } mkShow(); }, 800); }
 }
+/* KURAL (Corsi kolay düzey, 2026-11-17): Corsi Blokları (serbest ve uzmanla) kolaylaştırıldı; hiçbir düzey önceki halinden zor değil.
+   Blok sayısı: okul öncesi 4 / 5 / 6 (önce 5 / 6 / 6), okul sonrası 6 / 7 / 8 (önce 9 / 9 / 9).
+   Dizi uzunluğu (ileri): okul öncesi 2 / 2 / 3 (önce 2 / 3 / 4), okul sonrası 2 / 3 / 4 (önce 3 / 4 / 5). Geri: okul öncesi 2 / 2 / 2 (önce 2 / 2 / 3), okul sonrası 2 / 2 / 3 (önce 2 / 3 / 4).
+   Uzmanla dizi sayısı: okul öncesi 3 / 4 / 5 (önce 4 / 5 / 6), okul sonrası 4 / 5 / 6 (önce 6 / 8 / 10).
+   Bloklar daha yavaş yanar: okul öncesi 1000 ms, okul sonrası 900 ms, arada 400 ms (önce 900 / 750 ms, arada 300 ms).
+   Serbest Corsi artık hata yapana kadar uzamaz: düzeyin uzunluğunda iki dizi, en az biri doğruysa bir basamak uzun iki "ek dizi" gelir ve çalışma biter. Ek dizilerdeki yanlış hata sayılmaz (düzeyi düşürmez); doğru yapılırsa "en uzun dizi" olarak yazılır */
+const CORSI_LVL = { N:{ pre:[4, 5, 6], post:[6, 7, 8] }, fwd:{ pre:[2, 2, 3], post:[2, 3, 4] }, back:{ pre:[2, 2, 2], post:[2, 2, 3] }, trials:{ pre:[3, 4, 5], post:[4, 5, 6] }, on:{ pre:1000, post:900 }, off:400 };
+function corsiLevel(pre, t, back){ const k = pre ? "pre" : "post"; return { N: CORSI_LVL.N[k][t], len: (back ? CORSI_LVL.back : CORSI_LVL.fwd)[k][t], trials: CORSI_LVL.trials[k][t] }; }
 function corsiLayout(){
 const st = mtState; if(st.blocks) return;
 const pts = []; let g = 0;
@@ -256,7 +264,7 @@ function corsiTrial(){
 const st = mtState; corsiLayout();
 st.seq = []; while(st.seq.length < st.len){ const i = Math.floor(Math.random() * st.N); if(!st.seq.includes(i)) st.seq.push(i); }
 st.pos = 0; st.marks = {}; st.phase = "show"; st.lit = null; renderMtBoard();
-const on = isPre() ? 900 : 750, off = 300;
+const on = CORSI_LVL.on[isPre() ? "pre" : "post"], off = CORSI_LVL.off;
 st.seq.forEach((bi, k) => {
 mtLater(() => { st.lit = bi; renderMtBoard(); gameSfx("pop"); }, 600 + k * (on + off));
 mtLater(() => { st.lit = null; renderMtBoard(); }, 600 + k * (on + off) + on);
@@ -265,7 +273,7 @@ mtLater(() => { st.phase = st.kind === "corsi" ? "input" : "judge"; renderMtBoar
 }
 function corsiResult(ok){
 const st = mtState; st.trials++; st.tries++;
-if(ok){ st.okAtLen++; st.best = Math.max(st.best, st.len); gameSfx("correct"); } else mtErr();
+if(ok){ st.okAtLen++; st.best = Math.max(st.best, st.len); gameSfx("correct"); } else if(st.len > st.len0){ st.xMiss = (st.xMiss || 0) + 1; gameSfx("soft"); }   /* ek (bir basamak uzun) dizideki yanlış hata sayılmaz */ else mtErr();
 st.phase = "between"; renderMtBoard();
 mtLater(() => {
 if(st.tries >= 2){
@@ -348,7 +356,7 @@ corsiLayout();
 const cvJ = st.kind === "corsi-verbal" && st.phase === "judge"; let area = Math.min(W, isLs ? H : 420 * tabletScale()) * (window._fitK || 1);
 if(cvJ) area = corsiJudgeArea(area, W, isLs, board);   /* KURAL (Corsi Blokları (uzmanla) puanlama ekranı, 2026-11-17) */
 const bs = Math.round(area * 0.15);
-info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "show" ? "<b>İzle…</b>" : st.phase === "input" ? `<b>${st.back ? "Tersten" : "Aynı sırayla"}</b> dokun · ${st.pos}/${st.seq.length}` : st.phase === "judge" ? `Çocuk sırayı ${st.back ? "<b>tersten</b>" : ""} söylesin / göstersin:` : st.phase === "done" ? (st.manual ? `Bitti · ${st.len}'lü diziler · hatalar Hata sayısında` : `Bitti · en uzun dizi <b>${st.best || "—"}</b>`) : `Dizi uzunluğu: <b>${st.len}</b>`;
+info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "show" ? "<b>İzle…</b>" : st.phase === "input" ? `<b>${st.back ? "Tersten" : "Aynı sırayla"}</b> dokun · ${st.pos}/${st.seq.length}` : st.phase === "judge" ? `Çocuk sırayı ${st.back ? "<b>tersten</b>" : ""} söylesin / göstersin:` : st.phase === "done" ? (st.manual ? `Bitti · ${st.len}'lü diziler · hatalar Hata sayısında` : `Bitti · en uzun dizi <b>${st.best || "—"}</b>`) : (st.kind === "corsi" && st.len > st.len0 ? `Ek dizi · uzunluk <b>${st.len}</b> · yanlış sayılmaz` : `Dizi uzunluğu: <b>${st.len}</b>`);
 body = `<div style="position:relative;flex:0 0 auto;width:${area}px;height:${area}px;margin:0 auto;background:#EEF2F6;border-radius:18px;">` + st.blocks.map((p, i) => {
 const lit = st.lit === i, mk = st.marks && st.marks[i];
 const bg = lit ? "#FFC21A" : mk === "ok" ? "#1FA463" : mk === "bad" ? "#E5484D" : "#2E6FD8";
@@ -492,7 +500,7 @@ corsiLayout();
 const cvJ = st.kind === "corsi-verbal" && st.phase === "judge"; let area = Math.min(W, isLs ? H : 420 * tabletScale()) * (window._fitK || 1);
 if(cvJ) area = corsiJudgeArea(area, W, isLs, board);   /* KURAL (Corsi Blokları (uzmanla) puanlama ekranı, 2026-11-17) */
 const bs = Math.round(area * 0.15);
-info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "show" ? "<b>İzle…</b>" : st.phase === "input" ? `<b>${st.back ? "Tersten" : "Aynı sırayla"}</b> dokun · ${st.pos}/${st.seq.length}` : st.phase === "judge" ? `Çocuk sırayı ${st.back ? "<b>tersten</b>" : ""} söylesin / göstersin:` : st.phase === "done" ? (st.manual ? `Bitti · ${st.len}'lü diziler · hatalar Hata sayısında` : `Bitti · en uzun dizi <b>${st.best || "—"}</b>`) : `Dizi uzunluğu: <b>${st.len}</b>`;
+info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "show" ? "<b>İzle…</b>" : st.phase === "input" ? `<b>${st.back ? "Tersten" : "Aynı sırayla"}</b> dokun · ${st.pos}/${st.seq.length}` : st.phase === "judge" ? `Çocuk sırayı ${st.back ? "<b>tersten</b>" : ""} söylesin / göstersin:` : st.phase === "done" ? (st.manual ? `Bitti · ${st.len}'lü diziler · hatalar Hata sayısında` : `Bitti · en uzun dizi <b>${st.best || "—"}</b>`) : (st.kind === "corsi" && st.len > st.len0 ? `Ek dizi · uzunluk <b>${st.len}</b> · yanlış sayılmaz` : `Dizi uzunluğu: <b>${st.len}</b>`);
 body = `<div style="position:relative;flex:0 0 auto;width:${area}px;height:${area}px;margin:0 auto;background:#EEF2F6;border-radius:18px;">` + st.blocks.map((p, i) => {
 const lit = st.lit === i, mk = st.marks && st.marks[i];
 const bg = lit ? "#FFC21A" : mk === "ok" ? "#1FA463" : mk === "bad" ? "#E5484D" : "#2E6FD8";
@@ -907,9 +915,9 @@ const INSTR_SHORT = {
 "plan-beads":       [() => Q("Üstte hedef dizilim, altta çubuklara dizilmiş boncuklar var. Bir çubuğa dokununca en üstteki boncuk kalkar; başka bir çubuğa dokununca oraya konur. Dokunmadan önce düşün ve boncukları hedefteki gibi diz."), () => Q("Önce birkaç saniye sadece düşüneceksin, sonra dokunabileceksin. Boncukları hedefteki gibi diz.")],
 "plan-tol":         [() => `${Q("Üstte hedef, altta üç bardak ve renkli pullar var. Bir bardağa dokununca üstteki pul kalkar; başka bardağa dokununca oraya konur. Bardaklar farklı sayıda pul alır. Dokunmadan önce zihninde planla; pulları en az hamleyle hedefteki gibi diz.")}`, () => `${Q("Önce birkaç saniye sadece bakıp planlayacaksın, sonra dokunabileceksin. Pulları en az hamleyle hedefteki gibi diz.")}`],
 "plan-cubes":       [() => Q("Üstte hedef, altta küp kuleleri var. Bir kuleye dokununca en üstteki küp kalkar; başka kuleye dokununca oraya konur. Yalnızca en üstteki küpü taşıyabilirsin. Önce zihninde planla; küpleri en az hamleyle hedefteki gibi diz.")],
-"nback-shape":      [() => NB_SEQ_NOTE + Q("Hayvanlar tek tek gelecek. Her yeni hayvan gelince, ondan BİR ÖNCE gelen hayvanın adını söyle. İlk hayvanda bir şey söyleme, sadece aklında tut."), () => NB_SEQ_NOTE + Q("Hayvanlar tek tek gelecek. Her yeni hayvan gelince, ondan İKİ ÖNCE gelen hayvanın adını söyle. İlk iki hayvanda bir şey söyleme, sadece aklında tut.")],
-"nback-color":      [() => NB_SEQ_NOTE + Q("Taşıtlar tek tek gelecek. Her yeni taşıt gelince, ondan BİR ÖNCE gelen taşıtın adını söyle. İlk taşıtta bir şey söyleme, sadece aklında tut."), () => NB_SEQ_NOTE + Q("Taşıtlar tek tek gelecek. Her yeni taşıt gelince, ondan İKİ ÖNCE gelen taşıtın adını söyle. İlk iki taşıtta bir şey söyleme, sadece aklında tut.")],
-"nback-number":     [() => NB_SEQ_NOTE + Q("Sayılar tek tek gelecek. Her yeni sayı gelince, ondan BİR ÖNCE gelen sayıyı söyle. İlk sayıda bir şey söyleme, sadece aklında tut."), () => NB_SEQ_NOTE + Q("Sayılar tek tek gelecek. Her yeni sayı gelince, ondan İKİ ÖNCE gelen sayıyı söyle. İlk iki sayıda bir şey söyleme, sadece aklında tut.")],
+"nback-shape":      [() => Q("Hayvanlar tek tek gelip kapanacak. İlk hayvanı sadece aklında tut. Sonra her hayvan kapanınca, ondan bir önce gelen hayvana dokun."), () => Q("Hayvanlar tek tek gelip kapanacak. İlk iki hayvanı sadece aklında tut. Sonra her hayvan kapanınca, ondan iki önce gelen hayvana dokun.")],
+"nback-color":      [() => Q("Taşıtlar tek tek gelip kapanacak. İlk taşıtı sadece aklında tut. Sonra her taşıt kapanınca, ondan bir önce gelen taşıta dokun."), () => Q("Taşıtlar tek tek gelip kapanacak. İlk iki taşıtı sadece aklında tut. Sonra her taşıt kapanınca, ondan iki önce gelen taşıta dokun.")],
+"nback-number":      [() => Q("Sayılar tek tek gelip kapanacak. İlk sayıyı sadece aklında tut. Sonra her sayı kapanınca, ondan bir önce gelen sayıya dokun."), () => Q("Sayılar tek tek gelip kapanacak. İlk iki sayıyı sadece aklında tut. Sonra her sayı kapanınca, ondan iki önce gelen sayıya dokun.")],
 "digit-span":       [() => `Rakamları birlikte okuyun. Kapanınca: ${Q("Ekranda rakamlar var; onları birlikte okuyacağız ve sen aklında tutacaksın. Rakamlar kapanınca onları aynı sırayla söyle.")}`, () => `Rakamları birlikte okuyun. Kapanınca: ${Q("Ekranda rakamlar var; onları birlikte okuyup aklında tutacaksın. Rakamlar kapanınca onları tersten söyle: en sondakinden başla, ilkte bitir.")}`],
 "word-order":       [() => `Göstermeden okuyun: ${Q(`Sana ${audLen()} kelime okuyacağım. Bitince aynı sırayla tekrar et.`)}`, () => `Göstermeden okuyun: ${Q(`Sana ${audLen()} kelime okuyacağım. Bitince tersten söyle: en son söylediğimden başla.`)}`, () => `Göstermeden okuyun: ${Q(`Sana ${audLen()} hayvan adı okuyacağım. Bitince onları küçükten büyüğe sırala ve söyle.`)}`],
 "prospective-event":[() => `Başlamadan önce: ${Q(`Resimler gelecek; her resmin adını söyle. Ama ${peObjName(peObjTriggers[0])} görünce adını söylemeden önce masaya vur.`)}`,

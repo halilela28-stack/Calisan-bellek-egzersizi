@@ -136,6 +136,7 @@ const ZA_PACE = {
   "pk-drum.vurus":        { pre:[900, 820, 750],    post:[700, 620, 560] },     /* Ritim Davulu: vuruş aralığı */
   "pk-drum.pay":          { pre:[320, 280, 240],    post:[260, 220, 180] },     /* Ritim Davulu: zamanında sayılma payı */
   "pk-simon":             { pre:[800, 700, 650, 600], post:[650, 550, 450, 400] }, /* Renk Simon: yanma süresi */
+  "nback.goster":         { pre:[2200, 1900, 1600], post:[1700, 1400, 1100] },   /* Hayvan / Taşıt / Sayı N-Geri: öğenin ekranda kalma süresi */
   "creature-count":       { pre:[1600, 1400, 1250], post:[1300, 1100, 950] },   /* Yaratık Sayma: her yaratığın / okun ekranda kalma süresi */
   "pk-light":             { pre:[900, 800, 700, 650], post:[750, 650, 550, 480] }  /* Deniz Feneri Işıkları: yanma süresi */
 };

@@ -915,48 +915,29 @@ id: "nback-shape",
 readingLevel: ["pre","post"],
 label: "Hayvan N-Geri",
 oldLabels: ["Şekil N-Geri"],
-attrs: ["k"],
-beginGrid: () => { pickNbPools(); },
-randomItem: () => ({ k: randomItem(nbAnimalPool || NB_ANIMALS) }),
-renderItem: (item) => imgTag(animalImg(item.k)),
-stages: [
-{ label: "Aşama 1 · 1-Geri", instruction: () => ``, example: (item) => `(bir önceki: ${ANIMAL_NAMES[item.k]})` },
-{ label: "Aşama 2 · 2-Geri", instruction: () => ``, example: (item) => `(iki önceki: ${ANIMAL_NAMES[item.k]})` }
-]
+isChoice: true, attrs: [], adaptErrorsOnly: true,
+isDone: () => !!chState && chState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Aşama 1 · 1-Geri", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · 2-Geri", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "nback-color",
 readingLevel: ["pre","post"],
 label: "Taşıt N-Geri",
 oldLabels: ["Renk N-Geri"],
-attrs: ["k"],
-beginGrid: () => { pickNbPools(); },
-randomItem: () => ({ k: randomItem(nbVehiclePool || NB_VEHICLES) }),
-renderItem: (item) => imgTag(VEHICLE_IMAGES[item.k + "_f"]),
-stages: [
-{ label: "Aşama 1 · 1-Geri", instruction: () => ``, example: (item) => `(bir önceki: ${VEHICLE_NAMES[item.k]})` },
-{ label: "Aşama 2 · 2-Geri", instruction: () => ``, example: (item) => `(iki önceki: ${VEHICLE_NAMES[item.k]})` }
-]
+isChoice: true, attrs: [], adaptErrorsOnly: true,
+isDone: () => !!chState && chState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Aşama 1 · 1-Geri", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · 2-Geri", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "nback-number",
 readingLevel: ["pre","post"],
 label: "Sayı N-Geri",
-attrs: ["number"],
-randomItem: () => ({ number: randomInt(1, isPre() ? 5 : 9), color: randomItem(COLORS) }),
-renderItem: (item) => numberHTML(item.number, item.color),
-stages: [
-{
-label: "Aşama 1 · 1-Geri",
-instruction: () => `Öğrenciye görselleri tanıtın. <b>"Her sayıda, BİR ÖNCEKİ gördüğün sayıyı söyle"</b> deyin.`,
-example: (item) => `(bir önceki: ${item.number})`
-},
-{
-label: "Aşama 2 · 2-Geri",
-instruction: () => `Zorlaştırın: <b>"İKİ ÖNCEKİ gördüğün sayıyı söyle"</b> deyin.`,
-example: (item) => `(iki önceki: ${item.number})`
-}
-]
+isChoice: true, attrs: [], adaptErrorsOnly: true,
+isDone: () => !!chState && chState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Aşama 1 · 1-Geri", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · 2-Geri", instruction: () => ``, example: () => `` } ]
 },
 
 {
