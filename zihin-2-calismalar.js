@@ -1410,7 +1410,7 @@ stages: [ { label: "Nerede Saklandı?", instruction: () => ``, example: () => ``
 id: "corsi",
 readingLevel: ["pre","post"],
 label: "Corsi Blokları",
-isMt: true, attrs: [], speedFactor: 21,
+isMt: true, attrs: [], speedFactor: 21, adaptErrorsOnly: true,   /* süresi görevce sabit: düzey yalnız hataya göre (Corsi her yanlış sayılır kuralı) */
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Aşama 1 · İleri", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Geri", instruction: () => ``, example: () => `` } ]
@@ -1419,7 +1419,7 @@ stages: [ { label: "Aşama 1 · İleri", instruction: () => ``, example: () => `
 id: "corsi-verbal",
 readingLevel: ["pre","post"],
 label: "Corsi Blokları (uzmanla)",
-isMt: true, attrs: [], speedFactor: 16.5,
+isMt: true, attrs: [], speedFactor: 16.5, adaptErrorsOnly: true,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Aşama 1 · İleri", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Geri", instruction: () => ``, example: () => `` } ]
@@ -1427,17 +1427,19 @@ stages: [ { label: "Aşama 1 · İleri", instruction: () => ``, example: () => `
 {
 id: "span-listen",
 readingLevel: ["pre","post"],
-label: "Dinleme Aralığı",
-isAuditory: true, attrs: [], errorLabel: "Hatalı set sayısı",
-audTrials: () => makeSpanSets(isPre() ? SPAN_COUNT_PRE[Math.min(currentCombo().t, 2)] : 3),
-audRender: (sets) => renderSpanList(sets, false),
+label: "Dinleme ve Okuma Aralığı", preLabel: "Dinleme Aralığı",
+oldLabels: ["Dinleme Aralığı", "Okuma Aralığı"],
+/* KURAL (Dinleme ve Okuma Aralığı tek sayfa, 2026-11-17): Dinleme Aralığı ve Okuma Aralığı tek sayfadır. Aşama 1 · Dinle: yetişkin cümleleri okur, çocuk yalnız doğru mu yanlış mı söyler (akılda tutma yok); yanlış söylediği cümleler Hata sayısına yazılır. Cümle sayısı okul öncesi 4 / 6 / 9, okul sonrası 6 / 9 / 12. Aşama 2 · Oku + Hatırla: eski Okuma Aralığı (yalnız okul sonrası; okul öncesinde bu aşama yoktur). Eski "Okuma Aralığı" ödevleri ve sonuçları bu sayfanın Aşama 2'sine bağlanır */
+isAuditory: true, attrs: [], errorLabel: () => stIx() === 1 ? "Hatalı set sayısı" : "Hata sayısı",
+audTrials: () => stIx() === 1 ? makeSpanSets(3) : makeSpanJudge(spanJudgeN()),
+audRender: (x) => stIx() === 1 ? renderSpanList(x, true) : renderSpanJudge(x),
 randomItem: () => ({}),
-stages: [ { label: "Cümle + Nesne", instruction: () => ``, example: () => `` } ]
+stages: [ { label: "Aşama 1 · Dinle: Doğru mu, Yanlış mı?", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Oku + Hatırla", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "span-read",
 readingLevel: ["post"],
-label: "Okuma Aralığı",
+label: "Okuma Aralığı", merged: "span-listen",   /* 2026-11-17: Dinleme ve Okuma Aralığı'nın Aşama 2'si oldu; tanım eski kayıtlar için durur, menüde yok */
 isAuditory: true, attrs: [], errorLabel: "Hatalı set sayısı",
 audTrials: () => makeSpanSets(3),
 audRender: (sets) => renderSpanList(sets, true),

@@ -387,7 +387,7 @@ const label = document.getElementById("errorRowLabel");
 if(label){
 if(ex.isMotion) label.textContent = "Gözden kaçırma / baş çevirme sayısı";
 else if(ex.isRecall) label.textContent = "Doğru hatırlanan sayısı";
-else if(ex.errorLabel) label.textContent = ex.errorLabel;
+else if(ex.errorLabel) label.textContent = typeof ex.errorLabel === "function" ? ex.errorLabel() : ex.errorLabel;   /* aşamaya göre değişebilir */
 else if(ex.isAuditory) label.textContent = "Yanlış söylenen dizi sayısı";
 else label.textContent = "Hata sayısı";
 }
@@ -1747,7 +1747,7 @@ const mc = document.getElementById("famMoreCta"); if(mc) mc.onclick = () => { co
 }
 function startSessionStep(idx){ if(!imagesReady()){ imgWait(() => startSessionStep(idx)); return; }
 try{ exitRecMode(); }catch(e){}
-const plan = todayPlan(); const id = plan.steps[idx]; if(!id) return;
+const plan = todayPlan(); if(!plan.steps[idx]) return; const __m = zaMerged(plan.steps[idx]), id = __m.id;
 const ci = CATEGORIES.findIndex(c => c.exerciseIds.includes(id)); if(ci < 0) return;
 hideFamScreens();
 appMode = "aile";
@@ -1758,7 +1758,7 @@ zaVariantFocus(id); const e = currentCategoryExercises().findIndex(x => x.id ===
 const rc = recCfgFor(id);
 let sidx = findSeqIndex(Math.max(rc ? Math.min(rc.t, tierMax(exerciseById(id))) : lastTierFor(id), exerciseById(id).minTier || 0), e);
 if(sidx === undefined || sidx < 0) sidx = findSeqIndex(0, e);
-goToIndex(sidx); currentStageIndex = rc ? Math.min(rc.s, currentExercise().stages.length - 1) : 0; recCfgNow = rc ? { id, s: currentStageIndex } : null; renderStageRow(); newPage();
+goToIndex(sidx); currentStageIndex = rc ? Math.min(rc.s, currentExercise().stages.length - 1) : __m.stage; recCfgNow = rc ? { id, s: currentStageIndex } : null; renderStageRow(); newPage();
 renderSessionBar(false);
 pinAssignedChild();
 document.getElementById("sessionBackBtn").lastChild.textContent = " Bugün";
@@ -1785,7 +1785,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.17-d";
+const APP_VERSION = "2026.11.17-f";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 /* RUNTIME_CSS → zihin-stil.css */
 /* Dosya sürümü denetimi: zihin-atolyesi.html ile uygulama kodu (zihin-1…8) farklı sürümdeyse uyar */
@@ -2241,7 +2241,7 @@ showLevelFlash(nx ? `Tamam! Sıradaki öneri: ${famLabel(nx)}` : "Son öneri de 
 }
 let recCfgNow = null;
 function recCfgFor(id){ try{ const p = familyProgram(); return (p && p.cfg && p.cfg[id]) || null; }catch(e){ return null; } }
-function openRecommended(id){
+function openRecommended(id){ const __m = zaMerged(id); id = __m.id;
 const ci = CATEGORIES.findIndex(c => c.exerciseIds.includes(id)); if(ci < 0) return;
 hideFamScreens(); hideLinkScreens();
 exitSessionMode();
@@ -2253,7 +2253,7 @@ zaVariantFocus(id); const e = currentCategoryExercises().findIndex(x => x.id ===
 const rc = recCfgFor(id);
 let sidx = findSeqIndex(Math.max(rc ? Math.min(rc.t, tierMax(exerciseById(id))) : lastTierFor(id), exerciseById(id).minTier || 0), e);
 if(sidx === undefined || sidx < 0) sidx = findSeqIndex(0, e);
-goToIndex(sidx); currentStageIndex = rc ? Math.min(rc.s, currentExercise().stages.length - 1) : 0; recCfgNow = rc ? { id, s: currentStageIndex } : null; renderStageRow(); newPage();
+goToIndex(sidx); currentStageIndex = rc ? Math.min(rc.s, currentExercise().stages.length - 1) : __m.stage; recCfgNow = rc ? { id, s: currentStageIndex } : null; renderStageRow(); newPage();
 pinAssignedChild();
 renderRecBar(false);
 document.getElementById("sessionBackBtn").lastChild.textContent = " Geri";

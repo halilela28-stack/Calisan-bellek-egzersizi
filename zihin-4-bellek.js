@@ -1,5 +1,9 @@
 /* Zihin Atölyesi — zihin-4-bellek.js (4/8): bellek ve dikkat çalışmalarının veri ve kurucuları (NEW_MT dahil). Dosyalar zihin-atolyesi.html'de bu sırayla yüklenir; sıra değiştirilemez (önceki tek dosyanın ardışık parçalarıdır). */
-function spanLevel(){ try{ return currentExercise().id === "span-read" ? Math.min(currentCombo().t, 2) : 0; }catch(e){ return 0; } }
+function spanLevel(){ try{ const id = currentExercise().id; return (id === "span-read" || (id === "span-listen" && stIx() === 1)) ? Math.min(currentCombo().t, 2) : 0; }catch(e){ return 0; } }
+const SPAN_JUDGE_N = { pre:[4, 6, 9], post:[6, 9, 12] };   /* Dinle aşaması cümle sayısı (eski set × öğe sayısıyla aynı) */
+function spanJudgeN(){ return (isPre() ? SPAN_JUDGE_N.pre : SPAN_JUDGE_N.post)[Math.min(currentCombo().t, 2)]; }
+function makeSpanJudge(n){ const pool = shuffleArray(SPAN_BANK.slice()), out = []; for(let i = 0; i < n; i++) out.push({ b: pool[i % pool.length], truth: Math.random() < 0.5 }); if(n > 2 && out.every(x => x.truth === out[0].truth)) out[n - 1].truth = !out[0].truth; return out; }
+function renderSpanJudge(list){ return `<div class="aud-list"><div class="aud-note">Her cümleyi okuyun; çocuk yalnız <b>doğru mu yanlış mı</b> söylesin. Yanlış söylediği cümleleri <b>Hata sayısı</b>na ekleyin.</div>` + list.map((it, i) => `<div class="aud-row" data-row="${i}"><div class="aud-num">${i + 1}</div><div class="aud-body"><div class="aud-words" style="font-size:19px;margin:3px 0">${it.truth ? it.b.t : it.b.f} <span style="font-size:13px;font-weight:900;color:${it.truth ? "#1FA463" : "#E5484D"}">(${it.truth ? "doğru" : "yanlış"})</span></div></div></div>`).join("") + `</div>`; }
 function spanSentence(it){ const L = spanLevel(); if(L === 0 || !SPAN_LEVELS[it.b.k]) return it.truth ? it.b.t : it.b.f; const x = SPAN_LEVELS[it.b.k]; return L === 1 ? (it.truth ? x.t2 : x.f2) : (it.truth ? x.t3 : x.f3); }
 function makeSpanSets(count){ const size = spanSetSize(), L = spanLevel(), pool = shuffleArray(L ? SPAN_BANK.filter(b => SPAN_LEVELS[b.k]) : SPAN_BANK), sets = [];
 let k = 0;

@@ -110,7 +110,7 @@ const id = currentExercise().id, t = currentCombo().t, pre = isPre();
 mtClear();
 if(id === "corsi" || id === "corsi-verbal"){
 const cv = corsiLevel(pre, Math.min(t, 2), stIx() === 1), N = cv.N;
-mtState = { kind: id, N, blocks: null, len: cv.len, len0: cv.len, maxLen: cv.len + 1, tries: 0, okAtLen: 0, best: 0, wrong:0, phase:"idle", back: stIx() === 1, seq:[], pos:0, trials:0, maxTrials: cv.trials, manual: id === "corsi-verbal" };   /* uzmanla: sabit uzunluk, "Sonraki" + Hata sayısı */
+mtState = { kind: id, N, blocks: null, len: cv.len, len0: cv.len, maxLen: cv.len, tries: 0, okAtLen: 0, okN: 0, best: 0, wrong:0, phase:"idle", back: stIx() === 1, seq:[], pos:0, trials:0, maxTrials: cv.trials, manual: id === "corsi-verbal" };   /* uzmanla: sabit uzunluk, "Sonraki" + Hata sayısı */
 return Array.from({length: 12}, () => ({}));
 }
 if(id === "span-touch"){
@@ -245,19 +245,23 @@ if(r.list.includes(it)){ st.marks[i] = "ok"; gameSfx("correct"); } else { st.mar
 renderMtBoard();
 if(r.list.every(x => st.marks[r.shelf.indexOf(x)] === "ok")){ st.res[st.ri] = !st.roundBad; st.roundBad = 0; st.phase = "fb"; mtLater(() => { st.ri++; if(st.ri >= st.rounds.length){ mtFinish(); return; } mkShow(); }, 800); }
 }
-/* KURAL (Corsi kolay düzey, 2026-11-17): Corsi Blokları (serbest ve uzmanla) kolaylaştırıldı; hiçbir düzey önceki halinden zor değil.
-   Blok sayısı: okul öncesi 4 / 5 / 6 (önce 5 / 6 / 6), okul sonrası 6 / 7 / 8 (önce 9 / 9 / 9).
-   Dizi uzunluğu (ileri): okul öncesi 2 / 2 / 3 (önce 2 / 3 / 4), okul sonrası 2 / 3 / 4 (önce 3 / 4 / 5). Geri: okul öncesi 2 / 2 / 2 (önce 2 / 2 / 3), okul sonrası 2 / 2 / 3 (önce 2 / 3 / 4).
-   Uzmanla dizi sayısı: okul öncesi 3 / 4 / 5 (önce 4 / 5 / 6), okul sonrası 4 / 5 / 6 (önce 6 / 8 / 10).
-   Bloklar daha yavaş yanar: okul öncesi 1000 ms, okul sonrası 900 ms, arada 400 ms (önce 900 / 750 ms, arada 300 ms).
-   Serbest Corsi artık hata yapana kadar uzamaz: düzeyin uzunluğunda iki dizi, en az biri doğruysa bir basamak uzun iki "ek dizi" gelir ve çalışma biter. Ek dizilerdeki yanlış hata sayılmaz (düzeyi düşürmez); doğru yapılırsa "en uzun dizi" olarak yazılır */
-const CORSI_LVL = { N:{ pre:[4, 5, 6], post:[6, 7, 8] }, fwd:{ pre:[2, 2, 3], post:[2, 3, 4] }, back:{ pre:[2, 2, 2], post:[2, 2, 3] }, trials:{ pre:[3, 4, 5], post:[4, 5, 6] }, on:{ pre:1000, post:900 }, off:400 };
-function corsiLevel(pre, t, back){ const k = pre ? "pre" : "post"; return { N: CORSI_LVL.N[k][t], len: (back ? CORSI_LVL.back : CORSI_LVL.fwd)[k][t], trials: CORSI_LVL.trials[k][t] }; }
+/* KURAL (Corsi kolay düzey, 2026-11-17; yarıya indirildi 2026-11-17): Corsi Blokları (serbest ve uzmanla) kolaylaştırıldı; hiçbir düzey önceki halinden zor değil.
+   Blok sayısı: okul öncesi 2 / 3 / 3, okul sonrası 3 / 4 / 4 (yarıya indi; önce 4 / 5 / 6 ve 6 / 7 / 8, ondan önce 5 / 6 / 6 ve 9 / 9 / 9).
+   Dizi sayısı (serbest ve uzmanla): okul öncesi 2 / 2 / 3, okul sonrası 2 / 3 / 3 (yarıya indi; önce 3 / 4 / 5 ve 4 / 5 / 6).
+   Dizi uzunluğu (ileri): okul öncesi 2 / 2 / 3, okul sonrası 2 / 3 / 4; geri: okul öncesi 2 / 2 / 2, okul sonrası 2 / 2 / 3 — dizi 2'nin altına inemez. Blok sayısı dizi uzunluğuna eşit olabilir (o zaman bütün bloklar yanar, çocuk sırayı hatırlar).
+   Bloklar yavaş yanar: okul öncesi 1000 ms, okul sonrası 900 ms, arada 400 ms.
+   KURAL (Corsi her yanlış sayılır, 2026-11-17): serbest Corsi'de her dizi düzeyin uzunluğundadır, "ek dizi" yoktur; hangi aşamada ve hangi dizide olursa olsun her yanlış Hata sayısına yazılır. Düzey yalnız hataya göre değişir (süresi görevce sabit çalışmalar kuralı): hatasız → başarılı, 2 ve üzeri hata → bir alt düzey, tek hata düzeyi düşürmez */
+const CORSI_LVL = { N:{ pre:[2, 3, 3], post:[3, 4, 4] }, fwd:{ pre:[2, 2, 3], post:[2, 3, 4] }, back:{ pre:[2, 2, 2], post:[2, 2, 3] }, trials:{ pre:[2, 2, 3], post:[2, 3, 3] }, on:{ pre:1000, post:900 }, off:400 };
+function corsiLevel(pre, t, back){ const k = pre ? "pre" : "post", len = (back ? CORSI_LVL.back : CORSI_LVL.fwd)[k][t]; return { N: Math.max(len, CORSI_LVL.N[k][t]), len, trials: CORSI_LVL.trials[k][t] }; }   /* blok sayısı dizi uzunluğundan az olamaz */
+/* KURAL (Corsi blok boyu, 2026-11-17): blok az olunca bloklar büyür (blok alanının 2–3 blokta %26'sı, 4 blokta %22'si, 5–6 blokta %18'i, daha çoğunda %15'i) ve alana yayılır; yatayda da parmakla rahat dokunulur (en az 44 px). Bloklar birbirine değmez */
+function corsiFrac(N){ return N <= 3 ? 0.26 : N <= 4 ? 0.22 : N <= 6 ? 0.18 : 0.15; }
+function corsiBs(area, N){ return Math.round(Math.max(area * corsiFrac(N), Math.min(44, area * 0.3))); }   /* en az 44 px (dar yatay alanda) */
+function corsiPos(v, area, bs, N){ const f = corsiFrac(N), span = 0.92 - f; return Math.round(0.04 * area + (v - 0.04) / span * (0.92 * area - bs)); }   /* blok büyüdüğünde de alanın içinde kalır, birbirine değmez */
 function corsiLayout(){
 const st = mtState; if(st.blocks) return;
-const pts = []; let g = 0;
-while(pts.length < st.N && g < 4000){ g++; const x = 0.06 + Math.random() * 0.76, y = 0.06 + Math.random() * 0.76;
-if(pts.every(p => Math.abs(p.x - x) > 0.2 || Math.abs(p.y - y) > 0.2)) pts.push({ x, y }); }
+const f = corsiFrac(st.N), span = 0.92 - f, gap = st.N <= 4 ? 0.34 : f + 0.06; let pts = [], g = 0;   /* 4 bloğa kadar geniş aralık: blok 44 px'e büyüse de birbirine değmez */
+while(pts.length < st.N && g < 6000){ g++; if(g % 600 === 0) pts = []; const x = 0.04 + Math.random() * span, y = 0.04 + Math.random() * span;
+if(pts.every(p => Math.abs(p.x - x) > gap || Math.abs(p.y - y) > gap)) pts.push({ x, y }); }
 st.blocks = pts;
 }
 function corsiTrial(){
@@ -273,13 +277,10 @@ mtLater(() => { st.phase = st.kind === "corsi" ? "input" : "judge"; renderMtBoar
 }
 function corsiResult(ok){
 const st = mtState; st.trials++; st.tries++;
-if(ok){ st.okAtLen++; st.best = Math.max(st.best, st.len); gameSfx("correct"); } else if(st.len > st.len0){ st.xMiss = (st.xMiss || 0) + 1; gameSfx("soft"); }   /* ek (bir basamak uzun) dizideki yanlış hata sayılmaz */ else mtErr();
+if(ok){ st.okAtLen++; st.okN++; st.best = Math.max(st.best, st.len); gameSfx("correct"); } else mtErr();   /* Corsi her yanlış sayılır kuralı */
 st.phase = "between"; renderMtBoard();
 mtLater(() => {
-if(st.tries >= 2){
-if(st.okAtLen === 0 || st.len >= st.maxLen){ mtFinish(` En uzun dizi: ${st.best || "—"}`); return; }
-st.len++; st.tries = 0; st.okAtLen = 0;
-}
+if(st.trials >= st.maxTrials){ mtFinish(` ${st.okN} / ${st.trials} dizi doğru`); return; }
 corsiTrial();
 }, 700);
 }
@@ -320,10 +321,19 @@ function seqShow(){
 const st = mtState, items = st.trials[st.ti];
 st.phase = "show"; st.showIdx = -1; st.pos = 0; st.marks = {}; renderMtBoard();
 const step = isPre() ? 1300 : 1100;
-if(st.kind === "lns-touch") speakText(items.join(", "), { rate: 0.85 });
+if(st.kind === "lns-touch"){ lnsPlay(st, items, step); return; }   /* KURAL (Harf-Sayı ses uyumu) */
 items.forEach((x, k) => { mtLater(() => { st.showIdx = k; renderMtBoard(); if(st.audio) sayTask(x.n); }, 400 + k * (st.audio ? step + 300 : step)); });
 mtLater(() => { st.showIdx = -1; st.phase = st.kind === "picsay" ? "judge" : "input"; st.keys = shuffleArray(items.map((x, i) => i)); renderMtBoard(); }, 400 + items.length * (st.audio ? step + 300 : step) + 300);
 }
+/* KURAL (Harf-Sayı ses uyumu, 2026-11-17): Harf-Sayı Sıralama (dokunmalı)'da her kart ekrana geldiği anda yalnız kendi harfi/sayısı okunur; sıradaki kart, okuma bitince (en az okul öncesi 1,3 sn, okul sonrası 1,1 sn sonra; ses gelmezse en geç 2,6 sn içinde) gelir. Önceden bütün dizi tek seferde okunuyor, kartlar sesten bağımsız akıyordu — ses ile kart birbirini tutmuyordu */
+function lnsSayEnd(t, done){ let bitti = false; const son = () => { if(bitti) return; bitti = true; try{ done(); }catch(e){} };
+try{ const ma = document.getElementById("mainApp"); if(!ma || getComputedStyle(ma).display === "none" || !("speechSynthesis" in window) || !ttsUsable() || (typeof speechMuted === "function" && speechMuted())){ if(captionOn() || !ttsUsable()) showCaption(t); son(); return; }
+if(captionOn()) showCaption(t); try{ zaSpeakMark(); }catch(e){} const u = new SpeechSynthesisUtterance(ttsPrep(t).join(" ")); u.lang = "tr-TR"; u.rate = 0.85 * voiceRateMul(); u.pitch = voicePitch(1.0); _trVoice = _trVoice || pickTurkishVoice(); if(_trVoice) u.voice = _trVoice; u.onend = son; u.onerror = son; _ttsSpeak(u); }catch(e){ son(); } }
+function lnsPlay(st, items, step){ let k = 0;
+const adim = () => { if(mtState !== st || st.phase !== "show") return; if(k >= items.length){ mtLater(() => { if(st.phase !== "show") return; st.showIdx = -1; st.phase = "input"; st.keys = shuffleArray(items.map((x, i) => i)); renderMtBoard(); }, 450); return; }
+  const my = k; st.showIdx = my; renderMtBoard(); let ses = false, sure = false, gecti = false; const ilerle = () => { if(gecti || !ses || !sure || st.showIdx !== my) return; gecti = true; k++; adim(); };
+  lnsSayEnd(items[my], () => { ses = true; mtLater(ilerle, 200); }); mtLater(() => { sure = true; ilerle(); }, step); mtLater(() => { ses = true; ilerle(); }, step + 1500); };
+mtLater(adim, 400); }
 function seqTarget(){
 const st = mtState, items = st.trials[st.ti];
 if(st.kind === "lns-touch") return lnsAnswer(items, st.sorted);
@@ -355,13 +365,13 @@ if(st.kind === "corsi" || st.kind === "corsi-verbal"){
 corsiLayout();
 const cvJ = st.kind === "corsi-verbal" && st.phase === "judge"; let area = Math.min(W, isLs ? H : 420 * tabletScale()) * (window._fitK || 1);
 if(cvJ) area = corsiJudgeArea(area, W, isLs, board);   /* KURAL (Corsi Blokları (uzmanla) puanlama ekranı, 2026-11-17) */
-const bs = Math.round(area * 0.15);
-info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "show" ? "<b>İzle…</b>" : st.phase === "input" ? `<b>${st.back ? "Tersten" : "Aynı sırayla"}</b> dokun · ${st.pos}/${st.seq.length}` : st.phase === "judge" ? `Çocuk sırayı ${st.back ? "<b>tersten</b>" : ""} söylesin / göstersin:` : st.phase === "done" ? (st.manual ? `Bitti · ${st.len}'lü diziler · hatalar Hata sayısında` : `Bitti · en uzun dizi <b>${st.best || "—"}</b>`) : (st.kind === "corsi" && st.len > st.len0 ? `Ek dizi · uzunluk <b>${st.len}</b> · yanlış sayılmaz` : `Dizi uzunluğu: <b>${st.len}</b>`);
+const bs = corsiBs(area, st.N);
+info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "show" ? "<b>İzle…</b>" : st.phase === "input" ? `<b>${st.back ? "Tersten" : "Aynı sırayla"}</b> dokun · ${st.pos}/${st.seq.length}` : st.phase === "judge" ? `Çocuk sırayı ${st.back ? "<b>tersten</b>" : ""} söylesin / göstersin:` : st.phase === "done" ? (st.manual ? `Bitti · ${st.len}'lü diziler · hatalar Hata sayısında` : `Bitti · <b>${st.okN || 0} / ${st.trials}</b> dizi doğru`) : `Dizi uzunluğu: <b>${st.len}</b> · dizi ${Math.min(st.trials + 1, st.maxTrials)} / ${st.maxTrials}`;
 body = `<div style="position:relative;flex:0 0 auto;width:${area}px;height:${area}px;margin:0 auto;background:#EEF2F6;border-radius:18px;">` + st.blocks.map((p, i) => {
 const lit = st.lit === i, mk = st.marks && st.marks[i];
 const bg = lit ? "#FFC21A" : mk === "ok" ? "#1FA463" : mk === "bad" ? "#E5484D" : "#2E6FD8";
 const num = st.kind === "corsi-verbal" ? `<span style="color:#fff;font-weight:900;font-size:${Math.round(bs * 0.42)}px">${i + 1}</span>` : "";
-return `<div data-mt="${i}" style="position:absolute;left:${(p.x * area).toFixed(0)}px;top:${(p.y * area).toFixed(0)}px;width:${bs}px;height:${bs}px;border-radius:10px;background:${bg};box-shadow:0 4px 0 rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .1s">${num}</div>`; }).join("") + `</div>`;
+return `<div data-mt="${i}" style="position:absolute;left:${corsiPos(p.x, area, bs, st.N)}px;top:${corsiPos(p.y, area, bs, st.N)}px;width:${bs}px;height:${bs}px;border-radius:10px;background:${bg};box-shadow:0 4px 0 rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .1s">${num}</div>`; }).join("") + `</div>`;
 if(cvJ){
 const order = st.back ? st.seq.slice().reverse() : st.seq;
 body = corsiJudgeBody(body, order.map(i => i + 1).join(" – "), `${st.trials + 1}/${st.maxTrials}`, isLs);
@@ -499,13 +509,13 @@ if(st.kind === "corsi" || st.kind === "corsi-verbal"){
 corsiLayout();
 const cvJ = st.kind === "corsi-verbal" && st.phase === "judge"; let area = Math.min(W, isLs ? H : 420 * tabletScale()) * (window._fitK || 1);
 if(cvJ) area = corsiJudgeArea(area, W, isLs, board);   /* KURAL (Corsi Blokları (uzmanla) puanlama ekranı, 2026-11-17) */
-const bs = Math.round(area * 0.15);
-info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "show" ? "<b>İzle…</b>" : st.phase === "input" ? `<b>${st.back ? "Tersten" : "Aynı sırayla"}</b> dokun · ${st.pos}/${st.seq.length}` : st.phase === "judge" ? `Çocuk sırayı ${st.back ? "<b>tersten</b>" : ""} söylesin / göstersin:` : st.phase === "done" ? (st.manual ? `Bitti · ${st.len}'lü diziler · hatalar Hata sayısında` : `Bitti · en uzun dizi <b>${st.best || "—"}</b>`) : (st.kind === "corsi" && st.len > st.len0 ? `Ek dizi · uzunluk <b>${st.len}</b> · yanlış sayılmaz` : `Dizi uzunluğu: <b>${st.len}</b>`);
+const bs = corsiBs(area, st.N);
+info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "show" ? "<b>İzle…</b>" : st.phase === "input" ? `<b>${st.back ? "Tersten" : "Aynı sırayla"}</b> dokun · ${st.pos}/${st.seq.length}` : st.phase === "judge" ? `Çocuk sırayı ${st.back ? "<b>tersten</b>" : ""} söylesin / göstersin:` : st.phase === "done" ? (st.manual ? `Bitti · ${st.len}'lü diziler · hatalar Hata sayısında` : `Bitti · <b>${st.okN || 0} / ${st.trials}</b> dizi doğru`) : `Dizi uzunluğu: <b>${st.len}</b> · dizi ${Math.min(st.trials + 1, st.maxTrials)} / ${st.maxTrials}`;
 body = `<div style="position:relative;flex:0 0 auto;width:${area}px;height:${area}px;margin:0 auto;background:#EEF2F6;border-radius:18px;">` + st.blocks.map((p, i) => {
 const lit = st.lit === i, mk = st.marks && st.marks[i];
 const bg = lit ? "#FFC21A" : mk === "ok" ? "#1FA463" : mk === "bad" ? "#E5484D" : "#2E6FD8";
 const num = st.kind === "corsi-verbal" ? `<span style="color:#fff;font-weight:900;font-size:${Math.round(bs * 0.42)}px">${i + 1}</span>` : "";
-return `<div data-mt="${i}" style="position:absolute;left:${(p.x * area).toFixed(0)}px;top:${(p.y * area).toFixed(0)}px;width:${bs}px;height:${bs}px;border-radius:10px;background:${bg};box-shadow:0 4px 0 rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .1s">${num}</div>`; }).join("") + `</div>`;
+return `<div data-mt="${i}" style="position:absolute;left:${corsiPos(p.x, area, bs, st.N)}px;top:${corsiPos(p.y, area, bs, st.N)}px;width:${bs}px;height:${bs}px;border-radius:10px;background:${bg};box-shadow:0 4px 0 rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .1s">${num}</div>`; }).join("") + `</div>`;
 if(cvJ){
 const order = st.back ? st.seq.slice().reverse() : st.seq;
 body = corsiJudgeBody(body, order.map(i => i + 1).join(" – "), `${st.trials + 1}/${st.maxTrials}`, isLs);
@@ -866,7 +876,7 @@ const INSTR_SHORT = {
 "market-verbal":    [() => `Listeyi okuyun: ${Q("Sana bir alışveriş listesi okuyacağım; aklında tut. Arada başka bir iş yapacağız. Sonra listedekileri bana söyle.")}`],
 "corsi":            [() => Q("Ekranda mavi bloklar var. Bloklar sırayla yanıp sönecek; iyi bak. Bitince bloklara aynı sırayla dokun."), () => Q("Ekranda mavi bloklar var. Bloklar sırayla yanıp sönecek; iyi bak. Bitince bloklara TERSTEN dokun: en son yanana ilk, ilk yanana en son.")],
 "corsi-verbal":     [() => `${Q("Ekranda numaralı bloklar var. Bloklar sırayla yanacak; iyi bak. Bitince yanan blokların numaralarını aynı sırayla söyle ya da parmağınla göster.")}`, () => `${Q("Ekranda numaralı bloklar var. Bloklar sırayla yanacak; iyi bak. Bitince yanan blokların numaralarını TERSTEN söyle ya da göster: en son yanandan ilk yanana.")}`],
-"span-listen":      [() => `Göstermeden okuyun: ${Q("Sana cümleler okuyacağım. Her cümle için doğru mu yanlış mı söyle ve cümledeki nesneyi aklında tut. Bitince nesneleri sırayla söyle.")}`],
+"span-listen":      [() => `Göstermeden okuyun: ${Q("Sana cümleler okuyacağım. Her cümle için doğru mu yanlış mı söyle.")}`, () => Q("Cümleleri tek tek oku; her cümle için doğru mu yanlış mı söyle. Her cümledeki nesneyi aklında tut. Bitince nesneleri sırayla söyle.")],
 "span-read":        [() => Q("Cümleleri tek tek oku; her cümle için doğru mu yanlış mı söyle. Her cümledeki nesneyi aklında tut. Bitince nesneleri sırayla söyle.")],
 "span-touch":       [() => Q("Sana cümleler okunacak. Her cümle doğruysa ✓'ye, yanlışsa ✗'e dokun. Her cümlenin resmini aklında tut. Bitince resimlere sırayla dokun.")],
 "lns":              [() => `Göstermeden okuyun: ${Q("Sana sayılar ve harfler karışık okuyacağım. Bitince önce sayıları, sonra harfleri söyle.")}`, () => `Göstermeden okuyun: ${Q("Sana sayılar ve harfler karışık okuyacağım. Bitince önce sayıları küçükten büyüğe, sonra harfleri alfabe sırasıyla söyle.")}`],
@@ -983,7 +993,7 @@ return {
 "corsi-verbal":[0, "Yolu Hayal Et", "Blokların yolunu bir şekle benzet: çizgi, köşe, zikzak…"],
 "market":[0, "Grupla", "Ürünleri gruplara ayır ve gruplar hâlinde aklında tut."],
 "market-verbal":[0, "Grupla", "Ürünleri gruplara ayır ve gruplar hâlinde aklında tut."],
-"span-listen":span, "span-read":span, "span-touch":span,
+"span-listen":[1, span[1], span[2]], "span-read":span, "span-touch":span,   /* akılda tutma stratejisi yalnız Oku + Hatırla aşamasında */
 "zihni":[0, "Kendine Söyle", "Her oktan sonra Zihni'nin yerini kendine söyle."],
 "zihni-verbal":[0, "Kendine Söyle", "Her komuttan sonra Zihni'nin yerini kendine söyle."],
 "lns":[0, "Ayır", "Duyarken sayıları bir kutuya, harfleri diğerine koyduğunu hayal et."],

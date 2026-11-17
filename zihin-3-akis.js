@@ -52,8 +52,8 @@ sub:"N-Geri · Diziler · Dinleme ve Okuma Aralığı · Takip ve Güncelleme ·
 purpose:"Bilgiyi kısa süre zihinde tutup üzerinde işlem yapma becerisini çalıştırır: sayı ve kelime dizileri, ters ve sıralı tekrar, n-geri güncelleme, ileriye dönük bellek, zihinden hesap ve görsel-uzamsal takip.",
 color:"#4F9D5A",
 group:"Bellek",
-exerciseIds:["pos-nback","nback-shape","corsi","nback-color","wm-same","nback-number","running","lns","corsi-verbal","digit-span","count-span","running-verbal","lns-touch","word-order","wm-seq","span-listen","animal-fruit","span-read","mental-math","market-verbal","span-touch","zihni-verbal","market","prospective-event","wm-where","prospective-time","zihni","prospective-delayed","cups"],
-exerciseGroups:[["N-Geri", ["nback-shape", "wm-same", "nback-color", "pos-nback", "nback-number"]], ["Diziler", ["corsi", "lns", "running", "digit-span", "wm-seq", "corsi-verbal", "running-verbal", "count-span", "word-order", "lns-touch", "animal-fruit"]], ["Dinleme ve Okuma Aralığı", ["span-listen", "mental-math", "span-touch", "span-read"]], ["Takip ve Güncelleme", ["market", "zihni", "cups", "market-verbal", "zihni-verbal", "wm-where"]], ["İleriye Dönük Bellek", ["prospective-event", "prospective-time", "prospective-delayed"]]]
+exerciseIds:["pos-nback","nback-shape","corsi","nback-color","wm-same","nback-number","running","lns","corsi-verbal","digit-span","count-span","running-verbal","lns-touch","word-order","wm-seq","span-listen","animal-fruit","mental-math","market-verbal","span-touch","zihni-verbal","market","prospective-event","wm-where","prospective-time","zihni","prospective-delayed","cups"],
+exerciseGroups:[["N-Geri", ["nback-shape", "wm-same", "nback-color", "pos-nback", "nback-number"]], ["Diziler", ["corsi", "lns", "running", "digit-span", "wm-seq", "corsi-verbal", "running-verbal", "count-span", "word-order", "lns-touch", "animal-fruit"]], ["Dinleme ve Okuma Aralığı", ["span-listen", "mental-math", "span-touch"]], ["Takip ve Güncelleme", ["market", "zihni", "cups", "market-verbal", "zihni-verbal", "wm-where"]], ["İleriye Dönük Bellek", ["prospective-event", "prospective-time", "prospective-delayed"]]]
 },
 {
 id:"sozel-bellek",
@@ -131,7 +131,10 @@ const ZA_VAR_KEY = "za-variant-v1";
 function zaVariantGroup(id){ return EX_VARIANT_GROUPS.find(g => g.includes(id)) || null; }
 /* KURAL (N-Geri Oyunları adı, 2026-11-16): tek sayfanın menüdeki, başlıktaki ve alan listesindeki adı "N-Geri Oyunları"dır (etkin olanın adı — ör. Konum — yazılmaz); sonuç kayıtları her N-Geri'nin kendi adıyla tutulur */
 const EX_VARIANT_LABELS = { "pos-nback": "N-Geri Oyunları" };
-function zaNavLabel(ex){ try{ const g = ex && zaVariantGroup(ex.id); return g ? (EX_VARIANT_LABELS[g[0]] || ex.label) : (ex ? ex.label : ""); }catch(e){ return ex ? ex.label : ""; } }
+/* birleşen sayfalar: eski kimlik yeni sayfanın aşamasına açılır (ödev, plan, öneri) */
+const EX_MERGED = { "span-read": { to: "span-listen", stage: 1 } };
+function zaMerged(id){ const m = EX_MERGED[id]; return m ? { id: m.to, stage: m.stage } : { id, stage: 0 }; }
+function zaNavLabel(ex){ try{ if(ex && ex.preLabel && isPre()) return ex.preLabel; const g = ex && zaVariantGroup(ex.id); return g ? (EX_VARIANT_LABELS[g[0]] || ex.label) : (ex ? ex.label : ""); }catch(e){ return ex ? ex.label : ""; } }
 function zaVariantActive(g){ try{ const m = window.__zaVar || (window.__zaVar = JSON.parse(localStorage.getItem(ZA_VAR_KEY) || "{}")); if(g.includes(m[g[0]])) return m[g[0]]; }catch(e){} return g[0]; }
 function zaVariantSetActive(g, id){ try{ window.__zaVar = window.__zaVar || {}; window.__zaVar[g[0]] = id; localStorage.setItem(ZA_VAR_KEY, JSON.stringify(window.__zaVar)); }catch(e){} }
 function currentCategoryExercises(){
@@ -254,7 +257,7 @@ function stIx(){ try{ const st = currentExercise().stages[currentStageIndex]; re
 function baseStageCount(ex){ return ex.stages.filter(st => st.strategyOf == null).length; }
 /* KURAL (ikinci aşama kilidi, 2026-11-16): yükü artıran ikinci aşamalar (2-geri, ters sıra, çift tetikleyici, iki zaman noktası) okul öncesinde Başlangıç düzeyinde kapalıdır, Orta ile açılır. N-geri tahtalarında ve Aynı mı?'da 2-geri okul öncesinde hiç açılmaz (yalnız 1-geri), okul sonrasında Orta ile açılır. Tablo: aşama → açıldığı en düşük düzey (9 = bu dönemde yok). */
 const STAGE_MIN_TIER = {
-pre:  { "nback-shape":[0, 9], "nback-color":[0, 9], "nback-number":[0, 9], "wm-same":[0, 9], "corsi":[0, 1], "corsi-verbal":[0, 1], "digit-span":[0, 1], "word-order":[0, 1, 1], "wm-seq":[0, 1], "prospective-event":[0, 1], "prospective-time":[0, 1], "prospective-delayed":[0, 1] },
+pre:  { "nback-shape":[0, 9], "nback-color":[0, 9], "nback-number":[0, 9], "wm-same":[0, 9], "corsi":[0, 1], "corsi-verbal":[0, 1], "digit-span":[0, 1], "word-order":[0, 1, 1], "wm-seq":[0, 1], "span-listen":[0, 9], "prospective-event":[0, 1], "prospective-time":[0, 1], "prospective-delayed":[0, 1] },
 post: { "nback-shape":[0, 1], "nback-color":[0, 1], "nback-number":[0, 1], "wm-same":[0, 1] }
 };
 function stageMinTier(ex, s){ try{ const st = ex.stages[s], base = st && st.strategyOf != null ? st.strategyOf : s, tb = (isPre() ? STAGE_MIN_TIER.pre : STAGE_MIN_TIER.post)[ex.id]; return tb && tb[base] != null ? tb[base] : 0; }catch(e){ return 0; } }
@@ -971,7 +974,7 @@ function wmClearTimers(){ wmTimers.forEach(t => clearTimeout(t)); wmTimers = [];
 function wmLater(fn, ms){ const st = wmState; wmTimers.push(setTimeout(() => { if(wmState === st && timerRunning) fn(); }, ms * (window.__wmSpeed || 1))); }
 const WM_SPECS = {
 "wm-same":  { trials:[14, 18, 22], preTrials:[9, 11, 13] },
-"wm-seq":   { pics:[6, 8, 8], prePics:[4, 5, 6], startLen:[3, 4, 5], preStartLen:[2, 3, 4], rounds:5, preRounds:4 },
+"wm-seq":   { pics:[6, 6, 6], prePics:[4, 4, 4], startLen:[3, 4, 5], preStartLen:[1, 2, 3], rounds:5, preRounds:4 },   /* KURAL (Sırayı Hatırla düzeyleri, 2026-11-17): okul öncesi 4 resim, Başlangıç / Orta / Zor 1 / 2 / 3 dokunma; okul sonrası 6 resim, 3 / 4 / 5 dokunma. Dizi tur içinde uzamaz (önce doğru yapınca bir uzuyordu; resim 4/5/6 ve 6/8/8 idi). Tersten aşamasında uzunluk ters sıra tablosundan (BACK_LEN) */
 "wm-where": { boxes:[6, 6, 6], preBoxes:[4, 4, 4], animals:[2, 4, 6], preAnimals:[2, 3, 4], rounds:2 }
 };
 function wmTier(){ return currentCombo().t; }
@@ -999,7 +1002,7 @@ return seq.map((k, i) => ({ k, judged: i >= n, target: i >= n && seq[i] === seq[
 if(id === "wm-seq"){
 const K = (pre ? sp.prePics : sp.pics)[t], L0 = stIx() === 1 ? backLen() : (pre ? sp.preStartLen : sp.startLen)[t], R = pre ? sp.preRounds : sp.rounds;
 const pics = shuffleArray(TOY_KEYS).slice(0, K);
-wmState = { kind:"seq", pics, maxLen:Math.min(K, L0 + 3), len:Math.min(L0, K), round:0, rounds:R, wrong:0, phase:"idle", seq:[], pos:0, back: stIx() === 1, res:[] };
+wmState = { kind:"seq", pics, maxLen:Math.min(K, L0), len:Math.min(L0, K), round:0, rounds:R, wrong:0, phase:"idle", seq:[], pos:0, back: stIx() === 1, res:[] };
 return Array.from({length:R}, (_, i) => ({ round:i }));
 }
 const B = (pre ? sp.preBoxes : sp.boxes)[t], A = (pre ? sp.preAnimals : sp.animals)[t], R = sp.rounds;
@@ -1126,7 +1129,7 @@ function wmSeqNext(success){
 const st = wmState;
 st.round++;
 if(st.round >= st.rounds){ wmFinish(); return; }
-if(success) st.len = Math.min(st.pics.length, st.maxLen || 99, st.len + 1);
+/* Sırayı Hatırla düzeyleri kuralı: dizi uzunluğu düzeyle sabittir, doğru cevapta uzamaz */
 wmSeqRound();
 }
 function wmWhereRound(){
