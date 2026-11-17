@@ -298,13 +298,41 @@ function voicePitch(base){ const p = voicePref(); return Math.max(0.5, Math.min(
 const TTS_BASE_FIX = [];
 /* İsteğe bağlı: iki ünsüzün yan yana geldiği hece sınırına (Zih|ni, ek|mek) küçük bir ayırıcı konur; tek ünsüzlü geçişlere (me|ra|ba) dokunulmaz */
 function ttsSyllableSoften(x, sep){ const V = "aeıioöuüâîûAEIİOÖUÜÂÎÛ"; return x.replace(/[A-Za-zÇĞİÖŞÜçğıöşüÂÎÛâîû]{4,}/g, w => { const isV = (ch) => V.indexOf(ch) >= 0; const vi = []; for(let i = 0; i < w.length; i++) if(isV(w[i])) vi.push(i); if(vi.length < 2) return w; const cut = []; for(let k = 0; k + 1 < vi.length; k++){ const gap = vi[k + 1] - vi[k] - 1; if(gap >= 2) cut.push(vi[k + 1] - 1); } if(!cut.length) return w; let out = ""; for(let i = 0; i < w.length; i++){ if(cut.includes(i)) out += sep; out += w[i]; } return out; }); }
+/* KURAL (Türkçe okuma vurgusu, 2026-11-17): seslendirmede gereksiz uzatma ve vurgu olmaz; okunacak metin Türkçe söyleyişe göre hazırlanır (ekrandaki yazı değişmez):
+   1) Noktalı virgül (;) ve iki nokta (:) cümle sonu gibi alçalır — önceki hece uzatılıp askıda bırakılmaz; ayraç ( ) ve aralıklı tire ( – ) kısa duraklamaya döner.
+   2) Örnek tırnakları ‘sağa bir’ okunmaz; kelime içindeki kesme işareti (Zihni’nin) düz kesmeye (Zihni'nin) çevrilir, kelime bölünmez.
+   3) Ne / nerede / hangi / kaç / nasıl soruları Türkçedeki gibi alçalan ezgiyle okunur (soru işareti noktaya döner); "mı / mi" soruları soru ezgisini korur.
+   4) Rakamdan hemen sonra nokta konmaz (3! → 3, ; 12… → 12,) — sıra sayısı ("üçüncü") okunmaz; "15. saniye" gibi sıra sayıları bölünmez.
+   5) Cümleler yalnız büyük harfle başlayan yeni cümlede ayrı okunur; bir-iki kelimelik kısa cümleler ("Harika!", "Dinle.") tek başına okunmaz, sonraki cümleyle birlikte okunur — tek kelimelik okunuşta son hece uzar.
+   6) ✓ / ✗ "tik / çarpı" diye okunur; ok, emoji ve süs simgeleri okunmaz. Tek harf, Türkçe harf adıyla okunur (B → be, Ğ → yumuşak ge).
+   7) Cümle sonunda nokta yoksa eklenir (askıda kalan ezgi son heceyi uzatır); rakamla bitende eklenmez.
+   8) Oyun sesleri (Başla, ödül cümleleri) ayrıca inceltilmez; ton Ayarlar'daki okuma tonuyla aynıdır (önceden %120 × %120 = %144 oluyor, abartılı vurgu yapıyordu) */
+const TR_LETTER = { A:"a", B:"be", C:"ce", "Ç":"çe", D:"de", E:"e", F:"fe", G:"ge", "Ğ":"yumuşak ge", H:"he", I:"ı", "İ":"i", J:"je", K:"ke", L:"le", M:"me", N:"ne", O:"o", "Ö":"ö", P:"pe", R:"re", S:"se", "Ş":"şe", T:"te", U:"u", "Ü":"ü", V:"ve", Y:"ye", Z:"ze", Q:"kü", W:"çift ve", X:"iks" };
+const TR_WH = /(^|[^\p{L}])(ne(yi|ye|yin|yle|den|de|re(de|ye|den|si|sini|sine|sinde))?|niçin|niye|kim(i|e|in|den|le|inle)?|kaç(ar|ıncı|ta|tan)?|hangi(si|sini|sine|sinde|sinden|leri|lerini)?|nasıl)(?=$|[^\p{L}])/iu;
+const TR_MI = /(^|[^\p{L}])(mı|mi|mu|mü)(sın|sin|sun|sün|yım|yim|yum|yüm|yız|yiz|yuz|yüz|sınız|siniz|sunuz|sünüz|dır|dir|dur|dür|ydı|ydi|ydu|ydü)?(?=$|[^\p{L}])/iu;
+function ttsTurkish(x){ try{
+  x = x.replace(/✓['’]?(y?[ea])(?=$|[^\p{L}])/gu, "tik işaretine").replace(/✗['’]?(y?[ea])(?=$|[^\p{L}])/gu, "çarpı işaretine").replace(/[✓✔]/g, "tik").replace(/[✗✘]/g, "çarpı");
+  x = x.replace(/[\u2190-\u21FF\u2B00-\u2BFF\u25A0-\u25FF\u2600-\u27BF\uFE0F\u200D\u{1F000}-\u{1FAFF}]/gu, " ");   /* yalnız sabit aralıklar: eski iPhone'larda tanınmayan özellik adı betiği çökertmesin */
+  x = x.replace(/(\p{L})[’‘`´](\p{L})/gu, "$1'$2").replace(/[‘’‚‛`´]/g, "");
+  x = x.replace(/(^|[^\p{L}])(\p{Lu}{2,})'(\p{Ll}+)/gu, (m, pre, w, suf) => pre + w.toLocaleLowerCase("tr-TR") + suf);   /* BÜYÜK harfli düğme adına gelen ek kesmesiz okunur: GÜNEŞ'e → güneşe, DOKUN'a → dokuna */
+  x = x.replace(/(\d)\s*[;:!]+(?=\s|$)/g, "$1,").replace(/;\s*/g, ". ").replace(/:\s+/g, ". ").replace(/\s*[()]\s*/g, ", ").replace(/\s[–—]\s/g, ", ").replace(/([^\d\s])\s-\s/g, "$1, ");   /* rakam arasındaki eksi (12 - 4) korunur */
+  x = x.replace(/,\s*([.?!])/g, "$1").replace(/([.?!])\s*,/g, "$1").replace(/,(\s*,)+/g, ",").replace(/^\s*,\s*/, "").replace(/\s+([,.?!])/g, "$1").replace(/\s+/g, " ").trim();
+  x = x.replace(/[^.?!]*\?/g, (q) => (TR_WH.test(q) && !TR_MI.test(q)) ? q.replace(/\?$/, /\d\s*\?$/.test(q) ? "," : ".") : q);
+}catch(e){} return x; }
+function ttsEnd(c){ c = c.replace(/,\s*$/, "").trim(); return !c || /[.?!]$/.test(c) || /\d$/.test(c) ? c : c + "."; }
 function ttsPrep(t){ let x = String(t || ""); try{ const fx = (voicePref().fixes || []).concat(TTS_BASE_FIX); fx.forEach(f => { if(!f || !f.a) return; const esc = f.a.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); const re = new RegExp("(^|[^\\p{L}])(" + esc + ")(?=$|[^\\p{L}])", "giu"); x = x.replace(re, (m, pre) => pre + (f.b || "")); }); }catch(e){}
-  x = x.replace(/[“”"«»„]/g, "").replace(/…/g, ". ").replace(/\s·\s/g, ", ").replace(/\s+/g, " ").trim();
+  x = x.replace(/[“”"«»„]/g, "").replace(/(\d)\s*…/g, "$1, ").replace(/…/g, ". ").replace(/\s·\s/g, ", ").replace(/\s+/g, " ").trim();
+  try{ const m1 = x.match(/^(\p{L})[.!?]?$/u); if(m1){ const L1 = m1[1].toLocaleUpperCase("tr-TR"); if(TR_LETTER[L1]) x = TR_LETTER[L1]; } }catch(e){}   /* Türkçe okuma vurgusu kuralı: tek harf, harf adıyla */
+  x = ttsTurkish(x);
   /* KURAL (büyük harfli kelime okunuşu, 2026-11-16): yönergedeki BÜYÜK HARFLİ kelimeler (GERİ SAY, UÇAR, BÜYÜK…) okunmadan önce Türkçe küçük harfe çevrilir — ses motoru onları uzatıp vurgulayarak ("sayyy") okumaz; ekrandaki yazı değişmez. Ünlem ve art arda noktalama tek noktaya iner */
   try{ x = x.replace(/(^|[^\p{L}])(\p{Lu}{2,})(?=$|[^\p{L}])/gu, (m, pre, w) => pre + w.toLocaleLowerCase("tr-TR")).replace(/[!]+/g, ".").replace(/([.?,;:])\1+/g, "$1").replace(/\.\s*\./g, "."); }catch(e){}
   if(voicePref().syl) x = ttsSyllableSoften(x, voicePref().sylSep === "space" ? " " : "-");
-  if(!voicePref().pause) return [x];
-  const parts = x.replace(/([.!?])\s+/g, "$1\n").split("\n").map(y => y.trim()).filter(Boolean); return parts.length ? parts : [x]; }   /* geriye bakan regex kullanılmaz (eski iPhone'larda betiği çökertir) */
+  if(!voicePref().pause) return [ttsEnd(x)];
+  const raw = x.replace(/([^\d][.!?]|\?)\s+(?=[\p{Lu}\d])/gu, "$1\n").split("\n").map(y => y.trim()).filter(Boolean), parts = []; let buf = "";   /* Türkçe okuma vurgusu kuralı: yalnız büyük harfle (ya da rakamla) başlayan yeni cümlede bölünür; "15. saniye" bölünmez */
+  raw.forEach((y, i) => { y = buf ? buf + " " + y : y; buf = ""; if(i < raw.length - 1 && y.split(/\s+/).length <= 2){ buf = y; return; } parts.push(ttsEnd(y)); });
+  if(buf){ if(parts.length) parts[parts.length - 1] += " " + ttsEnd(buf); else parts.push(ttsEnd(buf)); }   /* kısa cümle tek başına okunmaz */
+  if(parts.length > 1 && parts[parts.length - 1].split(/\s+/).length <= 2){ const z = parts.pop(); parts[parts.length - 1] += " " + z; }   /* sondaki kısa cümle öncekine katılır */
+  return parts.length ? parts : [ttsEnd(x)]; }   /* geriye bakan regex kullanılmaz (eski iPhone'larda betiği çökertir) */
 function trVoices(){ try{ return speechSynthesis.getVoices().filter(v => /^tr/i.test(v.lang)); }catch(e){ return []; } }
 function voiceScore(v){ return (/(premium|enhanced|neural|natural|gelişmiş|geliştirilmiş|yüksek|improved|superior)/i.test(v.name) ? 10 : 0) + (/samsung/i.test(v.name) ? 6 : 0) + (/google/i.test(v.name) ? 4 : 0) + (/yelda|emel|filiz|seda|ahmet/i.test(v.name) ? 3 : 0) + (/compact|kompakt/i.test(v.name) ? -3 : 0) + (v.localService ? 1 : 0); }
 function pickTurkishVoice(){ try{ const vs = trVoices(); if(!vs.length) return null; const want = voicePref().name; if(want){ const f = vs.find(v => v.name === want); if(f) return f; } return vs.slice().sort((a, b) => voiceScore(b) - voiceScore(a))[0]; }catch(e){ return null; } }
@@ -531,7 +559,7 @@ sfx(good ? (newStar ? "fanfare" : "solved") : "soft");
 if(newStar) setTimeout(() => sfx("star"), 650);
 const say = good ? [allDone && newStar ? gameLine("allStars") : (newStar ? gameLine("newStar") : gameLine("good")), faster ? gameLine("faster") : ""].join(" ") : gameLine("retry");
 const sayEnd = over ? " Bugünlük bu kadar, harikaydın!" : (leftSec > 0 && leftSec <= 180 ? " Son bir durak daha, sonra mola!" : "");
-setTimeout(() => speakText(say + sayEnd, { pitch: 1.2 }), 500);
+setTimeout(() => speakText(say + sayEnd), 500);   /* Türkçe okuma vurgusu kuralı: ödül cümlesi ayrıca inceltilmez */
 }
 
 

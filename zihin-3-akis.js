@@ -552,7 +552,7 @@ if(currentExercise().isChoice){ setTimeout(() => { try{ chStart(); }catch(e){ co
 if(currentExercise().isRt){ setTimeout(() => { try{ rtStart(); }catch(e){ console.error(e); } }, 250); }
 if(currentExercise().isMt){ setTimeout(() => { try{ mtStart(); }catch(e){ console.error(e); } }, 250); }
 if(planThinkOn()){ try{ plnStartLock(); }catch(e){} }
-if(typeof gameMode !== "undefined" && gameMode){ sfx("go"); if(!window.__zaSkipGo && !window.__zaInstrActive) speakText(gameLine("go"), { pitch: 1.2 }); try{ renderGameWho(); }catch(e){} }
+if(typeof gameMode !== "undefined" && gameMode){ sfx("go"); if(!window.__zaSkipGo && !window.__zaInstrActive) speakText(gameLine("go"));   /* Türkçe okuma vurgusu kuralı: "Başla" ayrıca inceltilmez */ try{ renderGameWho(); }catch(e){} }
 { if(!landscapeMQ.matches){
 const bd = document.getElementById("board");
 bd.style.scrollMarginTop = "8px";
