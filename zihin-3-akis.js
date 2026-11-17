@@ -699,12 +699,30 @@ let audioUnlocked = false;
 let _sfxBus = null;
 function sfxBus(ctx){ if(_sfxBus && _sfxBus.context === ctx) return _sfxBus; try{ const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -18; comp.knee.value = 12; comp.ratio.value = 6; comp.attack.value = 0.003; comp.release.value = 0.2; const master = ctx.createGain(); master.gain.value = 0.75; master.connect(comp); comp.connect(ctx.destination); _sfxBus = master; return master; }catch(e){ return ctx.destination; } }
 /* KURAL (ses bağlamı, 2026-11-16): ses bağlamı "suspended" ya da "interrupted" (iPhone'da okuma sesi, arama, kilit ekranı sonrası) kaldığında her dokunuşta yeniden açılır; kapanmışsa yeniden kurulur — düğme, doğru/yanlış ve bip sesleri kaybolmaz */
-function zaAudioWake(ctx){ try{ if(ctx && ctx.state !== "running" && ctx.state !== "closed") ctx.resume().catch(() => {}); }catch(e){} }
+function zaAudioWake(ctx){ try{ if(ctx && ctx.state !== "running" && ctx.state !== "closed"){ const p = ctx.resume(); if(p && p.then) p.then(zaAudioFlush).catch(() => {}); } }catch(e){} }
+/* KURAL (ses zamanında çalar, 2026-11-17): hiçbir ses, çalışmayan (askıda ya da kesilmiş) ses bağlamına sıraya konmaz. Bağlam çalışıyorsa ses hemen çalar; çalışmıyorsa bağlam uyandırılır ve ses yalnız kısa bir süre içinde bağlam açılırsa çalar (düğme tıkı 0,16 sn; doğru/yanlış ve öteki efektler 0,3 sn; ritim 0,1 sn; ton 0,15 sn; "Söyle!" işareti 0,25 sn; İki İş Birden bipi 1,5 sn), açılmazsa atlanır. Böylece ses gecikmeli gelmez; sonraki bir dokunuşta ya da sayfa kaydırılırken birikmiş sesler topluca çalmaz. Bağlam, parmak ekrana değdiği anda, konuşma bitince, sayfa yeniden görününce ve durumu değişince kendiliğinden uyandırılır; sayfa gizlenince bekleyen sesler atılır */
+const _zaAudioQ = []; let _zaAudioEver = false;
+function zaAudioFlush(){ try{ const ctx = audioCtx; if(!ctx || ctx.state !== "running" || !_zaAudioQ.length) return; const now = performance.now(), q = _zaAudioQ.splice(0, _zaAudioQ.length); q.forEach(it => { try{ if(now <= it.until) it.fn(ctx); else if(it.drop) it.drop(); }catch(e){} }); }catch(e){} }
+function zaAudioExpire(hepsi){ try{ const now = performance.now(); for(let i = _zaAudioQ.length - 1; i >= 0; i--){ if(hepsi || now > _zaAudioQ[i].until){ const it = _zaAudioQ.splice(i, 1)[0]; try{ if(it.drop) it.drop(); }catch(e){} } } }catch(e){} }
+function zaAudioPlay(fn, lateMs, onDrop){ const ctx = getAudioCtx(); if(!ctx){ try{ if(onDrop) onDrop(); }catch(e){} return; }
+const donuk = zaAudioStalled(ctx);
+if(ctx.state === "running" && !donuk){ try{ fn(ctx); }catch(e){} return; }
+const ms = lateMs || 160; _zaAudioQ.push({ fn, until: performance.now() + ms, drop: onDrop }); if(donuk) zaAudioKick(ctx); else zaAudioWake(ctx); setTimeout(() => zaAudioExpire(false), ms + 40); }
+/* KURAL (donmuş ses saati, 2026-11-17): iPhone'da ses bağlamı "çalışıyor" görünüp ses saati ilerlemeyebilir (kilit ekranı, arama, Siri sonrası) — o zaman sesler hiç duyulmaz. Parmak değdiğinde ses saati yoklanır; 80 ms sonra hâlâ aynı yerdeyse bağlam kapatılıp yeniden açılır (sıfırlanır), ses ancak saat yeniden yürüyünce çalar */
+let _zaClk = null;
+function zaAudioProbe(ctx){ try{ _zaClk = (ctx && ctx.state === "running") ? { t: ctx.currentTime, at: performance.now() } : null; }catch(e){ _zaClk = null; } }
+function zaAudioStalled(ctx){ try{ return !!_zaClk && ctx.state === "running" && performance.now() - _zaClk.at >= 80 && ctx.currentTime === _zaClk.t; }catch(e){ return false; } }
+function zaAudioKick(ctx){ try{ _zaClk = null; const p = ctx.suspend(); if(p && p.then) p.then(() => ctx.resume()).then(zaAudioFlush).catch(() => {}); }catch(e){} }
+function zaAudioState(){ try{ const ctx = audioCtx; if(!ctx) return; if(ctx.state === "running") zaAudioFlush(); else if(ctx.state !== "closed" && _zaAudioEver && !document.hidden && !(window.speechSynthesis && speechSynthesis.speaking)) zaAudioWake(ctx);   /* konuşma sürerken zorlanmaz; konuşma bitince zaAudioAfterSpeech uyandırır */ }catch(e){} }
+/* konuşma (okuma sesi) iPhone'da ses bağlamını kesebilir: konuşma bitince bağlam beklemeden uyandırılır, sonraki düğme sesi hazır olur */
+let _zaSpWatch = 0;
+function zaAudioAfterSpeech(){ try{ if(_zaSpWatch || !window.speechSynthesis) return; let n = 0; _zaSpWatch = setInterval(() => { try{ n++; if((speechSynthesis.speaking || speechSynthesis.pending) && n < 300) return; clearInterval(_zaSpWatch); _zaSpWatch = 0; if(audioCtx && _zaAudioEver && !document.hidden) zaAudioWake(audioCtx); }catch(e){ clearInterval(_zaSpWatch); _zaSpWatch = 0; } }, 200); }catch(e){} }
 function getAudioCtx(){
 if(audioCtx && audioCtx.state === "closed"){ audioCtx = null; _sfxBus = null; try{ _stimBus = null; }catch(e){} }
 if(!audioCtx){
 try{
 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+try{ audioCtx.onstatechange = zaAudioState; }catch(e){}
 }catch(e){
 return null;
 }
@@ -726,18 +744,18 @@ gain.connect(sfxBus(ctx));
 osc.start();
 osc.stop(ctx.currentTime + 0.05);
 }catch(e){}
-audioUnlocked = true;
+audioUnlocked = true; _zaAudioEver = true;
 }
 
 document.addEventListener("touchend", unlockAudio, {capture:true, passive:true});
 document.addEventListener("click", unlockAudio, {capture:true, passive:true});
-document.addEventListener("visibilitychange", () => { try{ if(!document.hidden) audioUnlocked = false; }catch(e){} });
+document.addEventListener("visibilitychange", () => { try{ if(document.hidden){ zaAudioExpire(true); } else { audioUnlocked = false; if(audioCtx && _zaAudioEver) zaAudioWake(audioCtx); } }catch(e){} });
+["pointerdown", "touchstart"].forEach(ev => document.addEventListener(ev, () => { try{ if(audioCtx && _zaAudioEver){ zaAudioWake(audioCtx); zaAudioProbe(audioCtx); } }catch(e){} }, {capture:true, passive:true}));   /* parmak değdiği anda bağlam uyandırılır: parmak kalkınca çalacak ses hazır olur */
+["pageshow", "focus"].forEach(ev => window.addEventListener(ev, () => { try{ if(audioCtx && _zaAudioEver && !document.hidden) zaAudioWake(audioCtx); }catch(e){} }));
 
 function beep(freqStart, freqEnd, durationMs, volume){
 if(!soundEnabled) return;
-const ctx = getAudioCtx();
-if(!ctx) return;
-zaAudioWake(ctx);
+zaAudioPlay((ctx) => {
 try{
 const osc = ctx.createOscillator();
 const gain = ctx.createGain();
@@ -751,6 +769,7 @@ gain.connect(sfxBus(ctx));
 osc.start();
 osc.stop(ctx.currentTime + durationMs/1000);
 }catch(e){}
+}, 300);
 }
 
 function playSound(kind){

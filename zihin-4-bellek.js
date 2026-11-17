@@ -725,7 +725,7 @@ return Array.from({length: isPre() ? 3 : 4}, () => { let iv; do{ iv = Array.from
 let _stimBus = null;
 function stimBus(ctx){ if(_stimBus && _stimBus.context === ctx) return _stimBus; try{ const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -3; lim.knee.value = 2; lim.ratio.value = 12; lim.attack.value = 0.002; lim.release.value = 0.1; const g = ctx.createGain(); g.gain.value = 1; g.connect(lim); lim.connect(ctx.destination); _stimBus = g; return g; }catch(e){ return ctx.destination; } }
 function stimTone(ctx, f, t0, dur, vol){ [[f, "triangle", vol], [f * 2, "sine", vol * 0.45]].forEach(([fr, ty, v]) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = ty; o.frequency.setValueAtTime(fr, t0); g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(v, t0 + 0.008); g.gain.setValueAtTime(v, t0 + dur * 0.55); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur); o.connect(g); g.connect(stimBus(ctx)); o.start(t0); o.stop(t0 + dur + 0.02); }); }
-function rhyBeep(){ try{ const ctx = getAudioCtx(); if(!ctx) return; zaAudioWake(ctx); stimTone(ctx, 880, ctx.currentTime + 0.005, 0.16, 0.62); }catch(e){} }
+function rhyBeep(){ zaAudioPlay((ctx) => stimTone(ctx, 880, ctx.currentTime + 0.005, 0.16, 0.62), 100); }   /* ses zamanında çalar kuralı: ritim vuruşu geç çalmaz */
 function memBuild(){ const t = currentCombo().t, P = (isPre() ? [2, 3, 4] : [4, 6, 8])[t], pics = shuffleArray(picPool()).slice(0, P);
 return { cards: shuffleArray(pics.concat(pics).map((x, i) => ({ x }))), P }; }
 
@@ -1345,7 +1345,7 @@ return { secs, beeps, bt: dualBeepTimes(beeps, secs, DUAL_BEEP_GAP[pre ? "pre" :
 const DUAL_BEEP_GAP = { pre:1500, post:1200 };
 function dualBeepTimes(n, secs, gap){ const W = Math.max(0, secs * 1000 - 2400 - (n - 1) * gap); return Array.from({length:n}, () => Math.random() * W).sort((x, y) => x - y).map((x, i) => Math.round(1200 + x + i * gap)); }
 let _dualBeepFree = 0;
-function dualBeep(){ try{ const ctx = getAudioCtx(); if(!ctx) return; zaAudioWake(ctx); const now = ctx.currentTime; if(_dualBeepFree > now + 3) _dualBeepFree = 0; const t0 = Math.max(now + 0.005, _dualBeepFree); _dualBeepFree = t0 + 0.6; stimTone(ctx, 880, t0, 0.16, 0.62); }catch(e){} }
+function dualBeep(tr){ zaAudioPlay((ctx) => { const now = ctx.currentTime; if(_dualBeepFree > now + 3) _dualBeepFree = 0; const t0 = Math.max(now + 0.005, _dualBeepFree); _dualBeepFree = t0 + 0.6; stimTone(ctx, 880, t0, 0.16, 0.62); }, 1500, () => { try{ if(tr && tr.beeps > 0) tr.beeps--; }catch(e){} }); }   /* ses zamanında çalar kuralı: 1,5 sn içinde çalınamayan bip atlanır ve doğru bip sayısından düşülür — ekrandaki "Doğru bip sayısı" duyulanla aynı kalır */
 const stopDirs = () => ["l", "r", "u", "d"].slice(0, (isPre() ? [2, 3, 3] : [2, 3, 4])[Math.min(currentCombo().t, 2)]);   /* yön düğmesi sayısı düzeye göre */
 function stopArrowSVG(dir, col, px){ const rot = { r:0, l:180, u:-90, d:90 }[dir] || 0; return `<svg viewBox="0 0 100 100" width="${px}" height="${px}" style="display:block"><g transform="rotate(${rot} 50 50)"><path d="M14 40 H56 V22 L88 50 L56 78 V60 H14 Z" fill="${col}" stroke="${col}" stroke-width="6" stroke-linejoin="round"/></g></svg>`; }
 function stopTrials(){ const t = currentCombo().t, pre = isPre(), N = selCount(), ssd = 0, win = zaPace("stop-signal"), D = stopDirs();   /* zorluk: yanıt süresi kısalır */   /* ok sayısı düzeye göre */ const out = []; for(let i = 0; i < N; i++){ let dir, g = 0; do{ dir = randomItem(D); g++; } while(g < 20 && i >= 2 && out[i - 1].dir === dir && out[i - 2].dir === dir); out.push({ dir, stop: i > 1 && Math.random() < 0.25, ssd, win }); } return out; }
@@ -1363,7 +1363,7 @@ return Array.from({length:3}, () => ({ counts: Array.from({length:L}, () => { le
 const CSP_DOT_COLORS = ["#2E6FD8", "#D97F12", "#7A3FB5", "#BE3788"];   // öncesi Zor: aynı uzunluk, daha büyük sayılar
 
 const TONE_KEYS = [ { c:ACC.kirmizi, f:392 }, { c:ACC.mavi, f:494 }, { c:ACC.yesil, f:587 }, { c:ACC.turuncu, f:698 } ];
-function toneBeep(f){ try{ const ctx = getAudioCtx(); if(!ctx) return; zaAudioWake(ctx); stimTone(ctx, f, ctx.currentTime + 0.005, 0.32, 0.55); }catch(e){} }   /* uyaran sesi kuralı: rhyBeep üstünde */
+function toneBeep(f){ zaAudioPlay((ctx) => stimTone(ctx, f, ctx.currentTime + 0.005, 0.32, 0.55), 150); }   /* uyaran sesi kuralı: rhyBeep üstünde */
 function toneTrials(){ const t = currentCombo().t, L = (isPre() ? [2, 3, 4] : [3, 4, 5])[t]; return Array.from({length:4}, () => Array.from({length:L}, () => Math.floor(Math.random() * 4))); }
 const WS_MIRROR_OK = new Set(["t-car","t-train","t-kite","t-puzzle","t-ball","h-cup","h-scissors","h-lamp","h-comb","h-broom","h-clock","f-banana","f-grapes","f-cucumber","f-apple"]);   /* ayna görüntüsü belirgin farklı olan resimler (gözle seçildi); simetrik nesnelerde ayna = aslı */
 function wsTrials(){ const t = currentCombo().t, pre = isPre(), N = pre ? 5 : 6, pool = picPool();
@@ -2569,7 +2569,7 @@ fix(){ const st = mtState, tr = st.trials[st.ti]; st.phase = "run"; st.fl = []; 
 for(let k = 0; k < n; k++) mtLater(() => { st.fl = [{ x: 5 + Math.random() * 85, y: 5 + Math.random() * 80, sh: randomItem(["star","heart","circle"]), c: randomItem(COLORS) }]; const b = document.getElementById("fixArea"); if(b){ const f = st.fl[0]; const old = b.querySelector(".fx-f"); if(old) old.remove(); const d = document.createElement("div"); d.className = "fx-f"; d.style.cssText = `position:absolute;left:calc((100% - 50px) * ${((f.x - 5) / 85).toFixed(3)} + 2px);top:calc((100% - 50px) * ${((f.y - 5) / 80).toFixed(3)} + 2px);width:46px;height:46px`;   /* İki İş Birden yıldızı kuralı: çeldirici şekil de alanın içinde kalır */ d.innerHTML = shapeSVG(f.sh, f.c); b.appendChild(d); } }, k * tr.rate);
 mtLater(() => { st.phase = "judge"; renderMtBoard(); }, tr.secs * 1000); },
 dual(){ const st = mtState, tr = st.trials[st.ti]; st.phase = "run"; st.tgt = null; st.miss = 0; st.hit = 0; renderMtBoard();
-tr.bt.forEach(tm => mtLater(() => dualBeep(), tm));
+tr.bt.forEach(tm => mtLater(() => dualBeep(tr), tm));
 tr.st.forEach((tm, k) => mtLater(() => { st.tgt = { k, x: 8 + Math.random() * 78, y: 8 + Math.random() * 74 }; const a = document.getElementById("dualArea"); if(a){ const old = a.querySelector(".du-t"); if(old) old.remove(); const d = document.createElement("div"); d.className = "du-t"; d.dataset.mt = "t" + k; d.style.cssText = `position:absolute;left:calc((100% - 62px) * ${(st.tgt.x / 86).toFixed(3)} + 2px);top:calc((100% - 62px) * ${(st.tgt.y / 82).toFixed(3)} + 2px);width:58px;height:58px;cursor:pointer`;   /* KURAL (İki İş Birden yıldızı, 2026-11-16): yıldız her zaman alanın içinde kalır (konum alanın boyundan yıldız boyu çıkarılarak hesaplanır) */ d.innerHTML = shapeSVG("star", "#F5A524"); a.appendChild(d); }
 mtLater(() => { if(st.tgt && st.tgt.k === k){ st.tgt = null; st.miss++; mtErr(); const a2 = document.getElementById("dualArea"); const o = a2 && a2.querySelector(".du-t"); if(o) o.remove(); } }, tr.show); }, tm));
 mtLater(() => { st.phase = "ask"; st.tgt = null; renderMtBoard(); sayTask("Kaç bip sesi duydun?"); }, tr.secs * 1000); },

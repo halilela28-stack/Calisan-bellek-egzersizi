@@ -259,7 +259,7 @@ btn.classList.remove("counting");
 btn.classList.add("go");
 btn.textContent = "Söyle!";
 if(row) row.classList.add("done");
-try{ if(soundEnabled){ const ctx = getAudioCtx(); if(ctx){ zaAudioWake(ctx); stimTone(ctx, 784, ctx.currentTime + 0.005, 0.2, 0.5); } } }catch(e){}   /* "Söyle!" işareti: uyaran sesi yolundan, duyulur (uyaran sesi kuralı) */
+try{ if(soundEnabled) zaAudioPlay((ctx) => stimTone(ctx, 784, ctx.currentTime + 0.005, 0.2, 0.5), 250); }catch(e){}   /* "Söyle!" işareti: uyaran sesi yolundan, duyulur (uyaran sesi kuralı) */
 try{ vibrate(60); }catch(e){}
 }, 1000);
 audTimers.push(t);

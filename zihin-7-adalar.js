@@ -225,8 +225,7 @@ o.start(t0); o.stop(t0 + dur + 0.02);
 }
 function sfx(kind){
 if(typeof soundEnabled !== "undefined" && !soundEnabled) return;
-const ctx = getAudioCtx(); if(!ctx) return;
-zaAudioWake(ctx);
+zaAudioPlay((ctx) => {   /* ses zamanında çalar kuralı: bağlam hazır değilse ses sıraya konmaz, kısa sürede açılmazsa atlanır */
 const t = ctx.currentTime + 0.005;
 const N = { C5:523.25, D5:587.33, E5:659.25, G5:783.99, A5:880, C6:1046.5, E6:1318.5, G6:1568, C7:2093 };
 try{
@@ -244,12 +243,22 @@ case "soft":    [N.G5, N.E5, N.D5].forEach((f, i) => sfxTone(ctx, f, t + i * 0.1
 case "go":      sfxTone(ctx, N.C5, t, 0.1, "triangle", 0.18); sfxTone(ctx, N.G5, t + 0.1, 0.18, "triangle", 0.2); break;
 }
 }catch(e){}
+}, kind === "tap" ? 160 : 300);
 }
 /* KURAL (düğme sesi, 2026-11-09): Ayarlar'da ses efektleri açıkken düğmelere basınca kısa, yumuşak bir tık sesi çıkar (parmak kalkınca). Tahtanın içindeki dokunuşlar kendi doğru/yanlış sesini kullandığı için bu sesi çalmaz; devre dışı düğmeler ses çıkarmaz. iPhone'da telefon sessiz moddayken uygulama sesleri çalmaz (ses oturumu "ambient") */
 try{ if(navigator.audioSession) navigator.audioSession.type = "ambient"; }catch(e){}
 const ZA_TAP_SFX_SEL = 'button, [role="button"], .category-card, .dev-head, .fam-go, .exh-it, .mode-card, .cd-b, a.btn, label.switch';
 let __zaTapSfxAt = 0;
-document.addEventListener("pointerup", (ev) => { try{ if(ev.pointerType === "mouse" && ev.button !== 0) return; if(!soundEnabled) return; const el = ev.target && ev.target.closest ? ev.target.closest(ZA_TAP_SFX_SEL) : null; if(!el || el.disabled || el.getAttribute("aria-disabled") === "true") return; const bd = document.getElementById("board"); if(bd && bd.contains(el)) return; if(el.closest("#tourOverlay") && !el.closest("button")) return; const now = Date.now(); if(now - __zaTapSfxAt < 60) return; __zaTapSfxAt = now; sfx("tap"); }catch(e){} }, { capture: true, passive: true });
+/* KURAL (düğme sesi yalnız dokunuşta, 2026-11-17): tık sesi yalnız gerçek dokunuşta çalar — parmak aynı düğmede inip kalkmışsa, 10 px'ten fazla kaymamışsa ve arada sayfa kaymamışsa. Sayfayı aşağı yukarı kaydırırken, parmak bir düğmenin ya da kartın üstünden geçerken ses çıkmaz */
+let __zaTapDown = null;
+/* KURAL (dokunulan her düğme ses verir, 2026-11-17): tık sesi yalnız "button" öğelerinde değil, dokunulabilen bütün öğelerde çalar — ana sayfadaki Bilişsel Etkinlik kartı, etkinlik başlığı, Ayarlar'daki açılır başlıklar ve bağlantılar dahil (işaretçisi el olan her öğe düğme sayılır). Tahtanın içi bu kuralın dışındadır (kendi doğru/yanlış sesi var) */
+const zaTapEl = (ev) => { try{ const t = ev.target; if(!t || !t.closest) return null; const el = t.closest(ZA_TAP_SFX_SEL + ", summary, a[href], [onclick]"); if(el) return el; if(getComputedStyle(t).cursor !== "pointer") return null; let a = t; while(a.parentElement && a.parentElement !== document.body && getComputedStyle(a.parentElement).cursor === "pointer") a = a.parentElement; return a; }catch(e){ return null; } };
+document.addEventListener("pointerdown", (ev) => { try{ __zaTapDown = { id: ev.pointerId, x: ev.clientX, y: ev.clientY, el: zaTapEl(ev), moved: false }; }catch(e){ __zaTapDown = null; } }, { capture: true, passive: true });
+document.addEventListener("pointermove", (ev) => { try{ const d = __zaTapDown; if(d && d.id === ev.pointerId && !d.moved && Math.hypot(ev.clientX - d.x, ev.clientY - d.y) > 10) d.moved = true; }catch(e){} }, { capture: true, passive: true });
+document.addEventListener("pointercancel", () => { __zaTapDown = null; }, { capture: true, passive: true });
+document.addEventListener("scroll", () => { try{ if(__zaTapDown) __zaTapDown.moved = true; }catch(e){} }, { capture: true, passive: true });
+function zaIsTap(ev, el){ const d = __zaTapDown; __zaTapDown = null; return !!d && d.id === ev.pointerId && !d.moved && d.el === el && Math.hypot(ev.clientX - d.x, ev.clientY - d.y) <= 10; }
+document.addEventListener("pointerup", (ev) => { try{ const el = zaTapEl(ev), tap = zaIsTap(ev, el); if(ev.pointerType === "mouse" && ev.button !== 0) return; if(!soundEnabled) return; if(!tap) return; if(!el || el.disabled || el.getAttribute("aria-disabled") === "true") return; const bd = document.getElementById("board"); if(bd && bd.contains(el)) return; if(el.closest("#tourOverlay") && !el.closest("button")) return; const now = Date.now(); if(now - __zaTapSfxAt < 60) return; __zaTapSfxAt = now; sfx("tap"); }catch(e){} }, { capture: true, passive: true });
 function gameSfx(kind){ if(typeof gameMode !== "undefined" && gameMode){ sfx(kind); if(kind === "wrong") zihniAgain(); } }
 /* KURAL: oyun modunda yanlış cevaptan sonra köşede 1,1 sn "Olsun, bir daha!" diyen Zihni çıkar (en çok 3 sn'de bir; dokunmayı engellemez; Sade görünümde ve hareketi azalt ayarında yalnız belirip kaybolur) */
 let _zAgainT = 0; function zihniAgain(){ try{ const now = Date.now(); if(now - _zAgainT < 3000) return; _zAgainT = now; let el = document.getElementById("zAgain"); if(!el){ el = document.createElement("div"); el.id = "zAgain"; el.setAttribute("aria-hidden", "true"); document.body.appendChild(el); } el.innerHTML = `<span class="za-z">${zihniSVG("again")}</span><span class="za-t">Olsun, bir daha!</span>`; el.classList.remove("on"); void el.offsetWidth; el.classList.add("on"); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove("on"), 1100); }catch(e){} }
@@ -339,7 +348,7 @@ function renderVoiceSettings(){ try{ let g = document.getElementById("voiceGroup
 }catch(e){} }
 try{ if(window.speechSynthesis) speechSynthesis.onvoiceschanged = () => { _trVoice = pickTurkishVoice(); try{ if(document.getElementById("voiceGroup")) renderVoiceSettings(); }catch(e){} }; }catch(e){}
 (function voiceSettingsHook(){ const tryIt = () => { try{ renderVoiceSettings(); }catch(e){} }; setTimeout(tryIt, 600); setTimeout(tryIt, 3000); try{ new MutationObserver(() => { const sc = document.getElementById("settingsScreen"); if(sc && sc.style.display !== "none" && !document.getElementById("voiceGroup")) tryIt(); }).observe(document.body, { attributes: true, subtree: true, attributeFilter: ["style"] }); }catch(e){} })();
-function _ttsSpeak(u){ try{ const busy = speechSynthesis.speaking || speechSynthesis.pending; if(busy) speechSynthesis.cancel(); try{ speechSynthesis.resume(); }catch(e){}
+function _ttsSpeak(u){ try{ zaAudioAfterSpeech(); }catch(e){} try{ const busy = speechSynthesis.speaking || speechSynthesis.pending; if(busy) speechSynthesis.cancel(); try{ speechSynthesis.resume(); }catch(e){}
 if(busy){ const g0 = window.__zaSpGen || 0; setTimeout(() => { if((window.__zaSpGen || 0) !== g0) return; try{ speechSynthesis.speak(u); }catch(e){} }, 120); } else speechSynthesis.speak(u); }catch(e){} }
 function speakText(t, opts){
 try{
@@ -354,7 +363,7 @@ chunks.forEach((c, i) => { const u = new SpeechSynthesisUtterance(c);
   u.lang = "tr-TR"; u.rate = ((opts && opts.rate) || 0.85) * voiceRateMul(); u.pitch = voicePitch((opts && opts.pitch) || 1.0);
   if(_trVoice) u.voice = _trVoice;
   if(isInstr && i === chunks.length - 1){ const g1 = instrG; const done = () => { if(window.__zaInstrG === g1) setTimeout(() => { if(window.__zaInstrG === g1) zaInstrDone(); }, 250); }; u.onend = done; if(i > 0) u.onerror = done; }
-  if(i === 0) _ttsSpeak(u); else { const g0 = window.__zaSpGen || 0; setTimeout(() => { if((window.__zaSpGen || 0) !== g0) return; try{ speechSynthesis.speak(u); }catch(e){} }, 150); } });
+  if(i === 0) _ttsSpeak(u); else { const g0 = window.__zaSpGen || 0; setTimeout(() => { if((window.__zaSpGen || 0) !== g0) return; try{ zaAudioAfterSpeech(); }catch(e){} try{ speechSynthesis.speak(u); }catch(e){} }, 150); } });
 }catch(e){}
 }
 let _ttsUnlocked = false, _ttsMissed = null;
