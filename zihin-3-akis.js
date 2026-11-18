@@ -309,6 +309,7 @@ return attrs.every(k => a[k] === b[k]);
 
 function generateGrid(exercise, rows, cols){
 if(exercise.uniqueFrom){ const pool = shuffleArray(exercise.uniqueFrom()); const nU = pool.length >= rows * cols ? rows * cols : (Math.floor(pool.length / cols) * cols || pool.length); return Array.from({length: nU}, (_, i) => exercise.itemFrom(pool[i])); } /* KURAL (çalışma mantığı): tekrarsız liste — havuz ızgaradan küçükse aynı soru/öbek ikinci kez yazılmaz, sayfa havuz kadar öğe gösterir */ if(exercise.id === "syllable-count"){ const pool = shuffleArray(SYLLABLE_WORDS); return Array.from({length: rows * cols}, (_, i) => Object.assign({}, pool[i % pool.length])); } /* Hece Sayma: ızgara karıştırılmış listeden kurulur, tekrar olmaz */
+if(exercise.recallGrid) return exercise.recallGrid(rows * cols);   /* Şekil ve Renk Hatırlama öğe sayısı kuralı: az öğede hepsi farklı, çok öğede dengeli */
 if(exercise.isMt) return mtBuild();
 if(exercise.isRt) return rtBuild();
 if(exercise.isChoice) return chBuild();
@@ -436,19 +437,36 @@ let recallHideTimeout = null;
 /* KURAL (Rakam Dizisi art arda dizi, 2026-11-17): Rakam Dizisi tek gösterimde bitmez — Başlangıç'ta 4, Orta'da 6, Zor'da 8 dizi art arda gelir (okul öncesi ve okul sonrası; dizinin rakam sayısı düzeyin eskisi gibi). Her dizi 5 sn görünür, sonra kapanır; çocuk söyler, yetişkin Kontrol listesinde doğruları işaretler ve "Sonraki dizi"ye basar — dizinin bütün rakamları işaretlenince sonraki dizi kendiliğinden gelir. Doğru hatırlanan sayısı bütün dizilerin toplamıdır; başarı eşiği de bütün dizilerdeki rakam toplamına göredir (%80 başarılı, yarıdan az düşük). Son dizi kapanmadan durdurulan çalışma kaydedilmez. Ardışık iki dizi aynı olmaz. Önceden tek dizi gösterilip çalışma bitiyor, her dizi için yeniden Kaydet/Karıştır gerekiyordu */
 const DS_SEQS = [4, 6, 8];
 let DS_SHOW_MS = 5000, dsRun = null;
-function dsIs(){ try{ return currentExercise().id === "digit-span"; }catch(e){ return false; } }
-function dsCount(){ return DS_SEQS[Math.max(0, Math.min(2, currentCombo().t))]; }
-function dsStart(){ const ex = currentExercise(), { rows, cols } = currentTier(), N = dsCount(), seqs = [currentGrid], key = (g) => g.map(x => x.number).join("");
-  while(seqs.length < N){ let g = generateGrid(ex, rows, cols), k = 0; while(k++ < 30 && key(g) === key(seqs[seqs.length - 1])) g = generateGrid(ex, rows, cols); seqs.push(g); }
+/* KURAL (art arda üç liste, 2026-11-18): Kelime Listesi Hatırlama ve Özellik ve Varlık Tekrarları tek listede bitmez — her zorluk düzeyinde ve her aşamada ÜÇ liste art arda gelir (okul öncesi ve okul sonrası; listenin kelime sayısı düzeyin eskisi gibi). Liste Başlangıç'ta 7, Orta'da 9, Zor'da 11 saniye görünür (önceden 8 / 12 / 16), sonra kapanır; çocuk söyler, yetişkin Kontrol listesinde doğruları işaretler ve "Sonraki liste"ye basar — listenin hepsi işaretlenince sonraki liste kendiliğinden gelir. Dinleyerek aşamasında her listeyi uygulama okur. Üç listede aynı kelime / öbek iki kez gelmez. Doğru hatırlanan sayısı üç listenin toplamıdır; başarı eşiği de toplam üzerinden (%80 başarılı, yarıdan az düşük). Son liste kapanmadan durdurulan çalışma kaydedilmez. Düzen Rakam Dizisi'ndeki art arda dizi düzeninin aynısıdır */
+const LIST_RUN_IDS = ["word-list-recall", "sentence-repeat"], LIST_RUNS = 3, LIST_SHOW_MS = [7000, 9000, 11000];
+/* KURAL (Şekil Hatırlama üç set, 2026-11-18; kullanıcı kararı): Şekil Hatırlama tek tahtada bitmez — her zorluk düzeyinde ve her aşamada ÜÇ set art arda gelir (okul öncesi ve okul sonrası). Set düzeyin süresi kadar görünür (8 / 12 / 16 sn), kapanır; çocuk söyler, yetişkin Kontrol listesinde doğruları işaretler ve "Sonraki set"e basar — setin hepsi işaretlenince sonraki set kendiliğinden gelir. Üç set birbirinden farklıdır. Doğru hatırlanan sayısı üç setin toplamıdır; başarı eşiği de toplam üzerinden. Son set kapanmadan durdurulan çalışma kaydedilmez. Düzen art arda üç liste düzeninin aynısıdır */
+const SET_RUN_IDS = ["shape-recall"], SET_RUNS = 3;
+function dsDigit(){ try{ return currentExercise().id === "digit-span"; }catch(e){ return false; } }
+function dsList(){ try{ return LIST_RUN_IDS.includes(currentExercise().id); }catch(e){ return false; } }
+function dsSet(){ try{ return SET_RUN_IDS.includes(currentExercise().id); }catch(e){ return false; } }
+function dsIs(){ return dsDigit() || dsList() || dsSet(); }
+function dsCount(){ return dsList() ? LIST_RUNS : dsSet() ? SET_RUNS : DS_SEQS[Math.max(0, Math.min(2, currentCombo().t))]; }
+function dsShowMs(){ return dsList() ? LIST_SHOW_MS[Math.max(0, Math.min(2, currentCombo().t))] : dsSet() ? currentTier().studyDurationMs : DS_SHOW_MS; }
+function dsNoun(){ return dsList() ? "liste" : dsSet() ? "set" : "dizi"; }
+function dsStart(){ const ex = currentExercise(), { rows, cols } = currentTier(), N = dsCount(), seqs = [currentGrid], key = (g) => g.map(x => x.number != null ? x.number : ex.attrs.map(a => x[a]).join("/")).join(dsSet() ? "," : "");
+  if(dsList()){ const val = (x) => x.word || x.phrase, used = new Set(currentGrid.map(val)), n = currentGrid.length; let pool = shuffleArray(ex.uniqueFrom().filter(w => !used.has(w)));   /* üç listede aynı kelime / öbek iki kez gelmez */
+    while(seqs.length < N){ if(pool.length < n) pool = pool.concat(shuffleArray(ex.uniqueFrom().filter(w => !pool.includes(w)))); seqs.push(pool.splice(0, n).map(w => ex.itemFrom(w))); } }
+  else while(seqs.length < N){ let g = generateGrid(ex, rows, cols), k = 0; while(k++ < 30 && (dsSet() ? seqs.some(q => key(q) === key(g)) : key(g) === key(seqs[seqs.length - 1]))) g = generateGrid(ex, rows, cols); seqs.push(g); }   /* setler birbirinden farklı; dizilerde ardışık iki dizi aynı olmaz */
   dsRun = { seqs, k:0, base:0, hidden:false }; }
+/* listeyi / diziyi sunar: görünür aşamada süre dolunca kapanır; Dinleyerek aşamasında uygulama okur, okuma bitince kapanır */
+function recallPresent(){ clearTimeout(recallHideTimeout); (window._rlTs || []).forEach(clearTimeout); window._rlTs = []; const sp = (window.__wmSpeed || 1);
+  if(recallListen()){ const words = recallWords(); words.forEach((w, k) => window._rlTs.push(setTimeout(() => { if(timerRunning) sayTask(w); }, 300 + k * 1400 * sp))); recallHideTimeout = setTimeout(hideRecallItems, (300 + words.length * 1400) * sp); }
+  else recallHideTimeout = setTimeout(hideRecallItems, dsIs() ? dsShowMs() * sp : currentTier().studyDurationMs); }
 function dsBar(){ const board = document.getElementById("board"); let el = document.getElementById("dsBar");
+  if(board){ board.classList.toggle("ds-res", dsIs()); board.classList.toggle("ds-live", !!(dsIs() && dsRun && timerRunning)); }   /* yatayda çubuğun yeri ayrılır kuralı */
   if(!board || !dsIs() || !dsRun || !timerRunning){ if(el) el.remove(); return; }
   if(!el){ el = document.createElement("div"); el.id = "dsBar"; el.className = "ds-bar"; board.insertAdjacentElement("afterend", el); }
   const N = dsRun.seqs.length, last = dsRun.k >= N - 1;
-  el.innerHTML = `<span class="ds-n">Dizi <b>${dsRun.k + 1}</b> / ${N}</span>` + (!dsRun.hidden ? `<span class="ds-look">Rakamlara bakın…</span>` : last ? `<button type="button" class="ds-btn" data-dsend="1">Bitir ✓</button>` : `<button type="button" class="ds-btn" data-dsnext="1">Sonraki dizi ▶</button>`); }
+  const nm = dsNoun(), Nm = nm[0].toLocaleUpperCase("tr-TR") + nm.slice(1), look = dsDigit() ? "Rakamlara bakın…" : dsSet() ? "Şekillere bakın…" : recallListen() ? "Dinleyin…" : currentExercise().id === "sentence-repeat" ? "Öbeklere bakın…" : "Kelimelere bakın…";
+  el.innerHTML = `<span class="ds-n">${Nm} <b>${dsRun.k + 1}</b> / ${N}</span>` + (!dsRun.hidden ? `<span class="ds-look">${look}</span>` : last ? `<button type="button" class="ds-btn" data-dsend="1">Bitir ✓</button>` : `<button type="button" class="ds-btn" data-dsnext="1">Sonraki ${nm} ▶</button>`); }
 function dsNext(){ if(!timerRunning || !dsIs() || !dsRun || !dsRun.hidden || dsRun.k >= dsRun.seqs.length - 1) return; clearTimeout(_rcDoneT);
-  dsRun.k++; dsRun.hidden = false; currentGrid = dsRun.seqs[dsRun.k]; renderBoard(); dsBar();
-  clearTimeout(recallHideTimeout); recallHideTimeout = setTimeout(hideRecallItems, DS_SHOW_MS * (window.__wmSpeed || 1)); }
+  dsRun.k++; dsRun.hidden = false; currentGrid = dsRun.seqs[dsRun.k]; removeRecallChecklist(); renderBoard(); dsBar();
+  recallPresent(); }
 document.addEventListener("click", (ev) => { try{ if(ev.target.closest("#dsBar [data-dsnext]")) dsNext(); else if(ev.target.closest("#dsBar [data-dsend]") && timerRunning){ window._manualStop = true; stopTimer(); } }catch(e){ console.error(e); } });
 
 function recallListen(){ try{ const st = currentExercise().stages[currentStageIndex]; return !!(currentExercise().isRecall && st && st.listen); }catch(e){ return false; } }
@@ -463,13 +481,19 @@ const RC_TXT_IDS = ["word-list-recall", "sentence-repeat"];
 function rcTxtIs(){ try{ return RC_TXT_IDS.includes(currentExercise().id); }catch(e){ return false; } }
 function rcBoardOff(){ const b = document.getElementById("board"); if(!b) return; b.innerHTML = ""; b.classList.add("rc-board-off"); }
 /* KURAL (hatırlama sayfası, 2026-11-18): açılan Kontrol listesi ekranın altına taşarsa resimli/şekilli kutular küçülür (en çok 72 px'ten 36 px'e kadar; yatay alçak ekranda en çok 64 px); kutular kare, yazılı liste kendi düzeniyle sığar */
-function rcFit(box){ try{ if(!box || !box.open) return; const g = box.querySelector(".rc-grid"); if(!g || g.classList.contains("rc-txt")) return; g.style.removeProperty("--rc-max"); const over = () => box.getBoundingClientRect().bottom > window.innerHeight - 6; if(!over()) return; for(let s = 72; s >= 36; s -= 4){ g.style.setProperty("--rc-max", s + "px"); if(!over()) break; } }catch(e){} }
+function rcFit(box){ try{ if(!box || !box.open) return; const g = box.querySelector(".rc-grid"); if(!g) return; const over = () => box.getBoundingClientRect().bottom > window.innerHeight - 4; box.classList.remove("rc-tight");
+  const pic = !g.classList.contains("rc-txt"), shrink = (a, b) => { for(let s = a; s >= b; s -= 4){ g.style.setProperty("--rc-max", s + "px"); if(!over()) break; } };
+  if(pic){ g.style.removeProperty("--rc-max"); if(over()) shrink(72, 48); }   /* resimli kutular önce 48 px'e kadar küçülür (rahat dokunma alanı) */
+  /* KURAL (açılan liste görünür, 2026-11-18): Kontrol listesi açıldığında ya da işaretlenince alt kenarı ekranın altında kalıyorsa sayfa kendiliğinden kayar, liste bütünüyle görünür (küçük ekranda uzun yönerge + liste çubuğu listeyi aşağı itiyordu) */
+  if(over()) box.classList.add("rc-tight");   /* yine sığmıyorsa: açıklama satırı gizlenir, yazılı kutular alçalır */
+  if(pic && over()) shrink(44, 36);   /* resimli kutular ancak bundan sonra 36 px'e kadar küçülür */
+  if(over()){ const d = box.getBoundingClientRect().bottom - (window.innerHeight - 8), bar = document.getElementById("dsBar"), top = (bar && timerRunning ? bar : box).getBoundingClientRect().top; pageScroller().scrollBy(0, Math.max(0, Math.min(d, top - 8))); } }catch(e){} }   /* liste çubuğu (Sonraki liste) da görünür kalır */
 window.addEventListener("resize", () => setTimeout(() => { try{ rcFit(document.getElementById("recallCheck")); }catch(e){} }, 120));
 function hideRecallItems(){
 const board = document.getElementById("board");
 if(!board) return;
 /* KURAL (Rakam Dizisi kapanınca, 2026-11-16): rakamlar kapanınca ortada "kapalı göz" kutuları gösterilmez — tahta gizlenir, yalnız dokununca açılan Kontrol listesi kalır (yeni sayfada ya da yeniden Başlat'ta tahta geri gelir) */
-if(currentExercise().id === "digit-span"){ board.innerHTML = ""; board.classList.add("rc-board-off"); if(dsRun){ dsRun.hidden = true; dsRun.base = currentErrorCount; } showLevelFlash("Şimdi hatırlamaya çalışın!", "up"); try{ renderRecallChecklist(); }catch(e){ console.error(e); } try{ dsBar(); }catch(e){} return; }
+if(dsIs()){ board.innerHTML = ""; board.classList.add("rc-board-off"); if(dsRun){ dsRun.hidden = true; dsRun.base = currentErrorCount; } showLevelFlash("Şimdi hatırlamaya çalışın!", "up"); try{ renderRecallChecklist(); }catch(e){ console.error(e); } try{ dsBar(); }catch(e){} return; }   /* art arda dizi / liste: sayaç önceki listelerin üstüne eklenir */
 /* KURAL (hatırlama sayfası, 2026-11-18): bütün hatırlama çalışmalarında (Kelime Listesi Hatırlama, Cümle/Öbek Tekrarı, Şekil, Renk ve Konum Hatırlama) öğeler kapanınca ortada "kapalı göz" kutuları gösterilmez — Rakam Dizisi gibi tahta gizlenir, Kontrol listesi hemen süre çubuğunun altına gelir (Dinleyerek aşamasında da, okuma bitince) ve açılınca ekrana sığar. Önceden dikeyde boş kutular listeyi ekranın altına itiyor, yatayda tahta ince bir şeride dönüyordu */
 rcBoardOff(); showLevelFlash("Şimdi hatırlamaya çalışın!", "up"); try{ renderRecallChecklist(); }catch(e){ console.error(e); }
 }
@@ -488,7 +512,7 @@ const cell = (it, i) => { const tgt = orderOf[i] != null, on = !!recallChecked[i
 return `<button type="button" class="rc-cell${tgt ? "" : " off"}${on ? " on" : ""}" ${tgt ? `data-rc="${i}"` : "disabled"}>${ex.renderItem(it)}${ordered && tgt ? `<span class="rc-num">${orderOf[i]}</span>` : ""}${on ? `<span class="rc-ok">✓</span>` : ""}</button>`; };
 const grid = isPos ? currentGrid.map(cell).join("") : targets.map(x => cell(x.it, x.i)).join("");
 /* KURAL (hatırlama sayfası, 2026-11-18): yazılı listede Kontrol listesi kare kutulu tek sütun olmaz — kelimeler dikeyde 3, yatayda 5 sütuna; öbekler dikeyde 2, yatayda 4 sütuna dengeli satırlarla dizilir; kutular alçak, yazı büyük (dikeyde 5 – 9 kelime ekrana sığar). Önceden tek sütunda 334 px'lik kare kutular listeyi ekranın çok altına taşıyordu */
-const txtL = rcTxtIs(), phr = ex.id === "sentence-repeat", maxC = landscapeMQ.matches ? (phr ? 4 : 5) : (phr ? 2 : 3), nT = targets.length, rcCols = txtL ? Math.max(1, Math.ceil(nT / Math.ceil(nT / maxC))) : (isPos ? cols : Math.min(cols, 6));
+const txtL = rcTxtIs(), phr = ex.id === "sentence-repeat", maxC = landscapeMQ.matches ? (phr ? 4 : 5) : (phr ? 2 : 3), nT = targets.length, rcCols = txtL ? Math.max(1, Math.ceil(nT / Math.ceil(nT / maxC))) : (isPos ? cols : (landscapeMQ.matches && nT <= 8) ? nT : Math.min(cols, 6));   /* yatayda en çok 8 şekil / renk tek satıra dizilir (alçak ekranda liste sığar, kutular küçülmez) */
 box.innerHTML = `<summary>Kontrol listesi <span class="rc-cnt">${n}/${targets.length}</span><span class="rc-hint">yetişkin için · çocuk cevap verdikten sonra açın</span></summary>
 <div class="rc-note">${ordered ? "Sırası doğru olarak söylediklerine dokunun (numara doğru sırayı gösterir)." : isPos ? "Çocuğun doğru gösterdiği dolu dairelere dokunun." : "Çocuğun hatırladıklarına dokunun."} Sayaç kendiliğinden güncellenir.</div>
 <div class="rc-grid${txtL ? " rc-txt" + (phr ? " rc-phr" : "") : ""}" style="--rc-cols:${rcCols};grid-template-columns:repeat(${rcCols}, minmax(0, var(--rc-max, 1fr)))">${grid}</div>`;
@@ -540,7 +564,7 @@ const ZA_LIFE = {
 function startTimer(){ try{ const gm = typeof gameMode !== "undefined" && gameMode; if(window.__zaInstrActive && !timerRunning){ zaStopSpeech(); } /* Başlat yönerge okumasını durdurur (oyunda da) */ }catch(e){}  window.__zaStartAt = Date.now(); if(!(typeof gameMode !== "undefined" && gameMode) && !(currentPlayerName || "").trim() && document.getElementById("mainApp").style.display !== "none" && !window.__qaNoPlayerGuard){ try{ const row = document.getElementById("playerRow"); row.scrollIntoView({ behavior:"smooth", block:"center" }); row.classList.remove("attn"); void row.offsetWidth; row.classList.add("attn"); }catch(e){} showToast("Başlamadan önce kimin çalıştığını seçin", "err"); return; }
 window._incomplete = false; setLsOpen(false);
 if(elapsedMs < 50) ZA_LIFE.freshAttempt(currentExercise());
-try{ const __ex = currentExercise(); if(elapsedMs < 50 && __ex.autoScore && !(typeof gameMode !== "undefined" && gameMode)) setTimeout(() => { try{ if(timerRunning && currentExercise() === __ex) setErrorCount(__ex.autoScore()); }catch(e){} }, 0); }catch(e){}   /* KURAL (kendiliğinden sayaç Başlat'ta, 2026-11-18): dokunarak puanlanan sözel çalışmalarda (Liste Öğrenme, Hikâye Hatırlama) sayaç Başlat'ta "hepsi hatırlanmadı"dan başlar ve dokundukça azalır — önceden hiç dokunulmazsa 0 hata (tam başarı) sayılıyordu */
+/* KURAL (sayaç sıfırdan başlar, 2026-11-18; kullanıcı kararı — "kendiliğinden sayaç Başlat'ta" kuralının yerine): dokunarak puanlanan sözel çalışmalarda da (Liste Öğrenme, Hikâye Hatırlama) sayaç Başlat'ta 0'dan başlar; "hepsi hatırlanmadı" sayısıyla BAŞLAMAZ. İlk dokunuştan sonra sayaç kendiliğinden "toplam − hatırlanan" olur (Liste Öğrenme'de yeni denemede yine 0'dan; Aşama 2'de bir bölüm ancak dokunulmaya başlanınca sayılır) */
 try{ if(elapsedMs < 50) nbSeqStart(); }catch(e){}   /* KURAL: yeni başlayan çalışmada hata sayısı 0'dan başlar (başlamadan önce artırılmış sayı taşınmaz); arka plandan dönüşte sayı korunur */
 timerStartedAt = Date.now() - elapsedMs;
 timerInterval = setInterval(tickTimer, 100);
@@ -573,12 +597,8 @@ if(!sc || sc === document.documentElement) sc = document.scrollingElement || doc
 } }
 if(currentExercise().isRecall){
 clearTimeout(recallHideTimeout);
-if(recallListen()){
-const words = recallWords(); clearTimeout(window._rlT); (window._rlTs || []).forEach(clearTimeout); window._rlTs = [];
-words.forEach((w, k) => window._rlTs.push(setTimeout(() => { if(timerRunning) sayTask(w); }, 300 + k * 1400 * (window.__wmSpeed || 1))));
-recallHideTimeout = setTimeout(() => { rcBoardOff(); showLevelFlash("Şimdi hatırlamaya çalışın!", "up"); try{ renderRecallChecklist(); }catch(e){} }, (300 + words.length * 1400) * (window.__wmSpeed || 1));   /* hatırlama sayfası kuralı */
-} else if(dsIs()){ if(!dsRun || elapsedMs < 50) dsStart(); dsBar(); if(!dsRun.hidden) recallHideTimeout = setTimeout(hideRecallItems, DS_SHOW_MS * (window.__wmSpeed || 1)); }   /* art arda dizi kuralı: her dizi 5 sn görünür */
-else recallHideTimeout = setTimeout(hideRecallItems, currentTier().studyDurationMs);
+if(dsIs()){ if(!dsRun || elapsedMs < 50) dsStart(); dsBar(); if(!dsRun.hidden) recallPresent(); }   /* art arda dizi kuralı: her dizi 5 sn; art arda üç liste kuralı: liste 7 / 9 / 11 sn görünür, Dinleyerek aşamasında uygulama okur */
+else recallPresent();
 }
 }
 
@@ -588,7 +608,7 @@ if(timerPausedAt){ timerPausedAt = 0; } try{ document.getElementById("timerDispl
 timerRunning = false; try{ document.documentElement.classList.remove("za-running"); zaSessionRelayout(); }catch(e){}; try{ if(landscapeMQ.matches) setTimeout(() => { try{ if(!timerRunning) window.dispatchEvent(new Event("resize")); }catch(e){} }, 180); }catch(e){}   /* yatay tahta boyu kuralı: bitince tahta odak dışı ölçüyle yeniden çizilir */
 addTouchMissesOnStop();
 stopEyeMotion();
-clearTimeout(recallHideTimeout); try{ dsBar(); }catch(e){} try{ ptHide(); }catch(e){}
+clearTimeout(recallHideTimeout); (window._rlTs || []).forEach(clearTimeout); window._rlTs = []; try{ dsBar(); }catch(e){} try{ ptHide(); }catch(e){}
 const btn = document.getElementById("timerBtn");
 btn.textContent = "▶ Başlat";
 btn.classList.remove("running");
@@ -613,7 +633,7 @@ document.documentElement.classList.remove("board-run"); runFocusOff();
 clearInterval(timerInterval);
 timerRunning = false; try{ document.documentElement.classList.remove("za-running"); zaSessionRelayout(); }catch(e){}; try{ if(landscapeMQ.matches) setTimeout(() => { try{ if(!timerRunning) window.dispatchEvent(new Event("resize")); }catch(e){} }, 180); }catch(e){}   /* yatay tahta boyu kuralı: bitince tahta odak dışı ölçüyle yeniden çizilir */
 stopEyeMotion();
-clearTimeout(recallHideTimeout); try{ ptHide(); ptRun = null; }catch(e){}
+clearTimeout(recallHideTimeout); (window._rlTs || []).forEach(clearTimeout); window._rlTs = []; try{ ptHide(); ptRun = null; }catch(e){}
 if(currentExercise().isMotion){
 positionMotionShape(0);
 const fill = document.getElementById("motionProgressFill");

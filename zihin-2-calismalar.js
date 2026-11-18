@@ -9,8 +9,12 @@ const ORAL_Q_DIMS = { pre:[{rows:3, cols:1}, {rows:2, cols:2}, {rows:5, cols:1}]
 const WORD_LIST_N = { post:[5, 7, 9], pre:[2, 3, 4] };
 const WORD_LIST_DIMS = () => (isPre() ? WORD_LIST_N.pre : WORD_LIST_N.post).map(n => ({ rows:n, cols:1 }));
 /* KURAL (Cümle/Öbek Tekrarı düzeyleri, 2026-11-18): Başlangıç 4, Orta 6, Zor 8 öbek (16 – 20 – 24 yerine; kullanıcı kararı). Öbekler Kelime Listesi gibi dikeyde alt alta bir liste olarak durur, yatayda yazı sığdırma kuralına göre yan yana (yalnız tam bölen sütunlar). Öbek havuzu aynı; çalışma yalnız okul sonrasında */
-const PHRASE_N = [4, 6, 8];
-const PHRASE_DIMS = () => PHRASE_N.map(n => ({ rows:n, cols:1 }));
+/* KURAL (Özellik ve Varlık Tekrarları, 2026-11-18): çalışmanın adı "Cümle/Öbek Tekrarı" değil "Özellik ve Varlık Tekrarları"dır (yazılanlar cümle değil, özellik + varlık adıdır: kırmızı top). Okul öncesinde de vardır: 2 – 3 – 4 öbek, yetişkin tek tek okur (Kelime Listesi Hatırlama'nın okul öncesi düzeni). Okul sonrası 4 – 6 – 8 öbek. Art arda üç liste kuralı geçerlidir */
+/* KURAL (Şekil ve Renk Hatırlama öğe sayısı, 2026-11-18; kullanıcı kararı): Şekil Hatırlama ve Renk Hatırlama'da öğe sayısı okul öncesinde Başlangıç 2, Orta 3, Zor 4; okul sonrasında 4, 6, 8 (önceden 4 – 6 – 8 / 8 – 10 – 12). Dizilim: 2 ve 3 öğe tek satır, 4 öğe 2 × 2, 6 öğe 2 × 3, 8 öğe 2 × 4. Öğe sayısı çeşit sayısını (5 renk, 5 şekil) aşmıyorsa tahtadaki bütün renkler / şekiller birbirinden farklıdır; aşıyorsa bir çeşit en çok iki kez gelir ve yan yana aynısı gelmez; Şekil Hatırlama'da aynı renkte aynı şekil iki kez gelmez. Konum Hatırlama aynı kalır */
+const RECALL_DIMS = () => isPre() ? [{rows:1, cols:2}, {rows:1, cols:3}, {rows:2, cols:2}] : [{rows:2, cols:2}, {rows:2, cols:3}, {rows:2, cols:4}];
+function recallDeal(vals, n){ let out = [], k = 0; do { out = []; while(out.length < n) out = out.concat(shuffleArray(vals)); out = out.slice(0, n); } while(k++ < 60 && out.some((v, i) => i && v === out[i - 1])); return out; }
+const PHRASE_N = { post:[4, 6, 8], pre:[2, 3, 4] };
+const PHRASE_DIMS = () => (isPre() ? PHRASE_N.pre : PHRASE_N.post).map(n => ({ rows:n, cols:1 }));
 const TXT_GRID_DIMS = [{rows:4, cols:4}, {rows:5, cols:4}, {rows:6, cols:4}], TXT_GRID_DIMS3 = [{rows:4, cols:3}, {rows:6, cols:3}, {rows:8, cols:3}];   /* Hece Sayma: kelimeler uzun, 3 sütun → 12 – 18 – 24 */
 const EXERCISES = [
 {
@@ -1587,7 +1591,7 @@ audTrials: () => { storyChecked = {}; const ls = lastStory();
 if(currentStageIndex === 1 && ls){ const st = storyById(ls.id); if(st) return [st]; }   /* Aşama 2: gecikmeli (strateji aşaması kaldırıldı) */
 return [storyPick()]; },   /* Hikâye Hatırlama düzeyleri kuralı: hikâye düzeyin bankasından */
 audRender: (items) => renderStoryBoard(items),
-autoScore: () => storyScore(), judgeTotal: () => currentGrid[0].units.length,   /* kendiliğinden sayaç Başlat'ta kuralı; düzey geçişi orana göre */
+autoScore: () => storyScore(), judgeTotal: () => currentGrid[0].units.length,   /* sayaç dokundukça kendiliğinden hesaplanır (Başlat'ta 0); düzey geçişi orana göre */
 randomItem: () => ({}),
 stages: [ { label: "Aşama 1 · Hemen Anlat", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Gecikmeli (10–15 dk sonra)", instruction: () => ``, example: () => `` } ]
 },
@@ -1682,7 +1686,7 @@ isAuditory: true, attrs: [], errorLabel: "Hatırlanmayan kelime sayısı",
 
 audTrials: () => { ckMarks = {}; return llBuild(); },
 audRender: (items) => llRender(items),
-autoScore: () => llScore(),   /* Liste Öğrenme dokunmatik kuralı: sayaç Başlat'ta kelime sayısından başlar, dokundukça kendiliğinden azalır */
+autoScore: () => llScore(),   /* Liste Öğrenme dokunmatik kuralı: sayaç dokundukça kendiliğinden hesaplanır (Başlat'ta 0) */
 randomItem: () => ({}),
 stages: [ { label: "Aşama 1 · Tekrarlı Öğrenme", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Gecikmeli + Tanıma", instruction: () => ``, example: () => `` } ]
 },
@@ -1694,6 +1698,7 @@ isAuditory: true, attrs: [], errorLabel: "Kendiliğinden hatırlanmayan kelime",
 
 audTrials: () => { ckMarks = {}; return clBuild(); },
 audRender: (items) => clRender(items),
+judgeTotal: () => currentGrid[0].flat.length,   /* Kategorili Liste beş kategori kuralı: düzey geçişi orana göre (15 – 25 kelimede iki unutulan kelime düşük sayılmaz) */
 randomItem: () => ({}),
 /* KURAL (Kategorili Liste üç aşama, 2026-11-18): her zorluk düzeyinde üç aşama vardır; destek aşama aşama azalır — Aşama 1 · Gruplu Dinle (kelimeler grup grup, önce grubun adı söylenerek okunur), Aşama 2 · Karışık Dinle + İpucu (kelimeler karışık okunur; serbest hatırlamadan sonra eksik gruplar için "… hangileriydi?" ipucu verilir — önceki tek aşama), Aşama 3 · Karışık Dinle, İpucusuz (karışık okunur, grup adı söylenmez, ipucu verilmez; çocuk kendisi gruplar). Kelime sayısı düzeyin eskisi gibi (kural: Kategorili Liste kelime sayısı). Puanlama aynı: kendiliğinden hatırlanmayan her kelime */
 stages: [ { label: "Aşama 1 · Gruplu Dinle", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Karışık Dinle + İpucu", instruction: () => ``, example: () => `` }, { label: "Aşama 3 · Karışık Dinle, İpucusuz", instruction: () => ``, example: () => `` } ]
@@ -3095,9 +3100,9 @@ example: () => ``
 },
 {
 id: "sentence-repeat",
-dims: () => PHRASE_DIMS(),   /* Cümle/Öbek Tekrarı düzeyleri kuralı (2026-11-18): 4 – 6 – 8 öbek */
-readingLevel: ["post"],
-label: "Cümle/Öbek Tekrarı",
+dims: () => PHRASE_DIMS(),   /* Cümle/Öbek Tekrarı düzeyleri kuralı (2026-11-18): 4 – 6 – 8 öbek; okul öncesi 2 – 3 – 4 */
+readingLevel: ["pre","post"],
+label: "Özellik ve Varlık Tekrarları",
 isRecall: true,
 attrs: ["phrase"],
 randomItem: () => ({ phrase: randomItem(PHRASE_POOL) }), uniqueFrom: () => PHRASE_POOL, itemFrom: (w) => ({ phrase: w }),
@@ -3155,8 +3160,9 @@ readingLevel: ["pre","post"],
 label: "Şekil Hatırlama",
 isRecall: true,
 attrs: ["shape","color"],
-dims: () => isPre() ? [{rows:2, cols:2}, {rows:2, cols:3}, {rows:2, cols:4}] : [{rows:2, cols:4}, {rows:2, cols:5}, {rows:3, cols:4}],
+dims: () => RECALL_DIMS(),   /* Şekil ve Renk Hatırlama öğe sayısı kuralı (2026-11-18): okul öncesi 2 – 3 – 4, okul sonrası 4 – 6 – 8 */
 randomItem: () => ({ shape: randomItem(SHAPES), color: randomItem(COLORS) }),
+recallGrid: (n) => { let g = [], k = 0; do { const sh = recallDeal(SHAPES, n), co = recallDeal(COLORS, n); g = sh.map((shape, i) => ({ shape, color: co[i] })); } while(k++ < 40 && new Set(g.map(x => x.shape + "/" + x.color)).size < n); return g; },
 renderItem: (item) => shapeSVG(item.shape, item.color),
 stages: [
 {
@@ -3199,8 +3205,9 @@ readingLevel: ["pre","post"],
 label: "Renk Hatırlama",
 isRecall: true,
 attrs: ["color"],
-dims: () => isPre() ? [{rows:2, cols:2}, {rows:2, cols:3}, {rows:2, cols:4}] : [{rows:2, cols:4}, {rows:2, cols:5}, {rows:3, cols:4}],
+dims: () => RECALL_DIMS(),   /* Şekil ve Renk Hatırlama öğe sayısı kuralı (2026-11-18): okul öncesi 2 – 3 – 4, okul sonrası 4 – 6 – 8 */
 randomItem: () => ({ color: randomItem(COLORS) }),
+recallGrid: (n) => recallDeal(COLORS, n).map(color => ({ color })),
 renderItem: (item) => colorSwatchHTML(item.color),
 stages: [
 {

@@ -790,6 +790,15 @@ let _stimBus = null;
 function stimBus(ctx){ if(_stimBus && _stimBus.context === ctx) return _stimBus; try{ const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -3; lim.knee.value = 2; lim.ratio.value = 12; lim.attack.value = 0.002; lim.release.value = 0.1; const g = ctx.createGain(); g.gain.value = 1; g.connect(lim); lim.connect(ctx.destination); _stimBus = g; return g; }catch(e){ return ctx.destination; } }
 function stimTone(ctx, f, t0, dur, vol){ [[f, "triangle", vol], [f * 2, "sine", vol * 0.45]].forEach(([fr, ty, v]) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = ty; o.frequency.setValueAtTime(fr, t0); g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(v, t0 + 0.008); g.gain.setValueAtTime(v, t0 + dur * 0.55); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur); o.connect(g); g.connect(stimBus(ctx)); o.start(t0); o.stop(t0 + dur + 0.02); }); }
 function rhyBeep(){ zaAudioPlay((ctx) => stimTone(ctx, 880, ctx.currentTime + 0.005, 0.16, 0.62), 100); }   /* ses zamanında çalar kuralı: ritim vuruşu geç çalmaz */
+const VR_STUDY = { pre:[2, 3, 4], post:[4, 5, 6] }, VR_SETS = 3;
+/* Bunu Gördün mü? üç set kuralı: resim havuzu — temel havuz (26 resim) yetmezse geniş havuz (hayvan, deniz canlısı, taşıt resimleri dahil) kullanılır; aynı adı taşıyan iki resim birlikte gelmez */
+function vrPool(need){ const base = picPool(); const src = base.length >= need ? base : picPoolWide(), seen = new Set(); return src.filter(x => { if(seen.has(x.n)) return false; seen.add(x.n); return true; }); }
+/* Bunu Gördün mü? üç set kuralı: seti başlatır — önce setin resimleri tek tek gösterilir (gecikmeli aşamada gösterim yok), sonra sorulur; gösterilen setler gecikmeli aşama için saklanır */
+function vrSetStart(){ const st = mtState, g = st.sets[st.set]; st.study = g.study; st.test = g.test; st.qi = 0; st.fb = null;
+if(st.delayed){ st.phase = "ask"; renderMtBoard(); return; }
+st.phase = "study"; st.si = -1; renderMtBoard(); const step = isPre() ? 1700 : 1400, lead = st.set ? 1300 : 300;   /* yeni sette kısa bir "yeni resimler" arası */
+st.study.forEach((x, k) => mtLater(() => { st.si = k; renderMtBoard(); }, lead + k * step));
+mtLater(() => { if(currentStageIndex === 0){ const shown = st.sets.slice(0, st.set + 1).map(q => q.study.map(x => x.k)); delaySet("recog", { keys: [].concat(...shown), sets: shown }); } st.phase = "ask"; renderMtBoard(); }, lead + st.study.length * step + 300); }
 function memBuild(){ const t = currentCombo().t, P = (isPre() ? [2, 3, 4] : [4, 6, 8])[t], pics = shuffleArray(picPool()).slice(0, P);
 return { cards: shuffleArray(pics.concat(pics).map((x, i) => ({ x }))), P }; }
 
@@ -2347,12 +2356,15 @@ mtState = { kind:"miss", trials: Array.from({length: isPre() ? 3 : 5}, () => { c
 const want = (isPre() ? [3, 3, 4] : [3, 4, 5])[Math.min(t, 2)]; return { set, gone, opts: shuffleArray([set[gone]].concat(p.slice(N, N + want - 1))), shuffle: t > 0 }; })   /* seçenek sayısı düzeye göre */, ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
 "vis-chg": () => { const t = currentCombo().t, N = (isPre() ? [3, 4, 5] : [4, 6, 8])[t];
 mtState = { kind:"chg", trials: Array.from({length: isPre() ? 3 : 5}, () => { const p = shuffleArray(picPool()); return { set: p.slice(0, N), at: Math.floor(Math.random() * N), neo: p[N] }; }), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
-"vis-recog": () => { const t = currentCombo().t, M = (isPre() ? [4, 5, 6] : [6, 8, 10])[t], pool = shuffleArray(picPool());
-let study = pool.slice(0, M), fresh = pool.slice(M, M * 2), delayed = false;
-if(currentStageIndex === 1){ const d = delayGet("recog"); if(d && d.keys){ const byK = Object.fromEntries(picPool().map(x => [x.k, x])); const s2 = d.keys.map(k => byK[k]).filter(Boolean);
-if(s2.length){ study = s2; fresh = shuffleArray(picPool().filter(x => !d.keys.includes(x.k))).slice(0, s2.length); delayed = true; } } }
-mtState = { kind:"recog", study, test: shuffleArray(study.map(x => ({ x, old:true })).concat(fresh.map(x => ({ x, old:false })))), qi:0, wrong:0, hits:0, fa:0, phase:"idle", delayed };
-return mtState.test; },
+/* KURAL (Bunu Gördün mü? üç set, 2026-11-18; kullanıcı kararı): akılda tutulacak resim sayısı okul öncesinde Başlangıç 2, Orta 3, Zor 4; okul sonrasında 4, 5, 6 (önceden 4 – 5 – 6 / 6 – 8 – 10). Bir oyun ÜÇ settir: her sette yeni resimler gösterilir, sonra o setin resimleri eşit sayıda yeni resimle karışık sorulur (Gördüm / Görmedim). Üç sette aynı resim iki kez gelmez (yeni resimler dahil). Sonuç üç setin toplamıdır. Gecikmeli aşama üç setin resimlerini yine üç set hâlinde sorar (gösterim yok); yarıda bırakılan oyunda yalnız gösterilmiş setler sorulur */
+"vis-recog": () => { const t = currentCombo().t, M = (isPre() ? VR_STUDY.pre : VR_STUDY.post)[t], pool = shuffleArray(vrPool(VR_SETS * 2 * M));
+const deal = (rest, o, n) => Array.from({length: Math.min(n, rest.length)}, (_, i) => rest[(o + i) % rest.length]);   /* yeni resimler: havuz yeterse hiçbiri tekrar etmez */
+const rest0 = pool.slice(VR_SETS * M); let groups = Array.from({length: VR_SETS}, (_, s) => ({ study: pool.slice(s * M, s * M + M), fresh: deal(rest0, s * M, M) })), delayed = false;
+if(currentStageIndex === 1){ const d = delayGet("recog"); if(d && d.keys){ const wide = vrPool(999), byK = Object.fromEntries(wide.map(x => [x.k, x])); const ks = (Array.isArray(d.sets) && d.sets.length ? d.sets : [d.keys]).map(g => g.map(k => byK[k]).filter(Boolean)).filter(g => g.length);
+if(ks.length){ const rest = shuffleArray(wide.filter(x => !d.keys.includes(x.k))); let o = 0; groups = ks.map(study => { const fresh = deal(rest, o, study.length); o += study.length; return { study, fresh }; }); delayed = true; } } }
+const sets = groups.map(g => ({ study: g.study, test: shuffleArray(g.study.map(x => ({ x, old:true })).concat(g.fresh.map(x => ({ x, old:false })))) }));
+mtState = { kind:"recog", sets, set:0, study: sets[0].study, test: sets[0].test, total: sets.reduce((a, g) => a + g.study.length, 0), qi:0, wrong:0, hits:0, fa:0, phase:"idle", delayed };
+return [].concat(...sets.map(g => g.test)); },
 ...Object.fromEntries(Object.keys(QZ).map(id => [id, () => { mtState = { kind:"quiz", qid:id, trials: qzSpreadAns(qzTierOpts(id, QZ[id]())), ti:0, wrong:0, phase:"idle" }; return mtState.trials; }])),
 "size-touch": () => { mtState = { kind:"size", desc: stIx() === 1, trials: szBuild(), ti:0, pos:0, wrong:0, phase:"idle", marks:{} }; return mtState.trials; },   /* Aşama 2: büyükten küçüğe */
 "move-seq": () => { mtState = { kind:"movesay", trials: moveTrials(), ti:0, wrong:0, ok:0, phase:"idle" }; return mtState.trials; },
@@ -2467,11 +2479,7 @@ chg(){ const st = mtState, tr = st.trials[st.ti]; st.phase = "study"; renderMtBo
 const ms = tr.set.length * (isPre() ? 1100 : 800) + 1000;
 mtLater(() => { st.phase = "blank"; renderMtBoard(); }, ms);
 mtLater(() => { st.phase = "ask"; st.pick = null; renderMtBoard(); }, ms + 900); },
-recog(){ const st = mtState;
-if(st.delayed){ st.phase = "ask"; renderMtBoard(); return; }
-st.phase = "study"; st.si = -1; renderMtBoard(); const step = isPre() ? 1700 : 1400;
-st.study.forEach((x, k) => mtLater(() => { st.si = k; renderMtBoard(); }, 300 + k * step));
-mtLater(() => { if(currentStageIndex === 0) delaySet("recog", { keys: st.study.map(x => x.k) }); st.phase = "ask"; renderMtBoard(); }, 300 + st.study.length * step + 300); },
+recog(){ vrSetStart(); },
 samenum(){ const st = mtState; st.phase = "input"; renderMtBoard(); },
 quiz(){ qzStart(); },
 flu(){ const st = mtState; st.phase = "run"; st.t0 = Date.now(); renderMtBoard(); sayTask(st.P.say, 0.9);
@@ -2882,7 +2890,7 @@ st.qi++; if(st.qi >= st.qs.length){ mtFinish(st.manual ? "" : ` Doğru: ${st.ok}
 recog(v){ const st = mtState; if(st.phase !== "ask") return; const it = st.test[st.qi], ok = (v === 1) === it.old;
 if(ok){ gameSfx("correct"); if(it.old) st.hits++; } else { mtErr(); if(!it.old) st.fa++; }
 st.fb = ok ? "ok" : "bad"; st.phase = "fb"; renderMtBoard();
-mtLater(() => { st.fb = null; st.qi++; if(st.qi >= st.test.length){ mtFinish(` Doğru tanınan: ${st.hits}/${st.study.length}, yanlış "gördüm": ${st.fa}.`); return; } st.phase = "ask"; renderMtBoard(); }, ok ? 450 : 1000); }
+mtLater(() => { st.fb = null; st.qi++; if(st.qi >= st.test.length){ if(st.set < st.sets.length - 1){ st.set++; vrSetStart(); return; }   /* üç set kuralı: set bitince sonraki set gelir */ mtFinish(` Doğru tanınan: ${st.hits}/${st.total}, yanlış "gördüm": ${st.fa}.`); return; } st.phase = "ask"; renderMtBoard(); }, ok ? 450 : 1000); }
 },
 btn: {
 "hear-done"(){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "input") return;
@@ -2988,7 +2996,7 @@ if(st.kind === "absay") return { info:`Bitti · uygun <b>${st.okN}</b> · uygun 
 if(st.kind === "whatdo") return { info:`Bitti · uygun <b>${st.okN}</b> · uygun değil <b>${st.wrong}</b>`, body:"" };
 if(st.kind === "scene") return { info:`Bitti · doğru <b>${st.ok}/${st.qs.length}</b>`, body:"" };
 if(st.kind === "scenet") return { info:"Bitti!", body:"" };
-if(st.kind === "recog") return { info:`Bitti · doğru tanınan <b>${st.hits}/${st.study.length}</b> · yanlış "gördüm" <b>${st.fa}</b>`, body:"" };
+if(st.kind === "recog") return { info:`Bitti · ${st.sets.length} set · doğru tanınan <b>${st.hits}/${st.total}</b> · yanlış "gördüm" <b>${st.fa}</b>`, body:"" };
 return { info:"Bitti!", body: dots };
 }
 if(st.kind === "hear"){
@@ -3021,12 +3029,16 @@ const now = tr.set.map((x, i) => i === tr.at ? tr.neo : x);
 body = dots + grid(now, (x, i, c) => pic(x, i, c, st.phase === "fb" ? (i === tr.at ? "ok" : (i === st.pick ? "bad" : "")) : ""));
 }
 } else if(st.kind === "recog"){
-if(st.phase === "study"){ const x = st.study[st.si], sz = Math.min(isLs ? H - 30 : 190, W * 0.6);
-return { info:`<b>İyi bak…</b> ${Math.max(0, st.si + 1)}/${st.study.length}`, body:`<div class="wm-card" style="width:${sz}px;height:${sz}px;">${x ? imgTag(x.src) : ""}</div>` }; }
-const it = st.test[Math.min(st.qi, st.test.length - 1)], sz = Math.min(isLs ? H - 80 : 180, W * 0.55);
-info = `${st.delayed ? "⏰ " : ""}<b>Bunu gördün mü?</b> · ${st.qi + 1}/${st.test.length}`;
-body = `<div class="wm-card${st.fb ? " " + st.fb : ""}" style="width:${sz}px;height:${sz}px;${st.fb === "ok" ? "border-color:#1FA463" : st.fb === "bad" ? "border-color:#E5484D" : ""}">${imgTag(it.x.src)}</div>` +
-`<div class="wm-btns" style="margin:10px auto 0"><button type="button" class="wm-btn same" data-judge="1">Gördüm</button><button type="button" class="wm-btn diff" data-judge="0">Görmedim</button></div>`;
+const setLbl = `<b>Set ${st.set + 1} / ${st.sets.length}</b> · `;
+/* KURAL (Bunu Gördün mü? ekrana sığar, 2026-11-18): resim kartı kalan yere göre boyutlanır — dikeyde kart, soru satırı ve Gördüm / Görmedim düğmeleri küçük ekranda da (iPhone SE, uzun yönerge) bütünüyle görünür; yatayda kart ile düğmeler yan yana durur, resim boyun izin verdiği kadar büyük olur (önceden alçak yatay ekranda resim 60 px'e kadar küçülüyordu) */
+const fk = window._fitK || 1, rfH = (!isLs && document.documentElement.classList.contains("run-focus") && window._rfMax) ? window._rfMax : 0;
+if(st.phase === "study"){ const x = st.study[st.si], sz = Math.max(72, Math.min(isLs ? H - 6 : 190, W * 0.6, rfH ? rfH - 80 : 999) * fk);
+return { info: x ? `${setLbl}<b>İyi bak…</b> ${st.si + 1}/${st.study.length}` : `${setLbl}${st.set ? "yeni resimler geliyor…" : "<b>İyi bak…</b>"}`, body:`<div class="wm-card" style="width:${sz}px;height:${sz}px;">${x ? imgTag(x.src) : ""}</div>` }; }
+const it = st.test[Math.min(st.qi, st.test.length - 1)], tight = !!(rfH && rfH - 166 < 120), sz = Math.max(72, Math.min(isLs ? H - 6 : 180, isLs ? W * 0.34 : W * 0.55, rfH ? rfH - (tight ? 154 : 166) : 999) * fk);   /* dar dikey ekranda düğmeler 52 px'e iner, resme yer kalır */
+info = `${st.delayed ? "⏰ " : ""}${setLbl}<b>Bunu gördün mü?</b> · ${st.qi + 1}/${st.test.length}`;
+const card = `<div class="wm-card${st.fb ? " " + st.fb : ""}" style="width:${sz}px;height:${sz}px;flex:0 0 auto;${st.fb === "ok" ? "border-color:#1FA463" : st.fb === "bad" ? "border-color:#E5484D" : ""}">${imgTag(it.x.src)}</div>`,
+btns = `<div class="wm-btns" style="${isLs ? "margin:0;flex:1 1 0;max-width:340px" : "margin:10px auto 0"}"><button type="button" class="wm-btn same" data-judge="1"${tight ? ' style="height:52px"' : ""}>Gördüm</button><button type="button" class="wm-btn diff" data-judge="0"${tight ? ' style="height:52px"' : ""}>Görmedim</button></div>`;
+body = isLs ? `<div class="vr-row" style="display:flex;align-items:center;justify-content:center;gap:18px">${card}${btns}</div>` : card + btns;
 } else if(st.kind === "quiz"){
 const r = qzRender(st, W, H, isLs); info = r.info; body = r.body;
 } else if(st.kind === "flu"){

@@ -75,6 +75,7 @@ function renderBoard(){
 const ex = currentExercise();
 const board = document.getElementById("board");
 board.classList.remove("rc-board-off");   /* Rakam Dizisi kapanınca kuralı: yeni çizimde tahta geri gelir */
+try{ board.classList.toggle("ds-res", dsIs()); board.classList.toggle("ds-live", !!(dsIs() && dsRun && timerRunning && document.getElementById("dsBar"))); }catch(e){}   /* yatayda çubuğun yeri ayrılır kuralı: yer, tahta dizilmeden önce ayrılır */
 clearAudTimers();
 { const k = document.getElementById("recallKey"); if(k && !recallListen()) k.remove(); }
 removeRecallChecklist(); try{ hideCaption(); }catch(e){}
@@ -244,7 +245,7 @@ if(btn) btn.setAttribute("aria-expanded", open ? "true" : "false");
 }
 
 /* KURAL (yazılı tahta tek ekran, 2026-11-15): yazı sığsın diye sütun sayısı azalınca satırlar yeniden ölçülür — bütün satırlar tahtaya ayrılan yüksekliğe sığar (satır 26–64 px, satır arası 6 px), yazı gerekirse küçülür (taban 14 px, Renk-Kelime 12 px); çalışırken bütün satırlar ekranda görünür. Önceden sütun azalınca fazla satırlar 48 px'lik ek satırlar olarak tahtanın altına taşıyordu (Cümle/Öbek Tekrarı, Hece Sayma, Benzerlik Bulma) */
-function txtRowsFit(board, cols, n, onlyIfOver){ if(landscapeMQ.matches){ try{ const cs = getComputedStyle(board), h = window.innerHeight - board.getBoundingClientRect().top - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 14, r = Math.ceil(n / cols), gy = 4, tr = Math.max(26, Math.min(56, Math.floor((h - (r - 1) * gy) / r))); board.style.gridTemplateRows = `repeat(${r}, ${tr}px)`; board.style.rowGap = gy + "px"; board.style.alignContent = "start"; board.style.setProperty("--txt-minh", tr + "px"); board.dataset.txtRows = "1"; return r * 26 + (r - 1) * gy <= h + 1; }catch(e){ return false; } }   /* yazılı tahta yatay kuralı: yatayda da satırlar ekrana sığdırılır */
+function txtRowsFit(board, cols, n, onlyIfOver){ if(landscapeMQ.matches){ try{ const cs = getComputedStyle(board), h = window.innerHeight - board.getBoundingClientRect().top - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 14 - (board.classList.contains("ds-res") ? 34 : 0)   /* yatayda çubuğun yeri ayrılır kuralı */, r = Math.ceil(n / cols), gy = 4, tr = Math.max(26, Math.min(56, Math.floor((h - (r - 1) * gy) / r))); board.style.gridTemplateRows = `repeat(${r}, ${tr}px)`; board.style.rowGap = gy + "px"; board.style.alignContent = "start"; board.style.setProperty("--txt-minh", tr + "px"); board.dataset.txtRows = "1"; return r * 26 + (r - 1) * gy <= h + 1; }catch(e){ return false; } }   /* yazılı tahta yatay kuralı: yatayda da satırlar ekrana sığdırılır */
   try{ const cs = getComputedStyle(board); const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; const focus = document.documentElement.classList.contains("run-focus") && window._rfMax; const availAll = focus ? window._rfMax : Math.max(window.innerHeight - board.getBoundingClientRect().top - barH - 12 - 16, window.innerHeight * 0.62); const h = availAll - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 16; const r = Math.ceil(n / cols); let gy = 6; if(onlyIfOver){ const rt = (getComputedStyle(board).gridTemplateRows || "").split(" ").filter(Boolean).map(parseFloat), g0 = parseFloat(getComputedStyle(board).rowGap) || 0; const need = rt.reduce((a, b) => a + b, 0) + Math.max(0, rt.length - 1) * g0; if(!(rt.length && need > h + 1)) return; } let tr = Math.floor((h - (r - 1) * gy) / r); delete board.dataset.txtTight;
     /* KURAL (küçük ekranda sıkı satır, 2026-11-16): satırlar 26 px'lik tabanla da sığmıyorsa (iPhone SE dikey: Cümle/Öbek Tekrarı, Hece Sayma 3. düzey) satır arası 3 px'e iner, satır 17 px'e kadar küçülür, yazının iç boşluğu daralır ve gerekirse yazı 13 px'e iner (yalnız sığmayan tahtada) — bütün satırlar ekranda kalır */
     if(tr < 26){ gy = 3; tr = Math.max(17, Math.floor((h - (r - 1) * gy) / r)); board.dataset.txtTight = "1"; } else tr = Math.min(64, tr);
@@ -1786,7 +1787,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.18-l";
+const APP_VERSION = "2026.11.18-n";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 /* RUNTIME_CSS → zihin-stil.css */
 /* Dosya sürümü denetimi: zihin-atolyesi.html ile uygulama kodu (zihin-1…8) farklı sürümdeyse uyar */
