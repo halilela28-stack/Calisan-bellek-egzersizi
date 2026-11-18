@@ -1584,9 +1584,10 @@ readingLevel: ["post"],
 label: "Hikâye Hatırlama",
 isAuditory: true, attrs: [], errorLabel: "Hatırlanmayan ayrıntı sayısı",
 audTrials: () => { storyChecked = {}; const ls = lastStory();
-if(currentStageIndex === 1 && ls){ const st = STORIES_POST.find(x => x.id === ls.id); if(st) return [st]; }   /* Aşama 2: gecikmeli (strateji aşaması kaldırıldı) */
-return [randomItem(STORIES_POST)]; },
+if(currentStageIndex === 1 && ls){ const st = storyById(ls.id); if(st) return [st]; }   /* Aşama 2: gecikmeli (strateji aşaması kaldırıldı) */
+return [storyPick()]; },   /* Hikâye Hatırlama düzeyleri kuralı: hikâye düzeyin bankasından */
 audRender: (items) => renderStoryBoard(items),
+autoScore: () => storyScore(), judgeTotal: () => currentGrid[0].units.length,   /* kendiliğinden sayaç Başlat'ta kuralı; düzey geçişi orana göre */
 randomItem: () => ({}),
 stages: [ { label: "Aşama 1 · Hemen Anlat", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Gecikmeli (10–15 dk sonra)", instruction: () => ``, example: () => `` } ]
 },
@@ -1681,6 +1682,7 @@ isAuditory: true, attrs: [], errorLabel: "Hatırlanmayan kelime sayısı",
 
 audTrials: () => { ckMarks = {}; return llBuild(); },
 audRender: (items) => llRender(items),
+autoScore: () => llScore(),   /* Liste Öğrenme dokunmatik kuralı: sayaç Başlat'ta kelime sayısından başlar, dokundukça kendiliğinden azalır */
 randomItem: () => ({}),
 stages: [ { label: "Aşama 1 · Tekrarlı Öğrenme", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Gecikmeli + Tanıma", instruction: () => ``, example: () => `` } ]
 },
@@ -1693,7 +1695,8 @@ isAuditory: true, attrs: [], errorLabel: "Kendiliğinden hatırlanmayan kelime",
 audTrials: () => { ckMarks = {}; return clBuild(); },
 audRender: (items) => clRender(items),
 randomItem: () => ({}),
-stages: [ { label: "Serbest + İpuçlu", instruction: () => ``, example: () => `` } ]
+/* KURAL (Kategorili Liste üç aşama, 2026-11-18): her zorluk düzeyinde üç aşama vardır; destek aşama aşama azalır — Aşama 1 · Gruplu Dinle (kelimeler grup grup, önce grubun adı söylenerek okunur), Aşama 2 · Karışık Dinle + İpucu (kelimeler karışık okunur; serbest hatırlamadan sonra eksik gruplar için "… hangileriydi?" ipucu verilir — önceki tek aşama), Aşama 3 · Karışık Dinle, İpucusuz (karışık okunur, grup adı söylenmez, ipucu verilmez; çocuk kendisi gruplar). Kelime sayısı düzeyin eskisi gibi (kural: Kategorili Liste kelime sayısı). Puanlama aynı: kendiliğinden hatırlanmayan her kelime */
+stages: [ { label: "Aşama 1 · Gruplu Dinle", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Karışık Dinle + İpucu", instruction: () => ``, example: () => `` }, { label: "Aşama 3 · Karışık Dinle, İpucusuz", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "nonword",
@@ -2067,7 +2070,8 @@ label: "Kim Söyledi?",
 isMt: true, attrs: [], speedFactor: 6,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
-stages: [ { label: "Dinle ve Hatırla", instruction: () => ``, example: () => `` } ]
+/* KURAL (Kim Söyledi üç aşama, 2026-11-18): her zorluk düzeyinde üç aşama vardır — Aşama 1 · Gör ve Dinle (çocuk söylenen resmi görür ve duyar; sonra resim gelir, kimin söylediği seçilir), Aşama 2 · Yalnız Dinle (söylenen resim gösterilmez, yalnız duyulur; soru aynı), Aşama 3 · Kim Ne Söyledi? (soru tersine döner: çocuk gösterilir, onun söylediği resim üç seçenekten seçilir; öteki iki seçenek başka çocuğun söylediklerindendir). Kişi ve resim sayısı düzeyin eskisi gibi (okul öncesi 2 kişi 4 – 5 – 6 resim; okul sonrası 2 – 2 – 3 kişi 4 – 6 – 8 resim). Önceden tek aşamaydı */
+stages: [ { label: "Aşama 1 · Gör ve Dinle", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Yalnız Dinle", instruction: () => ``, example: () => `` }, { label: "Aşama 3 · Kim Ne Söyledi?", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "rhythm",

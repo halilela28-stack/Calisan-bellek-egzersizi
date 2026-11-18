@@ -540,6 +540,7 @@ const ZA_LIFE = {
 function startTimer(){ try{ const gm = typeof gameMode !== "undefined" && gameMode; if(window.__zaInstrActive && !timerRunning){ zaStopSpeech(); } /* Başlat yönerge okumasını durdurur (oyunda da) */ }catch(e){}  window.__zaStartAt = Date.now(); if(!(typeof gameMode !== "undefined" && gameMode) && !(currentPlayerName || "").trim() && document.getElementById("mainApp").style.display !== "none" && !window.__qaNoPlayerGuard){ try{ const row = document.getElementById("playerRow"); row.scrollIntoView({ behavior:"smooth", block:"center" }); row.classList.remove("attn"); void row.offsetWidth; row.classList.add("attn"); }catch(e){} showToast("Başlamadan önce kimin çalıştığını seçin", "err"); return; }
 window._incomplete = false; setLsOpen(false);
 if(elapsedMs < 50) ZA_LIFE.freshAttempt(currentExercise());
+try{ const __ex = currentExercise(); if(elapsedMs < 50 && __ex.autoScore && !(typeof gameMode !== "undefined" && gameMode)) setTimeout(() => { try{ if(timerRunning && currentExercise() === __ex) setErrorCount(__ex.autoScore()); }catch(e){} }, 0); }catch(e){}   /* KURAL (kendiliğinden sayaç Başlat'ta, 2026-11-18): dokunarak puanlanan sözel çalışmalarda (Liste Öğrenme, Hikâye Hatırlama) sayaç Başlat'ta "hepsi hatırlanmadı"dan başlar ve dokundukça azalır — önceden hiç dokunulmazsa 0 hata (tam başarı) sayılıyordu */
 try{ if(elapsedMs < 50) nbSeqStart(); }catch(e){}   /* KURAL: yeni başlayan çalışmada hata sayısı 0'dan başlar (başlamadan önce artırılmış sayı taşınmaz); arka plandan dönüşte sayı korunur */
 timerStartedAt = Date.now() - elapsedMs;
 timerInterval = setInterval(tickTimer, 100);
@@ -833,6 +834,7 @@ function adaptInevitable(ex){ try{ if(!ex || !mtState) return 0; if(ex.id === "r
 function recallJudge(correct){ const n = Math.max(1, recallTargets().length) * (dsIs() ? dsCount() : 1), ok = Math.max(0, Math.min(n, correct || 0)); return { isGood: ok >= Math.ceil(n * 0.8), isBad: ok < n / 2 }; }
 function sessionJudge(ms, errors){
 const ex = currentExercise(); if(ex.isRecall) return recallJudge(errors);   /* hatırlama çalışmalarında sayaç doğru sayısıdır */
+if(ex.judgeTotal){ try{ const n = Math.max(1, ex.judgeTotal()), ok = Math.max(0, n - (errors || 0)); return { isGood: ok >= Math.ceil(n * 0.8), isBad: ok < n / 2 }; }catch(e){} }   /* Hikâye Hatırlama düzeyleri kuralı: ayrıntıların en az %80'i → başarılı, yarısından azı → düşük */
 errors = Math.max(0, errors - adaptInevitable(ex));
 const itemCount = ex.isSeqRows ? Math.max(1, currentGrid.length * 2)
 : (ex.isFlanker || ex.isSort || ex.isTrail || ex.isPlan || ex.isSearch || ex.isWm || ex.isChoice || ex.isRt || ex.isMt) ? Math.max(1, currentGrid.length)
