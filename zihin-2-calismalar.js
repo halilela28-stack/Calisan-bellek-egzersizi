@@ -1,5 +1,5 @@
 /* Zihin Atölyesi — zihin-2-calismalar.js (2/8): çalışma tanımları (EXERCISES). Dosyalar zihin-atolyesi.html'de bu sırayla yüklenir; sıra değiştirilemez (önceki tek dosyanın ardışık parçalarıdır). */
-/* KURAL (yazılı tahta düzey boyu, 2026-11-15): kelime/öbek tahtalarında öğe sayısı 16 – 20 – 24 (4 sütuna tam bölünür; 3. düzey 25 değil 24 — son satırda tek kelime kalmaz, tahta tek sütuna düşmez). Renk-Kelime, Kelime Listesi, Kelime Gruplama, Hece Sayma, Cümle/Öbek Tekrarı */
+/* KURAL (yazılı tahta düzey boyu, 2026-11-15): kelime/öbek tahtalarında öğe sayısı 16 – 20 – 24 (4 sütuna tam bölünür; 3. düzey 25 değil 24 — son satırda tek kelime kalmaz, tahta tek sütuna düşmez). Renk-Kelime, Kelime Gruplama, Hece Sayma (Kelime Listesi 2026-11-17, Cümle/Öbek Tekrarı 2026-11-18 kendi düzeyleriyle — bkz. o kurallar) */
 /* KURAL (Rakam Dizisi tek dizi, 2026-11-16): sayfada tek dizi vardır — ileri sıra 3 – 4 – 5 rakam; ters sıra (Aşama 2) okul öncesi 2 – 2 – 3, okul sonrası 2 – 3 – 4 rakam. Rakamların hepsi birden ezberletilmez (3×3, 4×4, 5×5 tahta kaldırıldı); ekranda her zaman tek dizi görünür; diziler art arda gelir (bkz. Rakam Dizisi art arda dizi kuralı, 2026-11-17). */
 const DIGIT_DIMS = () => (stIx() === 1 ? (isPre() ? [2, 2, 3] : [2, 3, 4]) : [3, 4, 5]).map(n => ({ rows:1, cols:n }));
 /* KURAL (sözlü soru sayısı, 2026-11-16): Benzerlik Bulma, Kelime Tanımlama ve Genel Kavrama'da madde sayısı düzeyle azalmaz ve hiçbir düzeyde eskisini aşmaz — okul öncesi 3 – 4 – 5; okul sonrası Benzerlik 6 – 8 – 10, Kelime 4 – 5 – 5, Genel Kavrama 3 – 4 – 5. Sayfa tekrarsız listedir; bankalara madde eklenmez. */
@@ -8,6 +8,9 @@ const ORAL_Q_DIMS = { pre:[{rows:3, cols:1}, {rows:2, cols:2}, {rows:5, cols:1}]
 /* KURAL (Kelime Listesi Hatırlama düzeyleri, 2026-11-17): okul sonrası 5 – 7 – 9 kelime, okul öncesi 2 – 3 – 4 kelime (12 – 16 – 20 yerine; kullanıcı kararı); çalışma okul öncesinde de var. Kelimeler liste gibi tek sütunda alt alta durur (yatayda yazı sığdırma kuralına göre yan yana), son satır eksik kalmaz. Okul öncesinde yetişkin kelimeleri çocuğa okur */
 const WORD_LIST_N = { post:[5, 7, 9], pre:[2, 3, 4] };
 const WORD_LIST_DIMS = () => (isPre() ? WORD_LIST_N.pre : WORD_LIST_N.post).map(n => ({ rows:n, cols:1 }));
+/* KURAL (Cümle/Öbek Tekrarı düzeyleri, 2026-11-18): Başlangıç 4, Orta 6, Zor 8 öbek (16 – 20 – 24 yerine; kullanıcı kararı). Öbekler Kelime Listesi gibi dikeyde alt alta bir liste olarak durur, yatayda yazı sığdırma kuralına göre yan yana (yalnız tam bölen sütunlar). Öbek havuzu aynı; çalışma yalnız okul sonrasında */
+const PHRASE_N = [4, 6, 8];
+const PHRASE_DIMS = () => PHRASE_N.map(n => ({ rows:n, cols:1 }));
 const TXT_GRID_DIMS = [{rows:4, cols:4}, {rows:5, cols:4}, {rows:6, cols:4}], TXT_GRID_DIMS3 = [{rows:4, cols:3}, {rows:6, cols:3}, {rows:8, cols:3}];   /* Hece Sayma: kelimeler uzun, 3 sütun → 12 – 18 – 24 */
 const EXERCISES = [
 {
@@ -3088,7 +3091,7 @@ example: () => ``
 },
 {
 id: "sentence-repeat",
-dims: () => TXT_GRID_DIMS,   /* yazılı tahta düzey boyu kuralı: 16 – 20 – 24 */
+dims: () => PHRASE_DIMS(),   /* Cümle/Öbek Tekrarı düzeyleri kuralı (2026-11-18): 4 – 6 – 8 öbek */
 readingLevel: ["post"],
 label: "Cümle/Öbek Tekrarı",
 isRecall: true,

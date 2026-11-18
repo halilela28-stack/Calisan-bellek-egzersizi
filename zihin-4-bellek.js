@@ -488,7 +488,7 @@ const STORY_SEQ_TEXT = [ ["Çocuk koşarken düştü.","Annesi ona yardım etti.
 ["Çocuk saksıya tohum ekti.","Tohumu suladı.","Saksıda bir çiçek açtı."],
 ["Çocuk dişlerini fırçaladı.","Yatağına girdi.","Uyudu."] ];
 /* KURAL (Hikâyeyi Sırala düzeyleri, 2026-11-16): okul öncesinde yerinde duran kart sayısı 2 – 1 – 0 (1 – 0 – 0 yerine: Orta ile Zor aynıydı; Zor aynı kaldı, Başlangıç ve Orta kolaylaştı); okul sonrasında kart yerinde durmaz */
-/* KURAL (Hikâyeyi Sırala farklı resim, 2026-11-17): okul sonrasında Başlangıç'ta yalnız hikâyenin üç resmi sıralanır (eskisi gibi); Orta'da seçenekler arasında hikâyede olmayan bir resim, Zor'da iki resim vardır (başka hikâyelerden; iki farklı resim iki ayrı hikâyeden gelir). Olmayan resme dokunmak hatadır. Seçenek beşe çıkınca kartlar üç sütuna dizilir. Okul öncesi değişmedi */
+/* KURAL (Hikâyeyi Sırala farklı resim, 2026-11-17): okul sonrasında Başlangıç'ta yalnız hikâyenin üç resmi sıralanır (eskisi gibi); Orta'da seçenekler arasında hikâyede olmayan bir resim, Zor'da iki resim vardır (başka hikâyelerden; iki farklı resim iki ayrı hikâyeden gelir). Olmayan resme dokunmak hatadır. Seçenek kartları Hikâyeyi Sırala büyük resim kuralına göre dizilir (2026-11-18; önceden beşte üç sütun). Okul öncesi değişmedi */
 const STORY_EXTRA = [0, 1, 2];
 function storyOrderTrials(){ const t = currentCombo().t, ids = shuffleArray([0, 1, 2, 3]).slice(0, isPre() ? 2 : 3);
 return ids.map(si => { const cards = [0, 1, 2].map(k => ({ si, k }));
@@ -3425,12 +3425,19 @@ info = `<b>İzle ve dinle…</b> ${Math.max(0, k + 1)}/3`;
 body = dots + `<div class="wm-card" style="width:${w}px;height:${Math.round(w / 2)}px;padding:4px">${k >= 0 ? simg({ si: tr.si, k }) : ""}</div>${k >= 0 ? `<div style="font-weight:800;font-size:17px;margin-top:6px;text-align:center">${STORY_SEQ_TEXT[tr.si][k]}</div>` : ""}`;
 } else {
 info = tr.cards.some(c => c.extra) ? "<b>Sırala</b> · hikâyede olmayana dokunma" : "<b>Doğru sıraya</b> koy: önce olana dokun";
-const sw = Math.min(isLs ? (W * 0.5 - 30) / 3 : (W - 30) / 3, 150), sh = Math.round(sw / 2);
+/* KURAL (Hikâyeyi Sırala büyük resim, 2026-11-18): dikeyde seçenek resimleri tahtada kalan yere göre EN BÜYÜK boyda dizilir — 1, 2 ya da 3 sütundan resmi en büyük yapan seçilir (odak modunda tahtaya kalan gerçek yükseklik; en çok 220 px; hiçbir düzeyde önceki boyundan küçük olmaz). Yatayda beş seçenekte (Zor) sıralama yerleri üstte, seçenekler altta 1 – 5 sütun; 3 – 4 seçenekte önceki düzen (yerler solda). Dikeyde ve yatay Zor'da boyut bir turun başından sonuna aynı kalır (kart yerleştikçe küçülüp büyümez); sığmazsa sığdırma ölçeği (_fitK) küçültür. Önceden Zor'da beş seçenek üç sütunda ~100 px'lik küçük resimlerdi, altı boş kalıyordu. Resim oranı (2:1) korunur */
+const nAll = tr.cards.length, gp = 8, fk = window._fitK || 1, rfH = !isLs && document.documentElement.classList.contains("run-focus") && window._rfMax ? window._rfMax - 120 : 0;
+const hLim = (w0, rows, ah) => Math.min(w0, Math.max(0, (ah - (rows - 1) * gp) / rows) * 2);   /* yükseklik sınırı: satırlar ayrılan yüksekliğe sığar */
+const soFit = (aw, ah, maxNc) => { let f = null; for(let nc = 1; nc <= Math.min(nAll, maxNc); nc++){ const rows = Math.ceil(nAll / nc), w0 = hLim(Math.min((aw - (nc - 1) * gp) / nc, 220 * tabletScale()), rows, ah); if(!f || w0 > f.cw + 0.5) f = { nc, cw: w0 }; } return f; };
+let sw, fit, stack = true; const ncO = nAll > 4 ? 3 : 2, swO = Math.min(isLs ? (W * 0.5 - 30) / 3 : (W - 30) / 3, 150), wO = Math.min(isLs ? (W * 0.5 - 30) / ncO : (W - 10 * ncO) / ncO, 170);   /* önceki düzen (yerler solda, 2 – 3 sütun) */
+if(isLs){ const swT = Math.min((W - 30) / 3, 150, (H - 16) * 0.7), fT = soFit(W - 6, H - 49 - Math.round(swT / 2), 5); if(nAll >= 5){ sw = swT; fit = fT; } else { sw = swO; fit = { nc: ncO, cw: wO }; stack = false; } }   /* yatayda beş seçenekte yerler üstte, seçenekler altta tek satır (önceki düzen sığdırma ölçeğiyle küçülüyordu); 3 – 4 seçenekte önceki düzen */
+else { sw = Math.min((W - 30) / 3, 150); fit = soFit(W - 6, (rfH || H - 10) - Math.round(sw / 2), 3); if(wO > fit.cw + 0.5) fit = { nc: ncO, cw: wO }; }   /* dikeyde resim hiçbir düzeyde önceki boyundan küçük olmaz */
+sw = Math.floor(sw); const sh = Math.round(sw / 2);
 const slots = `<div style="display:flex;gap:6px;justify-content:center;margin-bottom:10px">${[0, 1, 2].map(k => { const ci = st.placed[k]; return `<div class="wm-card" style="width:${sw}px;height:${sh}px;padding:2px;position:relative;${ci == null ? "border-style:dashed" : ""}">${ci != null ? simg(tr.cards[ci]) : ""}<span class="num">${k + 1}</span></div>`; }).join("")}</div>`;
 const left = tr.cards.map((c, i) => ({ c, i })).filter(x => !st.placed.includes(x.i));
-const ncol = left.length > 4 ? 3 : 2, cw = Math.min(isLs ? (W * 0.5 - 30) / ncol : (W - 10 * ncol) / ncol, 170), ch = Math.round(cw / 2);   /* farklı resim kuralı: beş seçenekte üç sütun */
-const cards = `<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">${left.map(x => `<div class="wm-pic${st.bad[x.i] ? " bad" : ""}" data-mt="${x.i}" style="width:${cw}px;height:${ch}px;padding:3px">${simg(x.c)}</div>`).join("")}</div>`;
-body = dots + (isLs ? `<div style="display:flex;gap:14px;align-items:center;justify-content:center"><div>${slots}</div><div>${cards}</div></div>` : slots + cards);
+const ncol = fit.nc, cw = Math.floor(Math.max(fit.cw * fk, 72)), ch = Math.round(cw / 2);
+const cards = `<div style="display:flex;flex-wrap:wrap;gap:${gp}px;justify-content:center;max-width:${ncol * cw + (ncol - 1) * gp + 2}px;margin:0 auto">${left.map(x => `<div class="wm-pic${st.bad[x.i] ? " bad" : ""}" data-mt="${x.i}" style="width:${cw}px;height:${ch}px;padding:3px">${simg(x.c)}</div>`).join("")}</div>`;
+body = dots + (stack ? slots + cards : `<div style="display:flex;gap:14px;align-items:center;justify-content:center"><div>${slots}</div><div>${cards}</div></div>`);
 }
 } else if(st.kind === "absay"){
 const it = st.trials[Math.min(ti, st.trials.length - 1)], sz = Math.min(isLs ? Math.min(H - 70, W * 0.3) : 210, W * 0.62);
