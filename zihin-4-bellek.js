@@ -89,7 +89,7 @@ const MK_DISTRACT = ["20'den geriye doğru ikişer ikişer say", "haftanın gün
 function palPairsPre(){
 const P = (a, b, na, nb) => ({ a:{ src: PAIR_IMAGES[a], n: na }, b:{ src: PAIR_IMAGES[b], n: nb }, id: a + "-" + b });
 return [P("door","key","kapı","anahtar"), P("foot","shoe","ayak","ayakkabı"), P("tooth","toothbrush","diş","diş fırçası"), P("cloud","umbrella","bulut","şemsiye"),
-P("flower","wateringcan","çiçek","sulama kabı"), P("nail","hammer","çivi","çekiç"), P("letter","envelope","mektup","makas"), P("pencil","sharpener","kalem","kalemtıraş"),
+P("flower","wateringcan","çiçek","sulama kabı"), P("nail","hammer","çivi","çekiç"), P("letter","envelope","mektup","zarf"), P("pencil","sharpener","kalem","kalemtıraş"),
 { a:{ src: TA_ANIMALS.rabbit(), n:"tavşan" }, b:{ src: FRUIT_VEG_IMAGES.carrot, n:"havuç" }, id:"rabbit-carrot" },
 { a:{ src: WILD_IMAGES.monkey, n:"maymun" }, b:{ src: FRUIT_VEG_IMAGES.banana, n:"muz" }, id:"monkey-banana" },
 { a:{ src: TA_ANIMALS.cat(), n:"kedi" }, b:{ src: SEA_IMAGES.fish, n:"balık" }, id:"cat-fish" },
@@ -473,7 +473,8 @@ const body = dots + (isLs && (tr.stim || tr.replay) ? `<div style="display:flex;
 return { info: tr.prompt, body };
 }
 function szBuild(){ const t = currentCombo().t, N = (isPre() ? [3, 4, 4] : [3, 4, 5])[t], close = t === 2;
-return Array.from({length: qzTrials(5, 3)}, () => { const p = randomItem(picPool()), base = close ? 0.5 : 0.35, step = (1 - base) / (N - 1);
+const pics = shuffleArray(picPool());   /* turlarda aynı içerik gelmez kuralı: her turda başka resim */
+return Array.from({length: qzTrials(5, 3)}, (_, ti) => { const p = pics[ti % pics.length], base = close ? 0.5 : 0.35, step = (1 - base) / (N - 1);
 const sizes = Array.from({length:N}, (_, i) => +(base + step * i).toFixed(2)); return { src: p.src, sizes, order: shuffleArray(sizes.map((s, i) => i)) }; }); }
 
 
@@ -632,8 +633,9 @@ return qzMake(`<div style="font-size:26px;font-weight:900;color:var(--teal-dark)
 const SEQW = [ ["sabah","öğle","akşam","gece"], ["ilkbahar","yaz","sonbahar","kış"], ["bebek","çocuk","genç","yaşlı"], ["tohum","fidan","ağaç","meyve"], ["yumurta","civciv","tavuk"],
 ["pazartesi","salı","çarşamba","perşembe","cuma"], ["karınca","kedi","at","fil"], ["damla","su birikintisi","göl","deniz"], ["ocak","şubat","mart","nisan","mayıs"], ["bir","üç","beş","yedi","dokuz"] ];
 const SW_PRE_ANIMALS = () => [ ["papağan", TA_ANIMALS.parrot()], ["kedi", TA_ANIMALS.cat()], ["köpek", TA_ANIMALS.dog()], ["inek", TA_ANIMALS.cow()], ["fil", TA_ANIMALS.elephant()] ];
-function swBuildPre(){ const t = currentCombo().t, A = SW_PRE_ANIMALS(), sets = [[0, 1, 4], [0, 2, 3], [0, 1, 3, 4]];
-return Array.from({length:3}, () => { const idx = t === 0 ? sets[0] : t === 1 ? randomItem([[0, 1, 4], [0, 2, 3], [1, 3, 4]]) : sets[2]; return { seq: idx.map(i => A[i][0]), pics: idx.map(i => A[i][1]), cards: shuffleArray(idx.map((x, k) => k)) }; }); }
+function swBuildPre(){ const t = currentCombo().t, A = SW_PRE_ANIMALS();   /* turlarda aynı içerik gelmez kuralı: her tur başka hayvanlarla (boy farkları aynı açıklıkta); Zor'da kedi ile köpek birlikte gelmediğinden iki dörtlü var, art arda gelmezler */
+const sets = t === 0 ? shuffleArray([[0, 1, 4], [0, 1, 3], [0, 3, 4]]) : t === 1 ? shuffleArray([[0, 1, 4], [0, 2, 3], [1, 3, 4]]) : (() => { const z = shuffleArray([[0, 1, 3, 4], [0, 2, 3, 4]]); return [z[0], z[1], z[0]]; })();
+return sets.map(idx => ({ seq: idx.map(i => A[i][0]), pics: idx.map(i => A[i][1]), cards: shuffleArray(idx.map((x, k) => k)) })); }
 function swBuild(){ if(isPre()) return swBuildPre(); const t = currentCombo().t, L = [3, 4, 5][t];
 return shuffleArray(SEQW.filter(q => q.length >= L)).slice(0, 3).map(q => { const start = Math.floor(Math.random() * (q.length - L + 1)), seq = q.slice(start, start + L); return { seq, cards: shuffleArray(seq.map((w, i) => i)) }; }); }
 /* RHYME_TIPS: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
@@ -1049,9 +1051,10 @@ return `<svg viewBox="0 0 100 100" width="100%" height="100%" preserveAspectRati
 function blkTrials(){ const t = currentCombo().t, pre = isPre();
 const cfg = pre ? [ { n:2, faces:[0, 1], A:BLK_COL.a, B:BLK_COL.c }, { n:2, faces:[0, 1, 4, 5], A:BLK_COL.a, B:BLK_COL.d }, { n:2, faces:[0, 1, 4, 5], A:BLK_COL.a, B:BLK_COL.d, house:true } ][t]
 : [ { n:2, faces:[0, 1, 2, 3, 4, 5], A:BLK_COL.a, B:BLK_COL.b }, { n:3, faces:[0, 1, 2, 3, 4, 5], A:BLK_COL.a, B:BLK_COL.b }, { n:4, faces:[0, 1, 2, 3, 4, 5], A:BLK_COL.a, B:BLK_COL.b } ][t];
-return Array.from({length: pre ? 3 : 3}, () => { let model;
-if(cfg.house){ model = [4, 5, 1, 1]; }
-else if(pre && t === 0){ model = Math.random() < 0.5 ? [1, 0, 1, 0] : [1, 0, 0, 1]; }
+const preEasy = shuffleArray([[1, 0, 1, 0], [1, 0, 0, 1], [0, 1, 0, 1], [1, 1, 0, 0], [0, 0, 1, 1], [0, 1, 1, 0]]), houseRot = shuffleArray([0, 1, 2, 3]);   /* turlarda aynı içerik gelmez kuralı: okul öncesi Başlangıç'ta iki dolu bloklu altı desenden, Zor'da evin dört yönünden her tur başka biri (zorluk aynı) */
+return Array.from({length: pre ? 3 : 3}, (_, ti) => { let model;
+if(cfg.house){ model = blkRotModel([4, 5, 1, 1], 2, houseRot[ti]); }
+else if(pre && t === 0){ model = preEasy[ti]; }
 else { const n = cfg.n, half = Math.ceil(n / 2); model = Array(n * n).fill(0);
 for(let r = 0; r < n; r++) for(let c = 0; c < half; c++){ const f = randomItem(cfg.faces); model[r * n + c] = f; const mc = n - 1 - c; model[r * n + mc] = ({ 2:3, 3:2, 4:5, 5:4 })[f] || f; }
 if(model.every(x => x === model[0])) model[0] = model[0] === 1 ? 0 : 1; }
@@ -1817,7 +1820,7 @@ function qzBalancePos(trials, exId){ if(!Array.isArray(trials)) return trials; c
 function qzBalanceNum(trials){ if(!Array.isArray(trials)) return trials; const hist = [], use = {}; trials.forEach(t => { try{ if(!t || !Array.isArray(t.opts) || typeof t.ans !== "number" || t.ans < 0) return; const raw = t.opts.map(o => String(o)); if(raw.some(o => /👏/.test(o))) return; const plain = raw.map(o => o.replace(/<[^>]+>/g, "").trim()); if(!plain.every(x => /^\d+$/.test(x))) return; const k = plain.length, a = +plain[t.ans]; if(k < 3) return; const tmpl = (v) => raw[t.ans].replace(new RegExp("(^|>)(\\s*)" + a + "(\\s*)(<|$)"), "$1$2" + v + "$3$4"); use[k] = use[k] || new Array(k).fill(0); let allowed = Array.from({length: k}, (_, i) => i).filter(r => a - r >= 1); if(hist.length >= 2 && hist[hist.length - 1] === hist[hist.length - 2]) allowed = allowed.filter(r => r !== hist[hist.length - 1]); if(!allowed.length) return; const minU = Math.min(...allowed.map(r => use[k][r])); const r = randomItem(allowed.filter(x => use[k][x] === minU)); const vals = []; for(let i = r; i >= 1; i--) vals.push(a - i); vals.push(a); for(let i = 1; vals.length < k; i++) vals.push(a + i); const nopts = vals.map(v => tmpl(v)); if(new Set(nopts).size < k) return;   /* şablon sayıyı değiştiremediyse dokunma */ t.opts = nopts; t.ans = r; use[k][r]++; hist.push(r); }catch(e){} }); return trials; }
 /* sırası anlamlı seçeneklerde (sayı, hece sayısı, terazi yönü) cevap konumu içerikten gelir; aynı cevap üst üste 3. kez gelmesin diye denemelerin sırası değiştirilir (ısınma denemelerine dokunulmaz) */
 /* KURAL (içerik): bir oturumda aynı soru iki kez gelmez — tekrar eden soru aynı düzeyden yeni üretilen bir soruyla değiştirilir (havuz yetmezse en az 4 soru arayla) */
-function qzSig(q){ const sh = (o) => String(o == null ? "" : o).replace(/(?:src|href)="(data:[^"]+)"/g, (m, u) => "S" + u.length + u.slice(-12)).replace(/\s+/g, " "); return [q.stim, q.prompt, q.say, q.text, q.qk].map(sh).join("|") + "|" + (q.opts || []).map(sh).join("¦"); }
+function qzSig(q){ const sh = (o) => String(o == null ? "" : o).replace(/(?:src|href)="(data:[^"]+)"/g, (m, u) => "S" + u.length + u.slice(-12)).replace(/\s+/g, " "); const id = [q.stim, q.say, q.text, q.qk].map(sh).join("|"); return [q.prompt, q.stim, q.say, q.text, q.qk].map(sh).join("|") + (id.replace(/\|/g, "").trim() ? "" : "|" + (q.opts || []).map(sh).sort().join("¦")); }   /* turlarda aynı içerik gelmez kuralı (2026-11-18): sorunun kendisi (uyaran, okunan cümle) varsa aynı soru seçenekleri ya da sırası başka olsa da aynı sayılır (önceden dengeleme seçenekleri değiştirince aynı soru ikinci kez gelebiliyordu); soru yalnız seçeneklerden oluşuyorsa seçenek takımı (sırası sayılmaz) karşılaştırılır */
 function qzDedupe(st, exId){ try{ if(!QZ[exId] || !Array.isArray(st.trials)) return; const T = st.trials, seen = new Map(); let extra = [], gen = 0; const more = () => { if(gen >= 8) return false; gen++; try{ extra = extra.concat(qzTierOpts(exId, QZ[exId]()) || []); }catch(e){ return false; } return true; };
     for(let i = 0; i < T.length; i++){ let s = qzSig(T[i]); if(seen.has(s)){ let rep = null; while(!rep){ const k = extra.findIndex(c => c && (c.opts || []).length === (T[i].opts || []).length && !seen.has(qzSig(c)) && !T.slice(i + 1).some(x => qzSig(x) === qzSig(c))); if(k >= 0){ rep = extra.splice(k, 1)[0]; break; } if(!more()) break; } if(rep){ T[i] = rep; s = qzSig(rep); } } seen.set(s, i); }
     /* havuz yetmediyse: kalan tekrarlar birbirinden en az 4 soru uzakta */

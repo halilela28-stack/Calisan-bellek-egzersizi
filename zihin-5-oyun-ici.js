@@ -11,11 +11,12 @@ if(d && !d.notified && Date.now() - d.ts > 10 * 60 * 1000){ d.notified = true; l
 
 let ckMarks = {};   // işaretleme düğmeleri (liste öğrenme / kategorili liste): "blok:sıra" → durum
 const LL_WORDS = ["davul","perde","kaşık","güneş","okul","fare","bahçe","ceket","burun","tavuk","nehir","şeker","renk","ev","çiftçi","kahve","şapka","dağ","bulut","kitap","kalem","deniz","saat","ağaç","kapı","bardak","yıldız","çanta","balık","masa","ayna","köprü","lamba","halı","tren","çorap","fener","bal","pencere","gemi"];
-const LL_LEN = { post:[8, 10, 12], pre:[5, 6, 7] }, LL_TRIALS = { post:5, pre:3 };
+/* KURAL (Liste Öğrenme kolay, 2026-11-18): Liste Öğrenme kolaylaştı. Kelime sayısı okul sonrası 5 / 6 / 8 (8 / 10 / 12 yerine), okul öncesi 3 / 4 / 5 (5 / 6 / 7 yerine). Aynı liste en çok 3 kez okunur (okul sonrasında 5 yerine); çocuk bütün kelimeleri söylerse denemeler erken biter. Karışma listesi (B listesi) ve "B'den sonra A" adımı kaldırıldı. Görünüm: liste bir kez, numaralı büyük kartlarla en üstte gösterilir (dikeyde 5 kelimeye kadar alt alta, 6 ve 8 kelime iki sütun; yatayda eşit satırlar); her deneme için kelimeler yeniden sıralanmaz; deneme düğmeleri (1 · 2 · 3) yetişkinin kaçıncı denemede olduğunu işaretlemesine yarar (Başlat'tan önce çalışmaz); nasıl uygulanacağı listenin altında dört adımla yazılır. Hata: son denemede hatırlanmayan her kelime. Aşama 2 (gecikmeli + tanıma) aynı. */
+const LL_LEN = { post:[5, 6, 8], pre:[3, 4, 5] }, LL_TRIALS = { post:3, pre:3 };
 function llBuild(){
 if(currentStageIndex === 1){ const d = delayGet("list"); if(d && d.A){ const rest = shuffleArray(LL_WORDS.filter(w => !d.A.includes(w) && !(d.B || []).includes(w)));
 return [{ A: d.A, delayed:true, R: shuffleArray(d.A.concat(rest.slice(0, d.A.length))) }]; } }
-const N = (isPre() ? LL_LEN.pre : LL_LEN.post)[currentCombo().t], w = shuffleArray(LL_WORDS), A = w.slice(0, N), B = w.slice(N, N * 2);
+const N = (isPre() ? LL_LEN.pre : LL_LEN.post)[currentCombo().t], A = shuffleArray(LL_WORDS).slice(0, N), B = [];
 try{ delaySet("list", { A, B }); }catch(e){}   /* gecikmeli aşama için öğrenilen liste (işaretleme kalktığı için burada kaydedilir) */
 return [{ A, B, delayed:false }];
 }
@@ -28,20 +29,16 @@ const L = items[0], T = isPre() ? LL_TRIALS.pre : LL_TRIALS.post;
 if(L.delayed){
 const mins = delayMins("list"), d = ckCount("D", L.A.length);
 const rh = L.R.filter((w, i) => ckMarks["R:" + i] && L.A.includes(w)).length, rf = L.R.filter((w, i) => ckMarks["R:" + i] && !L.A.includes(w)).length;
-return `<div class="aud-list"><div class="aud-note">⏰ Liste <b>${mins} dakika</b> önce öğrenildi${mins < 10 ? " <b>(10–15 dakika beklemeniz önerilir)</b>" : ""}. Listeyi okumadan önce <b>hatırladığı kelimeleri</b> sorun; hatırlamadığı her kelime için <b>Hata sayısı +</b>. Sonra <b>tanıma</b> listesini tek tek okuyun; listede olanlar koyu yazılı. Yanlış "vardı" ya da yanlış "yoktu" dediği her kelime için de <b>Hata sayısı +</b>.</div>` +
+return `<div class="aud-list"><div class="aud-note">⏰ Liste <b>${mins} dakika</b> önce öğrenildi${mins < 10 ? " <b>(10–15 dakika beklemeniz önerilir)</b>" : ""}. Listeyi okumadan önce <b>hatırladığı kelimeleri</b> sorun; hatırlamadığı her kelime için <b>Hatırlanmayan kelime sayısı +</b>. Sonra <b>tanıma</b> listesini tek tek okuyun; listede olanlar koyu yazılı. Yanlış "vardı" ya da yanlış "yoktu" dediği her kelime için de <b>Hatırlanmayan kelime sayısı +</b>.</div>` +
 `<div style="font-weight:900">1. Gecikmeli hatırlama</div>` + ckRow(L.A.map((w, i) => ckChip("D", i, w, ckMarks["D:" + i])).join("")) +
 `<div style="font-weight:900">2. Tanıma (koyu olanlar listedeydi)</div>` + ckRow(L.R.map((w, i) => ckChip("R", i, L.A.includes(w) ? "<b>" + w + "</b>" : w)).join("")) +
 `<div class="aud-note">Gecikmeli hatırlamada düşük, tanımada yüksek puan: bilgi kaydedilmiş ama geri getirmekte güçlük var. İkisi de düşükse kayıt (öğrenme) güçlüğü düşünülebilir.</div></div>`;
 }
-const curve = Array.from({length:T}, (_, k) => ckCount("t" + k, L.A.length));
-let html = `<div class="aud-list"><div class="aud-note">A listesini her denemede <b>aynı sırayla</b>, saniyede bir kelime okuyun; her okumadan sonra çocuk <b>hatırladığı kadarını, istediği sırayla</b> söylesin. Son denemede hatırlanmayan her kelime için <b>Hata sayısı +</b>. ${T} denemeden sonra B listesini bir kez okuyup sordurun, ardından <b>A listesini okumadan</b> yeniden sorun. 10–15 dakika sonra <b>Aşama 2</b>'yi açın.</div>` +
-`<div class="aud-row"><div class="aud-num">A</div><div class="aud-body"><div class="aud-words">${L.A.join(" – ")}</div></div></div>` +
-``;
-for(let k = 0; k < T; k++) html += `<div style="font-weight:800">${k + 1}. deneme</div>` + ckRow(L.A.map((w, i) => ckChip("t" + k, i, w, ckMarks["t" + k + ":" + i])).join(""));
-html += `<div class="aud-row"><div class="aud-num">B</div><div class="aud-body"><div class="aud-words">${L.B.join(" – ")}</div></div></div>` +
-`<div style="font-weight:800">B listesi (karışma)</div>` + ckRow(L.B.map((w, i) => ckChip("B", i, w, ckMarks["B:" + i])).join("")) +
-`<div style="font-weight:800">A listesi, B'den sonra (okumadan)</div>` + ckRow(L.A.map((w, i) => ckChip("A2", i, w, ckMarks["A2:" + i])).join(""));
-return html + `</div>`;
+const n = L.A.length, lsCols = n <= 5 ? n : Math.ceil(n / 2), ptCols = n >= 6 ? 2 : 1;   /* yatayda eşit satırlar (5'e kadar tek satır, 6 → 3 × 2, 8 → 4 × 2); dikeyde 5'e kadar alt alta, 6 ve 8 iki sütun (kaydırmadan görünür) */
+return `<div class="aud-list ll-wrap"><div class="ll-grid${ptCols > 1 ? " two" : ""}" style="--llc:${lsCols};--llp:${ptCols}">${L.A.map((w, i) => `<div class="ll-word"><span class="ll-n">${i + 1}</span><span class="ll-w">${w}</span></div>`).join("")}</div>` +
+`<div class="ll-tries"><span class="ll-tl">Deneme</span>${Array.from({length:T}, (_, k) => `<button type="button" class="ll-try" data-lltry="${k}">${k + 1}</button>`).join("")}</div>` +
+`<div class="aud-note ll-steps"><b>Nasıl uygulanır?</b><ol><li>Listeyi <b>numara sırasıyla</b>, saniyede bir kelime okuyun.</li><li>Çocuk <b>hatırladıklarını</b> söylesin; sıra önemli değil.</li><li>Aynı listeyi yeniden okuyun; <b>en çok ${T} deneme</b>. Çocuk hepsini söylerse durun. Her denemede yukarıdaki düğmeye dokunun.</li><li>Son denemede hatırlanmayan her kelime için <b>Hatırlanmayan kelime sayısı +</b>.</li></ol></div>` +
+`<div class="aud-note">⏰ 10–15 dakika sonra <b>Aşama 2</b>'yi açın: liste okunmadan hatırladıkları sorulur.</div></div>`;
 }
 /* llScore: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 const CL_BANK = { "meyve":["elma","armut","muz","kiraz","çilek","üzüm","karpuz"], "hayvan":["kedi","inek","at","tavşan","aslan","kuş","koyun"], "taşıt":["araba","otobüs","tren","uçak","gemi","bisiklet","kamyon"], "giysi":["gömlek","pantolon","çorap","şapka","ceket","etek","eldiven"],
@@ -50,10 +47,12 @@ const CL_BANK = { "meyve":["elma","armut","muz","kiraz","çilek","üzüm","karpu
   "deniz canlısı":["balık","yunus","yengeç","ahtapot","denizatı","balina","midye"], "vücut parçası":["el","ayak","burun","kulak","göz","diz","parmak"], "oyuncak":["top","bebek","yapboz","uçurtma","lego","ayıcık","balon"], "hava olayı":["yağmur","kar","rüzgâr","güneş","bulut","fırtına","sis"] };
 const CL_PLURAL = { "meyve":"meyveler", "hayvan":"hayvanlar", "taşıt":"taşıtlar", "giysi":"giysiler", "sebze":"sebzeler", "renk":"renkler", "mobilya":"mobilyalar", "mutfak eşyası":"mutfak eşyaları", "okul eşyası":"okul eşyaları", "meslek":"meslekler", "müzik aleti":"müzik aletleri", "kuş":"kuşlar", "deniz canlısı":"deniz canlıları", "vücut parçası":"vücut parçaları", "oyuncak":"oyuncaklar", "hava olayı":"hava olayları" };
 let clLastCats = [];
+/* KURAL (Kategorili Liste kelime sayısı, 2026-11-18): okul sonrası 4 / 6 / 8 kelime (2 kategori × 2 / 3 / 4; önceden 9 / 12 / 16), okul öncesi 2 / 3 / 4 kelime (1 kategori × 2, 1 × 3, 2 × 2; önceden 4 / 6 / 9). Tek kategoride kelimeler karışık sırayla; iki kategoride aynı kategoriden iki kelime art arda gelmez. Kategori havuzu aynı. */
+const CL_SPEC = { post:[[2, 2], [2, 3], [2, 4]], pre:[[1, 2], [1, 3], [2, 2]] };
 function clBuild(){
-const spec = isPre() ? [[2, 2], [2, 3], [3, 3]] : [[3, 3], [3, 4], [4, 4]], [C, K] = spec[currentCombo().t];
+const spec = isPre() ? CL_SPEC.pre : CL_SPEC.post, [C, K] = spec[currentCombo().t];
 const allCats = Object.keys(CL_BANK), fresh = shuffleArray(allCats.filter(c => !clLastCats.includes(c))), cats = fresh.concat(shuffleArray(clLastCats)).slice(0, C); clLastCats = cats.slice(); /* art arda turlarda aynı kategoriler gelmesin */ const groups = cats.map(c => ({ c, w: shuffleArray(CL_BANK[c]).slice(0, K) }));
-let flat; do{ flat = shuffleArray(groups.flatMap(g => g.w.map(w => ({ w, c: g.c })))); } while(flat.some((x, i) => i && flat[i - 1].c === x.c) && Math.random() < 0.97);
+let flat = []; if(C > 1){ const gs = shuffleArray(groups.map(g => shuffleArray(g.w).map(w => ({ w, c: g.c })))); for(let i = 0; i < K; i++) gs.forEach(g => flat.push(g[i])); } else flat = shuffleArray(groups[0].w.map(w => ({ w, c: groups[0].c })));   /* iki kategoride kelimeler sırayla birinden birinden: aynı kategoriden ikisi art arda gelmez */
 return [{ groups, flat }];
 }
 function clRender(items){
@@ -75,7 +74,7 @@ const NW_BANK = {
 };
 function nwBuild(){
 const t = currentCombo().t, lens = isPre() ? [[2, 2], [2, 3], [3, 4]][t] : [[2, 3], [3, 4], [4, 5]][t], out = [];
-lens.forEach((L, k) => shuffleArray(NW_BANK[L]).slice(0, isPre() ? [3, 2][k] : 4).forEach(w => out.push({ w, L })));
+const bank = {}; lens.forEach((L, k) => { bank[L] = bank[L] || shuffleArray(NW_BANK[L]); bank[L].splice(0, isPre() ? [3, 2][k] : 4).forEach(w => out.push({ w, L })); });   /* turlarda aynı içerik gelmez kuralı: aynı hece sayısı iki kez seçilse de aynı kelime iki kez gelmez */
 return out;
 }
 const sentCycles = {};
@@ -84,7 +83,8 @@ const SENT_BANK = { pre:[ ["Kedi süt içiyor.","Ben parka gittim.","Annem kek y
 const sayBtn = (t) => `<button type="button" data-say="${t.replace(/"/g, "&quot;")}" style="border:2px solid var(--line);background:var(--panel);border-radius:12px;padding:4px 10px;font-size:18px;cursor:pointer;flex:none">🔊</button>`;
 function chunkSeq(words){ const out = []; let i = 0; while(i < words.length){ const rem = words.length - i, sz = rem === 4 ? 2 : rem >= 3 ? 3 : rem; out.push(words.slice(i, i + sz)); i += sz; } return out; }
 document.getElementById("board").addEventListener("click", (ev) => {
-const sp = ev.target.closest("[data-say]"); if(sp && currentExercise().isAuditory){ sayTask(sp.dataset.say, 0.8); return; }
+const sp = ev.target.closest("[data-say]"); if(sp && currentExercise().isAuditory){ if(!timerRunning){ showLevelFlash("Önce ▶ Başlat'a basın.", "down"); return; } sayTask(sp.dataset.say, 0.8); return; }   /* KURAL (sözel tahta düğmeleri Başlat'tan sonra, 2026-11-18) */
+const lt = ev.target.closest("[data-lltry]"); if(lt){ if(!timerRunning){ showLevelFlash("Önce ▶ Başlat'a basın.", "down"); return; } const on = !lt.classList.contains("on"); [...lt.parentNode.querySelectorAll("[data-lltry]")].forEach(x => x.classList.toggle("on", on ? +x.dataset.lltry <= +lt.dataset.lltry : +x.dataset.lltry < +lt.dataset.lltry)); return; }
 const b = ev.target.closest("[data-ck]"); if(!b) return; const ex = currentExercise(); if(!ex.ckScore) return;
 const k = b.dataset.ck, cyc = ex.ckCycle || 2; ckMarks[k] = ((ckMarks[k] || 0) + 1) % cyc;
 if(ex.id === "list-learn" && currentStageIndex === 0){ const L = currentGrid[0], d = delayGet("list"); if(!d || (d.A || []).join() !== L.A.join()) delaySet("list", { A: L.A, B: L.B }); }
@@ -96,7 +96,7 @@ function mtClear(){ mtTimers.forEach(t => clearTimeout(t)); mtTimers = []; }
 function mtLater(fn, ms){ const st = mtState; mtTimers.push(setTimeout(() => { if(mtState === st && timerRunning) fn(); }, ms * (window.__wmSpeed || 1))); }
 function qzWarmup(id){ const st = mtState; if(!st || st.kind !== "quiz" || !Array.isArray(st.trials) || st.trials.length < 3 || st.warmN != null) return;
 const N = st.trials.length, W = Math.max(1, Math.round(N * 0.3)), t = currentCombo().t; st.warmN = W;
-if(t > 0){ const save = currentCombo; try{ currentCombo = () => Object.assign({}, save(), { t: t - 1 }); NEW_MT.build[id](); const E = (mtState && mtState.trials) || []; const sc = (q) => (String((q && (q.stim || q.prompt)) || "").replace(/<[^>]+>/g, " ").match(/[.!?](\s|$)/g) || []).length; const med = (A) => { const v = A.map(sc).sort((x, y) => x - y); return v.length ? v[Math.floor(v.length / 2)] : 0; }; if(E.length && med(E.slice(0, W)) === med(st.trials.slice(W))) for(let i = 0; i < W && i < E.length; i++) st.trials[i] = E[i];   /* soru biçimi (cümle sayısı) aynıysa alt düzeyden ısın; farklıysa (Zor: iki cümle) bu düzeyin sorularıyla ısın */ }catch(e){ console.error(e); } finally{ currentCombo = save; mtState = st; } } }
+if(t > 0){ const save = currentCombo; try{ currentCombo = () => Object.assign({}, save(), { t: t - 1 }); NEW_MT.build[id](); const qk = mtTrialKey, rest = new Set(st.trials.slice(W).map(qk)), E = ((mtState && mtState.trials) || []).filter(q => { const kq = qk(q); if(rest.has(kq)) return false; rest.add(kq); return true; });   /* turlarda aynı içerik gelmez kuralı: alt düzeyden gelen ısınma sorusu çalışmanın kalan sorularından birinin aynısı olmaz */ const sc = (q) => (String((q && (q.stim || q.prompt)) || "").replace(/<[^>]+>/g, " ").match(/[.!?](\s|$)/g) || []).length; const med = (A) => { const v = A.map(sc).sort((x, y) => x - y); return v.length ? v[Math.floor(v.length / 2)] : 0; }; if(E.length && med(E.slice(0, W)) === med(st.trials.slice(W))) for(let i = 0; i < W && i < E.length; i++) st.trials[i] = E[i];   /* soru biçimi (cümle sayısı) aynıysa alt düzeyden ısın; farklıysa (Zor: iki cümle) bu düzeyin sorularıyla ısın */ }catch(e){ console.error(e); } finally{ currentCombo = save; mtState = st; } } }
 /* KURAL (otomatik hata, 2026-11-05): dokunmalı oyunlarda her yanlış dokunuş kendiliğinden sayılır ve kayda geçer — ısınma soruları dahil (önceden ısınmadaki yanlışlar sayılmıyordu, bu yüzden ilk 2–3 yanlış görünmüyordu) */
 function mtErr(){ if(mtState && mtState.kind === "quiz" && mtState.warmN && mtState.ti < mtState.warmN){ mtState.warmErr = (mtState.warmErr || 0) + 1; mtState.wrong++; setErrorCount(currentErrorCount + 1); try{ vibrate(40); }catch(e){} gameSfx("wrong"); return; }
 mtState.wrong++; setErrorCount(currentErrorCount + 1); try{ vibrate(60); }catch(e){} gameSfx("wrong"); }
@@ -105,6 +105,14 @@ const st = mtState; st.phase = "done"; renderMtBoard(); stopTimer();
 if(st.manual){ showLevelFlash("Bitti! Hata sayısını kontrol edin.", "levelup"); return; }   /* yetişkin Hata sayısı −/+ ile puanladı */
 showLevelFlash((st.wrong ? `Bitti! ${st.wrong} hata.` : "Bitti! Hiç hata yok 🎉") + (extra || ""), st.wrong ? "down" : "levelup");
 }
+/* KURAL (turlarda aynı içerik gelmez, 2026-11-18): turlu çalışmalarda bir çalışmanın turları birbirinin aynısı olmaz. Rastgele kurulan turlarda (Ritim Tekrarı, Ses Dizisi Belleği, Say ve Hatırla, Bardak Oyunu, Yönerge İzle, İki Yönden Eşle, Bloklarla Desen, Çizgiyi Hatırla, Deseni Kopyala, Sıraya Diz, Boyut Sırasıyla Dokun, Kutuları Ara, Yolu Hatırla, Cümle–Resim Eşleştir, Sayı Örüntüsü, Aynı İkiliyi Bul, Zihinden Hesap, Görsel Tamamlama, Zihinsel Döndürme, Katla ve Del, Kayıp Anahtar, Hareket Sırası; seçmeli sorularda içerik soru + seçenek takımıdır, seçeneklerin sırası sayılmaz; bütün seçmeli sorulu çalışmalarda da aynı soru bir çalışmada iki kez gelmez — Anlam Kararı ve Benzetme dışında) aynısı çıkarsa çalışma yeniden kurulur (en çok 40 deneme); olanaklar yetmezse (3 vuruşlu ritimde yalnız iki desen var) en azından art arda aynısı gelmez; sabit kurulan turlar (Sıraya Diz okul öncesi; Bloklarla Desen okul öncesi Başlangıç ve Zor) her tur başka içerikle kurulur — Sıraya Diz okul öncesi Zor'da yalnız iki uygun dörtlü olduğundan ilk ve son tur aynı dörtlüdür (art arda gelmez); Harf-Sayı Sıralama'da aynı dizi, Uydurma Kelime Tekrarı'nda aynı kelime, Kelime Sıralama (Küçükten Büyüğe) dizilerinde aynı kelime takımı iki kez gelmez; seçmeli sorularda alt düzeyden alınan ısınma soruları kalan soruların aynısı olmaz. Eşini Hatırla ve Kelime Çiftleri için bkz. "turlarda yeni çiftler". Tek uyaranlı hızlı akışlara (Anlam Kararı, Dur Sinyali, Kural Değişimi, Ters Dokunma vb.) uygulanmaz: orada aynı uyaranın yeniden gelmesi görevin kendisidir. */
+const MT_UNIQ_IDS = ["rhythm","tone-seq","count-span","cups","dir-follow","fist","block-design","vis-draw","copy-design","seq-words","size-touch","box-search","route-mem","sent-pic","num-pattern","pair-match","mental-math","closure","mental-rot","paper-fold","key-search","move-seq"];
+const MT_STREAM_IDS = ["sem-decide","analogy-touch"];   /* Anlam Kararı: aynı kelimenin yeniden gelmesi görevin kendisi; Benzetme: kendi tekrarsız havuzu (anlUsed) var, yeniden kurmak havuzu tüketir */
+function mtTrialKey(x){ const q = x && Array.isArray(x.opts) && ("prompt" in x || "stim" in x || "say" in x) ? qzSig(x) : x;   /* seçmeli soruda içerik: sorunun kendisi (yoksa seçenek takımı); seçenek sırası ve doğru cevabın yeri sayılmaz — qzSig ile aynı */
+const s = JSON.stringify(q, (k, v) => v instanceof Set ? [...v].sort() : v) || ""; let h = 7; for(let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return h; }
+function mtDupCount(L){ if(!Array.isArray(L)) return 0; const ks = L.map(mtTrialKey); return ks.length - new Set(ks).size; }
+function uniqSeqs(n, make){ const out = [], seen = new Set(); for(let g = 0; out.length < n && g < 300; g++){ const x = make(), k = JSON.stringify(x); if(seen.has(k) && g < 250) continue; seen.add(k); out.push(x); } return out; }   /* aynı dizi bir çalışmada iki kez gelmez (olanak yetmezse en son yine de doldurulur) */
+function mtDupScore(L){ if(!Array.isArray(L)) return 0; const ks = L.map(mtTrialKey); return mtDupCount(L) + 10 * ks.filter((k, i) => i && k === ks[i - 1]).length; }
 function mtBuild(){
 const id = currentExercise().id, t = currentCombo().t, pre = isPre();
 mtClear();
@@ -120,21 +128,22 @@ return sets;
 }
 if(id === "lns-touch"){
 const n = 4;
-mtState = { kind:id, trials: Array.from({length:n}, () => makeLnsSeq(lnsLen())), ti:0, pos:0, wrong:0, phase:"idle", sorted: stIx() === 1 };
+mtState = { kind:id, trials: uniqSeqs(n, () => makeLnsSeq(lnsLen())), ti:0, pos:0, wrong:0, phase:"idle", sorted: stIx() === 1 };   /* turlarda aynı içerik gelmez kuralı */
 return mtState.trials;
 }
-if(id === "pal-touch"){
-const K = (isPre() ? PAL_K.pre : PAL_K.post)[currentCombo().t];
-const pairs = isPre() ? shuffleArray(palPairsPre()).slice(0, K) : palPairsPost(K);
-mtState = { kind:id, pairs, cycle:0, cycles:3, wrong:0, phase:"idle", scores:[] };
-return pairs;
+if(id === "pal-touch"){   /* KURAL (turlarda yeni çiftler) — bkz. palTap */
+const K = (isPre() ? PAL_K.pre : PAL_K.post)[currentCombo().t], R = PAL_ROUNDS;
+const all = isPre() ? shuffleArray(palPairsPre()).slice(0, K * R) : palPairsPost(K * R), rounds = Array.from({length:R}, (_, r) => all.slice(r * K, r * K + K));
+mtState = { kind:id, rounds, pairs: rounds[0], cycle:0, cycles:R, wrong:0, phase:"idle", scores:[] };
+return mtState.pairs;
 }
 if(id === "pic-seq-say" || id === "pic-seq-touch"){
 const L = (isPre() ? [2, 3, 4] : [3, 4, 5])[currentCombo().t];
 mtState = { kind: id === "pic-seq-say" ? "picsay" : "picseq", audio: id === "pic-seq-touch", trials: Array.from({length: isPre() ? 3 : 4}, () => shuffleArray(picPool()).slice(0, L)), ti:0, pos:0, wrong:0, phase:"idle" };
 return mtState.trials;
 }
-if(NEW_MT.build[id]){ const r0 = NEW_MT.build[id](); try{ qzWarmup(id); }catch(e){ console.error(e); } return (mtState && mtState.trials) || r0; }
+if(NEW_MT.build[id]){ let r0 = NEW_MT.build[id](); if(MT_UNIQ_IDS.includes(id) || (mtState && mtState.kind === "quiz" && !MT_STREAM_IDS.includes(id))){ let best = mtState, bs = mtDupScore(mtState && mtState.trials); for(let g = 0; g < 40 && bs; g++){ const r = NEW_MT.build[id](), sc = mtDupScore(mtState && mtState.trials); if(sc < bs){ best = mtState; bs = sc; r0 = r; } } mtState = best; }   /* turlarda aynı içerik gelmez kuralı: olanaklar yetmezse (ör. 3 vuruşlu ritimde yalnız iki desen) en azından art arda aynısı gelmez */
+try{ qzWarmup(id); }catch(e){ console.error(e); } return (mtState && mtState.trials) || r0; }
 if(id === "running"){
 const R = isPre() ? 3 : 4;
 mtState = { kind:id, trials: Array.from({length:R}, () => makeRunStream()), ti:0, pos:0, wrong:0, phase:"idle", L: runLast() };
@@ -146,8 +155,8 @@ mtState = { kind:id, rounds: makeZihniRounds(R), ri:0, wrong:0, phase:"idle", re
 return mtState.rounds;
 }
 if(id === "word-pairs"){   /* Kelime Çiftleri dokunmalı kuralı */
-const K = WP_K[Math.min(t, 2)], st0 = stIx();
-mtState = { kind:"wp-touch", stage: st0, pairs: makeWordPairs(st0, K).map(p => ({ a: p[0], b: p[1] })), cycle:0, cycles:2, wrong:0, phase:"idle", scores:[], res:[] };
+const K = WP_K[Math.min(t, 2)], st0 = stIx(), R = WP_ROUNDS, all = makeWordPairs(st0, K * R).map(p => ({ a: p[0], b: p[1] })), rounds = Array.from({length:R}, (_, r) => all.slice(r * K, r * K + K));   /* turlarda yeni çiftler kuralı */
+mtState = { kind:"wp-touch", stage: st0, rounds, pairs: rounds[0], cycle:0, cycles:R, wrong:0, phase:"idle", scores:[], res:[] };
 return mtState.pairs;
 }
 if(id === "zihni-verbal"){   /* KURAL (Zihni Nerede? sözlü dokunmalı, 2026-11-17) */
@@ -177,6 +186,8 @@ else if(st.kind === "wp-touch") wpStudy();
 else if(st.kind === "market") mkShow();
 else seqShow();
 }
+/* KURAL (turlarda yeni çiftler, 2026-11-18): Eşini Hatırla ve Kelime Çiftleri'nde her tur yeni çiftlerle oynanır; bir çalışmada aynı çift, resim ya da kelime ikinci kez gelmez (önceden üç turda da aynı çiftler geliyordu). Tur sayısı sabittir: Eşini Hatırla 3 tur, Kelime Çiftleri 2 tur; tur başına çift sayısı ve havuzlar aynı. Seçeneklerde önceki turların resimleri / kelimeleri de olmaz. Turlar arasında "Şimdi yeni çiftler geliyor" denir. Eşini Hatırla'da düzey yalnız hataya göre değişir (süre öğrenme temposuna bağlı). */
+const PAL_ROUNDS = 3, WP_ROUNDS = 2;
 function palStudy(){
 const st = mtState; st.phase = "study"; st.si = -1; renderMtBoard();
 const step = isPre() ? 2600 : 2200;
@@ -190,7 +201,7 @@ const st = mtState; st.order = shuffleArray(st.pairs.map((p, i) => i)); st.qi = 
 function palAsk(){
 const st = mtState, p = st.pairs[st.order[st.qi]];
 const others = shuffleArray(st.pairs.filter(x => x !== p).map(x => x.b));
-const fill = shuffleArray(picPool()).filter(x => !st.pairs.some(q => q.b.src === x.src || q.a.src === x.src)).map(x => ({ src:x.src, n:x.n }));
+const fill = shuffleArray(picPool()).filter(x => !(st.rounds || [st.pairs]).flat().some(q => q.b.src === x.src || q.a.src === x.src)).map(x => ({ src:x.src, n:x.n }));
 st.opts = shuffleArray([p.b].concat(others.slice(0, 3), fill).slice(0, 4)); st.ans = p.b; st.pick = null; st.phase = "ask"; renderMtBoard();
 }
 function palTap(i){
@@ -201,9 +212,9 @@ st.qi++;
 if(st.qi < st.order.length){ palAsk(); return; }
 st.scores.push(st.cycleOk); st.cycle++;
 const perfect = st.cycleOk === st.pairs.length;
-if(st.cycle >= st.cycles || (perfect && st.cycle >= 2)){ mtFinish(` Öğrenme: ${st.scores.map((x, k) => `${k + 1}. tur ${x}/${st.pairs.length}`).join(" → ")}`); return; }
-showLevelFlash(`${st.cycle}. tur: ${st.cycleOk}/${st.pairs.length}. Şimdi çiftleri bir kez daha izle.`, perfect ? "levelup" : "down");
-palStudy();
+if(st.cycle >= st.cycles){ mtFinish(` ${st.scores.map((x, k) => `${k + 1}. tur ${x}/${st.pairs.length}`).join(" · ")}`); return; }
+showLevelFlash(`${st.cycle}. tur: ${st.cycleOk}/${st.pairs.length}. Şimdi yeni çiftler geliyor.`, perfect ? "levelup" : "down");
+st.pairs = st.rounds[st.cycle]; palStudy();
 }, ok ? 500 : 1100);
 }
 function runShow(){
@@ -266,7 +277,7 @@ const cmdIn = cmd ? `<span style="font-size:${isLs ? 26 : 30}px;font-weight:900;
 if(isLs) return { info: "", body: `<div class="zv-ls" style="display:flex;gap:18px;align-items:center;justify-content:center;width:100%">${grid}<div class="zv-side" style="width:${sideW}px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center"><div class="wm-info" style="min-height:0">${info}</div>${dots}<div class="zv-cmd" style="min-height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">${cmdIn}</div></div></div>` };
 return { info, body: dots + `<div class="zv-cmd" style="min-height:56px;display:flex;align-items:center;justify-content:center;gap:12px">${cmdIn}</div>` + grid };
 }
-/* KURAL (Kelime Çiftleri dokunmalı, 2026-11-17): Kelime Çiftleri dokunmalı oldu ve kolaylaştı. Öğrenme: çiftler tek tek, iki kelime yan yana büyük kartta gösterilir ve okunur ("bulut, elma"); çiftler artık tek paragrafta alt alta kırılmaz. Sınama: çiftin ilk kelimesi gösterilir ve okunur, çocuk üç seçenekten eşine dokunur; doğru yeşil, yanlış kırmızı olur ve doğru eş yeşil gösterilir. Hepsi doğruysa çalışma biter; yanlış varsa çiftler bir kez daha izlenir ve yeniden sınanır (en çok iki tur). Çift sayısı Başlangıç 2, Orta 3, Zor 4 (3 – 4 – 5 yerine). Seçenekler önce öteki çiftlerin eşlerinden, yetmezse aynı türden (kelime / şehir) gelir; ilk kelime seçeneklerde olmaz. Yanlışlar Hata sayısına kendiliğinden yazılır, sonuç kendiliğinden kaydedilir; düzey yalnız hataya göre değişir. Aşamalar ve kelime havuzları aynı: İlişkisiz Kelimeler, Sayı – Kelime, İsim – Yer */
+/* KURAL (Kelime Çiftleri dokunmalı, 2026-11-17): Kelime Çiftleri dokunmalı oldu ve kolaylaştı. Öğrenme: çiftler tek tek, iki kelime yan yana büyük kartta gösterilir ve okunur ("bulut, elma"); çiftler artık tek paragrafta alt alta kırılmaz. Sınama: çiftin ilk kelimesi gösterilir ve okunur, çocuk üç seçenekten eşine dokunur; doğru yeşil, yanlış kırmızı olur ve doğru eş yeşil gösterilir. İki tur oynanır; ikinci turda yeni çiftler gelir (turlarda yeni çiftler kuralı, 2026-11-18; önceden yanlışta aynı çiftler yeniden izleniyordu). Çift sayısı Başlangıç 2, Orta 3, Zor 4 (3 – 4 – 5 yerine). Seçenekler önce öteki çiftlerin eşlerinden, yetmezse aynı türden (kelime / şehir) gelir; ilk kelime seçeneklerde olmaz. Yanlışlar Hata sayısına kendiliğinden yazılır, sonuç kendiliğinden kaydedilir; düzey yalnız hataya göre değişir. Aşamalar ve kelime havuzları aynı: İlişkisiz Kelimeler, Sayı – Kelime, İsim – Yer */
 const WP_K = [2, 3, 4];
 function wpBank(st){ return st.stage === 2 ? WP_PLACES : WP_WORDS; }
 function wpStudy(){ const st = mtState; st.phase = "study"; st.si = -1; renderMtBoard();
@@ -275,14 +286,14 @@ mtLater(() => wpTest(), 300 + st.pairs.length * step + 200); }
 function wpTest(){ const st = mtState; st.order = shuffleArray(st.pairs.map((p, i) => i)); if(st.order.length > 1 && st.order[0] === st.pairs.length - 1) st.order.push(st.order.shift()); st.qi = 0; st.cycleOk = 0; st.res = []; wpAsk(); }   /* son izlenen çift ilk sorulmaz */
 function wpAsk(){ const st = mtState, p = st.pairs[st.order[st.qi]];
 const others = shuffleArray(st.pairs.filter(x => x !== p).map(x => x.b));
-const fill = shuffleArray(wpBank(st)).filter(w => w !== p.b && !st.pairs.some(q => q.a === w || q.b === w));
+const fill = shuffleArray(wpBank(st)).filter(w => w !== p.b && !(st.rounds || [st.pairs]).flat().some(q => q.a === w || q.b === w));
 st.opts = shuffleArray([p.b].concat(others.concat(fill).slice(0, 2))); st.ans = p.b; st.cue = p.a; st.pick = null; st.phase = "ask"; renderMtBoard(); mtLater(() => sayTask(p.a), 150); }
 function wpTap(i){ const st = mtState; if(st.phase !== "ask") return;
 const ok = st.opts[i] === st.ans; st.pick = i; st.phase = "fb"; st.res[st.qi] = ok; if(ok){ st.cycleOk++; gameSfx("correct"); } else mtErr(); renderMtBoard();
 mtLater(() => { st.qi++; if(st.qi < st.order.length){ wpAsk(); return; }
   st.scores.push(st.cycleOk); st.cycle++; const perfect = st.cycleOk === st.pairs.length;
-  if(perfect || st.cycle >= st.cycles){ mtFinish(st.cycle > 1 ? ` ${st.scores.map((x, k) => `${k + 1}. tur ${x}/${st.pairs.length}`).join(" → ")}` : ""); return; }
-  showLevelFlash(`${st.cycleOk}/${st.pairs.length} doğru. Çiftleri bir kez daha izle.`, "down"); wpStudy(); }, ok ? 700 : 1500); }
+  if(st.cycle >= st.cycles){ mtFinish(` ${st.scores.map((x, k) => `${k + 1}. tur ${x}/${st.pairs.length}`).join(" · ")}`); return; }
+  showLevelFlash(`${st.cycle}. tur: ${st.cycleOk}/${st.pairs.length}. Şimdi yeni çiftler geliyor.`, perfect ? "levelup" : "down"); st.pairs = st.rounds[st.cycle]; wpStudy(); }, ok ? 700 : 1500); }
 function wpRender(st, W, H, isLs){
 const n = st.pairs.length, dots = `<div class="wm-dots">${Array.from({length:n}, (_, i) => `<i class="${st.res[i] === true ? "on" : st.res[i] === false ? "off" : ""}"></i>`).join("")}</div>`;
 const word = (t, w, h, size, extra, attrs) => `<div class="wm-pic${extra ? " " + extra : ""}" ${attrs || ""} style="width:${w}px;height:${h}px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${size}px;color:var(--ink);text-align:center;line-height:1.1;padding:4px;overflow:hidden;cursor:${attrs ? "pointer" : "default"}">${t}</div>`;
@@ -292,12 +303,14 @@ if(st.phase === "done") return { info: "Bitti!", body: dots };
 if(st.phase === "study"){ const p = st.pairs[Math.max(0, st.si)], w = Math.floor(Math.min(W - 40, isLs ? W * 0.6 : 360) / 2) - 18, h = Math.min(isLs ? Math.max(70, H - 40) : 120, 120);
   return { info: `<b>İzle ve dinle</b> · ${Math.max(1, st.si + 1)}/${n}` + (st.cycle ? ` · ${st.cycle + 1}. tur` : ""), body: dots + (st.si >= 0 ? `<div style="display:flex;align-items:center;justify-content:center;gap:10px">${word(p.a, w, h, sz(p.a, w, 34))}<span style="font-size:28px;font-weight:900;color:var(--teal-dark)">—</span>${word(p.b, w, h, sz(p.b, w, 34))}</div>` : "") }; }
 const lead = st.stage === 1 ? "sayısının kelimesi" : st.stage === 2 ? "nerede yaşıyor" : "kelimesinin eşi";
-const tight = !isLs && H < 330, cw = isLs ? Math.min(170, Math.floor((W * 0.58 - 24) / 3)) : Math.min(300, W - 30), ch = isLs ? Math.min(76, Math.max(54, H - 120)) : tight ? 44 : 56;   /* kısa ekranda (iPhone SE) seçenekler alt alta ama alçak: hepsi ekranda kalır, uzun kelime kesilmez */
-const ofs = Math.min(...st.opts.map(o => sz(o, cw, isLs ? 24 : 26)));   /* seçeneklerin yazı boyu eşit */
+const tight = !isLs && H < 330, fk = window._fitK || 1, rfm = !isLs && document.documentElement.classList.contains("run-focus") && window._rfMax ? window._rfMax - 104 : 0;   /* KURAL (Kelime Çiftleri kısa ekranda sığar, 2026-11-18): dikey ekranda ilk kelime kutusu ile seçenekler, odak modunda tahtaya kalan gerçek yüksekliğe göre alçaltılır ve sığdırma ölçeği (_fitK) uygulanır; yazı kutuya göre küçülür. Önceden uzun yönergede (iPhone SE) üçüncü seçenek ekranın altına taşıyordu ve sığdırma her seferinde boşa yeniden çiziyordu */
+let chP = tight ? 44 : 56, cueP = tight ? 48 : 64, gP = tight ? 6 : 8; if(rfm && cueP + 3 * chP + 2 * gP > rfm){ gP = 4; cueP = 40; chP = Math.max(34, Math.floor((rfm - cueP - 2 * gP) / 3)); } chP = Math.max(34, Math.round(chP * fk)); cueP = Math.max(36, Math.round(cueP * fk));
+const cw = isLs ? Math.min(170, Math.floor((W * 0.58 - 24) / 3)) : Math.min(300, W - 30), ch = isLs ? Math.min(76, Math.max(54, H - 120)) : chP;   /* kısa ekranda (iPhone SE) seçenekler alt alta ama alçak: hepsi ekranda kalır, uzun kelime kesilmez */
+const ofs = Math.min(Math.floor((ch - 14) / 1.12), ...st.opts.map(o => sz(o, cw, isLs ? 24 : 26)));   /* seçeneklerin yazı boyu eşit */
 const opts = st.opts.map((o, i) => { const mk = st.phase === "fb" ? (o === st.ans ? "ok" : st.pick === i ? "bad" : "") : ""; return word(o, cw, ch, ofs, mk, `data-mt="${i}"`); }).join("");
-const cueW = isLs ? Math.min(220, Math.floor(W * 0.34)) : Math.min(260, W - 60), cue = `<div class="wm-card" style="width:${cueW}px;min-height:${isLs ? 70 : tight ? 48 : 64}px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${sz(st.cue, cueW, 36)}px;color:var(--teal-dark);border-width:3px">${st.cue}</div>`;
+const cueW = isLs ? Math.min(220, Math.floor(W * 0.34)) : Math.min(260, W - 60), cue = `<div class="wm-card" style="width:${cueW}px;min-height:${isLs ? 70 : cueP}px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${isLs ? sz(st.cue, cueW, 36) : Math.min(sz(st.cue, cueW, 36), Math.floor(cueP / 1.25))}px;color:var(--teal-dark);border-width:3px">${st.cue}</div>`;
 const info = st.stage === 2 ? `<b>${st.cue}</b> nerede yaşıyor? Dokun.` : `<b>${st.cue}</b> ${lead} hangisi? Dokun.`;
-const optBox = isLs ? `<div style="display:flex;gap:8px;justify-content:center">${opts}</div>` : `<div style="display:flex;flex-direction:column;gap:${tight ? 6 : 8}px;align-items:center">${opts}</div>`;
+const optBox = isLs ? `<div style="display:flex;gap:8px;justify-content:center">${opts}</div>` : `<div style="display:flex;flex-direction:column;gap:${gP}px;align-items:center">${opts}</div>`;
 return { info, body: dots + (isLs ? `<div style="display:flex;gap:16px;align-items:center;justify-content:center">${cue}${optBox}</div>` : cue + optBox) }; }
 function mkShow(){
 const st = mtState, r = st.rounds[st.ri];
@@ -945,8 +958,8 @@ const INSTR_SHORT = {
 "cat-list":         [() => `Okuyun: ${Q("Sana kelimeler okuyacağım; dinle ve aklında tut. Bitince hatırladığın kelimeleri söyle; sıra önemli değil.")}`],
 "nonword":          [() => `Okuyun: ${Q("Sana uydurma kelimeler söyleyeceğim; bunların bir anlamı yok. Her kelimeyi dikkatle dinle ve duyduğun gibi tekrar et.")}`],
 "sent-listen":      [() => `Göstermeden okuyun: ${Q("Sana bir cümle söyleyeceğim. Dikkatle dinle; bitince cümleyi aynen, hiç değiştirmeden tekrar et.")}`],
-"pal-touch":        [() => Q("Ekranda ikişer ikişer resimler gelecek; her ikili birbirinin eşi. Onları izle ve dinle, kimin kiminle eş olduğunu aklında tut. Sonra tek bir resim gelecek; onun eşi olan resme dokun.")],
-"word-pairs":       [() => Q("Ekranda ikişer ikişer kelimeler gelecek; her ikili birbirinin eşi. İzle ve dinle. Sonra ikilinin ilk kelimesi gelecek; eşine dokun."), () => Q("Her sayının bir kelimesi var; sayı ve kelimesi birlikte gelecek, aklında tut. Sonra yalnız sayı gelecek; kelimesine dokun."), () => Q("Her çocuk bir şehirde yaşıyor; adı ve şehri birlikte gelecek, aklında tut. Sonra yalnız adı gelecek; şehrine dokun.")],   /* Kelime Çiftleri dokunmalı kuralı */
+"pal-touch":        [() => Q("Ekranda ikişer ikişer resimler gelecek; her ikili birbirinin eşi. Onları izle ve dinle, kimin kiminle eş olduğunu aklında tut. Sonra tek bir resim gelecek; onun eşi olan resme dokun. Üç tur oynayacağız; her turda yeni resimler gelecek.")],
+"word-pairs":       [() => Q("Ekranda ikişer ikişer kelimeler gelecek; her ikili birbirinin eşi. İzle ve dinle. Sonra ikilinin ilk kelimesi gelecek; eşine dokun. İkinci turda yeni kelimeler gelecek."), () => Q("Her sayının bir kelimesi var; sayı ve kelimesi birlikte gelecek, aklında tut. Sonra yalnız sayı gelecek; kelimesine dokun. İkinci turda yeni kelimeler gelecek."), () => Q("Her çocuk bir şehirde yaşıyor; adı ve şehri birlikte gelecek, aklında tut. Sonra yalnız adı gelecek; şehrine dokun. İkinci turda yeni adlar gelecek.")],   /* Kelime Çiftleri dokunmalı kuralı */
 "mixed-span":       [() => `Göstermeden okuyun: ${Q("Sana bazı şeyler söyleyeceğim; sayılar, kelimeler karışık olabilir. Dikkatle dinle; bitince söylediklerimi aynı sırayla tekrar et.")}`],
 "story-recall":     [() => `Okuyun: ${Q("Sana bir hikâye okuyacağım; dikkatle dinle. Bitince hikâyede hatırladığın her şeyi bana anlat.")}`, () => `Aşama 1'deki hikâyeyi okumadan sorun: ${Q("Az önce okuduğum hikâyeyi hatırlıyor musun? Onu bana baştan sona yeniden anlat.")}`],
 "short-story":      [() => `Okuyun: ${Q("Ekrandaki resme bak; ben sana onunla ilgili kısa bir hikâye okuyacağım. Dikkatle dinle. Bitince sana sorular soracağım, cevapla.")}`],

@@ -1462,7 +1462,7 @@ id: "lns",
 readingLevel: ["post"],
 label: "Harf-Sayı Sıralama",
 isAuditory: true, attrs: [],
-audTrials: () => Array.from({length:5}, () => ({ words: makeLnsSeq(lnsLen()), ranks: [] })),
+audTrials: () => uniqSeqs(5, () => makeLnsSeq(lnsLen())).map(words => ({ words, ranks: [] })),   /* turlarda aynı içerik gelmez kuralı */
 audRender: (trials) => `<div class="aud-list"><div class="aud-note">Her diziyi saniyede bir öğe hızında okuyun; çocuk istenen sırayla söylesin. Yanlış söylenen dizileri hata sayısına ekleyin.</div>` +
 trials.map((tr, i) => `<div class="aud-row"><div class="aud-num">${i + 1}</div><div class="aud-body"><div class="aud-words">${tr.words.join(" – ")}</div><div class="aud-key">Doğru cevap: <b>${lnsAnswer(tr.words, currentStageIndex === 1).join(" – ")}</b></div></div></div>`).join("") + `</div>`,
 randomItem: () => ({}),
@@ -1548,7 +1548,7 @@ stages: [ { label: "Liste + Ara Görev", instruction: () => ``, example: () => `
 id: "pal-touch",
 readingLevel: ["pre","post"],
 label: "Eşini Hatırla",
-isMt: true, attrs: [], speedFactor: 11.5,
+isMt: true, attrs: [], speedFactor: 11.5, adaptErrorsOnly: true,   /* turlarda yeni çiftler kuralı: süre öğrenme temposuna bağlı, düzey yalnız hataya göre */
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Öğren ve Hatırla", instruction: () => ``, example: () => `` } ]

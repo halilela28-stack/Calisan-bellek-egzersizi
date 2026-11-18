@@ -195,7 +195,7 @@ const BACK_LEN = { pre:[2, 2, 3], post:[2, 3, 4] };
 function backLen(){ return (isPre() ? BACK_LEN.pre : BACK_LEN.post)[Math.min(currentCombo().t, 2)]; }
 function audLen(){ try{ if(currentExercise().id === "word-order" && stIx() >= 1) return backLen(); }catch(e){} const tb = isPre() ? PRE_AUD_LEN_BY_TIER : AUD_LEN_BY_TIER; return tb[currentCombo().t] || tb[tb.length-1]; }
 function audTrialCount(){ return isPre() ? 3 : 5; }
-function makeAudTrials(kind){ const n = audLen(), trials = [], usedWords = new Set(); let prevKey = "";
+function makeAudTrials(kind){ const n = audLen(), trials = [], usedWords = new Set(), usedKeys = new Set(); let prevKey = "";   /* turlarda aynı içerik gelmez kuralı: büyüklük dizilerinde aynı kelime takımı (sırası başka olsa da) bir çalışmada iki kez gelmez */
 for(let i=0;i<audTrialCount();i++){
 let words, key, g = 0;
 do{
@@ -205,8 +205,8 @@ words = shuffleArray(AUD_SIZE_WORDS).slice(0, n);
 words = audNextWords(n, usedWords).map(w => [w, 0]);
 }
 key = words.map(w => w[0]).join("|"); g++;
-} while(key === prevKey && g < 10);
-prevKey = key;
+} while((key === prevKey || (kind === "size" && usedKeys.has(words.map(w => w[0]).sort().join("|")))) && g < 30);
+prevKey = key; usedKeys.add(words.map(w => w[0]).sort().join("|"));
 trials.push({ words: words.map(w => w[0]), ranks: words.map(w => w[1]) });
 }
 return trials;
@@ -245,10 +245,12 @@ return `<div class="aud-row" data-row="${i}"><div class="aud-num">${i+1}</div>` 
 }).join("") + `</div>`;
 board.querySelectorAll(".aud-delay").forEach(btn => {
 btn.addEventListener("click", () => {
+if(!timerRunning){ showLevelFlash("Önce ▶ Başlat'a basın.", "down"); return; }   /* KURAL (sözel tahta düğmeleri Başlat'tan sonra, 2026-11-18): ⏱ süresi Başlat'a basılmadan başlamaz */
 if(btn.classList.contains("counting")) return;
 const row = btn.closest(".aud-row");
 let left = AUD_DELAY_MS/1000;
 btn.classList.remove("go");
+if(row) row.classList.remove("done");
 btn.classList.add("counting");
 btn.textContent = `${left}…`;
 const t = setInterval(() => {
