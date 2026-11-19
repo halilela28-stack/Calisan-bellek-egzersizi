@@ -1067,6 +1067,9 @@ readingLevel: ["post"],
 label: "Zıt Anlam",
 attrs: ["word"],
 randomItem: () => randomItem(ANTONYM_PAIRS),
+/* KURAL (Zıt Anlam kelime sayısı, 2026-11-19; kullanıcı kararı): kelime sayısı düzeye göre 8 – 10 – 12'dir (Başlangıç 8, Orta 10, Zor 12), iki sütunda; sayfada aynı kelime iki kez yazılmaz */
+dims: () => [{rows:4, cols:2}, {rows:5, cols:2}, {rows:6, cols:2}],
+uniqueFrom: () => ANTONYM_PAIRS.slice(), itemFrom: (x) => x,
 renderItem: (item) => `<div class="name-cell">${item.word}</div>`,
 stages: [
 {

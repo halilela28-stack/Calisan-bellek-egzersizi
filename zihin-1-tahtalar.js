@@ -2234,6 +2234,8 @@ const ANTONYM_PAIRS = [
 {word:"büyük", opp:"küçük"}, {word:"sıcak", opp:"soğuk"}, {word:"hızlı", opp:"yavaş"},
 {word:"açık", opp:"kapalı"}, {word:"uzun", opp:"kısa"}, {word:"temiz", opp:"kirli"},
 {word:"mutlu", opp:"üzgün"}, {word:"ağır", opp:"hafif"}, {word:"içinde", opp:"dışında"},
-{word:"dolu", opp:"boş"}, {word:"üstünde", opp:"altında"}
+{word:"dolu", opp:"boş"}, {word:"üstünde", opp:"altında"},
+{word:"ıslak", opp:"kuru"}, {word:"sert", opp:"yumuşak"}, {word:"gece", opp:"gündüz"},
+{word:"kolay", opp:"zor"}, {word:"eski", opp:"yeni"}   /* Zıt Anlam kelime sayısı kuralı (2026-11-19): 12 kelimelik Zor düzey için liste 11 çiftten 16 çifte çıkarıldı; eklenen beş çift uygulamanın öteki zıt anlam çalışmalarında zaten kullanılan kolay çiftlerdir */
 ];
 

@@ -577,3 +577,16 @@ html #board .srh-row:not(.srh-fresh),html #board .srh-row:not(.srh-fresh) .srh-i
 
 /* Zihni Nerede? sözlü dokunmalı kuralı (2026-11-17): yatayda bilgi satırı sağ sütuna taşınır; tahtanın üstündeki boş bilgi satırı yer kaplamaz */
 #board .wm-wrap:has(.zv-ls) > .wm-info:empty{display:none}
+
+/* Cümleyi Diz'de geri alma kuralı (2026-11-19): cümle satırındaki kelimeler de dokunulur düğmedir; satır doğruysa yeşile, yanlışsa kırmızıya döner (standart belirgin geri bildirim renkleri) */
+#board .sb-line{display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:wrap;min-height:64px;margin:0 auto 10px;padding:6px;border:2px dashed var(--line);border-radius:14px;box-sizing:border-box}
+#board .sb-line.ok{border:3px solid #137A48;background:#E3F6EC}
+#board .sb-line.bad{border:3px solid #A9262B;background:#FDECEC}
+#board .sb-w{min-width:72px;min-height:48px;height:auto;padding:4px 12px;font-weight:900;font-size:18px;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+#board .sb-pool .sb-w{min-width:90px;min-height:52px}
+#board .sb-line.ok .sb-w{background:var(--good);border-color:#137A48;color:#fff;box-shadow:none}
+#board .sb-line.bad .sb-w{background:var(--bad);border-color:#A9262B;color:#fff;box-shadow:none}
+#board .sb-pool{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;min-height:52px}
+#board .sb-ph{color:var(--ink-soft);font-weight:700;font-size:14px}
+@media (orientation:landscape) and (max-height:520px){#board .sb-line{min-height:56px;padding:4px;margin-bottom:6px}#board .sb-w{min-height:44px;font-size:17px}#board .sb-pool .sb-w{min-height:46px}#board .sb-pool{min-height:46px}}
+@media (max-width:360px) and (orientation:portrait){#board .sb-w,#board .sb-pool .sb-w{min-width:56px;padding:4px 8px;font-size:16px}#board .sb-line{gap:5px;padding:5px}#board .sb-pool{gap:6px}}
