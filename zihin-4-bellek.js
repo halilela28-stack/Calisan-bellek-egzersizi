@@ -405,9 +405,9 @@ else { const st = randomItem(OPPOSITE_STATES[ty]), op = OPPOSITE_STATES[ty].find
 word = OPPOSITE_LABELS[st]; stim = oppositeSVG(ty, st, col); opts = [oppositeSVG(ty, op, col), oppositeSVG(ty, st, col), oppositeSVG(oth, randomItem(OPPOSITE_STATES[oth]), col)]; }
 if(t === 2 && !isPre()) opts = opts.slice(0, 3);
 return qzMake(stim, opts, 0, { prompt:`<b>${cap(word)}</b> · zıttı hangisi?`, say:`${cap(word)}. Zıttı hangisi?` }); }); },
-"syl-touch": () => { const t = currentCombo().t, C = qzCats();
-const pool = Object.values(C).flatMap(c => c.items).filter(x => !/\s/.test(x.n)).filter(x => { const s = trSyl(x.n); return isPre() ? [s <= 2, s <= 3, s >= 2 && s <= 3][Math.min(t, 2)] : (t === 0 ? s <= 2 : t === 1 ? s <= 3 : s >= 2); });
-const max = isPre() ? [2, 3, 3][Math.min(t, 2)] : 4;
+/* KURAL (Hece Sayısına Dokun düzeyleri, 2026-11-19; kullanıcı kararı): okul sonrasında hece seçimi düzeye göre 2 – 3 – 4'tür — Başlangıç: 1 – 2 heceli kelimeler, seçenekler 1 ve 2; Orta: 1 – 3 heceli kelimeler, seçenekler 1 – 3; Zor: 2 – 4 heceli kelimeler, seçenekler 1 – 4. Önceden seçenek sayısı 3 – 4 – 5'ti; Başlangıç (en çok 2 heceli kelime, 3 seçenek) ile Orta (en çok 3 heceli kelime, 4 seçenek) birbirine benziyordu. Soru sayısı aynı (6). Okul öncesi aynı kalır (2 – 3 – 3 seçenek; Zor'da 2 – 3 heceli kelimeler) */
+"syl-touch": () => { const t = currentCombo().t, C = qzCats(), max = isPre() ? [2, 3, 3][Math.min(t, 2)] : [2, 3, 4][Math.min(t, 2)];
+const pool = Object.values(C).flatMap(c => c.items).filter(x => !/\s/.test(x.n)).filter(x => { const s = trSyl(x.n); return s <= max && (isPre() ? [s <= 2, s <= 3, s >= 2 && s <= 3][Math.min(t, 2)] : (t === 0 ? s <= 2 : t === 1 ? s <= 3 : s >= 2)); });
 const N = qzTrials(6, 4), groups = {}; pool.forEach(x => { const s = Math.min(trSyl(x.n), max); (groups[s] = groups[s] || []).push(x); }); const keys = Object.keys(groups).map(Number); const seq = balancedSeq(N, keys, 2); const used = new Set(); const picks = seq.map(s => { const c = shuffleArray(groups[s]).find(x => !used.has(x.n)) || randomItem(groups[s]); used.add(c.n); return c; });   /* cevaplar (hece sayıları) turda dengeli */
   return picks.map(x => { const s = Math.min(trSyl(x.n), max);
 const opts = Array.from({length:max}, (_, i) => `<span style="display:block;white-space:nowrap;line-height:1;font-size:${[18, 15, 12, 10][i]}px">${"👏".repeat(i + 1)}</span><span style="display:block;font-weight:900;font-size:18px;line-height:1.2">${i + 1}</span>`);   // simgeler tek satırda, karta sığacak boyutta
@@ -509,7 +509,7 @@ const QZ_SPREAD_SKIP = new Set(["arrow-touch","edge-touch","overlap-count","syl-
 /* Seçenek sayısı düzeyle büyür (Okul Öncesi 3-3-4, Okul Sonrası 3-4-5): fazlası atılır, eksiği aynı turdan ya da yakın sayılarla tamamlanır */
 const QZ_D = { pre:[3,3,4], post:[3,4,5] }, QZ_D2 = { pre:[3,4,4], post:[3,4,5] };
 const QZ_TIER_OPTS = { "pattern-touch":QZ_D, "analogy-touch":QZ_D, "pk-shadow":QZ_D, "matrix-fill":QZ_D, "closure":QZ_D, "syl-blend":QZ_D, "embedded":QZ_D, "proverb-touch":QZ_D, "infer-touch":QZ_D, "listen-answer":QZ_D,
-  "opp-touch":{ pre:[3,3,4] }, "mental-rot":{ pre:[3,3,4] }, "word-pic":{ post:[3,4,5] }, "syl-touch":{ post:[3,4,5] }, "balance":{ post:[3,4,4] },
+  "opp-touch":{ pre:[3,3,4] }, "mental-rot":{ pre:[3,3,4] }, "word-pic":{ post:[3,4,5] }, "syl-touch":{ post:[2,3,4] }, "balance":{ post:[3,4,4] },
   "paper-fold":QZ_D2, "num-pattern":QZ_D2, "overlap-count":QZ_D2, "concept-touch":{ pre:[2,3,3], post:[2,3,4], capOnly:true }, "view-from":{ post:[2,3,4], capOnly:true } };
 function qzTierOpts(id, trials){ const cfg = QZ_TIER_OPTS[id]; if(!cfg || !Array.isArray(trials)) return trials; const tab = isPre() ? cfg.pre : cfg.post; if(!tab) return trials; const want = tab[Math.min(currentCombo().t, 2)];
   const plain = (o) => String(o).replace(/<[^>]+>/g, "").trim(); const numVal = (o) => { const m = plain(o).match(/^(?:👏\s*)*(\d+)$/); return m ? +m[1] : NaN; }; const isNum = (q) => q.opts.every(o => !isNaN(numVal(o))); const ordinal = (q) => q.opts.every(o => /^[\d\s👏]+$/.test(plain(o)) && plain(o) !== "");
@@ -617,18 +617,35 @@ const sw = fluSwitchSet(); return { big: sw.map(x => x[0]).join(" – "), say:`S
 const GS_BANK = { hayvan:["kedi","köpek","tavşan","kuş","inek","at","aslan"], meyve:["elma","muz","çilek","armut","kiraz","üzüm"], sebze:["havuç","patates","soğan","salatalık","ıspanak"],
 "taşıt":["araba","otobüs","tren","uçak","gemi","bisiklet"], giysi:["ceket","çorap","şapka","etek","pantolon","kazak"], mutfak:["kaşık","tabak","çatal","tencere","bardak"] };
 const GS_PLURAL = { hayvan:"hayvanlar", meyve:"meyveler", sebze:"sebzeler", "taşıt":"taşıtlar", giysi:"giysiler", mutfak:"mutfak eşyaları" };
-function gsBuild(){ const t = currentCombo().t, spec = isPre() ? [[2, 3], [3, 3], [3, 4]][t] : [[3, 3], [4, 3], [3, 4]][t];
-let cats = shuffleArray(isPre() ? ["hayvan","meyve","taşıt","giysi"] : Object.keys(GS_BANK).filter(k => k !== "sebze"));
-cats = cats.slice(0, spec[0]); if(!isPre() && t === 2){ cats = ["meyve","sebze"].concat(cats.filter(c => c !== "meyve").slice(0, 1)); }
-const groups = cats.map(c => ({ c, w: shuffleArray(GS_BANK[c]).slice(0, spec[1]) }));
-let flat; do{ flat = shuffleArray(groups.flatMap(g => g.w.map(w => ({ w, c: g.c })))); } while(flat.some((x, i) => i && flat[i - 1].c === x.c) && Math.random() < 0.97);
-return [{ groups, flat }];
+/* KURAL (Hangileri Birlikte üç aşama, 2026-11-19; kullanıcı kararı — "listeli çalışmalarda işaretleme yok" kuralının bu çalışma için istisnası): oyun ÜÇ aşamayla ilerler. Her aşamada her varlık grubundan BİRER kelime okunur (üç grup varsa üç kelime); çocuk her kelimenin hangi gruptan olduğunu söyler. Doğru söylediği kelimenin kutusuna yetişkin dokunur, kutu YEŞİLE döner (✓; yeniden dokununca geri alınır). "Sonraki aşama" ile ilerlenir, son aşamada düğme "Bitir ✓" olur; aşamanın bütün kutuları yeşile dönünce sonraki aşama kendiliğinden gelir. Yeşile dönmeyen her kelime, aşama kapanınca "Yanlış gruplanan kelime" sayılır (sayaç kendiliğinden; Başlat'ta 0). Son aşamaya gelmeden durdurulan çalışma kaydedilmez. Kutulara ve düğmeye dokunma Başlat'tan önce çalışmaz. Kelimelerin sırası her aşamada karışıktır (grup yerinden tahmin edilmesin). Grup sayısı düzeye göre: okul sonrası 3 / 4 / 3 (Zor'da yakın gruplar: meyve – sebze), okul öncesi 2 / 3 / 4. Önceden 9 – 12 kelimenin hepsi birden okunuyor, çocuk hangilerinin birlikte olduğunu söylüyor, yetişkin − / + ile puanlıyordu */
+const GS_STEPS = 3, GS_GROUPS = { pre:[2, 3, 4], post:[3, 4, 3] }, GS_NAME = { hayvan:"hayvan", meyve:"meyve", sebze:"sebze", "taşıt":"taşıt", giysi:"giysi", mutfak:"mutfak eşyası" };
+let gsSt = { k:0, ok:{}, done:false }, _gsT = null;
+function gsReset(){ clearTimeout(_gsT); gsSt = { k:0, ok:{}, done:false }; }
+function gsBuild(){ const t = Math.max(0, Math.min(2, currentCombo().t)), pre = isPre(), G = (pre ? GS_GROUPS.pre : GS_GROUPS.post)[t];
+let cats = shuffleArray(pre ? ["hayvan","meyve","taşıt","giysi"] : Object.keys(GS_BANK).filter(k => k !== "sebze")).slice(0, G);
+if(!pre && t === 2){ cats = ["meyve","sebze"].concat(cats.filter(c => c !== "meyve").slice(0, 1)); }   /* Zor: birbirine yakın gruplar */
+const groups = cats.map(c => ({ c, w: shuffleArray(GS_BANK[c]).slice(0, GS_STEPS) })), steps = [];
+for(let s = 0; s < GS_STEPS; s++){ let row = shuffleArray(groups.map((g, gi) => ({ w: g.w[s], c: g.c, gi }))), n = 0; while(G > 2 && n++ < 20 && steps.length && row.map(x => x.gi).join() === steps[steps.length - 1].map(x => x.gi).join()) row = shuffleArray(row); steps.push(row); }   /* her aşamada her gruptan bir kelime; ardışık iki aşamada grupların sırası aynı olmaz */
+gsReset(); return [{ groups, steps, flat: [].concat(...steps) }];
 }
-function gsRender(items){ const L = items[0], total = L.flat.length; let ok = 0; L.groups.forEach((g, gi) => g.w.forEach((w, i) => { if(ckMarks[gi + ":" + i]) ok++; }));
-return `<div class="aud-list"><div class="aud-note">Kelimeleri okuyun; çocuk <b>hangilerinin birlikte olduğunu</b> gruplar hâlinde söylesin. Bu bir bellek çalışması değil: kelimeleri <b>istediği kadar tekrar okuyabilirsiniz</b>. Yanlış gruplanan her kelime için <b>Hata sayısı +</b>.</div>` +
-`<div class="aud-row"><div class="aud-num">↓</div><div class="aud-body"><div class="aud-words">${L.flat.map(x => x.w).join(" – ")}</div></div></div>` +
-`` +
-L.groups.map((g, gi) => `<div style="font-weight:800">${cap(GS_PLURAL[g.c])}</div>` + ckRow(g.w.map((w, i) => ckChip(gi, i, w, ckMarks[gi + ":" + i])).join(""))).join("") + `</div>`; }
+function gsSteps(){ try{ return currentGrid[0].steps || []; }catch(e){ return []; } }
+function gsRowOk(k){ const row = gsSteps()[k] || []; return row.length > 0 && row.every((x, j) => gsSt.ok[k + ":" + j]); }
+function gsScore(){ let e = 0; gsSteps().forEach((row, s) => { if(s < gsSt.k || gsSt.done) row.forEach((x, j) => { if(!gsSt.ok[s + ":" + j]) e++; }); }); return e; }   /* kapanan aşamalarda yeşile dönmeyen kelimeler */
+function gsComplete(){ const N = gsSteps().length; return !N || !!gsSt.done || gsSt.k >= N - 1; }   /* son aşamaya gelindi mi (yarım durdurma kaydedilmez) */
+function gsFinalize(){ clearTimeout(_gsT); try{ if(!gsSteps().length) return; if(gsSt.k >= gsSteps().length - 1) gsSt.done = true; if(gsSt.done){ setErrorCount(gsScore()); renderBoard(); } }catch(e){} }   /* süre durunca: son aşamadaysa o aşama da kapanır */
+function gsGo(){ clearTimeout(_gsT); const N = gsSteps().length; if(!N || gsSt.done) return; if(gsSt.k < N - 1){ gsSt.k++; setErrorCount(gsScore()); renderBoard(); return; }
+  gsSt.done = true; setErrorCount(gsScore()); renderBoard(); if(timerRunning){ window._manualStop = false; stopTimer(); } }
+function gsRender(items){ const L = items[0], S = L.steps || [], N = S.length, k = Math.max(0, Math.min(gsSt.k, N - 1)), row = S[k] || [], last = k >= N - 1, okN = row.filter((x, j) => gsSt.ok[k + ":" + j]).length;
+const note = `<div class="aud-note">Bu aşamadaki kelimeleri <b>tek tek</b> okuyun; çocuk her kelimenin <b>hangi gruptan</b> olduğunu söylesin. Doğru söylediği kelimenin kutusuna <b>dokunun</b>, kutu yeşile döner. Küçük yazı beklenen grubun adıdır; aynı anlama gelen cevabı da doğru sayın. Yeşile dönmeyen her kelime <b>Yanlış gruplanan kelime</b> sayılır.</div>`;
+const bar = `<div class="gs-bar"><span class="gs-step">Aşama <b>${k + 1}</b> / ${N}<span class="gs-dots">${S.map((r, s) => `<i class="${s < k || gsSt.done ? "on" : s === k ? "cur" : ""}"></i>`).join("")}</span></span>` + (gsSt.done ? `<span class="gs-fin">Bitti ✓</span>` : `<button type="button" class="gs-next" ${last ? 'data-gsend="1"' : 'data-gsnext="1"'}>${last ? "Bitir ✓" : `<span class="gs-long">Sonraki aşama</span><span class="gs-short">Sonraki</span> ▶`}</button>`) + `</div>`;
+const boxes = `<div class="gs-grid${row.length === 4 ? " two" : ""}" style="--gsn:${row.length}">` + row.map((x, j) => { const on = !!gsSt.ok[k + ":" + j]; return `<button type="button" class="gs-box${on ? " on" : ""}" data-gsw="${j}" aria-pressed="${on}"><span class="gs-w">${on ? "✓ " : ""}${x.w}</span><span class="gs-c">${GS_NAME[x.c] || x.c}</span></button>`; }).join("") + `</div>`;
+return `<div class="aud-list gs-wrap" data-gsok="${okN}">${note}${bar}${boxes}</div>`; }
+document.getElementById("board").addEventListener("click", (ev) => { try{ if(currentExercise().id !== "group-say") return; const bx = ev.target.closest("[data-gsw]"), nx = ev.target.closest("[data-gsnext], [data-gsend]"); if(!bx && !nx) return;
+  if(!timerRunning){ showLevelFlash("Önce ▶ Başlat'a basın.", "down"); return; }   /* sözel tahta düğmeleri Başlat'tan sonra kuralı */
+  if(nx){ gsGo(); return; }
+  const key = gsSt.k + ":" + bx.dataset.gsw; if(gsSt.ok[key]) delete gsSt.ok[key]; else gsSt.ok[key] = 1; clearTimeout(_gsT); if(gsSt.done) setErrorCount(gsScore()); renderBoard();
+  if(!gsSt.done && gsRowOk(gsSt.k)){ const k0 = gsSt.k; _gsT = setTimeout(() => { try{ if(timerRunning && currentExercise().id === "group-say" && !gsSt.done && gsSt.k === k0 && gsRowOk(k0)) gsGo(); }catch(e){ console.error(e); } }, 1200); }   /* aşama tamamlanınca sonraki kendiliğinden gelir */
+}catch(e){ console.error(e); } });
 /* gsScore: hiçbir yerde kullanılmıyordu, silindi (2026-11-09, 7. adım) */
 function spGroups(){
 const ta = ["dog","cat","cow","rabbit","elephant","parrot"].map(k => ({ src: TA_ANIMALS[k](), n:k }));
@@ -3375,9 +3392,13 @@ body = dots + `<svg viewBox="-3 -3 ${w + 6} ${w + 6}" width="${w}" height="${w}"
 const tr = st.trials[ti], tot = tr.opts.filter(x => trFirst(x.n) === tr.s).length;
 info = `<b>${tr.s}</b> sesiyle başlayanlara dokun · ${Object.keys(st.found).length}/${tot}`;
 const head = `<div style="display:flex;gap:10px;justify-content:center;align-items:center;margin-bottom:6px"><span class="flu-card" style="margin:0;padding:2px 18px"><span class="flu-big" style="font-size:30px">${tr.s}</span></span><button type="button" class="wm-btn diff" data-mtbtn="ss-names" style="min-width:0;padding:8px 12px">🔊 Adları dinle</button></div>`;
-const g2 = (avW, avH) => { const d = wmGridDims(tr.opts.length, avW, avH, 70); return `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + tr.opts.map((x, i) => pic(x, i, d.cell, st.found[i] ? "ok" : st.bad[i] ? "bad" : (st.reveal && trFirst(x.n) === tr.s ? "ok" : ""))).join("") + `</div>`; };
+/* KURAL (Aynı Sesle Başlayanı Bul resimler büyük, 2026-11-19): dikeyde resimler ekranda gerçekten kalan yere göre dizilir — ilk çizimden sonra ızgaraya kalan yükseklik ölçülür (tahtanın en çok boyu − ızgaranın üstü − alttaki Bitti düğmesi) ve resimleri büyüten dizilim seçilir (ör. uzun ekranda 8 resim 4 × 2 yerine 3 + 3 + 2); eksik kalan son satır ortalanır. En büyük resmin %95'inden küçük olmayan dizilimler arasında en az satırlı olan seçilir; ölçülen dizilim yalnız sütun sayısı değişiyor ve resimler en az %5 büyüyorsa (hücre 64 noktadan küçük değilse) kullanılır; öbür durumlarda ve kısa ekranda dizilim eskisi gibi kalır. Önceden Orta düzeyde (8 resim) resimler 4 × 2 dizilip küçük kalıyor, altta boş yer duruyordu ("son satır eksik kalmaz" kuralının bu çalışma için istisnası) */
+const g2 = (avW, avH, meas) => { const n = tr.opts.length; let d = wmGridDims(n, avW, avH, 70);
+  if(meas){ const cap = Math.min(170, 110 * tabletScale()) * (window._fitK || 1); let c = []; for(let cols = 1; cols <= n; cols++){ const rows = Math.ceil(n / cols); c.push({ cols, rows, empty: cols * rows - n, cell: Math.floor(Math.min(cap, (avW - (cols - 1) * 10) / cols, (meas - (rows - 1) * 10) / rows)) }); }
+    const mx = Math.max(...c.map(x => x.cell)); c = c.filter(x => x.cell >= mx * 0.95).sort((a, b) => a.rows - b.rows || a.empty - b.empty || b.cell - a.cell);   /* en büyük resmin %95'inden küçük olmayan dizilimler arasında en az satırlı olan */ if(c[0] && c[0].cols !== d.cols && c[0].cell >= 64 && c[0].cell > d.cell * 1.05) d = { cols: c[0].cols, cell: c[0].cell }; }   /* yalnız başka bir dizilim resimleri belirgin büyütüyorsa; öbür durumlarda dizilim eskisi gibi */
+  return `<div class="wm-grid ss-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + tr.opts.map((x, i) => pic(x, i, d.cell, st.found[i] ? "ok" : st.bad[i] ? "bad" : (st.reveal && trFirst(x.n) === tr.s ? "ok" : ""))).join("") + `</div>`; };   /* eksik kalan son satırı ortak ızgara kuralı ortalar */
 const done = `<div class="wm-btns" style="margin:8px auto 0"><button type="button" class="wm-btn same" data-mtbtn="ss-done">Bitti</button></div>`;
-body = isLs ? dots + `<div style="display:flex;gap:16px;align-items:center;justify-content:center"><div>${head}${done}</div>${g2(W * 0.6, H - 30)}</div>` : dots + head + g2(W, H - 120) + done;
+body = isLs ? dots + `<div style="display:flex;gap:16px;align-items:center;justify-content:center"><div>${head}${done}</div>${g2(W * 0.6, H - 30)}</div>` : dots + head + g2(W, H - 120, (timerRunning && window._ssH && window._ssHK === ssKey()) ? window._ssH : 0) + done;
 } else if(st.kind === "seqw"){
 const tr = st.trials[ti], L = tr.seq.length;
 info = tr.pics ? "<b>En küçükten en büyüğe</b> diz (gerçek büyüklüklerine göre)" : "<b>Doğru sıraya</b> diz: önce geleni seç";

@@ -605,7 +605,7 @@ return `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${d
 }
 }
 board.innerHTML = `<div class="wm-wrap"><div class="wm-info">${info}</div>${body}</div>`;
-}finally{ try{ zaPicGrow(renderMtBoardCore, this, arguments); }catch(e){} try{ zaTapRestore(); }catch(e){}  try{ const b = document.getElementById("board"); if(b){ emojiFix(b); emojiStrip(b); } }catch(e){} syncJudgePause(); try{ zaFitBoardContent(); requestAnimationFrame(zaFitBoardContent); }catch(e){} } }
+}finally{ try{ zaPicGrow(renderMtBoardCore, this, arguments); }catch(e){} try{ ssGrow(renderMtBoardCore, this, arguments); }catch(e){} try{ zaTapRestore(); }catch(e){}  try{ const b = document.getElementById("board"); if(b){ emojiFix(b); emojiStrip(b); } }catch(e){} syncJudgePause(); try{ zaFitBoardContent(); requestAnimationFrame(zaFitBoardContent); }catch(e){} } }
 /* zaPicGrow için kancasız yeniden çizim (sarmalayıcıların kaldırılması, 2026-11-09) */
 function renderMtBoardCore(){
 const board = document.getElementById("board");
@@ -953,7 +953,7 @@ const INSTR_SHORT = {
 "flu-letter":       [() => `Okuyun ve ▶'a basın: ${Q(`${fluPrompt("flu-letter").say} İnsan adı ve yer adı söyleme; aynı kelimeyi de tekrar etme.`)}`],
 "flu-switch":       [() => `Okuyun ve ▶'a basın: ${Q(`${fluPrompt("flu-switch").say} Hep bu sırayla devam et; olabildiğince çok söyle.`)}`],
 "sort-pic":         [() => Q("Ekrana bir resim gelecek; altta grup kutuları var. Resim hangi gruba giriyorsa o grubun kutusuna dokun.")],
-"group-say":        [() => `Kelimeleri okuyun: ${Q("Sana kelimeler okuyacağım. Bazıları birbiriyle ilgili, aynı gruptan. Hangilerinin birlikte olduğunu söyle ve her grubun adını söyle.")}`],
+"group-say":        [() => `Kelimeleri tek tek okuyun; çocuk her kelimenin grubunu söyler: ${Q("Sana kelimeler okuyacağım. Her kelimenin hangi gruptan olduğunu söyle. Örneğin ‘papatya’ bir çiçektir.")}`],
 "free-sort":        [() => Q("Ekranda karışık resimler var; bazıları aynı gruptan. Önce bir renk seç, sonra aynı gruptan olan resimlere dokun; hepsi o renge boyanır. Başka bir grup için başka bir renk seç. Bitince Bitti'ye bas."), () => `Gruplar bitince sorun: ${Q("Bu gruptakilerin ortak adı ne? Bu gruba bir ad ver.")}`],
 "move-seq":         [() => `Çocuk ayakta olsun, yakında bir masa bulunsun. ${Q("Sana birkaç hareket söyleyeceğim; dinle ve aklında tut, hemen yapma. Ben ‘şimdi yap’ deyince hareketleri aynı sırayla yap.")}`],
 "story-order":      [() => Q("Sana resimli bir hikâye gösterilecek; izle ve dinle. Sonra resimler karışacak. Resimleri hikâyedeki doğru sıraya koy." + (isPre() ? "" : currentCombo().t >= 2 ? " Arada hikâyede olmayan iki resim var; onlara dokunma." : currentCombo().t === 1 ? " Arada hikâyede olmayan bir resim var; ona dokunma." : ""))],   /* Hikâyeyi Sırala farklı resim kuralı */
@@ -1253,7 +1253,7 @@ return {
 "flu-letter":[0, "Heceyle Dene", "Bu sesle başlayan heceleri sırayla dene; her heceden kelime bul."],
 "flu-switch":[0, "Sırayı Söyle", "Her kelimeden önce içinden sıradaki grubu söyle."],
 "sort-pic":[0, "Kendine Sor", "Kendine sor: Bu ne? Hangi gruba girer?"],
-"group-say":[0, "Önce Grupları Bul", "Önce hangi gruplar olduğunu söyle, sonra kelimeleri yerleştir."],
+"group-say":[0, "Nerede Bulunur?", "Kendine sor: Bu ne? Nerede bulunur, ne işe yarar? Grubun adı aklına gelir."],
 "free-sort":[0, "Ortak Özellik Ara", "Kendine sor: Bunlar nerede bulunur? Ne işe yarar?"],
 "move-seq":[0, "Kafanda Yap", "Dinlerken hareketleri kafanda bir kez yap."],
 "story-order":[0, "Önce–Sonra", "Kendine söyle: önce…, sonra…, en son…"],

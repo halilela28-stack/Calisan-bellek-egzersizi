@@ -319,6 +319,8 @@ function ttsTurkish(x){ try{
   x = x.replace(/,\s*([.?!])/g, "$1").replace(/([.?!])\s*,/g, "$1").replace(/,(\s*,)+/g, ",").replace(/^\s*,\s*/, "").replace(/\s+([,.?!])/g, "$1").replace(/\s+/g, " ").trim();
   x = x.replace(/[^.?!]*\?/g, (q) => (TR_WH.test(q) && !TR_MI.test(q)) ? q.replace(/\?$/, /\d\s*\?$/.test(q) ? "," : ".") : q);
 }catch(e){} return x; }
+const TTS_FINAL_FIX = [["say", "say bakalım"]];   /* say uzatılmaz kuralı: cümle sonunda uzayan tek heceli kelime → seslendirmede son kelime olmayacak biçimi */
+function ttsSayFix(x){ TTS_FINAL_FIX.forEach(([a, b]) => { x = x.replace(new RegExp("(^|[^\\p{L}])" + a + "(?=\\s*(?:[.!?]|$))", "giu"), (m, pre) => pre + (m.slice(pre.length, pre.length + 1) === a[0].toLocaleUpperCase("tr-TR") ? b[0].toLocaleUpperCase("tr-TR") + b.slice(1) : b)); }); return x; }
 function ttsEnd(c){ c = c.replace(/,\s*$/, "").trim(); return !c || /[.?!]$/.test(c) || /\d$/.test(c) ? c : c + "."; }
 function ttsPrep(t){ let x = String(t || ""); try{ const fx = (voicePref().fixes || []).concat(TTS_BASE_FIX); fx.forEach(f => { if(!f || !f.a) return; const esc = f.a.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); const re = new RegExp("(^|[^\\p{L}])(" + esc + ")(?=$|[^\\p{L}])", "giu"); x = x.replace(re, (m, pre) => pre + (f.b || "")); }); }catch(e){}
   x = x.replace(/[“”"«»„]/g, "").replace(/(\d)\s*…/g, "$1, ").replace(/…/g, ". ").replace(/\s·\s/g, ", ").replace(/\s+/g, " ").trim();
@@ -326,6 +328,8 @@ function ttsPrep(t){ let x = String(t || ""); try{ const fx = (voicePref().fixes
   x = ttsTurkish(x);
   /* KURAL (büyük harfli kelime okunuşu, 2026-11-16): yönergedeki BÜYÜK HARFLİ kelimeler (GERİ SAY, UÇAR, BÜYÜK…) okunmadan önce Türkçe küçük harfe çevrilir — ses motoru onları uzatıp vurgulayarak ("sayyy") okumaz; ekrandaki yazı değişmez. Ünlem ve art arda noktalama tek noktaya iner */
   try{ x = x.replace(/(^|[^\p{L}])(\p{Lu}{2,})(?=$|[^\p{L}])/gu, (m, pre, w) => pre + w.toLocaleLowerCase("tr-TR")).replace(/[!]+/g, ".").replace(/([.?,;:])\1+/g, "$1").replace(/\.\s*\./g, "."); }catch(e){}
+  /* KURAL (say uzatılmaz, 2026-11-19; kullanıcı kararı): seslendirmede "say" kelimesi uzatılarak ("saayy") okunmaz. Ses motoru, cümlenin son kelimesi olan tek heceli "say"ı uzatıyor; bu yüzden cümle sonundaki "say" seslendirmede "say bakalım" diye okunur — "say" cümlenin son kelimesi olmaz, kısa okunur ("heceleri say." → "heceleri say bakalım."). Ekrandaki yazı değişmez; cümle içindeki "say" (ardından başka kelime ya da virgül gelen) olduğu gibi kalır. BÜYÜK harfli SAY önce küçük harfe çevrilir (büyük harfli kelime okunuşu kuralı), sonra aynı kural uygulanır */
+  try{ x = ttsSayFix(x); }catch(e){}
   if(voicePref().syl) x = ttsSyllableSoften(x, voicePref().sylSep === "space" ? " " : "-");
   if(!voicePref().pause) return [ttsEnd(x)];
   const raw = x.replace(/([^\d][.!?]|\?)\s+(?=[\p{Lu}\d])/gu, "$1\n").split("\n").map(y => y.trim()).filter(Boolean), parts = []; let buf = "";   /* Türkçe okuma vurgusu kuralı: yalnız büyük harfle (ya da rakamla) başlayan yeni cümlede bölünür; "15. saniye" bölünmez */

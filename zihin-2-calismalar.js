@@ -1943,10 +1943,10 @@ readingLevel: ["pre","post"],
 label: "Hangileri Birlikte?",
 isAuditory: true, attrs: [], errorLabel: "Yanlış gruplanan kelime",
 
-audTrials: () => { ckMarks = {}; return gsBuild(); },
+audTrials: () => { ckMarks = {}; return gsBuild(); },   /* Hangileri Birlikte üç aşama kuralı: sayaç dokundukça kendiliğinden (kapanan aşamalarda yeşile dönmeyen kelimeler) */
 audRender: (items) => gsRender(items),
 randomItem: () => ({}),
-stages: [ { label: "Grupla ve Söyle", instruction: () => ``, example: () => `` } ]
+stages: [ { label: "Grubunu Söyle", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "same-sound",
