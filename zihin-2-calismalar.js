@@ -3189,12 +3189,12 @@ renderItem: (item) => litCircleHTML(item.lit, item.color),
 stages: [
 {
 label: "Aşama 1 · Dolu Daireleri İncele",
-instruction: () => `Hangi dairelerin <b>dolu</b> olduğunu birlikte inceleyin. Süre dolunca kapanacak — çocuktan hangi konumların dolu olduğunu hatırlamasını isteyin, doğru sayısını girin.`,
+instruction: () => `Hangi dairelerin <b>dolu</b> olduğunu birlikte inceleyin. Süre dolunca bütün daireler boşalır — çocuktan dolu olanların yerini <b>parmağıyla göstermesini</b> isteyin, doğru gösterdiklerini Kontrol listesinde işaretleyin.`,
 example: () => ``
 },
 {
 label: "Aşama 2 · Sırayla Hatırlama",
-instruction: () => `Aynı şekilde inceleyin, çocuktan dolu daireleri <b>soldan sağa sırayla</b> saymasını isteyin.`,
+instruction: () => `Aynı şekilde inceleyin, çocuktan dolu dairelerin yerini <b>soldan sağa sırayla</b> parmağıyla göstermesini isteyin.`,
 example: () => ``
 }
 ]

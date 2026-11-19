@@ -74,7 +74,7 @@ motionStartTs = 0;
 function renderBoard(){
 const ex = currentExercise();
 const board = document.getElementById("board");
-board.classList.remove("rc-board-off");   /* Rakam Dizisi kapanınca kuralı: yeni çizimde tahta geri gelir */
+board.classList.remove("rc-board-off"); board.classList.remove("pos-blank");   /* Rakam Dizisi kapanınca kuralı: yeni çizimde tahta geri gelir; Konum Hatırlama göstererek kuralı: boş daireler de silinir */
 try{ board.classList.toggle("ds-res", dsIs()); board.classList.toggle("ds-live", !!(dsIs() && dsRun && timerRunning && document.getElementById("dsBar"))); }catch(e){}   /* yatayda çubuğun yeri ayrılır kuralı: yer, tahta dizilmeden önce ayrılır */
 clearAudTimers();
 { const k = document.getElementById("recallKey"); if(k && !recallListen()) k.remove(); }
@@ -1787,7 +1787,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.18-o";
+const APP_VERSION = "2026.11.19-a";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 /* RUNTIME_CSS → zihin-stil.css */
 /* Dosya sürümü denetimi: zihin-atolyesi.html ile uygulama kodu (zihin-1…8) farklı sürümdeyse uyar */
