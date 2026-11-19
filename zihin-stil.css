@@ -508,6 +508,9 @@ html.text-lg #hmEtk .hm-col > button, html.text-xl #hmEtk .hm-col > button{ font
 @media (orientation: landscape) and (max-height: 520px){ #board.ds-res:not(.ds-live):not(.rc-board-off){margin-bottom:34px !important} }
 /* KURAL (art arda üç liste, 2026-11-18): küçük dikey ekranda (iPhone SE) liste çubuğu tek satırdır — "Liste 1 / 3" ile düğme yan yana, alçak */
 @media (orientation: portrait) and (max-height: 700px){ .ds-bar{flex-wrap:nowrap;gap:8px;margin:6px 0 2px;padding:5px 8px} .ds-bar .ds-n{font-size:16px;white-space:nowrap} .ds-bar .ds-btn{min-height:44px;padding:8px 12px;font-size:16px;white-space:nowrap} }
+/* KURAL (Konum Hatırlama üç set, 2026-11-19): boş tahtanın altına set çubuğu ve Kontrol listesi başlığı sığsın diye aralıklar daralır — küçük dikey ekranda tahta ile çubuk arası; yatay alçak ekranda tahtanın iç boşluğu, çubuğun ve liste başlığının üst boşluğu (boş daireler yatay küçük ekranda 40 px'in altına inmez) */
+@media (orientation: portrait) and (max-height: 700px){ html.run-focus #mainApp #board.pos-blank{margin-bottom:8px !important} }
+@media (orientation: landscape) and (max-height: 520px){ #mainApp #board.pos-blank{padding-top:4px !important;padding-bottom:4px !important;row-gap:4px !important} #board.pos-blank + .ds-bar{margin-top:2px} #board.pos-blank ~ #recallCheck{margin-top:4px !important} }
 
 /* ikinci aşama kilidi (2026-11-16): bu düzeyde kapalı aşama düğmesi soluk ve kilitli görünür */
 #mainApp .stage-btn.stage-locked{opacity:.5}

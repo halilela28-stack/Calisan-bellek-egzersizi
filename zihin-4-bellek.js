@@ -391,7 +391,7 @@ function qzArrowStyled(d, col, style){ if(!style || style === "arrow" || !QZ_ARR
 const QZ_OPP_FACE = { happy:"sad", sad:"happy" };
 const QZ = {
 "odd-cat": () => { const C = qzCats(), t = currentCombo().t, N = qzOpts([4, 5, 5][t], [3, 4, 4][t]);
-return Array.from({length: qzTrials(6, 4)}, () => { const keys = Object.keys(C).filter(k => C[k].items.length >= N - 1); const a = randomItem(keys);
+return Array.from({length: qzTrials(QZ_N_BY_TIER[Math.max(0, Math.min(2, t))], 4)}, () => {   /* Parça–Bütün ve Gruba Uymayanı Bul soru sayısı kuralı: okul sonrası 6 – 8 – 10 */ const keys = Object.keys(C).filter(k => C[k].items.length >= N - 1); const a = randomItem(keys);
 const b = t === 2 && QZ_CLOSE[a] ? QZ_CLOSE[a] : randomItem(keys.filter(k => k !== a && QZ_CLOSE[a] !== k));
 const same = shuffleArray(C[a].items).slice(0, N - 1), odd = randomItem(C[b].items);
 const opts = same.map(x => qzPic(x.src)).concat([qzPic(odd.src)]);
@@ -494,7 +494,12 @@ st.phase = "fb"; renderMtBoard(); mtLater(NEW_MT.next, 350); }
 function rhyEval(){ const st = mtState, tr = st.trials[st.ti], T = st.taps; let ok = T.length === tr.L;
 if(ok && tr.L > 1){ const d = T.slice(1).map((x, i) => x - T[i]), mn = Math.min(...d), cat = d.map(x => x > mn * 1.45 ? 2 : 1); ok = cat.every((c, i) => c === tr.iv[i]); }
 if(ok) gameSfx("correct"); else mtErr(); st.last = ok; st.phase = "fb"; renderMtBoard(); mtLater(NEW_MT.next, ok ? 700 : 1500); }
-function qzStart(){ const st = mtState; st.phase = "ask"; st.pick = null; renderMtBoard(); const tr = st.trials[st.ti]; if(tr.say) mtLater(() => sayTask(tr.say, 0.85), 250); }
+/* KURAL (Hece Birleştir heceler ayrı okunur, 2026-11-19): heceler tek cümle gibi art arda okunmaz — her hece AYRI seslendirilir ve aralarında belirgin bir duraklama olur (hece başına yaklaşık bir saniye: "por" … "ta" … "kal"). Önceden heceler tek seslendirmede okunuyor, ses kelimeyi birleşik söylüyordu; çocuğun birleştireceği bir şey kalmıyordu. "Bir daha dinle" de heceleri aynı biçimde ayrı okur; çocuk cevap verince kalan heceler okunmaz. Okunan hece yazı olarak gösterilecekse tek tek gösterilir */
+const SYL_GAP_MS = 1000;
+function qzSay(tr){ const st = mtState; if(!tr || !st) return; if(Array.isArray(tr.sayParts) && tr.sayParts.length){ const tok = st._sayTok = (st._sayTok || 0) + 1, ti = st.ti;
+    tr.sayParts.forEach((p, i) => mtLater(() => { if(mtState !== st || st._sayTok !== tok || st.ti !== ti || st.phase !== "ask") return; sayTask(p, tr.rate || 0.7); }, i * SYL_GAP_MS)); return; }
+  if(tr.say) sayTask(tr.say, 0.85); }
+function qzStart(){ const st = mtState; st.phase = "ask"; st.pick = null; renderMtBoard(); const tr = st.trials[st.ti]; if(tr.say || tr.sayParts) mtLater(() => qzSay(tr), 250); }
 function qzTap(i){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "ask") return; st.pick = i; st.phase = "fb";
 const ok = i === tr.ans; if(ok) gameSfx("correct"); else mtErr(); renderMtBoard();
 if(!ok && tr.after) mtLater(() => sayTask(tr.after), 300);
@@ -523,7 +528,7 @@ function qzSpreadAns(trials){ try{ if(QZ_SPREAD_SKIP.has(currentExercise().id)) 
 /* Karıştırılmış döngü: havuzdaki her öğe bir kez gelmeden tekrar etmez (geri koyarak seçimin yerine) */
 function mkCycle(arr){ let order = shuffleArray(arr), i = 0, lastV = null; return () => { if(i >= order.length){ order = shuffleArray(arr); i = 0; if(order.length > 1 && order[0] === lastV){ order.push(order.shift()); } } lastV = order[i++]; return lastV; }; }
 function qzRender(st, W, H, isLs){
-const tr = st.trials[Math.min(st.ti, st.trials.length - 1)], dots = `<div class="wm-dots">${st.trials.map((x, i) => `<i class="${i < st.ti ? "on" : ""}${st.warmN && i < st.warmN ? " w" : ""}"></i>`).join("")}${st.warmN && st.ti < st.warmN && st.phase !== "idle" && st.phase !== "done" ? `<span class="qz-warm in">${icI("sprout", 15, "#1B7A3D")} Isınma</span>` : ""}</div>`;
+const tr = st.trials[Math.min(st.ti, st.trials.length - 1)], dots = `<div class="wm-dots">${st.trials.map((x, i) => `<i class="${i < st.ti ? "on" : ""}"></i>`).join("")}</div>`;   /* ısınma turu yok kuralı: bütün noktalar aynı, "Isınma" yazısı yok */
 if(st.phase === "idle") return { info:"▶ Başlat'a bas", body: dots };
 if(st.phase === "done") return { info:"Bitti!", body: dots };
 const stimH = tr.stim && tr.stimBig ? `<div class="wm-card" style="width:${Math.min(isLs ? H - 30 : 220 * tabletScale() * (window._fitK || 1), W * 0.6)}px;height:${Math.min(isLs ? H - 30 : 220 * tabletScale() * (window._fitK || 1), W * 0.6)}px;margin:0 auto 8px;padding:6px">${tr.stim}</div>` : tr.stim ? (tr.raw ? `<div style="margin:2px 0 8px">${tr.stim}</div>` : `<div class="wm-card" style="width:${Math.min(isLs ? H * 0.5 : 130 * tabletScale() * (window._fitK || 1), W * 0.4)}px;height:${Math.min(isLs ? H * 0.5 : 130 * tabletScale() * (window._fitK || 1), W * 0.4)}px;margin:0 auto 8px;padding:6px">${tr.stim}</div>`) : "";
@@ -694,8 +699,10 @@ function pwBuildPre(){ const t = currentCombo().t, N = [3, 4, 4][t];
 return shuffleArray([0, 1, 2, 3]).slice(0, N).map(i => { const rev = t === 2 && Math.random() < 0.5, others = shuffleArray([0, 1, 2, 3].filter(x => x !== i)).slice(0, [2, 2, 3][t]);
 if(!rev) return qzMake(`<div style="width:110px;height:110px;margin:0 auto">${qzPic(PART_IMAGES[i * 2 + 1])}</div>`, [i].concat(others).map(x => qzPic(PART_IMAGES[x * 2])), 0, { prompt:`<b>${cap(PART_PAIRS[i][1])}</b> neyin parçası?`, raw:true, fixed:true, cell:96, say:`${cap(PART_PAIRS[i][1])} neyin parçası?`, replay:true });
 return qzMake(`<div style="width:110px;height:110px;margin:0 auto">${qzPic(PART_IMAGES[i * 2])}</div>`, [i].concat(others).map(x => qzPic(PART_IMAGES[x * 2 + 1])), 0, { prompt:"Bunun <b>parçası</b> hangisi?", raw:true, fixed:true, cell:96, say:"Bunun parçası hangisi?", replay:true }); }); }
-function pwBuild(){ if(isPre()) return pwBuildPre(); const t = currentCombo().t, N = [3, 4, 5][t], wholes = Array.from(new Set(PW.map(p => p[1]))), parts = PW.map(p => p[0]);
-return shuffleArray(PW).slice(0, 6).map(([pa, wh]) => {
+/* KURAL (Parça–Bütün ve Gruba Uymayanı Bul soru sayısı, 2026-11-19; kullanıcı kararı): okul sonrasında soru sayısı zorluk düzeyine göre Başlangıç 6, Orta 8, Zor 10'dur (önceden her düzeyde 6). Parça–Bütün'de bir oturumda aynı bütün iki kez sorulmaz. Okul öncesi sayıları aynı kalır (Parça–Bütün 3 – 4 – 4: yalnız dört resim çifti var; Gruba Uymayanı Bul 4) */
+const QZ_N_BY_TIER = [6, 8, 10];
+function pwBuild(){ if(isPre()) return pwBuildPre(); const t = currentCombo().t, N = [3, 4, 5][t], wholes = Array.from(new Set(PW.map(p => p[1]))), parts = PW.map(p => p[0]), seenW = new Set();
+return shuffleArray(PW).filter(p => { if(seenW.has(p[1])) return false; seenW.add(p[1]); return true; }).slice(0, QZ_N_BY_TIER[Math.max(0, Math.min(2, t))]).map(([pa, wh]) => {
 if(t < 2){ const dis = shuffleArray(wholes.filter(w => w !== wh)).slice(0, N - 1);
 return qzMake(`<div style="font-size:26px;font-weight:900;color:var(--teal-dark)">${pa}</div>`, [wh].concat(dis).map(x => `<b style="font-size:19px">${x}</b>`), 0, { prompt:`<b>${cap(pa)}</b> neyin parçası?`, fixed:true, text:true, raw:true }); }
 const own = PW.filter(p => p[1] === wh).map(p => p[0]), dis = shuffleArray(parts.filter(p => !own.includes(p))).slice(0, N - 1);
@@ -1481,7 +1488,7 @@ if(cur) s.push(cur); return s; }
 function sbTrials(){ const t = currentCombo().t, pre = isPre(), pool = snPicPool().filter(x => trSylSplit(x.n).length >= 2 && trSylSplit(x.n).length <= (pre ? [2, 3, 4][t] : [3, 4, 4][t]) && (pre || t < 2 || trSylSplit(x.n).length >= 3)), N = pre ? 5 : 6;
 return shuffleArray(pool).slice(0, N).map(tg => { const sy = trSylSplit(tg.n), same = pool.filter(x => x !== tg && trSylSplit(x.n)[0] === sy[0]), oth = shuffleArray(pool.filter(x => x !== tg && !same.includes(x)));
 const opts = [tg].concat(shuffleArray(same).slice(0, pre ? (t >= 1 ? 1 : 0) : [0, 1, 2][Math.min(t, 2)]), oth).slice(0, pre ? 3 : 4);
-return qzMake("", opts.map(x => qzPic(x.src)), 0, { prompt:"Heceleri <b>birleştir</b>: hangi resim?", say: sy.join("… ") + "…", replay:true, fixed:true, cell:100, rate:0.7 }); }); }
+return qzMake("", opts.map(x => qzPic(x.src)), 0, { prompt:"Heceleri <b>birleştir</b>: hangi resim?", say: sy.join("… ") + "…", sayParts: sy, replay:true, fixed:true, cell:100, rate:0.7 }); }); }   /* Hece Birleştir heceler ayrı okunur kuralı: sayParts tek tek seslendirilir */
 const PHON = { pre:[ { t:0, q:"“Kar-puz” de. Şimdi <b>kar</b> demeden söyle.", a:"puz" }, { t:0, q:"“Çi-çek” de. Şimdi <b>çi</b> demeden söyle.", a:"çek" }, { t:0, q:"“Ka-lem” de. Şimdi <b>ka</b> demeden söyle.", a:"lem" }, { t:0, q:"“Ta-vuk” de. Şimdi <b>ta</b> demeden söyle.", a:"vuk" }, { t:0, q:"“Bar-dak” de. Şimdi <b>bar</b> demeden söyle.", a:"dak" }, { t:0, q:"“Si-mit” de. Şimdi <b>si</b> demeden söyle.", a:"mit" }, { t:0, q:"“El-ma” de. Şimdi <b>el</b> demeden söyle.", a:"ma" },
   { t:1, q:"“Ma-sa” de. Şimdi <b>sa</b> demeden söyle.", a:"ma" }, { t:1, q:"“Ba-lık” de. Şimdi <b>lık</b> demeden söyle.", a:"ba" }, { t:1, q:"“Ke-di” de. Şimdi <b>di</b> demeden söyle.", a:"ke" }, { t:1, q:"“Ar-mut” de. Şimdi <b>mut</b> demeden söyle.", a:"ar" }, { t:1, q:"“Ka-pı” de. Şimdi <b>pı</b> demeden söyle.", a:"ka" }, { t:1, q:"“Yıl-dız” de. Şimdi <b>dız</b> demeden söyle.", a:"yıl" }, { t:1, q:"“Çan-ta” de. Şimdi <b>ta</b> demeden söyle.", a:"çan" },
   { t:2, q:"“Ka-pı” de. <b>ka</b> yerine <b>ta</b> söyle.", a:"tapı" }, { t:2, q:"“Top” de. Sonuna <b>-lar</b> ekle.", a:"toplar" }, { t:2, q:"“Ma-sa” de. <b>ma</b> yerine <b>ka</b> söyle.", a:"kasa" }, { t:2, q:"“Ke-di” de. Sonuna <b>-ler</b> ekle.", a:"kediler" }, { t:2, q:"“Ka-le” de. <b>ka</b> yerine <b>ba</b> söyle.", a:"bale" }, { t:2, q:"“Top” de. Sonuna <b>-um</b> ekle.", a:"topum" } ],
@@ -2978,7 +2985,7 @@ renderMtBoard(); },
 "fs-done"(){ const st = mtState; if(st.phase !== "input") return; const ev = fsEvaluate(st); st.res = ev.wrong; ev.wrong.forEach(() => mtErr()); if(!ev.wrong.size) gameSfx("correct");
 if(st.naming && ev.groups && Object.keys(ev.groups).length){ st.phase = "name"; st.ng = Object.keys(ev.groups).map(Number);   /* hiç grup kurulmadan Bitti'ye basılırsa adlandırma atlanır (önceden hata veriyordu) */ st.groupsOf = ev.groups; st.ni = 0; renderMtBoard(); return; }
 st.phase = "fb"; renderMtBoard(); mtLater(() => mtFinish(), ev.wrong.size ? 1800 : 700); },
-"qz-replay"(){ const st = mtState, tr = st.trials && st.trials[st.ti]; if(tr && tr.say) sayTask(tr.say, 0.85); },
+"qz-replay"(){ const st = mtState, tr = st.trials && st.trials[st.ti]; if(tr && (tr.say || tr.sayParts)) qzSay(tr); },
 "draw-undo"(){ const st = mtState; if(st.phase !== "input") return; st.mine = new Set(); st.sel = -1; renderMtBoard(); },
 "draw-done"(){ const st = mtState; if(st.phase !== "input") return; const want = st.trials[st.ti];
 let e = 0; want.forEach(k => { if(!st.mine.has(k)) e++; }); st.mine.forEach(k => { if(!want.has(k)) e++; });

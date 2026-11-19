@@ -475,7 +475,7 @@ steps: [
 },
 today: { key: "wm_tour_today_seen_v3", steps: [
 {sel:"#todayWrap .fam-target", title:"Haftanın hedefi", text:"Bu hafta öncelik verilen alan. Değiştir ile başka bir alan seçebilirsiniz."},
-{sel:"#todayWrap .fam-steps", title:"Dört adım", text:"Isınma, iki ana çalışma ve kapanış. Her adım çocuğun düzeyine göre seçilir; zorluk her çalışmada sonuca göre ayarlanır."},
+{sel:"#todayWrap .fam-steps", title:"Dört adım", text:"Üç ana çalışma ve kapanış. Her adım çocuğun düzeyine göre seçilir; zorluk her çalışmada sonuca göre ayarlanır."},
 {sel:"#famStartCta", title:"Oturumu başlat", text:"Adımlar sırayla açılır. Her adımın sonunda sonucu kaydedin; oturum bitince özet görünür."}
 ] },
 expert: {
@@ -1406,7 +1406,7 @@ function perfSrc(){ return appMode === "cocuk" || (typeof gameMode !== "undefine
 function autoSaveable(ex){ return !!(ex && (ex.isTouch || ex.isSeqRows || ex.isChoice || ex.isSearch || ex.isTrail || ex.isPlan || ex.isSort || ex.isMt || ex.isWm || ex.isRt)); }
 /* KURAL (Oluş Sırası otomatik, 2026-11-09): Oluş Sırası dokunmalı bir çalışmadır — bitince sonucu kendisi kaydeder, hata sayısını kendisi tutar (−/+ yok) */
 function perfIsAuto(ex){ return !!(ex && (ex.isTouch || ex.isSeqRows || ex.isChoice || ex.isSearch || ex.isTrail || ex.isMotion || ex.isPlan || ex.isSort || (typeof NEW_MT !== "undefined" && NEW_MT.build && NEW_MT.build[ex.id]))); }
-function perfItemCount(ex, layout){ try{ if(typeof chState !== "undefined" && chState && chState.id === ex.id && chState.trials) return chState.trials.length; if(typeof mtState !== "undefined" && mtState && Array.isArray(mtState.trials) && NEW_MT.build[ex.id]) return Math.max(1, mtState.trials.length - (mtState.warmN || 0)); if(ex.isTouch) return Math.max(1, touchGoTotal()); if(Array.isArray(currentGrid) && currentGrid.length) return currentGrid.length; }catch(e){} return layout ? layout.rows * layout.cols : 10; }
+function perfItemCount(ex, layout){ try{ if(typeof chState !== "undefined" && chState && chState.id === ex.id && chState.trials) return chState.trials.length; if(typeof mtState !== "undefined" && mtState && Array.isArray(mtState.trials) && NEW_MT.build[ex.id]) return Math.max(1, mtState.trials.length);   /* ısınma turu yok kuralı: bütün sorular sayılır */ if(ex.isTouch) return Math.max(1, touchGoTotal()); if(Array.isArray(currentGrid) && currentGrid.length) return currentGrid.length; }catch(e){} return layout ? layout.rows * layout.cols : 10; }
 /* Kayıtlar: buluttan yüklenenler + bağlantısızken kuyrukta bekleyenler (yenilemede kaybolmasın), yinelenmeden */
 function perfRecords(){ const key = (r) => r.t + "|" + (r.player || "") + "|" + (r.exerciseLabel || ""); const local = perfLocalAll(), lmap = new Map(local.map(r => [key(r), r])); const out = loadSessions().map(r => lmap.has(key(r)) ? Object.assign({}, r, lmap.get(key(r))) : r); const seen = new Set(out.map(key)); local.forEach(r => { if(!seen.has(key(r))){ seen.add(key(r)); out.push(r); } }); try{ loadPendingWrites().forEach(w => { if(w && w.coll === "sessions" && w.data && !seen.has(key(w.data))){ seen.add(key(w.data)); out.push(w.data); } }); }catch(e){} return out; }
 /* Bir denemenin sonucu: hata oranı öğe sayısına göre (oyunun yıldız kuralıyla uyumlu) */
