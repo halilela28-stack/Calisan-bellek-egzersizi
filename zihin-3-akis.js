@@ -85,8 +85,8 @@ sub:"Gruplama · Ses ve Hece · Anlam İlişkileri · Akıcılık",
 purpose:"Sözcükleri anlamına ve sesine göre düzenleme becerisini çalıştırır: sözel akıcılık, anlamsal kümeleme ve üst kavram, uyak, hece ve ses farkındalığı, zıt ve eş anlam, parça–bütün ve sıralama.",
 color:"#8A5A8C",
 group:"Dil & Görsel Analiz",
-exerciseIds:["sort-pic","odd-cat","part-whole","word-group","seq-words","free-sort","syl-blend","group-say","same-sound","syl-touch","rhyme-touch","syllable-count","opp-touch","sent-build","syn-touch","phon-manip","flu-cat","flu-letter","opposite-match","flu-switch"],
-exerciseGroups:[["Gruplama", ["word-group", "sort-pic", "group-say", "odd-cat", "part-whole", "seq-words", "free-sort"]], ["Ses ve Hece", ["syl-blend", "syllable-count", "phon-manip", "rhyme-touch", "syl-touch", "same-sound"]], ["Anlam İlişkileri", ["opposite-match", "opp-touch", "sent-build", "syn-touch"]], ["Akıcılık", ["flu-cat", "flu-letter", "flu-switch"]]]
+exerciseIds:["sort-pic","odd-cat","part-whole","word-group","seq-words","free-sort","group-say","same-sound","syl-touch","rhyme-touch","syllable-count","opp-touch","sent-build","syn-touch","phon-manip","flu-cat","flu-letter","opposite-match","flu-switch"],
+exerciseGroups:[["Gruplama", ["word-group", "sort-pic", "group-say", "odd-cat", "part-whole", "seq-words", "free-sort"]], ["Ses ve Hece", ["syllable-count", "phon-manip", "rhyme-touch", "syl-touch", "same-sound"]], ["Anlam İlişkileri", ["opposite-match", "opp-touch", "sent-build", "syn-touch"]], ["Akıcılık", ["flu-cat", "flu-letter", "flu-switch"]]]
 },
 {
 id:"sozel-kavrama",

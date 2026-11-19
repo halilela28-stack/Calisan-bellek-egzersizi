@@ -211,7 +211,7 @@ function palStudy(){
 const st = mtState; st.phase = "study"; st.si = -1; renderMtBoard();
 const step = isPre() ? 2600 : 2200;
 const strat = false, stp = step;
-st.pairs.forEach((p, k) => mtLater(() => { st.si = k; renderMtBoard(); sayTask(strat ? `${p.a.n} ile ${p.b.n}. İkisini birlikte hayal et.` : `${p.a.n}, ${p.b.n}`); }, 300 + k * stp));
+st.pairs.forEach((p, k) => mtLater(() => { st.si = k; renderMtBoard(); if(strat) sayTask(`${p.a.n} ile ${p.b.n}. İkisini birlikte hayal et.`); else saySeq([p.a.n, p.b.n], 0.9, () => mtState === st && st.si === k, 450); }, 300 + k * stp));   /* kelimeler aralıklı okunur kuralı */
 mtLater(() => palTest(), 300 + st.pairs.length * stp + 200);
 }
 function palTest(){
@@ -899,7 +899,6 @@ const INSTR_SHORT = {
 "tone-seq":         [() => Q("Ekranda tuşlar var. Tuşlar sırayla yanacak ve her biri bir ses çıkaracak; sırayı izle ve dinle. Bitince tuşlara aynı sırayla dokun."), () => Q("Tuşlar yanmayacak, sadece sesler çalacak. Sesleri dikkatle dinle; bitince tuşlara aynı sırayla dokun.")],
 "which-seen":       [() => Q("Ekranda bir resim var; ona iyice bak ve ayrıntılarını aklında tut. Sonra birbirine çok benzeyen resimler gelecek. Az önce gördüğün resmin tıpatıp aynısına dokun.")],
 "route-mem":        [() => Q("Ekranda kareler var ve turuncu bir yol çizilecek; yolu iyi izle ve aklında tut. Sonra yol kaybolacak. Yeşil kareden başla ve aynı yolu kare kare dokunarak tekrarla.")],
-"syl-blend":        [() => Q("Bir kelimenin heceleri ayrı ayrı okunacak: ‘ka – lem’ gibi. Heceleri kafanda birleştir, hangi kelime olduğunu bul ve o resme dokun.")],
 "phon-manip":       [() => `Okuyun: ${Q("Sana bir kelime söyleyeceğim, sonra ne yapacağını söyleyeceğim: bir sesi çıkar, bir ses ekle ya da bir sesi değiştir. Kelimenin yeni hâlini söyle.")}`],
 "sent-build":       [() => Q("Ekranda karışık kelimeler var. Kelimelere doğru sırayla dokunarak anlamlı bir cümle kur.")],
 "wh-scene":         [() => Q("Ekranda bir resim ve bir soru var. Resme bak, soruyu oku ya da dinle. Sorunun cevabı olan seçeneğe dokun.")],
@@ -1202,7 +1201,6 @@ return {
 "tone-seq":[0, "Seslere Ad Ver", "Seslere ad ver: kalın, ince… Sırayı adlarla tekrarla."],
 "which-seen":[0, "Ayrıntıya Bak", "Resmin yönüne, rengine ve küçük ayrıntılarına dikkat et."],
 "route-mem":[0, "Yolu Söyle", "Yolu yönlerle söyle: sağ, aşağı, sağ…"],
-"syl-blend":[0, "Hızlı Söyle", "Heceleri giderek hızlanarak tekrar et; kelime kendiliğinden ortaya çıkar."],
 "phon-manip":[0, "Parçalara Ayır", "Kelimeyi önce seslerine ya da hecelerine ayırarak söyle."],
 "sent-build":[0, "Kim, Ne Yaptı?", "Önce kimin olduğunu, sonra ne yaptığını bul; eylem sona gelir."],
 "wh-scene":[0, "Soru Kelimesine Dikkat", "Kim, ne, nerede: soru kelimesine göre resimde ara."],

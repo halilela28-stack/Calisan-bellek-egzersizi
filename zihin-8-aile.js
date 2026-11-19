@@ -1238,7 +1238,7 @@ new ResizeObserver(relayout).observe(document.getElementById("board"));
 document.addEventListener(t, e=> e.preventDefault(), {passive:false});
 });
 const FREE_SCROLL = ".exercise-row, input[type='range'], select, textarea";
-const LS_SCROLL = "#lsMore, .settings-screen, .category-screen, .mode-screen, .onboard-screen, .consent-screen";
+const LS_SCROLL = "#lsMore, .settings-screen, .category-screen, .mode-screen, .onboard-screen, .consent-screen, .exh-pop";   /* yatayda etkinlik / kişi / düzey menüsünün listesi parmakla kayar (2026-11-19: menü bu listede yoktu, yatayda liste parmakla kaydırılamıyordu) */
 const INTERACTIVE = "button, a, input, select, textarea, label";
 let sx = 0, sy = 0, startedOnInteractive = false, axis = null, freeScroll = false;
 document.addEventListener("touchstart", e=>{

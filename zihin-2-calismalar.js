@@ -2737,15 +2737,7 @@ isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "İzle ve Tekrarla", instruction: () => ``, example: () => `` } ]
 },
-{
-id: "syl-blend",
-readingLevel: ["pre","post"],
-label: "Hece Birleştir",
-isMt: true, attrs: [], speedFactor: 4.5,
-isDone: () => !!mtState && mtState.phase === "done",
-randomItem: () => ({}),
-stages: [ { label: "Dinle ve Seç", instruction: () => ``, example: () => `` } ]
-},
+/* (2026-11-19: Hece Birleştir kullanıcı isteğiyle silindi — ses motoru heceleri tek tek doğru okuyamıyordu: "kap-lum-ba-ca", "o-tu-üs") */
 {
 id: "sent-build",
 readingLevel: ["post"],
