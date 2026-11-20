@@ -192,9 +192,11 @@ function pickPortraitDims(n, board, rows0, cols0){ try{ if(rows0 < 2 || cols0 < 
       if(alt) best = alt; } }
   if(best && numWide) best.cw = Math.floor((w - 2 * gx) / 3);   /* rakam tahtası sütunu kuralı: üç sütun tahtanın genişliğine yayılır, rakamlar ortada toplanmaz */
   return best; }catch(e){ return null; } }
+function insXsFixed(ex){ try{ return !!ex && ex.id === "design-fluency" && !landscapeMQ.matches && (window.innerHeight <= 620 || window.innerWidth <= 340); }catch(e){ return false; } }   /* Desen Akıcılığı tek ekran kuralı: çok kısa dikey ekranda (iPhone SE) yönerge sıkı düzendedir — ekran boyuna bağlıdır, Başlat'tan önce de sonra da aynıdır */
 function applyBoardLayout(){
 if(applyingBoardLayout) return;
 const board = document.getElementById("board");
+try{ const exX = currentExercise(); if(landscapeMQ.matches || !board || !currentGrid.length || !boardIsPic() || ZA_BOARD.isSpecial(exX.id) || exX.isMotion || exX.isAuditory || exX.isSeqRows || exX.isFlanker || exX.isSort || exX.isTrail || exX.isPlan || exX.isSearch || exX.isWm || exX.isChoice || exX.isRt || exX.isMt) { const fx = insXsFixed(exX); document.documentElement.classList.toggle("ins-xs", fx); document.documentElement.classList.toggle("ins-dfl", fx); } else document.documentElement.classList.remove("ins-dfl"); }catch(e){}   /* küçük telefonda tek ekran kuralı: sıkı yönerge resimli/şekilli ızgara tahtada (gerekirse) ve çok kısa ekranda Desen Akıcılığı'nda, dikeyde */
 if(!board || !currentGrid.length) return;
 if(currentExercise().isMotion || currentExercise().isAuditory || currentExercise().isSeqRows || currentExercise().isFlanker || currentExercise().isSort || currentExercise().isTrail || currentExercise().isPlan || currentExercise().isSearch || currentExercise().isWm || currentExercise().isChoice || currentExercise().isRt || currentExercise().isMt) return;
 if(document.documentElement.classList.contains("run-focus") && window._zaLaidGrid === currentGrid && board.style.gridTemplateRows) return; /* tek ekran: çalışırken aynı tahta yeniden boyutlanmaz (Başlat'ta yerinden oynamaz) */
@@ -215,7 +217,7 @@ if(best){ rows = best.rows; cols = best.cols; track = "minmax(0, 1fr)"; }
       if(rows * rt + (rows - 1) * gy0 > h){ rgGap = 8; const fit = Math.floor((h - (rows - 1) * rgGap) / rows); if(fit < rt){ rt = Math.max(32, fit); colTrack = Math.min(cw, Math.floor(rt * RG)) + "px"; } } }catch(e){}
     rowTrack = rt + "px"; } }
 /* KURAL (tahta düzeni, 2026-11-05 — kullanıcının yeniden düzenlediği kurallar): 1) resimler büyük olur; 2) çalışırken tahtanın bütün satırları görünür; 3) başlamadan önce üstteki bütün satırlar (başlık, çipler, yönerge, süre, hata) yerindedir; 4) Başlat'ta yönerge, süre (Bitir) ve hata sayısı görünür kalır, başlık, çipler, Bugün/ödev çubuğu ve alttaki düğmeler gizlenir, Bitir'de geri gelir; 5) çalışma sürerken tahta oynamaz. Bunun için resimli/şekilli tahtada sütun sayısı, çalışırken tahtaya kalan alana göre resimler EN BÜYÜK olacak biçimde seçilir (ör. 15 resim telefonda 5×3; son satır eksik kalmaz, okuma sırası soldan sağa); başlamadan önce de aynı boy kullanılır, böylece Başlat'ta resimler yeniden boyutlanmaz. Eski "hücre en az ekranın %20'si" ve "tahta Başlat'ta yerinden oynamaz" kurallarının yerine */
-    let fitOver = false; if(rowTrack && !landscapeMQ.matches && boardIsPic() && !ZA_BOARD.isSpecial(currentExercise().id)){ const g = ZA_BOARD.picGrid(board, currentGrid.length); if(g){ cols = g.cols; rows = g.rows; rowTrack = g.rowTrack; colTrack = g.colTrack; fitOver = g.fitOver; } }
+    let fitOver = false; if(rowTrack && !landscapeMQ.matches && boardIsPic() && !ZA_BOARD.isSpecial(currentExercise().id)){ const g = ZA_BOARD.picGrid(board, currentGrid.length); if(g){ cols = g.cols; rows = g.rows; rowTrack = g.rowTrack; colTrack = g.colTrack; fitOver = g.fitOver; if(g.gap) rgGap = g.gap; } }
     board.style.rowGap = (!landscapeMQ.matches && currentGrid.length >= 13 && window.innerWidth < 700 && rowTrack && boardIsPic()) ? "12px" : ""; if(rgGap) board.style.rowGap = rgGap + "px";
 board.style.gridTemplateColumns = `repeat(${cols}, ${colTrack || track})`;
 board.style.gridTemplateRows = `repeat(${rows}, ${rowTrack || track})`; board.style.justifyContent = colTrack ? "center" : ""; board.style.alignContent = rowTrack ? (fitOver ? "start" : "center") : "";
@@ -1797,7 +1799,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.19-e";
+const APP_VERSION = "2026.11.20-c";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 /* RUNTIME_CSS → zihin-stil.css */
 /* Dosya sürümü denetimi: zihin-atolyesi.html ile uygulama kodu (zihin-1…8) farklı sürümdeyse uyar */

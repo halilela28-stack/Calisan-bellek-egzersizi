@@ -590,3 +590,44 @@ html #board .srh-row:not(.srh-fresh),html #board .srh-row:not(.srh-fresh) .srh-i
 #board .sb-ph{color:var(--ink-soft);font-weight:700;font-size:14px}
 @media (orientation:landscape) and (max-height:520px){#board .sb-line{min-height:56px;padding:4px;margin-bottom:6px}#board .sb-w{min-height:44px;font-size:17px}#board .sb-pool .sb-w{min-height:46px}#board .sb-pool{min-height:46px}}
 @media (max-width:360px) and (orientation:portrait){#board .sb-w,#board .sb-pool .sb-w{min-width:56px;padding:4px 8px;font-size:16px}#board .sb-line{gap:5px;padding:5px}#board .sb-pool{gap:6px}}
+
+/* KURAL (etkinlik adı dar telefonda kesilmez, 2026-11-20): 340 px ve daha dar ekranda üst satırın aralıkları ve ad kutusunun iç boşluğu daralır; uzun etkinlik adı (ör. "Büyük Şekil mi, Küçük Şekil mi?") en çok üç satırda, kesilmeden yazılır. Düğmeler küçülmez */
+@media (max-width:340px){#exHead .exh-top{gap:4px}#exHead .exh-ttl{padding:4px 6px 5px}#exHead .exh-exbtn{gap:2px}#exHead .exh-exbtn svg{width:12px;height:12px}}
+
+/* Seçimli Tepki tahta boyu kuralı (2026-11-20): eşleşme listesinin çalışırkenki kısa hâli ölçüm kopyasında da aynı biçimdedir (html.run-focus .crt-legend ile aynı değerler) */
+.crt-legend.crt-run{display:grid !important;grid-template-columns:repeat(2, minmax(0, 1fr));gap:4px 6px !important;margin-top:6px !important}
+.crt-legend.crt-run > span{padding:3px 8px !important;font-size:14px;gap:5px !important;min-width:0}
+.crt-legend.crt-run > span > span:first-child{width:14px !important;height:14px !important;flex:0 0 auto}
+.crt-legend.crt-run .crt-nm{display:none}
+/* küçük telefonda tek ekran kuralı (2026-11-20): sıkı yönerge — Başlat'tan önce de çalışırken de aynı ölçüler */
+html.ins-xs.ins-xs.ins-xs #instructionBox{font-size:13px !important;line-height:1.3 !important;padding-top:6px !important;padding-bottom:6px !important;padding-right:8px !important}
+html.ins-xs.ins-xs body #instructionBox.instruction.za-has-spk{padding-left:44px !important}   /* hoparlör düğmesi sol boşlukta kalır; boşluk 52 → 44 px */
+html.ins-xs #instructionBox .instr-spk{left:7px;top:6px}
+html.ins-xs #instructionBox .crt-legend{margin-left:-36px !important;margin-top:4px !important;gap:3px 5px !important}   /* eşleşme listesi kutunun bütün genişliğini kullanır (hoparlörün altına da uzanır), iki sütunda tek satırlık kısa etiketler */
+html.ins-xs #instructionBox .crt-legend > span{padding:2px 6px !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.ins-xs.ins-xs:not(.game-mode) #mainApp #board{padding-top:8px !important;padding-bottom:8px !important}
+/* Desen Akıcılığı tek ekran kuralı (2026-11-20): çok kısa / dar dikey ekranda yönerge bir kademe daha sıkıdır */
+html.ins-xs.ins-xs.ins-xs.ins-dfl #instructionBox{font-size:12px !important;line-height:1.25 !important;padding-top:5px !important;padding-bottom:5px !important}
+html.ins-xs .sdmt-pair > div{width:36px;height:36px;padding:4px}   /* küçük telefonda tek ekran kuralı: sıkı düzende anahtar hücreleri 44 → 36 px (anahtar okunur kalır, tahtaya 16 px yer açılır) */
+/* KURAL (bildirim dokunuşu engellemez, 2026-11-20): kısa bildirim balonu (kayıt, uyarı, düzey bildirimi yazısı) tahtanın üst kenarında çıkar ama dokunuşu tutmaz — altında kalan noktaya, karta ya da düğmeye dokunuş geçer. Önceden balon 3 sn boyunca altındaki öğeye dokunmayı engelliyordu (Desen Akıcılığı'nda bir önceki sayfadan kalan bildirim noktanın üstüne gelince çizgi çizilmiyordu). Balonun kendi düğmesi yoktur */
+#zaToast{pointer-events:none}
+
+/* KURAL (Soruyu Anla tek ekran, 2026-11-20; kullanıcı kararı): resim tahtada kalan yere göre boyutlanır; soru, resim, "Bir daha dinle" ve seçenekler kaydırmadan görünür (alt alta ya da yan yana düzen) */
+#board .qz-scene{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;width:100%;min-width:0}
+#board .qz-scene .qz-sc-l{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0;width:100%}
+#board .qz-scene .qz-sc-img{display:flex;align-items:center;justify-content:center;width:100%;min-height:0}
+#board .qz-scene .qz-sc-img .wh-img{display:block;margin:0 !important;max-width:none !important;max-height:none !important;object-fit:cover;border-radius:12px}
+#board .qz-scene .qz-replay{margin:0 !important;flex:0 0 auto}
+#board .qz-scene .qz-txt-grid{width:100%;gap:8px;margin:0}
+#board .qz-scene .qz-txt{min-height:52px;padding:6px 6px !important;overflow-wrap:anywhere;line-height:1.2}
+#board .qz-scene .qz-txt b{font-size:15px !important}
+#board .qz-scene.side{flex-direction:row;align-items:center;justify-content:center}
+#board .qz-scene.side .qz-sc-l{flex:1 1 0;width:auto;justify-content:center}
+#board .qz-scene.side .qz-txt-grid{flex:0 0 auto}
+#board .qz-scene.side .qz-txt-grid{grid-auto-rows:minmax(min-content, 1fr);align-self:center}
+#board .qz-scene.side .qz-txt{min-height:44px;padding:4px 5px !important}
+#board .qz-scene.side .qz-txt b{font-size:14px !important}
+#board .qz-scene.side .qz-replay{white-space:nowrap;padding:9px 10px !important;font-size:14px !important;max-width:100%}
+/* KURAL (yazılı seçenekler sıkı düzen, 2026-11-20): sığmayan yazılı seçenekler sıkı düzende (46 px düğme, 6 px aralık) */
+#board .qz-txt-grid.qz-tight{gap:6px}
+#board .qz-txt-grid.qz-tight .qz-txt{min-height:46px;padding:4px 8px !important}

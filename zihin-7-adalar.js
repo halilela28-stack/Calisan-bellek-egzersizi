@@ -60,7 +60,7 @@ function hideGameScreens(){ ZA_LIFE.leave();
 function exitGameMode(){ ZA_LIFE.leave(); 
 gameMode = false;
 document.documentElement.classList.remove("game-mode");
-try{ if(window.speechSynthesis) speechSynthesis.cancel(); }catch(e){}
+try{ window.__zaCancelN = (window.__zaCancelN || 0) + 1; if(window.speechSynthesis) speechSynthesis.cancel(); }catch(e){}
 }
 function renderGamePlayerSelect(){
 const sel = document.getElementById("gamePlayerSelect");
@@ -279,14 +279,14 @@ function toggleSpeechMute(){
 const m = !speechMuted();
 try{ localStorage.setItem(SPEECH_MUTE_KEY, m ? "1" : "0"); }catch(e){}
 renderSpeakBtn();
-if(m){ try{ speechSynthesis.cancel(); }catch(e){} }
+if(m){ try{ window.__zaCancelN = (window.__zaCancelN || 0) + 1; speechSynthesis.cancel(); }catch(e){} }
 else speakText(childInstructionText());
 }
 
 let _trVoice = null;
 /* KURAL (okuma sesi): uygulama cihazdaki en doğal Türkçe sesi kendiliğinden seçer; Ayarlar > Okuma sesi'nden ses ve hız elle seçilebilir, seçim saklanır; seçilen ses cihazda yoksa en iyisine döner */
 const VOICE_KEY = "wm_voice_v1";
-const VOICE_SAMPLES = ["Ekranda şekiller var. Soldan sağa, satır satır her şeklin adını hızlıca söyle.", "Merhaba, ben Zihni! Bugün birlikte oynayalım mı?", "Zihni, ekmek, kırmızı, toprak, çiçek, kalem.", "Sana bir durum anlatacağım. Sen böyle bir durumda ne yaparsın? Anlat.", "Harika! Yeni bir yıldız kazandın!"];
+const VOICE_SAMPLES = ["Ekranda şekiller var. Soldan sağa, satır satır her şeklin adını hızlıca söyle.", "Merhaba, ben Zihni! Bugün birlikte oynayalım mı?", "Zihni, ekmek, kırmızı, toprak, çiçek, kalem.", "Sana bir durum anlatacağım. Sen böyle bir durumda ne yaparsın? Anlat.", "Harika! Yeni bir yıldız kazandın!", "Ekranda resimler var. Diğer kartlar değişir. Doğru seçeneğe dokun."];   /* son örnek: R ve Ğ okunuş denemesi kuralı (sonu R ile biten ve Ğ içeren kelimeler) */
 /* KURAL: iPhone/iPad'de standart okuma ayarı (kullanıcının seçtiği): hız %120, ton %120, cümle arası duraklama açık; kullanıcı kendi ayarını yaparsa onunki geçerli, "sıfırla" bu standarda döner. Diğer cihazlarda hız %100, ton %100 */
 function isAppleTouch(){ try{ return /iPad|iPhone|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && "ontouchend" in document); }catch(e){ return false; } }
 function voiceDefaults(){ return isAppleTouch() ? { rateV: 1.20, pitchV: 1.20, pause: true, rate: "hizli" } : {}; }
@@ -328,6 +328,8 @@ function ttsSayFix(x){ TTS_FINAL_FIX.forEach(([a, b]) => { x = x.replace(new Reg
    4) Okunan metindeki noktalı harfler ekrandaki yazıyla aynıdır: hiçbir yönergede noktalı harf eksilmez, artmaz, noktasız karşılığına dönmez */
 function ttsDots(x){ try{ x = String(x).normalize("NFC").replace(/[\u00AD\u200B\u200C\u2060\uFEFF]/g, "").replace(/[\u0300-\u036F]/g, "").replace(/\u0219/g, "ş").replace(/\u0218/g, "Ş").replace(/\u021B/g, "ţ"); }catch(e){} return x; }
 function ttsLoneLetters(x){ try{ return x.replace(/(^|[^\p{L}\p{N}'’\-])(\p{L})(?=$|[^\p{L}\p{N}'’\-])/gu, (m, pre, ch, off, str) => { if(/^[oOxX]$/.test(ch)) return m; if(/\d\s*$/.test(str.slice(0, off + pre.length))) return m; const nm = TR_LETTER[ch.toLocaleUpperCase("tr-TR")]; return nm ? pre + nm : m; }); }catch(e){ return x; } }
+function ttsRSoft(x){ try{ return x.replace(/(\p{L}*[rR])\.\s+(?=[\p{Lu}\d])/gu, "$1, "); }catch(e){ return x; } }   /* R ve Ğ okunuş denemesi kuralı */
+function ttsGSoft(x){ try{ return x.replace(/([eiöüEİÖÜ])ğ(?=[eiöü])/g, "$1y"); }catch(e){ return x; } }
 function ttsEnd(c){ c = c.replace(/,\s*$/, "").trim(); return !c || /[.?!]$/.test(c) || /\d$/.test(c) ? c : c + "."; }
 function ttsPrep(t){ let x = ttsDots(String(t || "")); try{ const fx = (voicePref().fixes || []).concat(TTS_BASE_FIX); fx.forEach(f => { if(!f || !f.a) return; const esc = f.a.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); const re = new RegExp("(^|[^\\p{L}])(" + esc + ")(?=$|[^\\p{L}])", "giu"); x = x.replace(re, (m, pre) => pre + (f.b || "")); }); }catch(e){}
   x = x.replace(/[“”"«»„]/g, "").replace(/(\d)\s*…/g, "$1, ").replace(/…/g, ". ").replace(/\s·\s/g, ", ").replace(/\s+/g, " ").trim();
@@ -338,6 +340,11 @@ function ttsPrep(t){ let x = ttsDots(String(t || "")); try{ const fx = (voicePre
   try{ x = x.replace(/(^|[^\p{L}])(\p{Lu}{2,})(?=$|[^\p{L}])/gu, (m, pre, w) => pre + w.toLocaleLowerCase("tr-TR")).replace(/[!]+/g, ".").replace(/([.?,;:])\1+/g, "$1").replace(/\.\s*\./g, "."); }catch(e){}
   /* KURAL (say uzatılmaz, 2026-11-19; kullanıcı kararı): seslendirmede "say" kelimesi uzatılarak ("saayy") okunmaz. Ses motoru, cümlenin son kelimesi olan tek heceli "say"ı uzatıyor; bu yüzden cümle sonundaki "say" seslendirmede "say bakalım" diye okunur — "say" cümlenin son kelimesi olmaz, kısa okunur ("heceleri say." → "heceleri say bakalım."). Ekrandaki yazı değişmez; cümle içindeki "say" (ardından başka kelime ya da virgül gelen) olduğu gibi kalır. BÜYÜK harfli SAY önce küçük harfe çevrilir (büyük harfli kelime okunuşu kuralı), sonra aynı kural uygulanır */
   try{ x = ttsSayFix(x); }catch(e){}
+  /* KURAL (R ve Ğ okunuş denemesi, 2026-11-20; kullanıcı isteği): R ve Ğ seslerini telefonun Türkçe sesi üretir; uygulama sesi değil, yalnız okunacak metni değiştirebilir. Varsayılan durumda R ve Ğ içeren hiçbir kelime değiştirilmeden okunur (noktalı harfler dengeli okunur kuralı). Ayarlar > Okuma sesi > İnce ayar'da iki deneme seçeneği vardır, ikisi de kapalı gelir; ekrandaki yazı değişmez:
+     1) "Sonu R ile biten cümleden sonra durma": cümle R ile biten bir kelimeyle bitiyorsa nokta yerine virgülle okunur, sonraki cümle ara vermeden gelir ("…resimler var. Soldan…" → "…resimler var, Soldan…") — cümle sonunda uzayıp hışırtılı okunan R'yi azaltmak için.
+     2) "İnce ünlüler arasındaki Ğ'yi belirgin oku": e, i, ö, ü arasındaki Ğ, yutulmasın diye "y" olarak okutulur (değil → deyil, diğer → diyer, seçeneğe → seçeneye); kalın ünlülerin yanındaki Ğ (sağa, doğru) değişmez.
+     Kullanıcı kendi telefonunda dinleyip karar verir; İnce ayar'daki örnek cümlelerin sonuncusu R ve Ğ içerir, Okunuş düzeltmeleri satırındaki Dinle düğmesi yazılan okunuşu ekleme yapmadan dinletir */
+  try{ const vp = voicePref(); if(vp.gSoft) x = ttsGSoft(x); if(vp.rSoft) x = ttsRSoft(x); }catch(e){}
   if(voicePref().syl) x = ttsSyllableSoften(x, voicePref().sylSep === "space" ? " " : "-");
   if(!voicePref().pause) return [ttsEnd(x)];
   const raw = x.replace(/([^\d][.!?]|\?)\s+(?=[\p{Lu}\d])/gu, "$1\n").split("\n").map(y => y.trim()).filter(Boolean), parts = []; let buf = "";   /* Türkçe okuma vurgusu kuralı: yalnız büyük harfle (ya da rakamla) başlayan yeni cümlede bölünür; "15. saniye" bölünmez */
@@ -363,10 +370,13 @@ function renderVoiceSettings(){ try{ let g = document.getElementById("voiceGroup
         <label style="display:flex;gap:8px;align-items:center;font-weight:700"><input type="checkbox" id="vPause"${pref.pause ? " checked" : ""}> Cümleler arasında kısa duraklama</label>
         <label style="display:flex;gap:8px;align-items:flex-start;font-weight:700"><input type="checkbox" id="vSyl"${pref.syl ? " checked" : ""} style="margin-top:3px"> <span>Yan yana iki sessiz harfte yavaşla<br><span style="font-size:12px;font-weight:600;color:var(--ink-soft)">"Zihni", "ekmek" gibi kelimelerde hece arasına küçük bir ayrım koyar.</span></span></label>
         <div style="display:flex;gap:6px;align-items:center;font-size:13px;font-weight:700${pref.syl ? "" : ";opacity:.45;pointer-events:none"}">Ayrım biçimi: ${[["dash","Kısa çizgi"],["space","Boşluk"]].map(([k, t]) => `<button type="button" data-vsep="${k}" style="flex:1;padding:7px 6px;border-radius:10px;font:inherit;font-weight:800;border:1.5px solid ${(pref.sylSep || "dash") === k ? "var(--teal,#0F8B85)" : "var(--line,#DDE6EE)"};background:${(pref.sylSep || "dash") === k ? "var(--teal,#0F8B85)" : "#fff"};color:${(pref.sylSep || "dash") === k ? "#fff" : "var(--ink,#1C2B39)"}">${t}</button>`).join("")}</div>
+        <label style="display:flex;gap:8px;align-items:flex-start;font-weight:700"><input type="checkbox" id="vRSoft"${pref.rSoft ? " checked" : ""} style="margin-top:3px"> <span>Sonu R ile biten cümleden sonra durma (deneme)<br><span style="font-size:12px;font-weight:600;color:var(--ink-soft)">"…resimler var. Soldan…" cümlesini ara vermeden okur; cümle sonundaki R hışırtılı geliyorsa deneyin.</span></span></label>
+        <label style="display:flex;gap:8px;align-items:flex-start;font-weight:700"><input type="checkbox" id="vGSoft"${pref.gSoft ? " checked" : ""} style="margin-top:3px"> <span>İnce ünlüler arasındaki Ğ'yi belirgin oku (deneme)<br><span style="font-size:12px;font-weight:600;color:var(--ink-soft)">"değil", "diğer", "seçeneğe" gibi kelimelerde Ğ yutuluyorsa deneyin.</span></span></label>
         <div style="display:flex;gap:8px"><select id="vSample" style="flex:1;min-width:0;padding:9px 8px;border-radius:12px;border:1.5px solid var(--line,#DDE6EE);font:inherit;font-size:16px;background:#fff">${VOICE_SAMPLES.map((x, i) => `<option value="${i}">${escHTML(x.slice(0, 40))}${x.length > 40 ? "…" : ""}</option>`).join("")}</select><button type="button" id="vSampleGo" style="flex:0 0 auto;padding:9px 14px;border-radius:12px;font:inherit;font-weight:800;border:1.5px solid var(--teal,#0F8B85);background:#fff;color:var(--teal-dark,#0B5F5A)">Dinle</button></div>
         <div><div style="font-weight:800;margin-bottom:6px">Okunuş düzeltmeleri</div><div style="font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:6px">Yanlış okunan bir kelimeyi, okunmasını istediğiniz biçimde yazın (ör. "Zihni" → "Zih-ni").</div>
           ${(pref.fixes || []).map((f, i) => `<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><span style="flex:1;font-weight:700">${escHTML(f.a)} → ${escHTML(f.b)}</span><button type="button" data-vfdel="${i}" style="padding:6px 10px;border-radius:10px;border:1.5px solid var(--line,#DDE6EE);background:#fff;font:inherit;font-weight:700">Sil</button></div>`).join("")}
-          <div style="display:flex;gap:6px"><input id="vFixA" placeholder="Yazılışı" style="flex:1;min-width:0;padding:9px;border-radius:10px;border:1.5px solid var(--line,#DDE6EE);font:inherit;font-size:16px"><input id="vFixB" placeholder="Okunuşu" style="flex:1;min-width:0;padding:9px;border-radius:10px;border:1.5px solid var(--line,#DDE6EE);font:inherit;font-size:16px"><button type="button" id="vFixAdd" style="padding:9px 12px;border-radius:10px;border:none;background:var(--teal,#0F8B85);color:#fff;font:inherit;font-weight:800">Ekle</button></div></div>
+          <div style="display:flex;gap:6px"><input id="vFixA" placeholder="Yazılışı" style="flex:1;min-width:0;padding:9px;border-radius:10px;border:1.5px solid var(--line,#DDE6EE);font:inherit;font-size:16px"><input id="vFixB" placeholder="Okunuşu" style="flex:1;min-width:0;padding:9px;border-radius:10px;border:1.5px solid var(--line,#DDE6EE);font:inherit;font-size:16px"><button type="button" id="vFixAdd" style="padding:9px 12px;border-radius:10px;border:none;background:var(--teal,#0F8B85);color:#fff;font:inherit;font-weight:800">Ekle</button></div>
+          <button type="button" id="vFixTry" style="margin-top:6px;padding:8px 14px;border-radius:10px;font:inherit;font-weight:800;border:1.5px solid var(--teal,#0F8B85);background:#fff;color:var(--teal-dark,#0B5F5A)">Dinle (yazdığım okunuş)</button></div>
         <button type="button" id="vReset" style="padding:9px;border-radius:12px;border:1.5px solid var(--line,#DDE6EE);background:#fff;font:inherit;font-weight:700">Ses ayarlarını sıfırla</button>
       </div></details>`;
   const save = (o) => { try{ localStorage.setItem(VOICE_KEY, JSON.stringify(Object.assign(voicePrefStored(), o))); }catch(e){} _trVoice = pickTurkishVoice(); };
@@ -383,12 +393,15 @@ function renderVoiceSettings(){ try{ let g = document.getElementById("voiceGroup
   g.querySelectorAll("[data-vsep]").forEach(b => b.onclick = () => { save({ sylSep: b.dataset.vsep }); window.__vfOpen = true; renderVoiceSettings(); speakText(VOICE_SAMPLES[2]); });
   const sg = g.querySelector("#vSampleGo"); if(sg) sg.onclick = sample;
   const fa = g.querySelector("#vFixAdd"); if(fa) fa.onclick = () => { const a = (g.querySelector("#vFixA").value || "").trim(), b = (g.querySelector("#vFixB").value || "").trim(); if(!a || !b) return; const fx = (voicePref().fixes || []).filter(f => f.a.toLocaleLowerCase("tr") !== a.toLocaleLowerCase("tr")).concat([{ a, b }]); save({ fixes: fx }); window.__vfOpen = true; renderVoiceSettings(); speakText(a); };
+  const ft = g.querySelector("#vFixTry"); if(ft) ft.onclick = () => { const a = (g.querySelector("#vFixA").value || "").trim(), b = (g.querySelector("#vFixB").value || "").trim(); if(a || b) speakText(b || a); };   /* R ve Ğ okunuş denemesi kuralı: yazılan okunuş eklemeden dinlenir */
+  const rsf = g.querySelector("#vRSoft"); if(rsf) rsf.onchange = () => { save({ rSoft: rsf.checked }); speakText(VOICE_SAMPLES[VOICE_SAMPLES.length - 1]); };
+  const gsf = g.querySelector("#vGSoft"); if(gsf) gsf.onchange = () => { save({ gSoft: gsf.checked }); speakText(VOICE_SAMPLES[VOICE_SAMPLES.length - 1]); };
   g.querySelectorAll("[data-vfdel]").forEach(b => b.onclick = () => { const fx = (voicePref().fixes || []).slice(); fx.splice(+b.dataset.vfdel, 1); save({ fixes: fx }); window.__vfOpen = true; renderVoiceSettings(); });
   const rs = g.querySelector("#vReset"); if(rs) rs.onclick = () => { try{ localStorage.removeItem(VOICE_KEY); }catch(e){} _trVoice = pickTurkishVoice(); window.__vfOpen = true; renderVoiceSettings(); };
 }catch(e){} }
 try{ if(window.speechSynthesis) speechSynthesis.onvoiceschanged = () => { _trVoice = pickTurkishVoice(); try{ if(document.getElementById("voiceGroup")) renderVoiceSettings(); }catch(e){} }; }catch(e){}
 (function voiceSettingsHook(){ const tryIt = () => { try{ renderVoiceSettings(); }catch(e){} }; setTimeout(tryIt, 600); setTimeout(tryIt, 3000); try{ new MutationObserver(() => { const sc = document.getElementById("settingsScreen"); if(sc && sc.style.display !== "none" && !document.getElementById("voiceGroup")) tryIt(); }).observe(document.body, { attributes: true, subtree: true, attributeFilter: ["style"] }); }catch(e){} })();
-function _ttsSpeak(u){ try{ zaAudioAfterSpeech(); }catch(e){} try{ const busy = speechSynthesis.speaking || speechSynthesis.pending; if(busy) speechSynthesis.cancel(); try{ speechSynthesis.resume(); }catch(e){}
+function _ttsSpeak(u){ try{ zaAudioAfterSpeech(); }catch(e){} try{ const busy = speechSynthesis.speaking || speechSynthesis.pending; if(busy){ window.__zaCancelN = (window.__zaCancelN || 0) + 1; speechSynthesis.cancel(); u.__zc = window.__zaCancelN;   /* altyazı yalnız ses gelmezse kuralı: kesilen eski konuşmadır, yenisi değil */ } try{ speechSynthesis.resume(); }catch(e){}
 if(busy){ const g0 = window.__zaSpGen || 0; setTimeout(() => { if((window.__zaSpGen || 0) !== g0) return; try{ speechSynthesis.speak(u); }catch(e){} }, 120); } else speechSynthesis.speak(u); }catch(e){} }
 function speakText(t, opts){
 try{
@@ -399,7 +412,7 @@ if(!_ttsUnlocked) _ttsMissed = { t, opts, at: Date.now(), g: window.__zaSpGen ||
 const isInstr = !!(opts && opts.instr); let instrG = 0; if(isInstr){ instrG = window.__zaInstrG = (window.__zaInstrG || 0) + 1; window.__zaInstrActive = true; clearTimeout(window.__zaInstrT); window.__zaInstrT = setTimeout(() => { if(window.__zaInstrG === instrG) zaInstrDone(); }, Math.min(30000, 1500 + String(t).length * 75)); } else if(window.__zaInstrActive){ window.__zaInstrActive = false; } /* yönerge okunurken başka bir konuşma başlarsa yönerge bitmiş sayılır */
 try{ zaSpeakMark(); }catch(e){} const chunks = ttsPrep(t); _trVoice = _trVoice || pickTurkishVoice();
 chunks.forEach((c, i) => { const u = new SpeechSynthesisUtterance(c);
-  if(i === 0){ u.onstart = () => { if(_ttsMissed && _ttsMissed.t === t) _ttsMissed = null; }; { const g0 = window.__zaSpGen || 0; u.onerror = (ev) => { if((window.__zaSpGen || 0) !== g0) return; if(ev && /cancel|interrupt/i.test(String(ev.error || ""))) return; if(!(opts && opts.instr) && !speechMuted()) showCaption(t); }; } }   // gerçekten çaldıysa tekrar okunmasın
+  if(i === 0){ u.onstart = () => { if(_ttsMissed && _ttsMissed.t === t) _ttsMissed = null; }; ttsCaptionOnFail(u, t, !!(opts && opts.instr));   /* altyazı yalnız ses gelmezse kuralı: kesilen konuşma (iptal / kesme hatası, yeni konuşma, durdurma) altyazı göstermez */ }   // gerçekten çaldıysa tekrar okunmasın
   u.lang = "tr-TR"; u.rate = ((opts && opts.rate) || 0.85) * voiceRateMul(); u.pitch = voicePitch((opts && opts.pitch) || 1.0);
   if(_trVoice) u.voice = _trVoice;
   if(isInstr && i === chunks.length - 1){ const g1 = instrG; const done = () => { if(window.__zaInstrG === g1) setTimeout(() => { if(window.__zaInstrG === g1) zaInstrDone(); }, 250); }; u.onend = done; if(i > 0) u.onerror = done; }
