@@ -960,7 +960,7 @@ const INSTR_SHORT = {
 "odd-cat":          [() => Q("Ekranda resimler var. Biri hariç hepsi aynı gruptan. Gruba uymayan resmi bul ve ona dokun.")],
 "opp-touch":        [() => isPre() ? Q("Bir kelime okunacak; dinle. Söylenenin zıttını gösteren resme dokun.") : Q("Ekranda bir kelime var. Altındaki kelimelerden onun zıt anlamlısına dokun.")],
 "syl-touch":        [() => Q("Bir resmin adı okunacak; dinle. Kelimeyi hecelerine ayırarak el çırp ve heceleri say. Sonra alttan doğru sayıya dokun.")],
-"sim-touch":        [() => Q("Üstte birbirine benzeyen resimler var; onlara bak ve ortak yönlerini düşün. Alttaki resimlerden onlara benzeyene dokun.")],
+"sim-touch":        [() => currentCombo().t === 0 ? Q("Üstte birbirine benzeyen resimler var; onlara bak ve ortak yönlerini düşün. Alttaki resimlerden onlara benzeyene dokun.") : Q("Üstte bir resim var; ona bak ve ne tür bir şey olduğunu düşün. Alttaki resimlerden ona benzeyene dokun.")],   /* Hangisi Benziyor düzeni kuralı: Orta ve Zor'da üstte tek resim vardır */
 "def-touch":        [() => Q("Bir şeyin tanımı okunacak ama adı söylenmeyecek; dinle. Anlatılan şeyin resmine dokun.")],
 "use-touch":        [() => Q("Bir soru okunacak; dinle: ‘Saçını neyle tararsın?’ gibi. Ekrandaki resimlerden doğru olana dokun.")],
 "size-touch":       [() => Q("Ekranda aynı şeyin farklı boylarda resimleri var. Önce en küçüğüne, sonra sırayla daha büyüğüne dokun; en büyükte bitir."), () => Q("Ekranda aynı şeyin farklı boylarda resimleri var. Önce en büyüğüne, sonra sırayla daha küçüğüne dokun; en küçükte bitir.")],
@@ -1065,10 +1065,9 @@ const INSTR_SHORT = {
 "similarities":     [() => Q("Ekranda ikişer kelime var. Her ikili için bu iki şeyin ortak yönünü söyle: ikisi de ne? Neden birbirine benziyorlar?"), () => Q("Ekranda ikişer kelime var. Her ikili için önce ortak yönlerini söyle, sonra aynı gruptan bir örnek daha söyle.")],
 "vocabulary":       [() => Q("Ekranda kelimeler var. Her kelime için ne demek olduğunu kendi sözlerinle anlat."), () => Q("Ekranda kelimeler var. Her kelime için önce anlamını söyle, sonra o kelimeyi bir cümlenin içinde kullan.")],
 "practical-reasoning":[() => `Soruyu okuyun: ${Q("Sana bir durum anlatacağım. Sen böyle bir durumda ne yaparsın? Anlat.")}`, () => `Soruyu okuyun: ${Q("Sana bir durum anlatacağım. Böyle bir durumda ne yaparsın ve neden öyle yaparsın? Anlat.")}`],
-"size-sort":        [() => isPre() ? Q("Ekranda aynı şeyin küçük ve büyük hâlleri var. Soldan sağa, satır satır her biri için küçük mü, büyük mü olduğunu söyle.") : Q("Ekranda aynı şeyin küçük, orta ve büyük hâlleri var. Soldan sağa, satır satır her biri için küçük mü, orta mı, büyük mü olduğunu söyle.")],   /* yönerge seçenek saymaz kuralı: okul öncesinde orta boy yok */
+"size-sort":        [() => sizeSortTwo() ? Q("Ekranda aynı şeyin küçük ve büyük hâlleri var. Soldan sağa, satır satır her biri için küçük mü, büyük mü olduğunu söyle.") : Q("Ekranda aynı şeyin küçük, orta ve büyük hâlleri var. Soldan sağa, satır satır her biri için küçük mü, orta mı, büyük mü olduğunu söyle.")],   /* yönerge seçenek saymaz kuralı: okul öncesinde ve okul sonrası Başlangıç düzeyde orta boy yok */
 "arrow-direction":  [() => Q("Ekranda oklar var. Soldan sağa, satır satır her ok için yukarı mı aşağı mı baktığını söyle."), () => Q("Ekranda oklar var. Her ok için hangi yöne baktığını söyle: yukarı, aşağı ya da sağ."), () => Q("Ekranda oklar var. Her ok için hangi yöne baktığını söyle: yukarı, aşağı, sağ ya da sol.")],
 "edge-count":       [() => Q("Ekranda şekiller var. Her şekil için kenarlarını say ve kaç kenarı olduğunu söyle.")],
-"visual-opposites": [() => Q("Ekranda resimler var. Her resim için ne gördüğünü bir kelimeyle söyle: uzun mu kısa mı, dolu mu boş mu, içinde mi dışında mı gibi."), () => Q("Ekranda resimler var. Her resim için önce gördüğünü söyle, sonra onun zıttını söyle.")],
 
 "odd-one-out":      [() => Q("Ekranda üçer şekilden oluşan sıralar var. Her sırada iki şekil birbirine benziyor, biri farklı. Farklı olanın kaçıncı olduğunu söyle: 1, 2 ya da 3."), () => Q("Ekranda üçer şekilden oluşan sıralar var. Her sırada farklı olanın kaçıncı olduğunu söyle, sonra neden farklı olduğunu açıkla: rengi mi, şekli mi, boyu mu?")],
 "sequence-pattern": [() => Q("Ekranda renkli şekillerden oluşan sıralar var; renkler belli bir düzenle tekrar ediyor. Düzeni bul ve soru işaretinin yerine hangi rengin geleceğini söyle."), () => Q("Ekranda renkler üçlü bir düzenle tekrar ediyor. Düzeni bul ve soru işaretinin yerine hangi rengin geleceğini söyle.")],
@@ -1292,6 +1291,7 @@ const lsBox = document.getElementById("lsInstructionBox");
 const stage = currentExercise().stages[currentStageIndex];
 const sample = currentGrid[0] || (currentExercise().randomItem ? currentExercise().randomItem() : {});
 const exampleText = stage.example(sample);
+try{ const bdK = document.getElementById("board"); if(bdK){ const onK = typeof currentExercise().oralKey === "function"; if(bdK.classList.contains("oral-keys") !== onK) bdK.classList.toggle("oral-keys", onK); if(!onK) oralKeyClose(); } }catch(e){}   /* örnek cevap balonu kuralı: sözlü çalışmalarda kelimeler dokunulabilir */
 const shortFn = (INSTR_SHORT[currentExercise().id] || [])[stIx()];
 let ins;
 try{ ins = shortFn ? shortFn() : stage.instruction(); }catch(e){ ins = stage.instruction(); }

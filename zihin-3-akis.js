@@ -107,8 +107,8 @@ sub:"Boyut ve Yön · Şekil Algısı · Zihinsel Döndürme ve Yapı",
 purpose:"Görsel bilgiyi çözümleyip düzenleme becerisini çalıştırır: boyut, yön ve biçim değişmezliği, zihinsel döndürme, şekil–zemin ayırt etme, görsel tamamlama, bloklarla desen, kopyalama, simetri ve labirent.",
 color:"#E8823A",
 group:"Dil & Görsel Analiz",
-exerciseIds:["size-touch","arrow-touch","size-sort","clutter-find","spot-diff","closure","overlap-count","arrow-direction","same-number","edge-touch","embedded","block-design","visual-opposites","mental-rot","paper-fold","copy-design","symmetry","edge-count","view-from","maze"],
-exerciseGroups:[["Boyut ve Yön", ["size-sort", "arrow-direction", "size-touch", "visual-opposites", "arrow-touch"]], ["Şekil Algısı", ["edge-count", "clutter-find", "spot-diff", "closure", "overlap-count", "same-number", "edge-touch", "embedded"]], ["Zihinsel Döndürme ve Yapı", ["block-design", "mental-rot", "paper-fold", "copy-design", "symmetry", "view-from", "maze"]]]
+exerciseIds:["size-touch","arrow-touch","size-sort","clutter-find","spot-diff","closure","overlap-count","arrow-direction","same-number","edge-touch","embedded","block-design","mental-rot","paper-fold","copy-design","symmetry","edge-count","view-from","maze"],
+exerciseGroups:[["Boyut ve Yön", ["size-sort", "arrow-direction", "size-touch", "arrow-touch"]], ["Şekil Algısı", ["edge-count", "clutter-find", "spot-diff", "closure", "overlap-count", "same-number", "edge-touch", "embedded"]], ["Zihinsel Döndürme ve Yapı", ["block-design", "mental-rot", "paper-fold", "copy-design", "symmetry", "view-from", "maze"]]]
 },
 {
 id:"algisal-akil-yurutme",

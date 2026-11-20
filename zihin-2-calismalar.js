@@ -989,31 +989,7 @@ stages: [
 ]
 },
 
-{
-id: "visual-opposites",
-readingLevel: ["pre","post"],
-label: "Görsel Zıt Kavramlar",
-attrs: ["type","state"],
-randomItem: () => {
-const type = randomItem(isPre() ? ["length","fill"] : ["length","position","fill","vertical"]);
-const state = randomItem(OPPOSITE_STATES[type]);
-return { type, state, color: randomItem(COLORS) };
-},
-renderItem: (item) => oppositeSVG(item.type, item.state, item.color),
-stages: [
-{
-label: "Aşama 1 · Durumu Söyle",
-instruction: () => `Öğrenciye görselleri tanıtın. <b>"Gördüğün durumu söyle"</b> deyin (uzun/kısa, içinde/dışında, dolu/boş, üstünde/altında gibi).`,
-example: (item) => `${OPPOSITE_LABELS[item.state]}`
-},
-{
-label: "Aşama 2 · Durum + Zıttı",
-instruction: () => `Aynı kuralla, çocuktan hem durumu hem de <b>ZITTINI</b> söylemesini isteyin (örn. "uzun — kısa değil").`,
-example: (item) => `${OPPOSITE_LABELS[item.state]} — ${OPPOSITE_OF[item.state]} değil`
-}
-]
-},
-
+/* KURAL: Görsel Zıt Kavramlar (visual-opposites) silindi (kullanıcı kararı, 20-f): çalışma tanımı, yönergesi ve Görsel Organizasyon alanındaki (Boyut ve Yön grubu) kaydı kaldırıldı. Zıt kavram çizimleri (oppositeSVG) Zıttını Seç için durur */
 {
 id: "word-group",
 dims: () => TXT_GRID_DIMS,   /* yazılı tahta düzey boyu kuralı: 16 – 20 – 24 */
@@ -1089,6 +1065,7 @@ randomItem: () => randomItem((isPre() ? [SIM_PRE0, SIM_PRE1, SIM_PRE2] : [SIMILA
 dims: () => isPre() ? ORAL_Q_DIMS.pre : ORAL_Q_DIMS.sim,
 uniqueFrom: () => ((isPre() ? [SIM_PRE0, SIM_PRE1, SIM_PRE2] : [SIMILARITY_PAIRS, SIM_FUNC, SIM_ABSTRACT])[currentCombo().t] || SIMILARITY_PAIRS).slice(), itemFrom: (x) => x,
 renderItem: (item) => `<div class="name-cell phrase-cell">${item.a} - ${item.b}</div>`,
+oralKey: (item) => item && item.hint,   /* örnek cevap balonu kuralı */
 stages: [
 {
 label: "Aşama 1 · Ortak Yön",
@@ -1111,6 +1088,7 @@ randomItem: () => randomItem((isPre() ? [VOCAB_PRE0, VOCAB_PRE1, VOCAB_PRE2] : [
 dims: () => isPre() ? ORAL_Q_DIMS.pre : ORAL_Q_DIMS.voc,
 uniqueFrom: () => ((isPre() ? [VOCAB_PRE0, VOCAB_PRE1, VOCAB_PRE2] : [VOCAB_CONCRETE, VOCAB_WORDS.concat(VOCAB_ACTION), VOCAB_ABSTRACT])[currentCombo().t] || VOCAB_WORDS).slice(), itemFrom: (x) => x,
 renderItem: (item) => `<div class="name-cell">${item.word}</div>`,
+oralKey: (item) => item && item.def,   /* örnek cevap balonu kuralı */
 stages: [
 {
 label: "Aşama 1 · Tanımla",
@@ -1133,6 +1111,7 @@ randomItem: () => randomItem((isPre() ? [COMP_PRE0, COMP_PRE1, COMP_PRE2] : [COM
 dims: () => isPre() ? ORAL_Q_DIMS.pre : ORAL_Q_DIMS.comp,
 uniqueFrom: () => ((isPre() ? [COMP_PRE0, COMP_PRE1, COMP_PRE2] : [COMPREHENSION_QS, COMP_WHY, COMP_IF])[currentCombo().t] || COMPREHENSION_QS).slice(), itemFrom: (x) => x,
 renderItem: (item) => `<div class="name-cell phrase-cell">${item.q}</div>`,
+oralKey: (item) => item && item.hint,   /* örnek cevap balonu kuralı */
 stages: [
 {
 label: "Aşama 1 · Yanıtla",
@@ -1244,12 +1223,13 @@ id: "size-sort",
 readingLevel: ["pre","post"],
 label: "Boyut Sıralama",
 attrs: ["size"],
-randomItem: () => ({ size: randomItem(isPre() ? ["small","large"] : ["small","medium","large"]), color: randomItem(COLORS) }),
+/* KURAL: Boyut Sıralama Başlangıç yalnız büyük–küçük (kullanıcı kararı, 20-f): okul sonrası Başlangıç düzeyde orta boy yoktur; Orta ve Zor üç boyludur (küçük, orta, büyük). Okul öncesi her düzeyde iki boyludur. Yönerge de olmayan boyu saymaz (sizeSortTwo) */
+randomItem: () => ({ size: randomItem(sizeSortTwo() ? ["small","large"] : ["small","medium","large"]), color: randomItem(COLORS) }),
 renderItem: (item) => sizedCircleHTML(item.size, item.color),
 stages: [
 {
 label: "Boyut",
-instruction: () => `Öğrenciye görselleri tanıtın. <b>"Her dairenin küçük mü, orta mı, büyük mü olduğunu söyle"</b> deyin.`,
+instruction: () => sizeSortTwo() ? `Öğrenciye görselleri tanıtın. <b>"Her dairenin küçük mü, büyük mü olduğunu söyle"</b> deyin.` : `Öğrenciye görselleri tanıtın. <b>"Her dairenin küçük mü, orta mı, büyük mü olduğunu söyle"</b> deyin.`,
 example: (item) => `${SIZE_LABELS[item.size]}`
 }
 ]
