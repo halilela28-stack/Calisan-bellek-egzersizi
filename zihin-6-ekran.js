@@ -150,6 +150,10 @@ try{ applyRecallListen(); }catch(e){}
 const landscapeMQ = window.matchMedia("(orientation: landscape) and (max-height: 520px)");
 let applyingBoardLayout = false;
 
+/* KURAL (satır biçimli tahta yatayda, 2026-11-21-d): Farklı Olanı Bul, Örüntü Tamamlama ve Görsel Analoji yatay ekranda da kendi oranındaki kutularla dizilir — kutu, dikeydeki gibi içeriğin en-boy oranındadır (daireler uzayıp elips olmaz), sütun sayısı kutuyu en büyük yapacak biçimde seçilir. Son satırı tam dolu dizilim, en iyi dizilimin % 75'inden küçük kutu vermiyorsa yeğlenir; veriyorsa son satırı eksik dizilime izin verilir (14 madde: 7 × 2 yerine 5 + 5 + 4 ya da 4 + 4 + 4 + 2, eksik satır ortalanır; tek maddelik son satır olmaz). Önceden hücreler tahtanın yüksekliğine yayılıyordu: 10 ve 14 maddede (5 × 2, 7 × 2) örüntü daireleri dik elipse dönüyor, Zor düzeyde şekiller küçülüyordu (Farklı Olanı Bul 36 → 25 px) */
+function rgLandscapeDims(n, board, RG){ const cs = getComputedStyle(board), w = board.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), h = board.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom); if(!(w > 0 && h > 0)) return null; const gx = parseFloat(cs.columnGap) || 8, gy = parseFloat(cs.rowGap) || 6, c = [];
+for(let cols = 2; cols <= n; cols++){ const rows = Math.ceil(n / cols), empty = cols * rows - n; if(rows > 1 && n % cols === 1) continue; const cw = Math.floor(Math.min(220, (w - (cols - 1) * gx) / cols, ((h - (rows - 1) * gy) / rows) * RG)); if(cw < 40) continue; c.push({ cols, rows, cw, rh: Math.floor(cw / RG), empty }); }
+if(!c.length) return null; const sc = (x) => x.cw - x.empty * 4, best = c.slice().sort((a, b) => sc(b) - sc(a))[0], ex = c.filter(x => !x.empty).sort((a, b) => b.cw - a.cw)[0]; return ex && ex.cw >= best.cw * 0.75 ? ex : best; }
 function pickLandscapeDims(n, board){
 const cs = getComputedStyle(board);
 const w = board.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
@@ -205,23 +209,28 @@ try{
 window._zaLaidGrid = currentGrid;
 let {rows, cols} = currentTier();
 let track = "1fr", colTrack = null, rowTrack = null, rgGap = 0;
+board.classList.remove("rg-tight");
 if(landscapeMQ.matches){
 const best = currentExercise().id === "digit-span" ? null : pickLandscapeDims(currentGrid.length, board);   /* Rakam Dizisi tek dizi kuralı: yatayda da dizi tek satırda kalır, bölünmez */
 if(best && ORAL_Q_IDS.has(currentExercise().id) && currentGrid.length % best.cols){ let d = best.cols; while(d > 1 && currentGrid.length % d) d--; best.cols = d; best.rows = Math.ceil(currentGrid.length / d); }   /* sözlü soru sayısı kuralı: 3 – 4 – 5 maddelik listelerde yatayda son satır eksik kalmaz (5 madde → tek sütun) */
 if(best){ rows = best.rows; cols = best.cols; track = "minmax(0, 1fr)"; }
+{ const RGl = ZA_BOARD.RG[currentExercise().id], g = RGl ? rgLandscapeDims(currentGrid.length, board, RGl) : null; if(g){ rows = g.rows; cols = g.cols; colTrack = g.cw + "px"; rowTrack = g.rh + "px"; } }   /* satır biçimli tahta yatayda kuralı */
 } else { const best = pickPortraitDims(currentGrid.length, board, rows, cols); if(best){ rows = best.rows; cols = best.cols; colTrack = best.cw + "px"; rowTrack = best.cell + "px"; }
   const RG = ZA_BOARD.RG[currentExercise().id];   /* satır biçimli gruplar: iki sütun, satır yüksekliği içeriğin oranına göre (daireler basık görünmez) */
   if(RG){ board.style.rowGap = "";   /* KURAL: satır biçimli tahta titremez (21-c): satır arası ölçülmeden önce bu işlevin önceki turda yazdığı satır arası silinir; önceden 8 px yazılınca "sığıyor" sanıp 26 px'e, 26 px'te "taşıyor" deyip 8 px'e dönüyor, tahta boyu her karede değişiyordu (Örüntü Tamamlama ve Görsel Analoji Orta, Farklı Olanı Bul okul öncesi Orta) */ const cs = getComputedStyle(board); const w = board.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); const gx = parseFloat(cs.columnGap) || 10; const cw = Math.floor((w - (cols - 1) * gx) / cols); colTrack = cw + "px"; let rt = Math.max(40, Math.round(cw / RG));
     /* KURAL (satır biçimli tahta tek ekran, 2026-11-15): Farklı Olanı Bul, Örüntü Tamamla, Görsel Benzetme gibi satır biçimli tahtalarda da çalışırken bütün satırlar görünür — satırlar tahtaya ayrılan yüksekliği aşarsa satır arası 8 px'e iner, satır yüksekliği en az 32 px'e kadar küçülür ve sütun genişliği aynı oranda daralır (şekiller basık görünmez). Önceden 3. düzeyde 10 satır tahtanın altına taşıyıp kaydırma istiyordu */
     try{ const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; const focus = document.documentElement.classList.contains("run-focus") && window._rfMax; const availAll = focus ? window._rfMax : Math.max(window.innerHeight - board.getBoundingClientRect().top - barH - 12 - 16, window.innerHeight * 0.62); const h = availAll - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 16, gy0 = parseFloat(cs.rowGap) || 26;
-      if(rows * rt + (rows - 1) * gy0 > h){ rgGap = 8; const fit = Math.floor((h - (rows - 1) * rgGap) / rows); if(fit < rt){ rt = Math.max(32, fit); colTrack = Math.min(cw, Math.floor(rt * RG)) + "px"; } } }catch(e){}
+      /* KURAL (Farklı Olanı Bul şekil boyu, 2026-11-21-d): düzey arttıkça şekiller küçülmez — satırlar sığmayınca yalnız satır yüksekliği ve kutunun iç boşluğu azalır, kutu genişliği aynı kalır; şekil boyu genişlikten geldiği için üç düzeyde de aynıdır (390 × 797: 43 px). Önceden kutu genişliği de daraltılıyor, şekiller Zor'da küçülüyordu. Örüntü Tamamlama'da daireler basılmasın diye genişlik oranlı daralmaya devam eder */
+      const oddG = !!board.querySelector(".odd-group"); let tight = false;
+      if(rows * rt + (rows - 1) * gy0 > h){ rgGap = 8; const fit = Math.floor((h - (rows - 1) * rgGap) / rows); if(fit < rt){ rt = Math.max(32, fit); if(oddG) tight = true; else colTrack = Math.min(cw, Math.floor(rt * RG)) + "px"; } }
+      board.classList.toggle("rg-tight", tight); }catch(e){}
     rowTrack = rt + "px"; } }
 /* KURAL (tahta düzeni, 2026-11-05 — kullanıcının yeniden düzenlediği kurallar): 1) resimler büyük olur; 2) çalışırken tahtanın bütün satırları görünür; 3) başlamadan önce üstteki bütün satırlar (başlık, çipler, yönerge, süre, hata) yerindedir; 4) Başlat'ta yönerge, süre (Bitir) ve hata sayısı görünür kalır, başlık, çipler, Bugün/ödev çubuğu ve alttaki düğmeler gizlenir, Bitir'de geri gelir; 5) çalışma sürerken tahta oynamaz. Bunun için resimli/şekilli tahtada sütun sayısı, çalışırken tahtaya kalan alana göre resimler EN BÜYÜK olacak biçimde seçilir (ör. 15 resim telefonda 5×3; son satır eksik kalmaz, okuma sırası soldan sağa); başlamadan önce de aynı boy kullanılır, böylece Başlat'ta resimler yeniden boyutlanmaz. Eski "hücre en az ekranın %20'si" ve "tahta Başlat'ta yerinden oynamaz" kurallarının yerine */
     let fitOver = false; if(rowTrack && !landscapeMQ.matches && boardIsPic() && !ZA_BOARD.isSpecial(currentExercise().id)){ const g = ZA_BOARD.picGrid(board, currentGrid.length); if(g){ cols = g.cols; rows = g.rows; rowTrack = g.rowTrack; colTrack = g.colTrack; fitOver = g.fitOver; if(g.gap) rgGap = g.gap; } }
     board.style.rowGap = (!landscapeMQ.matches && currentGrid.length >= 13 && window.innerWidth < 700 && rowTrack && boardIsPic()) ? "12px" : ""; if(rgGap) board.style.rowGap = rgGap + "px";
 board.style.gridTemplateColumns = `repeat(${cols}, ${colTrack || track})`;
 board.style.gridTemplateRows = `repeat(${rows}, ${rowTrack || track})`; board.style.justifyContent = colTrack ? "center" : ""; board.style.alignContent = rowTrack ? (fitOver ? "start" : "center") : "";
-board.classList.toggle("wide-grid", cols >= 5 || rows >= 5); centerLastRow(board, cols); renderRowDividers(board, rows, cols);
+board.classList.toggle("wide-grid", cols >= 5 || rows >= 5); centerLastRow(board, cols, (landscapeMQ.matches && colTrack && ZA_BOARD.RG[currentExercise().id]) ? parseFloat(colTrack) + (parseFloat(getComputedStyle(board).columnGap) || 8) : 0); renderRowDividers(board, rows, cols);
 fitTextCells(board); try{ oralAnsFit(); }catch(e){}
 const gridAtLayout = currentGrid;
 requestAnimationFrame(()=>{
@@ -237,9 +246,9 @@ applyingBoardLayout = false;
 }
 
 /* Son satırı ortala: kart sayısı sütuna bölünmüyorsa kalan kartlar sola yığılmasın (sıra ve dokunma mantığı değişmez, yalnızca yerleşim) */
-function centerLastRow(board, cols){ try{ const items = [...board.children].filter(e => e.classList && e.classList.contains("cell")); items.forEach(e => { e.style.gridColumn = ""; e.style.gridColumnStart = ""; e.style.justifySelf = ""; e.style.width = ""; e.style.maxWidth = ""; }); const n = items.length, rem = n % cols; if(!cols || cols < 2 || !rem) return;
+function centerLastRow(board, cols, pitch){ try{ const items = [...board.children].filter(e => e.classList && e.classList.contains("cell")); items.forEach(e => { e.style.gridColumn = ""; e.style.gridColumnStart = ""; e.style.justifySelf = ""; e.style.width = ""; e.style.maxWidth = ""; if(e.dataset.lrShift){ e.style.position = ""; e.style.left = ""; delete e.dataset.lrShift; } }); const n = items.length, rem = n % cols; if(!cols || cols < 2 || !rem) return;
   const last = items.slice(n - rem); if(rem === 1){ last[0].style.gridColumn = "1 / -1"; last[0].style.justifySelf = "center"; const w = items[0].getBoundingClientRect().width; last[0].style.width = w ? w + "px" : ""; last[0].style.maxWidth = w ? w + "px" : ""; return; }
-  if((cols - rem) % 2 === 0) last[0].style.gridColumnStart = String((cols - rem) / 2 + 1); }catch(e){} }
+  if((cols - rem) % 2 === 0) last[0].style.gridColumnStart = String((cols - rem) / 2 + 1); else if(pitch > 0) last.forEach(e => { e.style.position = "relative"; e.style.left = Math.round((cols - rem) * pitch / 2) + "px"; e.dataset.lrShift = "1"; });   /* satır biçimli tahta yatayda kuralı: eksik hücre sayısı tekse (5 sütunda 4 madde) son satır yarım sütun kaydırılarak ortalanır */ }catch(e){} }
 function setLsOpen(open){
 document.documentElement.classList.toggle("ls-open", !!open);
 const btn = document.getElementById("lsToggleBtn");
@@ -1799,7 +1808,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.21-c";
+const APP_VERSION = "2026.11.21-d";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 /* RUNTIME_CSS → zihin-stil.css */
 /* Dosya sürümü denetimi: zihin-atolyesi.html ile uygulama kodu (zihin-1…8) farklı sürümdeyse uyar */

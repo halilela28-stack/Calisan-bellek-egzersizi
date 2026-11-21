@@ -649,3 +649,16 @@ html.ins-xs .sdmt-pair > div{width:36px;height:36px;padding:4px}   /* küçük t
 @media (orientation:landscape) and (max-height:500px){#board.oral-keys{--okr:34px;row-gap:4px !important}#board.oral-keys > .cell{flex-direction:row;flex-wrap:wrap;align-items:baseline;column-gap:14px}#board .oral-ans{text-align:left}}
 /* basılma efekti yalnız basılan düğmede (21-c): açık alan kartı ve içinde düğme basılı olan kap oynamaz */
 .category-card.open:active,.category-card:has(button:active),.hm-row:has(button:active),.rt-step:has(button:active),[data-play]:has(button:active){transform:none !important;filter:none !important}
+/* KURAL (Farklı Olanı Bul şekil boyu, 2026-11-21-d): sıkışık satırda kutunun üst-alt boşluğu azalır, şekil boyu korunur */
+#board.rg-tight .odd-group{padding-top:2px !important;padding-bottom:2px !important;min-height:0 !important}
+#board.rg-tight .odd-group > div{height:96% !important}
+/* KURAL (İpucuyla Bul okuma akışı, 2026-11-21-d): okunan ipucunun kutusu belirgin; "değil" altı çizili */
+.cf-chip{transition:border-color .15s, background-color .15s, box-shadow .15s}
+.cf-chip.cur{border-color:var(--teal) !important;background:#E6F6F3 !important;box-shadow:0 0 0 3px rgba(20,150,130,.18)}
+.cf-chip u{text-decoration-thickness:2px;text-underline-offset:3px}
+
+/* KURAL (Resimleri Sırala yerleşimi, 2026-11-21-d): kutu numarası köşede küçük rozet; boş kutuda ortada büyük rakam; konan kartın yeri boş kalır */
+.pa-slot .pa-n{position:absolute;left:4px;top:4px;min-width:22px;height:22px;padding:0 5px;box-sizing:border-box;border-radius:11px;background:var(--star);color:#5A3B00;font-size:13px;font-weight:900;line-height:22px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.pa-slot.empty .pa-n{position:static;background:none;box-shadow:none;color:var(--ink-soft);font-size:24px;font-weight:800;height:auto;line-height:1}
+.pa-slot img,.pa-cards .wm-pic img{width:100% !important;height:100% !important}
+.pa-gone{border-radius:18px;border:2px dashed rgba(124,141,163,.28);box-sizing:border-box}

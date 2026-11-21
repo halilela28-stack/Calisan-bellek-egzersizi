@@ -1128,7 +1128,7 @@ example: (item) => `${item.hint}`
 
 {
 id: "odd-one-out",
-dims: () => ROW_GROUP_DIMS(),
+dims: () => ROW_GROUP_DIMS_567(),   /* KURAL (Farklı Olanı Bul satır sayısı, 2026-11-21-d): okul sonrası 5 – 6 – 7 satır (önceden 6 – 8 – 10); satır azalınca şekiller her düzeyde aynı boyda kalır. Okul öncesi 4 – 5 – 6 */
 readingLevel: ["pre","post"],
 label: "Farklı Olanı Bul",
 attrs: ["dimension"],
