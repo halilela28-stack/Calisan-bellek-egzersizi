@@ -140,6 +140,9 @@ const table = isPre() ? PRE_TASTE_COUNT_BY_TIER : TASTE_COUNT_BY_TIER;
 return table[currentCombo().t] || table[table.length-1];
 }
 function tasteAll(){ const alt = { candy:"watermelon", simit:"pasta" }; return TASTE_ALL.map(k => (TASTE_IMAGES[k] ? k : (alt[k] && TASTE_IMAGES[alt[k]] ? alt[k] : null))).filter(Boolean); }   /* resim dosyası eskiyse aynı tattaki eski resim */
+/* KURAL: Tatlar yönergesi yalnız tahtadaki tatları sayar (21-a; yönerge seçenek saymaz kuralı): Başlangıç'ta iki, Orta'da üç yiyecek vardır; çocuğa okunan yönerge ve yetişkin yönergesi o sayfada olmayan tadı saymaz (ör. "tatlı mı, ekşi mi?"). Dört tat da varsa dördü sayılır */
+function tasteActiveNames(){ try{ const SIRA = ["tatlı","ekşi","acı","tuzlu"], act = new Set((Array.isArray(currentGrid) && currentGrid.length && currentGrid[0] && currentGrid[0].item ? currentGrid.map(x => x.item) : (tasteActivePool && tasteActivePool.length ? tasteActivePool : tasteAll())).map(k => TASTE_OF[k])); const L = SIRA.filter(k => act.has(k)); return L.length ? L : SIRA; }catch(e){ return ["tatlı","ekşi","acı","tuzlu"]; } }
+function tasteAskList(){ const EK = { "tatlı":"mı", "ekşi":"mi", "acı":"mı", "tuzlu":"mu" }; return tasteActiveNames().map(k => k + " " + EK[k]).join(", "); }
 function pickTastePool(){
 const ALL = tasteAll(), n = Math.min(tasteWantedCount(), ALL.length);
 let pool, key, tries = 0;

@@ -121,7 +121,7 @@ renderItem: (item) => `<img src="${TASTE_IMAGES[item.item]}" alt="" style="width
 stages: [
 {
 label: "Aşama 1 · Tat",
-instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Ben başla dediğimde, gördüğün her yiyeceğin sadece tadını (tatlı/ekşi/acı/tuzlu) olabildiğince hızlı söyle"</b> deyin.`,
+instruction: () => `Öğrenciye görselleri tanıtın. Ardından <b>"Ben başla dediğimde, gördüğün her yiyeceğin sadece tadını (${tasteActiveNames().join("/")}) olabildiğince hızlı söyle"</b> deyin.`,
 example: (item) => `${TASTE_OF[item.item]}`
 },
 {

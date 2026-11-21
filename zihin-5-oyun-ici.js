@@ -798,7 +798,7 @@ const INSTR_SHORT = {
 "number-color":     [() => Q("Ekranda rakamlar var. Soldan sağa, satır satır her rakamı hızlıca söyle."), () => Q("Her rakamın önce rengini, sonra kendisini söyle.")],
 "object-name":      [() => Q("Ekranda resimler var. Soldan sağa, satır satır her resmin adını hızlıca söyle."), () => Q("Her resmin adını ve hangi gruptan olduğunu söyle: hayvan mı, giysi mi, yiyecek mi?")],
 "fruit-veg":        [() => Q("Ekranda meyveler ve sebzeler var. Soldan sağa, satır satır her biri için meyve mi sebze mi olduğunu hızlıca söyle."), () => Q("Her biri için önce büyük mü küçük mü olduğunu, sonra meyve mi sebze mi olduğunu söyle.")],
-"taste-name":       [() => Q("Ekranda yiyecekler var. Her biri için tadını söyle: tatlı mı, ekşi mi, acı mı, tuzlu mu?"), () => Q("Her biri için önce tadını, sonra adını söyle.")],
+"taste-name":       [() => Q("Ekranda yiyecekler var. Her biri için tadını söyle: " + tasteAskList() + "?"), () => Q("Her biri için önce tadını, sonra adını söyle.")],
 "hot-cold":         [() => Q("Ekranda resimler var. Her biri için soğuk mu sıcak mı olduğunu hızlıca söyle."), () => Q("Her biri için önce adını, sonra soğuk mu sıcak mı olduğunu söyle.")],
 "living-nonliving": [() => Q("Ekranda resimler var. Her biri için canlı mı cansız mı olduğunu hızlıca söyle."), () => Q("Her biri için önce adını, sonra canlı mı cansız mı olduğunu söyle.")],
 "choice-reaction":  [() => `Eşleşmeleri birlikte deneyin, sonra: ${Q("Her rengin bir hareketi var. Ekrandaki renkleri soldan sağa, satır satır git; her rengin hareketini hızlıca yap.")}` + crtLegendHTML(),
@@ -1069,7 +1069,7 @@ const INSTR_SHORT = {
 "arrow-direction":  [() => Q("Ekranda oklar var. Soldan sağa, satır satır her ok için yukarı mı aşağı mı baktığını söyle."), () => Q("Ekranda oklar var. Her ok için hangi yöne baktığını söyle: yukarı, aşağı ya da sağ."), () => Q("Ekranda oklar var. Her ok için hangi yöne baktığını söyle: yukarı, aşağı, sağ ya da sol.")],
 "edge-count":       [() => Q("Ekranda şekiller var. Her şekil için kenarlarını say ve kaç kenarı olduğunu söyle.")],
 
-"odd-one-out":      [() => Q("Ekranda üçer şekilden oluşan sıralar var. Her sırada iki şekil birbirine benziyor, biri farklı. Farklı olanın kaçıncı olduğunu söyle: 1, 2 ya da 3."), () => Q("Ekranda üçer şekilden oluşan sıralar var. Her sırada farklı olanın kaçıncı olduğunu söyle, sonra neden farklı olduğunu açıkla: rengi mi, şekli mi, boyu mu?")],
+"odd-one-out":      [() => Q("Ekranda üçer şekilden oluşan sıralar var. Her sırada iki şekil birbirine benziyor, biri farklı. Farklı olanın kaçıncı olduğunu söyle: 1, 2 ya da 3."), () => Q("Ekranda üçer şekilden oluşan sıralar var. Her sırada farklı olanın kaçıncı olduğunu söyle, sonra neden farklı olduğunu açıkla: rengi mi, şekli mi?") /* KURAL: Farklı Olanı Bul yönergesi yalnız var olan farkı sayar (21-a): farklı olan ya rengiyle ya şekliyle ayrılır; boy farkı yoktur, yönerge ve strateji boyu saymaz */],
 "sequence-pattern": [() => Q("Ekranda renkli şekillerden oluşan sıralar var; renkler belli bir düzenle tekrar ediyor. Düzeni bul ve soru işaretinin yerine hangi rengin geleceğini söyle."), () => Q("Ekranda renkler üçlü bir düzenle tekrar ediyor. Düzeni bul ve soru işaretinin yerine hangi rengin geleceğini söyle.")],
 "visual-analogy":   [() => Q("Ekranda ikişer ikili var: ilk ikilide bir şey değişiyor. Aynı değişiklik ikinci ikilide de olacak. Soru işaretinin yerine hangi renk gelir? Söyle."), () => Q("Ekranda ikişer ikili var: ilk ikilide bir şey değişiyor. O değişikliği bul. Soru işaretinin yerine ne gelir? Şeklini ve rengini söyle.")]
 };
@@ -1268,7 +1268,7 @@ return {
 "pattern-touch":[0, "Sesli Söyle", "Sırayı sesli söyle, sonra sıradakini bul."],
 "analogy-touch":[0, "Kuralı Söyle", "İlk ikilide ne değişti? Sesli söyle, sonra uygula."],
 "same-number":[0, "Şeklini Söyle", "Sayının şeklini kendine anlat; sonra satır satır tara."],
-"odd-one-out":[0, "Tek Tek Karşılaştır", "Renge, şekle, büyüklüğe tek tek bak: hangisi farklı?"],
+"odd-one-out":[0, "Tek Tek Karşılaştır", "Renge ve şekle tek tek bak: hangisi farklı?"],
 "sequence-pattern":[0, "Sesli Söyle", "Örüntüyü sesli söyle, sonra sıradakini bul."],
 "visual-analogy":[0, "Kuralı Söyle", "İlk çiftte ne değişti? Sesli söyle, sonra ikinci çifte uygula."]
 };
