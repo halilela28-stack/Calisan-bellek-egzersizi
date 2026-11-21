@@ -478,7 +478,7 @@ html.text-xl .hm-brand b{ font-size:26px; } html.text-xl .hm-lab{ font-size:17px
 .set-sec .settings-divider{ display:none !important; } .set-sec .settings-group > .settings-note:last-child{ margin-bottom:0 !important; }
 html, body{ -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent; } input, textarea, [contenteditable]{ -webkit-user-select:text; user-select:text; -webkit-touch-callout:default; }
 a, button, img, svg, [role=button]{ -webkit-touch-callout:none; -webkit-user-drag:none; } button, a, [data-play], [data-hsel], .category-card, .rt-step{ touch-action:manipulation; }
-button:active, .category-card:active, .hm-row:active, .rt-step:active, [data-play]:active{ transform:translateY(2px) scale(.985); filter:brightness(.97); transition:transform .04s, filter .04s; }
+button:active, .category-card:not(.open):active, .hm-row:active, .rt-step:active, [data-play]:active{ transform:translateY(2px) scale(.985); filter:brightness(.97); transition:transform .04s, filter .04s; }
 #whoSheet .mola-card{ background:#fff; border-radius:24px; padding:22px 18px 18px; } #whoSheet .mola-h{ color:var(--ink) !important; font-size:21px; font-weight:900; text-align:center; } #whoSheet .mola-s{ color:var(--ink-soft) !important; font-size:14px; font-weight:600; line-height:1.5; text-align:center; margin:6px 4px 12px; }
 #whoSheet .mola-list{ display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px; } #whoSheet .mola-list button{ background:#fff !important; border:2px solid #DDE6EE !important; border-bottom-width:4px !important; border-radius:16px !important; color:var(--ink) !important; font-family:inherit; font-size:15px; font-weight:900; padding:14px 10px !important; display:flex; flex-direction:column; align-items:center; gap:6px; box-shadow:none !important; }
 #whoSheet .mola-list button span{ font-size:24px; line-height:1; } #whoSheet .mola-list button small{ display:block; color:var(--ink-soft); font-size:12px; font-weight:700; } #whoSheet .mola-list button:first-child{ border-color:#9FDCD2 !important; }
@@ -831,7 +831,7 @@ border-radius:14px;
 padding:12px 16px;
 cursor:pointer;
 }
-.category-card:active{ border-color:var(--teal); }
+.category-card:not(.open):active{ border-color:var(--teal); }
 .category-icon-badge{
 flex:none;
 width:48px;
@@ -2479,7 +2479,8 @@ border:2px solid var(--line) !important; box-shadow:0 3px 0 var(--line);
 .view-btn.active{ background:var(--teal); box-shadow:0 3px 0 var(--teal-dark); }
 .flow-back-btn{ width:44px; height:44px; border:2px solid var(--line); border-radius:14px; box-shadow:0 3px 0 var(--edge); }
 .category-card{ border-radius:20px !important; padding:14px 16px !important; transition:transform .08s, box-shadow .08s; }
-.category-card:active{ transform:translateY(3px); box-shadow:none; }
+/* KURAL: basılma efekti yalnız basılan düğmede (21-c): açık alan kartı, içindeki bir düğmeye basılınca bütünüyle çökmez / kararmaz; kapalı kart (kendisi düğmedir) basılınca çöker */
+.category-card:not(.open):active{ transform:translateY(3px); box-shadow:none; }
 .category-card-title{ font-weight:900; font-size:17px; }
 .category-icon-badge{ width:52px; height:52px; border-radius:16px; }
 .category-badge{ font-weight:800; }
@@ -2862,7 +2863,7 @@ button, input, select, textarea, option{ font-family:inherit; }
 .ex-today .ex-go-txt{ opacity:.85; margin-top:2px; }
 .ex-today:active{ transform:translateY(2px); }
 </style>
-<link rel="stylesheet" href="zihin-stil.css?v=2026.11.21-b">
+<link rel="stylesheet" href="zihin-stil.css?v=2026.11.21-c">
 </head>
 <body>
 <div class="brand-splash" id="brandSplash" aria-hidden="true">
@@ -3076,7 +3077,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.11.21-b</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.11.21-c</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -3512,23 +3513,23 @@ dispatchFbReady();
 window.__zaErr = []; window.addEventListener('error', function(e){ try{ window.__zaErr.push(((e && e.message) || 'hata') + (e && e.lineno ? ' (satır ' + e.lineno + ')' : '')); }catch(_){} });
 window.__zaRescue = function(){ var go = function(){ var u = location.href.split('#')[0].replace(/[?&]r=\d+/, ''); location.replace(u + (u.indexOf('?') > -1 ? '&' : '?') + 'r=' + Date.now()); }; try{ var ps = []; if(window.caches && caches.keys) ps.push(caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); })); if(navigator.serviceWorker && navigator.serviceWorker.getRegistrations) ps.push(navigator.serviceWorker.getRegistrations().then(function(rs){ return Promise.all(rs.map(function(r){ return r.unregister(); })); })); Promise.all(ps).then(go, go); setTimeout(go, 2500); }catch(e){ go(); } };
 setTimeout(function(){ if(window.__zaReady && window.__zaBooted) return; var err = (window.__zaErr || []).slice(0, 2).join(' · '); var d=document.createElement('div'); d.id='zaBootHelp'; d.style.cssText='position:fixed;inset:0;z-index:99999;background:#F6FBFA;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;text-align:center;color:#1D2B36'; d.innerHTML='<div style="max-width:420px"><div style="font-size:22px;font-weight:800;margin-bottom:10px">Uygulama açılamadı</div><div style="font-size:15px;line-height:1.5">Genellikle güncelleme sırasında dosyaların bir kısmı yeni, bir kısmı eski kaldığında olur. Önce dört dosyanın da (zihin-atolyesi.html, zihin-app.js, sw.js ve değişen zihin-gorsel dosyası) yüklendiğinden emin olun, sonra aşağıdaki düğmeye basın. <b>Kayıtlarınız silinmez.</b></div>' + (err ? '<div style="font-size:12px;color:#5B6B78;margin-top:10px;word-break:break-word">Ayrıntı: ' + err.replace(/</g, '&lt;') + '</div>' : '') + '<button onclick="window.__zaRescue()" style="margin-top:16px;padding:12px 22px;border:0;border-radius:14px;background:#0A847E;color:#fff;font-size:16px;font-weight:800">Önbelleği yenile ve aç</button></div>'; document.body.appendChild(d); }, 9000);</script>
-<script>window.ZA_HTML_VERSION = "2026.11.21-b";</script>
+<script>window.ZA_HTML_VERSION = "2026.11.21-c";</script>
 <!-- KURAL (dosya bölme, 2026-11-09 — mühendislik borcu 6. adım): uygulama kodu sekiz dosyadır ve bu sırayla yüklenir; sıra, eski tek dosyanın ardışık parçalarıdır, değiştirilemez. sw.js aynı listeyi önbelleğe alır -->
-<script src="zihin-0-ortak.js?v=2026.11.21-b"></script>
-<script src="zihin-1-tahtalar.js?v=2026.11.21-b"></script>
-<script src="zihin-2-calismalar.js?v=2026.11.21-b"></script>
-<script src="zihin-3-akis.js?v=2026.11.21-b"></script>
-<script src="zihin-4-bellek.js?v=2026.11.21-b"></script>
-<script src="zihin-5-oyun-ici.js?v=2026.11.21-b"></script>
-<script src="zihin-6-ekran.js?v=2026.11.21-b"></script>
-<script src="zihin-7-adalar.js?v=2026.11.21-b"></script>
-<script src="zihin-8-aile.js?v=2026.11.21-b"></script>
+<script src="zihin-0-ortak.js?v=2026.11.21-c"></script>
+<script src="zihin-1-tahtalar.js?v=2026.11.21-c"></script>
+<script src="zihin-2-calismalar.js?v=2026.11.21-c"></script>
+<script src="zihin-3-akis.js?v=2026.11.21-c"></script>
+<script src="zihin-4-bellek.js?v=2026.11.21-c"></script>
+<script src="zihin-5-oyun-ici.js?v=2026.11.21-c"></script>
+<script src="zihin-6-ekran.js?v=2026.11.21-c"></script>
+<script src="zihin-7-adalar.js?v=2026.11.21-c"></script>
+<script src="zihin-8-aile.js?v=2026.11.21-c"></script>
 <div id="imgBar" style="position:fixed;left:0;top:0;height:3px;width:100%;background:rgba(0,0,0,.06);z-index:9999;pointer-events:none"><div id="imgProg" style="height:100%;width:0;background:#1FA463;transition:width .3s"></div></div>
 <div id="imgWarn" style="display:none;position:fixed;left:12px;right:12px;bottom:92px;z-index:9997;background:#FFF4E5;color:#9A3412;border:2px solid #F59E0B;border-radius:14px;padding:10px 14px;font-weight:700;font-size:14px;text-align:center"></div>
 <div id="imgOverlay" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,.92);z-index:9998;align-items:center;justify-content:center;flex-direction:column;gap:14px;font-weight:800;color:#1F2A37;padding:24px;text-align:center"><div id="imgTitle" style="font-size:20px">Resimler yükleniyor…</div><div style="width:min(320px,80%);height:10px;background:#E6ECF2;border-radius:999px;overflow:hidden"><div id="imgProg2" style="height:100%;width:0;background:#1FA463;transition:width .3s"></div></div><div id="imgPct" style="font-size:15px;color:#5B6B7A">%0</div><div style="font-size:13px;color:#5B6B7A;font-weight:600">Yalnızca ilk açılışta sürer; sonraki açılışlarda resimler cihazdan gelir.</div></div>
 <script>
 (function(){ /* Resim dosyaları arkada, paralel yüklenir; uygulama beklemeden açılır. Yüklenen dosya eski/eksikse (ör. eski service worker önbelleği) önbelleği atlayarak yeniden indirilir. */
-  const v = "2026.11.21-b"; const files = [["zihin-gorsel-1.js", 8.2, "STORY_PRE_IMAGES", "61fcffa782"], ["zihin-gorsel-2.js", 4.8, "PART_IMAGES", "4d3ee55218"], ["zihin-gorsel-3.js", 5.8, "NEW_IMAGES_5", "2f506b3546"], ["zihin-gorsel-4.js", 0.7, "EF_IMAGES", "982a55b1f2"], ["zihin-gorsel-5.js", 10.1, "BAL_PANS", "50a8d4bc3b"]];   /* sonda: dosyaya en son eklenen resim (dosya eskiyse yoktur) */ const total = files.reduce((a, f) => a + f[1], 0); let got = 0, done = 0;
+  const v = "2026.11.21-c"; const files = [["zihin-gorsel-1.js", 8.2, "STORY_PRE_IMAGES", "61fcffa782"], ["zihin-gorsel-2.js", 4.8, "PART_IMAGES", "4d3ee55218"], ["zihin-gorsel-3.js", 5.8, "NEW_IMAGES_5", "2f506b3546"], ["zihin-gorsel-4.js", 0.7, "EF_IMAGES", "982a55b1f2"], ["zihin-gorsel-5.js", 10.1, "BAL_PANS", "50a8d4bc3b"]];   /* sonda: dosyaya en son eklenen resim (dosya eskiyse yoktur) */ const total = files.reduce((a, f) => a + f[1], 0); let got = 0, done = 0;
   const show = () => { const pct = Math.round(got / total * 100); ["imgProg", "imgProg2"].forEach(id => { const el = document.getElementById(id); if(el) el.style.width = pct + "%"; }); const p = document.getElementById("imgPct"); if(p) p.textContent = "%" + pct; };
   const has = (name) => { try{ return eval("typeof " + name) !== "undefined" && eval(name) != null; }catch(e){ return false; } };
   const finish = async () => { const bar = document.getElementById("imgBar"); if(bar) setTimeout(() => bar.style.display = "none", 600); window.__imgMissing = files.filter(f => !has(f[2])).map(f => f[0] + " (" + f[2].replace(/^.*\./, "") + " resmi yok)");

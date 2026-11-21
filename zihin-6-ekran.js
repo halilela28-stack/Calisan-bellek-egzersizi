@@ -211,7 +211,7 @@ if(best && ORAL_Q_IDS.has(currentExercise().id) && currentGrid.length % best.col
 if(best){ rows = best.rows; cols = best.cols; track = "minmax(0, 1fr)"; }
 } else { const best = pickPortraitDims(currentGrid.length, board, rows, cols); if(best){ rows = best.rows; cols = best.cols; colTrack = best.cw + "px"; rowTrack = best.cell + "px"; }
   const RG = ZA_BOARD.RG[currentExercise().id];   /* satır biçimli gruplar: iki sütun, satır yüksekliği içeriğin oranına göre (daireler basık görünmez) */
-  if(RG){ const cs = getComputedStyle(board); const w = board.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); const gx = parseFloat(cs.columnGap) || 10; const cw = Math.floor((w - (cols - 1) * gx) / cols); colTrack = cw + "px"; let rt = Math.max(40, Math.round(cw / RG));
+  if(RG){ board.style.rowGap = "";   /* KURAL: satır biçimli tahta titremez (21-c): satır arası ölçülmeden önce bu işlevin önceki turda yazdığı satır arası silinir; önceden 8 px yazılınca "sığıyor" sanıp 26 px'e, 26 px'te "taşıyor" deyip 8 px'e dönüyor, tahta boyu her karede değişiyordu (Örüntü Tamamlama ve Görsel Analoji Orta, Farklı Olanı Bul okul öncesi Orta) */ const cs = getComputedStyle(board); const w = board.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); const gx = parseFloat(cs.columnGap) || 10; const cw = Math.floor((w - (cols - 1) * gx) / cols); colTrack = cw + "px"; let rt = Math.max(40, Math.round(cw / RG));
     /* KURAL (satır biçimli tahta tek ekran, 2026-11-15): Farklı Olanı Bul, Örüntü Tamamla, Görsel Benzetme gibi satır biçimli tahtalarda da çalışırken bütün satırlar görünür — satırlar tahtaya ayrılan yüksekliği aşarsa satır arası 8 px'e iner, satır yüksekliği en az 32 px'e kadar küçülür ve sütun genişliği aynı oranda daralır (şekiller basık görünmez). Önceden 3. düzeyde 10 satır tahtanın altına taşıyıp kaydırma istiyordu */
     try{ const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; const focus = document.documentElement.classList.contains("run-focus") && window._rfMax; const availAll = focus ? window._rfMax : Math.max(window.innerHeight - board.getBoundingClientRect().top - barH - 12 - 16, window.innerHeight * 0.62); const h = availAll - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 16, gy0 = parseFloat(cs.rowGap) || 26;
       if(rows * rt + (rows - 1) * gy0 > h){ rgGap = 8; const fit = Math.floor((h - (rows - 1) * rgGap) / rows); if(fit < rt){ rt = Math.max(32, fit); colTrack = Math.min(cw, Math.floor(rt * RG)) + "px"; } } }catch(e){}
@@ -222,7 +222,7 @@ if(best){ rows = best.rows; cols = best.cols; track = "minmax(0, 1fr)"; }
 board.style.gridTemplateColumns = `repeat(${cols}, ${colTrack || track})`;
 board.style.gridTemplateRows = `repeat(${rows}, ${rowTrack || track})`; board.style.justifyContent = colTrack ? "center" : ""; board.style.alignContent = rowTrack ? (fitOver ? "start" : "center") : "";
 board.classList.toggle("wide-grid", cols >= 5 || rows >= 5); centerLastRow(board, cols); renderRowDividers(board, rows, cols);
-fitTextCells(board);
+fitTextCells(board); try{ oralAnsFit(); }catch(e){}
 const gridAtLayout = currentGrid;
 requestAnimationFrame(()=>{
 requestAnimationFrame(()=>{
@@ -1799,7 +1799,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.21-b";
+const APP_VERSION = "2026.11.21-c";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 /* RUNTIME_CSS → zihin-stil.css */
 /* Dosya sürümü denetimi: zihin-atolyesi.html ile uygulama kodu (zihin-1…8) farklı sürümdeyse uyar */

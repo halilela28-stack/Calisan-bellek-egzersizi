@@ -1291,7 +1291,7 @@ const lsBox = document.getElementById("lsInstructionBox");
 const stage = currentExercise().stages[currentStageIndex];
 const sample = currentGrid[0] || (currentExercise().randomItem ? currentExercise().randomItem() : {});
 const exampleText = stage.example(sample);
-try{ const bdK = document.getElementById("board"); if(bdK){ const onK = typeof currentExercise().oralKey === "function"; if(bdK.classList.contains("oral-keys") !== onK) bdK.classList.toggle("oral-keys", onK); if(!onK) oralKeyClose(); } }catch(e){}   /* örnek cevap balonu kuralı: sözlü çalışmalarda kelimeler dokunulabilir */
+try{ const bdK = document.getElementById("board"); if(bdK){ const onK = typeof currentExercise().oralKey === "function"; if(bdK.classList.contains("oral-keys") !== onK) bdK.classList.toggle("oral-keys", onK); try{ oralAnsFit(); }catch(e){} } }catch(e){}   /* örnek cevap kelimenin altında yazar kuralı: sözlü çalışma tahtası işaretlenir */
 const shortFn = (INSTR_SHORT[currentExercise().id] || [])[stIx()];
 let ins;
 try{ ins = shortFn ? shortFn() : stage.instruction(); }catch(e){ ins = stage.instruction(); }

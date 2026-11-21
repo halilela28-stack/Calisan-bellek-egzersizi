@@ -281,6 +281,8 @@ let expertAdaptiveEnabled = false;
 function currentCombo(){ return SEQUENCE[currentIndex]; }
 /* KURAL (düzen): satır biçimli grup gösteren çalışmalar (Örüntü Tamamlama, Görsel Analoji, Farklı Olanı Bul) telefonda okunur olsun diye iki sütun ve tam satırla gelir;
    öğe sayısı Okul Sonrası 12/16/20, Okul Öncesi 8/10/12 */
+/* KURAL: Örüntü Tamamlama ve Görsel Analoji satır sayısı 5 – 6 – 7 (kullanıcı kararı, 21-c): okul sonrası düzeye göre 5, 6, 7 satır (iki sütun: 10 – 12 – 14 madde; önce 6 – 8 – 10 satır). Okul öncesi 4 – 5 – 6 satır */
+const ROW_GROUP_DIMS_567 = () => isPre() ? [{rows:4, cols:2}, {rows:5, cols:2}, {rows:6, cols:2}] : [{rows:5, cols:2}, {rows:6, cols:2}, {rows:7, cols:2}];
 const ROW_GROUP_DIMS = () => isPre() ? [{rows:4, cols:2}, {rows:5, cols:2}, {rows:6, cols:2}] : [{rows:6, cols:2}, {rows:8, cols:2}, {rows:10, cols:2}];
 function currentTier(){
 const base = TIERS[currentCombo().t];

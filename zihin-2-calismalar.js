@@ -4,7 +4,7 @@
 const DIGIT_DIMS = () => (stIx() === 1 ? (isPre() ? [2, 2, 3] : [2, 3, 4]) : [3, 4, 5]).map(n => ({ rows:1, cols:n }));
 /* KURAL (sözlü soru sayısı, 2026-11-16): Benzerlik Bulma, Kelime Tanımlama ve Genel Kavrama'da madde sayısı düzeyle azalmaz ve hiçbir düzeyde eskisini aşmaz — okul öncesi 3 – 4 – 5; okul sonrası Benzerlik 6 – 8 – 10, Kelime 4 – 5 – 5, Genel Kavrama 3 – 4 – 5. Sayfa tekrarsız listedir; bankalara madde eklenmez. */
 const ORAL_Q_IDS = new Set(["similarities", "vocabulary", "practical-reasoning"]);
-const ORAL_Q_DIMS = { pre:[{rows:3, cols:1}, {rows:2, cols:2}, {rows:5, cols:1}], sim:[{rows:3, cols:2}, {rows:4, cols:2}, {rows:5, cols:2}], voc:[{rows:2, cols:2}, {rows:5, cols:1}, {rows:5, cols:1}], comp:[{rows:3, cols:1}, {rows:2, cols:2}, {rows:5, cols:1}] };
+const ORAL_Q_DIMS = { pre:[{rows:3, cols:1}, {rows:4, cols:1}, {rows:5, cols:1}], sim:[{rows:3, cols:2}, {rows:4, cols:2}, {rows:5, cols:2}], voc:[{rows:4, cols:1}, {rows:5, cols:1}, {rows:5, cols:1}], comp:[{rows:3, cols:1}, {rows:4, cols:1}, {rows:5, cols:1}] };   /* örnek cevap kelimenin altında yazar kuralı: dört maddelik tahtalar da tek sütun (önce 2 × 2) */
 /* KURAL (Kelime Listesi Hatırlama düzeyleri, 2026-11-17): okul sonrası 5 – 7 – 9 kelime, okul öncesi 2 – 3 – 4 kelime (12 – 16 – 20 yerine; kullanıcı kararı); çalışma okul öncesinde de var. Kelimeler liste gibi tek sütunda alt alta durur (yatayda yazı sığdırma kuralına göre yan yana), son satır eksik kalmaz. Okul öncesinde yetişkin kelimeleri çocuğa okur */
 const WORD_LIST_N = { post:[5, 7, 9], pre:[2, 3, 4] };
 const WORD_LIST_DIMS = () => (isPre() ? WORD_LIST_N.pre : WORD_LIST_N.post).map(n => ({ rows:n, cols:1 }));
@@ -1064,8 +1064,8 @@ attrs: ["a"],
 randomItem: () => randomItem((isPre() ? [SIM_PRE0, SIM_PRE1, SIM_PRE2] : [SIMILARITY_PAIRS, SIM_FUNC, SIM_ABSTRACT])[currentCombo().t] || SIMILARITY_PAIRS),
 dims: () => isPre() ? ORAL_Q_DIMS.pre : ORAL_Q_DIMS.sim,
 uniqueFrom: () => ((isPre() ? [SIM_PRE0, SIM_PRE1, SIM_PRE2] : [SIMILARITY_PAIRS, SIM_FUNC, SIM_ABSTRACT])[currentCombo().t] || SIMILARITY_PAIRS).slice(), itemFrom: (x) => x,
-renderItem: (item) => `<div class="name-cell phrase-cell">${item.a} - ${item.b}</div>`,
-oralKey: (item) => item && item.hint,   /* örnek cevap balonu kuralı */
+renderItem: (item) => `<div class="name-cell phrase-cell">${item.a} - ${item.b}</div>${oralAnsHTML(item.hint)}`,
+oralKey: (item) => item && item.hint,   /* örnek cevap kelimenin altında yazar kuralı */
 stages: [
 {
 label: "Aşama 1 · Ortak Yön",
@@ -1087,8 +1087,8 @@ attrs: ["word"],
 randomItem: () => randomItem((isPre() ? [VOCAB_PRE0, VOCAB_PRE1, VOCAB_PRE2] : [VOCAB_CONCRETE, VOCAB_WORDS.concat(VOCAB_ACTION), VOCAB_ABSTRACT])[currentCombo().t] || VOCAB_WORDS),
 dims: () => isPre() ? ORAL_Q_DIMS.pre : ORAL_Q_DIMS.voc,
 uniqueFrom: () => ((isPre() ? [VOCAB_PRE0, VOCAB_PRE1, VOCAB_PRE2] : [VOCAB_CONCRETE, VOCAB_WORDS.concat(VOCAB_ACTION), VOCAB_ABSTRACT])[currentCombo().t] || VOCAB_WORDS).slice(), itemFrom: (x) => x,
-renderItem: (item) => `<div class="name-cell">${item.word}</div>`,
-oralKey: (item) => item && item.def,   /* örnek cevap balonu kuralı */
+renderItem: (item) => `<div class="name-cell">${item.word}</div>${oralAnsHTML(item.def)}`,
+oralKey: (item) => item && item.def,   /* örnek cevap kelimenin altında yazar kuralı */
 stages: [
 {
 label: "Aşama 1 · Tanımla",
@@ -1110,8 +1110,8 @@ attrs: ["q"],
 randomItem: () => randomItem((isPre() ? [COMP_PRE0, COMP_PRE1, COMP_PRE2] : [COMPREHENSION_QS, COMP_WHY, COMP_IF])[currentCombo().t] || COMPREHENSION_QS),
 dims: () => isPre() ? ORAL_Q_DIMS.pre : ORAL_Q_DIMS.comp,
 uniqueFrom: () => ((isPre() ? [COMP_PRE0, COMP_PRE1, COMP_PRE2] : [COMPREHENSION_QS, COMP_WHY, COMP_IF])[currentCombo().t] || COMPREHENSION_QS).slice(), itemFrom: (x) => x,
-renderItem: (item) => `<div class="name-cell phrase-cell">${item.q}</div>`,
-oralKey: (item) => item && item.hint,   /* örnek cevap balonu kuralı */
+renderItem: (item) => `<div class="name-cell phrase-cell">${item.q}</div>${oralAnsHTML(item.hint)}`,
+oralKey: (item) => item && item.hint,   /* örnek cevap kelimenin altında yazar kuralı */
 stages: [
 {
 label: "Aşama 1 · Yanıtla",
@@ -1163,7 +1163,7 @@ example: (item) => `${item.oddIndex+1}. şekil farklı (${item.dimension === "sh
 },
 {
 id: "sequence-pattern",
-dims: () => ROW_GROUP_DIMS(),
+dims: () => ROW_GROUP_DIMS_567(),
 readingLevel: ["pre","post"],
 label: "Örüntü Tamamlama",
 attrs: ["answer"],
@@ -1192,7 +1192,7 @@ example: (item) => `${COLOR_NAMES[item.answer]}`
 },
 {
 id: "visual-analogy",
-dims: () => ROW_GROUP_DIMS(),
+dims: () => ROW_GROUP_DIMS_567(),
 readingLevel: ["pre","post"],
 label: "Görsel Analoji",
 attrs: ["shape1"],

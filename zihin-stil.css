@@ -637,6 +637,15 @@ html.ins-xs .sdmt-pair > div{width:36px;height:36px;padding:4px}   /* küçük t
 /* KURAL (Hangisi Benziyor dar ekran, 2026-11-20): 340 px ve daha dar ekranda (iPhone SE) örnek kart 70 px'tir ve zemin boşluğu daralır — Zor düzeyde beş seçenek tahtaya kaydırmadan sığar (104 px kartla 39 px kaydırma oluşuyordu) */
 @media (max-width:340px){#board .sim-stim{gap:8px;padding:4px 6px;border-radius:14px}#board .sim-ref{width:70px;height:70px;flex-basis:70px;padding:4px;border-radius:12px}}
 /* KURAL (örnek cevap balonu, 2026-11-20; kullanıcı kararı): sözlü çalışmalarda kelimeye dokununca açılan örnek cevap balonu */
-#board.oral-keys > .cell{cursor:pointer}
-#board > .oral-key{position:absolute;z-index:6;box-sizing:border-box;padding:7px 12px;border-radius:14px;background:#12313F;color:#fff;font-size:13.5px;font-weight:600;line-height:1.35;text-align:left;box-shadow:0 6px 18px rgba(18,49,63,.28);overflow-wrap:anywhere;cursor:pointer}
-#board > .oral-key b{color:#9BE7DF;font-weight:800}
+/* örnek cevap kelimenin altında yazar (21-c) */
+#board.oral-keys{--okn:17px;--oka:13px;--okr:64px;grid-template-rows:none !important;grid-auto-rows:minmax(calc(var(--okr) * var(--ok,1)),auto) !important}
+#board.oral-keys > .cell{flex-direction:column;justify-content:center;gap:3px;cursor:default;padding-top:6px;padding-bottom:6px;height:auto !important;min-height:calc(var(--okr) * var(--ok,1));overflow:visible !important}
+#board.oral-keys > .cell .name-cell{flex:none;font-size:calc(var(--okn) * var(--ok,1)) !important;line-height:1.2 !important}
+#board .oral-ans{flex:none;max-width:100%;font-size:calc(var(--oka,13px) * var(--ok,1));line-height:1.3;font-weight:600;color:#4A5B6B;text-align:center;overflow-wrap:anywhere}
+#board .oral-ans b{color:#0A847E;font-weight:800}
+#board.oral-keys.ok-tight{row-gap:4px !important}#board.oral-keys.ok-tight > .cell{padding-top:1px;padding-bottom:1px;gap:1px}#board.oral-keys.ok-tight .oral-ans{line-height:1.18}
+@media (max-height:700px){#board.oral-keys{--okn:16px;--oka:12.5px;--okr:48px;row-gap:8px !important}#board.oral-keys > .cell{padding-top:3px;padding-bottom:3px;gap:2px}#board .oral-ans{line-height:1.22}}
+@media (max-height:600px){#board.oral-keys{--okn:15px;--oka:12px;--okr:40px;row-gap:5px !important}#board.oral-keys > .cell{padding-top:1px;padding-bottom:1px;gap:1px}#board .oral-ans{line-height:1.18}}
+@media (orientation:landscape) and (max-height:500px){#board.oral-keys{--okr:34px;row-gap:4px !important}#board.oral-keys > .cell{flex-direction:row;flex-wrap:wrap;align-items:baseline;column-gap:14px}#board .oral-ans{text-align:left}}
+/* basılma efekti yalnız basılan düğmede (21-c): açık alan kartı ve içinde düğme basılı olan kap oynamaz */
+.category-card.open:active,.category-card:has(button:active),.hm-row:has(button:active),.rt-step:has(button:active),[data-play]:has(button:active){transform:none !important;filter:none !important}
