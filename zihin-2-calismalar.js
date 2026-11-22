@@ -2841,6 +2841,285 @@ randomItem: () => ({}),
 stages: [ { label: "İpuçlarıyla Ele", instruction: () => ``, example: () => `` } ]
 },
 {
+id: "cause-find",
+readingLevel: ["pre","post"],
+label: "Sebebini Bul",
+isMt: true, attrs: [], speedFactor: 4.5,   /* yeni çalışma (2026-11-22, Algısal Akıl Yürütme) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Başını Bul", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "rule-find",
+readingLevel: ["pre","post"],
+label: "Kuralı Bul",
+isMt: true, attrs: [], speedFactor: 8,   /* yeni çalışma (2026-11-22, Algısal Akıl Yürütme) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Kurala Uyanı Seç", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "order-infer",
+readingLevel: ["pre","post"],
+label: "Hangisi Daha Uzun?",
+isMt: true, attrs: [], speedFactor: 10,   /* yeni çalışma (2026-11-22, Algısal Akıl Yürütme) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Sırala ve Bul", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "path-predict",
+readingLevel: ["pre","post"],
+label: "Zihni Nereye Varır?",
+isMt: true, attrs: [], speedFactor: 8,   /* yeni çalışma (2026-11-22, Algısal Akıl Yürütme) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Oklarla Git", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "pattern-build",
+readingLevel: ["pre","post"],
+label: "Örüntüyü Sen Kur",
+isMt: true, attrs: [], speedFactor: 8,   /* yeni çalışma (2026-11-22, Algısal Akıl Yürütme) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Boşlukları Doldur", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "common-feat",
+readingLevel: ["pre","post"],
+label: "Ortak Özelliği Bul",
+isMt: true, attrs: [], speedFactor: 6,   /* yeni çalışma (2026-11-22, Algısal Akıl Yürütme) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Aynı Olanı Bul", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "where-logic",
+readingLevel: ["pre","post"],
+label: "Kim Nerede?",
+isMt: true, attrs: [], speedFactor: 16,   /* yeni çalışma (2026-11-22, Algısal Akıl Yürütme) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "İpuçlarıyla Yerleştir", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "shape-add",
+readingLevel: ["pre","post"],
+label: "Şekil Toplama",
+isMt: true, attrs: [], speedFactor: 8,   /* yeni çalışma (2026-11-22, Algısal Akıl Yürütme) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Üst Üste Koy", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "code-math",
+readingLevel: ["post"],
+label: "Şifre Çöz",
+isMt: true, attrs: [], speedFactor: 10,   /* yeni çalışma (2026-11-22, Algısal Akıl Yürütme) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Şifreyi Çöz", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "dir-mem",
+readingLevel: ["pre","post"],
+label: "Hangi Yöne Bakıyordu?",
+isMt: true, attrs: [], speedFactor: 6,   /* yeni çalışma (2026-11-22, Görsel Bellek) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Yönü Hatırla", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "count-mem",
+readingLevel: ["pre","post"],
+label: "Kaç Taneydi?",
+isMt: true, attrs: [], speedFactor: 6,   /* yeni çalışma (2026-11-22, Görsel Bellek) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Sayıyı Hatırla", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "shelf-mem",
+readingLevel: ["pre","post"],
+label: "Rafı Yeniden Diz",
+isMt: true, attrs: [], speedFactor: 10,   /* yeni çalışma (2026-11-22, Görsel Bellek) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Yerine Koy", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "delay-mem",
+readingLevel: ["pre","post"],
+label: "Biraz Sonra Sor",
+isMt: true, attrs: [], speedFactor: 14,   /* yeni çalışma (2026-11-22, Görsel Bellek) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Sonra Hatırla", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "flash-mem",
+readingLevel: ["pre","post"],
+label: "Bir Bakışta",
+isMt: true, attrs: [], speedFactor: 6,   /* yeni çalışma (2026-11-22, Görsel Bellek) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Bir Bakışta Gör", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "color-tap",
+readingLevel: ["pre","post"],
+label: "Renk Değişince Dokun",
+isMt: true, attrs: [], speedFactor: 30,   /* yeni çalışma (2026-11-22, Göz Takip) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Rengi Yakala", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "rope-trace",
+readingLevel: ["pre","post"],
+label: "İpi Gözle İzle",
+isMt: true, attrs: [], speedFactor: 7,   /* yeni çalışma (2026-11-22, Göz Takip) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "İpi İzle", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "track-fish",
+readingLevel: ["pre","post"],
+label: "Gözden Kaçırma",
+isMt: true, attrs: [], speedFactor: 9,   /* yeni çalışma (2026-11-22, Göz Takip) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Parlayanı İzle", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "row-name",
+readingLevel: ["pre","post"],
+label: "Satır Satır Söyle",
+attrs: [], adultOnly: true,   /* yeni çalışma (2026-11-22, Göz Takip): söylemeli; okuma göz hareketi — öğeler satırlarda düzensiz aralıkla; okul sonrası Orta ve Zor'da rakamlar. Söylemeli olduğu için Zihin Adaları'na girmez */
+dims: () => SRS_DIMS(),
+randomItem: () => srsItem(),
+renderItem: (it) => it.d ? `<span class="srs-it" style="display:block;transform:translateX(${it.dx}%);font-weight:900;font-size:${Math.round(30 * it.sc + 8)}px;line-height:1;color:var(--ink)">${it.d}</span>` : `<img class="srs-it" src="${it.src}" alt="" style="width:${Math.round(it.sc * 100)}%;height:${Math.round(it.sc * 100)}%;object-fit:contain;display:block;transform:translateX(${it.dx}%)">`,
+stages: [ { label: "Satır Satır Söyle", instruction: () => ``, example: (it) => it.d ? String(it.d) : it.n } ]
+},
+{
+id: "two-col-name",
+readingLevel: ["pre","post"],
+label: "İki Sütun Arasında Söyle",
+attrs: [], adultOnly: true,   /* yeni çalışma (2026-11-22, Göz Takip): söylemeli; iki kenar arasında uzun sıçrama + adlandırma */
+dims: () => TCS_DIMS(),
+randomItem: () => { const x = gtNextPic(); return { src: x.src, n: x.n }; },
+renderItem: (it) => `<img class="tcs-it" src="${it.src}" alt="" style="width:62%;height:94%;object-fit:contain;display:block">`,
+stages: [ { label: "Sol, Sağ", instruction: () => ``, example: (it) => it.n } ]
+},
+{
+id: "end-sound",
+readingLevel: ["pre","post"],
+label: "Hangi Sesle Bitiyor?",
+isMt: true, attrs: [], speedFactor: 7,   /* yeni çalışma (2026-11-22, Sözel Organizasyon): son ses farkındalığı */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Son Sesi Bul", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "suffix-complete",
+readingLevel: ["pre","post"],
+label: "Eki Tamamla",
+attrs: ["q"],   /* yeni çalışma (2026-11-22, Sözel Organizasyon): ek farkındalığı; söylemeli, yetişkin okur */
+randomItem: () => randomItem(EK_TIER()),
+dims: () => isPre() ? ORAL_Q_DIMS.pre : ORAL_Q_DIMS.comp,
+uniqueFrom: () => EK_TIER().slice(), itemFrom: (x) => x,
+renderItem: (item) => `<div class="name-cell phrase-cell">${item.q}</div>${oralAnsHTML(item.a)}`,
+oralKey: (item) => item && item.a,
+stages: [ { label: "Eki Tamamla", instruction: () => ``, example: (item) => `${item.a}` } ]
+},
+{
+id: "flu-verb",
+readingLevel: ["pre","post"],
+label: "Ne Yapar?",
+isMt: true, attrs: [], speedFactor: 20,   /* yeni çalışma (2026-11-22, Sözel Organizasyon): eylem akıcılığı */
+noAdaptive: true, errorLabel: "Doğru eylem sayısı", onShuffle: () => { fluPick("flu-verb", true); },
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Eylem Üret", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "how-to",
+readingLevel: ["pre","post"],
+label: "Nasıl Yapılır?",
+attrs: ["q"],   /* yeni çalışma (2026-11-22, Sözel Organizasyon): bir işin adımlarını sırasıyla anlatma; söylemeli */
+randomItem: () => randomItem(NY_TIER()),
+dims: () => isPre() ? ORAL_Q_DIMS.pre : ORAL_Q_DIMS.comp,
+uniqueFrom: () => NY_TIER().slice(), itemFrom: (x) => x,
+renderItem: (item) => `<div class="name-cell phrase-cell ny-q">${item.q}</div>${oralAnsHTML(item.hint)}`,
+oralKey: (item) => item && item.hint,
+stages: [ { label: "Adım Adım Anlat", instruction: () => ``, example: (item) => `${item.hint}` } ]
+},
+{
+id: "cube-count",
+readingLevel: ["pre","post"],
+label: "Kaç Küp Var?",
+isMt: true, attrs: [], speedFactor: 8,   /* yeni çalışma (2026-11-22, Görsel Organizasyon) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Küpleri Say", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "piece-fit",
+readingLevel: ["pre","post"],
+label: "Hangi Parça Uyar?",
+isMt: true, attrs: [], speedFactor: 8,   /* yeni çalışma (2026-11-22, Görsel Organizasyon) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Boşluğu Doldur", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "mirror-find",
+readingLevel: ["pre","post"],
+label: "Ters Döneni Bul",
+isMt: true, attrs: [], speedFactor: 7,   /* yeni çalışma (2026-11-22, Görsel Organizasyon) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Aynadakini Bul", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "feel-face",
+readingLevel: ["pre","post"],
+label: "Nasıl Hisseder?",
+isMt: true, attrs: [], speedFactor: 8,   /* yeni çalışma (2026-11-22, Sözel Kavrama) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Duyguyu Bul", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "before-after",
+readingLevel: ["pre","post"],
+label: "Önce mi Sonra mı?",
+isMt: true, attrs: [], speedFactor: 8,   /* yeni çalışma (2026-11-22, Sözel Kavrama) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Sırayı Dinle", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "title-find",
+readingLevel: ["pre","post"],
+label: "Başlığını Bul",
+isMt: true, attrs: [], speedFactor: 12,   /* yeni çalışma (2026-11-22, Sözel Kavrama) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Konuyu Bul", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "msg-relay",
+readingLevel: ["pre","post"],
+label: "Mesajı İlet",
+isMt: true, attrs: [], speedFactor: 25, adultOnly: true,   /* yeni çalışma (2026-11-22, Sözel Bellek): mesaj dinlenir, araya sohbet girer, mesaj iletilir; yetişkin doğru söylenen bilgilere dokunur. Yetişkin puanladığı için Zihin Adaları'na girmez */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Mesajı İlet", instruction: () => ``, example: () => `` } ]
+},
+{
 id: "class-table",
 readingLevel: ["pre","post"],
 label: "Sınıflama Tablosu",

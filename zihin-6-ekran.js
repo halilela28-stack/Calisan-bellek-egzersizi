@@ -214,6 +214,7 @@ if(landscapeMQ.matches){
 const best = currentExercise().id === "digit-span" ? null : pickLandscapeDims(currentGrid.length, board);   /* Rakam Dizisi tek dizi kuralı: yatayda da dizi tek satırda kalır, bölünmez */
 if(best && ORAL_Q_IDS.has(currentExercise().id) && currentGrid.length % best.cols){ let d = best.cols; while(d > 1 && currentGrid.length % d) d--; best.cols = d; best.rows = Math.ceil(currentGrid.length / d); }   /* sözlü soru sayısı kuralı: 3 – 4 – 5 maddelik listelerde yatayda son satır eksik kalmaz (5 madde → tek sütun) */
 if(best){ rows = best.rows; cols = best.cols; track = "minmax(0, 1fr)"; }
+{ const fc = ZA_BOARD.fixCols(); if(fc){ cols = fc; rows = Math.ceil(currentGrid.length / fc); track = "minmax(0, 1fr)"; } }   /* sabit sütunlu tahta kuralı: yatayda da iki sütun */
 { const RGl = ZA_BOARD.RG[currentExercise().id], g = RGl ? rgLandscapeDims(currentGrid.length, board, RGl) : null; if(g){ rows = g.rows; cols = g.cols; colTrack = g.cw + "px"; rowTrack = g.rh + "px"; } }   /* satır biçimli tahta yatayda kuralı */
 } else { const best = pickPortraitDims(currentGrid.length, board, rows, cols); if(best){ rows = best.rows; cols = best.cols; colTrack = best.cw + "px"; rowTrack = best.cell + "px"; }
   const RG = ZA_BOARD.RG[currentExercise().id];   /* satır biçimli gruplar: iki sütun, satır yüksekliği içeriğin oranına göre (daireler basık görünmez) */
@@ -1808,7 +1809,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.21-d";
+const APP_VERSION = "2026.11.22-g";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 /* RUNTIME_CSS → zihin-stil.css */
 /* Dosya sürümü denetimi: zihin-atolyesi.html ile uygulama kodu (zihin-1…8) farklı sürümdeyse uyar */
@@ -2400,11 +2401,11 @@ const GAME_ISLANDS = [
 { id:"dikkat", name:"Dikkat Adası",  color:"#62D394", ids:["touch-animal", "fish-flanker", "stroop-touch", "day-night-touch", "face-go", "switch-touch", "sort-color-shape", "sort-animal-size", "sort-color-shape-count", "sort-words", "trail-animal-fruit", "trail-color-shape", "number-letter", "trail-number-month", "dual-task", "stop-signal", "vigilance", "anti-touch", "tap-reverse", "size-stroop", "num-stroop", "spatial-stroop", "hold-wait", "less-more", "context-go", "distract", "grass-snow", "fist", "rule-shift", "reversal", "navon", "creature-count", "rev-sort", "look-first"] },
 { id:"goz",    name:"Göz Adası",     color:"#B09BFF", fromCategory:"goz-takip" },
 { id:"bellek", name:"Bellek Adası",  color:"#F7D046", ids:["wm-same", "corsi", "zihni", "wm-seq", "span-touch", "market", "wm-where", "running", "lns-touch", "animal-fruit", "cups", "mental-math", "pos-nback", "count-span"] },
-{ id:"resim",  name:"Resim Adası",   color:"#FFC9A3", ids:["rt-shapes", "vis-miss", "rt-position", "vis-chg", "rt-colors", "vis-recog", "vis-face", "scene-touch", "vis-draw", "memory-cards", "which-seen", "route-mem", "color-obj", "pic-order"] },
-{ id:"soz",    name:"Söz Adası",     color:"#FF9EC4", ids:["hear-find", "pal-touch", "story-order", "dir-follow", "pic-seq-touch", "who-said", "rhythm", "tone-seq", "sent-build", "new-word", "same-sound", "rhyme-touch", "syl-touch"] },
-{ id:"kavram", name:"Kavram Adası",  color:"#8FD3FF", ids:["word-pic", "vanalogy-touch", "concept-touch", "absurd-touch", "proverb-touch", "infer-touch", "odd-cat", "sort-pic", "sim-touch", "opp-touch", "free-sort", "def-touch", "syn-touch", "use-touch", "seq-words", "part-whole", "wh-scene", "sent-pic", "listen-answer"] },
-{ id:"bulmaca",name:"Bulmaca Adası", color:"#C9A7FF", ids:["block-design", "mental-rot", "clutter-find", "overlap-count", "embedded", "closure", "copy-design", "symmetry", "size-touch", "arrow-touch", "edge-touch", "spot-diff", "paper-fold", "view-from", "same-number"] },
-{ id:"mantik", name:"Mantık Adası",  color:"#A8E6CF", ids:["matrix-fill", "balance", "odd-touch", "pattern-touch", "analogy-touch", "cause-effect", "sudoku", "num-pattern", "clue-find", "class-table"] },
+{ id:"resim",  name:"Resim Adası",   color:"#FFC9A3", ids:["rt-shapes", "vis-miss", "rt-position", "vis-chg", "rt-colors", "vis-recog", "vis-face", "scene-touch", "vis-draw", "memory-cards", "which-seen", "route-mem", "color-obj", "pic-order", "dir-mem", "count-mem", "shelf-mem", "delay-mem", "flash-mem"] },
+{ id:"soz",    name:"Söz Adası",     color:"#FF9EC4", ids:["hear-find", "pal-touch", "story-order", "dir-follow", "pic-seq-touch", "who-said", "rhythm", "tone-seq", "sent-build", "new-word", "same-sound", "rhyme-touch", "syl-touch", "end-sound"] },
+{ id:"kavram", name:"Kavram Adası",  color:"#8FD3FF", ids:["word-pic", "vanalogy-touch", "concept-touch", "absurd-touch", "proverb-touch", "infer-touch", "odd-cat", "sort-pic", "sim-touch", "opp-touch", "free-sort", "def-touch", "syn-touch", "use-touch", "seq-words", "part-whole", "wh-scene", "sent-pic", "listen-answer", "feel-face", "before-after", "title-find"] },
+{ id:"bulmaca",name:"Bulmaca Adası", color:"#C9A7FF", ids:["block-design", "mental-rot", "clutter-find", "overlap-count", "embedded", "closure", "copy-design", "symmetry", "size-touch", "arrow-touch", "edge-touch", "spot-diff", "paper-fold", "view-from", "same-number", "cube-count", "piece-fit", "mirror-find"] },
+{ id:"mantik", name:"Mantık Adası",  color:"#A8E6CF", ids:["matrix-fill", "balance", "odd-touch", "pattern-touch", "analogy-touch", "cause-effect", "sudoku", "num-pattern", "clue-find", "class-table", "cause-find", "rule-find", "order-infer", "path-predict", "pattern-build", "common-feat", "where-logic", "shape-add", "code-math"] },
 { id:"plan",   name:"Plan Adası",    color:"#FF8E7E", ids:["plan-swap", "plan-beads", "plan-tol", "plan-cubes", "maze", "time-est", "find-error", "pic-arrange", "zoo-map", "key-search", "design-fluency", "box-search", "three-tasks"], unlockStars:3 },
 { id:"macera", name:"Macera Adası",  color:"#FFD7A8", special:true, adv:true },
 { id:"usta",   name:"Usta Adası",    color:"#FFE27A", special:true, unlockStars:40, dyn:() => gxUstaStops() },

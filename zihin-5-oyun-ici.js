@@ -1,5 +1,5 @@
 /* Zihin Atölyesi — zihin-5-oyun-ici.js (5/8): etkileşimli çalışma türleri, dokunma işleyicileri, kısa yönergeler, stratejiler. Dosyalar zihin-atolyesi.html'de bu sırayla yüklenir; sıra değiştirilemez (önceki tek dosyanın ardışık parçalarıdır). */
-const NEW_MT_KINDS = ["tapr","selfchk","cgt","ktrack","zoo","keys","jars","dfl","twq","bsearch","six","fist","wcst","rev","statue","hold","hear","dir","miss","chg","recog","draw","face","scene","scenet","samenum","size","movesay","storyord","whatdo","flu","spic","fsort","absay","parr","nword","rl","wt","dr","kav","ubal","htrn","slide","kopru","esc","bln","mol","ctc","bag","smn","clue","ctab","cobj","porder","ftrace","ecount","pairm","per","fix","dual","stop","vig","pnb","csp","tone","wseen","route","sbuild","spotd","sdk","blk","clut","sym","maze","ssnd","seqw","dots","chase","time","ferr","cups","mmath","who","rhy","mem"];
+const NEW_MT_KINDS = ["tapr","selfchk","cgt","ktrack","zoo","keys","jars","dfl","twq","bsearch","six","fist","wcst","rev","statue","hold","hear","dir","miss","chg","recog","draw","face","scene","scenet","samenum","size","movesay","storyord","whatdo","flu","spic","fsort","absay","parr","nword","rl","wt","dr","kav","ubal","htrn","slide","kopru","esc","bln","mol","ctc","bag","smn","clue","ctab","cobj","porder","ftrace","ecount","pairm","per","fix","dual","stop","vig","pnb","csp","tone","wseen","route","sbuild","spotd","sdk","blk","clut","sym","maze","ssnd","seqw","dots","chase","time","ferr","cups","mmath","who","rhy","mem","zpath","pbld","kimn","yonb","rafd","gecik","bakis","rdd","ipiz","mot","msg"];
 
 const DELAY_TASKS = { story:"Hikâye Hatırlama → Aşama 3 (Gecikmeli)", recog:"Bunu Gördün mü? → Aşama 2 (Gecikmeli)", list:"Liste Öğrenme → Aşama 2 (Gecikmeli)" };
 function delayKey(task){ return "wm_delay_" + task + "_" + (currentPlayerName || "Misafir"); }
@@ -315,7 +315,7 @@ mtLater(() => { st.qi++; if(st.qi < st.order.length){ wpAsk(); return; }
   showLevelFlash(`${st.cycle}. tur: ${st.cycleOk}/${st.pairs.length}. Şimdi yeni çiftler geliyor.`, perfect ? "levelup" : "down"); st.pairs = st.rounds[st.cycle]; wpStudy(); }, ok ? 700 : 1500); }
 function wpRender(st, W, H, isLs){
 const n = st.pairs.length, dots = `<div class="wm-dots">${Array.from({length:n}, (_, i) => `<i class="${st.res[i] === true ? "on" : st.res[i] === false ? "off" : ""}"></i>`).join("")}</div>`;
-const word = (t, w, h, size, extra, attrs) => `<div class="wm-pic${extra ? " " + extra : ""}" ${attrs || ""} style="width:${w}px;height:${h}px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${size}px;color:var(--ink);text-align:center;line-height:1.1;padding:4px;overflow:hidden;cursor:${attrs ? "pointer" : "default"}">${t}</div>`;
+const word = (t, w, h, size, extra, attrs) => `<div class="wm-pic${extra ? " " + extra : ""}" ${attrs || ""} style="width:${w}px;height:${h}px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${size}px;color:var(--ink);text-align:center;line-height:1.1;padding:4px;cursor:${attrs ? "pointer" : "default"}"><span style="display:block;max-width:100%;max-height:100%;overflow:hidden">${t}</span></div>`;   /* KURAL (doğru/yanlış rozeti kesilmez, 2026-11-22): köşedeki ✓ / ✗ rozeti kutunun dışına taştığı için rozet taşıyan kutuda kırpma (overflow:hidden) olmaz; yazı kırpması içteki öğededir */
 const sz = (t, w, max) => Math.max(14, Math.min(max, Math.floor((w - 16) / Math.max(3, String(t).length) * 1.55)));   /* uzun kelime (Antalya, ayakkabı) dar kutuda kesilmez */
 if(st.phase === "idle") return { info: "▶ Başlat'a bas", body: dots };
 if(st.phase === "done") return { info: "Bitti!", body: dots };
@@ -845,6 +845,36 @@ const INSTR_SHORT = {
 "pk-simon":         [() => Q("Renklerin sırasını izle ve dinle, sonra aynı sırayla dokun. Dizi her turda uzar.")],
 "pk-light":         [() => Q("Fenerlerin yanma sırasını izle, sonra aynı sırayla dokun. Her turda bir fener daha yanar.")],
 "clue-find":        [() => Q("Ekranda şekiller var. Sana ipuçları okunacak; dinle. Her ipucu bazı şekilleri eler. Bütün ipuçlarına uyan tek bir şekil kalır; ona dokun.")],
+"cause-find":       [() => Q("Ekranda bir olayın sonunu gösteren büyük bir resim var. Bu olay neden oldu, önce ne olmuştu? Öteki resimlerden olayın başını gösterene dokun.")],
+"rule-find":        [() => Q("Ekranda iki kutu var. Soldaki kutudaki şekiller bir kurala uyuyor, sağdakiler uymuyor. Kuralı bul; kutuların dışındaki şekillerden kurala uyana dokun." + (!isPre() && currentCombo().t >= 2 ? " Kural iki özellikten oluşuyor; ikisine birden uyan şekli seç." : ""))],
+"order-infer":      [() => Q("Ekranda kalemler var; hepsi aynı boyda çizildi ama gerçek boyları farklı. Kalemlerin boyları cümlelerle anlatılacak; dinle. Sonra sorulan kaleme dokun.")],
+"path-predict":     [() => Q("Zihni bir karede duruyor. Oklar soldan sağa sırayla Zihni'nin yolunu gösteriyor; her ok bir kare. Zihni'nin varacağı kareyi bul ve ona dokun.")],
+"pattern-build":    [() => Q("Ekranda bir örüntü var; sonundaki iki kutu boş. Örüntüyü sürdürmek için ayrı duran parçalardan seç: önce birinci boş kutuya, sonra ikinci boş kutuya gelecek parçaya dokun.")],
+"common-feat":      [() => Q("Ekrandaki şekillerin yalnız bir özelliği aynı. " + ({ 2:"Renkleri mi aynı, şekilleri mi?", 3:"Renkleri mi aynı, şekilleri mi, büyüklükleri mi?", 4:"Renkleri mi aynı, şekilleri mi, büyüklükleri mi, yoksa içlerinin dolu ya da boş olması mı?" })[((isPre() ? CMF_OPT.pre : CMF_OPT.post)[Math.min(currentCombo().t, 2)] || []).length] + " Aynı olan özelliğe dokun.")],
+"where-logic":      [() => Q("Ekranda boş kutular var; hayvanların yeri ipuçlarında saklı. İpuçları okunacak; dinle. Sonra hayvanları soldan başlayarak sırayla yerleştir: en soldaki kutuya gelecek hayvana dokun, sonra yanındakine.")],
+"shape-add":        [() => Q("Ekranda iki çizim var. İki çizim üst üste konunca nasıl görünür? Soru işaretinin yerine gelecek çizimi bul ve ona dokun." + (!isPre() && currentCombo().t >= 2 ? " Arada eksi işareti varsa ikinci çizimin çizgileri birinci çizimden silinir." : ""))],
+"code-math":        [() => Q("Her şeklin bir sayı değeri var; şeklin yanında yazıyor. Şekillerle yazılmış işlemi sayılarla çöz. Sonucu gösteren sayıya dokun.")],
+"dir-mem":          [() => Q("Ekranda resimler var; her biri bir yöne bakıyor. Hangi yöne baktıklarına iyi bak. Resimler kapanınca her resmin iki hâli gelecek: biri sağa, biri sola bakıyor. Gördüğün hâline dokun.")],
+"count-mem":        [() => Q("Tabakta meyveler var; hangisinden kaç tane olduğuna iyi bak. Tabak kapanınca bir meyvenin sayısı sorulacak. Doğru sayıya dokun.")],
+"shelf-mem":        [() => Q("Rafta eşyalar var; her eşyanın yerine iyi bak. Raf boşalınca eşyalar karışık gelecek. Eşyaları soldan başlayarak yerine koy: önce en soldaki yere gelecek eşyaya dokun, sonra yanındakine.")],
+"delay-mem":        [() => Q("Ekranda resimler var; iyi bak ve aklında tut. Resimler kapanınca kısa bir ara oyun gelecek: iki daireden büyük olana dokun. Ara oyundan sonra her soruda gördüğün resmi bul ve ona dokun.")],
+"flash-mem":        [() => Q("Resimler bir an görünüp kapanacak; dikkatle bak. Sonra daha çok resim gelecek. Az önce gördüğün resimlerin hepsine dokun.")],
+"color-tap":        [() => Q("Ekranda bir top yavaşça gezecek. Başını oynatmadan topu gözünle izle. Top rengini değiştirdiği anda kutunun içine dokun.")],
+"row-name":         [() => Q(!isPre() && currentCombo().t >= 1 ? "Ekranda sayılar satırlar hâlinde duruyor; aralarındaki boşluklar farklı. Kitap okur gibi soldan sağa, satır satır her sayıyı söyle. Satır bitince alt satırın başına geç." : "Ekranda resimler satırlar hâlinde duruyor; aralarındaki boşluklar farklı. Kitap okur gibi soldan sağa, satır satır her resmin adını söyle. Satır bitince alt satırın başına geç.")],
+"rope-trace":       [() => Q("Ekranda dolanmış ipler var; her hayvanın ipi bir resme gidiyor. Işıklı hayvanın ipini parmağını kullanmadan gözünle izle. İpin bittiği resme dokun.")],
+"two-col-name":     [() => Q("Ekranın iki kenarında birer sütun resim var. Başını oynatmadan önce soldaki, sonra sağdaki resmin adını söyle; sonra bir alt satıra geç: sol, sağ, sol, sağ.")],
+"track-fish":       [() => Q("Ekranda balıklar var; biri bir an parlayacak. Parlayan balığa iyi bak. Sonra bütün balıklar yüzecek; parlayanı gözünle izle. Balıklar durunca parlayan balığa dokun.")],
+"end-sound":        [() => Q("Ekranda bir resim var; adı okunacak. Adının son sesini dinle. Öteki resimlerden hangisinin adı da aynı sesle bitiyor? Ona dokun.")],
+"suffix-complete":  [() => `Her cümleyi çocuğa okuyun; son kelimeyi o tamamlasın. ${Q(isPre() ? ["Ben söyleyeceğim, sen tamamla: Bu bir kedi. Bunlar…", "Ben soracağım, sen tamamla: Kuş nerede? Ağaç…", "Ben söyleyeceğim, sen tamamla: Bu top benim. Bu benim…"][Math.min(currentCombo().t, 2)] : ["Ben söyleyeceğim, sen tamamla: Bu kalem Ali'nin. Bu Ali'nin…", "Ben söyleyeceğim, sen tamamla: Bugün oynuyorum, dün de…", "Ben söyleyeceğim, sen tamamla: Dün oynadım, yarın da…"][Math.min(currentCombo().t, 2)])}`],
+"flu-verb":         [() => `Okuyun ve ▶'a basın: ${Q(`${fluPrompt("flu-verb").say} Yapılan işleri, hareketleri söyle; olabildiğince çok söyle ama aynısını iki kez söyleme.`)}`],
+"how-to":           [() => `Soruyu çocuğa okuyun. ${Q("Bu iş nasıl yapılır? Önce ne yaparsın, sonra ne yaparsın, en son ne yaparsın? Sırasıyla anlat.")}`],
+"cube-count":       [() => Q("Ekranda küplerden bir yapı var. Bazı küpler öteki küplerin altında kaldığı için görünmüyor; onları da say. Yapıda kaç küp olduğunu bul ve o sayıya dokun.")],
+"piece-fit":        [() => Q("Ekrandaki tahtadan bir parça çıkarılmış; boşluk kesik çizgiyle gösterilmiş. Parçalar çevrilmeden yerleştirilir. Boşluğa tam oturan parçayı bul ve ona dokun.")],
+"mirror-find":      [() => Q("Ekrandaki şekillerin hepsi aynı; yalnız biri aynada görünür gibi ters dönmüş: sağı sola geçmiş. Ters dönmüş olanı bul ve ona dokun.")],
+"feel-face":        [() => Q("Bir olay okunacak, dinle. Olaydaki çocuk ne hisseder? Onun yüzünü bul ve ona dokun.")],
+"before-after":     [() => Q(!isPre() && currentCombo().t >= 2 ? "Zihni'nin yaptıklarını dinle. Soruda ilk önce ne yaptığı ya da en son ne yaptığı sorulacak. Doğru resme dokun." : "Zihni'nin yaptıklarını dinle. Önce ne yaptı, sonra ne yaptı? Sorulan resme dokun.")],
+"title-find":       [() => Q(isPre() ? "Kısa bir hikâye okunacak, dinle. Hikâye en çok neyi anlatıyor? Onun resmine dokun." : "Kısa bir yazı okunacak, dinle. Bu yazıya en uygun başlık hangisi? Ona dokun.")],
+"msg-relay":        [() => `Mesaj okunur; ekrandaki soruyla sohbet edin. "Mesajı ilet!" gelince doğru söylenen bilgilere dokunup "Bitti"ye basın. ${Q("İyi dinle; biraz sohbet ettikten sonra mesajı bana ileteceksin.")}`],
 "class-table":      [() => Q("Ekranda bir tablo var: satırlar renkleri, sütunlar şekilleri gösteriyor. Aşağıdan bir parça seç; rengi hangi satıra, şekli hangi sütuna uyuyorsa o kutuya koy. Bütün parçaları yerleştir.")],
 "color-obj":        [() => Q("Ekranda resimler var ve her resim renkli bir kartın üstünde duruyor. Hangi resmin hangi renkte olduğuna iyi bak ve aklında tut. Sonra her resim için hangi renk kartta olduğunu seç.")],
 "pic-order":        [() => Q("Resimler tek tek gelecek; hangi resmin hangi sırada geldiğine iyi bak ve aklında tut. Bitince resimler karışık görünecek; onlara geliş sırasıyla dokun.")],
@@ -1149,6 +1179,36 @@ return {
 "edge-count":[0, "Parmakla Say", "Bir köşeden başla, parmağınla kenarlara dokunarak say."],
 
 "clue-find":[0, "Tek Tek Ele", "Her ipucundan sonra uymayanları içinden ele; geriye kalana bak."],
+"cause-find":[0, "Geriye Düşün", "Kendine sor: Bu olmadan hemen önce ne oldu?"],
+"rule-find":[0, "Ortak Olanı Ara", "Uyanların hepsinde olan ama uymayanlarda olmayan şeyi bul."],
+"order-infer":[0, "Sıraya Diz", "Kalemleri aklında en uzundan en kısaya sırala."],
+"path-predict":[0, "Gözünle Yürü", "Ekrana dokunmadan gözünle Zihni'yi her okta bir kare yürüt."],
+"pattern-build":[0, "Tekrarı Bul", "Önce tekrar eden parçayı bul; sonra sesli say ve sürdür."],
+"common-feat":[0, "Tek Tek Bak", "Önce renklere, sonra şekillere, sonra büyüklüklere bak: hangisi hep aynı?"],
+"where-logic":[0, "Kesin Olandan Başla", "Önce yeri kesin olan hayvanı bul; ötekileri ona göre yerleştir."],
+"shape-add":[0, "Çizgileri Say", "Birinci çizimin çizgilerine ikincininkileri ekle; hepsi doğru yerde mi?"],
+"code-math":[0, "Önce Sayıya Çevir", "Her şeklin yerine sayısını söyle, sonra işlemi yap."],
+"dir-mem":[0, "Burnunu Söyle", "Her resim için içinden söyle: Burnu sağa bakıyor."],
+"count-mem":[0, "Ayrı Ayrı Say", "Her meyveyi ayrı say; sayıları içinden tekrar et."],
+"shelf-mem":[0, "Sırayla Adlandır", "Soldan sağa eşyaların adını içinden söyle."],
+"delay-mem":[0, "Adını Tekrarla", "Ara oyun sırasında resimlerin adlarını içinden tekrar et."],
+"flash-mem":[0, "Ortaya Bak", "Gözünü ekranın ortasına dik; resimler gelince adlarını hemen içinden söyle."],
+"color-tap":[0, "Gözünü Ayırma", "Topu hep izle; renk değişince hemen dokun."],
+"row-name":[0, "Yalnız Gözle", "Parmağınla değil, yalnız gözlerinle ilerle."],
+"rope-trace":[0, "İpten Ayrılma", "İpin başından başla; ip başka iple kesişince yolundan ayrılma."],
+"two-col-name":[0, "Başını Sabit Tut", "Başını oynatma; yalnız gözlerin sola ve sağa sıçrasın."],
+"track-fish":[0, "Tek Balığa Bak", "Yalnız parlayan balığı izle; ötekilere bakma."],
+"end-sound":[0, "Sonu Uzat", "Kelimeyi söylerken son sesini uzat: kediii."],
+"suffix-complete":[0, "Kulağına Uyar mı?", "Cevabını cümlenin içinde bir daha söyle; kulağına doğru geliyor mu?"],
+"flu-verb":[0, "Gözünde Canlandır", "O kişiyi ya da hayvanı gözünün önüne getir; ne yaptığını izle."],
+"how-to":[0, "Önce – Sonra", "Her adıma 'önce', 'sonra', 'en son' diye başla."],
+"cube-count":[0, "Sütun Sütun Say", "Her sütunda kaç küp üst üste duruyor, say; sonra sütunları topla."],
+"piece-fit":[0, "Kareleri Say", "Boşlukta kaç kare var, say; aynı sayıda karesi olan parçalara bak, sonra biçimine bak."],
+"mirror-find":[0, "Ucuna Bak", "Şeklin bir ucu hangi yana bakıyor? Hepsinde aynı yana mı bakıyor?"],
+"feel-face":[0, "Kendini Onun Yerine Koy", "Bu senin başına gelseydi ne hissederdin?"],
+"before-after":[0, "Sıraya Diz", "Duyduklarını kafanda sıraya diz: önce bu, sonra şu."],
+"title-find":[0, "Hepsini Kapsasın", "Doğru başlık yazının hepsini anlatır; yalnız bir ayrıntıyı değil."],
+"msg-relay":[0, "İçinden Tekrarla", "Mesajı dinlerken içinden bir kez daha söyle; kime ve ne söyleyeceğini düşün."],
 "class-table":[0, "Satır ve Sütun", "Parmağınla satırın rengini, sütunun şeklini göster; ikisi de uyuyor mu?"],
 "color-obj":[0, "Birlikte Söyle", "Her resmi rengiyle birlikte içinden söyle: 'kırmızı top'."],
 "pic-order":[0, "Hikâye Kur", "Resimlerden kısa bir hikâye uydur; hikâye sırayı hatırlatır."],

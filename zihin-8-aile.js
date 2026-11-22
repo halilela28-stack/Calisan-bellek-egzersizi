@@ -1597,7 +1597,7 @@ function trlTagSlot(P, i, node, W, H){ const p0 = P[i], tw = 64, th = 16, g = 2,
   const opts = [ [p0.x - tw / 2, p0.y - hh - th - g, p0.x + tw / 2, p0.y - hh - g, ""], [p0.x - tw / 2, p0.y + hh + g, p0.x + tw / 2, p0.y + hh + th + g, "top:auto;bottom:-15px;"], [p0.x + hw + g, p0.y - th / 2, p0.x + hw + g + tw, p0.y + th / 2, "top:50%;left:100%;transform:translate(3px,-50%);"], [p0.x - hw - g - tw, p0.y - th / 2, p0.x - hw - g, p0.y + th / 2, "top:50%;left:auto;right:100%;transform:translate(-3px,-50%);"] ];
   const ok = opts.find(o => free(o[0], o[1], o[2], o[3])); return ok ? ok[4] : null; }
 
-function fluUnit(){ return currentExercise().id === "alt-uses" ? "fikir" : "kelime"; }   /* akıcılık sayacının birimi */
+function fluUnit(){ const id = currentExercise().id; return id === "alt-uses" ? "fikir" : id === "flu-verb" ? "eylem" : "kelime"; }   /* akıcılık sayacının birimi */
 
 /* zihin-gorsel-3.js eski sürümdeyse yeni resimler yoktur: hata vermeden boş döner */
 function g3img(k){ try{ return (typeof NEW_IMAGES_2 !== "undefined" && NEW_IMAGES_2[k]) || ""; }catch(e){ return ""; } }
