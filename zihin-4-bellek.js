@@ -561,13 +561,14 @@ const replay = tr.replay ? `<button type="button" class="wm-btn diff qz-replay" 
     let qH = isLs ? H - 40 : Math.max(120, H - (tr.stim ? (tr.raw ? (tr.ar ? 138 : 120) : 150) : 30) - (tr.replay ? 50 : 0));
     if(picOpts && !isLs){ try{ const bd = document.getElementById("board"); if(bd && timerRunning){ const avail = Math.floor(window.innerHeight - bd.getBoundingClientRect().top - 44 - 64 - (tr.stim ? (tr.raw ? (tr.ar ? 128 : 110) : 160) : 0) - (tr.replay ? 62 : 0)); if(avail > qH) qH = avail; } }catch(e){} }
     if(picOpts && !isLs && window._zaPicH && window._zaPicHK === zaFitKey()) qH = window._zaPicHX ? window._zaPicH : Math.max(qH, window._zaPicH); /* ilk çizimden sonra ölçülen gerçek boş alan; resimli seçenekler tahtaya sığar kuralı: taşma ölçüldüyse tam o kadar yer kullanılır */
-    const n = tr.opts.length, arStack = !!(tr.ar && tr.stimImg && !isLs), d = tr.ar ? qzArDims(n, isLs ? (tr.stimImg ? Math.max(W * 0.55, W - 184) : W * 0.55) : W, arStack ? qH + ((window._zaPicH && window._zaPicHK === zaFitKey() && window._qzArSH) ? window._qzArSH : 128) : qH, 190 * tabletScale() * (window._fitK || 1), tr.ar, arStack ? 160 : 0) : picOpts ? zaPicDims(n, isLs ? W * (tr.stim ? 0.55 : tr.replay ? 0.7 : 0.9) : W, qH, 260 * (window._fitK || 1)) : wmGridDims(n, isLs ? W * (tr.stim ? 0.55 : tr.replay ? 0.7 : 0.9) : W, qH, (tr.cell || (tr.fixed ? 80 : 120)) * (window._fitK || 1));   /* yer varsa seçenek resimleri 120 noktaya kadar büyür */
+    const n = tr.opts.length, arStack = !!(tr.ar && tr.stimImg && !isLs), d = tr.ar ? qzArDims(n, isLs ? (tr.stimImg ? Math.max(W * 0.55, W - 184) : W * 0.55) : W, arStack ? qH + ((window._zaPicH && window._zaPicHK === zaFitKey() && window._qzArSH) ? window._qzArSH : 128) : qH, 190 * tabletScale() * (window._fitK || 1), tr.ar, arStack ? 160 : 0) : picOpts ? zaPicDims(n, isLs ? W * (tr.lsW || (tr.stim ? 0.55 : tr.replay ? 0.7 : 0.9)) : W, qH, 260 * (window._fitK || 1)) : wmGridDims(n, isLs ? W * (tr.lsW || (tr.stim ? 0.55 : tr.replay ? 0.7 : 0.9)) : W, qH, (tr.cell || (tr.fixed ? 80 : 120)) * (window._fitK || 1));   /* yer varsa seçenek resimleri 120 noktaya kadar büyür */
 const grid = tr.text ? `<div class="qz-txt-grid${st._tight ? " qz-tight" : ""}" style="grid-template-columns:repeat(${n % 2 ? 1 : 2}, minmax(0, 1fr))">` /* KURAL (yazılı seçenekler, 2026-11-04): tek sayıda (3, 5) yazılı seçenek tek sütunda alt alta dizilir — 2 sütunda son satır eksik kalıyor ve doğru cevap sağ sütuna yalnız üçte bir düşüyordu; çift sayıda seçenek 2 sütun */ + tr.opts.map((o, i) => { const mk = st.phase === "fb" ? (i === tr.ans ? " ok" : (i === st.pick ? " bad" : "")) : "";
 return `<div class="wm-pic qz-txt${mk}" data-mt="${i}">${o}</div>`; }).join("") + `</div>`
 : `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + tr.opts.map((o, i) => {
 const mk = st.phase === "fb" ? (i === tr.ans ? " ok" : (i === st.pick ? " bad" : "")) : "";
 return `<div class="wm-pic${mk}" data-mt="${i}" style="width:${d.cell}px;height:${tr.ar ? Math.round(d.cell * tr.ar) : d.cell}px;padding:6px;flex-direction:column">${o}</div>`; }).join("") + `</div>`;
 let stimX = stimH; if(tr.ar && tr.stimImg){ const sw = arStack ? d.stim : Math.round(Math.min(160, Math.max(96, (H - 60) / tr.ar))); window._qzArSH = arStack ? Math.round(sw * tr.ar) + 14 : 0; stimX = `<div style="margin:2px 0 8px"><div class="wm-card ce-stim" style="width:${sw}px;height:${Math.round(sw * tr.ar)}px;margin:0 auto;padding:6px;box-sizing:border-box">${tr.stimImg}</div></div>`; }   /* Neden–Sonuç resim boyları kuralı: olay resmi seçenek kartlarıyla aynı biçimde ve (yer darsa) aynı ende */
+/* KURAL (geniş uyaranlı soru yatayda, 2026-11-23): uyaranı geniş olan sorularda (Kuralı Bul'un iki kutusu, Şekil Toplama'nın iki çizimi) yatay ekranda seçeneklere genişliğin %40'ı ayrılır (tr.lsW); küçük yatay telefonda (667 × 375) önceden seçenekler tahtanın sağından taşıyordu */
 const body = dots + (isLs && (tr.stim || tr.replay) ? `<div style="display:flex;gap:16px;align-items:center;justify-content:center"><div>${stimX}${replay}</div>${grid}</div>` : stimX + replay + grid);
 return { info: tr.prompt, body };
 }
@@ -2732,9 +2733,9 @@ for(const it of st.items.slice()){ const u = (now - it.t0) / (c.cross * 1000 * (
 if(u >= 1){ if(it.cat === st.tg) mtErr(); it.el.remove(); st.items.splice(st.items.indexOf(it), 1); } }
 if(made >= total && !st.items.length){ st.phase = "done"; mtFinish(` Yakalanan: ${st.score}`); return; } requestAnimationFrame(frame); };
 requestAnimationFrame(frame); },
-ubal(){ const st = mtState, tr = st.trials[st.ti]; st.phase = "run"; renderMtBoard(); sayTask(`${tr.w} ile sonu benzeyen balığı yakala!`); const my = st.ti, t0 = performance.now();
+ubal(){ const st = mtState, tr = st.trials[st.ti]; st._fx = []; st.phase = "run"; renderMtBoard(); sayTask(`${tr.w} ile sonu benzeyen balığı yakala!`); const my = st.ti, t0 = performance.now();
 const frame = (now) => { if(!pkAlive(st) || st.ti !== my || st.phase !== "run") return; const u = (now - t0) / (tr.dur * 1000 * (window.__wmSpeed || 1));
-document.querySelectorAll(".pk-fish").forEach((f, k) => { const dir = k % 2 ? -1 : 1, x = dir > 0 ? -20 + u * 130 : 110 - u * 130; f.style.left = x + "%"; f.style.transform = dir < 0 ? "scaleX(-1)" : ""; const sp = f.querySelector("span"); if(sp) sp.style.transform = dir < 0 ? "scaleX(-1)" : ""; });
+st._fx = st._fx || []; document.querySelectorAll(".pk-fish").forEach((f, k) => { const dir = k % 2 ? -1 : 1, x = dir > 0 ? -20 + u * 130 : 110 - u * 130; st._fx[k] = x; f.style.left = x + "%"; f.style.transform = dir < 0 ? "scaleX(-1)" : ""; const sp = f.querySelector("span"); if(sp) sp.style.transform = dir < 0 ? "scaleX(-1)" : ""; });
 if(u >= 1){ mtErr(); st.phase = "fb"; renderMtBoard(); mtLater(NEW_MT.next, 900); return; } requestAnimationFrame(frame); };
 requestAnimationFrame(frame); },
 htrn(){ const st = mtState, tr = st.trials[st.ti]; st.placed = []; st.bad = {}; st.phase = "input"; renderMtBoard(); sayTask(tr.pic.n); },
@@ -3306,7 +3307,8 @@ body = `<div id="pkArea" class="pk-area" style="height:${ah}px"></div>`;
 } else if(st.kind === "ubal"){
 const tr = st.trials[ti], ah = isLs ? H - 50 : Math.min(H - 60, 400);
 info = `<b>${tr.w}</b> ile sonu benzeyen balığı yakala · ⭐ ${st.score} · ${ti + 1}/${st.trials.length}`;
-body = `<div class="pk-sea" style="height:${ah}px">${tr.fish.map((w, k) => `<div class="pk-fish${st.phase === "fb" ? (k === tr.ans ? " ok" : k === st.pick ? " bad" : "") : ""}" data-mt="${k}" style="top:${12 + k * (76 / tr.fish.length)}%;left:${k % 2 ? 110 : -20}%"><span>${w}</span></div>`).join("")}</div>`;
+body = `<div class="pk-sea" style="height:${ah}px">${tr.fish.map((w, k) => `<div class="pk-fish${st.phase === "fb" ? (k === tr.ans ? " ok" : k === st.pick ? " bad" : "") : ""}" data-mt="${k}" style="top:${12 + k * (76 / tr.fish.length)}%;left:${st.phase === "fb" ? `clamp(74px, ${((st._fx || [])[k] != null ? st._fx[k] : 50).toFixed(1)}%, calc(100% - 74px))` : (k % 2 ? 110 : -20) + "%"}${st.phase === "fb" && k % 2 ? ";transform:scaleX(-1)" : ""}">${st.phase === "fb" && k % 2 ? `<span style="transform:scaleX(-1)">${w}</span>` : `<span>${w}</span>`}</div>`).join("")}</div>`;
+/* KURAL (Balıklar geri bildirim yeri, 2026-11-23): geri bildirimde balıklar son göründükleri yerde durur ve denizin içine çekilir; ✓ / ✗ rozeti kesilmez. Önceden yeniden çizimde balıklar başlangıç yerine, denizin dışına dönüyor, işaretli balık yarım görünüyordu */
 } else if(st.kind === "htrn"){
 const tr = st.trials[ti], sz = Math.min(isLs ? H - 120 : 120, 120);
 info = `Heceleri sırayla takarak <b>treni</b> kur · ⭐ ${st.score}`;
@@ -3803,7 +3805,7 @@ function rfOne(){ const t = yzT(), pre = isPre(), feats = (pre ? RF_FEATS.pre : 
     if(wrong.length < 4) continue;
     const box = (arr, lbl, col) => `<div style="flex:1 1 0;min-width:0;border:3px solid ${col};border-radius:14px;padding:4px 4px 6px;background:#fff"><div style="font-size:13px;font-weight:800;color:${col};text-align:center;margin-bottom:2px">${lbl}</div><div style="display:flex;justify-content:center;gap:4px">${arr.map(o => `<div style="width:42px;height:42px">${yzShape(o)}</div>`).join("")}</div></div>`;
     const stim = `<div class="rf-stim" style="display:flex;gap:8px;max-width:400px;margin:0 auto">${box(yes, "Kurala uyanlar", "#1E7A44")}${box(no, "Uymayanlar", "#B3261E")}</div>`;
-    return Object.assign(qzMake(stim, [ans].concat(wrong).map(yzShape), 0, { prompt:"Hangisi <b>kurala uyar</b>?", raw:true, fixed:true, cell:96 }), { rule: R }); }
+    return Object.assign(qzMake(stim, [ans].concat(wrong).map(yzShape), 0, { prompt:"Hangisi <b>kurala uyar</b>?", raw:true, fixed:true, cell:96, lsW:0.4 }), { rule: R }); }
   return null; }
 function rfTrials(){ const out = [], keys = new Set(); for(let g = 0; g < 60 && out.length < YZ_N(); g++){ const q = rfOne(); if(!q) continue; const k = q.stim; if(keys.has(k)) continue; keys.add(k); out.push(q); } return out; }
 
@@ -3920,7 +3922,7 @@ function saTrials(){ const t = yzT(), pre = isPre(), N = YZ_N(), pool = (t >= 1 
     if(wr.length < 4) continue; sig.add(key);
     const box = (s) => `<div class="wm-card" style="width:76px;height:76px;padding:4px;box-sizing:border-box;flex:0 0 auto">${saSvg(s)}</div>`, sym = (c) => `<b style="font-size:30px;color:var(--ink);padding:0 4px">${c}</b>`;
     const stim = `<div class="sa-stim" style="display:flex;align-items:center;justify-content:center;gap:4px;margin:0 auto">${box(A)}${sym(op)}${box(B)}${sym("=")}<div class="wm-card" style="width:76px;height:76px;display:flex;align-items:center;justify-content:center;border-style:dashed;flex:0 0 auto"><b style="font-size:30px;color:var(--ink-soft)">?</b></div></div>`;
-    out.push(qzMake(stim, [R].concat(wr).map(saSvg), 0, { prompt: op === "+" ? "İki çizim <b>üst üste</b> konunca ne olur?" : "Birinci çizimden ikinci çizimin çizgileri <b>silinince</b> ne kalır?", raw:true, fixed:true, cell:100 })); }
+    out.push(qzMake(stim, [R].concat(wr).map(saSvg), 0, { prompt: op === "+" ? "İki çizim <b>üst üste</b> konunca ne olur?" : "Birinci çizimden ikinci çizimin çizgileri <b>silinince</b> ne kalır?", raw:true, fixed:true, cell:100, lsW:0.4 })); }
   return out; }
 
 /* --- 9. Şifre Çöz (okul sonrası): şekillerin sayı değeri; işlemin sonucu. Başlangıç iki şekil, Orta üç şekil, Zor dört şekil ya da çıkarma --- */
@@ -4097,14 +4099,16 @@ function ipRender(st, W, H, isLs){ const tr = st.trials[st.ti], n = tr.n, dots =
 
 /* --- 3. Gözden Kaçırma: balıklardan biri parlar; hepsi yüzer; durunca parlayana dokunulur --- */
 const MOT_CFG = { pre:{ k:[3, 3, 4], ms:[4000, 5000, 5000], sp:[38, 45, 52], N:[3, 4, 4] }, post:{ k:[4, 5, 6], ms:[5000, 6000, 7000], sp:[55, 65, 75], N:[4, 5, 6] } };
-function motTrials(){ const t = yzT(), c = isPre() ? MOT_CFG.pre : MOT_CFG.post; return Array.from({length: c.N[t]}, () => ({ k: c.k[t], ms: c.ms[t], sp: c.sp[t], tg: Math.floor(Math.random() * c.k[t]) })); }
+function motTrials(){ const t = yzT(), c = isPre() ? MOT_CFG.pre : MOT_CFG.post, k = c.k[t], tgs = mkCycle(Array.from({length: k}, (_, i) => i)); let last = -1;
+  /* KURAL (Gözden Kaçırma turları farklı, 2026-11-23): her turun başlangıç dizilişi (balıkların yeri ve yüzme yönü) ve parlayan balık kurulumda belirlenir; parlayan balık art arda aynı balık olmaz, turlar birbirinin aynısı olmaz */
+  return Array.from({length: c.N[t]}, () => { let tg = tgs(); if(tg === last && k > 1) tg = tgs(); last = tg; const lay = []; for(let g = 0; g < 300 && lay.length < k; g++){ const fx = Math.random(), fy = Math.random(); if(lay.every(q => Math.hypot(q[0] - fx, q[1] - fy) > 0.3)) lay.push([+fx.toFixed(3), +fy.toFixed(3), +(Math.random() * Math.PI * 2).toFixed(3)]); } return { k, ms: c.ms[t], sp: c.sp[t], tg, lay }; }); }
 function motRender(st, W, H, isLs){ const tr = st.trials[st.ti], Hh = yzFit(isLs, H), b = gtBox(W, Hh, isLs), sz = Math.round(Math.min(76, Math.max(52, Math.min(b.w, b.h) / 4.2)));
-  st.box = b; st.size = sz; if(!st.pos || st.pos.length !== tr.k){ st.pos = motPlace(tr.k, b, sz); }
+  st.box = b; st.size = sz; if(!st.pos || st.pos.length !== tr.k){ st.pos = motPlace(tr.k, b, sz, tr.lay); }
   const fish = st.pos.map((p, i) => { const mk = st.phase === "fb" ? (i === tr.tg ? " ok" : i === st.pick ? " bad" : "") : ""; const glow = st.phase === "cue" && i === tr.tg;
     return `<div class="wm-pic mot-f${mk}" ${st.phase === "ask" || st.phase === "fb" ? `data-mt="${i}"` : ""} style="position:absolute;left:${p.x.toFixed(1)}px;top:${p.y.toFixed(1)}px;width:${sz}px;height:${sz}px;padding:4px;box-sizing:border-box;margin:0;${glow ? "border-color:#E39B13;box-shadow:0 0 0 6px rgba(227,155,19,.55);background:#FFF4D6" : ""}"><img src="${gtSea()}" alt="" style="width:100%;height:100%;object-fit:contain;${p.vx < 0 ? "transform:scaleX(-1)" : ""}"></div>`; }).join("");
   const info = st.phase === "cue" ? "<b>Parlayan balığa</b> iyi bak" : st.phase === "move" ? "Gözünle <b>izle</b>…" : st.phase === "fb" ? (st.pick === tr.tg ? "<b>Buldun!</b>" : "Parlayan balık yeşil olan") : "Hangi balık <b>parlamıştı</b>?";
   return { info, body: yzDots(st) + `<div id="motBox" style="position:relative;width:${b.w}px;height:${b.h}px;margin:0 auto;background:#EAF6FF;border:2px solid var(--line);border-radius:18px;overflow:hidden">${fish}</div>` }; }
-function motPlace(k, b, sz){ const P = []; for(let g = 0; g < 400 && P.length < k; g++){ const x = 6 + Math.random() * (b.w - sz - 12), y = 6 + Math.random() * (b.h - sz - 12); if(P.every(p => Math.hypot(p.x - x, p.y - y) > sz * 1.15)){ const a = Math.random() * Math.PI * 2; P.push({ x, y, vx: Math.cos(a), vy: Math.sin(a) }); } } while(P.length < k) P.push({ x: 6, y: 6, vx: 1, vy: 1 }); return P; }
+function motPlace(k, b, sz, lay){ const P = []; (lay || []).forEach(([fx, fy, a]) => { const x = 6 + fx * (b.w - sz - 12), y = 6 + fy * (b.h - sz - 12); if(P.length < k && P.every(p => Math.hypot(p.x - x, p.y - y) > sz * 1.15)) P.push({ x, y, vx: Math.cos(a), vy: Math.sin(a) }); }); for(let g = 0; g < 400 && P.length < k; g++){ const x = 6 + Math.random() * (b.w - sz - 12), y = 6 + Math.random() * (b.h - sz - 12); if(P.every(p => Math.hypot(p.x - x, p.y - y) > sz * 1.15)){ const a = Math.random() * Math.PI * 2; P.push({ x, y, vx: Math.cos(a), vy: Math.sin(a) }); } } while(P.length < k) P.push({ x: 6, y: 6, vx: 1, vy: 1 }); return P; }
 
 /* --- 4. Satır Satır Söyle ve 5. İki Sütun Arasında Söyle (söylemeli tahta) --- */
 function gtNamePool(){ return picPool().filter(x => x && x.src && x.n); }

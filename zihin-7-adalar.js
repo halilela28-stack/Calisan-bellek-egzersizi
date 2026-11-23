@@ -308,7 +308,7 @@ function ttsSyllableSoften(x, sep){ const V = "aeıioöuüâîûAEIİOÖUÜÂÎ�
    7) Cümle sonunda nokta yoksa eklenir (askıda kalan ezgi son heceyi uzatır); rakamla bitende eklenmez.
    8) Oyun sesleri (Başla, ödül cümleleri) ayrıca inceltilmez; ton Ayarlar'daki okuma tonuyla aynıdır (önceden %120 × %120 = %144 oluyor, abartılı vurgu yapıyordu) */
 const TR_LETTER = { A:"a", B:"be", C:"ce", "Ç":"çe", D:"de", E:"e", F:"fe", G:"ge", "Ğ":"yumuşak ge", H:"he", I:"ı", "İ":"i", J:"je", K:"ke", L:"le", M:"me", N:"ne", O:"o", "Ö":"ö", P:"pe", R:"re", S:"se", "Ş":"şe", T:"te", U:"u", "Ü":"ü", V:"ve", Y:"ye", Z:"ze", Q:"kü", W:"çift ve", X:"iks" };
-const TR_WH = /(^|[^\p{L}])(ne(yi|ye|yin|yle|den|de|re(de|ye|den|si|sini|sine|sinde))?|niçin|niye|kim(i|e|in|den|le|inle)?|kaç(ar|ıncı|ta|tan)?|hangi(si|sini|sine|sinde|sinden|leri|lerini)?|nasıl)(?=$|[^\p{L}])/iu;
+const TR_WH = /(^|[^\p{L}])(ne(yi|ye|yin|yle|den|de|re(de|ye|den|si|sini|sine|sinde))?|niçin|niye|kim(i|e|in|den|le|inle)?|kaç(ar|ıncı|ta|tan)?|hangi(si|sini|sine|sinde|sinden|sinin|siyle|leri|lerini|lerinin)?|nasıl)(?=$|[^\p{L}])/iu;
 const TR_MI = /(^|[^\p{L}])(mı|mi|mu|mü)(sın|sin|sun|sün|yım|yim|yum|yüm|yız|yiz|yuz|yüz|sınız|siniz|sunuz|sünüz|dır|dir|dur|dür|ydı|ydi|ydu|ydü)?(?=$|[^\p{L}])/iu;
 function ttsTurkish(x){ try{
   x = x.replace(/✓['’]?(y?[ea])(?=$|[^\p{L}])/gu, "tik işaretine").replace(/✗['’]?(y?[ea])(?=$|[^\p{L}])/gu, "çarpı işaretine").replace(/[✓✔]/g, "tik").replace(/[✗✘]/g, "çarpı");
