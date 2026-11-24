@@ -631,6 +631,8 @@ const btn = document.getElementById("timerBtn");
 btn.textContent = "▶ Başlat";
 btn.classList.remove("running");
 { const manual = window._manualStop; window._manualStop = false; const hint = document.getElementById("saveHint"); window._incomplete = !!(manual && !gameMode && !pageComplete());
+/* KURAL (durdurunca okuma susar, 2026-11-23): çalışma elle durdurulunca (Bitir) ya da tamamlanmadan bittiğinde (süre dolması vb.) okunan hikâye/soru/yönerge hemen susar, sıradaki okumalar iptal edilir; yalnız son soru yanıtlanıp çalışma kendiliğinden tamamlanınca son geri bildirim sözü kesilmez */
+try{ if(manual || !pageComplete()){ window._saySeqTok = (window._saySeqTok || 0) + 1; zaStopSpeech(); } }catch(e){}
 if(window._incomplete){ document.getElementById("saveResultBtn").style.display = "none"; hint.style.display = "block"; hint.textContent = "Çalışma tamamlanmadan durduruldu; bu sonuç kaydedilemez. ↻ ile yeniden başlatabilirsin."; hint.classList.add("warn");
   try{ const ex = currentExercise(); let rebuilt = false;   /* yarım kalan deneme tahtada asılı kalmasın: etkileşimli tahta başa döner */
     rebuilt = ZA_LIFE.rebuild(ex);
@@ -646,6 +648,7 @@ if(gameMode){ setTimeout(gameAfterStop, 400); try{ renderGameWho(); }catch(e){} 
 }
 
 function resetTimer(){
+try{ if(timerRunning){ window._saySeqTok = (window._saySeqTok || 0) + 1; zaStopSpeech(); } }catch(e){}   /* durdurunca okuma susar kuralı: çalışırken ↻ ile sıfırlanınca da okuma susar */
 window._autoSavePending = false; try{ nbSeqStop(); }catch(e){} timerPausedAt = 0; try{ document.getElementById("timerDisplay").classList.remove("paused"); }catch(e){}
 document.documentElement.classList.remove("board-run"); runFocusOff();
 clearInterval(timerInterval);

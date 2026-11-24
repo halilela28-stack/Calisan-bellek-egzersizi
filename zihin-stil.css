@@ -628,6 +628,8 @@ html.ins-xs .sdmt-pair > div{width:36px;height:36px;padding:4px}   /* küçük t
 #board .qz-scene.side .qz-txt{min-height:44px;padding:4px 5px !important}
 #board .qz-scene.side .qz-txt b{font-size:14px !important}
 #board .qz-scene.side .qz-replay{white-space:nowrap;padding:9px 10px !important;font-size:14px !important;max-width:100%}
+/* KURAL (yan yana sahnede Bir daha dinle sığar, 2026-11-24; benzer durum taraması): dar ekranda (iPhone SE) yan yana düzende "Bir daha dinle" yazısı düğmeden 2 px taşıyordu; dar sütunda iç boşluk azalır */
+@media (max-width:380px){ #board .qz-scene.side .qz-replay{padding:9px 5px !important;letter-spacing:-0.1px} }
 /* KURAL (yazılı seçenekler sıkı düzen, 2026-11-20): sığmayan yazılı seçenekler sıkı düzende (46 px düğme, 6 px aralık) */
 #board .qz-txt-grid.qz-tight{gap:6px}
 #board .qz-txt-grid.qz-tight .qz-txt{min-height:46px;padding:4px 8px !important}
@@ -678,3 +680,5 @@ html.ins-xs .sdmt-pair > div{width:36px;height:36px;padding:4px}   /* küçük t
 /* KURAL (Nasıl Yapılır? yatay, 2026-11-22): yatay telefonda soru satırı biraz sıkışır; soru ve örnek cevap hücreye sığar, alttaki ayırıcı çizgi yazının üstünden geçmez */
 @media (orientation: landscape) and (max-height: 500px){ #board .ny-q{line-height:1.1 !important;margin:0 !important;padding:0 !important} #board .cell:has(.ny-q) .oral-ans{margin-top:1px !important;line-height:1.15 !important} }
 
+/* Resimleri Grupla büyük resim kuralı (2026-11-23): grup adı kartın içine sığar — gerekirse iki satıra bölünür, taşmaz */
+.sp-bin .sp-lbl{display:block;flex:0 0 auto;max-width:100%;text-align:center;line-height:1.1;font-weight:900;white-space:normal;overflow-wrap:break-word}
