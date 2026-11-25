@@ -30,8 +30,8 @@ sub:"Yumuşak İzleme · Sıçrama · Hedef ve Bakış",
 purpose:"Gözlerin hareketli bir hedefi baş hareketi olmadan izlemesini, birden çok hedefi birlikte izlemesini, okumadaki gibi satır satır ve iki kenar arasında sıçramasını, karışık çizgiyi gözle izlemesini ve göz–el koordinasyonunu çalıştırır.",
 color:"#C97F32",
 group:"Hız & Dikkat",
-exerciseIds:["eye-horizontal","eye-vertical","periph","eye-diagonal","eye-diagonal2","eye-wave","eye-touch","eye-steep-wave","eye-depth","eye-square","eye-triangle","eye-star","eye-junction","finger-trace","eye-crossbox","eye-saccade-two","eye-saccade-random","eye-count","eye-saccade-reading","color-tap","row-name","rope-trace","two-col-name","track-fish"],   /* yeni çalışmalar (2026-11-22) alanın sonunda */
-exerciseGroups:[["Yumuşak İzleme", ["eye-horizontal", "eye-vertical", "eye-diagonal", "eye-diagonal2", "eye-wave", "eye-steep-wave", "eye-depth", "eye-square", "eye-triangle", "eye-star", "eye-junction", "eye-crossbox", "color-tap"]], ["Sıçrama", ["eye-saccade-two", "eye-saccade-random", "eye-saccade-reading", "row-name", "two-col-name"]], ["Hedef ve Bakış", ["periph", "eye-touch", "finger-trace", "eye-count", "rope-trace", "track-fish"]]]
+exerciseIds:["eye-horizontal","eye-vertical","periph","eye-diagonal","eye-diagonal2","eye-wave","eye-touch","eye-steep-wave","eye-depth","eye-square","eye-triangle","eye-star","eye-junction","finger-trace","eye-crossbox","eye-saccade-two","eye-saccade-random","eye-count","eye-saccade-reading","color-tap","rope-trace","track-fish"],   /* yeni çalışmalar (2026-11-22) alanın sonunda */
+exerciseGroups:[["Yumuşak İzleme", ["eye-horizontal", "eye-vertical", "eye-diagonal", "eye-diagonal2", "eye-wave", "eye-steep-wave", "eye-depth", "eye-square", "eye-triangle", "eye-star", "eye-junction", "eye-crossbox", "color-tap"]], ["Sıçrama", ["eye-saccade-two", "eye-saccade-random", "eye-saccade-reading"]], ["Hedef ve Bakış", ["periph", "eye-touch", "finger-trace", "eye-count", "rope-trace", "track-fish"]]]
 },
 {
 id:"yurutucu-islev",
@@ -132,7 +132,7 @@ function zaVariantGroup(id){ return EX_VARIANT_GROUPS.find(g => g.includes(id)) 
 /* KURAL (N-Geri Oyunları adı, 2026-11-16): tek sayfanın menüdeki, başlıktaki ve alan listesindeki adı "N-Geri Oyunları"dır (etkin olanın adı — ör. Konum — yazılmaz); sonuç kayıtları her N-Geri'nin kendi adıyla tutulur */
 const EX_VARIANT_LABELS = { "pos-nback": "N-Geri Oyunları" };
 /* birleşen sayfalar: eski kimlik yeni sayfanın aşamasına açılır (ödev, plan, öneri) */
-const EX_MERGED = { "span-read": { to: "span-listen", stage: 1 } };
+const EX_MERGED = { "span-read": { to: "span-listen", stage: 1 }, "row-name": { to: "eye-saccade-reading", stage: 0 }, "two-col-name": { to: "eye-saccade-two", stage: 0 } };   /* kaldırılan çalışmalar (2026-11-25): eski ödev ya da bağlantı bu çalışmalara giderse en yakın çalışma açılır */
 function zaMerged(id){ const m = EX_MERGED[id]; return m ? { id: m.to, stage: m.stage } : { id, stage: 0 }; }
 function zaNavLabel(ex){ try{ if(ex && ex.preLabel && isPre()) return ex.preLabel; const g = ex && zaVariantGroup(ex.id); return g ? (EX_VARIANT_LABELS[g[0]] || ex.label) : (ex ? ex.label : ""); }catch(e){ return ex ? ex.label : ""; } }
 function zaVariantActive(g){ try{ const m = window.__zaVar || (window.__zaVar = JSON.parse(localStorage.getItem(ZA_VAR_KEY) || "{}")); if(g.includes(m[g[0]])) return m[g[0]]; }catch(e){} return g[0]; }

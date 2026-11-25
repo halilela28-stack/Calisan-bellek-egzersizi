@@ -270,8 +270,8 @@ function fitTextCells(board){ const textEls = Array.from(board.querySelectorAll(
   /* KURAL (yazılı tahta yatay, 2026-11-16): yatay ekranda kelime/öbek tahtası, hücre sayısını tam bölen 2–8 sütun seçenekleri arasından yazının en büyük kalabildiği ve BÜTÜN satırların ekrana sığdığı düzeni seçer (eşitlikte daha az satır); satırlar ekrandaki yüksekliğe göre ölçülür (26–56 px). Önceden yatayda 2–3 sütuna düşüp satırlar ekrandan taşıyor ya da satırlar üst üste binip çizgiler kelimelerin üstünden geçiyordu (Renk-Kelime). Dikey ve yatay düzen birlikte gözetilir */
   if(landscapeMQ.matches && (textEls.length > 6 || ["word-list-recall", "sentence-repeat"].includes((currentExercise() || {}).id))){   /* Cümle/Öbek Tekrarı düzeyleri kuralı (2026-11-18): 4 – 6 öbekte de yatayda tam bölen sütunlar */   /* Kelime Listesi Hatırlama düzeyleri kuralı: kısa listede de (2 – 9 kelime) yatayda yalnız tam bölen sütunlar — 5 kelime 4 + 1 kırılmaz, tek satır olur */ const n = board.querySelectorAll(":scope > .cell").length || textEls.length, L = Math.max(...textEls.map(el => (el.textContent || "").trim().length)); if(L <= 22){ board.classList.add("txt-wrap"); let best = null;
       const shortL = ["word-list-recall", "sentence-repeat"].includes((currentExercise() || {}).id), cTop = (currentExercise() || {}).id === "sentence-repeat" ? 4 : 8;   /* KURAL (kısa liste yatayda büyük yazı, 2026-11-18): Kelime Listesi Hatırlama ve Cümle/Öbek Tekrarı yatayda 22 px'e kadar büyük yazılır; öbekler en çok 4 sütun (8 öbek 4 × 2) — önceden 8 öbek tek satırda küçük yazıyla kalıp tahtanın altı boş kalıyordu */
-for(let c = Math.min(cTop, n); c >= 2; c--){ if(n % c) continue; board.style.setProperty("--txt-cols", c); centerLastRow(board, c); if(!txtRowsFit(board, c, n)) continue; let sz = shortL ? 22 : 17; while(sz > floor && !fitsAll(sz)) sz--; if(!fitsAll(sz)) continue; if(!best || sz > best.sz) best = { c, sz }; }
-      if(best){ board.style.setProperty("--txt-cols", best.c); centerLastRow(board, best.c); txtRowsFit(board, best.c, n); textEls.forEach(el => { el.style.fontSize = best.sz + "px"; }); board.dataset.txtLs = String(best.c); return; }
+for(let c = Math.min(cTop, n); c >= 2; c--){ if(n % c && !(n === 5 && c === 3 && cTop === 4)) continue; board.style.setProperty("--txt-cols", c);   /* Özellik ve Varlık Tekrarları 4 – 5 – 6 kuralı: 5 öbek yatayda 3 + 2 (son satır ortalı) */ centerLastRow(board, c); if(!txtRowsFit(board, c, n)) continue; let sz = shortL ? 22 : 17; while(sz > floor && !fitsAll(sz)) sz--; if(!fitsAll(sz)) continue; if(!best || sz > best.sz) best = { c, sz }; }
+      if(best){ board.style.setProperty("--txt-cols", best.c); centerLastRow(board, best.c); txtRowsFit(board, best.c, n); if(n % best.c){ const c0 = board.querySelector(":scope > .cell"), gp = parseFloat(getComputedStyle(board).columnGap) || 0; centerLastRow(board, best.c, c0 ? c0.getBoundingClientRect().width + gp : 0); } textEls.forEach(el => { el.style.fontSize = best.sz + "px"; }); board.dataset.txtLs = String(best.c); return; }
       board.classList.remove("txt-wrap"); board.style.removeProperty("--txt-cols"); delete board.dataset.txtRows; board.style.removeProperty("--txt-minh"); } }
   size = Math.max(size, floor);   /* yazılı tahta sütunları kuralı: sığma, yazının gerçekten gösterileceği boyutta (en az taban) ölçülür — tahta CSS'i yazıyı 9,9 px'e indirdiğinde küçük boyutta "sığıyor" sanılıp 12/14 px'e büyütülünce taşıyordu (iPhone SE: TURUNCU, anahtar, patates) */
   let guard = 0; while(!fitsAll(size) && size > floor && guard < 30){ size -= 1; guard++; }
@@ -1193,6 +1193,9 @@ window.addEventListener("load", ()=>{
 navigator.serviceWorker.register("sw.js").catch(()=>{});
 });
 }
+/* hızlı açılış kuralı: kayıtlı kopyayla hızlı açıldıktan sonra arkada yeni sürüm indiyse küçük bir düğme çıkar; dokununca uygulama yeni sürümle yeniden açılır (çalışma sürerken çıkmaz, çalışma bitince çıkar) */
+function zaYeniSurum(v){ try{ if(!v || v === APP_VERSION) return; const goster = () => { if(typeof timerRunning !== "undefined" && timerRunning){ setTimeout(goster, 3000); return; } let el = document.getElementById("zaUpd"); if(!el){ el = document.createElement("button"); el.type = "button"; el.id = "zaUpd"; el.style.cssText = "position:fixed;left:50%;transform:translateX(-50%);bottom:calc(88px + env(safe-area-inset-bottom));z-index:9996;background:#0F8B85;color:#fff;border:0;border-radius:999px;padding:12px 18px;font:inherit;font-weight:800;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.18)"; el.onclick = () => { const u = new URL(location.href); u.searchParams.set("r", String(Date.now())); location.replace(u.href); }; document.body.appendChild(el); } el.textContent = "Yeni sürüm hazır · Yenile"; el.style.display = "block"; }; goster(); }catch(e){} }
+try{ if(navigator.serviceWorker) navigator.serviceWorker.addEventListener("message", (ev) => { const d = ev.data || {}; if(d.type === "za-yeni-surum") zaYeniSurum(d.v); }); }catch(e){}
 
 function renderRecent(){
 const container = document.getElementById("historyList");
@@ -1809,7 +1812,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.23-c";
+const APP_VERSION = "2026.11.23-d";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 /* RUNTIME_CSS → zihin-stil.css */
 /* Dosya sürümü denetimi: zihin-atolyesi.html ile uygulama kodu (zihin-1…8) farklı sürümdeyse uyar */

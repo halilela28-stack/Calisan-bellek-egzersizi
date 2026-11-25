@@ -671,12 +671,6 @@ html.ins-xs .sdmt-pair > div{width:36px;height:36px;padding:4px}   /* küçük t
 @media (max-width:380px), (max-height:700px){ .oi-st{gap:3px !important} .oi-st .anl-w{font-size:13.5px;padding:3px 8px;line-height:1.25} #board:has(.oi-st) .qz-replay{margin-bottom:6px !important;min-height:40px !important;padding:6px 14px !important} }   /* yalnız Hangisi Daha Uzun?: önceden bütün soru sayfalarında "Bir daha dinle" 36 px'e iniyordu (kural: en az 40 px) */
 @media (max-width:380px), (max-height:700px){ .kn-clues{gap:4px !important;margin-bottom:6px !important} .kn-clues .anl-w{font-size:13.5px;padding:3px 8px} }
 @media (max-width:380px){ .cmf-o{gap:6px !important} .cmf-o svg{width:34px !important;height:17px !important} .cmf-o b{font-size:15px} }
-/* KURAL (İki Sütun Arasında Söyle, 2026-11-22): iki sütun ekranın iki kenarına yaslanır; resimler hücrenin dış kenarında durur (uzun göz sıçraması) */
-#board:has(.tcs-it){justify-content:stretch !important;row-gap:8px !important}   /* satır arası dar: 5 satır kısa telefonda da (iPhone SE) çalışırken tahtaya sığar; önceden genel 26 px satır arasıyla son satırlar tahtanın dışında kalıyordu */
-#board > .cell:nth-child(odd of .cell):has(.tcs-it){justify-content:flex-start !important}
-#board > .cell:nth-child(even of .cell):has(.tcs-it){justify-content:flex-end !important}
-#board .tcs-it{max-width:110px;max-height:100%}
-@media (orientation: landscape) and (max-height: 500px){ #board:has(.tcs-it){row-gap:3px !important} }
 /* KURAL (Nasıl Yapılır? yatay, 2026-11-22): yatay telefonda soru satırı biraz sıkışır; soru ve örnek cevap hücreye sığar, alttaki ayırıcı çizgi yazının üstünden geçmez */
 @media (orientation: landscape) and (max-height: 500px){ #board .ny-q{line-height:1.1 !important;margin:0 !important;padding:0 !important} #board .cell:has(.ny-q) .oral-ans{margin-top:1px !important;line-height:1.15 !important} }
 

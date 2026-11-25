@@ -5,11 +5,13 @@
    - Betikler (zihin-*.js) ve resim dosyaları: önce önbellek; yoksa ağdan alınıp saklanır; aynı dosyanın eski sürümleri silinir.
    - Diğer aynı kaynaklı istekler: önbellekten ver, arkada yenile.
    Sürüm değişince (SW_VERSION) eski önbellekler temizlenir. */
-const SW_VERSION = "2026.11.23-c";
+const SW_VERSION = "2026.11.23-d";
 const CACHE = "za-" + SW_VERSION;
 const CACHE_IMG = "za-img";   /* KURAL: resim paketleri sürüm değişince silinmez; yalnızca içeriği değişen paket (adresindeki özet değişir) yeniden indirilir */
 const CORE = ["./zihin-atolyesi.html", "./zihin-0-ortak.js", "./zihin-1-tahtalar.js", "./zihin-2-calismalar.js", "./zihin-3-akis.js", "./zihin-4-bellek.js", "./zihin-5-oyun-ici.js", "./zihin-6-ekran.js", "./zihin-7-adalar.js", "./zihin-8-aile.js", "./zihin-stil.css", "./manifest.json"];
 const HTML_TIMEOUT_MS = 4000;
+/* KURAL (hızlı açılış, 2026-11-25; kullanıcı isteği): HTML önce ağdan istenir ama cihazda kayıtlı kopya varsa ağ en çok 700 ms beklenir; ağ geç kalırsa kayıtlı kopya hemen açılır, ağdan gelen yeni HTML arkada kaydedilir ve sayfaya "yeni sürüm hazır" haberi gönderilir. Önceden her açılışta ağ 4 sn'ye kadar bekleniyordu — yavaş bağlantıda uygulama 3–4 sn geç açılıyordu */
+const HTML_FAST_MS = 700;
 
 self.addEventListener("install", (ev) => {
   ev.waitUntil((async () => {
@@ -40,6 +42,16 @@ async function pruneOld(cache, url){
 
 async function networkFirstHtml(req){
   const cache = await caches.open(CACHE);
+  const kayitli = (await cache.match(req, { ignoreSearch: true })) || (await cache.match("./zihin-atolyesi.html"));
+  if(kayitli){
+    const ctrl = new AbortController(); const tAb = setTimeout(() => ctrl.abort(), 20000);
+    const u = new URL(req.url); u.searchParams.set("_sw", String(Date.now()));
+    const ag = fetch(u.href, { signal: ctrl.signal, cache: "no-store", credentials: "same-origin" }).then(async res => { clearTimeout(tAb); if(res && res.ok){ await cache.put("./zihin-atolyesi.html", res.clone()); } return res; }).catch(() => null);
+    const sonuc = await Promise.race([ag, new Promise(r => setTimeout(() => r("gec"), HTML_FAST_MS))]);
+    if(sonuc && sonuc !== "gec" && sonuc.ok) return sonuc;
+    ag.then(async res => { try{ if(!res || !res.ok) return; const tx = await res.clone().text(); const m = /ZA_HTML_VERSION\s*=\s*"([^"]+)"/.exec(tx); const eski = await kayitli.clone().text(); const m0 = /ZA_HTML_VERSION\s*=\s*"([^"]+)"/.exec(eski); if(m && (!m0 || m[1] !== m0[1])){ const cl = await self.clients.matchAll({ type: "window" }); cl.forEach(c => c.postMessage({ type: "za-yeni-surum", v: m[1] })); } }catch(e){} });
+    return kayitli;
+  }
   try{
     const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), HTML_TIMEOUT_MS);
     const u = new URL(req.url); u.searchParams.set("_sw", String(Date.now())); /* KURAL (güncelleme): HTML her açılışta değişen bir ekle istenir; GitHub Pages'in 10 dakikalık önbelleği eski HTML döndüremez */

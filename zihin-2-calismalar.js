@@ -13,7 +13,7 @@ const WORD_LIST_DIMS = () => (isPre() ? WORD_LIST_N.pre : WORD_LIST_N.post).map(
 /* KURAL (Şekil ve Renk Hatırlama öğe sayısı, 2026-11-18; kullanıcı kararı): Şekil Hatırlama ve Renk Hatırlama'da öğe sayısı okul öncesinde Başlangıç 2, Orta 3, Zor 4; okul sonrasında 4, 6, 8 (önceden 4 – 6 – 8 / 8 – 10 – 12). Dizilim: 2 ve 3 öğe tek satır, 4 öğe 2 × 2, 6 öğe 2 × 3, 8 öğe 2 × 4. Öğe sayısı çeşit sayısını (5 renk, 5 şekil) aşmıyorsa tahtadaki bütün renkler / şekiller birbirinden farklıdır; aşıyorsa bir çeşit en çok iki kez gelir ve yan yana aynısı gelmez; Şekil Hatırlama'da aynı renkte aynı şekil iki kez gelmez. Konum Hatırlama aynı kalır */
 const RECALL_DIMS = () => isPre() ? [{rows:1, cols:2}, {rows:1, cols:3}, {rows:2, cols:2}] : [{rows:2, cols:2}, {rows:2, cols:3}, {rows:2, cols:4}];
 function recallDeal(vals, n){ let out = [], k = 0; do { out = []; while(out.length < n) out = out.concat(shuffleArray(vals)); out = out.slice(0, n); } while(k++ < 60 && out.some((v, i) => i && v === out[i - 1])); return out; }
-const PHRASE_N = { post:[4, 6, 8], pre:[2, 3, 4] };
+const PHRASE_N = { post:[4, 5, 6], pre:[2, 3, 4] };   /* KURAL (Özellik ve Varlık Tekrarları 4 – 5 – 6, 2026-11-25; kullanıcı isteği): okul sonrası Başlangıç 4, Orta 5, Zor 6 öbek (önceden 4 – 6 – 8); okul öncesi 2 – 3 – 4 aynı */
 const PHRASE_DIMS = () => (isPre() ? PHRASE_N.pre : PHRASE_N.post).map(n => ({ rows:n, cols:1 }));
 const TXT_GRID_DIMS = [{rows:4, cols:4}, {rows:5, cols:4}, {rows:6, cols:4}], TXT_GRID_DIMS3 = [{rows:4, cols:3}, {rows:6, cols:3}, {rows:8, cols:3}];   /* Hece Sayma: kelimeler uzun, 3 sütun → 12 – 18 – 24 */
 const EXERCISES = [
@@ -2994,26 +2994,6 @@ randomItem: () => ({}),
 stages: [ { label: "Parlayanı İzle", instruction: () => ``, example: () => `` } ]
 },
 {
-id: "row-name",
-readingLevel: ["pre","post"],
-label: "Satır Satır Söyle",
-attrs: [], adultOnly: true,   /* yeni çalışma (2026-11-22, Göz Takip): söylemeli; okuma göz hareketi — öğeler satırlarda düzensiz aralıkla; okul sonrası Orta ve Zor'da rakamlar. Söylemeli olduğu için Zihin Adaları'na girmez */
-dims: () => SRS_DIMS(),
-randomItem: () => srsItem(),
-renderItem: (it) => it.d ? `<span class="srs-it" style="display:block;transform:translateX(${it.dx}%);font-weight:900;font-size:${Math.round(30 * it.sc + 8)}px;line-height:1;color:var(--ink)">${it.d}</span>` : `<img class="srs-it" src="${it.src}" alt="" style="width:${Math.round(it.sc * 100)}%;height:${Math.round(it.sc * 100)}%;object-fit:contain;display:block;transform:translateX(${it.dx}%)">`,
-stages: [ { label: "Satır Satır Söyle", instruction: () => ``, example: (it) => it.d ? String(it.d) : it.n } ]
-},
-{
-id: "two-col-name",
-readingLevel: ["pre","post"],
-label: "İki Sütun Arasında Söyle",
-attrs: [], adultOnly: true,   /* yeni çalışma (2026-11-22, Göz Takip): söylemeli; iki kenar arasında uzun sıçrama + adlandırma */
-dims: () => TCS_DIMS(),
-randomItem: () => { const x = gtNextPic(); return { src: x.src, n: x.n }; },
-renderItem: (it) => `<img class="tcs-it" src="${it.src}" alt="" style="width:62%;height:94%;object-fit:contain;display:block">`,
-stages: [ { label: "Sol, Sağ", instruction: () => ``, example: (it) => it.n } ]
-},
-{
 id: "end-sound",
 readingLevel: ["pre","post"],
 label: "Hangi Sesle Bitiyor?",
@@ -3354,7 +3334,7 @@ example: () => ``
 },
 {
 id: "sentence-repeat",
-dims: () => PHRASE_DIMS(),   /* Cümle/Öbek Tekrarı düzeyleri kuralı (2026-11-18): 4 – 6 – 8 öbek; okul öncesi 2 – 3 – 4 */
+dims: () => PHRASE_DIMS(),   /* Cümle/Öbek Tekrarı düzeyleri kuralı (2026-11-18; 2026-11-25'ten beri okul sonrası 4 – 5 – 6 öbek): okul öncesi 2 – 3 – 4 */
 readingLevel: ["pre","post"],
 label: "Özellik ve Varlık Tekrarları",
 isRecall: true,

@@ -899,6 +899,14 @@ let _stimBus = null;
 function stimBus(ctx){ if(_stimBus && _stimBus.context === ctx) return _stimBus; try{ const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -3; lim.knee.value = 2; lim.ratio.value = 12; lim.attack.value = 0.002; lim.release.value = 0.1; const g = ctx.createGain(); g.gain.value = 1; g.connect(lim); lim.connect(ctx.destination); _stimBus = g; return g; }catch(e){ return ctx.destination; } }
 function stimTone(ctx, f, t0, dur, vol){ [[f, "triangle", vol], [f * 2, "sine", vol * 0.45]].forEach(([fr, ty, v]) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = ty; o.frequency.setValueAtTime(fr, t0); g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(v, t0 + 0.008); g.gain.setValueAtTime(v, t0 + dur * 0.55); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur); o.connect(g); g.connect(stimBus(ctx)); o.start(t0); o.stop(t0 + dur + 0.02); }); }
 function rhyBeep(){ zaAudioPlay((ctx) => stimTone(ctx, 880, ctx.currentTime + 0.005, 0.16, 0.62), 100); }   /* ses zamanında çalar kuralı: ritim vuruşu geç çalmaz */
+/* KURAL (davul sesi ve ritim zamanlaması, 2026-11-25; kullanıcı isteği): Ritim Tekrarı ve Ritim Davulu'nda vuruşlar bip değil davul sesidir — perdesi hızla düşen derin bir zar sesi (190 → 95 Hz), telefon hoparlörünün duyurduğu üst ses (2. harmonik) ve kısa bir tokmak vuruşu (süzülmüş gürültü); uyaran sesi kuralındaki güçlü yoldan çalar. Gösterilen ritmin her vuruşu ses saatinde önceden (120 ms) tam zamanına kurulur — sayfa çizimi ya da zamanlayıcı kayması aralıkları bozmaz; ekrandaki vuruş ışığı aynı ana bağlanır. Davula dokunuş parmak değdiği anda (parmak kalkınca değil) sayılır ve davul sesi o anda çalar; Ritim Davulu'nda zamanında sayılma, sesin hoparlörden çıkış gecikmesi eklenerek ölçülür */
+function stimDrum(ctx, t0, vol){ const v = vol || 0.7, bus = stimBus(ctx);
+  [[190, 95, "sine", v, 0.30], [380, 190, "triangle", v * 0.42, 0.16]].forEach(([f0, f1, ty, a, dur]) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = ty; o.frequency.setValueAtTime(f0, t0); o.frequency.exponentialRampToValueAtTime(f1, t0 + 0.12); g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(a, t0 + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur); o.connect(g); g.connect(bus); o.start(t0); o.stop(t0 + dur + 0.02); });
+  try{ const len = Math.floor(ctx.sampleRate * 0.05), buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0); for(let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len); const src = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), g = ctx.createGain(); src.buffer = buf; bp.type = "bandpass"; bp.frequency.value = 1800; bp.Q.value = 0.8; g.gain.setValueAtTime(v * 0.55, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.05); src.connect(bp); bp.connect(g); g.connect(bus); src.start(t0); src.stop(t0 + 0.06); }catch(e){} }
+function drumAt(tgt){ window.__drumN = (window.__drumN || 0) + 1; zaAudioPlay((ctx) => stimDrum(ctx, ctx.currentTime + Math.max(0.004, ((tgt || performance.now()) - performance.now()) / 1000), 0.7), 100); }   /* tgt: performance.now() zamanı; boşsa hemen */
+function drumLat(){ try{ const c = getAudioCtx(); return c ? Math.round(((c.outputLatency || 0) + (c.baseLatency || 0)) * 1000) : 0; }catch(e){ return 0; } }
+function tapTime(){ const t = window.__tapT; return (t && performance.now() - t < 120) ? t : performance.now(); }   /* parmağın değdiği an (davul dokunuşu kuralı) */
+function drumPlan(times, onBeat){ const sp = window.__wmSpeed || 1, base = performance.now(); times.forEach((tm, k) => { const tgt = base + tm * sp; mtLater(() => drumAt(tgt), Math.max(0, tm - 120)); mtLater(() => onBeat(k), tm); }); return base; }
 const VR_STUDY = { pre:[2, 3, 4], post:[4, 5, 6] }, VR_SETS = 3;
 /* Bunu Gördün mü? üç set kuralı: resim havuzu — temel havuz (26 resim) yetmezse geniş havuz (hayvan, deniz canlısı, taşıt resimleri dahil) kullanılır; aynı adı taşıyan iki resim birlikte gelmez */
 function vrPool(need){ const base = picPool(); const src = base.length >= need ? base : picPoolWide(), seen = new Set(); return src.filter(x => { if(seen.has(x.n)) return false; seen.add(x.n); return true; }); }
@@ -2687,7 +2695,7 @@ st.study.forEach((it, k) => mtLater(() => { st.si = k; renderMtBoard(); sayTask(
 mtLater(() => { st.phase = "ask"; st.qi = 0; renderMtBoard(); sayTask(st.mode === 2 ? `${st.ppl[st.test[0].p].nm} ne söyledi?` : "Bunu kim söyledi?"); }, 300 + st.study.length * step + 200); },
 rhy(){ const st = mtState, tr = st.trials[st.ti]; st.phase = "play"; st.taps = []; st.pulse = -1; renderMtBoard(); const unit = 420;
 let at = 500; const times = [at]; tr.iv.forEach(u => { at += u * unit; times.push(at); });
-times.forEach((tm, k) => mtLater(() => { st.pulse = k; rhyBeep(); const d = document.getElementById("rhyDrum"); if(d){ d.classList.remove("hit"); void d.offsetWidth; d.classList.add("hit"); } }, tm));
+drumPlan(times, (k) => { st.pulse = k; const d = document.getElementById("rhyDrum"); if(d){ d.classList.remove("hit"); void d.offsetWidth; d.classList.add("hit"); } });   /* davul sesi ve ritim zamanlaması kuralı */
 mtLater(() => { st.phase = "input"; renderMtBoard(); }, at + 700); },
 mem(){ const st = mtState; st.phase = "input"; renderMtBoard(); },
 ssnd(){ const st = mtState, tr = st.trials[st.ti]; st.found = {}; st.bad = {}; st.phase = "input"; renderMtBoard(); mtLater(() => sayTask(`${tr.s} sesiyle başlayanları bul.`, 0.85), 250); },
@@ -2726,8 +2734,8 @@ requestAnimationFrame(frame); },
 wt(){ const st = mtState, tr = st.trials[st.ti]; st.tray = []; st.phase = "order"; renderMtBoard(); sayTask("Sipariş: " + tr.order.map(o => `${o.n} ${o.x.n}`).join(", "));
 if(tr.hide) mtLater(() => { st.phase = "input"; renderMtBoard(); }, tr.ms); else { st.phase = "input"; renderMtBoard(); } },
 dr(){ const st = mtState, c = st.cfg; st.phase = "demo"; st.k = -1; renderMtBoard(); const sp = window.__wmSpeed || 1, t0 = performance.now() + 400 * sp, total = c.demo + c.taps;
-st.beats = Array.from({length: total}, (_, k) => t0 + k * c.beat * sp);
-st.beats.forEach((bt, k) => mtLater(() => { st.k = k; if(k === c.demo){ st.phase = "tap"; renderMtBoard(); } try{ rhyBeep(); }catch(e){} const r = document.getElementById("drRing"); if(r){ r.classList.remove("pulse"); void r.offsetWidth; r.classList.add("pulse"); } }, 400 + k * c.beat));
+const base = drumPlan(Array.from({length: total}, (_, k) => 400 + k * c.beat), (k) => { st.k = k; if(k === c.demo){ st.phase = "tap"; renderMtBoard(); } const r = document.getElementById("drRing"); if(r){ r.classList.remove("pulse"); void r.offsetWidth; r.classList.add("pulse"); } });   /* davul sesi ve ritim zamanlaması kuralı: vuruşlar ses saatinde tam zamanında */
+st.beats = Array.from({length: total}, (_, k) => base + (400 + k * c.beat) * sp + drumLat());
 mtLater(() => { for(let k = c.demo; k < total; k++) if(!st.hits[k]) mtErr(); st.phase = "done"; mtFinish(` Tam zamanında: ${st.score}/${c.taps}`); }, 400 + total * c.beat + c.win + 200); },
 kav(){ const st = mtState, c = st.cfg, pre = isPre(); st.phase = "run"; renderMtBoard(); sayTask(pre ? `Yalnızca ${st.tg === "taşıt" ? "taşıtlara" : st.tg === "hayvan" ? "hayvanlara" : st.tg === "meyve" ? "meyvelere" : "oyuncaklara"} dokun!` : `Yalnızca ${KA_CATS[st.tg]} olanlara dokun!`);
 const area = document.getElementById("pkArea"); if(!area) return; const total = c.N * 2, kinds = shuffleArray(Array.from({length: total}, (_, i) => i < c.N)); let made = 0, tgtMade = 0;
@@ -2950,7 +2958,7 @@ cups(i){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "ask") retur
 mmath(i){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "ask") return; st.pick = i; st.phase = "fb"; const ok = tr.opts[i] === tr.res; if(ok) gameSfx("correct"); else mtErr(); renderMtBoard(); mtLater(NEW_MT.next, ok ? 600 : 1400); },
 who(i){ const st = mtState, it = st.test[st.qi]; if(st.phase !== "ask") return; st.pick = i; st.phase = "fb"; const ok = st.mode === 2 ? it.opts[i] === it : i === it.p; if(ok) gameSfx("correct"); else mtErr(); renderMtBoard();
 mtLater(() => { st.qi++; st.pick = null; if(st.qi >= st.test.length){ mtFinish(); return; } st.phase = "ask"; renderMtBoard(); if(st.mode === 2) sayTask(`${st.ppl[st.test[st.qi].p].nm} ne söyledi?`); }, ok ? 550 : 1300); },
-rhy(i){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "input") return; st.taps.push(performance.now()); rhyBeep(); const d = document.getElementById("rhyDrum"); if(d){ d.classList.remove("hit"); void d.offsetWidth; d.classList.add("hit"); }
+rhy(i){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "input") return; st.taps.push(tapTime()); drumAt(); const d = document.getElementById("rhyDrum"); if(d){ d.classList.remove("hit"); void d.offsetWidth; d.classList.add("hit"); }
 const c = document.getElementById("rhyCnt"); if(c) c.textContent = `${st.taps.length}/${tr.L}`; if(st.taps.length >= tr.L) rhyEval(); },
 mem(i){ const st = mtState; if(st.phase !== "input" || st.lock || st.done[i] || st.open.includes(i)) return; st.open.push(i); gameSfx("pop"); renderMtBoard();
 if(st.open.length === 2){ const [a, b] = st.open; if(st.cards[a].x === st.cards[b].x){ st.done[a] = st.done[b] = 1; st.open = []; gameSfx("correct"); renderMtBoard(); if(Object.keys(st.done).length === st.cards.length){ st.phase = "fb"; mtLater(() => mtFinish(` Açma denemesi: ${st.miss + st.P}, eşleşmeyen: ${st.miss}.`), 500); } }
@@ -2979,10 +2987,10 @@ scenet(i){ const st = mtState, q = st.qs[st.qi]; if(st.phase !== "ask") return; 
 const ok = q.opts[i] === q.ans; if(ok) gameSfx("correct"); else mtErr(); renderMtBoard();
 mtLater(() => { st.qi++; st.pick = null; if(st.qi >= st.qs.length){ mtFinish(); return; } st.phase = "ask"; renderMtBoard(); }, ok ? 600 : 1300); },
 wt(i){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "input") return; if(typeof i === "string" && i[0] === "t"){ st.tray.splice(Number(i.slice(1)), 1); renderMtBoard(); return; } if(st.tray.length < 9){ st.tray.push(i); gameSfx("pop"); renderMtBoard(); } },
-dr(i){ const st = mtState, c = st.cfg; if(st.phase !== "tap") return; const now = performance.now(), sp = window.__wmSpeed || 1; let best = -1, bd = 1e9;
+dr(i){ const st = mtState, c = st.cfg; if(st.phase !== "tap") return; const now = tapTime(), sp = window.__wmSpeed || 1; let best = -1, bd = 1e9; drumAt();
 for(let k = c.demo; k < st.beats.length; k++){ const d = Math.abs(now - st.beats[k]); if(d < bd){ bd = d; best = k; } }
 const d = document.getElementById("drDrum"); if(d){ d.classList.remove("hit"); void d.offsetWidth; d.classList.add("hit"); }
-if(best >= 0 && bd <= c.win * sp && !st.hits[best]){ st.hits[best] = true; st.score++; gameSfx("pop"); const s2 = document.getElementById("pkScore"); if(s2) s2.textContent = st.score; } else mtErr(); },
+if(best >= 0 && bd <= c.win * sp && !st.hits[best]){ st.hits[best] = true; st.score++; const s2 = document.getElementById("pkScore"); if(s2) s2.textContent = st.score; } else mtErr(); },
 kav(i){ const st = mtState; if(st.phase !== "run") return; const it = st.items.find(x => x.id === i); if(!it) return; if(it.cat === st.tg){ st.score++; gameSfx("pop"); } else mtErr();
 it.el.classList.add("pop"); st.items.splice(st.items.indexOf(it), 1); setTimeout(() => it.el.remove(), 160); const hd = document.getElementById("pkScore"); if(hd) hd.textContent = st.score; },
 ubal(i){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "run") return; st.pick = i; st.phase = "fb"; if(i === tr.ans){ st.score++; gameSfx("correct"); } else mtErr(); renderMtBoard(); mtLater(NEW_MT.next, i === tr.ans ? 600 : 1300); },
@@ -4130,13 +4138,7 @@ function motRender(st, W, H, isLs){ const tr = st.trials[st.ti], Hh = yzFit(isLs
   return { info, body: yzDots(st) + `<div id="motBox" style="position:relative;width:${b.w}px;height:${b.h}px;margin:0 auto;background:#EAF6FF;border:2px solid var(--line);border-radius:18px;overflow:hidden">${fish}</div>` }; }
 function motPlace(k, b, sz, lay){ const P = []; (lay || []).forEach(([fx, fy, a]) => { const x = 6 + fx * (b.w - sz - 12), y = 6 + fy * (b.h - sz - 12); if(P.length < k && P.every(p => Math.hypot(p.x - x, p.y - y) > sz * 1.15)) P.push({ x, y, vx: Math.cos(a), vy: Math.sin(a) }); }); for(let g = 0; g < 400 && P.length < k; g++){ const x = 6 + Math.random() * (b.w - sz - 12), y = 6 + Math.random() * (b.h - sz - 12); if(P.every(p => Math.hypot(p.x - x, p.y - y) > sz * 1.15)){ const a = Math.random() * Math.PI * 2; P.push({ x, y, vx: Math.cos(a), vy: Math.sin(a) }); } } while(P.length < k) P.push({ x: 6, y: 6, vx: 1, vy: 1 }); return P; }
 
-/* --- 4. Satır Satır Söyle ve 5. İki Sütun Arasında Söyle (söylemeli tahta) --- */
-function gtNamePool(){ return picPool().filter(x => x && x.src && x.n); }
-let gtRecent = []; function gtNextPic(){ const pool = gtNamePool(), keep = Math.max(0, Math.min(pool.length - 1, 24)); let c = pool.filter(x => !gtRecent.includes(x.src)); if(!c.length) c = pool; const x = randomItem(c); gtRecent.push(x.src); if(gtRecent.length > keep) gtRecent = gtRecent.slice(-keep); return x; }   /* tahtada aynı resim iki kez gelmez: son 24 resim yeniden seçilmez (havuz döngüsünün başa sardığı yerde de) */
-const SRS_DIMS = () => isPre() ? [{rows:3, cols:3}, {rows:4, cols:3}, {rows:4, cols:4}] : [{rows:4, cols:4}, {rows:5, cols:5}, {rows:6, cols:5}];
-const TCS_DIMS = () => isPre() ? [{rows:2, cols:2}, {rows:3, cols:2}, {rows:4, cols:2}] : [{rows:3, cols:2}, {rows:4, cols:2}, {rows:5, cols:2}];   /* yatay telefonda da resimler adlandırılacak boyda kalsın diye en çok 5 satır */
-function srsItem(){ const digits = !isPre() && currentCombo().t >= 1; const dx = Math.round((Math.random() * 2 - 1) * 26), sc = 0.62 + Math.random() * 0.22;   /* düzensiz aralık: her öğe hücresinde biraz sağa ya da sola kayar, boyu biraz değişir */
-  if(digits){ const d = 1 + Math.floor(Math.random() * 9); return { d, dx, sc }; } const x = gtNextPic(); return { src: x.src, n: x.n, dx, sc }; }
+/* KURAL (Satır Satır Söyle ve İki Sütun Arasında Söyle kaldırıldı, 2026-11-25; kullanıcı isteği): iki söylemeli Göz Takip çalışması uygulamadan silindi; alan 24 → 22 çalışma. Eski kayıtlardaki bu çalışmalar raporlarda sorun çıkarmaz */
 
 /* --- kayıt --- */
 Object.assign(NEW_MT.build, {

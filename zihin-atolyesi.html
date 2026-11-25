@@ -17,7 +17,9 @@
 <title>Zihin Atölyesi</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap">
+<!-- KURAL (hızlı açılış, 2026-11-25): yazı tipi sayfanın ilk çizimini bekletmez — Nunito arkada yüklenir, gelene kadar sistem yazısı görünür (önceden yazı tipi sunucusu yanıt verene kadar ekran boş kalıyordu; yavaş bağlantıda saniyeler sürüyordu) -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap"></noscript>
 <style>
 :root{
 
@@ -2863,7 +2865,7 @@ button, input, select, textarea, option{ font-family:inherit; }
 .ex-today .ex-go-txt{ opacity:.85; margin-top:2px; }
 .ex-today:active{ transform:translateY(2px); }
 </style>
-<link rel="stylesheet" href="zihin-stil.css?v=2026.11.23-c">
+<link rel="stylesheet" href="zihin-stil.css?v=2026.11.23-d">
 </head>
 <body>
 <div class="brand-splash" id="brandSplash" aria-hidden="true">
@@ -3077,7 +3079,7 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 <div class="settings-inner">
 <div class="settings-header">
 <h2>Ayarlar</h2>
-<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.11.23-c</div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin:-6px 0 10px">Sürüm 2026.11.23-d</div>
 <button class="icon-btn" id="closeSettingsBtn">✕</button>
 </div>
 
@@ -3453,7 +3455,23 @@ Detaylar için <a href="gizlilik-politikasi.html" target="_blank" rel="noopener"
 
 </div>
 
-<script type="module">
+
+<script>/* KURAL: uygulama hiçbir durumda boş beyaz ekranda kalmaz — açılış 9 sn içinde tamamlanmazsa ya da açılırken hata olursa yardım ekranı çıkar; "Yenile" önbelleği temizler, kayıtlar (yerel veriler) silinmez */
+window.__zaErr = []; window.addEventListener('error', function(e){ try{ window.__zaErr.push(((e && e.message) || 'hata') + (e && e.lineno ? ' (satır ' + e.lineno + ')' : '')); }catch(_){} });
+window.__zaRescue = function(){ var go = function(){ var u = location.href.split('#')[0].replace(/[?&]r=\d+/, ''); location.replace(u + (u.indexOf('?') > -1 ? '&' : '?') + 'r=' + Date.now()); }; try{ var ps = []; if(window.caches && caches.keys) ps.push(caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); })); if(navigator.serviceWorker && navigator.serviceWorker.getRegistrations) ps.push(navigator.serviceWorker.getRegistrations().then(function(rs){ return Promise.all(rs.map(function(r){ return r.unregister(); })); })); Promise.all(ps).then(go, go); setTimeout(go, 2500); }catch(e){ go(); } };
+setTimeout(function(){ if(window.__zaReady && window.__zaBooted) return; var err = (window.__zaErr || []).slice(0, 2).join(' · '); var d=document.createElement('div'); d.id='zaBootHelp'; d.style.cssText='position:fixed;inset:0;z-index:99999;background:#F6FBFA;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;text-align:center;color:#1D2B36'; d.innerHTML='<div style="max-width:420px"><div style="font-size:22px;font-weight:800;margin-bottom:10px">Uygulama açılamadı</div><div style="font-size:15px;line-height:1.5">Genellikle güncelleme sırasında dosyaların bir kısmı yeni, bir kısmı eski kaldığında olur. Önce dört dosyanın da (zihin-atolyesi.html, zihin-app.js, sw.js ve değişen zihin-gorsel dosyası) yüklendiğinden emin olun, sonra aşağıdaki düğmeye basın. <b>Kayıtlarınız silinmez.</b></div>' + (err ? '<div style="font-size:12px;color:#5B6B78;margin-top:10px;word-break:break-word">Ayrıntı: ' + err.replace(/</g, '&lt;') + '</div>' : '') + '<button onclick="window.__zaRescue()" style="margin-top:16px;padding:12px 22px;border:0;border-radius:14px;background:#0A847E;color:#fff;font-size:16px;font-weight:800">Önbelleği yenile ve aç</button></div>'; document.body.appendChild(d); }, 9000);</script>
+<script>window.ZA_HTML_VERSION = "2026.11.23-d";</script>
+<!-- KURAL (dosya bölme, 2026-11-09 — mühendislik borcu 6. adım): uygulama kodu sekiz dosyadır ve bu sırayla yüklenir; sıra, eski tek dosyanın ardışık parçalarıdır, değiştirilemez. sw.js aynı listeyi önbelleğe alır -->
+<script src="zihin-0-ortak.js?v=2026.11.23-d"></script>
+<script src="zihin-1-tahtalar.js?v=2026.11.23-d"></script>
+<script src="zihin-2-calismalar.js?v=2026.11.23-d"></script>
+<script src="zihin-3-akis.js?v=2026.11.23-d"></script>
+<script src="zihin-4-bellek.js?v=2026.11.23-d"></script>
+<script src="zihin-5-oyun-ici.js?v=2026.11.23-d"></script>
+<script src="zihin-6-ekran.js?v=2026.11.23-d"></script>
+<script src="zihin-7-adalar.js?v=2026.11.23-d"></script>
+<script src="zihin-8-aile.js?v=2026.11.23-d"></script>
+<script type="module" async>   /* hızlı açılış kuralı: bulut (Firebase) modülü async — indirilmesi sayfanın hazır olmasını (DOMContentLoaded) bekletmez; hazır olunca "firebase-ready" olayıyla bağlanır */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app-check.js";
 const APP_CHECK_SITE_KEY = "";   // reCAPTCHA v3 site anahtarı; boşken App Check kapalı
@@ -3509,27 +3527,12 @@ console.error("Firebase modül başlatma hatası:", e);
 dispatchFbReady();
 }
 </script>
-<script>/* KURAL: uygulama hiçbir durumda boş beyaz ekranda kalmaz — açılış 9 sn içinde tamamlanmazsa ya da açılırken hata olursa yardım ekranı çıkar; "Yenile" önbelleği temizler, kayıtlar (yerel veriler) silinmez */
-window.__zaErr = []; window.addEventListener('error', function(e){ try{ window.__zaErr.push(((e && e.message) || 'hata') + (e && e.lineno ? ' (satır ' + e.lineno + ')' : '')); }catch(_){} });
-window.__zaRescue = function(){ var go = function(){ var u = location.href.split('#')[0].replace(/[?&]r=\d+/, ''); location.replace(u + (u.indexOf('?') > -1 ? '&' : '?') + 'r=' + Date.now()); }; try{ var ps = []; if(window.caches && caches.keys) ps.push(caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); })); if(navigator.serviceWorker && navigator.serviceWorker.getRegistrations) ps.push(navigator.serviceWorker.getRegistrations().then(function(rs){ return Promise.all(rs.map(function(r){ return r.unregister(); })); })); Promise.all(ps).then(go, go); setTimeout(go, 2500); }catch(e){ go(); } };
-setTimeout(function(){ if(window.__zaReady && window.__zaBooted) return; var err = (window.__zaErr || []).slice(0, 2).join(' · '); var d=document.createElement('div'); d.id='zaBootHelp'; d.style.cssText='position:fixed;inset:0;z-index:99999;background:#F6FBFA;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;text-align:center;color:#1D2B36'; d.innerHTML='<div style="max-width:420px"><div style="font-size:22px;font-weight:800;margin-bottom:10px">Uygulama açılamadı</div><div style="font-size:15px;line-height:1.5">Genellikle güncelleme sırasında dosyaların bir kısmı yeni, bir kısmı eski kaldığında olur. Önce dört dosyanın da (zihin-atolyesi.html, zihin-app.js, sw.js ve değişen zihin-gorsel dosyası) yüklendiğinden emin olun, sonra aşağıdaki düğmeye basın. <b>Kayıtlarınız silinmez.</b></div>' + (err ? '<div style="font-size:12px;color:#5B6B78;margin-top:10px;word-break:break-word">Ayrıntı: ' + err.replace(/</g, '&lt;') + '</div>' : '') + '<button onclick="window.__zaRescue()" style="margin-top:16px;padding:12px 22px;border:0;border-radius:14px;background:#0A847E;color:#fff;font-size:16px;font-weight:800">Önbelleği yenile ve aç</button></div>'; document.body.appendChild(d); }, 9000);</script>
-<script>window.ZA_HTML_VERSION = "2026.11.23-c";</script>
-<!-- KURAL (dosya bölme, 2026-11-09 — mühendislik borcu 6. adım): uygulama kodu sekiz dosyadır ve bu sırayla yüklenir; sıra, eski tek dosyanın ardışık parçalarıdır, değiştirilemez. sw.js aynı listeyi önbelleğe alır -->
-<script src="zihin-0-ortak.js?v=2026.11.23-c"></script>
-<script src="zihin-1-tahtalar.js?v=2026.11.23-c"></script>
-<script src="zihin-2-calismalar.js?v=2026.11.23-c"></script>
-<script src="zihin-3-akis.js?v=2026.11.23-c"></script>
-<script src="zihin-4-bellek.js?v=2026.11.23-c"></script>
-<script src="zihin-5-oyun-ici.js?v=2026.11.23-c"></script>
-<script src="zihin-6-ekran.js?v=2026.11.23-c"></script>
-<script src="zihin-7-adalar.js?v=2026.11.23-c"></script>
-<script src="zihin-8-aile.js?v=2026.11.23-c"></script>
 <div id="imgBar" style="position:fixed;left:0;top:0;height:3px;width:100%;background:rgba(0,0,0,.06);z-index:9999;pointer-events:none"><div id="imgProg" style="height:100%;width:0;background:#1FA463;transition:width .3s"></div></div>
 <div id="imgWarn" style="display:none;position:fixed;left:12px;right:12px;bottom:92px;z-index:9997;background:#FFF4E5;color:#9A3412;border:2px solid #F59E0B;border-radius:14px;padding:10px 14px;font-weight:700;font-size:14px;text-align:center"></div>
 <div id="imgOverlay" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,.92);z-index:9998;align-items:center;justify-content:center;flex-direction:column;gap:14px;font-weight:800;color:#1F2A37;padding:24px;text-align:center"><div id="imgTitle" style="font-size:20px">Resimler yükleniyor…</div><div style="width:min(320px,80%);height:10px;background:#E6ECF2;border-radius:999px;overflow:hidden"><div id="imgProg2" style="height:100%;width:0;background:#1FA463;transition:width .3s"></div></div><div id="imgPct" style="font-size:15px;color:#5B6B7A">%0</div><div style="font-size:13px;color:#5B6B7A;font-weight:600">Yalnızca ilk açılışta sürer; sonraki açılışlarda resimler cihazdan gelir.</div></div>
 <script>
 (function(){ /* Resim dosyaları arkada, paralel yüklenir; uygulama beklemeden açılır. Yüklenen dosya eski/eksikse (ör. eski service worker önbelleği) önbelleği atlayarak yeniden indirilir. */
-  const v = "2026.11.23-c"; const files = [["zihin-gorsel-1.js", 8.2, "STORY_PRE_IMAGES", "61fcffa782"], ["zihin-gorsel-2.js", 4.8, "PART_IMAGES", "4d3ee55218"], ["zihin-gorsel-3.js", 5.8, "NEW_IMAGES_5", "2f506b3546"], ["zihin-gorsel-4.js", 0.7, "EF_IMAGES", "982a55b1f2"], ["zihin-gorsel-5.js", 10.1, "BAL_PANS", "50a8d4bc3b"]];   /* sonda: dosyaya en son eklenen resim (dosya eskiyse yoktur) */ const total = files.reduce((a, f) => a + f[1], 0); let got = 0, done = 0;
+  const v = "2026.11.23-d"; const files = [["zihin-gorsel-1.js", 8.2, "STORY_PRE_IMAGES", "61fcffa782"], ["zihin-gorsel-2.js", 4.8, "PART_IMAGES", "4d3ee55218"], ["zihin-gorsel-3.js", 5.8, "NEW_IMAGES_5", "2f506b3546"], ["zihin-gorsel-4.js", 0.7, "EF_IMAGES", "982a55b1f2"], ["zihin-gorsel-5.js", 10.1, "BAL_PANS", "50a8d4bc3b"]];   /* sonda: dosyaya en son eklenen resim (dosya eskiyse yoktur) */ const total = files.reduce((a, f) => a + f[1], 0); let got = 0, done = 0;
   const show = () => { const pct = Math.round(got / total * 100); ["imgProg", "imgProg2"].forEach(id => { const el = document.getElementById(id); if(el) el.style.width = pct + "%"; }); const p = document.getElementById("imgPct"); if(p) p.textContent = "%" + pct; };
   const has = (name) => { try{ return eval("typeof " + name) !== "undefined" && eval(name) != null; }catch(e){ return false; } };
   const finish = async () => { const bar = document.getElementById("imgBar"); if(bar) setTimeout(() => bar.style.display = "none", 600); window.__imgMissing = files.filter(f => !has(f[2])).map(f => f[0] + " (" + f[2].replace(/^.*\./, "") + " resmi yok)");
@@ -3541,7 +3544,9 @@ setTimeout(function(){ if(window.__zaReady && window.__zaBooted) return; var err
     if(window.__onImagesLoaded) window.__onImagesLoaded(); };
   const viaTag = (f) => new Promise(res => { const sc = document.createElement("script"); sc.src = f + "?v=" + (files.find(x => x[0] === f) || [])[3]; sc.async = true; sc.onload = () => res(true); sc.onerror = () => res(false); document.head.appendChild(sc); });
   const viaFetch = async (f) => { try{ const r = await fetch(f + "?v=" + (files.find(x => x[0] === f) || [])[3] + "&r=" + Date.now(), { cache: "reload" }); if(!r.ok) return false; const txt = await r.text(); const names = [...txt.matchAll(/^const (\w+) =/gm)].map(m => m[1]); (window.__imgDiag = window.__imgDiag || {})[f] = { kb: Math.round(txt.length / 1024), consts: names.join(",") }; const obj = (new Function(txt + "\nreturn {" + names.join(",") + "};"))(); names.forEach(n => { if(!has(n)) window[n] = obj[n]; else { try{ const cur = eval(n), nw = obj[n]; if(cur && nw && typeof cur === "object" && typeof nw === "object") Object.keys(nw).forEach(k => { if(cur[k] == null) cur[k] = nw[k]; }); }catch(e){} } }); /* eski dosyanın sözlüklerine yeni resimler eklenir */ return true; }catch(e){ return false; } };
-  files.forEach(async ([f, mb, probe]) => { await viaTag(f); if(!has(probe)) await viaFetch(f); /* eski ya da eksik dosya: önbelleksiz yeniden dene */ got += mb; done++; show(); if(done === files.length) finish(); });
+  const startImg = () => files.forEach(async ([f, mb, probe]) => { await viaTag(f); if(!has(probe)) await viaFetch(f); /* eski ya da eksik dosya: önbelleksiz yeniden dene */ got += mb; done++; show(); if(done === files.length) finish(); });
+  /* KURAL (hızlı açılış, 2026-11-25; kullanıcı isteği): resim paketleri (31 MB) ilk ekran çizildikten sonra yüklenmeye başlar — açılışta ana ekranın görünmesini ve dokunmaya hazır olmasını geciktirmez; resim gereken çalışma resimler gelene kadar "Resimler yükleniyor" ile bekler */
+  try{ requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(startImg, 60))); }catch(e){ setTimeout(startImg, 100); }
 })();
 </script>
 
