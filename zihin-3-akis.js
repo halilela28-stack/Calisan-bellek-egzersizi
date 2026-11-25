@@ -631,6 +631,10 @@ const btn = document.getElementById("timerBtn");
 btn.textContent = "▶ Başlat";
 btn.classList.remove("running");
 { const manual = window._manualStop; window._manualStop = false; const hint = document.getElementById("saveHint"); window._incomplete = !!(manual && !gameMode && !pageComplete());
+/* KURAL (oyunlarda Bitir, 2026-11-25): Zihin Adaları, Tüm Oyunlar ve Testler'de de Başlat'tan sonra Bitir (ve ↻) görünür — Aile/Uzman sayfasındaki gibi; oyun tamamlanmadan Bitir'e basılırsa yıldız/ödül verilmez, kayıt yapılmaz, tahta başa döner (▶ Başlat ile yeniden); testte yarım bırakılan oyun puana girmez, test sıradaki oyunla sürer */
+const gmHalf = !!(manual && gameMode && !pageComplete()); window.__gmHalf = gmHalf;
+if(gmHalf){ try{ ZA_LIFE.rebuild(currentExercise()); }catch(e){} elapsedMs = 0; try{ document.getElementById("timerDisplay").textContent = "00:00.0"; }catch(e){} currentErrorCount = 0; { const ce = document.getElementById("errorCount"); if(ce) ce.textContent = "0"; }
+  if(typeof gameStop !== "undefined" && gameStop && gameStop.test){ setTimeout(() => { try{ zaTestSkip(); }catch(e){ console.error(e); } }, 250); } else { try{ showToast("Oyun durduruldu — ▶ Başlat ile yeniden başlayabilirsin"); }catch(e){} } }
 /* KURAL (durdurunca okuma susar, 2026-11-23): çalışma elle durdurulunca (Bitir) ya da tamamlanmadan bittiğinde (süre dolması vb.) okunan hikâye/soru/yönerge hemen susar, sıradaki okumalar iptal edilir; yalnız son soru yanıtlanıp çalışma kendiliğinden tamamlanınca son geri bildirim sözü kesilmez */
 try{ if(manual || !pageComplete()){ window._saySeqTok = (window._saySeqTok || 0) + 1; zaStopSpeech(); } }catch(e){}
 if(window._incomplete){ document.getElementById("saveResultBtn").style.display = "none"; hint.style.display = "block"; hint.textContent = "Çalışma tamamlanmadan durduruldu; bu sonuç kaydedilemez. ↻ ile yeniden başlatabilirsin."; hint.classList.add("warn");
@@ -644,7 +648,7 @@ if(hwRun && !gameMode){ if(perfIsAuto(currentExercise())) setTimeout(() => { try
 /* KURAL (tüm çalışmalar, yeni eklenecekler dahil): çalışma tamamlanınca konfeti. Tek noktadan: süre durunca, yarım bırakılmadıysa. Oyun modunda ödül kartı kendi konfetisini atar. */
 /* (kutlama artık kayıttan sonra: confirmSaveResult) */
 if(!gameMode) requestAnimationFrame(() => { try{ const hn = document.getElementById("saveHint"), sv = document.getElementById("saveResultBtn"); const tg = (hn && getComputedStyle(hn).display !== "none") ? hn : sv; if(!tg || getComputedStyle(tg).display === "none") return; const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0; const r = tg.getBoundingClientRect(); if(r.bottom > window.innerHeight - barH - 8 || r.top < 0) pageScroller().scrollBy(0, r.bottom - (window.innerHeight - barH - 16)); }catch(e){} });
-if(gameMode){ setTimeout(gameAfterStop, 400); try{ renderGameWho(); }catch(e){} }
+if(gameMode && !window.__gmHalf){ setTimeout(gameAfterStop, 400); } window.__gmHalf = false; if(gameMode){ try{ renderGameWho(); }catch(e){} try{ gmLevelRender(); }catch(e){} }
 }
 
 function resetTimer(){

@@ -487,6 +487,7 @@ gameStop = { exId, islandId: islId || gameIsland, coop: opts && opts.coop ? opts
 try{ const mb = document.getElementById("gameMapBtn"); if(mb && mb.lastChild) mb.lastChild.textContent = gameStop.test ? " Testi bitir" : (window.gxReturnTo === "all" ? " Oyunlar" : " Harita"); }catch(e){}   /* KURAL (Tüm Oyunlar / Testler, 2026-11-25): geri düğmesi geldiği yere döner */
 gameIsland = gameStop.islandId;
 hideGameScreens();
+/* KURAL (oyun açılışı, 2026-11-25): oyun hangi sayfadan açılırsa açılsın (ana sayfa, Tüm Oyunlar, Testler) o sayfa kapanır, oyun üstte görünür */ ["whoScreen", "allGamesScreen", "testsScreen", "testResultScreen", "testInterScreen"].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = "none"; });
 hideAllKidScreens();
 appMode = "aile";
 gameMode = true;
@@ -510,6 +511,7 @@ gameStop.hinted = needHint;
 const hb = document.getElementById("gameHint"); hb.style.display = needHint ? "" : "none"; hb.textContent = needHint ? "💡 İpucu: " + hint : "";
 window.scrollTo(0, 0);
 gameStop.pred = null;
+try{ gmLevelRender(); }catch(e){}
 const inRoute = (() => { try{ const rr2 = gxRoute(); const k = rr2.steps.findIndex(x => x.id === exId); return k >= 0 && !rr2.done[k]; }catch(e){ return false; } })();
 /* yönerge kendiliğinden okunmaz; yönerge kutusundaki hoparlörle dinlenir (KURAL yönerge elle, 2026-11-09) */
 }

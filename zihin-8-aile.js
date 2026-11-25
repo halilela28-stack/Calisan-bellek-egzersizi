@@ -43,7 +43,7 @@ ${lastG ? `<button type="button" class="hc-cont ag-cont" id="agCont" data-agplay
   el.style.display = "block"; window.scrollTo(0, 0);
   el.querySelector("#agHome").onclick = () => { el.style.display = "none"; showWho(); };
   el.querySelectorAll("[data-agsel]").forEach(b => b.onclick = () => { zaAgSel = b.dataset.agsel; zaAgQuery = ""; showAllGames(); });
-  el.querySelectorAll("[data-agplay]").forEach(b => b.onclick = () => { sfx("go"); zaAgTouch(b.dataset.agplay); window.gxReturnTo = "all"; startGameStop(b.dataset.agplay, b.dataset.agisl); });
+  el.querySelectorAll("[data-agplay]").forEach(b => b.onclick = () => { sfx("go"); zaAgTouch(b.dataset.agplay); window.gxReturnTo = "all"; const __t = zaAgTierGet(b.dataset.agplay); startGameStop(b.dataset.agplay, b.dataset.agisl, __t == null ? undefined : { tier: __t }); });
   const qi = el.querySelector("#agQ"); let tq = null; qi.oninput = () => { clearTimeout(tq); tq = setTimeout(() => { zaAgQuery = qi.value; const pos = qi.selectionStart; showAllGames(); const n = document.getElementById("agQ"); if(n){ n.focus(); try{ n.setSelectionRange(pos, pos); }catch(e){} } }, 250); };
   if(!zaIconUrl()){ const w = setInterval(() => { if(zaIconUrl()){ clearInterval(w); const s = document.getElementById("allGamesScreen"); if(s && s.style.display !== "none") showAllGames(); } }, 700); setTimeout(() => clearInterval(w), 60000); }
 }
@@ -130,6 +130,25 @@ function zaTestAfter(ex, ms, errors){ const Z = window.zaTest; if(!Z || !Z.cur) 
   if(left < 45000) return zaTestFinish();
   sfx(good ? "solved" : "soft");
   zaTestInter(`<h2>${good ? "Harika!" : "Güzel deneme!"}</h2><p>Sıradaki oyun geliyor…</p>`, [{ t:"Devam", cls:"ti-go", fn: zaTestNext }]);
+  clearTimeout(window.zaTestAuto); window.zaTestAuto = setTimeout(() => { const it = document.getElementById("testInterScreen"); if(window.zaTest && it && it.style.display !== "none") zaTestNext(); }, 1800); }
+/* KURAL (oyunlarda düzey, 2026-11-25): Zihin Adaları, Tüm Oyunlar ve Testler'de oyunun düzeyi (Başlangıç · Orta · Zor) Başlat'tan önce görünür — Aile/Uzman sayfasındaki gibi; Tüm Oyunlar'da çocuk/yetişkin düzeyi seçer (seçim o kişi ve oyun için hatırlanır), Zihin Adaları'nda düzeyi durak, Testler'de testin kendisi belirler (yalnız gösterilir); çalışırken düzey satırı gizlenir */
+const ZA_AG_TIER_KEY = "za_ag_tier_v1", ZA_TIER_NAMES = ["Başlangıç", "Orta", "Zor"];
+function zaAgTierGet(id){ try{ const m = JSON.parse(localStorage.getItem(ZA_AG_TIER_KEY) || "{}"), v = m[gameProfile() + "|" + id]; return (v === 0 || v === 1 || v === 2) ? v : null; }catch(e){ return null; } }
+function zaAgTierSet(id, t){ try{ const m = JSON.parse(localStorage.getItem(ZA_AG_TIER_KEY) || "{}"); m[gameProfile() + "|" + id] = t; localStorage.setItem(ZA_AG_TIER_KEY, JSON.stringify(m)); }catch(e){} }
+function gmLevelMode(){ if(typeof gameStop === "undefined" || !gameStop) return "ro"; if(gameStop.test || gameStop.coop || gameStop.islandId === "usta") return "ro"; return window.gxReturnTo === "all" ? "pick" : "ro"; }
+function gmLevelRender(){ let el = document.getElementById("gmLevel"); const bar = document.getElementById("gameBar");
+  if(!el){ if(!bar) return; el = document.createElement("div"); el.id = "gmLevel"; el.className = "gm-level"; el.setAttribute("role", "group"); el.setAttribute("aria-label", "Düzey"); bar.appendChild(el); }
+  if(typeof gameMode === "undefined" || !gameMode || !gameStop){ el.innerHTML = ""; return; }
+  let cur = 0; try{ cur = currentCombo().t | 0; }catch(e){}
+  const ex = exerciseById(gameStop.exId) || {}, mode = gmLevelMode(); let e = -1; try{ e = currentCategoryExercises().findIndex(x => x.id === gameStop.exId); }catch(err){}
+  const can = (t) => { if(t < (ex.minTier || 0)) return false; try{ const k = findSeqIndex(t, e); return k !== undefined && k >= 0; }catch(err){ return false; } };
+  const note = mode === "pick" ? "" : (gameStop.test ? "Testin düzeyi kendiliğinden ayarlanır" : "Düzeyi durak belirler");
+  el.className = "gm-level" + (mode === "pick" ? "" : " ro");
+  el.innerHTML = `<span class="gm-lv-l">Düzey</span><span class="gm-lv-seg">${ZA_TIER_NAMES.map((nm, t) => `<button type="button" data-gml="${t}" class="${t === cur ? "on" : ""}"${(mode === "pick" && can(t)) || t === cur ? "" : " disabled"} aria-pressed="${t === cur}">${nm}</button>`).join("")}</span>${note ? `<small class="gm-lv-n">${note}</small>` : ""}`;
+  if(mode === "pick") el.querySelectorAll("[data-gml]").forEach(b => b.onclick = () => { const t = Number(b.dataset.gml); if(t === cur || timerRunning || !can(t)) return; try{ sfx("tap"); }catch(err){} zaAgTierSet(gameStop.exId, t); startGameStop(gameStop.exId, gameStop.islandId, { tier: t }); }); }
+function zaTestSkip(){ const Z = window.zaTest; if(!Z) return; Z.skipped = (Z.skipped || 0) + 1; Z.cur = null; const left = Z.deadline - Date.now();
+  if(left < 45000){ if(Z.items.length) return zaTestFinish(); }
+  zaTestInter(`<h2>Sıradaki oyuna geçiyoruz</h2><p>Yarıda bırakılan oyun puana girmez.</p>`, [{ t:"Devam", cls:"ti-go", fn: zaTestNext }]);
   clearTimeout(window.zaTestAuto); window.zaTestAuto = setTimeout(() => { const it = document.getElementById("testInterScreen"); if(window.zaTest && it && it.style.display !== "none") zaTestNext(); }, 1800); }
 function zaTestStopAll(){ clearInterval(window.zaTestTick); clearTimeout(window.zaTestAuto); document.documentElement.classList.remove("za-testing"); try{ const st = document.getElementById("gameStopStars"); if(st) st.innerHTML = ""; }catch(e){} const Z = window.zaTest; window.zaTest = null; window.gxReturnTo = null; try{ resetTimer(); exitGameMode(); }catch(e){} const m = document.getElementById("mainApp"); if(m) m.style.display = "none"; const it = document.getElementById("testInterScreen"); if(it) it.style.display = "none"; return Z; }
 async function zaTestQuit(){ const ok = await zaConfirm("Test yarıda kalsın mı? Bu testin sonucu kaydedilmez."); if(!ok) return; zaTestStopAll(); showTests(); }
@@ -1426,8 +1445,8 @@ new ResizeObserver(relayout).observe(document.getElementById("board"));
 ["gesturestart", "gesturechange", "gestureend"].forEach(t=>{
 document.addEventListener(t, e=> e.preventDefault(), {passive:false});
 });
-const FREE_SCROLL = ".exercise-row, input[type='range'], select, textarea";
-const LS_SCROLL = "#lsMore, .settings-screen, .category-screen, .mode-screen, .onboard-screen, .consent-screen, .exh-pop";   /* yatayda etkinlik / kişi / düzey menüsünün listesi parmakla kayar (2026-11-19: menü bu listede yoktu, yatayda liste parmakla kaydırılamıyordu) */
+const FREE_SCROLL = ".exercise-row, input[type='range'], select, textarea, .ag-row, .ag-chips";   /* KURAL (yeni sayfalarda kaydırma, 2026-11-25): Tüm Oyunlar satırları ve kategori düğmeleri parmakla yana kayar (kartların arasındaki boşluktan da) */
+const LS_SCROLL = "#lsMore, .settings-screen, .category-screen, .mode-screen, .onboard-screen, .consent-screen, .exh-pop, .za-scr";   /* KURAL (yeni sayfalarda kaydırma, 2026-11-25): yatayda Tüm Oyunlar, Testler, test sonucu ve ara kart sayfaları da yukarı-aşağı kayar (önce .za-scr listede yoktu, yatay telefonda sayfa kaymıyordu) */   /* yatayda etkinlik / kişi / düzey menüsünün listesi parmakla kayar (2026-11-19: menü bu listede yoktu, yatayda liste parmakla kaydırılamıyordu) */
 const INTERACTIVE = "button, a, input, select, textarea, label";
 let sx = 0, sy = 0, startedOnInteractive = false, axis = null, freeScroll = false;
 document.addEventListener("touchstart", e=>{

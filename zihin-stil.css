@@ -916,3 +916,21 @@ html.za-testing #gameWhoBtn{display:none !important}
   #whoScreen .hm-wrap.hc{padding-bottom:6px !important}
 }
 @media (orientation:portrait) and (max-height:700px) and (max-width:350px){ .hc .hc-all .hc-art{display:none !important} }
+/* ===== 39 · oyunlarda etkinlik planı (2026-11-25-b) ===== */
+/* KURAL (oyunlarda Bitir ve düzey, 2026-11-25): Zihin Adaları, Tüm Oyunlar ve Testler'de Başlat'tan sonra kırmızı Bitir ve ↻ görünür (Aile/Uzman sayfasındaki gibi); Başlat'tan önce oyun çubuğunun altında Düzey satırı (Başlangıç · Orta · Zor) görünür, çalışırken gizlenir */
+html.game-mode #timerBtn.timer-btn.running{display:inline-block !important;background:var(--bad) !important;color:#fff !important;box-shadow:0 4px 0 #A9262B !important}
+html.game-mode #timerResetBtn.timer-btn.reset{display:inline-block !important}
+.gm-level{display:none}
+html.game-mode #gameBar > .gm-level{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;flex:1 1 100%;order:10;margin:2px 0 0;padding:0}
+@media (orientation:landscape) and (min-width:600px){ html.game-mode #gameBar > .gm-level{flex:0 1 auto;order:1;margin:0 0 0 auto;flex-wrap:nowrap} html.game-mode #gameBar > .gb-stars, html.game-mode #gameBar > .gb-who{order:2} html.game-mode #gameBar .gm-lv-l, html.game-mode #gameBar .gm-lv-n{display:none} html.game-mode #gameBar .gm-lv-seg button{min-height:38px;padding:0 12px;font-size:14px} }
+html.game-mode:has(#timerBtn.running) #gameBar > .gm-level{display:none}
+.gm-lv-l{font-weight:900;font-size:13px;color:#4A5C6E;text-transform:uppercase;letter-spacing:.03em}
+.gm-lv-seg{display:inline-flex;gap:4px;padding:3px;border-radius:999px;background:#EEF3F8}
+.gm-lv-seg button{min-height:40px;padding:0 14px;border:0;border-radius:999px;background:transparent;font-family:inherit;font-weight:900;font-size:15px;color:#1C2B39;cursor:pointer}
+.gm-lv-seg button.on{background:#0A847E;color:#fff;box-shadow:0 3px 0 #06605B}
+.gm-lv-seg button:disabled{color:#5C6B7A;cursor:default}
+.gm-level.ro .gm-lv-seg button:not(.on){opacity:.55}
+.gm-lv-n{font-size:12px;font-weight:700;color:#4A5C6E}
+@media (max-width:360px){ .gm-lv-seg button{padding:0 10px;font-size:14px} .gm-lv-l{display:none} }
+/* KURAL (ana sayfa · C dar yatay, 2026-11-25): dar yatay telefonda (667 px gibi) Bugünün etkinlikleri / Ödevlerim düğmelerinde ok gizlenir, yazı oka binmez */
+@media (orientation:landscape) and (max-width:760px){ .hc #hmEtk .ha-grid .ha-b i{display:none !important} .hc #hmEtk .ha-grid .ha-b{padding-right:8px !important} .hc #hmEtk .ha-grid .ha-bt{font-size:13px !important} }
