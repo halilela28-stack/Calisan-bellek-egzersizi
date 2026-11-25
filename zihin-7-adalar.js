@@ -55,7 +55,7 @@ if(fresh.length){ const isl = GAME_ISLANDS.find(i => i.id === fresh[0]); setTime
 function gameChildLabel(ex){ const l = ex.label; const i = l.indexOf(": "); return i >= 0 ? l.slice(i + 2) : l; }
 
 function hideGameScreens(){ ZA_LIFE.leave(); 
-["islandScreen","islandStopsScreen","gameReward"].forEach(id => { const el = document.getElementById(id); if(el) el.style.display = "none"; });
+["islandScreen","islandStopsScreen","gameReward","allGamesScreen","testsScreen","testResultScreen","testInterScreen"].forEach(id => { const el = document.getElementById(id); if(el) el.style.display = "none"; });
 }
 function exitGameMode(){ ZA_LIFE.leave(); 
 gameMode = false;
@@ -74,7 +74,7 @@ sel.innerHTML = `<option value="" disabled>Kişi seç…</option>` + names.map(n
 sel.value = cur || "";
 sel.classList.toggle("unset", !cur);
 }
-function showIslandMap(){ ZA_LIFE.leave();  try{ const __n = gameProfile(); const __L = __n && __n !== "Misafir" ? getPlayerLevel(__n) : null; if(__L) readingLevel = __L; }catch(e){}   /* harita profilin seviyesiyle çizilir */
+function showIslandMap(){ ZA_LIFE.leave(); /* KURAL (dönüş hedefi, 2026-11-25): adalara normal girişte Tüm Oyunlar/Test dönüş işareti temizlenir */ if(window.gxReturnTo === "all" || window.gxReturnTo === "test") window.gxReturnTo = null; if(window.zaTest){ try{ zaTestStopAll(); }catch(e){} }  try{ const __n = gameProfile(); const __L = __n && __n !== "Misafir" ? getPlayerLevel(__n) : null; if(__L) readingLevel = __L; }catch(e){}   /* harita profilin seviyesiyle çizilir */
 try{ lastSave("cocuk", gameProfile()); }catch(e){}
 setTimeout(() => { try{ gxUnlockCheck(); }catch(e){} }, 300);
 if(!window.__islSoft){ exitGameMode(); hideAllKidScreens(); hideGameScreens(); }
@@ -482,8 +482,9 @@ function startGameStop(exId, islId, opts){ if(!imagesReady()){ imgWait(() => sta
 const ci = CATEGORIES.findIndex(c => c.exerciseIds.includes(exId));
 if(ci < 0) return;
 if(!(currentPlayerName || "").trim()){ gamePendingStart = [exId, islId]; openGameWho(); return; }
-if(gxOver()){ gxShowSleep(); return; }
-gameStop = { exId, islandId: islId || gameIsland, coop: opts && opts.coop ? opts.coop : null };
+if(!(opts && opts.test) && gxOver()){ gxShowSleep(); return; }   /* testler oyun süresine sayılmaz */
+gameStop = { exId, islandId: islId || gameIsland, coop: opts && opts.coop ? opts.coop : null, test: !!(opts && opts.test) };
+try{ const mb = document.getElementById("gameMapBtn"); if(mb && mb.lastChild) mb.lastChild.textContent = gameStop.test ? " Testi bitir" : (window.gxReturnTo === "all" ? " Oyunlar" : " Harita"); }catch(e){}   /* KURAL (Tüm Oyunlar / Testler, 2026-11-25): geri düğmesi geldiği yere döner */
 gameIsland = gameStop.islandId;
 hideGameScreens();
 hideAllKidScreens();
@@ -492,7 +493,7 @@ gameMode = true;
 document.documentElement.classList.add("game-mode");
 selectCategory(ci);
 zaVariantFocus(exId); const e = currentCategoryExercises().findIndex(x => x.id === exId);
-const t = gameStop.islandId === "usta" ? 2 : gameNextTier(exId);
+const t = gameStop.islandId === "usta" ? 2 : (opts && opts.tier != null ? Math.max(opts.tier, (exerciseById(exId) || {}).minTier || 0) : gameNextTier(exId));
 let idx = findSeqIndex(t, e);
 if(idx === undefined || idx < 0) idx = findSeqIndex(0, e);
 goToIndex(idx);
@@ -520,6 +521,7 @@ if(ex.id !== gameStop.exId) return;
 const finished = isInteractiveExercise(ex) ? interactiveIsDone() : (ex.isMotion ? elapsedMs >= (motionDurationMs - 300) : false);
 if(!finished) return;
 const ms = elapsedMs, errors = currentErrorCount;
+if(gameStop.test){ try{ zaTestAfter(ex, ms, errors); }catch(e){ console.error(e); } return; }   /* KURAL (Testler, 2026-11-25): test oyunu yıldız/ödül ekranı açmaz, sıradaki oyuna bağlanır */
 if(gameStop.coop){ try{ coopAfter(mtState, errors); }catch(e){ console.error(e); } return; }
 try{ recordSession(ms, errors); }catch(e){}
 const n = ex.isTouch ? Math.max(1, touchGoTotal()) : Math.max(1, Array.isArray(currentGrid) ? currentGrid.length : 1);
@@ -612,7 +614,7 @@ if(over){ const done = (() => { try{ return gxRoute().done.filter(Boolean).lengt
 lines.push(L(I_SP, "#2E7D5B", done ? `Bugünlük bu kadar! ${done} durak bitirdin, harikaydın. Zihni yarın seni bekliyor 💤` : "Bugünlük bu kadar! Yarın yeni duraklar seni bekliyor 💤").replace('class="gr-line"', 'class="gr-line gx"'));
 document.getElementById("grCard").innerHTML = lines.join(""); }
 document.getElementById("grAgainBtn").style.display = over ? "none" : "";
-document.getElementById("grMapBtn").textContent = over ? "Zihni uyusun" : "Haritaya dön";
+document.getElementById("grMapBtn").textContent = over ? "Zihni uyusun" : (window.gxReturnTo === "all" ? "Oyunlara dön" : "Haritaya dön");
 document.getElementById("gameReward").style.display = "block";
 document.getElementById("gameReward").scrollTop = 0;
 const allDone = r.stars.every(Boolean);
@@ -677,8 +679,10 @@ if(!gameMode && !hadCb) showIslandMap();
 })();
 
 let plAnswerVal = "", plExpected = 0, plOnSuccess = null;
-function showParentLock(onSuccess){
+function showParentLock(onSuccess, subText){
 plOnSuccess = onSuccess;
+/* KURAL (kilit yazısı, 2026-11-25): kilit neden açıldığını söyler; varsayılan "Oyun modundan çıkmak…", Türkiye karşılaştırması gibi yerler kendi yazısını verir */
+{ window.plSubText = subText || "Oyun modundan çıkmak için cevabı yazın"; const __s = document.querySelector("#parentLock .pl-sub"); if(__s){ clearTimeout(__s._t); __s.textContent = window.plSubText; __s.style.color = ""; } }
 const a = 11 + Math.floor(Math.random() * 9), b = 3 + Math.floor(Math.random() * 7);
 plExpected = a * b; plAnswerVal = "";
 document.getElementById("plQuestion").textContent = `${a} × ${b}`;
@@ -695,8 +699,8 @@ return;
 }
 const card = document.querySelector("#parentLock .pl-card");
 card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake");
-showParentLock(plOnSuccess);
-{ const sub = document.querySelector("#parentLock .pl-sub"); if(sub){ sub.textContent = "Cevap yanlış. Yeni soruyu deneyin."; sub.style.color = "#B45309"; clearTimeout(sub._t); sub._t = setTimeout(() => { sub.textContent = "Oyun modundan çıkmak için cevabı yazın"; sub.style.color = ""; }, 2600); } }
+showParentLock(plOnSuccess, window.plSubText);
+{ const sub = document.querySelector("#parentLock .pl-sub"); if(sub){ sub.textContent = "Cevap yanlış. Yeni soruyu deneyin."; sub.style.color = "#B45309"; clearTimeout(sub._t); sub._t = setTimeout(() => { sub.textContent = window.plSubText || "Oyun modundan çıkmak için cevabı yazın"; sub.style.color = ""; }, 2600); } }
 return;
 } else if(plAnswerVal.length < 4){ plAnswerVal += k; }
 document.getElementById("plAnswer").textContent = plAnswerVal;
@@ -722,6 +726,8 @@ if(v === "__new__"){ renderGamePlayerSelect(); openGameWho(true); return; }
 currentPlayerName = v; showIslandMap();
 });
 document.getElementById("gameMapBtn").addEventListener("click", () => {
+if(gameStop && gameStop.test){ zaTestQuit(); return; }
+if(window.gxReturnTo === "all"){ resetTimer(); exitGameMode(); document.getElementById("mainApp").style.display = "none"; showAllGames(); return; }
 resetTimer();
 exitGameMode();
 document.getElementById("mainApp").style.display = "none";
@@ -740,6 +746,7 @@ document.getElementById("grMapBtn").addEventListener("click", () => {
 if(gxOver()){ document.getElementById("gameReward").style.display = "none"; resetTimer(); gxShowSleep(); return; }
 document.getElementById("gameReward").style.display = "none";
 resetTimer(); exitGameMode(); document.getElementById("mainApp").style.display = "none";
+if(window.gxReturnTo === "all"){ showAllGames(); return; }
 if(gameIsland === "macera"){ showAdventure(); return; }
 if(gameIsland && window.gxReturnTo !== "map") showIslandStops(gameIsland); else showIslandMap();
 });
@@ -767,7 +774,7 @@ function gxAllowedSec(){ const L = gxLimitMin(); if(!L) return Infinity; const g
 function gxOver(){ return gxUsedSec() >= gxAllowedSec(); }
 function gxScreensActive(){ return gameMode || ["islandScreen","islandStopsScreen","gameReward"].some(id => { const el = document.getElementById(id); return el && el.style.display !== "none"; }); }
 setInterval(() => { try{
-if(document.hidden || !gxScreensActive() || !(currentPlayerName || "").trim()) return;
+if(document.hidden || window.zaTest || !gxScreensActive() || !(currentPlayerName || "").trim()) return;
 const g = gxGet(), k = todayKey(); g.screen[k] = (g.screen[k] || 0) + 5;
 for(const old in g.screen){ if(old < todayKey(new Date(Date.now() - 14 * 864e5))) delete g.screen[old]; }
 const left = gxAllowedSec() - g.screen[k];
