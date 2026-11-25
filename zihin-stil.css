@@ -934,3 +934,15 @@ html.game-mode:has(#timerBtn.running) #gameBar > .gm-level{display:none}
 @media (max-width:360px){ .gm-lv-seg button{padding:0 10px;font-size:14px} .gm-lv-l{display:none} }
 /* KURAL (ana sayfa · C dar yatay, 2026-11-25): dar yatay telefonda (667 px gibi) Bugünün etkinlikleri / Ödevlerim düğmelerinde ok gizlenir, yazı oka binmez */
 @media (orientation:landscape) and (max-width:760px){ .hc #hmEtk .ha-grid .ha-b i{display:none !important} .hc #hmEtk .ha-grid .ha-b{padding-right:8px !important} .hc #hmEtk .ha-grid .ha-bt{font-size:13px !important} }
+/* KURAL (Testler bilgisi, 2026-11-25): ünlem düğmesi başlığın sağ üst köşesinde, ana sayfadaki mod notu ünlemiyle aynı görünüşte; açıklama başlığın altında aşağı doğru açılır */
+.ts-info{margin-left:auto;flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:0;background:#F3A64A;color:#fff;font-family:inherit;font-weight:900;font-size:24px;line-height:1;box-shadow:0 3px 0 #C07020;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ts-info.on{background:#C07020;box-shadow:0 1px 0 #8A4E10;transform:translateY(2px)}
+.ts-wrap .ag-top .ag-tt{flex:1 1 auto}
+.ts-wrap .ag-top .ts-dur{order:5}
+.ts-infobox{padding:10px 14px;border-radius:16px;background:#FFF6EA;border:2px solid #F3C98F;font-size:14px;font-weight:700;line-height:1.45;color:#5A3A10;animation:tsInfoIn .22s ease-out;transform-origin:top}
+.ts-infobox b{color:#7A3E00}
+@keyframes tsInfoIn{from{opacity:0;transform:translateY(-6px) scaleY(.96)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){ .ts-infobox{animation:none} }
+/* KURAL (yazı boyu, 2026-11-25): yeni sayfalarda iPhone yazıları kendiliğinden büyütmez (Testler'deki açıklama iPhone'da iri görünüyordu) */
+.za-scr{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+@media (orientation:landscape) and (min-width:600px){ .ts-wrap .ag-top .ts-info{order:6;margin-left:0} .ts-wrap .ag-top .ts-dur{margin-left:auto} }
