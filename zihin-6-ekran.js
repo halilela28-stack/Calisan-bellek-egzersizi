@@ -1814,7 +1814,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.26-b";
+const APP_VERSION = "2026.11.26-f";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 /* RUNTIME_CSS → zihin-stil.css */
 /* Dosya sürümü denetimi: zihin-atolyesi.html ile uygulama kodu (zihin-1…8) farklı sürümdeyse uyar */
@@ -2399,6 +2399,7 @@ bellek:'<svg viewBox="0 0 24 24" fill="none" stroke="#9A6B00" stroke-width="2" s
 kavram:'<svg viewBox="0 0 24 24" fill="none" stroke="#1D6FB8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="6" fill="#DDF1FF"/><path d="M9.5 16.5h5M10.5 19.5h3"/><path d="M12 7v3l2 1"/></svg>',
 bulmaca:'<svg viewBox="0 0 24 24" fill="none" stroke="#6B3FD0" stroke-width="2" stroke-linejoin="round"><path d="M4 9h4a2 2 0 1 1 4 0h4v4a2 2 0 1 1 0 4v3H4z" fill="#EEE4FF"/></svg>',
 soz:'<svg viewBox="0 0 24 24" fill="none" stroke="#B4236A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v10H9l-5 4z" fill="#FFD6E8"/><path d="M8 9h8M8 12h5"/></svg>',
+ardil:'<svg viewBox="0 0 24 24" fill="none" stroke="#8A1F7E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="17.500" r="2.6" fill="#F6D3F1"/><circle cx="12" cy="11.500" r="2.6" fill="#F6D3F1"/><circle cx="19" cy="5.500" r="2.6" fill="#F6D3F1"/><path d="M7 15.800l3-2.600M14 9.800l3-2.600"/></svg>',
 park:'<svg viewBox="0 0 24 24" fill="none" stroke="#1D6FB8" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3.5 9.5c5 1.5 12 1.5 17 0M3.5 14.5c5-1.5 12-1.5 17 0M12 3v18"/></svg>'
 };
 const GAME_ISLANDS = [
@@ -2412,6 +2413,8 @@ const GAME_ISLANDS = [
 { id:"bulmaca",name:"Bulmaca Adası", color:"#C9A7FF", ids:["block-design", "mental-rot", "clutter-find", "overlap-count", "embedded", "closure", "copy-design", "symmetry", "size-touch", "arrow-touch", "edge-touch", "spot-diff", "paper-fold", "view-from", "same-number", "cube-count", "piece-fit", "mirror-find"] },
 { id:"mantik", name:"Mantık Adası",  color:"#A8E6CF", ids:["matrix-fill", "balance", "odd-touch", "pattern-touch", "analogy-touch", "cause-effect", "sudoku", "num-pattern", "clue-find", "class-table", "cause-find", "rule-find", "order-infer", "path-predict", "pattern-build", "common-feat", "where-logic", "shape-add", "code-math"] },
 { id:"plan",   name:"Plan Adası",    color:"#FF8E7E", ids:["plan-swap", "plan-beads", "plan-tol", "plan-cubes", "maze", "time-est", "find-error", "pic-arrange", "zoo-map", "key-search", "design-fluency", "box-search", "three-tasks"], unlockStars:3 },
+/* KURAL (Sıra Adası, 2026-11-26; kullanıcı isteği): Ardıl İşlemleme alanı Zihin Adaları'na ve Tüm Oyunlar'a Sıra Adası olarak eklendi — alanın dokunmalı, kendiliğinden puanlanan 19 çalışması (okul öncesi 18: Heceleri Sırala yalnız okul sonrası). Yetişkinin yönettiği / değerlendirdiği beş çalışma (Harf Dizisi, İsim Sırası, Önce–Sonra Cümleleri, Gördüğün Hareketleri Yap, El Sırası) oyunlara girmez; taban çalışmaları da adalarda yoktur. Ada kademeli açılır (toplam 28 yıldız) */
+{ id:"ardil",  name:"Sıra Adası",    color:"#E9A6E0", ids:["ar-heard", "ar-wmseq", "ar-porder", "door-seq", "ar-seqw", "ar-rt", "num-seq-touch", "ar-story", "ar-corsi", "ar-dir", "arrow-seq", "ar-route", "ar-tone", "ar-rhythm", "ar-arrange", "who-did", "series-pos", "ar-simon", "syl-order"] },
 { id:"macera", name:"Macera Adası",  color:"#FFD7A8", special:true, adv:true },
 { id:"usta",   name:"Usta Adası",    color:"#FFE27A", special:true, unlockStars:40, dyn:() => gxUstaStops() },
 { id:"gezgin", name:"Gezgin Adası",  color:"#9FE0D8", special:true, dyn:() => gxGezginStops() },

@@ -42,7 +42,7 @@ const st = gameIslandStops(isl);
 return { got: st.reduce((a, id) => a + gameStars(id), 0), total: st.length * 3 };
 }
 function gameTotalStars(){ return GAME_ISLANDS.reduce((a, isl) => a + gameIslandStarInfo(isl).got, 0); }
-const PROG_UNLOCK = { resim:4, soz:8, kavram:12, bulmaca:16, mantik:20, plan:24 };   // kademeli açılış (toplam yıldız)
+const PROG_UNLOCK = { resim:4, soz:8, kavram:12, bulmaca:16, mantik:20, plan:24, ardil:28 };   // kademeli açılış (toplam yıldız)
 function gameIslandNeed(isl){ return PROG_UNLOCK[isl.id] != null ? PROG_UNLOCK[isl.id] : (isl.unlockStars || 0); }
 function gameIslandTouched(isl){ try{ return gameIslandStops(isl).some(id => { const r = gameRecord(id); return r.plays > 0 || r.stars.some(Boolean); }); }catch(e){ return false; } }
 function gameIslandLocked(isl){ const need = gameIslandNeed(isl); if(!need) return false; if(!isl.special && gameIslandTouched(isl)) return false; return gameTotalStars() < need; }   // oynanmış ada bir daha kilitlenmez

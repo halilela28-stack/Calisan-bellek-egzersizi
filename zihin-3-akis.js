@@ -129,8 +129,8 @@ purpose:"Bilgiyi geliş sırasıyla alma, sırayı akılda tutma ve aynı sıray
 color:"#B83280",
 group:"Sıralı Düşünme",
 composite:true,   /* KURAL (Ardıl İşlemleme alanı, 2026-11-26; kullanıcı isteği): 11. alan; 24 çalışmadan oluşur — mevcut çalışmalar kendi alanlarında aynen kalır ve burada da yer alır (aynı sayfa, aynı kayıtlar), yeni çalışmalar yalnız bu alandadır; alanın okul dönemi ve düzeyi bu alandan açılan bütün çalışmalara uygulanır; raporda alanın ilerlemesi 24 çalışmanın hepsinden hesaplanır */
-exerciseIds:["ar-heard","ar-corsi","ar-span","door-seq","story-order","num-seq-touch","ar-words","ar-route","who-did","ar-tone","ar-porder","arrow-seq","ar-sent","ar-wmseq","series-pos","ar-rhythm","ar-dir","ar-rt","syl-order","ar-move","pic-arrange","ar-simon","ar-seqw"],
-exerciseGroups:[["İşitsel Sıra", ["ar-span", "ar-words", "ar-heard", "ar-sent", "ar-dir", "num-seq-touch"]], ["Görsel Sıra", ["ar-corsi", "ar-wmseq", "ar-porder", "ar-rt", "ar-route", "ar-simon", "door-seq", "arrow-seq"]], ["Ses, Ritim ve Hareket", ["ar-tone", "ar-rhythm", "ar-move"]], ["Dil ve Olay Sırası", ["story-order", "pic-arrange", "ar-seqw", "who-did", "syl-order", "series-pos"]]]
+exerciseIds:["ar-heard","ar-corsi","ar-span","door-seq","ar-story","num-seq-touch","ar-words","ar-route","who-did","ar-tone","ar-porder","arrow-seq","ar-sent","ar-wmseq","series-pos","ar-rhythm","ar-dir","ar-rt","syl-order","ar-move","ar-arrange","ar-simon","ar-seqw","hand-seq"],
+exerciseGroups:[["İşitsel Sıra", ["ar-span", "ar-words", "ar-heard", "ar-sent", "ar-dir", "num-seq-touch"]], ["Görsel Sıra", ["ar-corsi", "ar-wmseq", "ar-porder", "ar-rt", "ar-route", "ar-simon", "door-seq", "arrow-seq"]], ["Ses, Ritim ve Hareket", ["ar-tone", "ar-rhythm", "ar-move", "hand-seq"]], ["Dil ve Olay Sırası", ["ar-story", "ar-arrange", "ar-seqw", "who-did", "syl-order", "series-pos"]]]
 },
 
 ];

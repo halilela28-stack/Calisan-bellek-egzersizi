@@ -3672,7 +3672,7 @@ arOf: "move-seq",   /* Ardıl İşlemleme uyarlaması (2026-11-26): oyun mantı�
 isMt: true, attrs: [], speedFactor: 13.5,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
-stages: [ { label: "Dinle ve Yap", instruction: () => ``, example: () => `` } ]
+stages: [ { label: "Bak ve Yap", instruction: () => ``, example: () => `` } ]
 },
 {
 id: "ar-simon",
@@ -3693,6 +3693,35 @@ isMt: true, attrs: [], speedFactor: 7,
 isDone: () => !!mtState && mtState.phase === "done",
 randomItem: () => ({}),
 stages: [ { label: "Sırala", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "ar-story",
+readingLevel: ["pre","post"],
+label: "İzle, Dinle, Sırala",
+arOf: "story-order",   /* Ardıl İşlemleme uyarlaması (2026-11-26): oyun mantığı story-order ile aynı, hikâyeler ve yönerge bu alana özel */
+isMt: true, attrs: [], speedFactor: 20,
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "İzle, Dinle, Sırala", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "ar-arrange",
+readingLevel: ["pre","post"],
+label: "Adım Adım Sırala",
+arOf: "pic-arrange",   /* Ardıl İşlemleme uyarlaması (2026-11-26): oyun mantığı pic-arrange ile aynı, olaylar ve yönerge bu alana özel */
+isMt: true, attrs: [], speedFactor: 8,
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Aşama 1 · Sırala", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Sırala ve Anlat", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "hand-seq",
+readingLevel: ["pre","post"],
+label: "El Sırası",
+isMt: true, attrs: [], speedFactor: 13.5,   /* yeni çalışma (2026-11-26, Ardıl İşlemleme): el duruşları sırayla gösterilir, çocuk kendi eliyle yapar */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Bak ve Yap", instruction: () => ``, example: () => `` } ]
 }
 ];
 
