@@ -3455,6 +3455,244 @@ instruction: () => `Aynı şekilde inceleyin, çocuktan renkleri <b>gördüğü 
 example: () => ``
 }
 ]
+},
+{
+id: "num-seq-touch",
+readingLevel: ["pre","post"],
+label: "Duyduğun Rakamlar",
+isMt: true, attrs: [], speedFactor: 16,   /* yeni çalışma (2026-11-26, Ardıl İşlemleme) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Sırayla Dokun", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "door-seq",
+readingLevel: ["pre","post"],
+label: "Kapıdan Girenler",
+isMt: true, attrs: [], speedFactor: 14,   /* yeni çalışma (2026-11-26, Ardıl İşlemleme) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Sırayı Hatırla", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "who-did",
+readingLevel: ["pre","post"],
+label: "Kim Kime Ne Yaptı?",
+isMt: true, attrs: [], speedFactor: 12,   /* yeni çalışma (2026-11-26, Ardıl İşlemleme) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Dinle ve Bul", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "arrow-seq",
+readingLevel: ["pre","post"],
+label: "Okların Sırası",
+isMt: true, attrs: [], speedFactor: 11,   /* yeni çalışma (2026-11-26, Ardıl İşlemleme) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Bak ve Sırayı Bul", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "syl-order",
+readingLevel: ["post"],
+label: "Heceleri Sırala",
+isMt: true, attrs: [], speedFactor: 9,   /* yeni çalışma (2026-11-26, Ardıl İşlemleme) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Heceleri Diz", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "series-pos",
+readingLevel: ["pre","post"],
+label: "Dizide Önce ve Sonra",
+isMt: true, attrs: [], speedFactor: 9,   /* yeni çalışma (2026-11-26, Ardıl İşlemleme) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Sıradakini Bul", instruction: () => ``, example: () => `` } ]
+},
+/* ===== Ardıl İşlemleme uyarlamaları (2026-11-26, kullanıcı kararı): alanın ortak çalışmaları yerine, aynı oyun mantığıyla ama alana özel içerik ve yönergeyle kurulan ayrı çalışmalar ===== */
+{
+id: "ar-heard",
+readingLevel: ["pre","post"],
+label: "Hayvanları Sırayla Bul",
+arOf: "pic-seq-touch",   /* Ardıl İşlemleme uyarlaması (2026-11-26): oyun mantığı pic-seq-touch ile aynı, içerik ve yönerge bu alana özel */
+isMt: true, attrs: [], speedFactor: 16,
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Sırayla Dokun", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "ar-corsi",
+readingLevel: ["pre","post"],
+label: "Işıklı Pencereler",
+arOf: "corsi",   /* Ardıl İşlemleme uyarlaması (2026-11-26): oyun mantığı corsi ile aynı, içerik ve yönerge bu alana özel */
+isMt: true, attrs: [], speedFactor: 21, adaptErrorsOnly: true,   /* süresi görevce sabit: düzey yalnız hataya göre (Corsi her yanlış sayılır kuralı) */
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Aşama 1 · İleri", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Geri", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "ar-span",
+readingLevel: ["pre","post"],
+label: "Harf Dizisi",
+arOf: "digit-span",   /* Ardıl İşlemleme uyarlaması (2026-11-26): oyun mantığı digit-span ile aynı, içerik ve yönerge bu alana özel */
+isRecall: true,
+attrs: ["number"],
+dims: () => DIGIT_DIMS(),
+randomItem: () => ({ number: randomItem(isPre() ? AR_LET_PRE : AR_LET_POST), color: randomItem(COLORS) }),
+renderItem: (item) => numberHTML(item.number, item.color),
+stages: [
+{
+label: "Aşama 1 · Harfleri İncele",
+instruction: () => `Harfleri birlikte okuyun. Her dizi 5 saniye görünür, sonra kapanır (Başlangıç 4, Orta 6, Zor 8 dizi art arda) — çocuktan <b>gördüğü sırayla</b> tekrar etmesini isteyin, Kontrol listesinde doğruları işaretleyip Sonraki dizi'ye basın.`,
+example: () => ``
+},
+{
+label: "Aşama 2 · Ters Sırayla",
+instruction: () => `Aynı şekilde inceleyin, ama bu sefer çocuktan harfleri <b>tersten</b> söylemesini isteyin.`,
+example: () => ``
+}
+]
+},
+{
+id: "ar-words",
+readingLevel: ["pre","post"],
+label: "İsim Sırası",
+arOf: "word-order",   /* Ardıl İşlemleme uyarlaması (2026-11-26): oyun mantığı word-order ile aynı, içerik ve yönerge bu alana özel */
+isAuditory: true,
+attrs: [],
+audTrials: () => arNameTrials(),
+stages: [
+{
+label: "Aşama 1 · Aynı Sırayla",
+answerMode: "same",
+instruction: () => ``,
+example: () => ``
+},
+{
+label: "Aşama 2 · Tersten",
+answerMode: "reverse",
+instruction: () => `İsimleri <b>çocuğa göstermeden</b> sesli okuyun. Ardından <b>"Söylediğim ${audLen()} ismi sondan başa, tersten söyle"</b> deyin.`,
+example: () => ``
+}
+]
+},
+{
+id: "ar-route",
+readingLevel: ["pre","post"],
+label: "Tavşanın Yolu",
+arOf: "route-mem",   /* Ardıl İşlemleme uyarlaması (2026-11-26): oyun mantığı route-mem ile aynı, içerik ve yönerge bu alana özel */
+isMt: true, maxTier: 3, attrs: [], speedFactor: 12,
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "İzle ve Tekrarla", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "ar-tone",
+readingLevel: ["pre","post"],
+label: "Zil Dizisi",
+arOf: "tone-seq",   /* Ardıl İşlemleme uyarlaması (2026-11-26): oyun mantığı tone-seq ile aynı, içerik ve yönerge bu alana özel */
+isMt: true, attrs: [], speedFactor: 10,
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Aşama 1 · Işık ve Ses", instruction: () => ``, example: () => `` }, { label: "Aşama 2 · Yalnız Ses", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "ar-porder",
+readingLevel: ["pre","post"],
+label: "Sırayla Geçenler",
+arOf: "pic-order",   /* Ardıl İşlemleme uyarlaması (2026-11-26): oyun mantığı pic-order ile aynı, içerik ve yönerge bu alana özel */
+isMt: true, attrs: [], speedFactor: 6,
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "İzle ve Sırala", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "ar-sent",
+readingLevel: ["pre","post"],
+label: "Önce–Sonra Cümleleri",
+arOf: "sent-listen",   /* Ardıl İşlemleme uyarlaması (2026-11-26): oyun mantığı sent-listen ile aynı, içerik ve yönerge bu alana özel */
+isAuditory: true, attrs: [], errorLabel: "Yanlış tekrarlanan cümle",
+audTrials: () => arSentNext(isPre() ? 3 : 5),
+audRender: (tr) => `<div class="aud-list"><div class="aud-note">Cümleyi <b>göstermeden</b>, doğal bir hızla bir kez okuyun ya da 🔊 ile dinletin; çocuk <b>aynen</b> tekrar etsin. Kelime ekleme, atlama, ek ya da sıra değişikliği yanlış sayılır.</div>` +
+tr.map((x, i) => `<div class="aud-row"><div class="aud-num">${i + 1}</div><div class="aud-body" style="display:flex;align-items:center;gap:10px;justify-content:space-between"><div style="font-size:19px;font-weight:800;line-height:1.4">${x}</div>${sayBtn(x)}</div></div>`).join("") + `</div>`,
+randomItem: () => ({}),
+stages: [ { label: "Dinle ve Tekrar Et", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "ar-wmseq",
+readingLevel: ["pre","post"],
+label: "Parlayan Meyveler",
+arOf: "wm-seq",   /* Ardıl İşlemleme uyarlaması (2026-11-26): oyun mantığı wm-seq ile aynı, içerik ve yönerge bu alana özel */
+isWm: true, attrs: [], speedFactor: 8,
+isDone: () => !!wmState && wmState.phase === "done",
+wm: () => wmBuild(),
+randomItem: () => ({}),
+stages: [
+{ label: "Aşama 1 · Aynı Sırayla", instruction: () => ``, example: () => `` },
+{ label: "Aşama 2 · Tersten", instruction: () => ``, example: () => `` }
+]
+},
+{
+id: "ar-rhythm",
+readingLevel: ["pre","post"],
+label: "Ritim Kalıpları",
+arOf: "rhythm",   /* Ardıl İşlemleme uyarlaması (2026-11-26): oyun mantığı rhythm ile aynı, içerik ve yönerge bu alana özel */
+isMt: true, attrs: [], speedFactor: 12,
+noAdaptive: true,
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Dinle ve Vur", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "ar-dir",
+readingLevel: ["pre","post"],
+label: "Önce Buna, Sonra Şuna",
+arOf: "dir-follow",   /* Ardıl İşlemleme uyarlaması (2026-11-26): oyun mantığı dir-follow ile aynı, içerik ve yönerge bu alana özel */
+isMt: true, attrs: [], speedFactor: 15.5,
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Dinle ve Yap", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "ar-rt",
+readingLevel: ["pre","post"],
+label: "Şekilleri Sırayla Seç",
+arOf: "rt-colors",   /* Ardıl İşlemleme uyarlaması (2026-11-26): oyun mantığı rt-colors ile aynı, içerik ve yönerge bu alana özel */
+isRt: true, attrs: [], speedFactor: 12,
+isDone: () => !!rtState && rtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Şekilleri Sırayla Seç", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "ar-move",
+readingLevel: ["pre","post"],
+label: "Gördüğün Hareketleri Yap",
+arOf: "move-seq",   /* Ardıl İşlemleme uyarlaması (2026-11-26): oyun mantığı move-seq ile aynı, içerik ve yönerge bu alana özel */
+isMt: true, attrs: [], speedFactor: 13.5,
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Dinle ve Yap", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "ar-simon",
+readingLevel: ["pre","post"],
+label: "Şekil Simon",
+arOf: "pk-simon",   /* Ardıl İşlemleme uyarlaması (2026-11-26): oyun mantığı pk-simon ile aynı, içerik ve yönerge bu alana özel */
+isMt: true, maxTier: 3, attrs: [], speedFactor: 10, noBolt: true, noAdaptive: true,
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Oyna", instruction: () => ``, example: () => `` } ]
+},
+{
+id: "ar-seqw",
+readingLevel: ["pre","post"],
+label: "Sıraya Koy",
+arOf: "seq-words",   /* Ardıl İşlemleme uyarlaması (2026-11-26): oyun mantığı seq-words ile aynı, içerik ve yönerge bu alana özel */
+isMt: true, attrs: [], speedFactor: 7,
+isDone: () => !!mtState && mtState.phase === "done",
+randomItem: () => ({}),
+stages: [ { label: "Sırala", instruction: () => ``, example: () => `` } ]
 }
 ];
 

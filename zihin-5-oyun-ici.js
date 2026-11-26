@@ -125,7 +125,7 @@ if(st.manual){ showLevelFlash("Bitti! Hata sayısını kontrol edin.", "levelup"
 showLevelFlash((st.wrong ? `Bitti! ${st.wrong} hata.` : "Bitti! Hiç hata yok 🎉") + (extra || ""), st.wrong ? "down" : "levelup");
 }
 /* KURAL (turlarda aynı içerik gelmez, 2026-11-18): turlu çalışmalarda bir çalışmanın turları birbirinin aynısı olmaz. Rastgele kurulan turlarda (Ritim Tekrarı, Ses Dizisi Belleği, Say ve Hatırla, Bardak Oyunu, Yönerge İzle, İki Yönden Eşle, Bloklarla Desen, Çizgiyi Hatırla, Deseni Kopyala, Sıraya Diz, Boyut Sırasıyla Dokun, Kutuları Ara, Yolu Hatırla, Cümle–Resim Eşleştir, Sayı Örüntüsü, Aynı İkiliyi Bul, Zihinden Hesap, Görsel Tamamlama, Zihinsel Döndürme, Katla ve Del, Kayıp Anahtar, Hareket Sırası; seçmeli sorularda içerik soru + seçenek takımıdır, seçeneklerin sırası sayılmaz; bütün seçmeli sorulu çalışmalarda da aynı soru bir çalışmada iki kez gelmez — Anlam Kararı ve Benzetme dışında) aynısı çıkarsa çalışma yeniden kurulur (en çok 40 deneme); olanaklar yetmezse (3 vuruşlu ritimde yalnız iki desen var) en azından art arda aynısı gelmez; sabit kurulan turlar (Sıraya Diz okul öncesi; Bloklarla Desen okul öncesi Başlangıç ve Zor) her tur başka içerikle kurulur — Sıraya Diz okul öncesi Zor'da yalnız iki uygun dörtlü olduğundan ilk ve son tur aynı dörtlüdür (art arda gelmez); Harf-Sayı Sıralama'da aynı dizi, Uydurma Kelime Tekrarı'nda aynı kelime, Kelime Sıralama (Küçükten Büyüğe) dizilerinde aynı kelime takımı iki kez gelmez; seçmeli sorularda alt düzeyden alınan ısınma soruları kalan soruların aynısı olmaz. Eşini Hatırla ve Kelime Çiftleri için bkz. "turlarda yeni çiftler". Tek uyaranlı hızlı akışlara (Anlam Kararı, Dur Sinyali, Kural Değişimi, Ters Dokunma vb.) uygulanmaz: orada aynı uyaranın yeniden gelmesi görevin kendisidir. */
-const MT_UNIQ_IDS = ["rhythm","tone-seq","count-span","cups","dir-follow","fist","block-design","vis-draw","copy-design","seq-words","size-touch","box-search","route-mem","sent-pic","num-pattern","pair-match","mental-math","closure","mental-rot","paper-fold","key-search","move-seq","pic-order","symmetry"];   /* 2026-11-18 (17-l): Resim Sırası ve Simetri de (yoğun taramada seyrek de olsa aynı tur çıktı) */
+const MT_UNIQ_IDS = ["ar-rhythm","ar-tone","ar-dir","ar-seqw","ar-route","ar-move","ar-porder","ar-heard","num-seq-touch","syl-order","rhythm","tone-seq","count-span","cups","dir-follow","fist","block-design","vis-draw","copy-design","seq-words","size-touch","box-search","route-mem","sent-pic","num-pattern","pair-match","mental-math","closure","mental-rot","paper-fold","key-search","move-seq","pic-order","symmetry"];   /* 2026-11-18 (17-l): Resim Sırası ve Simetri de (yoğun taramada seyrek de olsa aynı tur çıktı) */
 const MT_STREAM_IDS = ["sem-decide","analogy-touch"];   /* Anlam Kararı: aynı kelimenin yeniden gelmesi görevin kendisi; Benzetme: kendi tekrarsız havuzu (anlUsed) var, yeniden kurmak havuzu tüketir */
 function mtTrialKey(x){ const q = x && Array.isArray(x.opts) && ("prompt" in x || "stim" in x || "say" in x) ? qzSig(x) : x;   /* seçmeli soruda içerik: sorunun kendisi (yoksa seçenek takımı); seçenek sırası ve doğru cevabın yeri sayılmaz — qzSig ile aynı */
 const s = JSON.stringify(q, (k, v) => v instanceof Set ? [...v].sort() : v) || ""; let h = 7; for(let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return h; }
@@ -135,9 +135,9 @@ function mtDupScore(L){ if(!Array.isArray(L)) return 0; const ks = L.map(mtTrial
 function mtBuild(){
 const id = currentExercise().id, t = currentCombo().t, pre = isPre();
 mtClear();
-if(id === "corsi" || id === "corsi-verbal"){
+if(id === "corsi" || id === "corsi-verbal" || id === "ar-corsi"){   /* Ardıl İşlemleme uyarlamaları kuralı */
 const cv = corsiLevel(pre, Math.min(t, 2), stIx() === 1), N = cv.N;
-mtState = { kind: id, N, blocks: null, len: cv.len, len0: cv.len, maxLen: cv.len, tries: 0, okAtLen: 0, okN: 0, best: 0, wrong:0, phase:"idle", back: stIx() === 1, seq:[], pos:0, trials:0, maxTrials: cv.trials, manual: id === "corsi-verbal" };   /* uzmanla: sabit uzunluk, "Sonraki" + Hata sayısı */
+mtState = { kind: id === "ar-corsi" ? "corsi" : id, win: id === "ar-corsi", N, blocks: null, len: cv.len, len0: cv.len, maxLen: cv.len, tries: 0, okAtLen: 0, okN: 0, best: 0, wrong:0, phase:"idle", back: stIx() === 1, seq:[], pos:0, trials:0, maxTrials: cv.trials, manual: id === "corsi-verbal" };   /* uzmanla: sabit uzunluk, "Sonraki" + Hata sayısı */
 return Array.from({length: 12}, () => ({}));
 }
 if(id === "span-touch"){
@@ -364,6 +364,7 @@ function corsiBs(area, N){ return Math.round(Math.max(area * corsiFrac(N), Math.
 function corsiPos(v, area, bs, N){ const f = corsiFrac(N), span = 0.92 - f; return Math.round(0.04 * area + (v - 0.04) / span * (0.92 * area - bs)); }   /* blok büyüdüğünde de alanın içinde kalır, birbirine değmez */
 function corsiLayout(){
 const st = mtState; if(st.blocks) return;
+if(st.win){ const f0 = corsiFrac(st.N), sp0 = 0.92 - f0, c0 = st.N <= 4 ? 2 : st.N <= 9 ? 3 : 4; st.blocks = shuffleArray(Array.from({length: c0 * c0}, (_, i) => i)).slice(0, st.N).sort((a, b) => a - b).map(i => ({ x: 0.04 + sp0 * ((i % c0) / (c0 - 1)), y: 0.04 + sp0 * (Math.floor(i / c0) / (c0 - 1)) })); return; }   /* Işıklı Pencereler: pencereler düzgün sıra ve sütunda (bina cephesi) */
 const f = corsiFrac(st.N), span = 0.92 - f, gap = st.N <= 4 ? 0.34 : f + 0.06; let pts = [], g = 0;   /* 4 bloğa kadar geniş aralık: blok 44 px'e büyüse de birbirine değmez */
 while(pts.length < st.N && g < 6000){ g++; if(g % 600 === 0) pts = []; const x = 0.04 + Math.random() * span, y = 0.04 + Math.random() * span;
 if(pts.every(p => Math.abs(p.x - x) > gap || Math.abs(p.y - y) > gap)) pts.push({ x, y }); }
@@ -458,6 +459,7 @@ function seqNext(){ const st = mtState; st.ti++; if(st.ti >= st.trials.length){ 
 function corsiJudgeArea(area, W, isLs, board){ try{ if(isLs) return Math.max(110, Math.min(area, W * 0.42)); const h = document.documentElement, rf = h.classList.contains("run-focus") && window._rfMax, room = (rf ? window._rfMax : window.innerHeight - board.getBoundingClientRect().top - 10) - (W < 330 ? 172 : 152); return Math.max(120, Math.min(area, room)); }catch(e){ return area; } }
 function corsiJudgeBody(areaHtml, answer, count, isLs){ const txt = `<div class="aud-key" style="text-align:${isLs ? "center" : "left"}">Doğru cevap: <b>${answer}</b> · dizi <b>${count}</b></div><div class="aud-key" style="text-align:${isLs ? "center" : "left"};margin-top:3px">Yetişkin: dizi yanlışsa <b>Hata sayısı +</b></div>`, btn = `<div class="wm-btns" style="position:static;display:block;width:auto;max-width:none;padding:0;margin:0;background:none;flex:0 0 auto"><button type="button" class="wm-btn same" data-judge="9" style="height:52px;padding:0 16px;font-size:17px;white-space:nowrap">Sonraki ▶</button></div>`;
 return isLs ? `<div style="display:flex;align-items:center;justify-content:center;gap:22px;width:100%">${areaHtml.replace("margin:0 auto;", "margin:0;")}<div style="display:flex;flex-direction:column;align-items:center;gap:10px;max-width:300px">${txt}${btn}</div></div>` : areaHtml + `<div style="display:flex;align-items:center;gap:10px;width:100%;max-width:420px;margin:0 auto"><div style="flex:1 1 auto;min-width:0">${txt}</div>${btn}</div>`; }
+const AR_ND_INFO = "Sayı kartlarına <b>duyduğun sırayla</b> dokun";   /* Duyduğun Rakamlar yönerge satırı (iki çizim yolu aynı metni kullanır) */
 function renderMtBoard(){ try{ const st = mtState; if(st && (st.kind === "quiz" || st.kind === "wseen" || st.kind === "bag") && !st._balanced && Array.isArray(st.trials)){ const exId = (currentExercise() || {}).id; if(st.kind === "quiz") qzDedupe(st, exId); qzBalancePos(st.trials, exId); if(st.kind === "quiz" && !["syl-touch","sem-decide","absurd-touch","rhyme-touch","sent-verify","arrow-touch","balance"].includes(exId)) qzBalanceNum(st.trials); if(st.kind === "quiz"){ qzBreakRuns(st.trials, 0); qzFixRuns(st, exId); } st._balanced = true; } }catch(e){} /* soru düzeni dengeleme (eski sarmalayıcı, 7. adımda içeri alındı) */  zaFitReset(); try{
 const board = document.getElementById("board");
 board.style.display = "block"; board.style.minHeight = ""; board.style.padding = landscapeMQ.matches ? "6px 8px" : "12px";
@@ -472,11 +474,11 @@ const cvJ = st.kind === "corsi-verbal" && st.phase === "judge"; let area = Math.
 if(cvJ) area = corsiJudgeArea(area, W, isLs, board);   /* KURAL (Corsi Blokları (uzmanla) puanlama ekranı, 2026-11-17) */
 const bs = corsiBs(area, st.N);
 info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "show" ? "<b>İzle…</b>" : st.phase === "input" ? `<b>${st.back ? "Tersten" : "Aynı sırayla"}</b> dokun · ${st.pos}/${st.seq.length}` : st.phase === "judge" ? `Çocuk sırayı ${st.back ? "<b>tersten</b>" : ""} söylesin / göstersin:` : st.phase === "done" ? (st.manual ? `Bitti · ${st.len}'lü diziler · hatalar Hata sayısında` : `Bitti · <b>${st.okN || 0} / ${st.trials}</b> dizi doğru`) : `Dizi uzunluğu: <b>${st.len}</b> · dizi ${Math.min(st.trials + 1, st.maxTrials)} / ${st.maxTrials}`;
-body = `<div style="position:relative;flex:0 0 auto;width:${area}px;height:${area}px;margin:0 auto;background:#EEF2F6;border-radius:18px;">` + st.blocks.map((p, i) => {
+body = `<div style="position:relative;flex:0 0 auto;width:${area}px;height:${area}px;margin:0 auto;background:${st.win ? "#D9C7B0" : "#EEF2F6"};border-radius:18px;">` + st.blocks.map((p, i) => {
 const lit = st.lit === i, mk = st.marks && st.marks[i];
-const bg = lit ? "#FFC21A" : mk === "ok" ? "#1FA463" : mk === "bad" ? "#E5484D" : "#2E6FD8";
+const bg = lit ? "#FFC21A" : mk === "ok" ? "#1FA463" : mk === "bad" ? "#E5484D" : st.win ? "#34495E" : "#2E6FD8";
 const num = st.kind === "corsi-verbal" ? `<span style="color:#fff;font-weight:900;font-size:${Math.round(bs * 0.42)}px">${i + 1}</span>` : "";
-return `<div data-mt="${i}" style="position:absolute;left:${corsiPos(p.x, area, bs, st.N)}px;top:${corsiPos(p.y, area, bs, st.N)}px;width:${bs}px;height:${bs}px;border-radius:10px;background:${bg};box-shadow:0 4px 0 rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .1s">${num}</div>`; }).join("") + `</div>`;
+return `<div data-mt="${i}" style="position:absolute;left:${corsiPos(p.x, area, bs, st.N)}px;top:${corsiPos(p.y, area, bs, st.N)}px;width:${bs}px;height:${bs}px;${st.win ? "border-radius:4px;border:3px solid #F7F1E5;box-sizing:border-box;" : "border-radius:10px;"}background:${bg};box-shadow:0 4px 0 rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .1s">${num}</div>`; }).join("") + `</div>`;
 if(cvJ){
 const order = st.back ? st.seq.slice().reverse() : st.seq;
 body = corsiJudgeBody(body, order.map(i => i + 1).join(" – "), `${st.trials + 1}/${st.maxTrials}`, isLs);
@@ -596,7 +598,7 @@ const sz = Math.min(isLs ? H - 30 : 180, W * 0.55);
 body = dots + (st.audio ? SPEAKER_HTML(true) : `<div class="wm-card" style="width:${sz}px;height:${sz}px;">${st.showIdx >= 0 ? face(items[st.showIdx]) : ""}</div>`);
 } else {
 const tgt = seqTarget();
-info = isL ? (st.sorted ? "Önce sayılar <b>küçükten büyüğe</b>, sonra harfler <b>alfabe sırasıyla</b>" : "Önce <b>sayılara</b>, sonra <b>harflere</b> dokun (duyduğun sırayla)") : st.kind === "picseq" ? "Resimlere <b>duyduğun sırayla</b> dokun" : "Önce <b>hayvanlara</b>, sonra <b>meyvelere</b> dokun (gördüğün sırayla)";
+info = isL ? (st.sorted ? "Önce sayılar <b>küçükten büyüğe</b>, sonra harfler <b>alfabe sırasıyla</b>" : "Önce <b>sayılara</b>, sonra <b>harflere</b> dokun (duyduğun sırayla)") : st.kind === "picseq" ? (st.nums ? AR_ND_INFO : "Resimlere <b>duyduğun sırayla</b> dokun") : "Önce <b>hayvanlara</b>, sonra <b>meyvelere</b> dokun (gördüğün sırayla)";
 const d = wmGridDims(items.length, W, isLs ? H - 45 : H, isL ? 84 : 100);
 body = dots + `<div class="wm-info">${st.pos}/${items.length}</div><div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + st.keys.map(i => {
 const mk = st.marks[i] || (st.reveal ? "ok" : "");
@@ -621,11 +623,11 @@ const cvJ = st.kind === "corsi-verbal" && st.phase === "judge"; let area = Math.
 if(cvJ) area = corsiJudgeArea(area, W, isLs, board);   /* KURAL (Corsi Blokları (uzmanla) puanlama ekranı, 2026-11-17) */
 const bs = corsiBs(area, st.N);
 info = st.phase === "idle" ? "▶ Başlat'a bas" : st.phase === "show" ? "<b>İzle…</b>" : st.phase === "input" ? `<b>${st.back ? "Tersten" : "Aynı sırayla"}</b> dokun · ${st.pos}/${st.seq.length}` : st.phase === "judge" ? `Çocuk sırayı ${st.back ? "<b>tersten</b>" : ""} söylesin / göstersin:` : st.phase === "done" ? (st.manual ? `Bitti · ${st.len}'lü diziler · hatalar Hata sayısında` : `Bitti · <b>${st.okN || 0} / ${st.trials}</b> dizi doğru`) : `Dizi uzunluğu: <b>${st.len}</b> · dizi ${Math.min(st.trials + 1, st.maxTrials)} / ${st.maxTrials}`;
-body = `<div style="position:relative;flex:0 0 auto;width:${area}px;height:${area}px;margin:0 auto;background:#EEF2F6;border-radius:18px;">` + st.blocks.map((p, i) => {
+body = `<div style="position:relative;flex:0 0 auto;width:${area}px;height:${area}px;margin:0 auto;background:${st.win ? "#D9C7B0" : "#EEF2F6"};border-radius:18px;">` + st.blocks.map((p, i) => {
 const lit = st.lit === i, mk = st.marks && st.marks[i];
-const bg = lit ? "#FFC21A" : mk === "ok" ? "#1FA463" : mk === "bad" ? "#E5484D" : "#2E6FD8";
+const bg = lit ? "#FFC21A" : mk === "ok" ? "#1FA463" : mk === "bad" ? "#E5484D" : st.win ? "#34495E" : "#2E6FD8";
 const num = st.kind === "corsi-verbal" ? `<span style="color:#fff;font-weight:900;font-size:${Math.round(bs * 0.42)}px">${i + 1}</span>` : "";
-return `<div data-mt="${i}" style="position:absolute;left:${corsiPos(p.x, area, bs, st.N)}px;top:${corsiPos(p.y, area, bs, st.N)}px;width:${bs}px;height:${bs}px;border-radius:10px;background:${bg};box-shadow:0 4px 0 rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .1s">${num}</div>`; }).join("") + `</div>`;
+return `<div data-mt="${i}" style="position:absolute;left:${corsiPos(p.x, area, bs, st.N)}px;top:${corsiPos(p.y, area, bs, st.N)}px;width:${bs}px;height:${bs}px;${st.win ? "border-radius:4px;border:3px solid #F7F1E5;box-sizing:border-box;" : "border-radius:10px;"}background:${bg};box-shadow:0 4px 0 rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .1s">${num}</div>`; }).join("") + `</div>`;
 if(cvJ){
 const order = st.back ? st.seq.slice().reverse() : st.seq;
 body = corsiJudgeBody(body, order.map(i => i + 1).join(" – "), `${st.trials + 1}/${st.maxTrials}`, isLs);
@@ -745,7 +747,7 @@ const sz = Math.min(isLs ? H - 30 : 180, W * 0.55);
 body = dots + (st.audio ? SPEAKER_HTML(true) : `<div class="wm-card" style="width:${sz}px;height:${sz}px;">${st.showIdx >= 0 ? face(items[st.showIdx]) : ""}</div>`);
 } else {
 const tgt = seqTarget();
-info = isL ? (st.sorted ? "Önce sayılar <b>küçükten büyüğe</b>, sonra harfler <b>alfabe sırasıyla</b>" : "Önce <b>sayılara</b>, sonra <b>harflere</b> dokun (duyduğun sırayla)") : st.kind === "picseq" ? "Resimlere <b>duyduğun sırayla</b> dokun" : "Önce <b>hayvanlara</b>, sonra <b>meyvelere</b> dokun (gördüğün sırayla)";
+info = isL ? (st.sorted ? "Önce sayılar <b>küçükten büyüğe</b>, sonra harfler <b>alfabe sırasıyla</b>" : "Önce <b>sayılara</b>, sonra <b>harflere</b> dokun (duyduğun sırayla)") : st.kind === "picseq" ? (st.nums ? AR_ND_INFO : "Resimlere <b>duyduğun sırayla</b> dokun") : "Önce <b>hayvanlara</b>, sonra <b>meyvelere</b> dokun (gördüğün sırayla)";
 const d = wmGridDims(items.length, W, isLs ? H - 45 : H, isL ? 84 : 100);
 body = dots + `<div class="wm-info">${st.pos}/${items.length}</div><div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + st.keys.map(i => {
 const mk = st.marks[i] || (st.reveal ? "ok" : "");
@@ -1013,6 +1015,13 @@ const INSTR_SHORT = {
 "short-story":      [() => `Okuyun: ${Q("Ekrandaki resme bak; ben sana onunla ilgili kısa bir hikâye okuyacağım. Dikkatle dinle. Bitince sana sorular soracağım, cevapla.")}`],
 "pic-seq-say":      [() => `Resimler tek tek görünecek. Kapanınca: ${Q("Resimler tek tek gelecek; her birine iyi bak ve aklında tut. Resimler kapanınca gördüğün resimleri sırayla söyle.")}`],
 "pic-seq-touch":    [() => Q("Ekranda resimler var. Bazılarının adı sırayla okunacak; dinle ve sırayı aklında tut. Bitince resimlere duyduğun sırayla dokun.")],
+/* KURAL (Ardıl İşlemleme yönergeleri, 2026-11-26): önce ne olacağı, sonra ne yapılacağı; ekrandaki ve yapılacak işle birebir */
+"num-seq-touch":    [() => Q(isPre() ? "Sayılar sırayla okunacak; dinle ve sırayı aklında tut. Sonra ekrana noktalı sayı kartları gelecek; kartlara duyduğun sırayla dokun." : "Sayılar sırayla okunacak; dinle ve sırayı aklında tut. Sonra ekrana sayı kartları gelecek; kartlara duyduğun sırayla dokun.")],
+"door-seq":         [() => Q("Kapıdan hayvanlar tek tek girecek; hangisinin önce, hangisinin sonra geldiğine iyi bak. Sonra sırayla ilgili bir soru sorulacak; doğru hayvana dokun.")],
+"who-did":          [() => Q("Hayvanlarla ilgili bir cümle okunacak; kimin ne yaptığını dikkatle dinle. Sonra bir soru sorulacak; doğru hayvanın resmine dokun.")],
+"arrow-seq":        [() => Q("Oklar tek tek görünecek. Her okun hangi yöne baktığını sırayla aklında tut. Sonra gördüğün sırayı gösteren şeride dokun.")],
+"syl-order":        [() => Q("Ekranda bir resim ve karışık heceler var. Hecelere sırayla dokunarak diz ve resmin adını kur.")],
+"series-pos":       [() => Q(isPre() ? (currentCombo().t === 0 ? "Ekranda bir sayı kartı var. Bu sayıdan sonra hangi sayının geldiği sorulacak; dinle ve doğru karta dokun." : "Ekranda bir sayı kartı var. Bu sayıdan önce ya da sonra hangi sayının geldiği sorulacak; dinle ve doğru karta dokun.") : `${["Günlerle", "Aylarla", "Günler, aylar ya da harflerle"][Math.min(2, currentCombo().t)]} ilgili bir soru okunacak. Sırayı aklından say; önce ya da sonra geleni bul ve ona dokun.`)],
 "running":          [() => Q(`Resimler tek tek gelecek ama kaç tane geleceğini bilmiyorsun. Resimler bitince ${runLast() === 1 ? "en son gelen resmi hatırla ve ona dokun" : `en son gelen ${runLast()} resmi hatırla ve onlara geliş sırasıyla dokun`}.`)],
 "running-verbal":   [() => `Göstermeden okuyun: ${Q(`Sana kelimeler okuyacağım ama kaç tane olduğunu söylemeyeceğim. Dinle. Bittiğinde ${runLast() === 1 ? "en son söylediğim kelimeyi söyle" : `en son söylediğim ${runLast()} kelimeyi sırasıyla söyle`}.`)}`],
 "zihni":            [() => Q(isPre() ? "Zihni bir kutuda duruyor; yerine iyi bak. Sonra oklar gelecek; oklar Zihni'nin nereye gittiğini gösterir. Zihni'nin gittiği kutuya dokun." : "Zihni bir kutuda duruyor; yerine iyi bak. Sonra komutlar gelecek: ‘bir sağa’, ‘bir yukarı’ gibi. Zihni'yi kafanda yürüt ve en son geldiği kutuya dokun.")],
@@ -1073,6 +1082,22 @@ const INSTR_SHORT = {
 "nback-shape":      [() => Q("Hayvanlar tek tek gelip kapanacak. İlk hayvanı sadece aklında tut. Sonra her hayvan kapanınca, ondan bir önce gelen hayvana dokun."), () => Q("Hayvanlar tek tek gelip kapanacak. İlk iki hayvanı sadece aklında tut. Sonra her hayvan kapanınca, ondan iki önce gelen hayvana dokun.")],
 "nback-color":      [() => Q("Taşıtlar tek tek gelip kapanacak. İlk taşıtı sadece aklında tut. Sonra her taşıt kapanınca, ondan bir önce gelen taşıta dokun."), () => Q("Taşıtlar tek tek gelip kapanacak. İlk iki taşıtı sadece aklında tut. Sonra her taşıt kapanınca, ondan iki önce gelen taşıta dokun.")],
 "nback-number":      [() => Q("Sayılar tek tek gelip kapanacak. İlk sayıyı sadece aklında tut. Sonra her sayı kapanınca, ondan bir önce gelen sayıya dokun."), () => Q("Sayılar tek tek gelip kapanacak. İlk iki sayıyı sadece aklında tut. Sonra her sayı kapanınca, ondan iki önce gelen sayıya dokun.")],
+/* KURAL (Ardıl İşlemleme uyarlama yönergeleri, 2026-11-26): her uyarlamanın yönergesi kendi içeriğini anlatır (pencere, harf, isim, tavşan, zil, hayvan, şekil…) */
+"ar-heard":         [() => Q("Ekranda hayvanlar var. Bazılarının adı sırayla okunacak; dinle ve sırayı aklında tut. Bitince hayvanlara duyduğun sırayla dokun.")],
+"ar-corsi":         [() => Q("Ekranda bir binanın pencereleri var. Pencerelerin ışığı sırayla yanıp sönecek; iyi bak. Bitince pencerelere aynı sırayla dokun."), () => Q("Ekranda bir binanın pencereleri var. Pencerelerin ışığı sırayla yanıp sönecek; iyi bak. Bitince pencerelere TERSTEN dokun: en son yanana ilk, ilk yanana en son.")],
+"ar-span":          [() => `${dsCount()} dizi art arda gelir; her dizi 5 saniye görünür. Harfleri birlikte okuyun. Kapanınca: ${Q("Ekranda harfler var; onları birlikte okuyacağız ve sen aklında tutacaksın. Harfler kapanınca onları aynı sırayla söyle.")}`, () => `${dsCount()} dizi art arda gelir; her dizi 5 saniye görünür. Harfleri birlikte okuyun. Kapanınca: ${Q("Ekranda harfler var; onları birlikte okuyup aklında tutacaksın. Harfler kapanınca onları tersten söyle: en sondakinden başla, ilkte bitir.")}`],
+"ar-words":         [() => `Göstermeden okuyun: ${Q(`Sana ${audLen()} isim okuyacağım. Bitince isimleri aynı sırayla tekrar et.`)}`, () => `Göstermeden okuyun: ${Q(`Sana ${audLen()} isim okuyacağım. Bitince tersten söyle: en son söylediğim isimden başla.`)}`],
+"ar-route":         [() => Q("Ekranda kareler var. Tavşan kareden kareye zıplayacak; yolunu iyi izle ve aklında tut. Sonra tavşan kaybolacak. Yeşil kareden başla ve tavşanın geçtiği karelere aynı sırayla dokun.")],
+"ar-tone":          [() => Q("Ekranda ziller var. Ziller sırayla yanacak ve her biri bir ses çıkaracak; sırayı izle ve dinle. Bitince zillere aynı sırayla dokun."), () => Q("Ziller yanmayacak, sadece sesleri çalacak. Sesleri dikkatle dinle; bitince zillere aynı sırayla dokun.")],
+"ar-porder":        [() => Q("Taşıtlar ve deniz canlıları tek tek geçecek; hangisinin hangi sırada geçtiğine iyi bak ve aklında tut. Bitince hepsi karışık görünecek; onlara geçiş sırasıyla dokun.")],
+"ar-sent":          [() => `Göstermeden okuyun: ${Q("Sana önce ne, sonra ne olduğunu anlatan bir cümle söyleyeceğim. Dikkatle dinle; bitince cümleyi aynen, sırasını bozmadan tekrar et.")}`],
+"ar-wmseq":         [() => Q("Ekranda meyveler ve sebzeler var. Sırayla parlayacaklar; iyi bak. Bitince onlara aynı sırayla dokun."), () => Q("Ekranda meyveler ve sebzeler var. Sırayla parlayacaklar; iyi bak. Bitince onlara TERSTEN dokun: en son parlayana ilk, ilk parlayana en son.")],
+"ar-rhythm":        [() => Q("Davul vuruşları küme küme gelecek; dikkatle dinle. Bitince davula aynı ritimle vur.")],
+"ar-dir":           [() => Q("Ekranda oyuncaklar ve ev eşyaları var. Sana hangisine önce, hangisine sonra dokunacağını söyleyeceğim; dinle ve aklında tut. Bitince söylediğim sırayla dokun.")],
+"ar-rt":            [() => Q("Ekranda şekiller sırayla gösterilecek; sırayı iyi izle ve aklında tut. Şekiller kapanınca aynı sırayla şekillere dokun.")],
+"ar-move":          [() => `Çocuk ayakta olsun, yakında bir masa bulunsun. ${Q("Ekranda hareket resimleri tek tek görünecek; iyi bak ve sırayı aklında tut, hemen yapma. Ben ‘şimdi yap’ deyince hareketleri gördüğün sırayla yap.")}`],
+"ar-simon":         [() => Q("Şekillerin sırasını izle ve dinle, sonra aynı sırayla dokun. Dizi her turda uzar.")],
+"ar-seqw":          [() => isPre() ? Q("Ekranda noktalı kartlar var. Onları azdan çoğa doğru diz: önce en az noktalı karta, sonra sıradakine dokun.") : Q("Karışık kelimeler var. Hangisi önce gelir? Sırasına diz: önce ilk geleni, sonra sıradakini seç.")],
 "digit-span":       [() => `${dsCount()} dizi art arda gelir; her dizi 5 saniye görünür. Rakamları birlikte okuyun. Kapanınca: ${Q("Ekranda rakamlar var; onları birlikte okuyacağız ve sen aklında tutacaksın. Rakamlar kapanınca onları aynı sırayla söyle.")}`, () => `${dsCount()} dizi art arda gelir; her dizi 5 saniye görünür. Rakamları birlikte okuyun. Kapanınca: ${Q("Ekranda rakamlar var; onları birlikte okuyup aklında tutacaksın. Rakamlar kapanınca onları tersten söyle: en sondakinden başla, ilkte bitir.")}`],
 "word-order":       [() => `Göstermeden okuyun: ${Q(`Sana ${audLen()} kelime okuyacağım. Bitince aynı sırayla tekrar et.`)}`, () => `Göstermeden okuyun: ${Q(`Sana ${audLen()} kelime okuyacağım. Bitince tersten söyle: en son söylediğimden başla.`)}`, () => `Göstermeden okuyun: ${Q(`Sana ${audLen()} hayvan adı okuyacağım. Bitince onları küçükten büyüğe sırala ve söyle.`)}`],
 "prospective-event":[() => `Başlamadan önce: ${Q(`Resimler gelecek; her resmin adını söyle. Ama ${peObjName(peObjTriggers[0])} görünce adını söylemeden önce masaya vur.`)}`,
@@ -1133,6 +1158,9 @@ return {
 "number-letter":trail, "trail-number-month":trail, "trail-animal-fruit":trail, "trail-color-shape":trail,
 "plan-beads":plan, "plan-swap":plan, "plan-tol":plan, "plan-cubes":plan,
 "nback-shape":nback, "nback-color":nback, "nback-number":nback, "wm-same":nback,
+"ar-heard":[0, "İçinden Tekrarla", "Adları duyarken içinden sırayla tekrar et: aslan, fil, kedi…"], "ar-corsi":[0, "Pencereleri Say", "Yanan pencereleri içinden say: bir, iki, üç… Yolu parmağınla havada çiz."], "ar-span":[0, "Kümele", "Harfleri ikişerli söyle: A-K, sonra T-M."], "ar-words":[0, "İçinden Tekrarla", "İsimleri duyarken içinden sırayla tekrar et."], "ar-route":[0, "Zıplamaları Söyle", "Her zıplamayı yönüyle söyle: sağa, aşağı, sağa…"],
+"ar-tone":[0, "Renkleri Söyle", "Yanan zilin rengini içinden söyle; sırayı renk adlarıyla tekrarla."], "ar-porder":[0, "Sırayla Adlandır", "Her geçeni adıyla söyle: önce gemi, sonra balık…"], "ar-sent":[0, "Önce–Sonra", "Cümleyi ikiye böl: önce ne oldu, sonra ne oldu?"], "ar-wmseq":[0, "Adlandır", "Her parlayanın adını içinden söyle, diziyi baştan tekrarla."], "ar-rhythm":[0, "Kümeleri Say", "Vuruşları küme küme say: iki vuruş, bekle, bir vuruş."],
+"ar-dir":[0, "Kendine Tekrar Et", "Duyduğunu içinden bir kez tekrar et: önce topa, sonra saate."], "ar-rt":[0, "Adlarıyla Söyle", "Şekilleri adlarıyla sırayla söyle: daire, yıldız, üçgen."], "ar-move":[0, "Adını Koy", "Her hareket resmine içinden ad ver: alkış, zıpla… Sırayı adlarla tekrarla."], "ar-simon":[0, "Baştan Söyle", "Her turda diziyi baştan, şekil adlarıyla söyle."], "ar-seqw":[0, "Önce–Sonra", "Kendine sor: Hangisi en önce gelir? Sonra hangisi?"],
 "corsi":[0, "Yolu Hayal Et", "Blokların yolunu bir şekle benzet: çizgi, köşe, zikzak…"],
 "corsi-verbal":[0, "Yolu Hayal Et", "Blokların yolunu bir şekle benzet: çizgi, köşe, zikzak…"],
 "market":[0, "Grupla", "Ürünleri gruplara ayır ve gruplar hâlinde aklında tut."],
@@ -1301,6 +1329,8 @@ return {
 "rhyme-touch":[0, "Sonları Söyle", "İki kelimenin yalnızca son kısımlarını tekrar et."],
 "syn-touch":[0, "Cümlede Dene", "Kelimeyi bir cümlede kullan; yerine seçeneği koy, anlam değişmiyor mu?"],
 "seq-words":[0, "Önce–Sonra", "Kendine sor: Hangisi en önce gelir? Sonra hangisi?"],
+"num-seq-touch":[0, "İçinden Tekrarla", "Sayıları duyarken içinden sırayla tekrar et; dokunurken de aynı sırayla söyle."], "door-seq":[0, "Sırayla Say", "Hayvanlar girerken içinden say: birinci kedi, ikinci köpek…"], "who-did":[0, "Kim Yaptı?", "Kendine sor: İşi yapan kim? İş kime yapıldı? Eklere dikkat et."],
+"arrow-seq":[0, "Yönleri Söyle", "Her ok görünürken yönünü içinden söyle: sağ, sol, yukarı… Sonra söylediğin sırayı şeritte ara."], "syl-order":[0, "Hece Hece Söyle", "Resmin adını yavaşça hece hece söyle; her heceyi söylerken onu bul."], "series-pos":[0, "Baştan Say", "Diziyi baştan sesli say; sorulan yere gelince dur."],
 "part-whole":[0, "Hayal Et", "Bütünü gözünde canlandır, parçalarını say."],
 "flu-cat":[0, "Küçük Gruplar", "Aklında küçük gruplar kur; bir grup bitince yenisine geç."],
 "flu-letter":[0, "Heceyle Dene", "Bu sesle başlayan heceleri sırayla dene; her heceden kelime bul."],

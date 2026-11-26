@@ -491,7 +491,7 @@ function escHit(){ const st = mtState; mtErr(); st.pos = 0; st.flash = true; set
 function molDraw(){ const st = mtState, g = document.getElementById("pkMoles"); if(!g) return; g.querySelectorAll(".pk-hole").forEach((h, k) => { const on = st.cur && st.cur.h === k;
 h.innerHTML = gimg("mole") ? `<img class="pk-mimg${on && st.cur.hit ? " hit" : ""}${on ? " up" : ""}" src="${on ? gimg(st.cur.hat ? "moleHat" : "mole") : gimg("hole")}" alt="">` : (on ? `<div class="pk-mole${st.cur.hit ? " hit" : ""}">${st.cur.hat ? `<span class="pk-hat"></span>` : ""}<span class="pk-eye l"></span><span class="pk-eye r"></span><span class="pk-nose"></span></div>` : ""); });
 const hd = document.getElementById("pkScore"); if(hd) hd.textContent = st.score; }
-function smnFlash(k, ms){ const st = mtState; try{ toneBeep(TONE_KEYS[k % 4].f + (k >= 4 ? 120 : 0)); }catch(e){} const el = document.querySelector(`[data-pad="${k}"]`); if(el){ el.classList.add("lit"); setTimeout(() => el.classList.remove("lit"), ms * (window.__wmSpeed || 1)); } }
+function smnFlash(k, ms){ const st = mtState; try{ toneBeep((st.keys || TONE_KEYS)[k % 4].f + (k >= 4 ? 120 : 0)); }catch(e){} const el = document.querySelector(`[data-pad="${k}"]`); if(el){ el.classList.add("lit"); setTimeout(() => el.classList.remove("lit"), ms * (window.__wmSpeed || 1)); } }
 function smnRound(){ const st = mtState, c = st.cfg; if(st.seq.length >= c.target){ st.phase = "done"; mtFinish(` En uzun dizi: ${st.score}`); return; }
 st.seq.push(Math.floor(Math.random() * st.pads)); st.pos = 0; st.phase = "play"; renderMtBoard();
 st.seq.forEach((k, j) => mtLater(() => smnFlash(k, c.ms * 0.7), 500 + j * c.ms)); mtLater(() => { st.phase = "input"; renderMtBoard(); }, 500 + st.seq.length * c.ms); }
@@ -515,7 +515,13 @@ mtLater(() => step(0), o.lead || 0); }
 function saySeq(parts, rate, ok, gap){ const tok = window._saySeqTok = (window._saySeqTok || 0) + 1; let t = 0; (parts || []).forEach(p => { mtLater(() => { if(window._saySeqTok !== tok || (ok && !ok())) return; sayTask(p, rate || 0.85); }, t); t += sayDur(p, rate) + (gap == null ? WORD_GAP_MS : gap); }); return t; }
 function qzSay(tr){ const st = mtState; if(!tr || !st) return; if(Array.isArray(tr.sayParts) && tr.sayParts.length){ const ti = st.ti; saySeq(tr.sayParts, tr.rate || 0.85, () => mtState === st && st.ti === ti && st.phase === "ask", tr.gap); return; }
   window._saySeqTok = (window._saySeqTok || 0) + 1; if(tr.say) sayTask(tr.say, 0.85); }
-function qzStart(){ const st = mtState, tr0 = st.trials[st.ti], ti0 = st.ti; if(tr0 && tr0.memo && !tr0._memoSeen){ st.phase = "study"; st.pick = null; renderMtBoard(); mtLater(() => { if(mtState !== st || st.ti !== ti0) return; tr0._memoSeen = true; qzStart(); }, tr0.memoMs || 3000); return; }   /* KURAL (bakıp hatırlanan soru, 2026-11-22): soruda "memo" varsa önce bakma aşaması gelir, süre dolunca kapanır ve soru sorulur (Kaç Taneydi?) */
+function qzStart(){ const st = mtState, tr0 = st.trials[st.ti], ti0 = st.ti;
+  /* KURAL (sırayla görünen bakma kareleri, 2026-11-26): soruda "frames" varsa kareler tek tek gösterilir (her biri frameMs, aralarında boş kare), bitince soru gelir (Kapıdan Girenler) */
+  if(tr0 && tr0.frames && !tr0._memoSeen){ st.phase = "study"; st.pick = null; let k = 0; const fm = tr0.frameMs || 1200, ok = () => mtState === st && st.ti === ti0 && st.phase === "study";
+    const step = () => { if(!ok()) return; if(k >= tr0.frames.length){ tr0.memo = tr0.blank || " "; renderMtBoard(); mtLater(() => { if(!ok()) return; tr0._memoSeen = true; qzStart(); }, 500); return; }
+      tr0.memo = tr0.frames[k++]; renderMtBoard(); mtLater(() => { if(!ok()) return; tr0.memo = tr0.blank || " "; renderMtBoard(); mtLater(step, 350); }, fm); };
+    tr0.memo = tr0.blank || " "; renderMtBoard(); mtLater(step, 400); return; }
+  if(tr0 && tr0.memo && !tr0._memoSeen){ st.phase = "study"; st.pick = null; renderMtBoard(); mtLater(() => { if(mtState !== st || st.ti !== ti0) return; tr0._memoSeen = true; qzStart(); }, tr0.memoMs || 3000); return; }   /* KURAL (bakıp hatırlanan soru, 2026-11-22): soruda "memo" varsa önce bakma aşaması gelir, süre dolunca kapanır ve soru sorulur (Kaç Taneydi?) */
 st.phase = "ask"; st.pick = null; renderMtBoard(); const tr = st.trials[st.ti]; if(tr.say || tr.sayParts) mtLater(() => qzSay(tr), 250); }
 function qzTap(i){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "ask") return; st.pick = i; st.phase = "fb";
 const ok = i === tr.ans; if(ok) gameSfx("correct"); else mtErr(); renderMtBoard();
@@ -561,7 +567,7 @@ const replay = tr.replay ? `<button type="button" class="wm-btn diff qz-replay" 
     let qH = isLs ? H - 40 : Math.max(120, H - (tr.stim ? (tr.raw ? (tr.ar ? 138 : 120) : 150) : 30) - (tr.replay ? 50 : 0));
     if(picOpts && !isLs){ try{ const bd = document.getElementById("board"); if(bd && timerRunning){ const avail = Math.floor(window.innerHeight - bd.getBoundingClientRect().top - 44 - 64 - (tr.stim ? (tr.raw ? (tr.ar ? 128 : 110) : 160) : 0) - (tr.replay ? 62 : 0)); if(avail > qH) qH = avail; } }catch(e){} }
     if(picOpts && !isLs && window._zaPicH && window._zaPicHK === zaFitKey()) qH = window._zaPicHX ? window._zaPicH : Math.max(qH, window._zaPicH); /* ilk çizimden sonra ölçülen gerçek boş alan; resimli seçenekler tahtaya sığar kuralı: taşma ölçüldüyse tam o kadar yer kullanılır */
-    const n = tr.opts.length, arStack = !!(tr.ar && tr.stimImg && !isLs), d = tr.ar ? qzArDims(n, isLs ? (tr.stimImg ? Math.max(W * 0.55, W - 184) : W * 0.55) : W, arStack ? qH + ((window._zaPicH && window._zaPicHK === zaFitKey() && window._qzArSH) ? window._qzArSH : 128) : qH, 190 * tabletScale() * (window._fitK || 1), tr.ar, arStack ? 160 : 0) : picOpts ? zaPicDims(n, isLs ? W * (tr.lsW || (tr.stim ? 0.55 : tr.replay ? 0.7 : 0.9)) : W, qH, 260 * (window._fitK || 1)) : wmGridDims(n, isLs ? W * (tr.lsW || (tr.stim ? 0.55 : tr.replay ? 0.7 : 0.9)) : W, qH, (tr.cell || (tr.fixed ? 80 : 120)) * (window._fitK || 1));   /* yer varsa seçenek resimleri 120 noktaya kadar büyür */
+    const n = tr.opts.length, arStack = !!(tr.ar && tr.stimImg && !isLs), d = tr.ar ? qzArDims(n, isLs ? (tr.stimImg ? Math.max(W * 0.55, W - 184) : W * 0.55) : W, arStack ? qH + ((window._zaPicH && window._zaPicHK === zaFitKey() && window._qzArSH) ? window._qzArSH : 128) : qH, (tr.arCap || 190) * tabletScale() * (window._fitK || 1), tr.ar, arStack ? 160 : 0) : picOpts ? zaPicDims(n, isLs ? W * (tr.lsW || (tr.stim ? 0.55 : tr.replay ? 0.7 : 0.9)) : W, qH, 260 * (window._fitK || 1)) : wmGridDims(n, isLs ? W * (tr.lsW || (tr.stim ? 0.55 : tr.replay ? 0.7 : 0.9)) : W, qH, (tr.cell || (tr.fixed ? 80 : 120)) * (window._fitK || 1));   /* yer varsa seçenek resimleri 120 noktaya kadar büyür */
 const grid = tr.text ? `<div class="qz-txt-grid${st._tight ? " qz-tight" : ""}" style="grid-template-columns:repeat(${n % 2 ? 1 : 2}, minmax(0, 1fr))">` /* KURAL (yazılı seçenekler, 2026-11-04): tek sayıda (3, 5) yazılı seçenek tek sütunda alt alta dizilir — 2 sütunda son satır eksik kalıyor ve doğru cevap sağ sütuna yalnız üçte bir düşüyordu; çift sayıda seçenek 2 sütun */ + tr.opts.map((o, i) => { const mk = st.phase === "fb" ? (i === tr.ans ? " ok" : (i === st.pick ? " bad" : "")) : "";
 return `<div class="wm-pic qz-txt${mk}" data-mt="${i}">${o}</div>`; }).join("") + `</div>`
 : `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + tr.opts.map((o, i) => {
@@ -2190,7 +2196,7 @@ const tierIx = (lb) => Math.max(0, TIERS.findIndex(x => x.label === lb));
 const stepOf = (r) => (r.lvl === "pre" ? 0 : 3) + tierIx(r.tier);   /* okul öncesi ve okul sonrası tek ölçekte (0–5): kademe değişse de ilerleme doğru okunur */
 const gsAll = gameStoreAll()[nm] || {}, gsOf = (c) => gsAll[(() => { try{ return c.okul ? (readingLevel === "pre" ? "pre" : "post") : catLevelFor(c.id, nm); }catch(e){ return readingLevel === "pre" ? "pre" : "post"; } })()] || {};   /* yıldızlar kategorinin kademesinden */
 const exOfLabel = (lb) => { const ex = EXERCISES.find(e => e.label === lb || (e.oldLabels || []).includes(lb)); return ex ? ex.id : null; };
-return groups.map(c => { const rs = recs.filter(r => c.okul ? c.exerciseIds.includes(exOfLabel(r.exerciseLabel)) : catOfLabel(r.exerciseLabel) === c.id), ok = (r) => (r.errors || 0) <= 1;
+return groups.map(c => { const rs = recs.filter(r => (c.okul || c.composite) ? c.exerciseIds.includes(exOfLabel(r.exerciseLabel)) : catOfLabel(r.exerciseLabel) === c.id)   /* KURAL (Ardıl İşlemleme raporu, 2026-11-26): birleşik alanın gelişimi 24 çalışmanın hepsinden hesaplanır; ortak çalışmalar kendi alanlarında da sayılmaya devam eder */, ok = (r) => (r.errors || 0) <= 1;
 const early = rs.filter(r => r.t < mid), late = rs.filter(r => r.t >= mid), rate = (a) => a.length ? a.filter(ok).length / a.length : null, avgT = (a) => a.length ? a.reduce((s, r) => s + stepOf(r), 0) / a.length : null;
 let lvlNow = null, lvlBy = null; try{ if(!c.okul){ const inf = catLevelInfo(c.id, nm); lvlNow = inf.lvl; lvlBy = inf.by; } }catch(e){}
 const lastRec = rs.length ? rs.reduce((a, b) => b.t > a.t ? b : a) : null, tierNow = lastRec && (!lvlNow || lastRec.lvl === lvlNow) ? tierIx(lastRec.tier) : null;
@@ -2699,10 +2705,11 @@ drumPlan(times, (k) => { st.pulse = k; const d = document.getElementById("rhyDru
 mtLater(() => { st.phase = "input"; renderMtBoard(); }, at + 700); },
 mem(){ const st = mtState; st.phase = "input"; renderMtBoard(); },
 ssnd(){ const st = mtState, tr = st.trials[st.ti]; st.found = {}; st.bad = {}; st.phase = "input"; renderMtBoard(); mtLater(() => sayTask(`${tr.s} sesiyle başlayanları bul.`, 0.85), 250); },
-seqw(){ const st = mtState; st.placed = []; st.bad = {}; st.phase = "input"; renderMtBoard(); },
+seqw(){ const st = mtState; st.placed = []; st.bad = {}; st.phase = "input"; renderMtBoard(); const tr = st.trials[st.ti]; if(tr && tr.say) mtLater(() => sayTask(tr.say, 0.85), 250); },
 spic(){ const st = mtState; st.phase = "input"; renderMtBoard(); sayTask(st.bins.map(b => b.n).join(", ") + ". Bu resim hangi gruba girer?", 0.9); },
 fsort(){ const st = mtState; st.phase = "input"; renderMtBoard(); },
-movesay(){ const st = mtState, seq = st.trials[st.ti]; st.phase = "listen"; renderMtBoard();
+movesay(){ const st = mtState, seq = st.trials[st.ti]; st.phase = "listen"; st.vi = -1; renderMtBoard();
+if(st.vis){ const ms = isPre() ? 1700 : 1400; seq.forEach((m, k) => { mtLater(() => { st.vi = k; renderMtBoard(); }, 400 + k * ms); mtLater(() => { st.vi = -1; renderMtBoard(); }, 400 + k * ms + ms - 300); }); mtLater(() => { st.phase = "judge"; renderMtBoard(); sayTask("Şimdi yap!"); }, 500 + seq.length * ms); return; }   /* Gördüğün Hareketleri Yap: hareketler söylenmez, resimleri tek tek gösterilir */
 mtLater(() => sayTask(seq.map(i => MOVES[i]).join(", ") + ".", 0.8), 300);
 mtLater(() => { st.phase = "judge"; renderMtBoard(); sayTask("Şimdi yap!"); }, 600 + seq.length * 1300); },
 storyord(){ const st = mtState, tr = st.trials[st.ti]; st.phase = "study"; st.si = -1; st.placed = []; st.bad = {}; renderMtBoard();
@@ -2871,7 +2878,7 @@ const c = document.getElementById("pnbCnt"); if(c) c.textContent = `${st.i + 1}/
 mtLater(step, 600); },
 csp(){ const st = mtState; st.ci = 0; st.pos = 0; st.phase = "count"; renderMtBoard(); },
 tone(){ const st = mtState, seq = st.trials[st.ti]; st.pos = 0; st.phase = "play"; st.lit = -1; renderMtBoard();
-seq.forEach((k, j) => { mtLater(() => { toneBeep(TONE_KEYS[k].f); if(st.lights){ st.lit = k; renderMtBoard(); mtLater(() => { st.lit = -1; renderMtBoard(); }, 420); } }, 400 + j * 700); });
+seq.forEach((k, j) => { mtLater(() => { toneBeep((st.keys || TONE_KEYS)[k].f); if(st.lights){ st.lit = k; renderMtBoard(); mtLater(() => { st.lit = -1; renderMtBoard(); }, 420); } }, 400 + j * 700); });
 mtLater(() => { st.phase = "input"; renderMtBoard(); }, 400 + seq.length * 700 + 200); },
 wseen(){ const st = mtState, tr = st.trials[st.ti]; st.phase = "show"; renderMtBoard(); mtLater(() => { st.phase = "gap"; renderMtBoard(); mtLater(() => { st.phase = "ask"; st.pick = null; renderMtBoard(); }, 500); }, tr.ms); },
 route(){ const st = mtState, tr = st.trials[st.ti]; st.phase = "show"; st.step = -1; st.pos = 0; renderMtBoard(); tr.path.forEach((c, k) => mtLater(() => { st.step = k; renderMtBoard(); }, 300 + k * (isPre() ? 750 : 600)));
@@ -3031,7 +3038,7 @@ per(i){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "show") retur
 dual(i){ const st = mtState; if(st.phase !== "run" || !st.tgt) return; if(String(i) === "t" + st.tgt.k){ st.hit++; st.tgt = null; gameSfx("pop"); const a = document.getElementById("dualArea"); const o = a && a.querySelector(".du-t"); if(o) o.remove(); } },
 csp(i){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "recall") return; if(Number(i) === tr.counts[st.pos]){ st.pos++; gameSfx("correct"); renderMtBoard(); if(st.pos >= tr.counts.length){ st.phase = "fb"; mtLater(NEW_MT.next, 900); } }
 else { mtErr(); st.phase = "fb"; st.reveal = true; renderMtBoard(); mtLater(() => { st.reveal = false; NEW_MT.next(); }, 1400); } },
-tone(i){ const st = mtState, seq = st.trials[st.ti]; if(st.phase !== "input") return; toneBeep(TONE_KEYS[i].f); st.lit = i; renderMtBoard(); mtLater(() => { st.lit = -1; renderMtBoard(); }, 200);
+tone(i){ const st = mtState, seq = st.trials[st.ti]; if(st.phase !== "input") return; toneBeep((st.keys || TONE_KEYS)[i].f); st.lit = i; renderMtBoard(); mtLater(() => { st.lit = -1; renderMtBoard(); }, 200);
 if(i === seq[st.pos]){ st.pos++; if(st.pos >= seq.length){ st.phase = "fb"; gameSfx("correct"); mtLater(NEW_MT.next, 600); } } else { mtErr(); st.phase = "fb"; mtLater(NEW_MT.next, 900); } },
 wseen(i){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "ask") return; st.pick = i; st.phase = "fb"; if(i === tr.ans) gameSfx("correct"); else mtErr(); renderMtBoard(); mtLater(NEW_MT.next, i === tr.ans ? 500 : 1200); },
 route(i){ const st = mtState, tr = st.trials[st.ti]; if(st.phase !== "input") return; if(i === tr.path[st.pos]){ st.pos++; gameSfx("pop"); renderMtBoard(); if(st.pos >= tr.path.length){ st.phase = "fb"; gameSfx("correct"); mtLater(NEW_MT.next, 600); } }
@@ -3204,7 +3211,7 @@ if(st.phase === "listen") return { info:"<b>Dinle…</b>", body: dots + SPEAKER_
 info = st.reveal ? `Yönerge: <b>${tr.text}</b>` : "<b>Duyduğun gibi</b> dokun";
 body = dots + grid(tr.items, (x, i, c) => { const mk = st.marks[i] || (st.reveal && tr.ord.includes(i) ? "ok" : "");
 const num = st.reveal && tr.ord.includes(i) ? `<span class="num">${tr.ord.indexOf(i) + 1}</span>` : "";
-return `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${c}px;height:${c}px;">${shapeSVG(x.s.k === "circle" ? "circle" : x.s.k, x.c.hex)}${num}</div>`; }, 80);
+return `<div class="wm-pic${mk ? " " + mk : ""}" data-mt="${i}" style="width:${c}px;height:${c}px;">${x.img ? `<img src="${x.img}" alt="" style="width:100%;height:100%;object-fit:contain">` : shapeSVG(x.s.k === "circle" ? "circle" : x.s.k, x.c.hex)}${num}</div>`; }, 80);
 } else if(st.kind === "miss" || st.kind === "chg"){
 const tr = st.trials[ti];
 if(st.phase === "study"){ info = "<b>İyi bak…</b>"; body = dots + grid(tr.set, (x, i, c) => pic(x, -1, c)); }
@@ -3371,7 +3378,7 @@ const c = st.cfg; info = st.phase === "play" ? `<b>İzle ve dinle…</b> dizi ${
 if(st.lh){ const ah = isLs ? H - 20 : Math.min(H - 20, 420);
 body = `<div class="pk-sea" style="height:${ah}px">${c.pts.map((p, k) => `<div class="pk-lh" data-pad="${k}" ${st.phase === "input" ? `data-mt="${k}"` : ""} style="left:${p[0]}%;top:${p[1]}%"><div class="off">${LH_SVG(false, k)}</div><div class="on">${LH_SVG(true, k)}</div></div>`).join("")}</div>`; }
 else { const kw = Math.min(isLs ? (H - 60) / 2 : 130, (W - 30) / 2);
-body = `<div style="display:grid;grid-template-columns:repeat(2, ${kw}px);gap:10px;justify-content:center">${TONE_KEYS.map((k, i) => `<button type="button" class="tone-k pk-pad" data-pad="${i}" ${st.phase === "input" ? `data-mt="${i}"` : ""} style="width:${kw}px;height:${kw}px;background:${k.c};--kc:${k.c}"></button>`).join("")}</div>`; }
+body = `<div style="display:grid;grid-template-columns:repeat(2, ${kw}px);gap:10px;justify-content:center">${(st.keys || TONE_KEYS).map((k, i) => `<button type="button" class="tone-k pk-pad" data-pad="${i}" ${st.phase === "input" ? `data-mt="${i}"` : ""} style="width:${kw}px;height:${kw}px;background:${k.c};--kc:${k.c}">${k.sh ? `<span style="display:block;width:58%;height:58%;margin:auto;pointer-events:none">${shapeSVG(k.sh, "#fff")}</span>` : ""}</button>`).join("")}</div>`; }
 } else if(st.kind === "clue"){
 const tr = st.trials[ti], d = wmGridDims(tr.cands.length, isLs ? W * 0.55 : W, isLs ? H - 40 : H - 130, 100);
 info = st.phase === "clues" ? `<b>İpuçlarını dinle…</b> ${st.shown}/${tr.clues.length}` : st.phase === "ask" ? "İpuçlarına uyan <b>tek şekil</b> hangisi?" : (st.pick != null && tr.cands[st.pick] === tr.tg ? "<b>Buldun!</b>" : "Doğrusu yeşil olan");
@@ -3464,7 +3471,7 @@ body = dots + `<div class="qz-txt-grid" style="grid-template-columns:repeat(4, m
 } else if(st.kind === "tone"){
 const seq = st.trials[ti], kw = Math.min(isLs ? (H - 60) / 2 : 120, (W - 30) / 2);
 info = st.phase === "play" ? (st.lights ? "<b>İzle ve dinle…</b>" : "<b>Yalnızca dinle…</b>") : st.phase === "input" ? `<b>Aynı sırayla</b> dokun · ${st.pos}/${seq.length}` : "";
-body = dots + `<div style="display:grid;grid-template-columns:repeat(2, ${kw}px);gap:10px;justify-content:center">${TONE_KEYS.map((k, i) => `<button type="button" class="tone-k${st.lit === i ? " lit" : ""}" ${st.phase === "input" ? `data-mt="${i}"` : ""} style="width:${kw}px;height:${kw}px;background:${k.c};--kc:${k.c}"></button>`).join("")}</div>`;
+body = dots + `<div style="display:grid;grid-template-columns:repeat(2, ${kw}px);gap:10px;justify-content:center">${(st.keys || TONE_KEYS).map((k, i) => `<button type="button" class="tone-k${st.lit === i ? " lit" : ""}" ${st.phase === "input" ? `data-mt="${i}"` : ""} style="width:${kw}px;height:${kw}px;background:${k.c};--kc:${k.c};${st.keys ? "border-radius:50%;" : ""}"></button>`).join("")}</div>`;
 } else if(st.kind === "wseen"){
 const tr = st.trials[ti], sz = Math.min(isLs ? H - 50 : 200, W * 0.6);
 if(st.phase === "show"){ info = "<b>İyice bak!</b>"; body = dots + `<div class="wm-card" style="width:${sz}px;height:${sz}px;padding:6px;margin:0 auto">${tr.study}</div>`; }
@@ -3473,10 +3480,10 @@ else { info = "Az önce <b>tam olarak hangisini</b> gördün?"; const d = wmGrid
 body = dots + `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">${tr.opts.map((o, i) => `<div class="wm-pic${st.phase === "fb" ? (i === tr.ans ? " ok" : i === st.pick ? " bad" : "") : ""}" data-mt="${i}" style="width:${d.cell}px;height:${d.cell}px;padding:5px">${o}</div>`).join("")}</div>`; }
 } else if(st.kind === "route"){
 const tr = st.trials[ti], n = tr.n, w = Math.min(isLs ? H - 30 : 280 * tabletScale(), W - 20);
-info = st.phase === "show" ? "<b>Yolu izle…</b>" : st.reveal ? "Yol buydu" : `Yolu <b>aynı sırayla</b> tekrarla: yeşilden başla · ${Math.max(0, st.pos - 1)}/${tr.path.length - 1}`;
-const cell = (i) => { const k = tr.path.indexOf(i); let bg = "#fff"; if(st.phase === "show" && k >= 0 && k <= st.step) bg = k === st.step ? "#F5A524" : "#FFE2A8";
+info = st.phase === "show" ? (st.hop ? "<b>Tavşanı izle…</b>" : "<b>Yolu izle…</b>") : st.reveal ? "Yol buydu" : `Yolu <b>aynı sırayla</b> tekrarla: yeşilden başla · ${Math.max(0, st.pos - 1)}/${tr.path.length - 1}`;
+const cell = (i) => { const k = tr.path.indexOf(i); let bg = "#fff"; if(st.phase === "show" && k >= 0 && k <= st.step) bg = st.hop ? (k === st.step ? "#BFD9FF" : "#DCEBFF") : k === st.step ? "#F5A524" : "#FFE2A8";
 if(st.phase !== "show"){ if(i === tr.path[0]) bg = "#1FA463"; else if(k > 0 && k < st.pos) bg = "#1FA463"; if(st.reveal && k > 0) bg = "#FFE2A8"; }
-return `<div ${st.phase === "input" ? `data-mt="${i}"` : ""} style="background:${bg};border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:900;color:#2B3A4A">${st.reveal && k >= 0 ? k + 1 : ""}</div>`; };
+return `<div ${st.phase === "input" ? `data-mt="${i}"` : ""} style="position:relative;min-width:0;min-height:0;background:${bg};border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:900;color:#2B3A4A">${st.hop && st.phase === "show" && k === st.step ? `<img src="${st.hop}" alt="" style="position:absolute;left:6%;top:6%;width:88%;height:88%;object-fit:contain;pointer-events:none">` : st.reveal && k >= 0 ? k + 1 : ""}</div>`; };
 body = dots + `<div style="display:grid;grid-template-columns:repeat(${n},1fr);gap:4px;width:${w}px;height:${w}px;margin:0 auto;background:#C9D3DE;padding:4px;border-radius:12px">${Array.from({length: n * n}, (_, i) => cell(i)).join("")}</div>`;
 } else if(st.kind === "sbuild"){
 const tr = st.trials[ti], L = tr.w.length;
@@ -3552,12 +3559,12 @@ const done = `<div class="wm-btns" style="margin:8px auto 0"><button type="butto
 body = isLs ? dots + `<div style="display:flex;gap:16px;align-items:center;justify-content:center"><div>${head}${done}</div>${g2(W * 0.6, H - 30)}</div>` : dots + head + g2(W, H - 120, (timerRunning && window._ssH && window._ssHK === ssKey()) ? window._ssH : 0) + done;
 } else if(st.kind === "seqw"){
 const tr = st.trials[ti], L = tr.seq.length;
-info = tr.pics ? "<b>En küçükten en büyüğe</b> diz (gerçek büyüklüklerine göre)" : "<b>Doğru sıraya</b> diz: önce geleni seç";
+info = tr.info ? tr.info : tr.syl ? "Resmin adını <b>hecelerle</b> sırayla kur" : tr.pics ? "<b>En küçükten en büyüğe</b> diz (gerçek büyüklüklerine göre)" : "<b>Doğru sıraya</b> diz: önce geleni seç";
 const sw = Math.min((W - 8 * L) / L, 120);
 const lab = (k) => tr.pics ? `<img src="${tr.pics[k]}" alt="" style="width:100%;height:100%;object-fit:contain">` : tr.seq[k], ph = tr.pics ? 76 : 54;
 const slots = `<div style="display:flex;gap:6px;justify-content:center;margin-bottom:12px">${tr.seq.map((w, k) => { const ci = st.placed[k]; return `<div class="wm-card" style="width:${tr.pics ? Math.min(sw, 80) : sw}px;height:${ph}px;padding:3px;font-weight:900;font-size:${sw < 80 ? 13 : 16}px;${ci == null ? "border-style:dashed" : ""}">${ci != null ? lab(tr.cards[ci]) : k + 1}</div>`; }).join("")}</div>`;
 const cards = `<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">${tr.cards.map((c, i) => st.placed.includes(i) ? "" : `<div class="wm-pic${st.bad[i] ? " bad" : ""}" data-mt="${i}" style="${tr.pics ? "width:90px;height:90px;padding:4px" : `min-width:${Math.min(130, W / 2 - 20)}px;height:56px;padding:4px 10px`};font-weight:900;font-size:17px">${lab(c)}</div>`).join("")}</div>`;
-body = dots + slots + cards;
+body = dots + (tr.wpic ? `<div class="wm-card" style="width:${isLs ? 84 : 110}px;height:${isLs ? 84 : 110}px;margin:0 auto 10px;padding:6px"><img src="${tr.wpic}" alt="" style="width:100%;height:100%;object-fit:contain"></div>` : "") + slots + cards;   /* Heceleri Sırala: kelimenin resmi üstte */
 } else if(st.kind === "spic"){
 const cur = st.queue[Math.min(st.qi, st.queue.length - 1)], n = st.bins.length;
 info = `<b>Hangi gruba</b> girer? · ${Math.min(st.qi + 1, st.queue.length)}/${st.queue.length}`;
@@ -3691,8 +3698,9 @@ else { info = `<b>Her grubun en son geleni söyle.</b>`;
   body = dots + `<div style="display:flex;flex-direction:column;gap:6px;align-items:center">${tr.cats.map((k, q) => `<div style="display:flex;align-items:center;gap:8px;justify-content:center"><b style="min-width:90px">${cap(k.n)}:</b><span class="aud-key">beklenen <b>${tr.last[k.k]}</b></span></div>`).join("")}</div><div class="aud-key" style="text-align:center;margin-top:6px">Yetişkin: hatırlanmayan her sonuncu için <b>Hata sayısı +</b>, sonra ${ti + 1 < st.trials.length ? "Sonraki tur" : "Bitir"}</div>` + (st.phase === "ask" ? `<div class="wm-btns" style="margin:8px auto 0"><button type="button" class="wm-btn same" data-mtbtn="kt-next">${ti + 1 < st.trials.length ? "Sonraki tur ▶" : "✓ Bitir"}</button></div>` : ""); }
 } else if(st.kind === "movesay"){
 const seq = st.trials[ti];
-if(st.phase === "listen"){ info = "<b>Dinle…</b>"; body = dots + SPEAKER_HTML(true); }
-else { info = "<b>Şimdi yap!</b> Hareketleri aynı sırayla yap."; const cards = (c) => `<div style="display:flex;gap:8px;justify-content:center;flex:0 0 auto">${seq.map((i, k) => `<div class="wm-card" style="width:${c}px;height:${c}px;position:relative;overflow:visible"><img src="${MOVE_IMAGES[i]}" alt="" style="width:100%;height:100%;object-fit:contain"><span class="num" style="position:absolute;right:4px;bottom:2px;font-size:${Math.max(14, Math.round(c * 0.16))}px">${k + 1}</span></div>`).join("")}</div>`, key = `<div class="aud-key" style="text-align:center">Doğru sıra: <b>${seq.map(i => MOVES[i]).join(" → ")}</b></div>`, note = `<div class="aud-key" style="text-align:center">Yetişkin: yanlış ya da eksikse <b>Hata sayısı +</b></div>`, btn = `<div class="wm-btns" style="${isLs ? "position:static;" : ""}margin:0 auto;transform:none"><button type="button" class="wm-btn same" data-judge="9">Sonraki ▶</button></div>`;   /* dikeyde küçük telefonda tahta kayarsa Sonraki düğmesi altta yapışık kalır (hep ulaşılır); yatayda sağ sütunda sabittir */
+if(st.phase === "listen" && st.vis){ const vz = Math.min(isLs ? H - 50 : 200, W * 0.6); info = "<b>İyi bak…</b> hareketleri sırayla aklında tut"; body = dots + `<div class="wm-card" style="width:${vz}px;height:${vz}px;padding:6px;margin:0 auto">${st.vi >= 0 ? `<img src="${MOVE_IMAGES[seq[st.vi]]}" alt="" style="width:100%;height:100%;object-fit:contain">` : ""}</div>`; }
+else if(st.phase === "listen"){ info = "<b>Dinle…</b>"; body = dots + SPEAKER_HTML(true); }
+else { info = "<b>Şimdi yap!</b> Hareketleri aynı sırayla yap."; const cards = (c) => st.vis ? "" : `<div style="display:flex;gap:8px;justify-content:center;flex:0 0 auto">${seq.map((i, k) => `<div class="wm-card" style="width:${c}px;height:${c}px;position:relative;overflow:visible"><img src="${MOVE_IMAGES[i]}" alt="" style="width:100%;height:100%;object-fit:contain"><span class="num" style="position:absolute;right:4px;bottom:2px;font-size:${Math.max(14, Math.round(c * 0.16))}px">${k + 1}</span></div>`).join("")}</div>`, key = `<div class="aud-key" style="text-align:center">Doğru sıra: <b>${seq.map(i => MOVES[i]).join(" → ")}</b></div>`, note = `<div class="aud-key" style="text-align:center">Yetişkin: yanlış ya da eksikse <b>Hata sayısı +</b></div>`, btn = `<div class="wm-btns" style="${isLs ? "position:static;" : ""}margin:0 auto;transform:none"><button type="button" class="wm-btn same" data-judge="9">Sonraki ▶</button></div>`;   /* dikeyde küçük telefonda tahta kayarsa Sonraki düğmesi altta yapışık kalır (hep ulaşılır); yatayda sağ sütunda sabittir */
 /* KURAL (yatay ekran, 2026-11-07): Hareket Sırası yatay ekranda iki sütundur — solda resimler kalan yüksekliğe göre büyük, sağda doğru sıra, yetişkin notu ve Sonraki; Sonraki yazının üstüne binmez. Dikeyde resimlerin numarası kartın içinde, kartı kesmez */
 if(isLs){ const c = Math.max(56, Math.floor(Math.min(H - 40, (W * 0.58 - 8 * (seq.length - 1)) / seq.length, 150))); body = dots + `<div style="display:flex;align-items:center;justify-content:center;gap:18px">${cards(c)}<div style="display:flex;flex-direction:column;gap:8px;align-items:center;max-width:40%">${key}${note}${btn}</div></div>`; }
 else { const c = Math.min(110, (W - 30) / seq.length - 8); body = dots + `<div style="margin-bottom:6px">${key}</div>${cards(c)}<div style="margin-top:6px">${note}</div>${btn}`; } }
@@ -4398,3 +4406,182 @@ Object.assign(NEW_MT.tap, { msg(i){ const st = mtState, tr = st.trials[st.ti]; i
   if(i === "done"){ const miss = tr.units.length - tr.got.length; for(let k = 0; k < miss; k++) mtErr(); if(!miss) gameSfx("correct"); st.phase = "fb"; NEW_MT.next(); return; }
   const k = tr.got.indexOf(i); if(k >= 0) tr.got.splice(k, 1); else tr.got.push(i); renderMtBoard(); } });
 Object.assign(YZ_RENDER, { msg: miRender });
+
+/* ===================== YENİ ÇALIŞMALAR — ARDIL İŞLEMLEME (2026-11-26, kullanıcı isteği; PASS / ardıl işlemleme araştırması) ===================== */
+/* KURAL (Ardıl İşlemleme yeni çalışmaları, 2026-11-26): her biri bilgiyi geliş sırasıyla tutmayı ister; 3 düzey (Başlangıç → Orta → Zor) belirgin farkla zorlaşır, okul öncesi kolay başlar; soru sayısı ve seçenek sayısı yeni çalışma kuralına uyar; doğru cevabın yeri dengeli; oturumda aynı madde iki kez gelmez; uygulamadaki resimler kullanılır (yeni çizim yok) */
+const AR_ANIM = [["kedi","kediyi","kediden","cat"],["köpek","köpeği","köpekten","dog"],["inek","ineği","inekten","cow"],["tavşan","tavşanı","tavşandan","rabbit"],["fil","fili","filden","elephant"],["papağan","papağanı","papağandan","parrot"],["penguen","pengueni","penguenden","penguin"],
+  ["aslan","aslanı","aslandan"],["zürafa","zürafayı","zürafadan"],["zebra","zebrayı","zebradan"],["maymun","maymunu","maymundan"],["ayı","ayıyı","ayıdan"],["tilki","tilkiyi","tilkiden"],["sincap","sincabı","sincaptan"],["kirpi","kirpiyi","kirpiden"]];
+function arAnimals(){ let W = []; try{ W = picPoolWide(); }catch(e){} return AR_ANIM.map(([n, acc, abl, k]) => { let src = ""; try{ src = k ? TA_ANIMALS[k]() : ((W.find(x => x.n === n) || {}).src || ""); }catch(e){} return { n, acc, abl, src }; }).filter(x => x.src); }
+const arCap = (w) => w.charAt(0).toLocaleUpperCase("tr-TR") + w.slice(1);
+const arOpt = (src, name) => `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%"><div style="flex:1 1 auto;min-height:0;width:100%">${skImg(src)}</div>${name ? `<b style="font-size:14px;line-height:1.1">${name}</b>` : ""}</div>`;
+
+/* --- 1. Kim Kime Ne Yaptı?: cümledeki sözcük sırası ve ekler dinlenir; soruya göre doğru hayvan seçilir (cümle soruları). Başlangıç: "Kedi köpeği itti." → "Kim itti?"; Orta: soru yapan da olabilir yapılan da, cümle başı nesne olabilir ("Köpeği kedi itti."); Zor: edilgen ("… tarafından itildi") ve iki eylemli cümle --- */
+const AR_KK_V = [["itti","itildi"],["kovaladı","kovalandı"],["yakaladı","yakalandı"],["çekti","çekildi"],["öptü","öpüldü"],["gıdıkladı","gıdıklandı"],["korkuttu","korkutuldu"],["selamladı","selamlandı"]];
+const AR_KK_CFG = { pre:{ tpl:[["SOV"], ["SOV","SOVp"], ["SOV","OSV"]], k:[2, 2, 3] }, post:{ tpl:[["SOV","OSV"], ["OSV","PAS"], ["PAS","IKI"]], k:[3, 3, 3] } };
+function arKkTrials(){ const t = yzT(), c = AR_KK_CFG[isPre() ? "pre" : "post"], A = arAnimals(), N = YZ_N(), tc = mkCycle(c.tpl[t]), vc = mkCycle(AR_KK_V), out = [], sig = new Set(); if(A.length < 4) return out;
+  for(let g = 0; g < 300 && out.length < N; g++){ const tp = tc(), v = vc(), v2 = vc(), [a, b, cc, d] = shuffleArray(A.slice()).slice(0, 4); let tx, q, right, said;
+    if(tp === "SOV"){ tx = `${arCap(a.n)} ${b.acc} ${v[0]}.`; q = `Kim ${v[0]}?`; right = a; said = [a, b]; }
+    else if(tp === "SOVp"){ tx = `${arCap(a.n)} ${b.acc} ${v[0]}.`; q = `Kim ${v[1]}?`; right = b; said = [a, b]; }
+    else if(tp === "OSV"){ tx = `${arCap(b.acc)} ${a.n} ${v[0]}.`; const ag = Math.random() < 0.5; q = ag ? `Kim ${v[0]}?` : `Kim ${v[1]}?`; right = ag ? a : b; said = [a, b]; }
+    else if(tp === "PAS"){ tx = `${arCap(b.n)}, ${a.n} tarafından ${v[1]}.`; const ag = Math.random() < 0.6; q = ag ? `Kim ${v[0]}?` : `Kim ${v[1]}?`; right = ag ? a : b; said = [a, b]; }
+    else { if(v2 === v) continue; tx = `${arCap(a.n)} ${b.acc} ${v[0]}; sonra ${b.n} ${cc.acc} ${v2[0]}.`; const k = Math.random() < 0.5; q = k ? `${arCap(cc.acc)} kim ${v2[0]}?` : `${arCap(b.acc)} kim ${v[0]}?`; right = k ? b : a; said = [a, b, cc]; }
+    const key = tx + q; if(sig.has(key)) continue; sig.add(key);
+    const dis = said.filter(x => x !== right).concat([d]).slice(0, c.k[t] - 1);
+    out.push(qzMake(skTxt(tx), [right].concat(dis).map(x => arOpt(x.src, x.n)), 0, { prompt:`<b>${q}</b>`, say:`${tx} ${q}`, replay:true, raw:true, fixed:true, cell:100, kkTpl: tp, kkAns: right.n })); }
+  return out; }
+
+/* --- 2. Okların Sırası: oklar tek tek görünür (yön: sağ, sol, yukarı, aşağı); sonra gördüğün sırayı gösteren şerit seçilir. Çeldiriciler aynı oklardan: yan yana iki ok yer değiştirmiş, dizi ters, bir ok farklı. Okul öncesi sağ / sol ile başlar --- */
+const AR_OK_ROT = { R:0, D:90, L:180, U:270 };
+const AR_OK_CFG = { pre:{ dirs:["RL", "RLU", "RLUD"], n:[3, 3, 3], k:[2, 3, 3], ms:[1400, 1300, 1150] }, post:{ dirs:["RLUD", "RLUD", "RLUD"], n:[3, 4, 4], k:[3, 3, 4], ms:[1150, 1000, 850] } };
+const arOkG = (d, x) => `<g transform="translate(${x} 0) rotate(${AR_OK_ROT[d]} 50 50)"><polygon points="16,40 56,40 56,20 86,50 56,80 56,60 16,60" fill="#1F4E8C" stroke="#1F4E8C" stroke-width="4" stroke-linejoin="round"/></g>`;
+const arOkCard = (d) => `<svg viewBox="0 0 100 100" style="width:min(46vw,190px);height:min(46vw,190px);display:block;margin:0 auto"><rect x="3" y="3" width="94" height="94" rx="18" fill="#F3F7FB" stroke="#9FB3C8" stroke-width="3"/>${d ? arOkG(d, 0) : ""}</svg>`;
+const arOkStrip = (seq) => "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${seq.length * 100} 100">${seq.split("").map((d, i) => `<rect x="${i * 100 + 5}" y="5" width="90" height="90" rx="16" fill="#F3F7FB" stroke="#9FB3C8" stroke-width="3"/>` + arOkG(d, i * 100)).join("")}</svg>`);
+function arOkTrials(){ const t = yzT(), c = AR_OK_CFG[isPre() ? "pre" : "post"], D = c.dirs[t].split(""), n = c.n[t], N = YZ_N(), out = [], sig = new Set();
+  for(let g = 0; g < 400 && out.length < N; g++){ let seq = ""; for(let i = 0; i < n; i++) seq += D[Math.floor(Math.random() * D.length)];
+    if(new Set(seq).size < 2 || sig.has(seq)) continue;
+    const cand = []; for(let i = 0; i + 1 < n; i++){ if(seq[i] !== seq[i + 1]) cand.push(seq.slice(0, i) + seq[i + 1] + seq[i] + seq.slice(i + 2)); }
+    cand.push(seq.split("").reverse().join("")); for(let i = 0; i < n; i++) D.filter(d => d !== seq[i]).forEach(d => cand.push(seq.slice(0, i) + d + seq.slice(i + 1)));
+    const dis = []; shuffleArray(cand.slice(0, n)).concat(shuffleArray(cand.slice(n))).forEach(x => { if(x !== seq && !dis.includes(x) && dis.length < c.k[t] - 1) dis.push(x); });
+    if(dis.length < c.k[t] - 1) continue; sig.add(seq);
+    const q = "Okları hangi sırayla gördün?";
+    out.push(qzMake("", [seq].concat(dis).map(x => arOpt(arOkStrip(x), "")), 0, { prompt:`<b>${q}</b>`, say: q, replay:true, raw:true, fixed:true, cell:190, arCap:300, ar: n <= 2 ? 0.55 : n === 3 ? 0.4 : 0.32, frames: seq.split("").map(d => `<div style="padding:6px 0">${arOkCard(d)}</div>`), blank:`<div style="padding:6px 0">${arOkCard("")}</div>`, frameMs: c.ms[t], okSeq: seq, okDis: dis })); }
+  return out; }
+
+/* Hece yardımcıları (Heceleri Sırala için): kelimeyi hecelere ayırır; heceler ekranda yazılı kart olur, tek tek seslendirilmez */
+function arSylSplit(w){ const V = /[aeıioöuüâîû]/i, s = w.toLocaleLowerCase("tr-TR"), out = []; let cur = "";
+  for(let i = 0; i < s.length; i++){ cur += s[i]; if(!V.test(s[i])) continue; let j = i + 1, cons = ""; while(j < s.length && !V.test(s[j])){ cons += s[j]; j++; }
+    if(j >= s.length){ cur += cons; i = j; break; } if(cons.length <= 1){ out.push(cur); cur = ""; } else if(cons.length === 2){ cur += cons[0]; out.push(cur); cur = ""; i++; } else { cur += cons.slice(0, cons.length - 1); out.push(cur); cur = ""; i += cons.length - 1; } }
+  if(cur) out.push(cur); return out.filter(Boolean); }
+function arHcPool(){ let P = []; try{ P = picPoolBase().concat(picPoolWide()); }catch(e){ try{ P = picPoolBase(); }catch(e2){} } arAnimals().forEach(a => P.push({ n:a.n, src:a.src })); const seen = new Set();
+  return P.filter(x => x && x.src && x.n && !/\s/.test(x.n) && !seen.has(x.n) && seen.add(x.n)).map(x => ({ n:x.n, src:x.src, syl: arSylSplit(x.n) })); }
+/* --- 3. Dizide Önce ve Sonra: ezberlenmiş dizilerde (sayılar; günler, aylar, alfabe) bir öğeden önce ya da sonra geleni bulma. Okul öncesi: noktalı sayı kartları (1 – 5 → 1 – 6 → 1 – 10); okul sonrası: günler → aylar → iki adım ve alfabe --- */
+const AR_SP_DAYS = [["pazartesi","pazartesiden"],["salı","salıdan"],["çarşamba","çarşambadan"],["perşembe","perşembeden"],["cuma","cumadan"],["cumartesi","cumartesiden"],["pazar","pazardan"]];
+const AR_SP_MONTHS = [["ocak","ocaktan"],["şubat","şubattan"],["mart","marttan"],["nisan","nisandan"],["mayıs","mayıstan"],["haziran","hazirandan"],["temmuz","temmuzdan"],["ağustos","ağustostan"],["eylül","eylülden"],["ekim","ekimden"],["kasım","kasımdan"],["aralık","aralıktan"]];
+const AR_SP_NUMS = [["bir","birden"],["iki","ikiden"],["üç","üçten"],["dört","dörtten"],["beş","beşten"],["altı","altıdan"],["yedi","yediden"],["sekiz","sekizden"],["dokuz","dokuzdan"],["on","ondan"]];
+const AR_SP_ABC = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ".split("");
+function arDotCard(n){ const pts = []; for(let i = 0; i < n; i++){ const col = i % 5, row = Math.floor(i / 5); pts.push(`<circle cx="${14 + col * 18}" cy="${row ? 44 : 22}" r="7" fill="#1F4E79"/>`); }
+  return `<svg viewBox="0 0 100 86" width="100%" height="100%" aria-label="${n}"><rect x="3" y="9" width="94" height="${n > 5 ? 48 : 26}" rx="8" fill="#F3F7FB" stroke="#9FB3C8" stroke-width="2"/>${pts.join("")}<text x="50" y="80" text-anchor="middle" font-size="22" font-weight="900" fill="#1C2B39" font-family="inherit">${n}</text></svg>`; }
+const AR_SP_CFG = { pre:{ max:[5, 6, 10], ask:[["sonra"], ["sonra","önce"], ["sonra","önce"]], k:[2, 3, 3] }, post:{ list:["gün", "ay", "zor"], k:[3, 3, 4] } };
+function arSpTrials(){ const t = yzT(), N = YZ_N(), out = [], sig = new Set();
+  if(isPre()){ const c = AR_SP_CFG.pre, M = c.max[t], ac = mkCycle(c.ask[t]);
+    for(let g = 0; g < 200 && out.length < N; g++){ const ask = ac(), x = ask === "sonra" ? 1 + Math.floor(Math.random() * (M - 1)) : 2 + Math.floor(Math.random() * (M - 1)), ans = ask === "sonra" ? x + 1 : x - 1; const key = ask + x; if(sig.has(key)) continue; sig.add(key);
+      const near = [ask === "sonra" ? x - 1 : x + 1, x].filter(v => v >= 1 && v <= M && v !== ans), far = shuffleArray(Array.from({length: M}, (_, i) => i + 1).filter(v => v !== ans && !near.includes(v))), dis = near.concat(far).slice(0, c.k[t] - 1);
+      const q = `${arCap(AR_SP_NUMS[x - 1][1])} ${ask} hangi sayı gelir?`;
+      out.push(qzMake(`<div style="width:120px;height:104px;margin:0 auto">${arDotCard(x)}</div>`, [ans].concat(dis).map(v => `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center">${arDotCard(v)}</div>`), 0, { prompt:`<b>${q}</b>`, say: q, replay:true, raw:true, fixed:true, cell:100, spAns: ans })); }
+    return out; }
+  const K = AR_SP_CFG.post.k[t], kinds = t === 0 ? ["gün"] : t === 1 ? ["ay"] : ["gün2", "ay2", "harf"], kc = mkCycle(kinds), ac = mkCycle(["sonra","önce"]);
+  for(let g = 0; g < 300 && out.length < N; g++){ const kd = kc(), ask = ac(); let L, x, step = 1, q, unit;
+    if(kd === "harf"){ L = AR_SP_ABC.map(a => [a, a]); x = 1 + Math.floor(Math.random() * (L.length - 2)); q = `${L[x][0]} harfinden ${ask} hangi harf gelir?`; }
+    else { L = kd.startsWith("gün") ? AR_SP_DAYS : AR_SP_MONTHS; unit = kd.startsWith("gün") ? "gün" : "ay"; step = kd.endsWith("2") ? 2 : 1; x = Math.floor(Math.random() * L.length); q = `${arCap(L[x][1])} ${step === 2 ? "iki " + unit + " " : ""}${ask} hangi ${unit} gelir?`; }
+    const n = L.length, at = (i) => ((i % n) + n) % n, ai = ask === "sonra" ? at(x + step) : at(x - step); const key = q; if(sig.has(key)) continue; sig.add(key);
+    const near = [ask === "sonra" ? at(x - step) : at(x + step), at(ai + (ask === "sonra" ? 1 : -1)), x].filter(i => i !== ai), far = shuffleArray(Array.from({length:n}, (_, i) => i).filter(i => i !== ai && !near.includes(i)));
+    const dis = Array.from(new Set(near.concat(far))).slice(0, K - 1), show = (i) => kd === "harf" ? L[i][0] : arCap(L[i][0]);
+    out.push(qzMake(skTxt(q, 19), [ai].concat(dis).map(i => `<b style="font-size:19px">${show(i)}</b>`), 0, { prompt:"", say: q, replay:true, raw:true, fixed:true, text:true, spAns: show(ai) })); }
+  return out; }
+
+/* --- 4. Kapıdan Girenler: hayvanlar kapıdan tek tek girer (ekranda sırayla görünür, aralarında boş kapı); sonra sırayla ilgili soru: ilk / en son / kimden sonra / kimden önce / kaçıncı --- */
+const AR_KG_CFG = { pre:{ n:[3, 3, 4], ask:[["ilk","son"], ["ilk","son","sonra"], ["sonra","önce"]], k:[2, 3, 3], ms:[1500, 1400, 1300] }, post:{ n:[4, 5, 5], ask:[["ilk","son","sonra"], ["sonra","önce"], ["önce","sonra","kaçıncı"]], k:[3, 4, 4], ms:[1200, 1100, 1000] } };
+const AR_KG_ORD = ["Birinci","İkinci","Üçüncü","Dördüncü","Beşinci"];
+const arKgDoor = (src) => `<div style="width:150px;height:180px;margin:0 auto;border:8px solid #8B5A2B;border-bottom:0;border-radius:70px 70px 0 0;background:${src ? "#FFF6E5" : "#5B3A1E"};display:flex;align-items:flex-end;justify-content:center;padding:10px 8px 0;box-sizing:border-box">${src ? `<img src="${src}" alt="" style="width:100%;height:85%;object-fit:contain">` : ""}</div><div style="width:190px;height:10px;margin:0 auto;background:#8B5A2B;border-radius:4px"></div>`;
+function arKgTrials(){ const t = yzT(), c = AR_KG_CFG[isPre() ? "pre" : "post"], A = arAnimals(), N = YZ_N(), ac = mkCycle(c.ask[t]), out = [], sig = new Set(), n = c.n[t];
+  for(let g = 0; g < 300 && out.length < N; g++){ const seq = shuffleArray(A.slice()).slice(0, n), ask = ac(); let right, q;
+    if(ask === "ilk"){ right = seq[0]; q = "İlk kim geldi?"; } else if(ask === "son"){ right = seq[n - 1]; q = "En son kim geldi?"; }
+    else if(ask === "sonra"){ const i = Math.floor(Math.random() * (n - 1)); right = seq[i + 1]; q = `${arCap(seq[i].abl)} sonra kim geldi?`; }
+    else if(ask === "önce"){ const i = 1 + Math.floor(Math.random() * (n - 1)); right = seq[i - 1]; q = `${arCap(seq[i].abl)} önce kim geldi?`; }
+    else { const i = 1 + Math.floor(Math.random() * (n - 2)); right = seq[i]; q = `${AR_KG_ORD[i]} kim geldi?`; }
+    const key = seq.map(x => x.n).join() + q; if(sig.has(key)) continue; sig.add(key);
+    const ri = seq.indexOf(right), dis = shuffleArray(seq.filter(x => x !== right)).sort((x, y) => Math.abs(seq.indexOf(x) - ri) - Math.abs(seq.indexOf(y) - ri)).slice(0, c.k[t] - 1);
+    const frames = seq.map(x => `<div style="padding:6px 0">${arKgDoor(x.src)}</div>`);
+    out.push(qzMake("", [right].concat(dis).map(x => arOpt(x.src, x.n)), 0, { prompt:`<b>${q}</b>`, say: q, replay:true, raw:true, fixed:true, cell:100, frames, blank:`<div style="padding:6px 0">${arKgDoor("")}</div>`, frameMs: c.ms[t], kgSeq: seq.map(x => x.n), kgAns: right.n })); }
+  return out; }
+
+/* --- 5. Duyduğun Rakamlar: sayılar sırayla okunur (ekranda yalnız hoparlör); sonra sayı kartlarına duyulan sırayla dokunulur. Okul öncesi kartlarda noktalar ve rakam (1 – 6), okul sonrasında rakam (1 – 9); dizide aynı sayı yok --- */
+const AR_ND_SVG = (n, pre) => "data:image/svg+xml;charset=utf-8," + encodeURIComponent(pre ? arDotCard(n).replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" ') : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="4" y="4" width="92" height="92" rx="18" fill="#F3F7FB" stroke="#9FB3C8" stroke-width="3"/><text x="50" y="72" text-anchor="middle" font-size="64" font-weight="900" fill="#1C2B39" font-family="Nunito, Arial, sans-serif">${n}</text></svg>`);
+const AR_ND_LEN = { pre:[2, 3, 4], post:[3, 4, 5] };
+function arNdTrials(){ const pre = isPre(), t = yzT(), L = (pre ? AR_ND_LEN.pre : AR_ND_LEN.post)[t], M = pre ? 6 : 9, R = pre ? 3 : 4, seen = new Set(), out = [];
+  for(let g = 0; g < 80 && out.length < R; g++){ const seq = shuffleArray(Array.from({length: M}, (_, i) => i + 1)).slice(0, L); if(seq.every((v, i) => i === 0 || v === seq[i - 1] + 1)) continue; const k = seq.join(); if(seen.has(k)) continue; seen.add(k);
+    out.push(seq.map(v => ({ n: AR_SP_NUMS[v - 1][0], v, src: AR_ND_SVG(v, pre) }))); }
+  return out; }
+
+/* --- 6. Heceleri Sırala (okul sonrası): resim ve adı okunur; karışık hece kartları kelimenin sırasıyla dizilir. 2 → 3 → 4 heceli kelimeler; kelimede aynı hece iki kez yok --- */
+function arSoTrials(){ const t = yzT(), S = [2, 3, 4][t], P = shuffleArray(arHcPool().filter(x => x.syl.length === S && new Set(x.syl).size === S)), N = Math.min(5, P.length);
+  return P.slice(0, N).map(x => { let cards; do { cards = shuffleArray(x.syl.map((s, i) => i)); } while(cards.every((v, i) => v === i)); return { seq: x.syl, cards, wpic: x.src, say: x.n, syl: true }; }); }
+
+/* --- kayıt --- */
+Object.assign(QZ, { "who-did": () => arKkTrials(), "arrow-seq": () => arOkTrials(), "series-pos": () => arSpTrials(), "door-seq": () => arKgTrials() });
+Object.assign(NEW_MT.build, Object.fromEntries([["who-did", arKkTrials], ["arrow-seq", arOkTrials], ["series-pos", arSpTrials], ["door-seq", arKgTrials]].map(([id, f]) => [id, () => { mtState = { kind:"quiz", qid:id, trials: f(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; }])));
+Object.assign(NEW_MT.build, {
+  "num-seq-touch": () => { mtState = { kind:"picseq", audio:true, nums:true, trials: arNdTrials(), ti:0, pos:0, wrong:0, phase:"idle" }; return mtState.trials; },
+  "syl-order": () => { mtState = { kind:"seqw", trials: arSoTrials(), ti:0, wrong:0, phase:"idle", placed:[], bad:{} }; return mtState.trials; } });
+
+/* ===================== ARDIL İŞLEMLEME UYARLAMALARI (2026-11-26, kullanıcı kararı) ===================== */
+/* KURAL (Ardıl İşlemleme uyarlama içerikleri, 2026-11-26): her uyarlama taban çalışmasının oyun mantığını kullanır, içeriği başkadır — Hayvanları Sırayla Bul: hayvan adları (oyuncak / eşya / meyve yerine); Önce Buna, Sonra Şuna: oyuncak ve ev eşyası resimleri (renkli şekil yerine); Gördüğün Hareketleri Yap: hareketler söylenmez, resimleri tek tek gösterilir; Ritim Kalıpları: vuruşlar küme küme (hızlı vuruşlar + bekleme); Sırayla Geçenler: taşıtlar ve deniz canlıları; Şekil Simon: renk yerine şekil, başka sesler; Zil Dizisi: yuvarlak ziller, başka renk ve ince sesler; Tavşanın Yolu: yolu tavşan kare kare zıplayarak gösterir; Sıraya Koy: okul öncesi noktalı kartlar azdan çoğa, okul sonrası başka sıra takımları; Işıklı Pencereler: düzgün dizili pencereler; Harf Dizisi: rakam yerine harf; İsim Sırası: kelime yerine kişi adları; Önce–Sonra Cümleleri: sıra bildiren cümleler; Parlayan Meyveler: meyve ve sebzeler; Şekilleri Sırayla Seç: renk yerine şekil. Düzeyler (dizi uzunluğu, tur sayısı, süre) taban çalışmayla aynıdır; uygulamadaki resimler kullanılır */
+const arCatPool = (cats) => { let W = []; try{ W = picPoolWide(); }catch(e){} return W.filter(x => x && x.src && x.n && cats.includes(x.cat)); };
+const arUniqSets = (R, make) => { const seen = new Set(), out = []; for(let g = 0; g < 200 && out.length < R; g++){ const s = make(), k = s.map(x => x.n || x).join(); if(seen.has(k)) continue; seen.add(k); out.push(s); } return out; };
+
+/* Harf Dizisi (Rakam Dizisi mantığı): okul öncesi 8 kolay harf, okul sonrası 16 harf; birbirine benzeyen sesler (B–P, D–T, M–N) aynı takımda yok */
+const AR_LET_PRE = ["A","E","O","U","K","M","S","T"], AR_LET_POST = ["A","B","D","E","F","K","L","M","O","R","S","T","U","Y","Z","İ"];
+
+/* İsim Sırası (Kelime Sıralama mantığı): kişi adları; okul öncesi bir – iki heceli adlar */
+const AR_NAMES_PRE = ["Ali","Ece","Can","Elif","Efe","Nil","Cem","Ada","Mert","Su","Ege","İnci","Kaan","Oya","Umut","Naz","Deniz","Selin","Emre","Zehra"];
+const AR_NAMES_POST = AR_NAMES_PRE.concat(["Yasemin","Mustafa","Zeynep","Hakan","Melike","Serkan","Feride","Kerem","Gülşen","Tarık","Nazlı","Burak","Sevgi","Onur","Derya","Çağan"]);
+function arNameTrials(){ const n = audLen(), N = audTrialCount(), cyc = mkCycle(isPre() ? AR_NAMES_PRE : AR_NAMES_POST), out = [];
+  for(let i = 0; i < N; i++){ const w = []; let g = 0; while(w.length < n && g++ < 300){ const x = cyc(); if(!w.includes(x)) w.push(x); } out.push({ words: w, ranks: w.map(() => 0) }); }
+  return out; }
+
+/* Önce–Sonra Cümleleri (Cümleyi Tekrarla mantığı): her cümle bir sıra bildirir (önce … sonra … / en son …); düzeyle uzar */
+const AR_SENT_BANK = { pre:[
+ ["Önce yedim, sonra içtim.","Önce koştum, sonra durdum.","Önce çizdim, sonra boyadım.","Önce uyandım, sonra giyindim.","Önce baktım, sonra geçtim.","Önce sor, sonra al.","Önce otur, sonra ye.","Önce dinle, sonra söyle.","Önce yıka, sonra kurula.","Önce topla, sonra oyna."],
+ ["Önce ellerimi yıkadım, sonra yemek yedim.","Önce çorabımı, sonra ayakkabımı giydim.","Önce süt içtim, sonra dişimi fırçaladım.","Önce oyuncakları topladım, sonra kitap okudum.","Önce kapıyı çaldım, sonra içeri girdim.","Önce yağmur yağdı, sonra güneş açtı.","Önce annemi öptüm, sonra okula gittim.","Önce elmayı yıkadım, sonra onu yedim.","Önce resim yaptım, sonra duvara astım.","Önce topu attım, sonra arkasından koştum."],
+ ["Sabah önce yüzümü yıkadım, sonra kahvaltımı yaptım.","Kedi önce sütünü içti, sonra minderinde uyudu.","Önce montumu giydim, sonra dışarı çıkıp oynadım.","Annem önce hamuru yoğurdu, sonra fırına koydu.","Önce kırmızı ışıkta durduk, sonra yeşilde geçtik.","Dedem önce çiçekleri suladı, sonra çayını içti.","Önce pijamamı giydim, sonra masal dinleyip uyudum.","Köpek önce topu yakaladı, sonra bana getirdi.","Önce kumdan kale yaptık, sonra denize girdik.","Kardeşim önce ağladı, sonra oyuncağını bulup güldü."] ], post:[
+ ["Okuldan gelince önce ellerimi yıkadım, sonra yemek yedim.","Önce ödevimi bitirdim, sonra arkadaşlarımla parkta oynadım.","Annem önce sebzeleri doğradı, sonra çorbayı pişirdi.","Önce biletimizi aldık, sonra otobüse binip oturduk.","Kütüphanede önce kitabı seçtim, sonra görevliye gösterdim.","Önce çantamı hazırladım, sonra erkenden yatağa girdim.","Babam önce arabayı yıkadı, sonra bahçeyi suladı.","Önce tohumları ektik, sonra her gün suladık.","Öğretmen önce soruyu sordu, sonra bize süre verdi.","Önce ayakkabılarımı çıkardım, sonra terliklerimi giyip içeri girdim."],
+ ["Sabah uyanınca önce yatağımı topladım, sonra kahvaltı için mutfağa indim.","Önce pazardan taze sebze aldık, sonra eve dönüp yemek yaptık.","Ali önce bisikletinin lastiğini şişirdi, sonra arkadaşıyla parka doğru sürdü.","Önce yağmurun dinmesini bekledik, sonra şemsiyelerimizi kapatıp yola çıktık.","Öğretmenimiz önce deneyi gösterdi, sonra bizden aynısını yapmamızı istedi.","Önce mektubu dikkatle yazdım, sonra zarfa koyup postaya verdim.","Kedimiz önce pencereden dışarı baktı, sonra yavaşça bahçeye çıktı.","Önce müzeyi gezdik, sonra bahçesindeki çay ocağında biraz dinlendik.","Annem önce hamuru açtı, sonra içine peynir koyup börek yaptı.","Önce haritaya baktık, sonra en kısa yoldan köye ulaştık."],
+ ["Dün akşam önce ödevlerimi bitirdim, sonra kardeşimle oyun oynadım, en son kitap okudum.","Önce malzemeleri masaya dizdik, sonra tarifi okuduk, en son keki fırına verdik.","Sabah önce dişlerimi fırçaladım, sonra üstümü giyindim, en son çantamı alıp çıktım.","Dedem önce toprağı çapaladı, sonra fideleri dikti, en son hepsini bolca suladı.","Önce otobüse bindik, sonra iki durak gittik, en son yürüyerek müzeye ulaştık.","Kaptan önce halatları çözdü, sonra motoru çalıştırdı, en son gemiyi limandan çıkardı.","Önce sınıfı havalandırdık, sonra sıraları düzelttik, en son tahtayı güzelce sildik.","Aşçı önce soğanları doğradı, sonra eti kavurdu, en son pilavın suyunu ekledi.","Önce çadırı kurduk, sonra odun topladık, en son ateş yakıp etrafına oturduk.","İtfaiyeciler önce hortumu açtı, sonra yangını söndürdü, en son herkesi sakinleştirdi."] ] };
+const arSentCyc = {};
+function arSentNext(n){ const lv = isPre() ? "pre" : "post", t = Math.min(2, currentCombo().t), key = lv + t; if(!arSentCyc[key]) arSentCyc[key] = mkCycle(AR_SENT_BANK[lv][t]); const out = []; let g = 0; while(out.length < n && g++ < 200){ const x = arSentCyc[key](); if(!out.includes(x)) out.push(x); } return out; }
+
+/* Şekilleri Sırayla Seç (Renkleri Sırayla Seç mantığı): renk kutusu yerine beyaz kutuda lacivert şekil */
+const AR_SHP = { circle:'<circle cx="50" cy="50" r="38"/>', triangle:'<polygon points="50,10 92,86 8,86"/>', star:'<polygon points="50,6 61,38 95,38 67,58 78,91 50,71 22,91 33,58 5,38 39,38"/>', heart:'<path d="M50 88 C10 58 6 30 26 18 C38 11 50 20 50 30 C50 20 62 11 74 18 C94 30 90 58 50 88Z"/>', rect:'<rect x="14" y="14" width="72" height="72" rx="8"/>' };
+const arShapeUri = (k) => "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="#1F4E8C">${AR_SHP[k] || ""}</svg>`);
+function rtSwBg(st, c){ return st && st.shp ? `background:#fff url('${arShapeUri(c)}') center/72% no-repeat;box-shadow:inset 0 0 0 2px #C9D3DE` : `background:${c}`; }
+
+/* Önce Buna, Sonra Şuna (Yönerge İzle mantığı): oyuncak ve ev eşyası resimleri; adların yönelme hâli elle yazıldı */
+const AR_DIR_ITEMS = [["t-car","araba","arabaya"],["t-doll","bebek","bebeğe"],["t-ball","top","topa"],["t-teddy","ayıcık","ayıcığa"],["t-puzzle","yapboz","yapboza"],["t-train","tren","trene"],["t-kite","uçurtma","uçurtmaya"],["t-drum","davul","davula"],["h-cup","fincan","fincana"],["h-scissors","makas","makasa"],["h-clock","saat","saate"],["h-lamp","lamba","lambaya"],["h-comb","tarak","tarağa"],["h-pillow","yastık","yastığa"],["h-bucket","kova","kovaya"],["h-broom","süpürge","süpürgeye"]];
+function arDirTrial(){ const t = currentCombo().t, pre = isPre(), P = picPoolBase(), all = AR_DIR_ITEMS.map(([k, n, d]) => { const x = P.find(y => y.k === k); return x ? { img: x.src, dat: d, nm: n, c:{ hex:"" }, s:{ k:"img" } } : null; }).filter(Boolean);
+  const items = shuffleArray(all).slice(0, pre ? [3, 4, 4][t] : [6, 6, 8][t]), steps = (pre ? [1, 2, 3] : [2, 3, 3])[t], ord = shuffleArray(items.map((x, i) => i)).slice(0, steps); let text;
+  if(!pre && t === 2) text = `${cap(items[ord[1]].dat)} dokunmadan önce ${items[ord[0]].dat} dokun, sonra ${items[ord[2]].dat} dokun.`;
+  else if(steps === 1) text = `${cap(items[ord[0]].dat)} dokun.`;
+  else text = `Önce ${items[ord[0]].dat}, ` + ord.slice(1).map((o, k) => (k === ord.length - 2 ? "en son " : "sonra ") + items[o].dat).join(", ") + " dokun.";
+  return { items, ord, text }; }
+
+/* Ritim Kalıpları (Ritim Tekrarı mantığı): vuruşlar kümeler hâlinde — küme içi kısa aralık (1), kümeler arası uzun aralık (2). "2-1" = iki hızlı vuruş, bekle, bir vuruş */
+const AR_RHY = { pre:[["2-1","1-2","2-2"], ["3-1","1-3","2-2","2-1-1","1-1-2"], ["2-1-2","3-2","2-3","1-2-2","2-2-1"]], post:[["2-2","3-1","1-3","2-1-1","1-1-2"], ["2-1-2","3-2","2-3","1-2-2","2-2-1"], ["3-3","2-2-2","3-1-2","2-1-3","1-3-2","2-3-1"]] };
+function arRhyTrials(){ const t = Math.min(2, currentCombo().t), cyc = mkCycle(AR_RHY[isPre() ? "pre" : "post"][t]);
+  return Array.from({length: isPre() ? 3 : 4}, () => { const grp = cyc(), g = grp.split("-").map(Number), iv = []; g.forEach((n, gi) => { for(let i = 1; i < n; i++) iv.push(1); if(gi < g.length - 1) iv.push(2); }); return { L: iv.length + 1, iv, grp }; }); }
+
+/* Sırayla Geçenler (Resim Sırası mantığı): taşıtlar ve deniz canlıları */
+function arPoTrials(){ const t = currentCombo().t, pre = isPre(), K = pre ? [2, 3, 4][t] : [3, 4, 5][t], lures = (!pre && t === 2) ? 2 : (t === 2 ? 1 : 0), P = arCatPool(["vehicle","sea"]);
+  return Array.from({length:3}, () => { const pool = shuffleArray(P.slice()), seq = pool.slice(0, K); return { seq, opts: shuffleArray(seq.concat(pool.slice(K, K + lures))), ms: pre ? 1300 : 1000 }; }); }
+
+/* Şekil Simon ve Zil Dizisi: tuş takımları (renk, ses, şekil) */
+const AR_SMN_KEYS = [ { c:"#2E6FD8", f:330, sh:"circle" }, { c:"#2E6FD8", f:440, sh:"triangle" }, { c:"#2E6FD8", f:554, sh:"star" }, { c:"#2E6FD8", f:659, sh:"heart" } ];
+const AR_TONE_KEYS = [ { c:ACC.mor, f:523 }, { c:ACC.pembe, f:659 }, { c:"#12A5A5", f:784 }, { c:"#B8860B", f:1047 } ];
+
+/* Sıraya Koy (Sıraya Diz mantığı): okul öncesi noktalı kartlar azdan çoğa (3 – 3 – 4 kart; 1 – 5, 1 – 6, 1 – 8 nokta); okul sonrası Sıraya Diz'de olmayan sıra takımları */
+const AR_SEQW = [ ["dün","bugün","yarın"], ["un","hamur","ekmek"], ["yumurta","tırtıl","koza","kelebek"], ["gün","hafta","ay","yıl"], ["haziran","temmuz","ağustos","eylül","ekim"], ["birinci","ikinci","üçüncü","dördüncü","beşinci"], ["anaokulu","ilkokul","ortaokul","lise","üniversite"], ["on","yirmi","otuz","kırk","elli"], ["a","b","c","ç","d"] ];
+const arDotsUri = (n) => { const cols = n <= 4 ? 2 : 3, rows = Math.ceil(n / cols), r = rows >= 3 ? 11 : 13, gx = 100 / (cols + 1), gy = 100 / (rows + 1); let d = ""; for(let i = 0; i < n; i++){ const rw = Math.floor(i / cols), inRow = Math.min(cols, n - rw * cols), x0 = 50 - (inRow - 1) * gx / 2; d += `<circle cx="${(x0 + (i % cols) * gx).toFixed(1)}" cy="${((rw + 1) * gy).toFixed(1)}" r="${r}"/>`; } return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="3" y="3" width="94" height="94" rx="16" fill="#F3F7FB" stroke="#9FB3C8" stroke-width="3"/><g fill="#1F4E8C">${d}</g></svg>`); };   /* yalnız nokta (rakam yok): azdan çoğa dizmede sayı okunmaz, nokta sayılır */
+function arSwBuild(){ const t = Math.min(2, currentCombo().t), mix = (n) => { let c; do { c = shuffleArray(Array.from({length: n}, (_, i) => i)); } while(c.every((v, i) => v === i)); return c; };
+  if(isPre()){ const L = [3, 3, 4][t], M = [5, 6, 8][t]; return arUniqSets(3, () => shuffleArray(Array.from({length: M}, (_, i) => i + 1)).slice(0, L).sort((a, b) => a - b)).map(v => ({ seq: v.map(String), pics: v.map(x => arDotsUri(x)), cards: mix(L), info:"<b>Azdan çoğa</b> diz: önce en az noktalı kart" })); }
+  const L = [3, 4, 5][t]; return shuffleArray(AR_SEQW.filter(q => q.length >= L)).slice(0, 3).map(q => { const start = Math.floor(Math.random() * (q.length - L + 1)), seq = q.slice(start, start + L); return { seq, cards: mix(L) }; }); }
+
+/* --- kayıt (dokunmalı uyarlamalar; eski motorlu olanlar — Işıklı Pencereler, Harf Dizisi, İsim Sırası, Önce–Sonra Cümleleri, Parlayan Meyveler, Şekilleri Sırayla Seç — taban motorlarında arBase ile açılır) --- */
+Object.assign(NEW_MT.build, {
+  "ar-heard": () => { const L = (isPre() ? [2, 3, 4] : [3, 4, 5])[currentCombo().t], A = arAnimals(); mtState = { kind:"picseq", audio:true, trials: arUniqSets(isPre() ? 3 : 4, () => shuffleArray(A.slice()).slice(0, L)), ti:0, pos:0, wrong:0, phase:"idle" }; return mtState.trials; },
+  "ar-dir": () => { mtState = { kind:"dir", trials: Array.from({length: isPre() ? 3 : 5}, arDirTrial), ti:0, pos:0, wrong:0, phase:"idle" }; return mtState.trials; },
+  "ar-move": () => { mtState = { kind:"movesay", vis:true, trials: moveTrials(), ti:0, wrong:0, ok:0, phase:"idle" }; return mtState.trials; },
+  "ar-rhythm": () => { mtState = { kind:"rhy", trials: arRhyTrials(), ti:0, wrong:0, phase:"idle", taps:[] }; return mtState.trials; },
+  "ar-porder": () => { mtState = { kind:"porder", trials: arPoTrials(), ti:0, wrong:0, phase:"idle" }; return mtState.trials; },
+  "ar-simon": () => { const c = smnCfg(); mtState = { kind:"smn", cfg:c, seq:[], phase:"idle", score:0, wrong:0, pads:4, keys: AR_SMN_KEYS }; return Array.from({length: c.target}, () => ({})); },
+  "ar-tone": () => { mtState = { kind:"tone", trials: toneTrials(), ti:0, wrong:0, phase:"idle", lights: stIx() !== 1, keys: AR_TONE_KEYS }; return mtState.trials; },
+  "ar-route": () => { let hop = ""; try{ hop = TA_ANIMALS.rabbit(); }catch(e){} mtState = { kind:"route", trials: routeTrials(), ti:0, wrong:0, phase:"idle", hop }; return mtState.trials; },
+  "ar-seqw": () => { mtState = { kind:"seqw", trials: arSwBuild(), ti:0, wrong:0, phase:"idle", placed:[], bad:{} }; return mtState.trials; } });

@@ -363,6 +363,8 @@ return `<svg viewBox="0 0 100 100"><path d="M50 13a25 25 0 0 0-14 46c3 2 5 6 5 1
 }
 }
 switch(id){
+case "ardil-islemleme":   /* KURAL (Ardıl İşlemleme simgesi, 2026-11-26): sırayla dizilmiş üç kutu ve ok — çizgi simge, alan renginde */
+return `<svg viewBox="0 0 100 100"><rect x="8" y="38" width="22" height="24" rx="6" fill="${color}"/><rect x="39" y="38" width="22" height="24" rx="6" fill="${color}99"/><rect x="70" y="38" width="22" height="24" rx="6" fill="${color}44"/><path d="M14 78h66l-8-7M80 78l-8 7" ${s}/></svg>`;
 case "sozel-kavrama":
 return `<svg viewBox="0 0 100 100"><path d="M16 24h68v42H46l-16 16V66H16Z" ${s}/><path d="M42 38a8 8 0 0 1 16 0c0 6-8 6-8 14" stroke="${color}" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="50" cy="60" r="2.5" fill="${color}"/></svg>`;
 case "algisal-akil-yurutme":
@@ -446,6 +448,10 @@ watch: "Mecazi veya soyut anlatımı harfi harfine algılayabilir, okuduğunu an
 "gorsel-organizasyon": {
 good: "Şekil, boyut ve yön ilişkilerini hızlı kurar; geometri ve uzamsal görevlerde rahat çalışır.",
 watch: "Şekilleri veya boyutları karşılaştırmakta yavaş kalabilir, sağ-sol veya yukarı-aşağı gibi yön kavramlarında karışıklık yaşayabilir."
+},
+"ardil-islemleme": {
+good: "Duyduğu ve gördüğü bilgiyi sırasıyla aklında tutar; çok adımlı yönergeleri, heceleri ve olayların sırasını karıştırmadan izler.",
+watch: "Uzun yönergelerde adımları karıştırabilir, kelimede seslerin ya da hecelerin sırasını, olayların sırasını şaşırabilir."
 },
 "algisal-akil-yurutme": {
 good: "Örüntüleri ve mantıksal ilişkileri fark eder, yeni ve alışılmadık durumlara hızlı uyum sağlar.",
@@ -1646,7 +1652,7 @@ function perfSummary(player, opts){ opts = opts || {}; const nm = (player || "")
 /* ===== Gelişim ödevleri · Aşama 2: öneri motoru ===== */
 const DEV_KEY = "wm_devhw_v1", DEV_RECENT_DAYS = 14, DEV_STALE_DAYS = 7, DEV_EASE_DAYS = 14, DEV_WEEK_DAYS = 7, DEV_MAX_TOTAL = 5;
 /* Alan → velinin göreceği kısa "neden" (Aşama 6'da birlikte gözden geçirilecek) */
-const DEV_REASON = { "islemleme-hizi":"Hızlı ve doğru çalışmayı destekler", "goz-takip":"Gözleriyle takip etmeyi destekler", "yurutucu-islev":"Dikkatini toplamayı ve kurala uymayı destekler", "calisan-bellek":"Bilgiyi aklında tutup kullanmayı destekler", "sozel-bellek":"Duyduklarını hatırlamayı destekler", "gorsel-bellek":"Gördüklerini hatırlamayı destekler", "sozel-organizasyon":"Düşüncelerini sözcüklerle düzenlemeyi destekler", "sozel-kavrama":"Dinlediğini ve okuduğunu anlamayı destekler", "gorsel-organizasyon":"Parçaları birleştirip bütünü görmeyi destekler", "algisal-akil-yurutme":"Örüntü ve kuralları fark etmeyi destekler" };
+const DEV_REASON = { "ardil-islemleme":"Bilgiyi sırasıyla aklında tutmayı destekler", "islemleme-hizi":"Hızlı ve doğru çalışmayı destekler", "goz-takip":"Gözleriyle takip etmeyi destekler", "yurutucu-islev":"Dikkatini toplamayı ve kurala uymayı destekler", "calisan-bellek":"Bilgiyi aklında tutup kullanmayı destekler", "sozel-bellek":"Duyduklarını hatırlamayı destekler", "gorsel-bellek":"Gördüklerini hatırlamayı destekler", "sozel-organizasyon":"Düşüncelerini sözcüklerle düzenlemeyi destekler", "sozel-kavrama":"Dinlediğini ve okuduğunu anlamayı destekler", "gorsel-organizasyon":"Parçaları birleştirip bütünü görmeyi destekler", "algisal-akil-yurutme":"Örüntü ve kuralları fark etmeyi destekler" };
 function devStoreAll(){ try{ return JSON.parse(localStorage.getItem(DEV_KEY) || "{}"); }catch(e){ return {}; } }
 function devStoreSave(d){ try{ localStorage.setItem(DEV_KEY, JSON.stringify(d)); }catch(e){} }
 function devKey(player, lvl){ return (player || "").trim() + "|" + (lvl === "pre" ? "pre" : "post"); }

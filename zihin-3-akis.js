@@ -120,7 +120,19 @@ color:"#B08900",
 group:"Dil & Görsel Analiz",
 exerciseIds:["matrix-fill","pattern-touch","num-pattern","sequence-pattern","analogy-touch","class-table","twenty-q","visual-analogy","sudoku","odd-touch","clue-find","odd-one-out","cause-effect","pic-arrange","balance","cause-find","rule-find","order-infer","path-predict","pattern-build","common-feat","where-logic","shape-add","code-math"],   /* yeni çalışmalar (2026-11-22) alanın sonunda; sayfalar sonra alan içinde karıştırılacak */
 exerciseGroups:[["Örüntü ve Analoji", ["matrix-fill", "sequence-pattern", "visual-analogy", "pattern-touch", "num-pattern", "analogy-touch", "pattern-build", "shape-add", "code-math"]], ["Sınıflama ve Kural", ["odd-one-out", "class-table", "sudoku", "odd-touch", "clue-find", "twenty-q", "rule-find", "common-feat"]], ["Neden–Sonuç ve Mantık", ["cause-effect", "pic-arrange", "balance", "cause-find", "order-infer", "path-predict", "where-logic"]]]
+},{
+id:"ardil-islemleme",
+readingLevel:["pre","post"],
+label:"Ardıl İşlemleme",
+sub:"İşitsel Sıra · Görsel Sıra · Ses, Ritim ve Hareket · Dil ve Olay Sırası",
+purpose:"Bilgiyi geliş sırasıyla alma, sırayı akılda tutma ve aynı sırayla geri verme becerisini (ardıl işlemleme) çalıştırır: duyulan sayı, kelime ve cümle dizileri; görülen yer, resim ve renk dizileri; ses, ritim ve hareket sıraları; olayların, hecelerin ve cümledeki sözcük sırasının anlamı. Okumada ve hecelemede seslerin sırasını izlemeyle ilişkilidir.",
+color:"#B83280",
+group:"Sıralı Düşünme",
+composite:true,   /* KURAL (Ardıl İşlemleme alanı, 2026-11-26; kullanıcı isteği): 11. alan; 24 çalışmadan oluşur — mevcut çalışmalar kendi alanlarında aynen kalır ve burada da yer alır (aynı sayfa, aynı kayıtlar), yeni çalışmalar yalnız bu alandadır; alanın okul dönemi ve düzeyi bu alandan açılan bütün çalışmalara uygulanır; raporda alanın ilerlemesi 24 çalışmanın hepsinden hesaplanır */
+exerciseIds:["ar-heard","ar-corsi","ar-span","door-seq","story-order","num-seq-touch","ar-words","ar-route","who-did","ar-tone","ar-porder","arrow-seq","ar-sent","ar-wmseq","series-pos","ar-rhythm","ar-dir","ar-rt","syl-order","ar-move","pic-arrange","ar-simon","ar-seqw"],
+exerciseGroups:[["İşitsel Sıra", ["ar-span", "ar-words", "ar-heard", "ar-sent", "ar-dir", "num-seq-touch"]], ["Görsel Sıra", ["ar-corsi", "ar-wmseq", "ar-porder", "ar-rt", "ar-route", "ar-simon", "door-seq", "arrow-seq"]], ["Ses, Ritim ve Hareket", ["ar-tone", "ar-rhythm", "ar-move"]], ["Dil ve Olay Sırası", ["story-order", "pic-arrange", "ar-seqw", "who-did", "syl-order", "series-pos"]]]
 },
+
 ];
 
 function exerciseById(id){ return EXERCISES.find(e => e.id === id); }
@@ -260,6 +272,7 @@ const STAGE_MIN_TIER = {
 pre:  { "nback-shape":[0, 9], "nback-color":[0, 9], "nback-number":[0, 9], "wm-same":[0, 9], "corsi":[0, 1], "corsi-verbal":[0, 1], "digit-span":[0, 1], "word-order":[0, 1, 1], "wm-seq":[0, 1], "span-listen":[0, 9], "prospective-event":[0, 1], "prospective-time":[0, 1], "prospective-delayed":[0, 1] },
 post: { "nback-shape":[0, 1], "nback-color":[0, 1], "nback-number":[0, 1], "wm-same":[0, 1] }
 };
+Object.keys(AR_OF).forEach(v => ["pre","post"].forEach(l => { const T = STAGE_MIN_TIER[l]; if(T && T[AR_OF[v]] && !T[v]) T[v] = T[AR_OF[v]]; }));   /* Ardıl İşlemleme uyarlamaları kuralı */
 function stageMinTier(ex, s){ try{ const st = ex.stages[s], base = st && st.strategyOf != null ? st.strategyOf : s, tb = (isPre() ? STAGE_MIN_TIER.pre : STAGE_MIN_TIER.post)[ex.id]; return tb && tb[base] != null ? tb[base] : 0; }catch(e){ return 0; } }
 function stageOpen(ex, s, t){ try{ return (t == null ? currentCombo().t : t) >= stageMinTier(ex, s); }catch(e){ return true; } }
 let currentGrid = [];
@@ -359,7 +372,7 @@ if(!predictable(grid)) break;
 return verbalUnique(grid, exercise, cols);
 }
 /* KURAL (çalışma mantığı): sözcük/öbek/soru gösteren sözel sayfalarda aynı metin sayfada ikinci kez yazılmaz; havuz yetmezse sayfa daha az öğe gösterir (Stroop gibi az sayıda sözcükle çalışan görevler hariç) */
-const VERBAL_REPEAT_OK = new Set(["stroop","num-stroop","color-recall","position-recall","digit-span","shape-recall"]);
+const VERBAL_REPEAT_OK = new Set(["stroop","num-stroop","color-recall","position-recall","digit-span","ar-span","shape-recall"]);
 function verbalUnique(grid, ex, cols){ try{ if(!ex || VERBAL_REPEAT_OK.has(ex.id) || !Array.isArray(grid)) return grid; const txt = (it) => it && (it.word || it.phrase || it.q || it.text || (it.a && it.b ? it.a + "|" + it.b : null)); if(grid.filter(txt).length < grid.length * 0.8) return grid; const seen = new Set(), out = []; grid.forEach(it => { let x = it, k = 0; while(seen.has(txt(x)) && k < 40){ x = ex.randomItem(); k++; } if(!seen.has(txt(x))){ seen.add(txt(x)); out.push(x); } }); if(out.length < grid.length && cols > 1){ const tr = Math.floor(out.length / cols) * cols; if(tr >= cols) return out.slice(0, tr); } return out; }catch(e){ return grid; } }   /* eksik kalırsa son satır tamamlanmış olarak kesilir */
 
 /* Sonraki/Önceki: sekme sırasını izler. navTier = gezilen düzey (bu düzeyi olmayan çalışma kendi en yüksek düzeyinde açılır);
@@ -445,7 +458,7 @@ const LIST_RUN_IDS = ["word-list-recall", "sentence-repeat"], LIST_RUNS = 3, LIS
 /* KURAL (Renk Hatırlama üç set, 2026-11-18; kullanıcı kararı): Renk Hatırlama da her zorluk düzeyinde ve her aşamada ÜÇ set hâlinde oynanır (okul öncesi ve okul sonrası); düzen Şekil Hatırlama üç set kuralının aynısıdır ("Set k / 3 · Renklere bakın…", "Sonraki set", son sette "Bitir ✓"; toplam puan; yarım durdurma kaydedilmez). Üç sette renk takımı birbirinden farklıdır (yalnız sırası değişmiş aynı renkler ayrı set sayılmaz). Konum Hatırlama da 2026-11-19'da üç sete geçti (Konum Hatırlama üç set kuralı) */
 /* KURAL (Konum Hatırlama üç set, 2026-11-19; kullanıcı kararı): Konum Hatırlama da her zorluk düzeyinde ve her aşamada ÜÇ set hâlinde oynanır (okul öncesi ve okul sonrası); düzen Şekil ve Renk Hatırlama'nınkiyle aynıdır ("Set k / 3 · Dairelere bakın…", "Sonraki set", son sette "Bitir ✓"; toplam puan; yarım durdurma kaydedilmez). Her set kapanınca daireler boş hâliyle yerinde kalır, çocuk gösterir (Konum Hatırlama göstererek kuralı); üç setin dolu daire düzeni birbirinden farklıdır. Puan ve başarı eşiği üç setin dolu dairelerinin toplamına göredir. Daire satırları dikeyde 44 px'in altına inmez; küçük dikey ekranda set çubuğu ya da Kontrol listesi başlığı ekranın altında kalıyorsa sayfa kendiliğinden kayar (çalışırken elle kaydırma kapalıdır), kayınca tahta boy değiştirmez; sıfırlamada sayfa başa döner */
 const SET_RUN_IDS = ["shape-recall", "color-recall", "position-recall"], SET_RUNS = 3;
-function dsDigit(){ try{ return currentExercise().id === "digit-span"; }catch(e){ return false; } }
+function dsDigit(){ try{ return arBase(currentExercise().id) === "digit-span"; }catch(e){ return false; } }
 function dsList(){ try{ return LIST_RUN_IDS.includes(currentExercise().id); }catch(e){ return false; } }
 function dsSet(){ try{ return SET_RUN_IDS.includes(currentExercise().id); }catch(e){ return false; } }
 function dsIs(){ return dsDigit() || dsList() || dsSet(); }
@@ -466,7 +479,7 @@ function dsBar(){ const board = document.getElementById("board"); let el = docum
   if(!board || !dsIs() || !dsRun || !timerRunning){ if(el) el.remove(); return; }
   if(!el){ el = document.createElement("div"); el.id = "dsBar"; el.className = "ds-bar"; board.insertAdjacentElement("afterend", el); }
   const N = dsRun.seqs.length, last = dsRun.k >= N - 1;
-  const nm = dsNoun(), Nm = nm[0].toLocaleUpperCase("tr-TR") + nm.slice(1), look = dsDigit() ? "Rakamlara bakın…" : dsSet() ? (currentExercise().id === "color-recall" ? "Renklere bakın…" : currentExercise().id === "position-recall" ? "Dairelere bakın…" : "Şekillere bakın…") : recallListen() ? "Dinleyin…" : currentExercise().id === "sentence-repeat" ? "Öbeklere bakın…" : "Kelimelere bakın…";
+  const nm = dsNoun(), Nm = nm[0].toLocaleUpperCase("tr-TR") + nm.slice(1), look = dsDigit() ? (currentExercise().id === "ar-span" ? "Harflere bakın…" : "Rakamlara bakın…") : dsSet() ? (currentExercise().id === "color-recall" ? "Renklere bakın…" : currentExercise().id === "position-recall" ? "Dairelere bakın…" : "Şekillere bakın…") : recallListen() ? "Dinleyin…" : currentExercise().id === "sentence-repeat" ? "Öbeklere bakın…" : "Kelimelere bakın…";
   el.innerHTML = `<span class="ds-n">${Nm} <b>${dsRun.k + 1}</b> / ${N}</span>` + (!dsRun.hidden ? `<span class="ds-look">${look}</span>` : last ? `<button type="button" class="ds-btn" data-dsend="1">Bitir ✓</button>` : `<button type="button" class="ds-btn" data-dsnext="1">Sonraki ${nm} ▶</button>`); }
 function dsNext(){ if(!timerRunning || !dsIs() || !dsRun || !dsRun.hidden || dsRun.k >= dsRun.seqs.length - 1) return; clearTimeout(_rcDoneT);
   dsRun.k++; dsRun.hidden = false; currentGrid = dsRun.seqs[dsRun.k]; removeRecallChecklist(); renderBoard(); dsBar();
@@ -522,7 +535,7 @@ const board = document.getElementById("board"); let box = document.getElementByI
 if(!box){ box = document.createElement("details"); box.id = "recallCheck"; box.className = "rc-box"; (document.getElementById("dsBar") || board).insertAdjacentElement("afterend", box); } box.classList.add("rc-fitbox"); if(!box.dataset.fitOn){ box.dataset.fitOn = "1"; box.addEventListener("toggle", () => { posBoardSync(box); if(posShow()) try{ runFocusFit(); }catch(e){} rcFit(box); }); }
 const ordered = /sırayla|Sırayla|soldan sağa/.test(ex.stages[stIx()].label + " " + ((INSTR_SHORT[ex.id] || [])[stIx()] ? INSTR_SHORT[ex.id][stIx()]() : ""));
 const cols = currentTier().cols, isPos = ex.id === "position-recall";
-const targets = recallTargets(), orderOf = {}; targets.forEach((x, k) => { orderOf[x.i] = ex.id === "digit-span" ? (x.i % cols) + 1 : k + 1; });
+const targets = recallTargets(), orderOf = {}; targets.forEach((x, k) => { orderOf[x.i] = arBase(ex.id) === "digit-span" ? (x.i % cols) + 1 : k + 1; });
 const n = Object.keys(recallChecked).filter(k => recallChecked[k]).length;
 const cell = (it, i) => { const tgt = orderOf[i] != null, on = !!recallChecked[i];
 return `<button type="button" class="rc-cell${tgt ? "" : " off"}${on ? " on" : ""}" ${tgt ? `data-rc="${i}"` : "disabled"}>${ex.renderItem(it)}${ordered && tgt ? `<span class="rc-num">${orderOf[i]}</span>` : ""}${on ? `<span class="rc-ok">✓</span>` : ""}</button>`; };
@@ -1082,7 +1095,7 @@ const WM_SPECS = {
 };
 function wmTier(){ return currentCombo().t; }
 function wmBuild(){
-const id = currentExercise().id, t = wmTier(), pre = isPre(), sp = WM_SPECS[id];
+const rid = currentExercise().id, id = arBase(rid), t = wmTier(), pre = isPre(), sp = WM_SPECS[id];   /* Ardıl İşlemleme uyarlamaları kuralı */
 wmClearTimers();
 if(id === "wm-same"){
 const n = stIx() === 1 ? 2 : 1;
@@ -1104,8 +1117,8 @@ return seq.map((k, i) => ({ k, judged: i >= n, target: i >= n && seq[i] === seq[
 }
 if(id === "wm-seq"){
 const K = (pre ? sp.prePics : sp.pics)[t], L0 = stIx() === 1 ? backLen() : (pre ? sp.preStartLen : sp.startLen)[t], R = pre ? sp.preRounds : sp.rounds;
-const pics = shuffleArray(TOY_KEYS).slice(0, K);
-wmState = { kind:"seq", pics, maxLen:Math.min(K, L0), len:Math.min(L0, K), round:0, rounds:R, wrong:0, phase:"idle", seq:[], pos:0, back: stIx() === 1, res:[] };
+const fr = rid !== id, pics = shuffleArray(fr ? Object.keys(FRUIT_VEG_IMAGES) : TOY_KEYS).slice(0, K);   /* Parlayan Meyveler: oyuncak yerine meyve ve sebze */
+wmState = { kind:"seq", fr, pics, maxLen:Math.min(K, L0), len:Math.min(L0, K), round:0, rounds:R, wrong:0, phase:"idle", seq:[], pos:0, back: stIx() === 1, res:[] };
 return Array.from({length:R}, (_, i) => ({ round:i }));
 }
 const B = (pre ? sp.preBoxes : sp.boxes)[t], A = (pre ? sp.preAnimals : sp.animals)[t], R = sp.rounds;
@@ -1158,7 +1171,7 @@ const tapped = st.tapped || {};
 const grid = `<div class="wm-grid" style="grid-template-columns:repeat(${d.cols}, ${d.cell}px);">` + st.pics.map((k, i) => {
 const cls = (st.lit === i ? " lit" : "") + (tapped[i] === "ok" ? " ok" : tapped[i] === "bad" ? " bad" : "");
 const num = st.nums && st.nums[i] ? `<span class="num">${st.nums[i]}</span>` : "";
-return `<div class="wm-pic${cls}" data-pic="${i}" style="width:${d.cell}px;height:${d.cell}px;">${imgTag(TOY_IMAGES[k])}${num}</div>`; }).join("") + `</div>`;
+return `<div class="wm-pic${cls}" data-pic="${i}" style="width:${d.cell}px;height:${d.cell}px;">${imgTag((wmState && wmState.fr ? FRUIT_VEG_IMAGES : TOY_IMAGES)[k])}${num}</div>`; }).join("") + `</div>`;
 board.innerHTML = `<div class="wm-wrap"><div class="wm-info">${info}</div>${dots}${grid}</div>`;
 return;
 }
@@ -1714,10 +1727,10 @@ const RT_SPECS = {
 "rt-colors":   { k:[3, 4, 5], preK:[2, 3, 4], rounds:3, preRounds:2 }
 };
 function rtBuild(){
-const id = currentExercise().id, sp = RT_SPECS[id], t = currentCombo().t, pre = isPre();
+const rid = currentExercise().id, id = arBase(rid), sp = RT_SPECS[id], t = currentCombo().t, pre = isPre();   /* Ardıl İşlemleme uyarlamaları kuralı */
 rtClear();
 const R = pre ? sp.preRounds : sp.rounds, K = (pre ? sp.preK : sp.k)[t];
-rtState = { id, K, R, round:0, wrong:0, phase:"idle", res:[], cells: sp.cells ? (pre ? sp.preCells : sp.cells)[t] : 0 };
+rtState = { id, shp: rid !== id, K, R, round:0, wrong:0, phase:"idle", res:[], cells: sp.cells ? (pre ? sp.preCells : sp.cells)[t] : 0 };
 return Array.from({length:R}, (_, i) => ({ round:i }));
 }
 function rtNewRound(){
@@ -1735,13 +1748,13 @@ st.targets = tg; st.options = shuffleArray(tg.concat(dis));
 st.lit = shuffleArray(Array.from({length:st.cells}, (_, i) => i)).slice(0, st.K);
 st.colors = st.lit.reduce((a, i) => { a[i] = randomItem(COLORS); return a; }, {});
 } else {
-const pal = pre ? COLORS.slice(0, 4) : COLORS.concat(["#7B4FD6"]);
+const pal = st.shp ? (pre ? ["circle","triangle","star","heart"] : ["circle","triangle","star","heart","rect"]) : pre ? COLORS.slice(0, 4) : COLORS.concat(["#7B4FD6"]);   /* Şekilleri Sırayla Seç: renk yerine şekil */
 st.pal = shuffleArray(pal);
 st.seq = []; while(st.seq.length < st.K){ const c = randomItem(pal); if(st.seq[st.seq.length-1] !== c) st.seq.push(c); }
 }
 st.phase = "study"; renderRtBoard();
 const ms = (pre ? 1700 : 1200) * st.K + 800;
-rtLater(() => { st.phase = "answer"; renderRtBoard(); if(gameMode) speakText(st.id === "rt-colors" ? "Şimdi renkleri aynı sırayla seç." : "Şimdi gördüklerini bul."); }, ms);
+rtLater(() => { st.phase = "answer"; renderRtBoard(); if(gameMode) speakText(st.id === "rt-colors" ? (st.shp ? "Şimdi şekilleri aynı sırayla seç." : "Şimdi renkleri aynı sırayla seç.") : "Şimdi gördüklerini bul."); }, ms);
 }
 function rtStart(){ if(rtState && rtState.phase === "idle") rtNewRound(); }
 function rtEndRound(){
@@ -1800,10 +1813,10 @@ return `<div data-rt="${i}" style="width:${d.cell}px;height:${d.cell}px;cursor:p
 } else {
 const sz = Math.min(100 * tabletScale(), Math.floor((W - 8 * 6) / Math.max(st.K, 5)), isLs ? Math.floor((H + 50) / 3.4) : 100 * tabletScale());
 const slots = st.phase === "study" || st.reveal
-? st.seq.map(c => `<span class="rt-sw" style="width:${sz}px;height:${sz}px;background:${c};cursor:default"></span>`).join("")
-: st.phase === "idle" ? "" : (st.seq || []).map((c, i) => i < st.pos ? `<span class="rt-sw" style="width:${sz}px;height:${sz}px;background:${c};cursor:default"></span>` : `<span class="rt-slot" style="width:${sz}px;height:${sz}px"></span>`).join("");
+? st.seq.map(c => `<span class="rt-sw" style="width:${sz}px;height:${sz}px;${rtSwBg(st, c)};cursor:default"></span>`).join("")
+: st.phase === "idle" ? "" : (st.seq || []).map((c, i) => i < st.pos ? `<span class="rt-sw" style="width:${sz}px;height:${sz}px;${rtSwBg(st, c)};cursor:default"></span>` : `<span class="rt-slot" style="width:${sz}px;height:${sz}px"></span>`).join("");
 const pc = isLs ? (st.pal || []).length || 5 : 3, psz = isLs ? Math.min(70, Math.floor((W - 12 * pc) / pc), Math.floor(H * 0.45)) : Math.min(76, sz + 12);
-const pal = st.phase === "answer" || st.phase === "between" ? `<div class="rt-pal" style="grid-template-columns:repeat(${pc}, ${psz}px);">` + st.pal.map((c, i) => `<span class="rt-sw${st.marks && st.marks[i] ? " " + st.marks[i] : ""}" data-rt="${i}" style="width:${psz}px;height:${psz}px;background:${c}"></span>`).join("") + `</div>` : "";
+const pal = st.phase === "answer" || st.phase === "between" ? `<div class="rt-pal" style="grid-template-columns:repeat(${pc}, ${psz}px);">` + st.pal.map((c, i) => `<span class="rt-sw${st.marks && st.marks[i] ? " " + st.marks[i] : ""}" data-rt="${i}" style="width:${psz}px;height:${psz}px;${rtSwBg(st, c)}"></span>`).join("") + `</div>` : "";
 body = `<div class="rt-slots">${slots}</div>${pal}`;
 }
 board.innerHTML = `<div class="wm-wrap"><div class="wm-info">${info}</div>${dots}${body}</div>`;

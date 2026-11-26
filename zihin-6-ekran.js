@@ -178,7 +178,7 @@ return best;
 
 /* Dikey ekran (telefon ve tablet): öğe sayısını koruyup tahtanın genişlik ve yüksekliğine göre en büyük kare hücreyi veren satır/sütun düzenini seç.
    Satırın anlam taşıdığı ya da tek satırlık dizi gösteren çalışmalar dışarıda. */
-const NO_REFLOW = new Set(["odd-one-out","position-recall","digit-span","word-list-recall","sentence-repeat","color-recall","shape-recall","sequence-pattern","visual-analogy","nback-shape","nback-color","nback-number"]);
+const NO_REFLOW = new Set(["odd-one-out","position-recall","digit-span","ar-span","word-list-recall","sentence-repeat","color-recall","shape-recall","sequence-pattern","visual-analogy","nback-shape","nback-color","nback-number"]);
 function pickPortraitDims(n, board, rows0, cols0){ try{ if(rows0 < 2 || cols0 < 2 || NO_REFLOW.has(currentExercise().id)) return null; const cs = getComputedStyle(board); const w = board.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
   const bar = document.querySelector(".controls"); const barH = bar && getComputedStyle(bar).display !== "none" ? bar.getBoundingClientRect().height : 0;
   const focus = document.documentElement.classList.contains("run-focus") && window._rfMax; const availAll = focus ? window._rfMax : Math.max(window.innerHeight - board.getBoundingClientRect().top - barH - 12 - 16, window.innerHeight * 0.62); /* odak dışında sayfa kaydırılabilir: başlık uzun olsa da tahta ekranın en az %62'si kadar yer alabilir (aksi hâlde seçici ham sütuna düşüp hücreleri sıkıştırıyordu) */   /* geçmiş düğmesi kaldırıldı: tahta bu alanı da kullanır */
@@ -211,7 +211,7 @@ let {rows, cols} = currentTier();
 let track = "1fr", colTrack = null, rowTrack = null, rgGap = 0;
 board.classList.remove("rg-tight");
 if(landscapeMQ.matches){
-const best = currentExercise().id === "digit-span" ? null : pickLandscapeDims(currentGrid.length, board);   /* Rakam Dizisi tek dizi kuralı: yatayda da dizi tek satırda kalır, bölünmez */
+const best = arBase(currentExercise().id) === "digit-span" ? null : pickLandscapeDims(currentGrid.length, board);   /* Rakam Dizisi tek dizi kuralı: yatayda da dizi tek satırda kalır, bölünmez */
 if(best && ORAL_Q_IDS.has(currentExercise().id) && currentGrid.length % best.cols){ let d = best.cols; while(d > 1 && currentGrid.length % d) d--; best.cols = d; best.rows = Math.ceil(currentGrid.length / d); }   /* sözlü soru sayısı kuralı: 3 – 4 – 5 maddelik listelerde yatayda son satır eksik kalmaz (5 madde → tek sütun) */
 if(best){ rows = best.rows; cols = best.cols; track = "minmax(0, 1fr)"; }
 { const fc = ZA_BOARD.fixCols(); if(fc){ cols = fc; rows = Math.ceil(currentGrid.length / fc); track = "minmax(0, 1fr)"; } }   /* sabit sütunlu tahta kuralı: yatayda da iki sütun */
@@ -936,7 +936,7 @@ _exLabelToCategoryCache = {};
 CATEGORIES.forEach(cat=>{
 cat.exerciseIds.forEach(id=>{
 const ex = EXERCISES.find(e=>e.id===id);
-if(ex){ _exLabelToCategoryCache[ex.label] = cat; (ex.oldLabels || []).forEach(l => { _exLabelToCategoryCache[l] = cat; }); }
+if(ex){ [ex.label].concat(ex.oldLabels || []).forEach(l => { if(!_exLabelToCategoryCache[l]) _exLabelToCategoryCache[l] = cat; }); }   /* KURAL (ilk alan eşleşmesi, 2026-11-26): bir çalışma birden çok alanda olabilir (Ardıl İşlemleme); kayıt kendi (ilk) alanına bağlanır — son eşleşme ortak çalışmaları Ardıl'a kaydırıyordu */
 });
 });
 }
@@ -951,6 +951,8 @@ if(!cat) return;
 if(!byCat[cat.id]) byCat[cat.id] = { category: cat, sessions: [] };
 byCat[cat.id].sessions.push(r);
 });
+/* KURAL (Ardıl İşlemleme özeti, 2026-11-26): birleşik alanın (Ardıl İşlemleme) özeti, alanın bütün çalışmalarının kayıtlarından kurulur — ortak çalışmalar kendi alanında da sayılmaya devam eder; ortak bir çalışma oynanınca alan "denenen alan" sayılır */
+CATEGORIES.filter(c => c.composite && !c.hidden).forEach(c => { const idOf = (lb) => { const ex = EXERCISES.find(e => e.label === lb || (e.oldLabels || []).includes(lb)); return ex ? ex.id : null; }, ss = records.filter(r => c.exerciseIds.includes(idOf(r.exerciseLabel))); if(ss.length) byCat[c.id] = { category: c, sessions: ss }; });
 return Object.values(byCat).map(entry=>{
 const sessions = entry.sessions.slice().sort((a,b)=> a.t - b.t);
 const n = sessions.length;
@@ -1660,8 +1662,8 @@ if(fixed.length > 2 && !hwIds.length){ const f = fixed.slice(); fixed = []; whil
 if(round > 1){ fixed = []; const fresh = mains.filter(x => !exclude.includes(x)); if(fresh.length >= 3) mains.splice(0, mains.length, ...fresh); }   /* sonraki turlarda bugün yapılanlar mümkünse tekrarlanmaz */
 let m1 = fixed[0] || pick(mains); let rest = mains.filter(x => x !== m1); let m2 = fixed[1] || (rest.length ? pick(rest) : m1);
 if(fixed.length === 1 && m2 === m1){ rest = mains.filter(x => x !== m1); m2 = rest.length ? pick(rest) : m1; }
-let closePool = CATEGORIES.flatMap(c => c.id === target ? [] : c.exerciseIds).filter(id => { const ex = exerciseById(id); return ex && exLvlOk(id) && isGameEligible(ex); });   /* KURAL: günlük plandaki her adım, çalışmanın açılacağı alan düzeyinde (okul dönemi) gerçekten bulunan bir çalışmadır */
-if(!closePool.length) closePool = CATEGORIES.flatMap(c => c.exerciseIds).filter(id => exerciseById(id) && isGameEligible(exerciseById(id)) && exLvlOk(id));
+const tgIds = (CATEGORIES.find(c => c.id === target) || { exerciseIds: [] }).exerciseIds; let closePool = [...new Set(CATEGORIES.flatMap(c => c.id === target ? [] : c.exerciseIds))].filter(id => { const ex = exerciseById(id); return ex && !tgIds.includes(id) && exLvlOk(id) && isGameEligible(ex); });   /* KURAL (kapanış başka alandan, 2026-11-26): ortak çalışmalar (Ardıl İşlemleme) kapanış havuzunda bir kez sayılır ve hedef alanda da olan çalışma kapanış olmaz */   /* KURAL: günlük plandaki her adım, çalışmanın açılacağı alan düzeyinde (okul dönemi) gerçekten bulunan bir çalışmadır */
+if(!closePool.length) closePool = [...new Set(CATEGORIES.flatMap(c => c.exerciseIds))].filter(id => exerciseById(id) && isGameEligible(exerciseById(id)) && exLvlOk(id));
 const cp2 = closePool.filter(x => x !== m1 && x !== m2 && !exclude.includes(x)); const close = pick(cp2.length ? cp2 : closePool.filter(x => x !== m1 && x !== m2));
 /* KURAL (Bugün): günün planında ısınma (göz takip) adımı yoktur; dört adım = üç ana çalışma + kapanış, plan ilk adımdan başlar */
 const rest3 = mains.filter(x => x !== m1 && x !== m2); const m0 = rest3.length ? pick(rest3) : (pick(closePool.filter(x => x !== close && x !== m1 && x !== m2)) || m1);
@@ -1812,7 +1814,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.25-c";
+const APP_VERSION = "2026.11.26-b";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 /* RUNTIME_CSS → zihin-stil.css */
 /* Dosya sürümü denetimi: zihin-atolyesi.html ile uygulama kodu (zihin-1…8) farklı sürümdeyse uyar */

@@ -141,3 +141,6 @@ const ZA_PACE = {
   "pk-light":             { pre:[900, 800, 700, 650], post:[750, 650, 550, 480] }  /* Deniz Feneri Işıkları: yanma süresi */
 };
 function zaPace(key){ const p = ZA_PACE[key]; if(!p) return 0; const A = (typeof isPre === "function" && isPre()) ? p.pre : p.post; let t = 0; try{ t = currentCombo().t | 0; }catch(e){} return A[Math.max(0, Math.min(A.length - 1, t))]; }
+/* KURAL (Ardıl İşlemleme uyarlamaları, 2026-11-26; kullanıcı kararı): Ardıl İşlemleme alanındaki çalışmalar başka alanlardaki çalışmaların aynısı değildir — oyun mantığı aynı olabilir, içerik ve yönerge alana özeldir. Her uyarlama ayrı bir çalışmadır (ayrı ad, ayrı kayıt); motor tabloları (düzey, süre, aşama kilidi) taban çalışmanınkiyle ortaktır: arBase(id) uyarlamanın taban çalışmasını verir */
+const AR_OF = { "ar-heard":"pic-seq-touch", "ar-corsi":"corsi", "ar-span":"digit-span", "ar-words":"word-order", "ar-route":"route-mem", "ar-tone":"tone-seq", "ar-porder":"pic-order", "ar-sent":"sent-listen", "ar-wmseq":"wm-seq", "ar-rhythm":"rhythm", "ar-dir":"dir-follow", "ar-rt":"rt-colors", "ar-move":"move-seq", "ar-simon":"pk-simon", "ar-seqw":"seq-words" };
+const arBase = (id) => AR_OF[id] || id;
