@@ -1518,3 +1518,20 @@ return "";
     new MutationObserver(scan).observe(root, { childList:true, subtree:true, attributes:true, attributeFilter:["class"] }); };
   const init = () => { watch(document.getElementById("board")); watch(document.getElementById("placeScreen")); };
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init(); })();
+
+/* KURAL (tahta içeriği boş yeri kullanır, 2026-11-27; kullanıcı isteği — tahtalar yatay ve dikeyde olabilecek en iyi büyüklükte): dokunarak cevaplanan ızgara / tuş tahtalarında (Sondakileri Hatırla, Değişeni Bul, renk ve şekil sıraları, Simon, Sırayla Geçenler, Sıraya Koy, Kim Söyledi?, Market Listesi) oyun alanı çalışırken tahtada kalan boş yere göre orantılı büyür (en çok 1,7 kat); en ve boy birlikte büyür, tahtanın dışına taşmaz, sayfa kaymaz. Dikey ve yatayda aynı kural işler; her çizimde yeniden hesaplanır */
+const ZA_GROW_KINDS = new Set(["running", "chg", "smn", "face", "porder", "seqw", "who", "market"]);
+function zaBoardGrow(){ try{ const bd = document.getElementById("board"); if(!bd) return; const w = bd.querySelector(":scope > .wm-wrap"); if(!w) return; const st = typeof mtState !== "undefined" ? mtState : null;
+  const kids = [...w.children].filter(e => !e.classList.contains("wm-info") && !e.classList.contains("wm-dots"));
+  kids.forEach(e => { if(e.dataset.zg){ e.style.zoom = ""; delete e.dataset.zg; } });
+  const ex = typeof currentExercise === "function" ? currentExercise() : null; const mt = !!(ex && ex.isMt && st && ZA_GROW_KINDS.has(st.kind)), rt = !!w.querySelector(":scope > .rt-pal");   /* renk / şekil sıraları kendi tahtasını çizer (mtState onlara ait değildir): paletinden tanınır */
+  if(!(mt || rt) || !timerRunning) return;
+  let g = null, ga = 0; kids.forEach(e => { const r = e.getBoundingClientRect(); if(r.height > 40 && r.width * r.height > ga){ ga = r.width * r.height; g = e; } }); if(!g || g.querySelector("input, textarea, .aud-list")) return;
+  const gr = g.getBoundingClientRect(), wr = w.getBoundingClientRect(), cs = getComputedStyle(bd), pad = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0), brd = (parseFloat(cs.borderTopWidth) || 0) + (parseFloat(cs.borderBottomWidth) || 0);
+  const limit = landscapeMQ.matches ? bd.clientHeight - pad : ((document.documentElement.classList.contains("run-focus") && window._rfMax) ? window._rfMax : Math.floor(window.innerHeight - bd.getBoundingClientRect().top - 12)) - pad - brd;
+  const k = Math.min(w.clientWidth / gr.width, (limit - (wr.height - gr.height) - 6) / gr.height, 1.7);
+  if(k >= 1.12){ g.style.zoom = String(Math.floor(k * 100) / 100); g.dataset.zg = "1"; } }catch(e){} }
+(function(){ const f = renderMtBoard; renderMtBoard = function(){ const r = f.apply(this, arguments); try{ zaBoardGrow(); }catch(e){} return r; }; window.addEventListener("resize", () => { try{ requestAnimationFrame(zaBoardGrow); }catch(e){} });
+  /* kendi çizim işlevi olan türlerde (renk / şekil sıraları) tahta yeniden kurulunca bir sonraki karede uygulanır; yalnız öğe ekleme / çıkarma izlenir (stil değişikliği izlenmez: döngü olmaz) */
+  const kur = () => { const bd = document.getElementById("board"); if(!bd || !window.MutationObserver) return; let bek = false; new MutationObserver(() => { if(bek) return; bek = true; requestAnimationFrame(() => { bek = false; zaBoardGrow(); }); }).observe(bd, { childList:true, subtree:true }); };
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", kur); else kur(); })();
