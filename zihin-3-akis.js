@@ -632,7 +632,7 @@ else recallPresent();
 }
 }
 
-function stopTimer(){ try{ nbSeqStop(); }catch(e){} window._lastStopAt = Date.now(); document.documentElement.classList.remove("board-run"); runFocusOff();   // süre bitimi zamanlayıcısı, son durağın ödül ekranını atlamasın
+function stopTimer(){ try{ nbSeqStop(); }catch(e){} window._lastStopAt = Date.now(); document.documentElement.classList.remove("board-run"); runFocusOff(); try{ if(typeof gameMode !== "undefined" && gameMode) setTimeout(() => { try{ zaGamePreFit(); }catch(e){} }, 60); }catch(e){}   /* oyunlarda tahta başlamadan önce de ekrana sığar kuralı: Bitir / sıfırlamadan sonra da aynı düzen */   // süre bitimi zamanlayıcısı, son durağın ödül ekranını atlamasın
 clearInterval(timerInterval);
 if(timerPausedAt){ timerPausedAt = 0; } try{ document.getElementById("timerDisplay").classList.remove("paused"); }catch(e){}
 timerRunning = false; try{ document.documentElement.classList.remove("za-running"); zaSessionRelayout(); }catch(e){}; try{ if(landscapeMQ.matches) setTimeout(() => { try{ if(!timerRunning) window.dispatchEvent(new Event("resize")); }catch(e){} }, 180); }catch(e){}   /* yatay tahta boyu kuralı: bitince tahta odak dışı ölçüyle yeniden çizilir */
@@ -667,7 +667,7 @@ if(gameMode && !window.__gmHalf){ setTimeout(gameAfterStop, 400); } window.__gmH
 function resetTimer(){
 try{ if(timerRunning){ window._saySeqTok = (window._saySeqTok || 0) + 1; zaStopSpeech(); } }catch(e){}   /* durdurunca okuma susar kuralı: çalışırken ↻ ile sıfırlanınca da okuma susar */
 window._autoSavePending = false; try{ nbSeqStop(); }catch(e){} timerPausedAt = 0; try{ document.getElementById("timerDisplay").classList.remove("paused"); }catch(e){}
-document.documentElement.classList.remove("board-run"); runFocusOff();
+document.documentElement.classList.remove("board-run"); runFocusOff(); try{ if(typeof gameMode !== "undefined" && gameMode) setTimeout(() => { try{ zaGamePreFit(); }catch(e){} }, 60); }catch(e){}   /* oyunlarda tahta başlamadan önce de ekrana sığar kuralı: Bitir / sıfırlamadan sonra da aynı düzen */
 clearInterval(timerInterval);
 timerRunning = false; try{ document.documentElement.classList.remove("za-running"); zaSessionRelayout(); }catch(e){}; try{ if(landscapeMQ.matches) setTimeout(() => { try{ if(!timerRunning) window.dispatchEvent(new Event("resize")); }catch(e){} }, 180); }catch(e){}   /* yatay tahta boyu kuralı: bitince tahta odak dışı ölçüyle yeniden çizilir */
 stopEyeMotion();

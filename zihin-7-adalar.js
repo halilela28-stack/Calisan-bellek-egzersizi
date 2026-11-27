@@ -57,7 +57,10 @@ function gameChildLabel(ex){ const l = ex.label; const i = l.indexOf(": "); retu
 function hideGameScreens(){ ZA_LIFE.leave(); 
 ["islandScreen","islandStopsScreen","gameReward","allGamesScreen","testsScreen","testResultScreen","testInterScreen"].forEach(id => { const el = document.getElementById(id); if(el) el.style.display = "none"; });
 }
-function exitGameMode(){ ZA_LIFE.leave(); 
+/* KURAL (oyunlarda tahta başlamadan önce de ekrana sığar, 2026-11-27; kullanıcı isteği): Zihin Adaları, Tüm Oyunlar ve Testler'den açılan oyunda dikey ekranda tahta, Başlat'tan önce de çalışırkenki sığdırma düzeniyle kurulur — tahtanın tamamı ekranda görünür, sayfa aşağı yukarı kaymaz; Başlat'a basınca tahta yer ve boy değiştirmez. Yatayda sayfa zaten ekran boyuna göre kurulur */
+function zaGamePreFit(){ try{ if(typeof gameMode === "undefined" || !gameMode || timerRunning) return; const h = document.documentElement, ma = document.getElementById("mainApp"); if(!ma || getComputedStyle(ma).display === "none") return; if(landscapeMQ.matches){ if(h.classList.contains("run-focus")) runFocusOff(); return; } if(!h.classList.contains("run-focus")) runFocusOn(); else { runFocusSize(); runFocusFit(); } }catch(e){} }
+window.addEventListener("resize", () => { try{ if(typeof gameMode !== "undefined" && gameMode && !timerRunning) setTimeout(zaGamePreFit, 80); }catch(e){} });
+function exitGameMode(){ ZA_LIFE.leave(); try{ if(!timerRunning) runFocusOff(); }catch(e){} 
 gameMode = false;
 document.documentElement.classList.remove("game-mode");
 try{ window.__zaCancelN = (window.__zaCancelN || 0) + 1; if(window.speechSynthesis) speechSynthesis.cancel(); }catch(e){}
@@ -530,6 +533,7 @@ const needHint = !!hint && rr.fails && ((rr.fails[tt] || 0) >= 1 || (rr.fails[tt
 gameStop.hinted = needHint;
 const hb = document.getElementById("gameHint"); hb.style.display = needHint ? "" : "none"; hb.textContent = needHint ? "💡 İpucu: " + hint : "";
 window.scrollTo(0, 0);
+try{ setTimeout(zaGamePreFit, 0); setTimeout(zaGamePreFit, 120); setTimeout(zaGamePreFit, 450); }catch(e){}   /* oyunlarda tahta başlamadan önce de ekrana sığar kuralı */
 gameStop.pred = null;
 try{ gmLevelRender(); }catch(e){}
 const inRoute = (() => { try{ const rr2 = gxRoute(); const k = rr2.steps.findIndex(x => x.id === exId); return k >= 0 && !rr2.done[k]; }catch(e){ return false; } })();

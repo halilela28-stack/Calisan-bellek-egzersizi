@@ -1190,7 +1190,7 @@ html.game-mode #islDock{display:none !important}
 }
 
 /* ===== ETKİNLİK SAYFASININ ÜSTÜ · tek blok ===== */
-/* KURAL (etkinlik sayfasının üstü tek blokta, 2026-11-27; toparlama 4): etkinlik sayfasında tahtanın dışında kalan her şeyin (başlık ve çipler, kişi / düzey / bölüm satırları, yönerge kutusu, süre ve hata satırları, alt düğmeler, oyun çubuğu, Bugün planı çubuğu, yatay düzen çubuğu) kimlik ve kendi sınıflarına bağlı bütün stilleri yalnız bu bloktadır; dosyanın başka bir yerinde ya da HTML içindeki stil bölümünde bu öğelerin kuralı yazılmaz. Her değişiklik bu blokta, ilgili kuralın kendi satırında yapılır; sona yama bölümü eklenmez, yeni !important eklenmez (kalan 87 tanesi durum kuralları, satır içi stili ezmesi gereken kurallar ve tahta / ortak sınıf kurallarını ezen kurallardır). Sıra: önce her ekranda geçerli kurallar, sonra ekran koşulları. Tahtanın (#board) ve çalışmaların kendi stilleri bu blokta değildir. */
+/* KURAL (etkinlik sayfasının üstü tek blokta, 2026-11-27; toparlama 4): etkinlik sayfasında tahtanın dışında kalan her şeyin (başlık ve çipler, kişi / düzey / bölüm satırları, yönerge kutusu, süre ve hata satırları, alt düğmeler, oyun çubuğu, Bugün planı çubuğu, yatay düzen çubuğu) kimlik ve kendi sınıflarına bağlı bütün stilleri yalnız bu bloktadır; dosyanın başka bir yerinde ya da HTML içindeki stil bölümünde bu öğelerin kuralı yazılmaz. Her değişiklik bu blokta, ilgili kuralın kendi satırında yapılır; sona yama bölümü eklenmez, yeni !important eklenmez (kalan 88 tanesi durum kuralları, satır içi stili ezmesi gereken kurallar ve tahta / ortak sınıf kurallarını ezen kurallardır). Sıra: önce her ekranda geçerli kurallar, sonra ekran koşulları. Tahtanın (#board) ve çalışmaların kendi stilleri bu blokta değildir. */
 .app{max-width:520px;margin:0 auto;min-height:100%;min-width:0;display:flex;flex-direction:column;padding:14px 14px calc(90px + var(--hb, 0px) + env(safe-area-inset-bottom, 0px));overflow-x:hidden}
 .gb-hint{flex:1 1 100%;order:9;background:#FFF4D6;border:2px solid #E0A100;border-radius:12px;padding:4px 10px;font-size:13px;font-weight:800;color:#7A5600}
 html.game-mode .game-bar{flex-wrap:wrap;display:flex}
@@ -1589,6 +1589,20 @@ html.game-mode #timerResetBtn.timer-btn.reset{display:inline-block !important}
   .exh-chip{padding:4px 6px;gap:4px}
   .gm-lv-seg button{padding:0 10px;font-size:14px}
   .gm-lv-l{display:none}
+}
+
+/* KURAL (oyunlarda yatay: süre ve yönerge tek satırda, 2026-11-27; kullanıcı isteği — tahtalar olabilecek en büyük boyda): Zihin Adaları, Tüm Oyunlar ve Testler'den açılan oyunda yatay telefonda süre / hata kutusu ile yönerge aynı satırda yan yana durur (yönerge sağda; çoğunda iki, en uzunlarda dört satır); böylece tahtaya bir satır daha yer kalır. 760 px'ten dar yatay ekranda yönerge sığmayacağı için eski düzen (yönerge altta) kalır. Oyunlarda yatay yönerge hiçbir genişlikte kesilmez (en çok dört satır). Başlamadan önce ve çalışırken düzen aynıdır; tahta Başlat'ta aşağı inmez (yönerge kısalırsa yalnız yukarı doğru büyür) */
+@media (orientation:landscape) and (max-height:520px){
+  html.game-mode #lsInstructionBox{-webkit-line-clamp:4;max-height:calc(4 * 1.35em + 10px)}
+}
+@media (orientation:landscape) and (max-height:520px) and (min-width:760px){
+  html.game-mode #mainApp{display:grid !important;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);column-gap:8px;align-content:start}
+  html.game-mode #mainApp > *{grid-column:1 / -1;min-width:0}
+  html.game-mode #mainApp > #gameBar{grid-row:1}
+  html.game-mode #mainApp > .ls-bar{grid-column:1;grid-row:2;align-self:center}
+  html.game-mode #mainApp > #lsInstructionBox{grid-column:2;grid-row:2;align-self:center;line-height:1.3;padding-top:3px;padding-bottom:3px;margin-bottom:0}
+  html.game-mode #mainApp > .ls-bar{margin-bottom:6px}
+  html.game-mode #mainApp > #board{grid-row:3}
 }
 
 /* ===== AÇILIR PENCERELER · tek blok ===== */
