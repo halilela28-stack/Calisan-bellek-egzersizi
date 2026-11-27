@@ -552,7 +552,7 @@ groups.forEach(([name, ids]) => { const seenG = new Set(); const inLevel = ids.f
 }
 
 /* KURAL (Aile ve Uzman sayfası, 2026-11-03 şablonu A): üstte tek çubuk (geri · "Bilişsel Etkinlik · Aile/Uzman" ve sayfa adı · mod etiketi · alanlar hakkında · ana sayfa) ve altında Bugünün etkinlikleri (Uzman'da Etkinlik Raporları) kartı; ortada alanlar uygulamadaki sırayla tek sütunda, grup başlıklarıyla, sol kenarı alan renginde ince satırlar ("N etkinlik"); satırlar ekranın kalanını boşluk bırakmadan eşit doldurur; altta yanlara açık, birbirine bitişik renkli dört düğme (Aile: Ödevlerim · Gelişim · Bu hafta · Uzmana bağlan; Uzman: Danışanlar · Gelişim · Bu hafta · Değerlendirme). Alt düğmeler eski düğmelerin işini aynen yapar. */
-function catV2Render(){ const sc = document.getElementById("categoryScreen"); if(!sc) return; const on = appMode === "aile" || appMode === "uzman"; sc.classList.toggle("cat-v2", on); const inner = sc.querySelector(".category-inner"); let top = document.getElementById("catTop"), dock = document.getElementById("catDock");
+function catV2Render(){ const sc = document.getElementById("categoryScreen"); if(!sc) return; const on = appMode === "aile" || appMode === "uzman"; sc.classList.toggle("cat-v2", on); sc.dataset.mod = on ? appMode : ""; const inner = sc.querySelector(".category-inner"); let top = document.getElementById("catTop"), dock = document.getElementById("catDock");
   if(!on){ if(top) top.style.display = "none"; if(dock) dock.style.display = "none"; return; }
   const isA = appMode === "aile", M = isA ? "Aile" : "Uzman";
   if(!top){ top = document.createElement("div"); top.id = "catTop"; inner.insertBefore(top, inner.firstChild); }
@@ -590,7 +590,7 @@ list.appendChild(header);
 lastGroup = cat.group;
 }
 const card = document.createElement("button");
-card.className = "category-card"; try{ const nEx = (cat.exerciseIds || []).filter(id => { const ex = exerciseById(id); return ex && (ex.readingLevel || []).includes(readingLevel); }).length; card.dataset.count = nEx; card.style.setProperty("--cc", cat.color); }catch(e){}
+card.className = "category-card"; card.dataset.grp = cat.group || ""; try{ const nEx = (cat.exerciseIds || []).filter(id => { const ex = exerciseById(id); return ex && (ex.readingLevel || []).includes(readingLevel); }).length; card.dataset.count = nEx; card.style.setProperty("--cc", cat.color); }catch(e){}
 const isDraft = false;   // tüm kategorilerin içeriği tamamlandı   // içeriği tamamlanan kategorilerde "Taslak" etiketi yok
 const isComingSoon = readingLevel === "pre" && !categoryHasPreExercises(cat);
 let badge = "";
@@ -1453,7 +1453,7 @@ new ResizeObserver(relayout).observe(document.getElementById("board"));
 ["gesturestart", "gesturechange", "gestureend"].forEach(t=>{
 document.addEventListener(t, e=> e.preventDefault(), {passive:false});
 });
-const FREE_SCROLL = ".exercise-row, input[type='range'], select, textarea, .ag-row, .ag-chips";   /* KURAL (yeni sayfalarda kaydırma, 2026-11-25): Tüm Oyunlar satırları ve kategori düğmeleri parmakla yana kayar (kartların arasındaki boşluktan da) */
+const FREE_SCROLL = ".exercise-row, input[type='range'], select, textarea, #islandScreen.isl-yatay .isl-wrap, .ag-row, .ag-chips";   /* KURAL (yeni sayfalarda kaydırma, 2026-11-25): Tüm Oyunlar satırları ve kategori düğmeleri parmakla yana kayar (kartların arasındaki boşluktan da) */
 const LS_SCROLL = "#lsMore, .settings-screen, .category-screen, .mode-screen, .onboard-screen, .consent-screen, .exh-pop, .za-scr";   /* KURAL (yeni sayfalarda kaydırma, 2026-11-25): yatayda Tüm Oyunlar, Testler, test sonucu ve ara kart sayfaları da yukarı-aşağı kayar (önce .za-scr listede yoktu, yatay telefonda sayfa kaymıyordu) */   /* yatayda etkinlik / kişi / düzey menüsünün listesi parmakla kayar (2026-11-19: menü bu listede yoktu, yatayda liste parmakla kaydırılamıyordu) */
 const INTERACTIVE = "button, a, input, select, textarea, label";
 /* KURAL (yatayda pencere listesi kayar, 2026-11-27): yatay telefonda sayfa kaymasını durduran kilit, karartılmış pencerelerin (kişi seçimi "Kim çalışıyor?", onay kutusu, yerleştirme, tahmin, birlikte oyna…) kendi kayan listesini durdurmaz. Önceden pencereler izinli listede olmadığı için yatayda kişi listesi parmakla yukarı aşağı kaymıyordu; liste kenara dayanınca arka sayfa yine oynamaz (2026-11-19 kuralı) */

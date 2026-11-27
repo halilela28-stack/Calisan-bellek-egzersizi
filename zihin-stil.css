@@ -992,3 +992,99 @@ html.tabui-ls #whoScreen .hm-wrap.hc{height:calc((100dvh - 22px - env(safe-area-
 .hc .hc-prow .hp-add,.hc .hc-prow .hp-ch{min-height:40px !important}
 @media (orientation:portrait) and (max-width:389px){ .hc #hmEtk .ha-grid .ha-bt{font-size:14px !important} }
 @media (orientation:portrait) and (max-height:600px){ .hc .hc-prow .ha-person{padding:2px 8px !important} .hc .hc-prow .avatar-chip,.hc .hc-prow .avatar{transform:scale(.9)} }
+
+/* ===== 42 · yatay telefon: Aile / Uzman etkinlik sayfası — yan menü + alan ızgarası (2026-11-27-b) ===== */
+/* KURAL (etkinlik sayfası yatay · U1/F1, 2026-11-27; kullanıcının seçtiği taslak): yatay telefonda Aile ve Uzman etkinlik sayfası yan menülüdür — solda dikey ray (en üstte Geri, altında alt çubuğun dört düğmesi), üstte tek satır başlık (sayfa adı, mod etiketi, hap biçiminde "Bugün · Başla" ya da "Etkinlik Raporları", bilgi, ana sayfa), altında alanlar 4 sütun ızgara. Her kutuda üstte alan rengi şeridi, grup adı, alan adı ve etkinlik sayısı vardır; grup başlık satırları gizlenir. Açılan alan ızgaranın en üstüne gelir ve tam genişliğe yayılır. Dokunulan düğmeler üst kenardan en az 14 px aşağıda, yanlarda ve altta güvenli alanın içindedir. Dikey düzen değişmez */
+@media (orientation:landscape) and (max-height:520px) and (min-width:600px){
+  #categoryScreen.cat-v2{--yL:max(14px,env(safe-area-inset-left));--yR:max(14px,env(safe-area-inset-right));--yB:max(12px,env(safe-area-inset-bottom));--yP:176px;padding:0 !important}
+  #categoryScreen.cat-v2[data-mod="uzman"]{--yP:186px}
+  #categoryScreen.cat-v2 .category-inner{max-width:none !important;width:auto !important;zoom:1 !important;margin:0 var(--yR) 0 calc(var(--yL) + 104px) !important;padding:14px 0 var(--yB) !important;position:relative;gap:8px !important;min-height:0 !important}
+  #categoryScreen.cat-v2 #catTop{position:static !important;margin:0 !important;padding:0 !important;height:46px !important;min-height:0 !important;background:transparent !important;box-shadow:none !important;border:0 !important;border-radius:0 !important;display:flex !important;align-items:center;gap:8px !important;width:auto !important;left:auto !important;transform:none !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important;filter:none !important;z-index:auto !important}
+  #categoryScreen.cat-v2 #catTop .ct-tx{flex:0 1 auto !important;min-width:0}
+  #categoryScreen.cat-v2 #catTop .ct-tx b{font-size:18px !important;white-space:nowrap}
+  #categoryScreen.cat-v2 #catTop .ct-tag{margin-right:auto}
+  #categoryScreen.cat-v2 #catTopInfo{margin-left:calc(var(--yP) + 8px) !important;width:44px !important;height:44px !important}
+  #categoryScreen.cat-v2 #catTopHome{width:44px !important;height:44px !important}
+  #categoryScreen.cat-v2 #catTopBack{position:fixed !important;left:var(--yL);top:14px;width:92px !important;height:44px !important;z-index:6;margin:0 !important}
+  #categoryScreen.cat-v2 #catDock{position:fixed !important;left:var(--yL) !important;right:auto !important;top:66px !important;bottom:var(--yB) !important;width:92px !important;height:auto !important;display:flex !important;flex-direction:column !important;gap:8px !important;padding:0 !important;margin:0 !important;background:transparent !important;box-shadow:none !important;border:0 !important;border-radius:0 !important;z-index:6;transform:none !important}
+  #categoryScreen.cat-v2 #catDock .cd-b{flex:1 1 0 !important;min-height:44px;width:100% !important;border-radius:16px !important;border:0 !important;padding:2px !important;justify-content:center !important;gap:3px !important;font-size:11px !important;line-height:1.05 !important;box-shadow:inset 0 2px 0 rgba(255,255,255,.3),0 4px 0 var(--d) !important}
+  #categoryScreen.cat-v2 #catDock .cd-b span{white-space:normal !important;text-align:center;overflow-wrap:anywhere}
+  #categoryScreen.cat-v2 #catDock .cd-b .cd-badge{top:4px !important;right:6px !important}
+  #categoryScreen.cat-v2 #familyHome,#categoryScreen.cat-v2 #expertHome{position:static !important;padding:0 !important;margin:0 !important;gap:8px !important;flex-direction:row !important;flex-wrap:wrap !important;min-height:0 !important;background:transparent !important;box-shadow:none !important;width:auto !important}
+  #categoryScreen.cat-v2 #familyHome > *:not(.fh-today):not(.fh-grid):not(.home-title),#categoryScreen.cat-v2 #expertHome > *:not(.fh-today):not(.fh-grid):not(.home-title){flex:1 1 280px;margin:0 !important;min-width:0}
+  #categoryScreen.cat-v2 #fhTodayBtn,#categoryScreen.cat-v2 #exReportsBtn{position:absolute !important;top:15px !important;right:104px !important;left:auto !important;width:var(--yP) !important;height:44px !important;min-height:0 !important;margin:0 !important;padding:0 10px 0 8px !important;border-radius:999px !important;gap:7px !important;display:flex !important;align-items:center !important;box-sizing:border-box;z-index:3}
+  #categoryScreen.cat-v2 #fhTodayBtn .fh-t2,#categoryScreen.cat-v2 #exReportsBtn .fh-t2,#categoryScreen.cat-v2 #exReportsBtn .fh-rep-go{display:none !important}
+  #categoryScreen.cat-v2 #fhTodayBtn .fh-ring{width:30px !important;height:30px !important;flex:0 0 30px}
+  #categoryScreen.cat-v2 #fhTodayBtn .fh-ring svg{width:30px !important;height:30px !important}
+  #categoryScreen.cat-v2 #fhTodayBtn .fh-ring b{font-size:11px !important}
+  #categoryScreen.cat-v2 #fhTodayBtn .fh-tx,#categoryScreen.cat-v2 #exReportsBtn .fh-tx{flex:1 1 auto;min-width:0}
+  #categoryScreen.cat-v2 #fhTodayBtn .fh-t1{font-size:0 !important;line-height:1 !important}
+  #categoryScreen.cat-v2 #fhTodayBtn .fh-t1::after{content:attr(data-kisa);font-size:15px;font-weight:900}
+  #categoryScreen.cat-v2 #exReportsBtn .fh-t1{font-size:14px !important;white-space:nowrap}
+  #categoryScreen.cat-v2 #exReportsBtn .fh-rep-ic{width:24px !important;height:24px !important;flex:0 0 24px;border:0 !important;background:transparent !important}
+  #categoryScreen.cat-v2 #fhTodayBtn .fh-go{padding:5px 12px !important;font-size:13px !important;min-height:0 !important}
+  #categoryScreen.cat-v2 #categoryList{display:grid !important;grid-template-columns:repeat(4,minmax(0,1fr)) !important;grid-auto-rows:minmax(max(84px, calc((100dvh - 96px - var(--yB)) / 3)),auto);gap:9px !important;align-content:start;align-items:stretch !important;margin:0 !important;padding:0 !important}
+  #categoryScreen.cat-v2 .category-group-header{display:none !important}
+  #categoryScreen.cat-v2 .category-card:not(.open){display:grid !important;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto minmax(0,1fr) auto;align-items:center;align-self:stretch !important;gap:0 6px !important;min-height:0 !important;height:auto !important;max-height:none !important;margin:0 !important;padding:0 10px 8px !important;border:0 !important;border-top:8px solid var(--cc) !important;border-radius:16px !important;text-align:left;overflow:hidden}
+  #categoryScreen.cat-v2 .category-card:not(.open)::before{content:attr(data-grp);position:static !important;display:block;grid-column:1 / -1;width:auto !important;height:auto !important;background:none !important;border:0 !important;margin:6px 0 0;font-size:11px;font-weight:900;letter-spacing:.03em;text-transform:uppercase;color:#4A5C6E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+  #categoryScreen.cat-v2 .category-card:not(.open) .category-card-text{grid-column:1 / -1;align-self:center;min-width:0}
+  #categoryScreen.cat-v2 .category-card:not(.open) .category-card-title{font-size:15px !important;line-height:1.12 !important;white-space:normal !important;overflow:visible !important}
+  #categoryScreen.cat-v2 .category-card:not(.open) .cat-count{grid-column:1;justify-self:start;font-size:12px !important}
+  #categoryScreen.cat-v2 .category-card:not(.open) .cat-chev{grid-column:2}
+  #categoryScreen.cat-v2 .category-card.open{grid-column:1 / -1;order:-1;margin:0 !important}
+}
+@media (orientation:landscape) and (max-height:520px) and (min-width:600px) and (max-width:720px){
+  #categoryScreen.cat-v2 #catTop .ct-tag{display:none !important}
+  #categoryScreen.cat-v2 #catTop .ct-tx{margin-right:auto}
+  #categoryScreen.cat-v2 #catTop .ct-tx b{font-size:16px !important}
+  #categoryScreen.cat-v2 .category-card:not(.open)::before{display:none !important}
+  #categoryScreen.cat-v2 .category-card:not(.open){grid-template-rows:minmax(0,1fr) auto;padding-top:4px !important}
+}
+
+/* ===== 43 · yatay telefon: Zihin Adaları — yan menü, yana akan harita (2026-11-27-b) ===== */
+/* KURAL (Zihin Adaları yatay · A1, 2026-11-27; kullanıcının seçtiği taslak): yatay telefonda solda dikey sekme rayı, üstte kişi düğmesi ile sayaç hapları, altta ortada Bugünün Rotası düğmesi; harita aradaki alanda yana kayar. Dokunulan düğmeler üst kenardan en az 14 px aşağıda, yanlarda ve altta güvenli alanın içindedir */
+@media (orientation:landscape) and (max-height:520px) and (min-width:600px){
+  #islandScreen.isl-yatay{--yL:max(14px,env(safe-area-inset-left));--yR:max(14px,env(safe-area-inset-right));--yB:max(12px,env(safe-area-inset-bottom));overflow:hidden !important;padding:0 !important}
+  #islandScreen.isl-yatay #islTop{position:absolute !important;left:calc(var(--yL) + 80px) !important;right:var(--yR) !important;top:14px !important;margin:0 !important;padding:0 !important;background:transparent !important;box-shadow:none !important;border-radius:0 !important;z-index:30;display:block !important;pointer-events:none;width:auto !important}
+  #islandScreen.isl-yatay #islTop .it-row{max-height:none !important;opacity:1 !important;overflow:visible !important;margin:0 !important;display:flex;align-items:center;justify-content:space-between;gap:8px;pointer-events:none}
+  #islandScreen.isl-yatay #islTop .it-row > *{pointer-events:auto}
+  #islandScreen.isl-yatay .it-who{flex:0 0 auto;height:46px;padding:0 14px 0 5px;gap:8px;background:#fff;border-radius:999px;box-shadow:0 3px 0 rgba(16,60,100,.35)}
+  #islandScreen.isl-yatay .it-stats{flex:0 1 auto;gap:6px;justify-content:flex-end}
+  #islandScreen.isl-yatay .it-st{flex:0 0 auto;flex-direction:row;align-items:center;gap:5px;height:36px;padding:0 11px;border-radius:999px;background:#fff !important;box-shadow:0 3px 0 rgba(16,60,100,.35) !important;line-height:1}
+  #islandScreen.isl-yatay .it-st svg{width:16px;height:16px}
+  #islandScreen.isl-yatay .it-st b{font-size:15px}
+  #islandScreen.isl-yatay .it-route{position:fixed;left:calc(var(--yL) + 80px);right:var(--yR);bottom:var(--yB);top:auto;width:auto;max-width:500px;height:56px;margin:0 auto !important;border-radius:999px;padding:0 6px 0 18px;pointer-events:auto;box-sizing:border-box;z-index:31}
+  #islandScreen.isl-yatay .it-route .it-rt{flex:1 1 auto;min-width:0}
+  #islandScreen.isl-yatay .it-route .it-rt2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #islandScreen.isl-yatay.isl-acik .it-route{max-width:none;margin:0 !important;left:calc(50% + (var(--yL) + 80px - var(--yR)) / 2 + 5px);right:var(--yR)}
+  #islandScreen.isl-yatay.isl-acik .it-route .it-steps{display:none}
+  #islandScreen.isl-yatay #islDock{position:static !important;margin:0 !important;display:block !important;height:0 !important;min-height:0 !important}
+  #islandScreen.isl-yatay #islOpenNext{position:fixed;left:calc(var(--yL) + 80px);right:calc(50% - (var(--yL) + 80px - var(--yR)) / 2 + 5px);bottom:var(--yB);margin:0 !important;max-width:none !important;z-index:31}
+  #islandScreen.isl-yatay #islOpenNext .isl-nextbtn{height:56px;border-radius:999px;padding:0 14px 0 6px;box-sizing:border-box}
+  #islandScreen.isl-yatay #islOpenNext .nb-tx{min-width:0}
+  #islandScreen.isl-yatay #islOpenNext .nb1,#islandScreen.isl-yatay #islOpenNext .nb2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+  #islandScreen.isl-yatay #islTabs.cd-like{position:fixed !important;left:var(--yL);top:14px;bottom:var(--yB);width:68px;display:flex !important;flex-direction:column !important;gap:8px !important;padding:0 !important;margin:0 !important;z-index:32}
+  #islandScreen.isl-yatay #islTabs.cd-like .cd-b{flex:1 1 0;width:100%;min-height:44px;border-radius:16px !important;border-left:0 !important;padding:2px !important;justify-content:center;box-shadow:inset 0 2px 0 rgba(255,255,255,.3),0 4px 0 var(--d) !important;font-size:12px}
+  #islandScreen.isl-yatay #islTabs.cd-like .cd-b.on{box-shadow:0 0 0 3px #fff,0 4px 0 3px var(--d) !important}
+  #islandScreen.isl-yatay .isl-wrap{position:absolute !important;left:calc(var(--yL) + 76px);right:0;top:60px;bottom:calc(var(--yB) + 62px);width:auto !important;max-width:none !important;margin:0 !important;padding:0 var(--yR) 0 4px !important;display:block !important;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scrollbar-width:none;z-index:1}
+  #islandScreen.isl-yatay .isl-wrap::-webkit-scrollbar{display:none}
+  #islandScreen.isl-yatay #islandMap{position:relative;flex:none;margin:0 !important}
+  #islandScreen.isl-yatay .isl-island.has-art{width:132px !important;height:auto !important}
+  #islandScreen.isl-yatay .isl-island.has-art .isl-art{height:98px !important;max-width:132px}
+  #islandScreen.isl-yatay .isl-island:not(.has-art){width:132px !important;height:110px !important}
+  #islandScreen.isl-yatay .isl-island.has-art .nm{font-size:13px;white-space:nowrap}
+  #islandScreen.isl-yatay .isl-island.has-art .isl-lbl{padding:2px 9px 3px}
+  #islandScreen.isl-yatay .isl-island .st svg{width:14px;height:14px}
+  #islandScreen.isl-yatay .isl-section{left:auto;right:auto;width:auto;white-space:nowrap;transform:translate(-50%,-50%) rotate(-90deg);font-size:13px}
+  #islandScreen.isl-yatay .isl-section::before,#islandScreen.isl-yatay .isl-section::after{content:none}
+  #islandScreen.isl-yatay .isl-lagoon{right:auto;border-radius:40px}
+  #islandScreen.isl-yatay .isl-lag-tag{white-space:nowrap}
+  #islandScreen.isl-yatay .isl-islet .il-pic,#islandScreen.isl-yatay .isl-islet .il-pic img{width:76px}
+  #islandScreen.isl-yatay .isl-islet.cur .il-pic,#islandScreen.isl-yatay .isl-islet.cur .il-pic img{width:84px}
+  #islandScreen.isl-yatay #placeCard{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:228px;z-index:5}
+  #islandScreen.isl-yatay #placeCard .place-card{flex-wrap:wrap;margin:0;max-width:none}
+  #islandScreen.isl-yatay #placeCard .place-card .gr-btn{flex:1 1 100%}
+}
+@media (orientation:landscape) and (max-height:520px) and (min-width:600px){
+  #islandScreen.isl-yatay .isl-cloud.c2,#islandScreen.isl-yatay .isl-cloud.c3{display:none !important}
+}

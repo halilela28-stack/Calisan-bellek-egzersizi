@@ -1704,7 +1704,7 @@ const C = 2 * Math.PI * 26, off = C * (1 - n / 4);
 box.innerHTML = `<h2 class="home-title">Aile Etkinlik Sayfası</h2>
 <button type="button" class="fh-today" id="fhTodayBtn">
 <span class="fh-ring"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="7"/><circle cx="32" cy="32" r="26" fill="none" stroke="#FFC21A" stroke-width="7" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/></svg><b>${n}/4</b></span>
-<span class="fh-tx"><div class="fh-t1">${all ? "Bugün tamam!" : "Bugünün etkinlikleri"}</div><div class="fh-t2">${famProfile() === "Oyuncu" ? "Önce kişi seçin" : escHTML(famProfile())} · yaklaşık 12 dakika · hedef: ${famCatName(plan.target)}</div></span>
+<span class="fh-tx"><div class="fh-t1" data-kisa="Bugün">${all ? "Bugün tamam!" : "Bugünün etkinlikleri"}</div><div class="fh-t2">${famProfile() === "Oyuncu" ? "Önce kişi seçin" : escHTML(famProfile())} · yaklaşık 12 dakika · hedef: ${famCatName(plan.target)}</div></span>
 <span class="fh-go">${all ? "Gör" : (n ? "Devam" : "Başla")}</span></button>
 ${""/* KURAL: Aile sayfasında Etkinlik Raporları düğmesi yok (Bu hafta ve Gelişim haritası yeterli) */}
 ${recommendedCardHtml()}
@@ -1814,7 +1814,7 @@ showLevelFlash(sessionActive.idx >= 3 ? "Bugünün son adımı tamam! 🎉" : `A
 }
 
 
-const APP_VERSION = "2026.11.27-a";
+const APP_VERSION = "2026.11.27-b";
 /* Son eklenen ekranların stili uygulamayla birlikte gelir: HTML dosyası eski kalsa bile görünüm bozulmaz */
 /* RUNTIME_CSS → zihin-stil.css */
 /* Dosya sürümü denetimi: zihin-atolyesi.html ile uygulama kodu (zihin-1…8) farklı sürümdeyse uyar */
