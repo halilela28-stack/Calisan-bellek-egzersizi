@@ -620,7 +620,7 @@ try{ catV2Render(); }catch(e){ console.error(e); }
 
 const TOURS = {
 home: { key: "wm_tour_home_seen_v4", steps: [   /* KURAL (ana sayfa · C tanıtımı, 2026-11-25): tanıtım yeni ana sayfayı anlatır — Zihin Adaları, Tüm Oyunlar ve Testler adımları var; ana sayfa değiştiği için tanıtım bir kez yeniden gösterilir (v4) */
-{sel:"#hmPerson", title:"Kişi", text:"Çalışan çocuk burada görünür. Değiştir ile başka bir çocuğa geçin, + Kişi ekle ile yeni çocuk ekleyin. Sonuçlar her çocuk için ayrı tutulur."},
+{sel:"#hmPerson", title:"Kişi", text:"Çalışan çocuk burada görünür. Değiştir ile başka bir çocuğa geçin, + ile yeni çocuk ekleyin. Sonuçlar her çocuk için ayrı tutulur."},
 {sel:"#hmEtkBtn", title:"Bilişsel Etkinlik", text:"Yetişkinle birlikte yapılan çalışmalar: 10 beceri alanı ve her alanda çok sayıda etkinlik."},
 {sel:"#hmToday", title:"Bugünün etkinlikleri", text:"Günlük kısa oturum: dört etkinlik. Uygulama çocuğun düzeyine göre kendisi hazırlar."},
 {sel:"#hmHw", title:"Ödevlerim", text:"Uzmanın verdiği ödevler ve çalışmalara göre önerilen sonraki adımlar."},
@@ -1240,9 +1240,9 @@ const hcStats = (() => { if(!cur) return null; const keep = currentPlayerName, k
 const hcI = (k) => `<span class="hc-art" aria-hidden="true">${ZA_ART[k]}</span>`;
 const hcAreas = (() => { try{ return CATEGORIES.filter(c => !c.hidden).length; }catch(e){ return 10; } })();
 el.innerHTML = `<div class="hm-wrap ha-wrap hc">
-<!-- KURAL (ana sayfa · C, 2026-11-25; kullanıcının onayladığı taslak): dikeyde başlık, kişi satırı ve alt alta üç bölme (Bilişsel Etkinlik · Bilişsel Oyun · Testler); yatayda üst çubuk (kişi, yıldız/ışık/gün, mod, ayarlar), yan yana üç bölme, altta mod notu ve "Kaldığın Yerden Devam Et". Bilişsel Oyun iki karttır: Zihin Adaları (mevcut Zihni) ve Tüm Oyunlar; Bilişsel Etkinlik görselleri kalın konturlu (taslak 1) -->
-<div class="ha-top hc-head"><div><div class="ha-app">Zihin Atölyesi</div><div class="ha-hi">Merhaba!</div></div><button type="button" class="hm-set" id="hmSet" aria-label="Ayarlar"><svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></div>
-<!-- KURAL (ana sayfa · B, 2026-11-05): "Merhaba!" altında kişi satırı (seçili kişi, okul dönemi, Değiştir, + Kişi ekle) --><div class="ha-person" id="hmPerson">${cur ? avatarHTML(cur, 40) : '<span class="hp-av0">?</span>'}<span class="hp-nm"><b>${cur ? escHTML(cur) : "Kişi seçilmedi"}</b><small>${cur ? ((getPlayerLevel(cur) || "post") === "pre" ? "Okul Öncesi" : "Okul Sonrası") : "Çalışacak kişiyi seçin"}</small></span>${names.length ? '<button type="button" class="hp-ch" id="hmPersonChange">Değiştir ▾</button>' : ""}<button type="button" class="hp-add" id="hmPersonAdd">+ Kişi ekle</button></div>
+<!-- KURAL (ana sayfa · C, 2026-11-25; kullanıcının onayladığı taslak): dikeyde kişi satırı (yanında ayarlar; başlık yazıları 2026-11-27'de kaldırıldı) ve alt alta üç bölme (Bilişsel Etkinlik · Bilişsel Oyun · Testler); yatayda üst çubuk (kişi, yıldız/ışık/gün, mod, ayarlar), yan yana üç bölme, altta mod notu ve "Kaldığın Yerden Devam Et". Bilişsel Oyun iki karttır: Zihin Adaları (mevcut Zihni) ve Tüm Oyunlar; Bilişsel Etkinlik görselleri kalın konturlu (taslak 1) -->
+<!-- KURAL (ana sayfa dikey · başlıksız, 2026-11-27; kullanıcı isteği): dikeyde "Zihin Atölyesi" ve "Merhaba!" yazıları yoktur. En üstte tek satır durur: kişi kartı (seçili kişi, okul dönemi, Değiştir, + ile kişi ekleme) ve yanında ayarlar düğmesi. Kalan yükseklik üç bölmeye (Bilişsel Etkinlik · Bilişsel Oyun · Testler) dengeli dağılır; mod notu en altta, sayfa ilk ekrana sığar. 2026-11-05 kuralındaki kişi satırı içeriği korunur -->
+<div class="hc-prow" id="hcProw"><div class="ha-person" id="hmPerson">${cur ? avatarHTML(cur, 40) : '<span class="hp-av0">?</span>'}<span class="hp-nm"><b>${cur ? escHTML(cur) : "Kişi seçilmedi"}</b><small>${cur ? ((getPlayerLevel(cur) || "post") === "pre" ? "Okul Öncesi" : "Okul Sonrası") : "Çalışacak kişiyi seçin"}</small></span>${names.length ? '<button type="button" class="hp-ch" id="hmPersonChange">Değiştir ▾</button>' : ""}<button type="button" class="hp-add" id="hmPersonAdd" aria-label="Kişi ekle">+</button></div><button type="button" class="hm-set hc-pset" id="hmSet" aria-label="Ayarlar"><svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></div>
 <div class="hc-bar" id="hcBar"><button type="button" class="hc-chip hc-who" id="hcWho">${cur ? avatarHTML(cur, 32) : '<span class="hp-av0">?</span>'}<span class="hc-wn"><b>${cur ? escHTML(cur) : "Kişi seç"}</b><small>${cur ? ((getPlayerLevel(cur) || "post") === "pre" ? "Okul Öncesi" : "Okul Sonrası") + " ▾" : "Dokun ve seç ▾"}</small></span></button><button type="button" class="hc-chip hc-plus" id="hcAdd" aria-label="Kişi ekle">+</button>
 ${hcStats ? `<span class="hc-chip hc-stat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="#FFC21A" stroke="#E0A100" stroke-width="1.2"/></svg><b>${hcStats.st}</b><small>yıldız</small></span><span class="hc-chip hc-stat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l1.8 7.2L21 12l-7.2 1.8L12 21l-1.8-7.2L3 12l7.2-2.8z" fill="#FFD54A" stroke="#E0A100" stroke-width="1.2"/></svg><b>${hcStats.li}</b><small>ışık</small></span><span class="hc-chip hc-stat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.2 1.2-3.6 2.4-4.6.2 1.6 1 2.6 2 3.1C11 9 11.2 5.5 12 3z" fill="#FF9500" stroke="#D47A00" stroke-width="1.2" stroke-linejoin="round"/></svg><b>${Math.min(hcStats.wk, WEEK_GOAL)}/${WEEK_GOAL}</b><small>gün</small></span>` : ""}
 <span class="hc-fill"></span>${hcRole ? `<span class="hc-role">${hcUz ? "Uzman" : "Aile"}</span>` : ""}<button type="button" class="hm-set hc-set" id="hcSet" aria-label="Ayarlar"><svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></div>
@@ -1456,26 +1456,50 @@ document.addEventListener(t, e=> e.preventDefault(), {passive:false});
 const FREE_SCROLL = ".exercise-row, input[type='range'], select, textarea, .ag-row, .ag-chips";   /* KURAL (yeni sayfalarda kaydırma, 2026-11-25): Tüm Oyunlar satırları ve kategori düğmeleri parmakla yana kayar (kartların arasındaki boşluktan da) */
 const LS_SCROLL = "#lsMore, .settings-screen, .category-screen, .mode-screen, .onboard-screen, .consent-screen, .exh-pop, .za-scr";   /* KURAL (yeni sayfalarda kaydırma, 2026-11-25): yatayda Tüm Oyunlar, Testler, test sonucu ve ara kart sayfaları da yukarı-aşağı kayar (önce .za-scr listede yoktu, yatay telefonda sayfa kaymıyordu) */   /* yatayda etkinlik / kişi / düzey menüsünün listesi parmakla kayar (2026-11-19: menü bu listede yoktu, yatayda liste parmakla kaydırılamıyordu) */
 const INTERACTIVE = "button, a, input, select, textarea, label";
-let sx = 0, sy = 0, startedOnInteractive = false, axis = null, freeScroll = false;
+/* KURAL (yatayda pencere listesi kayar, 2026-11-27): yatay telefonda sayfa kaymasını durduran kilit, karartılmış pencerelerin (kişi seçimi "Kim çalışıyor?", onay kutusu, yerleştirme, tahmin, birlikte oyna…) kendi kayan listesini durdurmaz. Önceden pencereler izinli listede olmadığı için yatayda kişi listesi parmakla yukarı aşağı kaymıyordu; liste kenara dayanınca arka sayfa yine oynamaz (2026-11-19 kuralı) */
+/* KURAL (yatayda dokunuş kaybolmaz, 2026-11-27): yatay telefonda bir düğmeye dokunurken parmak biraz kayarsa (10 px'e kadar) dokunuş iptal edilmez. Parmak daha çok kaydığı için sayfa kilidi devreye girdiyse ve parmak yine aynı düğmenin üstünde, kısa sürede (0,7 sn) ve az kayarak (24 px) kalktıysa, telefon tıklamayı üretmese de düğme çalıştırılır; tıklama geldiyse ikinci kez çalıştırılmaz. Kaydırıcı, seçim kutusu ve yazı alanı bunun dışındadır */
+/* KURAL (yatayda taşan sayfa kayar, 2026-11-27): Gelişim haritası, macera, yerleştirme, mola ve dar yatay ekranda ana sayfa içerikleri ekrana sığmıyorsa yatay telefonda parmakla yukarı aşağı kayar; sığıyorsa sayfa oynamaz (önceden Gelişim haritası yatayda kaymıyordu) */
+const LS_SCROLL_IF = "#growthScreen, #advScreen, #placeScreen, #molaScreen, #whoScreen";
+const TAP_SLOP = 10, TAP_RESCUE = 24, TAP_MS = 700, TAP_BTN = "button, a, [role='button']";
+let sx = 0, sy = 0, startedOnInteractive = false, axis = null, freeScroll = false, killed = false, t0 = 0, tapEl = null, maxMove = 0, lastTrusted = 0, rescued = null, rescuedAt = 0;
+document.addEventListener("click", e=>{ try{ if(!e.isTrusted) return; lastTrusted = Date.now(); if(rescued && Date.now() - rescuedAt < 700 && e.target instanceof Element && rescued.contains(e.target)){ e.stopImmediatePropagation(); e.preventDefault(); } }catch(err){} }, true);
 document.addEventListener("touchstart", e=>{
 if(e.touches.length === 1){
-sx = e.touches[0].clientX; sy = e.touches[0].clientY; axis = null;
+sx = e.touches[0].clientX; sy = e.touches[0].clientY; axis = null; killed = false; t0 = Date.now(); maxMove = 0;
 const t = e.target instanceof Element ? e.target : null;
 startedOnInteractive = !!(t && t.closest(INTERACTIVE));
 freeScroll = !!(t && t.closest(FREE_SCROLL));
-}
+tapEl = t && !t.closest("input, select, textarea, label") ? t.closest(TAP_BTN) : null;
+} else { tapEl = null; }
 }, {passive:true});
 document.addEventListener("touchmove", e=>{
 if(e.touches.length > 1){ e.preventDefault(); return; }
 if(freeScroll) return;
-if(axis === null){
 const dx = Math.abs(e.touches[0].clientX - sx), dy = Math.abs(e.touches[0].clientY - sy);
+if(Math.max(dx, dy) > maxMove) maxMove = Math.max(dx, dy);
+if(axis === null){
 if(dx < 6 && dy < 6) return;
 axis = dx > dy * 1.2 ? "x" : "y";
 }
 if(axis === "x"){ if(!startedOnInteractive) e.preventDefault(); return; }
-if(landscapeMQ.matches){ const t = e.target; if(t instanceof Element && !t.closest(LS_SCROLL)) e.preventDefault(); }
+if(landscapeMQ.matches){ const t = e.target; if(t instanceof Element && !t.closest(LS_SCROLL)){
+let h = null; try{ h = zaScrollHost(t); }catch(err){}
+if(h && h.sc) return;
+try{ const sc = t.closest(LS_SCROLL_IF); if(sc && sc.scrollHeight > sc.clientHeight + 1) return; }catch(err){}
+if(startedOnInteractive && maxMove < TAP_SLOP) return;
+if(e.cancelable){ e.preventDefault(); killed = true; }
+} }
 }, {passive:false});
+document.addEventListener("touchend", e=>{ try{
+const el = tapEl, wasKilled = killed; tapEl = null; killed = false;
+if(!el || !wasKilled || e.defaultPrevented || e.touches.length) return;
+if(maxMove > TAP_RESCUE || Date.now() - t0 > TAP_MS) return;
+const c = e.changedTouches[0], at = document.elementFromPoint(c.clientX, c.clientY);
+if(!at || !el.contains(at) || el.disabled) return;
+const stamp = Date.now();
+setTimeout(() => { try{ if(lastTrusted >= stamp - 30) return; if(!document.body.contains(el) || el.disabled) return; rescued = el; rescuedAt = Date.now(); el.click(); }catch(err){} }, 320);
+}catch(err){} }, {passive:true});
+document.addEventListener("touchcancel", () => { tapEl = null; killed = false; }, {passive:true});
 })();
 
 (function(){

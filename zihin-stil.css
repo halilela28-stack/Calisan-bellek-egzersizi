@@ -946,3 +946,49 @@ html.game-mode:has(#timerBtn.running) #gameBar > .gm-level{display:none}
 /* KURAL (yazı boyu, 2026-11-25): yeni sayfalarda iPhone yazıları kendiliğinden büyütmez (Testler'deki açıklama iPhone'da iri görünüyordu) */
 .za-scr{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 @media (orientation:landscape) and (min-width:600px){ .ts-wrap .ag-top .ts-info{order:6;margin-left:0} .ts-wrap .ag-top .ts-dur{margin-left:auto} }
+
+/* ===== 41 · ana sayfa dikey başlıksız + yatay üst çubuk (2026-11-27) ===== */
+/* KURAL (ana sayfa dikey · başlıksız, 2026-11-27; kullanıcı isteği): dikeyde "Zihin Atölyesi / Merhaba!" yazıları yoktur; en üstte kişi kartı ile ayarlar düğmesi tek satırdadır. Üç bölme kalan yüksekliği dengeli paylaşır (Bilişsel Etkinlik ≈ Bilişsel Oyun > Testler), aralıklar eşittir, mod notu en altta ve ilk ekrandadır */
+.hc .hc-prow{display:flex;align-items:stretch;gap:8px;min-width:0}
+.hc .hc-prow .ha-person{flex:1 1 auto;min-width:0;margin:0 !important}
+.hc .hc-prow .hp-add{width:42px;min-width:42px;padding:0 !important;font-size:22px;line-height:1;display:inline-flex;align-items:center;justify-content:center}
+.hc .hc-prow .hc-pset{flex:0 0 auto;width:52px;height:auto;min-height:52px;align-self:stretch;border-radius:18px;border:2px solid #d8eceb;border-bottom-width:5px;background:#fff;color:#0A847E;font-size:22px}
+@media (orientation:portrait), (max-width:599px){
+  #whoScreen .hm-wrap.hc{gap:clamp(8px,1.6vh,16px) !important;padding-bottom:4px !important}
+  #whoScreen:has(.hc){padding-bottom:calc(14px + env(safe-area-inset-bottom)) !important}
+  .hc .hc-panels{gap:clamp(8px,1.6vh,16px) !important}
+  .hc #hmEtk.ha-etk{flex:1.15 1 0 !important}
+  .hc .hc-game{flex:1 1 0 !important}
+  .hc .hc-tests{flex:.82 1 0 !important}
+  .hc .ha-big .ha-bbt small{white-space:normal}
+  .hc .hc-tests .hc-tg{flex:1 1 auto;min-height:0}
+  .hc .hc-tests .hc-t{min-height:0;height:100%}
+}
+@media (orientation:portrait) and (min-height:701px){ .hc .hc-tests .hc-t{min-height:74px} }
+@media (orientation:portrait) and (max-height:600px){
+  .hc .hc-p{padding:8px !important;gap:5px}
+  .hc .hc-panels{gap:6px !important}
+  #whoScreen .hm-wrap.hc{gap:6px !important}
+  .hc .hc-t{min-height:46px;padding:4px 2px}
+  .hc .hc-t .hc-art{width:24px;height:24px}
+  .hc .hc-game{min-height:96px}
+  .hc .hc-prow .ha-person{padding:4px 8px !important}
+}
+@media (orientation:portrait) and (max-height:700px){ .hc .hc-prow .ha-person{padding:5px 8px !important} .hc .hc-prow .hc-pset{min-height:44px;width:46px} }
+/* KURAL (yatay üst çubuk üst kenara dayanmaz, 2026-11-27): yatay telefonda ana sayfanın üst çubuğu (kişi, +, ayarlar) ekranın üst kenarından en az 14 px aşağıda başlar; iPhone ana ekran uygulamasında yatayda en üstteki birkaç piksel dokunuşu almadığı için düğmeler oraya dayanmaz */
+@media (orientation:landscape) and (min-width:600px){
+  .hc .hc-prow{display:none !important}
+  #whoScreen:has(.hc){padding-top:calc(14px + env(safe-area-inset-top)) !important}
+  html #whoScreen .hm-wrap.hc{height:calc(100dvh - 22px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
+}
+html.tabui-ls #whoScreen .hm-wrap.hc{height:calc((100dvh - 22px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) / var(--tabZ,1)) !important}
+@media (orientation:landscape) and (min-width:600px) and (max-width:720px){
+  .hc #hmEtk .ha-grid .ha-bt{font-size:12px !important}
+  .hc #hmEtk .ha-grid .ha-b{padding-right:6px !important}
+  .hc #hmEtk .ha-grid .ha-b i{display:none}
+  .hc .hc-gt small{white-space:normal;overflow:visible;text-overflow:clip;font-size:11px}
+  .hc .hc-gt b{font-size:14px}
+}
+.hc .hc-prow .hp-add,.hc .hc-prow .hp-ch{min-height:40px !important}
+@media (orientation:portrait) and (max-width:389px){ .hc #hmEtk .ha-grid .ha-bt{font-size:14px !important} }
+@media (orientation:portrait) and (max-height:600px){ .hc .hc-prow .ha-person{padding:2px 8px !important} .hc .hc-prow .avatar-chip,.hc .hc-prow .avatar{transform:scale(.9)} }
