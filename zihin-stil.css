@@ -385,6 +385,10 @@ html.ins-xs .sdmt-pair > div{width:36px;height:36px;padding:4px}   /* küçük t
 /* KURAL (yazılı seçenekler sıkı düzen, 2026-11-20): sığmayan yazılı seçenekler sıkı düzende (46 px düğme, 6 px aralık) */
 #board .qz-txt-grid.qz-tight{gap:6px}
 #board .qz-txt-grid.qz-tight .qz-txt{min-height:46px;padding:4px 8px !important}
+/* KURAL (yatayda tahta yazısı yana geçer, 2026-11-28): za-side sınıfını zaBoardGrow koyar; yazı ve ilerleme noktaları oyun alanının solunda, dikeyde ortalı durur — akıştan çıkar, oyun alanı kazanılan yüksekliği kullanır */
+#board .wm-wrap.za-side{position:relative}
+#board .wm-wrap.za-side > .wm-info{position:absolute;top:50%;transform:translateY(-50%);margin:0;line-height:1.35;min-height:0}
+#board .wm-wrap.za-side > .wm-dots{position:absolute;margin:0;justify-content:center;flex-wrap:wrap}
 /* KURAL (Hangisi Benziyor düzeni, 2026-11-20; kullanıcı kararı): örnek resimler açık zemin üstünde düz çerçeveli kartlarda; resim kenara taşmaz */
 #board .sim-stim{display:flex;gap:10px;justify-content:center;align-items:center;width:max-content;max-width:100%;margin:0 auto;padding:8px 10px;border-radius:20px;background:#EEF2F6;box-sizing:border-box}
 #board .sim-ref{box-sizing:border-box;width:104px;height:104px;padding:7px;border-radius:16px;background:var(--panel, #fff);border:2px solid var(--line, #DDE6EE);display:flex;align-items:center;justify-content:center;flex:0 1 104px;min-width:0}
