@@ -1608,6 +1608,13 @@ html.game-mode #timerResetBtn.timer-btn.reset{display:inline-block !important}
   html.game-mode #mainApp > .ls-bar{margin-bottom:6px}
   html.game-mode #mainApp > #board{grid-row:3}
 }
+/* KURAL (oyun çalışırken üst şerit gizlenir, 2026-11-28; kullanıcı kararı — tahtaya yer açılır): Zihin Adaları, Tüm Oyunlar ve Testler'den açılan oyunda, süre çalışırken "Oyunlar / ev / oyun adı / yıldız / kişi" şeridi yatay telefonda ve kısa dikey ekranda (yükseklik ≤ 700 px) gizlenir; tahta o yüksekliği kazanır (yatay 844×390: 256 → 326 px). Bitir'e basınca ya da süre bitince şerit geri gelir; başlamadan önce hep görünür. Uzun dikey ekranda şerit çalışırken de durur */
+@media (orientation:landscape) and (max-height:520px){
+  html.game-mode.za-running #mainApp > #gameBar{display:none}
+}
+@media (orientation:portrait) and (max-height:700px){
+  html.game-mode.za-running #mainApp > #gameBar{display:none}
+}
 
 /* ===== AÇILIR PENCERELER · tek blok ===== */
 /* KURAL (açılır pencereler tek blokta, 2026-11-27; toparlama 5): dolap, mola ekranı, ödül ve uyku pencereleri, onay / uyarı kutusu, ebeveyn kilidi, oyun kişi listesi ve kişi ekleme penceresinin kendi kimlik ve sınıflarına bağlı bütün stilleri yalnız bu bloktadır; dosyanın başka bir yerinde ya da HTML içindeki stil bölümünde bu pencerelerin kuralı yazılmaz. Her değişiklik bu blokta, ilgili kuralın kendi satırında yapılır; sona yama bölümü eklenmez, yeni !important eklenmez (kalan 13 tanesi durum kuralları ve ortak sınıfları ezmesi gereken kurallardır). Ortak sınıflara (.mola-card, .mola-list, .gr-btn, .ex-input, .sheet-x …) bağlı kurallar bu blokta değildir. */
