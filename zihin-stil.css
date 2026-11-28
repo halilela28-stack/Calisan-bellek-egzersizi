@@ -1608,12 +1608,15 @@ html.game-mode #timerResetBtn.timer-btn.reset{display:inline-block !important}
   html.game-mode #mainApp > .ls-bar{margin-bottom:6px}
   html.game-mode #mainApp > #board{grid-row:3}
 }
+#ttClockRun{display:none}
 /* KURAL (oyun çalışırken üst şerit gizlenir, 2026-11-28; kullanıcı kararı — tahtaya yer açılır): Zihin Adaları, Tüm Oyunlar ve Testler'den açılan oyunda, süre çalışırken "Oyunlar / ev / oyun adı / yıldız / kişi" şeridi yatay telefonda ve kısa dikey ekranda (yükseklik ≤ 700 px) gizlenir; tahta o yüksekliği kazanır (yatay 844×390: 256 → 326 px). Bitir'e basınca ya da süre bitince şerit geri gelir; başlamadan önce hep görünür. Uzun dikey ekranda şerit çalışırken de durur */
 @media (orientation:landscape) and (max-height:520px){
   html.game-mode.za-running #mainApp > #gameBar{display:none}
+  html.za-testing.game-mode.za-running #ttClockRun{display:inline-flex;flex:0 0 auto;height:26px;margin:0 6px}
 }
 @media (orientation:portrait) and (max-height:700px){
   html.game-mode.za-running #mainApp > #gameBar{display:none}
+  html.za-testing.game-mode.za-running #ttClockRun{display:inline-flex;flex:0 0 auto;height:26px;margin:0 6px}
 }
 
 /* ===== AÇILIR PENCERELER · tek blok ===== */

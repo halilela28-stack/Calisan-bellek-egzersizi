@@ -1521,6 +1521,7 @@ return `<div class="trl-node${i < trailState.next ? " done" : ""}" data-o="${i}"
 }).join("");
 const area = board.querySelector(".trl-area");
 area.style.height = H + "px";
+if((window._fitK || 1) < 1){ area.style.width = Math.round(W) + "px"; area.style.marginLeft = "auto"; area.style.marginRight = "auto"; }   /* KURAL (iz tahtası küçülünce ortada durur, 2026-11-28): tahta ekrana sığsın diye küçültüldüğünde (kısa telefon) düğümler tahtanın sol yanına toplanmaz; küçülen alan tahtanın ortasında durur */
 area.innerHTML = `<svg class="trl-lines" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${lines}</svg>${nodes}`;
 board.style.minHeight = "";
 trailState.pos = pos;
