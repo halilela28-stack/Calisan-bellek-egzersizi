@@ -1859,7 +1859,34 @@ function altCtx(){ const t = Math.min(currentCombo().t, 2); if(t === 0) return "
 
 function planThinkOn(){ try{ const ex = currentExercise(); const st = ex.stages && ex.stages[currentStageIndex]; return !!(st && st.think); }catch(e){ return false; } }   /* "Önce Planla" kilidi açık mı */
 
+/* KURAL (sığan sayfa tam sığar, kaymaz, 2026-11-28; kullanıcı isteği — Hafıza Testi sonucu gibi sayfalar): tam ekran bilgi sayfalarında (test listesi, test sonucu, test ara kartı, Aile/Uzman sayfası, duraklar, Ödevlerim, Bugün, Bu hafta, Gelişim, Danışanlar, raporlar, ayarlar…) içerik ekrana az farkla sığmıyorsa sayfa sığdırılır ve kaymaz: 1) sayfanın altındaki boş pay (önceden her sayfada 90 px) gerektiği kadar azalır (en az 16 px + çentik payı); 2) yetmezse sayfanın sık düzeni açılır (za-sig: büyük süs resimleri ve boşluklar küçülür); 3) yine yetmezse sayfa bütün olarak en çok % 15 küçülür — hiçbir yazı 11 px'ten küçük olmaz. Sığınca sayfa yukarı-aşağı oynamaz (kaydırma ve esneme kapanır; yazı alanı olan sayfada kaydırma açık kalır). İçerik ekranın % 45'inden fazla taşıyorsa (uzun listeler, Hakkında, Tüm Oyunlar) sayfaya dokunulmaz, eskisi gibi kayar. İçerik değişince (açılır bölüm, düğme) ve ekran dönünce yeniden hesaplanır. Dikey ve yatay birlikte geçerlidir */
+const ZA_FIT_PAGES = ["testsScreen", "testResultScreen", "testInterScreen", "categoryScreen", "islandStopsScreen", "linkScreen", "todayScreen", "weekScreen", "growthScreen", "expertScreen", "historyScreen", "settingsScreen", "aboutScreen", "allGamesScreen"];
+function zaFitUndo(el){ el.classList.remove("za-sig"); if(el.dataset.zfo != null){ el.style.overflowY = el.dataset.zfo; el.style.overscrollBehavior = ""; delete el.dataset.zfo; } el.querySelectorAll("[data-zfp], [data-zfz]").forEach(e => { if(e.dataset.zfp != null){ e.style.paddingBottom = e.dataset.zfp; delete e.dataset.zfp; } if(e.dataset.zfz != null){ e.style.zoom = e.dataset.zfz; delete e.dataset.zfz; } }); if(el.dataset.zfp != null){ el.style.paddingBottom = el.dataset.zfp; delete el.dataset.zfp; } delete el.dataset.zfit; }
+function zaPageFit(el){ try{ if(!el || el.__zfBusy) return; el.__zfBusy = true; zaFitUndo(el);
+  const cs = getComputedStyle(el); if(cs.display === "none" || el.clientHeight < 200) return;
+  const over = () => el.scrollHeight - el.clientHeight, lock = (adim) => { el.dataset.zfit = adim; if(!el.querySelector("input, textarea, select")){ el.dataset.zfo = el.style.overflowY || ""; el.style.overflowY = "hidden"; el.style.overscrollBehavior = "none"; } };
+  let o = over(); if(o <= 1){ lock("0"); return; } if(o > el.clientHeight * 0.45) return;
+  const kids = [...el.children].filter(c => { const k = getComputedStyle(c); return k.display !== "none" && k.position !== "fixed" && k.position !== "absolute"; });
+  const pads = [el].concat(kids.length === 1 ? [kids[0]] : []).map(e => [e, parseFloat(getComputedStyle(e).paddingBottom) || 0]).sort((a, b) => b[1] - a[1]); const [pe, pb] = pads[0];
+  if(pb > 24){ const yeni = Math.max(16, pb - o - 2); pe.dataset.zfp = pe.style.paddingBottom || ""; pe.style.paddingBottom = `calc(${Math.round(yeni)}px + env(safe-area-inset-bottom))`; o = over(); if(o <= 1){ lock("1"); return; } }
+  el.classList.add("za-sig"); o = over(); if(o <= 1){ lock("2"); return; }
+  let minF = 99; el.querySelectorAll("*").forEach(e => { if(e.children.length || !(e.textContent || "").trim() || !e.offsetWidth) return; minF = Math.min(minF, parseFloat(getComputedStyle(e).fontSize) || 99); });
+  const kmin = Math.max(0.85, 11 / minF), z = kids.length === 1 ? kids : kids; let k = Math.floor(el.clientHeight / el.scrollHeight * 1000) / 1000;
+  for(let i = 0; i < 3 && k >= kmin; i++){ z.forEach(c => { if(c.dataset.zfz == null) c.dataset.zfz = c.style.zoom || ""; c.style.zoom = String(k); }); o = over(); if(o <= 1){ lock("3"); return; } k = Math.floor(k * (el.clientHeight / el.scrollHeight) * 1000) / 1000; }
+  zaFitUndo(el);   /* sığmıyor: sayfa eskisi gibi kayar */
+}catch(e){} finally{ if(el) setTimeout(() => { el.__zfBusy = false; }, 0); } }
+(function(){ try{ const bekle = new WeakMap(); const iste = (el) => { if(bekle.get(el)) return; bekle.set(el, true); requestAnimationFrame(() => requestAnimationFrame(() => { bekle.set(el, false); zaPageFit(el); })); };
+  const izle = (el) => { if(!el || el.__zfObs) return; el.__zfObs = true; let gorunur = false;
+    new MutationObserver((ms) => { if(el.__zfBusy) return; const g = getComputedStyle(el).display !== "none"; if(g !== gorunur){ gorunur = g; if(g) iste(el); return; } if(!g) return;
+      if(ms.some(m => !(m.type === "attributes" && (m.target === el || m.target.dataset && (m.target.dataset.zfz != null || m.target.dataset.zfp != null)) && (m.attributeName === "style" || m.attributeName === "class" || /^data-zf/.test(m.attributeName || ""))))) iste(el); })
+      .observe(el, { attributes:true, childList:true, subtree:true, characterData:true, attributeFilter:["style", "class", "open", "hidden"] }); if(getComputedStyle(el).display !== "none"){ gorunur = true; iste(el); } };
+  const tara = () => ZA_FIT_PAGES.forEach(id => izle(document.getElementById(id)));
+  tara(); new MutationObserver(tara).observe(document.body, { childList:true });
+  const hepsi = () => ZA_FIT_PAGES.forEach(id => { const e = document.getElementById(id); if(e && getComputedStyle(e).display !== "none") iste(e); });
+  window.addEventListener("resize", () => setTimeout(hepsi, 120)); window.addEventListener("orientationchange", () => setTimeout(hepsi, 300)); if(document.fonts && document.fonts.ready) document.fonts.ready.then(hepsi);
+}catch(e){} })();
+
 window.__zaReady = true;
 /* açılış tamamlandı: dosyanın sonuna kadar hatasız çalıştı (boş ekran yardımı için) */
 window.__zaBooted = true;
-try{ const sp = document.getElementById("zaSplash"); if(sp) sp.remove(); }catch(e){}   /* KURAL (açılış ekranı, 2026-11-25): uygulama hazır olunca açılış ekranı kalkar */
+try{ const sp = document.getElementById("zaSplash"); if(sp){ if(window.__zaSplashOff) window.__zaSplashOff(); else sp.remove(); } }catch(e){}   /* KURAL (açılış ekranı, 2026-11-25; 2026-11-28): uygulama hazır olunca açılış ekranı kalkar — en az 3 sn görünür kaldıktan sonra */
